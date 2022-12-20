@@ -90,9 +90,10 @@ class Note(object):
     # self.wrd - слово
     # self.tr - список переводов
     # self.dsc - список доп. информации
+    # self.forms - формы слова
     # self.count_t - количество переводов
     # self.count_d - количество записей с доп. информацией
-    # self.forms - формы слова
+    # self.count_f - количество форм слова
     # self.fav - избранное
     # self.all_tries - количество всех попыток
     # self.correct_tries - количество удачных попыток
@@ -107,9 +108,10 @@ class Note(object):
             self.dsc = dsc_
         else:
             self.dsc = [dsc_]
+        self.forms = {}
         self.count_t = len(self.tr)
         self.count_d = len(self.dsc)
-        self.forms = {}
+        self.count_f = 0
         self.fav = fav_
         self.all_tries = all_tries_
         self.correct_tries = correct_tries_
@@ -173,7 +175,7 @@ class Note(object):
         print('     Перевод: ', end='')
         self.print_tr()
         print(' Формы слова:', end='')
-        if len(self.forms) == 0:
+        if self.count_f == 0:
             print(' -')
         else:
             print()
@@ -193,7 +195,7 @@ class Note(object):
         print('     Перевод: ', end='')
         self.print_tr()
         print(' Формы слова:', end='')
-        if len(self.forms) == 0:
+        if self.count_f == 0:
             print(' -')
         else:
             print()
@@ -228,6 +230,7 @@ class Note(object):
             print(f'Слово уже имеет форму {frm_type_}: {self.forms[frm_type_]}')
         else:
             self.forms[frm_type_] = new_frm_
+            self.count_f += 1
 
     """ Добавить статистику """
     def add_stat(self, all_tries_, correct_tries_, last_tries_):
@@ -310,12 +313,13 @@ class Note(object):
     def remove_frm(self):
         keys_ = [key_ for key_ in self.forms.keys()]
         print('Выберите одно из предложенного')
-        for i in range(len(keys_)):
+        for i in range(self.count_f):
             print(f'{i} - {keys_[i]}: {code(self.forms[keys_[i]])}')
         index_ = input('Введите номер варианта: ')
         try:
             index_ = int(index_)
             self.forms.pop(keys_[index_])
+            self.count_f -= 1
         except (ValueError, IndexError):
             print(f'Неверный номер варианта: "{index_}"')
 
