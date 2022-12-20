@@ -1,9 +1,6 @@
 import random
 
-SETTINGS_FN = 'settings.txt'
-
-with open(SETTINGS_FN, 'r') as setF:
-    filename = setF.readline().strip()
+SETTINGS_FN = 'settings'
 
 
 def code(str_):
@@ -23,12 +20,79 @@ def code(str_):
     return str_
 
 
+def choose_one_frm(frm_name_, frm_list_):
+    while True:
+        print(f'\nВыберите {frm_name_}')
+        for i in range(len(frm_list_)):
+            print(f'{i} - {frm_list_[i]}')
+        print('Н - Не указывать/Неприменимо')
+        print('Д - Добавить новый вариант')
+        print('У - Удалить вариант')
+        cmd_ = input().upper()
+        if cmd_ in ['Н', 'Y']:
+            return ''
+        elif cmd_ in ['Д', 'L']:
+            cmd_ = input('\nВведите новый вариант: ')
+            if cmd_ in frm_list_:
+                print(f'Вариант "{cmd_}" уже существует')
+            elif cmd_ == '':
+                print(f'Недопустимый вариант')
+            elif '@' in cmd_:
+                print(f'Недопустимый символ: "@"')
+            else:
+                frm_list_ += [cmd_]
+                return cmd_
+        elif cmd_ in ['У', 'E']:
+            print('\nВыберите один из предложенных вариантов')
+            for i in range(len(frm_list_)):
+                print(f'{i} - {frm_list_[i]}')
+            index_ = input('Введите номер варианта: ')
+            try:
+                frm_list_.pop(int(index_))
+            except (ValueError, IndexError):
+                print(f'Недопустимый номер варианта: "{index_}"')
+        else:
+            try:
+                return frm_list_[int(cmd_)]
+            except (ValueError, IndexError):
+                print(f'Недопустимый вариант: "{cmd_}"')
+
+
+def choose_frm_type():
+    print('Выберите тип формы слова')
+    num_ = choose_one_frm('число', FORMS_NUM)
+    gen_ = choose_one_frm('род', FORMS_GEN)
+    case_ = choose_one_frm('падеж', FORMS_CASE)
+    face_ = choose_one_frm('лицо', FORMS_FACE)
+    time_ = choose_one_frm('время', FORMS_TIME)
+
+    res_ = num_
+    if num_ != '':
+        if gen_ != '' or case_ != '' or face_ != '' or time_ != '':
+            res_ += ' '
+    res_ += gen_
+    if gen_ != '':
+        if case_ != '' or face_ != '' or time_ != '':
+            res_ += ' '
+    res_ += case_
+    if case_ != '':
+        if face_ != '' or time_ != '':
+            res_ += ' '
+    res_ += face_
+    if face_ != '':
+        if time_ != '':
+            res_ += ' '
+    res_ += time_
+    return res_
+
+
 class Note(object):
     # self.wrd - слово
     # self.tr - список переводов
     # self.dsc - список доп. информации
     # self.count_t - количество переводов
     # self.count_d - количество записей с доп. информацией
+    # self.forms - формы слова
     # self.fav - избранное
     # self.all_tries - количество всех попыток
     # self.correct_tries - количество удачных попыток
@@ -36,7 +100,6 @@ class Note(object):
     # self.last_tries - количество последних неудачных попыток (-1 - значит ещё не было попыток)
     def __init__(self, wrd_, tr_, dsc_=None, fav_=False, all_tries_=0, correct_tries_=0, last_tries_=-1):
         self.wrd = wrd_
-        self.forms = {}
         self.tr = tr_ if type(tr_) == list else [tr_]
         if dsc_ == None:
             self.dsc = []
@@ -46,6 +109,7 @@ class Note(object):
             self.dsc = [dsc_]
         self.count_t = len(self.tr)
         self.count_d = len(self.dsc)
+        self.forms = {}
         self.fav = fav_
         self.all_tries = all_tries_
         self.correct_tries = correct_tries_
@@ -69,7 +133,12 @@ class Note(object):
     """ Напечатать описание """
     def print_dsc(self, tab_=0):
         for dsc_ in self.dsc:
-            print(' ' * tab_ + '> ' + code(dsc_))
+            print(' ' * tab_ + f'> {code(dsc_)}')
+
+    """ Напечатать формы слова """
+    def print_frm(self, tab_=0):
+        for n_ in self.forms.keys():
+            print(' ' * tab_ + f'> {n_}: {code(self.forms[n_])}')
 
     """ Напечатать запись - кратко """
     def print_briefly(self):
@@ -102,7 +171,14 @@ class Note(object):
     def print_edit(self):
         print(f'       Слово: {self.wrd}')
         print('     Перевод: ', end='')
-        self.print_tr(end_='\n      Сноски: ')
+        self.print_tr()
+        print(' Формы слова:', end='')
+        if len(self.forms) == 0:
+            print(' -')
+        else:
+            print()
+            self.print_frm(tab_=8)
+        print('      Сноски: ', end='')
         if len(self.dsc) == 0:
             print('-')
         else:
@@ -115,7 +191,14 @@ class Note(object):
     def print_all(self):
         print(f'       Слово: {self.wrd}')
         print('     Перевод: ', end='')
-        self.print_tr(end_='\n      Сноски: ')
+        self.print_tr()
+        print(' Формы слова:', end='')
+        if len(self.forms) == 0:
+            print(' -')
+        else:
+            print()
+            self.print_frm(tab_=8)
+        print('      Сноски: ', end='')
         if len(self.dsc) == 0:
             print('-')
         else:
@@ -138,6 +221,13 @@ class Note(object):
     def add_dsc(self, new_dsc_):
         self.dsc += [new_dsc_]
         self.count_d += 1
+
+    """ Добавить форму слова """
+    def add_frm(self, frm_type_, new_frm_):
+        if frm_type_ in self.forms.keys():
+            print(f'Слово уже имеет форму {frm_type_}: {self.forms[frm_type_]}')
+        else:
+            self.forms[frm_type_] = new_frm_
 
     """ Добавить статистику """
     def add_stat(self, all_tries_, correct_tries_, last_tries_):
@@ -180,7 +270,7 @@ class Note(object):
             self.tr.pop(index_)
             self.count_t -= 1
         except IndexError:
-            print(f'Неверный номер варианта "{index_}"')
+            print(f'Неверный номер варианта: "{index_}"')
 
     """ Удалить информацию по её номеру """
     def remove_dsc_i(self, index_):
@@ -188,31 +278,46 @@ class Note(object):
             self.dsc.pop(index_)
             self.count_d -= 1
         except IndexError:
-            print(f'Неверный номер варианта "{index_}"')
+            print(f'Неверный номер варианта: "{index_}"')
 
     """ Удалить перевод """
     def remove_tr(self):
-        print('Выберите одно из предложенного:')
+        print('Выберите одно из предложенного')
         for i in range(self.count_t):
-            print(f'{i}. {self.tr[i]}')
+            print(f'{i} - {code(self.tr[i])}')
         index_ = input('Введите номер варианта: ')
         try:
             index_ = int(index_)
         except ValueError:
-            print(f'Неверный номер варианта "{index_}"')
-        self.remove_tr_i(index_)
+            print(f'Неверный номер варианта: "{index_}"')
+        else:
+            self.remove_tr_i(index_)
 
     """ Удалить информацию """
     def remove_dsc(self):
-        print('Выберите одно из предложенного:')
+        print('Выберите одно из предложенного')
         for i in range(self.count_d):
-            print(f'{i}. {self.dsc[i]}')
+            print(f'{i} - {code(self.dsc[i])}')
         index_ = input('Введите номер варианта: ')
         try:
             index_ = int(index_)
         except ValueError:
-            print(f'Неверный номер варианта "{index_}"')
-        self.remove_dsc_i(index_)
+            print(f'Неверный номер варианта: "{index_}"')
+        else:
+            self.remove_dsc_i(index_)
+
+    """ Удалить форму слова """
+    def remove_frm(self):
+        keys_ = [key_ for key_ in self.forms.keys()]
+        print('Выберите одно из предложенного')
+        for i in range(len(keys_)):
+            print(f'{i} - {keys_[i]}: {code(self.forms[keys_[i]])}')
+        index_ = input('Введите номер варианта: ')
+        try:
+            index_ = int(index_)
+            self.forms.pop(keys_[index_])
+        except (ValueError, IndexError):
+            print(f'Неверный номер варианта: "{index_}"')
 
 
 class Dictionary(object):
@@ -305,6 +410,10 @@ class Dictionary(object):
     def add_dsc(self, wrd_, dsc_):
         self.d[wrd_].add_dsc(dsc_)
 
+    """ Добавить форму слова к записи в словаре """
+    def add_frm(self, wrd_, frm_type_, frm_):
+        self.d[wrd_].add_frm(frm_type_, frm_)
+
     """ Удалить перевод из словаря """
     def remove_tr(self, wrd_):
         self.count_t -= self.d[wrd_].count_t
@@ -315,6 +424,10 @@ class Dictionary(object):
     def remove_dsc(self, wrd_):
         self.d[wrd_].remove_dsc()
 
+    """ Удалить форму слова из словаря """
+    def remove_frm(self, wrd_):
+        self.d[wrd_].remove_frm()
+
     """ Удалить запись из словаря """
     def remove_note(self, wrd_):
         self.count_w -= 1
@@ -323,6 +436,7 @@ class Dictionary(object):
 
     """ Сохранить словарь в файл """
     def save(self, filename_):
+        save_settings()
         try:
             with open(filename_, 'w') as file_:
                 for key_ in self.d.keys():
@@ -334,8 +448,10 @@ class Dictionary(object):
                         file_.write(f't {val_}\n')
                     for val_ in self.d[key_].dsc:
                         file_.write(f'd {val_}\n')
+                    for frm_type_ in self.d[key_].forms.keys():
+                        file_.write(f'f {frm_type_}\n{self.d[key_].forms[frm_type_]}\n')
                     if self.d[key_].fav:
-                        file_.write(f'f\n')
+                        file_.write(f'*\n')
         except FileNotFoundError:
             print(f'Файл "{filename_}" не найден')
             exit(1)
@@ -359,6 +475,9 @@ class Dictionary(object):
                     elif line_[0] == 'd':
                         self.add_dsc(wrd_, line_[2:])
                     elif line_[0] == 'f':
+                        frm_type_ = line_[2:]
+                        self.add_frm(wrd_, frm_type_, file_.readline().strip())
+                    elif line_[0] == '*':
                         self.d[wrd_].fav = True
             return True
         except FileNotFoundError:
@@ -374,14 +493,15 @@ class Dictionary(object):
             print()
             print('Что вы хотите сделать?')
             print('СЛ - изменить СЛово')
-            print('П - изменить Перевод')
+            print('П  - изменить Перевод')
+            print('Ф  - изменить Формы слова')
             print('СН - изменить СНоски')
             if self.d[wrd_].fav:
-                print('И - убрать из Избранного')
+                print('И  - убрать из Избранного')
             else:
-                print('И - добавить в Избранное')
-            print('У - Удалить запись')
-            print('Н - вернуться Назад')
+                print('И  - добавить в Избранное')
+            print('У  - Удалить запись')
+            print('Н  - вернуться Назад')
             cmd_ = input().upper()
             if cmd_ in ['СЛ', 'CK']:
                 print()
@@ -403,6 +523,27 @@ class Dictionary(object):
                 elif cmd_ in ['У', 'E']:
                     print()
                     self.remove_tr(wrd_)
+                    has_changes_ = True
+                else:
+                    print(f'Неизвестная команда: "{cmd_}"')
+            elif cmd_ in ['Ф', 'A']:
+                print()
+                print('Что вы хотите сделать?')
+                print('Д - Добавить форму')
+                print('У - Удалить форму')
+                cmd_ = input().upper()
+                if cmd_ in ['Д', 'L']:
+                    print()
+                    frm_type_ = choose_frm_type()
+                    if frm_type_ in self.d[wrd_].forms.keys():
+                        print(f'У слова "{wrd_}" уже есть такая форма')
+                    else:
+                        frm_ = input('\nВведите форму слова: ')
+                        self.add_frm(wrd_, frm_type_, frm_)
+                        has_changes_ = True
+                elif cmd_ in ['У', 'E']:
+                    print()
+                    self.remove_frm(wrd_)
                     has_changes_ = True
                 else:
                     print(f'Неизвестная команда: "{cmd_}"')
@@ -716,15 +857,74 @@ class Dictionary(object):
         return True
 
 
+with open(SETTINGS_FN + '.txt', 'r') as setF:
+    filename = setF.readline().strip()
+
+local_settings_fn = SETTINGS_FN + '-' + filename
+with open(local_settings_fn, 'r') as locSetF:
+    FORMS_NUM = locSetF.readline().strip().split('@')
+    FORMS_GEN = locSetF.readline().strip().split('@')
+    FORMS_CASE = locSetF.readline().strip().split('@')
+    FORMS_FACE = locSetF.readline().strip().split('@')
+    FORMS_TIME = locSetF.readline().strip().split('@')
+
 dct = Dictionary()
 if not dct.read(filename):
     open(filename, 'w')
     dct.read(filename)
 
+
+def save_settings():
+    with open(local_settings_fn, 'w') as locSetF:
+        is_first = True
+        for i in range(len(FORMS_NUM)):
+            if is_first:
+                is_first = False
+            else:
+                locSetF.write('@')
+            locSetF.write(FORMS_NUM[i])
+        locSetF.write('\n')
+
+        is_first = True
+        for i in range(len(FORMS_GEN)):
+            if is_first:
+                is_first = False
+            else:
+                locSetF.write('@')
+            locSetF.write(FORMS_GEN[i])
+        locSetF.write('\n')
+
+        is_first = True
+        for i in range(len(FORMS_CASE)):
+            if is_first:
+                is_first = False
+            else:
+                locSetF.write('@')
+            locSetF.write(FORMS_CASE[i])
+        locSetF.write('\n')
+
+        is_first = True
+        for i in range(len(FORMS_FACE)):
+            if is_first:
+                is_first = False
+            else:
+                locSetF.write('@')
+            locSetF.write(FORMS_FACE[i])
+        locSetF.write('\n')
+
+        is_first = True
+        for i in range(len(FORMS_TIME)):
+            if is_first:
+                is_first = False
+            else:
+                locSetF.write('@')
+            locSetF.write(FORMS_TIME[i])
+
+
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
-print('                                  Dictionary  v4.0.3')
-print('                                   20.12.2022  4:59\n')
+print('                                  Dictionary  v5.0.0')
+print('                                   20.12.2022  7:45\n')
 print('======================================================================================\n')
 
 print(f'Файл со словарём "{filename}" открыт.')
@@ -849,7 +1049,7 @@ while True:
         if not dct.read(filename):
             open(filename, 'w')
             dct.read(filename)
-        with open(SETTINGS_FN, 'w') as setF:
+        with open(SETTINGS_FN + '.txt', 'w') as setF:
             setF.write(filename)
     elif cmd in ['З', 'P']:
         if has_changes:
