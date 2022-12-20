@@ -1,2661 +1,2661 @@
-w ich
+wich
 1
 1
 0
-t я
-w wir
+я
+wwir
 1
 1
 0
-t мы
-w du
+мы
+wdu
 1
 1
 0
-t ты
-w ihr
+ты
+wihr
 2
 2
 0
-t вы
-d не уваж.
-w er
+вы
+dне уваж.
+wer
 1
 1
 0
-t он
-w es
+он
+wes
 1
 1
 0
-t оно
-w sie
+оно
+wsie
 1
 1
 0
-t она
-t они
-w Sie
+она
+tони
+wSie
 1
 1
 0
-t вы
-d уваж.
-w eins
+вы
+dуваж.
+weins
 1
 1
 0
-t один
-t 1
-w zwei
+один
+t1
+wzwei
 1
 1
 0
-t два
-t 2
-w drei
+два
+t2
+wdrei
 1
 1
 0
-t три
-t 3
-w vier
+три
+t3
+wvier
 1
 1
 0
-t четыре
-t 4
-w f#unf
+четыре
+t4
+wf#unf
 1
 1
 0
-t пять
-t 5
-w sechs
+пять
+t5
+wsechs
 1
 1
 0
-t шесть
-t 6
-w sieben
+шесть
+t6
+wsieben
 1
 1
 0
-t семь
-t 7
-w acht
+семь
+t7
+wacht
 1
 1
 0
-t восемь
-t 8
-w neun
+восемь
+t8
+wneun
 2
 2
 0
-t девять
-t 9
-w zehn
+девять
+t9
+wzehn
 1
 1
 0
-t десять
-t 10
-w elf
+десять
+t10
+welf
 2
 2
 0
-t одиннадцать
-t 11
-w zw#olf
+одиннадцать
+t11
+wzw#olf
 1
 1
 0
-t двенадцать
-t 12
-w dreizehn
+двенадцать
+t12
+wdreizehn
 1
 1
 0
-t тринадцать
-t 13
-w vierzehn
+тринадцать
+t13
+wvierzehn
 1
 1
 0
-t четырнадцать
-t 14
-w f#unfzehn
+четырнадцать
+t14
+wf#unfzehn
 1
 1
 0
-t пятнадцать
-t 15
-w sechzehn
+пятнадцать
+t15
+wsechzehn
 1
 1
 0
-t шестнадцать
-t 16
-w siebzehn
+шестнадцать
+t16
+wsiebzehn
 1
 1
 0
-t семнадцать
-t 17
-w achtzehn
+семнадцать
+t17
+wachtzehn
 1
 1
 0
-t восемнадцать
-t 18
-w neunzehn
+восемнадцать
+t18
+wneunzehn
 1
 1
 0
-t девятнадцать
-t 19
-w null
+девятнадцать
+t19
+wnull
 1
 1
 0
-t ноль
-t 0
-t нуль
-w ja
+ноль
+t0
+tнуль
+wja
 1
 1
 0
-t да
-w nein
+да
+wnein
 2
 2
 0
-t нет
-w der Mann
+нет
+wder Mann
 1
 1
 0
-t мужчина
-t муж
-t господин
-w die Frau
+мужчина
+tмуж
+tгосподин
+wdie Frau
 1
 1
 0
-t женщина
-t жена
-t госпожа
-w der Mensch
+женщина
+tжена
+tгоспожа
+wder Mensch
 1
 1
 0
-t человек
-w das M#adchen
+человек
+wdas M#adchen
 1
 1
 0
-t девочка
-w der Kuli
+девочка
+wder Kuli
 1
 1
 0
-t ручка
-d шариковая
-d короткое слово
-w der Kugelschreiber
+ручка
+dшариковая
+dкороткое слово
+wder Kugelschreiber
 1
 1
 0
-t ручка
-d шариковая
-d длинное слово
-w das Tier
+ручка
+dшариковая
+dдлинное слово
+wdas Tier
 1
 1
 0
-t животное
-w das Kind
+животное
+wdas Kind
 1
 1
 0
-t ребёнок
-w der Hund
+ребёнок
+wder Hund
 2
 2
 0
-t пёс
-t собака
-w das Pferd
+пёс
+tсобака
+wdas Pferd
 1
 1
 0
-t лошадь
-t конь
-w die Biene
+лошадь
+tконь
+wdie Biene
 1
 1
 0
-t пчела
-w das Wasser
+пчела
+wdas Wasser
 1
 1
 0
-t вода
-w die Katze
+вода
+wdie Katze
 1
 1
 0
-t кошка
-w der Kater
+кошка
+wder Kater
 2
 2
 0
-t кот
-w der Freund
+кот
+wder Freund
 2
 2
 0
-t друг
-w die Freundin
+друг
+wdie Freundin
 2
 2
 0
-t подруга
-w in
+подруга
+win
 1
 1
 0
-t в
-w aus
+в
+waus
 1
 1
 0
-t из
-w hallo
+из
+whallo
 1
 1
 0
-t привет
-t здравствуй
-w tsch#u#s
+привет
+tздравствуй
+wtsch#u#s
 2
 2
 0
-t пока
-t до свидания
-w das Wiedersehen
+пока
+tдо свидания
+wdas Wiedersehen
 1
 1
 0
-t свидание
-w sehen
+свидание
+wsehen
 1
 1
 0
-t смотреть
-t видеть
-w der Bruder
+смотреть
+tвидеть
+wder Bruder
 1
 1
 0
-t брат
-w die Schwester
+брат
+wdie Schwester
 1
 1
 0
-t сестра
-w der Vater
+сестра
+wder Vater
 1
 1
 0
-t отец
-t папа
-w die Mutter
+отец
+tпапа
+wdie Mutter
 1
 1
 0
-t мать
-t мама
-w der Sohn
+мать
+tмама
+wder Sohn
 2
 2
 0
-t сын
-w die Tochter
+сын
+wdie Tochter
 1
 1
 0
-t дочь
-t дочка
-w die Tasche
+дочь
+tдочка
+wdie Tasche
 1
 1
 0
-t сумка
-w das Fleisch
+сумка
+wdas Fleisch
 1
 1
 0
-t мясо
-w der Fisch
+мясо
+wder Fisch
 1
 1
 0
-t рыба
-w deutsch
+рыба
+wdeutsch
 1
 1
 0
-t немецкий
-t немецкий язык
-w alles
+немецкий
+tнемецкий язык
+walles
 2
 2
 0
-t всё
-w alle
+всё
+walle
 1
 1
 0
-t все
-w der Saft
+все
+wder Saft
 1
 1
 0
-t сок
-w gut
+сок
+wgut
 2
 2
 0
-t хороший
-t хорошо
-w schlecht
+хороший
+tхорошо
+wschlecht
 1
 1
 0
-t плохой
-t плохо
-w sch#on
+плохой
+tплохо
+wsch#on
 1
 1
 0
-t красивый
-t красиво
-d вежливость: danke sch#on
-w f#ur
+красивый
+tкрасиво
+dвежливость: danke sch#on
+wf#ur
 2
 2
 0
-t для
-w klein
+для
+wklein
 1
 1
 0
-t маленький
-w gro#s
+маленький
+wgro#s
 1
 1
 0
-t большой
-t высокий
-d высокий - об одуш.
-w kalt
+большой
+tвысокий
+dвысокий - об одуш.
+wkalt
 1
 1
 0
-t холодный
-t холодно
-w warm
+холодный
+tхолодно
+wwarm
 1
 1
 0
-t тёплый
-t тепло
-w hei#s
+тёплый
+tтепло
+whei#s
 1
 1
 0
-t горячий
-t горячо
-w plus
+горячий
+tгорячо
+wplus
 1
 1
 0
-t плюс
-w minus
+плюс
+wminus
 1
 1
 0
-t минус
-w genau
+минус
+wgenau
 2
 2
 0
-t ровно
-w ungef#ahr
+ровно
+wungef#ahr
 2
 2
 0
-t примерно
-t почти
-t приблизительно
-w fast
+примерно
+tпочти
+tприблизительно
+wfast
 1
 1
 0
-t почти
-w viel
+почти
+wviel
 1
 1
 0
-t много
-w wenig
+много
+wwenig
 1
 1
 0
-t мало
-w richtig
+мало
+wrichtig
 1
 1
 0
-t верный
-t верно
-t правильный
-t правильно
-w falsch
+верный
+tверно
+tправильный
+tправильно
+wfalsch
 1
 1
 0
-t ложный
-t неверный
-t неправильный
-t неверно
-t неправильно
-t ложно
-w stark
+ложный
+tневерный
+tнеправильный
+tневерно
+tнеправильно
+tложно
+wstark
 1
 1
 0
-t сильный
-t крепкий
-t сильно
-t крепко
-d в том числе: крепкий кофе
-w schwach
+сильный
+tкрепкий
+tсильно
+tкрепко
+dв том числе: крепкий кофе
+wschwach
 1
 1
 0
-t слабый
-t слабо
-w leicht
+слабый
+tслабо
+wleicht
 2
 2
 0
-t лёгкий
-t легко
-t простой
-t просто
-w der Kaffee
+лёгкий
+tлегко
+tпростой
+tпросто
+wder Kaffee
 1
 1
 0
-t кофе
-w der Tee
+кофе
+wder Tee
 1
 1
 0
-t чай
-w schwer
+чай
+wschwer
 2
 2
 0
-t трудный
-t трудно
-t сложный
-t сложно
-t тяжёлый
-t тяжело
-d короткое слово
-w was
+трудный
+tтрудно
+tсложный
+tсложно
+tтяжёлый
+tтяжело
+dкороткое слово
+wwas
 1
 1
 0
-t что
-w wer
+что
+wwer
 2
 2
 0
-t кто
-w wo
+кто
+wwo
 1
 1
 0
-t где
-w woher
+где
+wwoher
 1
 1
 0
-t откуда
-w wohin
+откуда
+wwohin
 1
 1
 0
-t куда
-w wann
+куда
+wwann
 1
 1
 0
-t когда
-w warum
+когда
+wwarum
 1
 1
 0
-t почему
-w wie
+почему
+wwie
 1
 1
 0
-t как
-w rot
+как
+wrot
 1
 1
 0
-t красный
-w blau
+красный
+wblau
 1
 1
 0
-t синий
-w das Telefon
+синий
+wdas Telefon
 1
 1
 0
-t телефон
-w das Handy
+телефон
+wdas Handy
 1
 1
 0
-t мобильник
-t мобильный телефон
-t телефон
-w danke
+мобильник
+tмобильный телефон
+tтелефон
+wdanke
 2
 2
 0
-t спасибо
-t благодарю
-w bitte
+спасибо
+tблагодарю
+wbitte
 1
 1
 0
-t пожалуйста
-w die Nacht
+пожалуйста
+wdie Nacht
 1
 1
 0
-t ночь
-w der Tag
+ночь
+wder Tag
 1
 1
 0
-t день
-w der Abend
+день
+wder Abend
 1
 1
 0
-t вечер
-w der Morgen
+вечер
+wder Morgen
 1
 1
 0
-t утро
-w morgen
+утро
+wmorgen
 6
 5
 0
-t завтра
-w alt
+завтра
+walt
 1
 1
 0
-t старый
-w neu
+старый
+wneu
 1
 1
 0
-t новый
-w die Eltern
+новый
+wdie Eltern
 1
 1
 0
-t родители
-w das Essen
+родители
+wdas Essen
 1
 1
 0
-t еда
-t пища
-t питание
-w essen
+еда
+tпища
+tпитание
+wessen
 1
 1
 0
-t есть
-t кушать
-t питаться
-w gehen
+есть
+tкушать
+tпитаться
+wgehen
 1
 1
 0
-t ходить
-t идти
-w kommen
+ходить
+tидти
+wkommen
 1
 1
 0
-t приходить
-t приезжать
-t прибывать
-w der Apfel
+приходить
+tприезжать
+tприбывать
+wder Apfel
 1
 1
 0
-t яблоко
-w das Brot
+яблоко
+wdas Brot
 1
 1
 0
-t хлеб
-w das Br#otchen
+хлеб
+wdas Br#otchen
 1
 1
 0
-t булка
-w die Zitrone
+булка
+wdie Zitrone
 1
 1
 0
-t лимон
-w die Orange
+лимон
+wdie Orange
 1
 1
 0
-t апельсин
-w die Tomate
+апельсин
+wdie Tomate
 1
 1
 0
-t томат
-t помидор
-t помидорка
-w die Kartoffel
+томат
+tпомидор
+tпомидорка
+wdie Kartoffel
 1
 1
 0
-t картофель
-t картофелина
-t картошка
-w die Zwiebel
+картофель
+tкартофелина
+tкартошка
+wdie Zwiebel
 1
 1
 0
-t луковица
-t лук
-w die Banane
+луковица
+tлук
+wdie Banane
 1
 1
 0
-t банан
-w die Suppe
+банан
+wdie Suppe
 1
 1
 0
-t суп
-w das Haus
+суп
+wdas Haus
 1
 1
 0
-t дом
-t здание
-w sehr
+дом
+tздание
+wsehr
 1
 1
 0
-t очень
-w und
+очень
+wund
 1
 1
 0
-t и
-t а
-w oder
+и
+tа
+woder
 1
 1
 0
-t или
-w gern
+или
+wgern
 1
 1
 0
-t охотно
-w lieben
+охотно
+wlieben
 1
 1
 0
-t любить
-d как love
-w m#ogen
+любить
+dкак love
+wm#ogen
 1
 1
 0
-t любить
-d как like
-w leben
+любить
+dкак like
+wleben
 2
 2
 0
-t жить
-w wohnen
+жить
+wwohnen
 8
 6
 0
-t проживать
-t жить
-w haben
+проживать
+tжить
+whaben
 1
 1
 0
-t иметь
-w wichtig
+иметь
+wwichtig
 2
 2
 0
-t важный
-t важно
-w das Leben
+важный
+tважно
+wdas Leben
 1
 1
 0
-t жизнь
-w die Liebe
+жизнь
+wdie Liebe
 1
 1
 0
-t любовь
-w zu
+любовь
+wzu
 1
 1
 0
-t слишком
-w so
+слишком
+wso
 1
 1
 0
-t так
-t такой
-t который
-w das Jahr
+так
+tтакой
+tкоторый
+wdas Jahr
 2
 2
 0
-t год
-w schwarz
+год
+wschwarz
 2
 2
 0
-t чёрный
-w wei#s
+чёрный
+wwei#s
 1
 1
 0
-t белый
-w die Zeitung
+белый
+wdie Zeitung
 1
 1
 0
-t газета
-w das Buch
+газета
+wdas Buch
 1
 1
 0
-t книга
-w der Brief
+книга
+wder Brief
 2
 2
 0
-t письмо
-w jung
+письмо
+wjung
 1
 1
 0
-t молодой
-t юный
-w verstehen
+молодой
+tюный
+wverstehen
 1
 1
 0
-t понимать
-w schnell
+понимать
+wschnell
 3
 3
 0
-t быстрый
-t быстро
-w schreiben
+быстрый
+tбыстро
+wschreiben
 1
 1
 0
-t писать
-w sprechen
+писать
+wsprechen
 1
 1
 0
-t говорить
-t разговаривать
-d длинное слово
-w langsam
+говорить
+tразговаривать
+dдлинное слово
+wlangsam
 1
 1
 0
-t медленный
-t медленно
-w die Milch
+медленный
+tмедленно
+wdie Milch
 1
 1
 0
-t молоко
-w das Geld
+молоко
+wdas Geld
 1
 1
 0
-t деньги
-w brauchen
+деньги
+wbrauchen
 2
 2
 0
-t нуждаться
-w das Getr#ank
+нуждаться
+wdas Getr#ank
 8
 7
 0
-t напиток
-w der Salat
+напиток
+wder Salat
 10
 9
 0
-t салат
-w nur
+салат
+wnur
 1
 1
 0
-t только
-w noch
+только
+wnoch
 2
 2
 0
-t ещё
-w russisch
+ещё
+wrussisch
 1
 1
 0
-t русский
-t русский язык
-w der Wein
+русский
+tрусский язык
+wder Wein
 1
 1
 0
-t вино
-w das Bier
+вино
+wdas Bier
 1
 1
 0
-t пиво
-w die Flasche
+пиво
+wdie Flasche
 1
 1
 0
-t бутылка
-w die Tasse
+бутылка
+wdie Tasse
 1
 1
 0
-t чашка
-w trinken
+чашка
+wtrinken
 1
 1
 0
-t пить
-w das Salz
+пить
+wdas Salz
 1
 1
 0
-t соль
-w der Zuker
+соль
+wder Zuker
 1
 1
 0
-t сахар
-w der Wodka
+сахар
+wder Wodka
 1
 1
 0
-t водка
-w einige
+водка
+weinige
 1
 1
 0
-t некоторый
-w der Name
+некоторый
+wder Name
 1
 1
 0
-t имя
-t название
-t наименование
-w die Musik
+имя
+tназвание
+tнаименование
+wdie Musik
 1
 1
 0
-t музыка
-w das Hobby
+музыка
+wdas Hobby
 2
 2
 0
-t хобби
-t увлечение
-w das Obst
+хобби
+tувлечение
+wdas Obst
 1
 1
 0
-t фрукты
-t фрукт
-w das Gem#use
+фрукты
+tфрукт
+wdas Gem#use
 2
 2
 0
-t овощи
-t овощ
-w der Sport
+овощи
+tовощ
+wder Sport
 2
 2
 0
-t спорт
-w lesen
+спорт
+wlesen
 1
 1
 0
-t читать
-w das Spiel
+читать
+wdas Spiel
 1
 1
 0
-t игра
-w spielen
+игра
+wspielen
 3
 3
 0
-t играть
-w der Fu#sball
+играть
+wder Fu#sball
 1
 1
 0
-t футбол
-w fahren
+футбол
+wfahren
 1
 1
 0
-t кататься
-t прокатиться
-t ехать
-t ездить
-w das Rad
+кататься
+tпрокатиться
+tехать
+tездить
+wdas Rad
 1
 1
 0
-t колесо
-t велик
-t велосипед
-w das Fahrrad
+колесо
+tвелик
+tвелосипед
+wdas Fahrrad
 1
 1
 0
-t велосипед
-w das Herz
+велосипед
+wdas Herz
 2
 2
 0
-t сердце
-w flammen
+сердце
+wflammen
 1
 1
 0
-t пылать
-t гореть
-w die Wurst
+пылать
+tгореть
+wdie Wurst
 2
 2
 0
-t колбаса
-w das Foto
+колбаса
+wdas Foto
 1
 1
 0
-t фотография
-t фото
-w m#oglich
+фотография
+tфото
+wm#oglich
 1
 1
 0
-t возможный
-t возможно
-t вероятный
-t вероятно
-w die Birne
+возможный
+tвозможно
+tвероятный
+tвероятно
+wdie Birne
 1
 1
 0
-t груша
-w h#oren
+груша
+wh#oren
 2
 2
 0
-t слушать
-t слышать
-w der Computer
+слушать
+tслышать
+wder Computer
 1
 1
 0
-t компьютер
-w hei#sen
+компьютер
+whei#sen
 1
 1
 0
-t звать
-t называться
-w der Stuhl
+звать
+tназываться
+wder Stuhl
 1
 1
 0
-t стул
-w der Tisch
+стул
+wder Tisch
 1
 1
 0
-t стол
-w die Butter
+стол
+wdie Butter
 1
 1
 0
-t сливочное масло
-t масло
-w der K#ase
+сливочное масло
+tмасло
+wder K#ase
 1
 1
 0
-t сыр
-w fertig
+сыр
+wfertig
 1
 1
 0
-t готовый
-w eigentlich
+готовый
+weigentlich
 1
 1
 0
-t собственно
-t действительно
-w die Sache
+собственно
+tдействительно
+wdie Sache
 1
 1
 0
-t вещь
-w laufen
+вещь
+wlaufen
 2
 2
 0
-t бежать
-t бегать
-d Ski laufen - кататься на лыжах
-w spazieren
+бежать
+tбегать
+dSki laufen - кататься на лыжах
+wspazieren
 1
 1
 0
-t гулять
-w schmecken
+гулять
+wschmecken
 1
 1
 0
-t пробовать на вкус
-w lecker
+пробовать на вкус
+wlecker
 1
 1
 0
-t вкусный
-w der Ball
+вкусный
+wder Ball
 10
 9
 0
-t мяч
-w teuer
+мяч
+wteuer
 1
 1
 0
-t дорогой
-w einfach
+дорогой
+weinfach
 1
 1
 0
-t простой
-w auch
+простой
+wauch
 1
 1
 0
-t тоже
-w der Lehrer
+тоже
+wder Lehrer
 1
 1
 0
-t учитель
-w der Student
+учитель
+wder Student
 1
 1
 0
-t студент
-w m#ude
+студент
+wm#ude
 1
 1
 0
-t уставший
-t усталый
-w krank
+уставший
+tусталый
+wkrank
 2
 2
 0
-t больной
-w gesund
+больной
+wgesund
 1
 1
 0
-t здоровый
-w das Problem
+здоровый
+wdas Problem
 1
 1
 0
-t проблема
-w bestellen
+проблема
+wbestellen
 1
 1
 0
-t заказывать
-w das Lied
+заказывать
+wdas Lied
 1
 1
 0
-t песня
-w das Bild
+песня
+wdas Bild
 1
 1
 0
-t картина
-t изображение
-w schwimmen
+картина
+tизображение
+wschwimmen
 1
 1
 0
-t плавать
-w k#onnen
+плавать
+wk#onnen
 1
 1
 0
-t уметь
-w tanzen
+уметь
+wtanzen
 1
 1
 0
-t танцевать
-w malen
+танцевать
+wmalen
 2
 2
 0
-t рисовать
-w singen
+рисовать
+wsingen
 1
 1
 0
-t петь
-w klar
+петь
+wklar
 1
 1
 0
-t ясный
-t ясно
-w die Nummer
+ясный
+tясно
+wdie Nummer
 1
 1
 0
-t номер
-w achtung
+номер
+wachtung
 1
 1
 0
-t внимание
-w willkommen
+внимание
+wwillkommen
 1
 1
 0
-t добро пожаловать
-w vorsicht
+добро пожаловать
+wvorsicht
 5
 5
 0
-t осторожно
-w der Monat
+осторожно
+wder Monat
 2
 2
 0
-t месяц
-w die Woche
+месяц
+wdie Woche
 1
 1
 0
-t неделя
-w die Stunde
+неделя
+wdie Stunde
 6
 6
 0
-t час
-w die Sekunde
+час
+wdie Sekunde
 1
 1
 0
-t секунда
-w die Minute
+секунда
+wdie Minute
 1
 1
 0
-t минута
-w der Moment
+минута
+wder Moment
 1
 1
 0
-t момент
-w heute
+момент
+wheute
 1
 1
 0
-t сегодня
-w gestern
+сегодня
+wgestern
 6
 6
 0
-t вчера
-w bald
+вчера
+wbald
 1
 1
 0
-t скоро
-w oft
+скоро
+woft
 1
 1
 0
-t часто
-w anfangen
+часто
+wanfangen
 1
 1
 0
-t начинать
-t начинаться
-d a...
-w enden
+начинать
+tначинаться
+da...
+wenden
 2
 2
 0
-t заканчивать
-t оканчиваться
-w immer
+заканчивать
+tоканчиваться
+wimmer
 1
 1
 0
-t всегда
-w jetzt
+всегда
+wjetzt
 1
 1
 0
-t сейчас
-w der Wochentag
+сейчас
+wder Wochentag
 1
 1
 0
-t день недели
-t будний день
-w der Montag
+день недели
+tбудний день
+wder Montag
 1
 1
 0
-t понедельник
-w der Dienstag
+понедельник
+wder Dienstag
 1
 1
 0
-t вторник
-w der Mittwoch
+вторник
+wder Mittwoch
 1
 1
 0
-t среда
-w der Freitag
+среда
+wder Freitag
 1
 1
 0
-t пятница
-w der Donnerstag
+пятница
+wder Donnerstag
 2
 2
 0
-t четверг
-w der Samstag
+четверг
+wder Samstag
 1
 1
 0
-t суббота
-w der Sonntag
+суббота
+wder Sonntag
 1
 1
 0
-t воскресенье
-w das Wochenende
+воскресенье
+wdas Wochenende
 10
 8
 1
-t выходные
-w der Winter
+выходные
+wder Winter
 1
 1
 0
-t зима
-w der Sommer
+зима
+wder Sommer
 1
 1
 0
-t лето
-w der Fr#uhling
+лето
+wder Fr#uhling
 1
 1
 0
-t весна
-w der Herbst
+весна
+wder Herbst
 1
 1
 0
-t осень
-w der Januar
+осень
+wder Januar
 1
 1
 0
-t январь
-w der Februar
+январь
+wder Februar
 1
 1
 0
-t февраль
-w der M#arz
+февраль
+wder M#arz
 1
 1
 0
-t март
-w der April
+март
+wder April
 1
 1
 0
-t апрель
-w der Mai
+апрель
+wder Mai
 8
 7
 0
-t май
-w der Juni
+май
+wder Juni
 2
 2
 0
-t июнь
-w der Juli
+июнь
+wder Juli
 1
 1
 0
-t июль
-w der August
+июль
+wder August
 2
 2
 0
-t август
-w der September
+август
+wder September
 1
 1
 0
-t сентябрь
-w der Oktober
+сентябрь
+wder Oktober
 2
 2
 0
-t октябрь
-w der November
+октябрь
+wder November
 1
 1
 0
-t ноябрь
-w der Dezember
+ноябрь
+wder Dezember
 1
 1
 0
-t декабрь
-w zwanzig
+декабрь
+wzwanzig
 2
 2
 0
-t двадцать
-t 20
-w drei#sig
+двадцать
+t20
+wdrei#sig
 2
 2
 0
-t тридцать
-t 30
-w vierzig
+тридцать
+t30
+wvierzig
 1
 1
 0
-t сорок
-t 40
-w f#unfzig
+сорок
+t40
+wf#unfzig
 1
 1
 0
-t пятьдесят
-t 50
-w sechzig
+пятьдесят
+t50
+wsechzig
 1
 1
 0
-t шестьдесят
-t 60
-w siebzig
+шестьдесят
+t60
+wsiebzig
 1
 1
 0
-t семьдесят
-t 70
-w achtzig
+семьдесят
+t70
+wachtzig
 1
 1
 0
-t восемьдесят
-t 80
-w neunzig
+восемьдесят
+t80
+wneunzig
 2
 2
 0
-t девяносто
-t 90
-w hundert
+девяносто
+t90
+whundert
 1
 1
 0
-t сто
-t 100
-w tausend
+сто
+t100
+wtausend
 1
 1
 0
-t тысяча
-t 1000
-w grau
+тысяча
+t1000
+wgrau
 1
 1
 0
-t серый
-w gr#un
+серый
+wgr#un
 2
 2
 0
-t зелёный
-w braun
+зелёный
+wbraun
 1
 1
 0
-t коричневый
-w gelb
+коричневый
+wgelb
 1
 1
 0
-t жёлтый
-w das Ende
+жёлтый
+wdas Ende
 1
 1
 0
-t конец
-w der Teil
+конец
+wder Teil
 1
 1
 0
-t часть
-w die Welt
+часть
+wdie Welt
 1
 1
 0
-t мир
-w das Land
+мир
+wdas Land
 1
 1
 0
-t страна
-w die Stadt
+страна
+wdie Stadt
 2
 2
 0
-t город
-w das Dorf
+город
+wdas Dorf
 1
 1
 0
-t деревня
-w die Stra#se
+деревня
+wdie Stra#se
 1
 1
 0
-t улица
-w der Anfang
+улица
+wder Anfang
 1
 1
 0
-t начало
-w die Mitte
+начало
+wdie Mitte
 1
 1
 0
-t середина
-w hier
+середина
+whier
 1
 1
 0
-t тут
-t здесь
-w da
+тут
+tздесь
+wda
 1
 1
 0
-t тут
-t там
-w dort
+тут
+tтам
+wdort
 1
 1
 0
-t там
-w links
+там
+wlinks
 1
 1
 0
-t слева
-w rechts
+слева
+wrechts
 6
 6
 0
-t справа
-w oben
+справа
+woben
 1
 1
 0
-t наверху
-w unten
+наверху
+wunten
 1
 1
 0
-t внизу
-w sein
+внизу
+wsein
 1
 1
 0
-t быть
-w geh#oren
+быть
+wgeh#oren
 2
 2
 0
-t принадлежать
-w sitzen
+принадлежать
+wsitzen
 1
 1
 0
-t сидеть
-w liegen
+сидеть
+wliegen
 1
 1
 0
-t лежать
-w fliegen
+лежать
+wfliegen
 1
 1
 0
-t летать
-w schlafen
+летать
+wschlafen
 1
 1
 0
-t спать
-w stehen
+спать
+wstehen
 1
 1
 0
-t стоять
-w aufstehen
+стоять
+waufstehen
 9
 8
 0
-t вставать
-w normal
+вставать
+wnormal
 1
 1
 0
-t нормальный
-w lang
+нормальный
+wlang
 1
 1
 0
-t длинный
-w kurz
+длинный
+wkurz
 5
 5
 0
-t короткий
-w hoch
+короткий
+whoch
 1
 1
 0
-t высокий
-d о неодуш.
-w dann
+высокий
+dо неодуш.
+wdann
 1
 1
 0
-t тогда
-w #uber
+тогда
+w#uber
 7
 5
 0
-t над
-w die Sonne
+над
+wdie Sonne
 1
 1
 0
-t солнце
-w die Hilfe
+солнце
+wdie Hilfe
 2
 2
 0
-t помощь
-w helfen
+помощь
+whelfen
 1
 1
 0
-t помогать
-w das Glas
+помогать
+wdas Glas
 1
 1
 0
-t стакан
-w bitter
+стакан
+wbitter
 1
 1
 0
-t горький
-w das Ei
+горький
+wdas Ei
 1
 1
 0
-t яйцо
-w der Kuchen
+яйцо
+wder Kuchen
 1
 1
 0
-t пирог
-w der Reis
+пирог
+wder Reis
 1
 1
 0
-t рис
-w das #Ol
+рис
+wdas #Ol
 7
 7
 0
-t масло
-d растительное, моторное
-w billig
+масло
+dрастительное, моторное
+wbillig
 1
 1
 0
-t дешёвый
-w der Preis
+дешёвый
+wder Preis
 1
 1
 0
-t цена
-w kosten
+цена
+wkosten
 2
 2
 0
-t стоить
-w das Auto
+стоить
+wdas Auto
 3
 3
 0
-t машина
-w der Kopf
+машина
+wder Kopf
 1
 1
 0
-t голова
-w der Arm
+голова
+wder Arm
 1
 1
 0
-t рука
-w der Mund
+рука
+wder Mund
 6
 6
 0
-t рот
-w das Bein
+рот
+wdas Bein
 1
 1
 0
-t нога
-w der Bauch
+нога
+wder Bauch
 1
 1
 0
-t живот
-w das Auge
+живот
+wdas Auge
 2
 2
 0
-t глаз
-w tot
+глаз
+wtot
 1
 1
 0
-t мёртвый
-w das Wort
+мёртвый
+wdas Wort
 8
 7
 0
-t слово
-w frisch
+слово
+wfrisch
 1
 1
 0
-t свежий
-w die Gurke
+свежий
+wdie Gurke
 1
 1
 0
-t огурец
-w die Familie
+огурец
+wdie Familie
 1
 1
 0
-t семья
-w der Pinguin
+семья
+wder Pinguin
 1
 1
 0
-t пингвин
-w die Eule
+пингвин
+wdie Eule
 1
 1
 0
-t сова
-w das St#uck
+сова
+wdas St#uck
 5
 5
 0
-t кусок
-w das Eis
+кусок
+wdas Eis
 6
 6
 0
-t мороженное
-w welche
+мороженное
+wwelche
 1
 1
 0
-t какой
-t который
-w geben
+какой
+tкоторый
+wgeben
 1
 1
 0
-t давать
-w schenken
+давать
+wschenken
 1
 1
 0
-t дарить
-w gefallen
+дарить
+wgefallen
 2
 2
 0
-t нравиться
-w die Nudeln
+нравиться
+wdie Nudeln
 1
 1
 0
-t макароны
-w interessant
+макароны
+winteressant
 1
 1
 0
-t интересный
-w langweilig
+интересный
+wlangweilig
 1
 1
 0
-t скучный
-w schwierig
+скучный
+wschwierig
 1
 1
 0
-t тяжёлый
-t сложный
-d длинное слово
-w machen
+тяжёлый
+tсложный
+dдлинное слово
+wmachen
 1
 1
 0
-t делать
-t заниматься
-d длинное слово
-w die Nase
+делать
+tзаниматься
+dдлинное слово
+wdie Nase
 7
 7
 0
-t нос
-w der R#ucken
+нос
+wder R#ucken
 6
 6
 0
-t спина
-w die Haare
+спина
+wdie Haare
 5
 5
 0
-t волосы
-w verzeih
+волосы
+wverzeih
 17
 13
 0
-t прости
-w die Frage
+прости
+wdie Frage
 2
 2
 0
-t вопрос
-w die Antwort
+вопрос
+wdie Antwort
 1
 1
 0
-t ответ
-w bezahlen
+ответ
+wbezahlen
 5
 5
 0
-t платить
-w der Mond
+платить
+wder Mond
 1
 1
 0
-t луна
-w lernen
+луна
+wlernen
 1
 1
 0
-t учиться
-w studieren
+учиться
+wstudieren
 1
 1
 0
-t учиться
-t учиться в университете
-t изучать
-w die Fahrt
+учиться
+tучиться в университете
+tизучать
+wdie Fahrt
 5
 5
 0
-t поездка
-w der Zug
+поездка
+wder Zug
 10
 9
 0
-t поезд
-w das Schiff
+поезд
+wdas Schiff
 21
 16
 0
-t судно
-t корабль
-w das Flugzeug
+судно
+tкорабль
+wdas Flugzeug
 16
 15
 0
-t самолёт
-w reich
+самолёт
+wreich
 1
 1
 0
-t богатый
-w das Reich
+богатый
+wdas Reich
 5
 5
 0
-t империя
-t царство
-w der Frankreich
+империя
+tцарство
+wder Frankreich
 1
 1
 0
-t Франция
-w wenn
+Франция
+wwenn
 2
 2
 0
-t если
-w der Baum
+если
+wder Baum
 13
 13
 0
-t дерево
-w aber
+дерево
+waber
 1
 1
 0
-t но
-t а
-t и
-w der Finger
+но
+tа
+tи
+wder Finger
 1
 1
 0
-t палец
-d на руке
-w die Zehe
+палец
+dна руке
+wdie Zehe
 6
 6
 0
-t палец
-d на ноге
-w der Bleistift
+палец
+dна ноге
+wder Bleistift
 13
 13
 0
-t карандаш
-w das Papier
+карандаш
+wdas Papier
 1
 1
 0
-t бумага
-w das Gummi
+бумага
+wdas Gummi
 8
 8
 0
-t ластик
-w das Schreibheft
+ластик
+wdas Schreibheft
 6
 5
 0
-t тетрадь
-d длинное слово
-w das Heft
+тетрадь
+dдлинное слово
+wdas Heft
 5
 5
 0
-t тетрадь
-d короткое слово
-w die Uhr
+тетрадь
+dкороткое слово
+wdie Uhr
 8
 8
 0
-t часы
-w das Licht
+часы
+wdas Licht
 6
 6
 0
-t свет
-w die Dunkelheit
+свет
+wdie Dunkelheit
 1
 1
 0
-t тьма
-t темнота
-w die Br#ucke
+тьма
+tтемнота
+wdie Br#ucke
 15
 13
 0
-t мост
-w die Subtraktion
+мост
+wdie Subtraktion
 1
 1
 0
-t вычитание
-w die Addition
+вычитание
+wdie Addition
 2
 2
 0
-t сложение
-t суммирование
-w die Sprache
+сложение
+tсуммирование
+wdie Sprache
 9
 8
 0
-t язык
-d на котором говорят
-w die Zunge
+язык
+dна котором говорят
+wdie Zunge
 15
 14
 0
-t язык
-d орган
-w der Teller
+язык
+dорган
+wder Teller
 9
 8
 0
-t тарелка
-w der Zahn
+тарелка
+wder Zahn
 6
 6
 0
-t зуб
-w die Z#ahne
+зуб
+wdie Z#ahne
 6
 6
 0
-t зубы
-w die Multiplikation
+зубы
+wdie Multiplikation
 1
 1
 0
-t умножение
-w die Division
+умножение
+wdie Division
 2
 2
 0
-t деление
-w weit
+деление
+wweit
 5
 5
 0
-t далеко
-d w...
-w fern
+далеко
+dw...
+wfern
 6
 6
 0
-t далеко
-d f...
-w nah
+далеко
+df...
+wnah
 5
 5
 0
-t близко
-d n...
-w eng
+близко
+dn...
+weng
 6
 6
 0
-t близко
-d e...
-w negativ
+близко
+de...
+wnegativ
 1
 1
 0
-t отрицательный
-t негативный
-w positiv
+отрицательный
+tнегативный
+wpositiv
 1
 1
 0
-t положительный
-t позитивный
-w der Wald
+положительный
+tпозитивный
+wder Wald
 16
 14
 0
-t лес
-w die Gleichung
+лес
+wdie Gleichung
 9
 9
 0
-t уравнение
-w der Vergleich
+уравнение
+wder Vergleich
 10
 9
 0
-t сравнение
-t неравенство
-w die Zahl
+сравнение
+tнеравенство
+wdie Zahl
 6
 6
 0
-t число
-w die Zeit
+число
+wdie Zeit
 1
 1
 0
-t время
-w die Matrix
+время
+wdie Matrix
 1
 1
 0
-t матрица
-w das Lehrbuch
+матрица
+wdas Lehrbuch
 1
 1
 0
-t учебник
-w die Entschuldigung
+учебник
+wdie Entschuldigung
 10
 8
 0
-t извинение
-w das Blut
+извинение
+wdas Blut
 1
 1
 0
-t кровь
-w der Schnee
+кровь
+wder Schnee
 6
 6
 0
-t снег
-w das Deutschland
+снег
+wdas Deutschland
 1
 1
 0
-t Германия
-w das Ru#sland
+Германия
+wdas Ru#sland
 7
 7
 0
-t Россия
-w der Russe
+Россия
+wder Russe
 5
 5
 0
-t русский
-t россиянин
-w die Kleidung
+русский
+tроссиянин
+wdie Kleidung
 18
 16
 0
-t одежда
-w der Deutsche
+одежда
+wder Deutsche
 6
 6
 0
-t немец
-w der Regen
+немец
+wder Regen
 8
 8
 0
-t дождь
-w das Meer
+дождь
+wdas Meer
 1
 1
 0
-t море
-w der Ozean
+море
+wder Ozean
 5
 5
 0
-t океан
-w der Flu#s
+океан
+wder Flu#s
 7
 7
 0
-t река
-w die Luft
+река
+wdie Luft
 16
 15
 0
-t воздух
-w das Feuer
+воздух
+wdas Feuer
 7
 7
 0
-t огонь
-w der Fernseher
+огонь
+wder Fernseher
 11
 10
 0
-t телевизор
-w der Stein
+телевизор
+wder Stein
 5
 5
 0
-t камень
-w gleich
+камень
+wgleich
 12
 11
 0
-t тот же
-t самый
-t один
-w denken
+тот же
+tсамый
+tодин
+wdenken
 1
 1
 0
-t думать
-w die Idee
+думать
+wdie Idee
 1
 1
 0
-t идея
-w wissen
+идея
+wwissen
 4
 4
 0
-t знать
-w antworten
+знать
+wantworten
 2
 2
 0
-t отвечать
-w fragen
+отвечать
+wfragen
 1
 1
 0
-t спрашивать
-w nicht
+спрашивать
+wnicht
 6
 6
 0
-t не
-t нет
-d нет в значении "отсутствует"
-d употреб. с глаголами, прилагательными и именами собств.
-d если относится к глаголу, то ставится после него
-w mit
+не
+tнет
+dнет в значении "отсутствует"
+dупотреб. с глаголами, прилагательными и именами собств.
+dесли относится к глаголу, то ставится после него
+wmit
 5
 5
 0
-t с
-w kein
+с
+wkein
 6
 6
 0
-t не
-t нет
-d нет в значении "отсутствует"
-d употреб. с существительными
-w der Buchstabe
+не
+tнет
+dнет в значении "отсутствует"
+dупотреб. с существительными
+wder Buchstabe
 5
 5
 0
-t буква
-w das Alphabet
+буква
+wdas Alphabet
 6
 6
 0
-t алфавит
-w arbeiten
+алфавит
+warbeiten
 1
 1
 0
-t работать
-w das Verb
+работать
+wdas Verb
 6
 6
 0
-t глагол
-w das Jahrhundert
+глагол
+wdas Jahrhundert
 5
 5
 0
-t век
-t столетие
-w der Junge
+век
+tстолетие
+wder Junge
 3
 3
 0
-t мальчик
-w der Bayern
+мальчик
+wder Bayern
 5
 5
 0
-t Бавария
-w million
+Бавария
+wmillion
 1
 1
 0
-t миллион
-t 1000000
-w milliarde
+миллион
+t1000000
+wmilliarde
 4
 3
 0
-t миллиард
-t 1000000000
-w die Schokolade
+миллиард
+t1000000000
+wdie Schokolade
 3
 3
 0
-t шоколад
-t шоколадка
-w das Klavier
+шоколад
+tшоколадка
+wdas Klavier
 2
 2
 0
-t пианино
-t фортепиано
-w der Krieg
+пианино
+tфортепиано
+wder Krieg
 11
 11
 0
-t война
-w hassen
+война
+whassen
 3
 3
 0
-t ненавидеть
-w die Melone
+ненавидеть
+wdie Melone
 3
 3
 0
-t дыня
-w die Wassermelone
+дыня
+wdie Wassermelone
 3
 3
 0
-t арбуз
-w die Beere
+арбуз
+wdie Beere
 10
 10
 0
-t ягода
-w der Pilz
+ягода
+wder Pilz
 9
 7
 0
-t гриб
-w erste
+гриб
+werste
 7
 6
 0
-t первый
-w zweite
+первый
+wzweite
 4
 4
 0
-t второй
-w dritte
+второй
+wdritte
 6
 5
 0
-t третий
-w vierte
+третий
+wvierte
 3
 3
 0
-t четвёртый
-w f#unfte
+четвёртый
+wf#unfte
 7
 5
 0
-t пятый
-w sechste
+пятый
+wsechste
 7
 6
 0
-t шестой
-w siebente
+шестой
+wsiebente
 4
 4
 0
-t седьмой
-d длинное слово
-w achte
+седьмой
+dдлинное слово
+wachte
 3
 3
 0
-t восьмой
-w siebte
+восьмой
+wsiebte
 3
 3
 0
-t седьмой
-d короткое слово
-w neunte
+седьмой
+dкороткое слово
+wneunte
 3
 3
 0
-t девятое
-w zehnte
+девятое
+wzehnte
 4
 4
 0
-t десятый
-w werden
+десятый
+wwerden
 16
 12
 0
-t становиться
-t стать
+становиться
+tстать
 *
-w m#ussen
+wm#ussen
 12
 10
 0
-t быть вынужденным
-d как must
+быть вынужденным
+dкак must
 *
-w sagen
+wsagen
 13
 10
 0
-t говорить
-t сказать
-d короткое слово
+говорить
+tсказать
+dкороткое слово
 *
-w sollen
+wsollen
 20
 13
 0
-t быть должным
-d как should
+быть должным
+dкак should
 *
-w wollen
+wwollen
 12
 8
 0
-t хотеть
-t желать
+хотеть
+tжелать
 *
-w lassen
+wlassen
 19
 10
 0
-t позволять
-t оставлять
-t позволить
-t оставить
+позволять
+tоставлять
+tпозволить
+tоставить
 *
-w finden
+wfinden
 2
 2
 0
-t находить
-t найти
+находить
+tнайти
 *
-w bleiben
+wbleiben
 25
 10
 0
-t оставаться
-t остаться
+оставаться
+tостаться
 *
-w nehmen
+wnehmen
 19
 11
 0
-t брать
-t взять
+брать
+tвзять
 *
-w tun
+wtun
 9
 8
 0
-t делать
-d короткое слово
+делать
+dкороткое слово
 *
-w glauben
+wglauben
 17
 8
 0
-t верить
+верить
 *
-w halten
+whalten
 10
 8
 0
-t держать
-t останавливаться
-t держаться
-t удержать
-t удерживать
+держать
+tостанавливаться
+tдержаться
+tудержать
+tудерживать
 *
-w nennen
+wnennen
 10
 8
 0
-t называть
-t называться
-t назвать
-t назваться
+называть
+tназываться
+tназвать
+tназваться
 *
-w zeigen
+wzeigen
 16
 9
 0
-t показывать
+показывать
 *
-w f#uhren
+wf#uhren
 13
 10
 0
-t вести
-t управлять
-t руководить
-t водить
+вести
+tуправлять
+tруководить
+tводить
 *
-w bringen
+wbringen
 12
 10
 0
-t приносить
+приносить
 *
-w meinen
+wmeinen
 15
 10
 0
-t считать
-t думать
-t иметь в виду
-d как mean
+считать
+tдумать
+tиметь в виду
+dкак mean
 *
-w kennen
+wkennen
 15
 11
 0
-t знать
-t помнить
+знать
+tпомнить
 *
-w gelten
+wgelten
 26
 10
 0
-t считаться
+считаться
 *
-w folgen
+wfolgen
 17
 13
 0
-t следовать
+следовать
 *
-w bestehen
+wbestehen
 23
 10
 0
-t существовать
-t состоять
-t сдавать
-d сдавать экзамен
+существовать
+tсостоять
+tсдавать
+dсдавать экзамен
 *
-w bekommen
+wbekommen
 13
 10
 0
-t получать
-t получить
+получать
+tполучить
 *
-w beginnen
+wbeginnen
 3
 3
 0
-t начинать
-t начинаться
-t начать
-t начаться
-d b...
+начинать
+tначинаться
+tначать
+tначаться
+db...
 *
-w erz#ahlen
+werz#ahlen
 14
 9
 0
-t рассказывать
-t сообщить
-t поведать
+рассказывать
+tсообщить
+tповедать
 *
-w die Arbeit
+wdie Arbeit
 3
 3
 0
-t работа
-t труд
+работа
+tтруд
 *
-w die Freiheit
+wdie Freiheit
 5
 4
 0
-t свобода
+свобода
 *
-w frei
+wfrei
 3
 3
 0
-t свободный
+свободный
 *
-w die Mathematik
+wdie Mathematik
 3
 3
 0
-t математика
+математика
 *
-w die Lampe
+wdie Lampe
 0
 0
 -1
-t лампа
+лампа
 *
-w die Schule
+wdie Schule
 0
 0
 -1
-t школа
+школа
 *

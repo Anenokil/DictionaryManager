@@ -551,16 +551,21 @@ class Dictionary(object):
         try:
             with open(filename_, 'w') as file_:
                 for key_ in self.d.keys():
-                    file_.write(f'w {key_}\n')
+                    file_.write(f'w{key_}\n')
                     file_.write(f'{str(self.d[key_].all_tries)}\n')
                     file_.write(f'{str(self.d[key_].correct_tries)}\n')
                     file_.write(f'{str(self.d[key_].last_tries)}\n')
-                    for val_ in self.d[key_].tr:
-                        file_.write(f't {val_}\n')
-                    for val_ in self.d[key_].dsc:
-                        file_.write(f'd {val_}\n')
+                    is_first_ = True
+                    for tr_ in self.d[key_].tr:
+                        if is_first_:
+                            file_.write(f'{tr_}\n')
+                            is_first_ = False
+                        else:
+                            file_.write(f't{tr_}\n')
+                    for dsc_ in self.d[key_].dsc:
+                        file_.write(f'd{dsc_}\n')
                     for frm_type_ in self.d[key_].forms.keys():
-                        file_.write(f'f {frm_type_}\n{self.d[key_].forms[frm_type_]}\n')
+                        file_.write(f'f{frm_type_}\n{self.d[key_].forms[frm_type_]}\n')
                     if self.d[key_].fav:
                         file_.write(f'*\n')
         except FileNotFoundError:
@@ -576,17 +581,19 @@ class Dictionary(object):
                     if not line_:
                         break
                     elif line_[0] == 'w':
-                        wrd_ = line_[2:]
+                        wrd_ = line_[1:]
                         all_tries_ = int(file_.readline().strip())
                         correct_tries_ = int(file_.readline().strip())
                         last_tries_ = int(file_.readline().strip())
-                    elif line_[0] == 't':
-                        self.add_val(wrd_, line_[2:], False)
+                        tr_ = file_.readline().strip()
+                        self.add_val(wrd_, tr_, False)
                         self.d[wrd_].add_stat(all_tries_, correct_tries_, last_tries_)
+                    elif line_[0] == 't':
+                        self.add_tr(wrd_, line_[1:], False)
                     elif line_[0] == 'd':
-                        self.add_dsc(wrd_, line_[2:])
+                        self.add_dsc(wrd_, line_[1:])
                     elif line_[0] == 'f':
-                        frm_type_ = line_[2:]
+                        frm_type_ = line_[1:]
                         self.add_frm(wrd_, frm_type_, file_.readline().strip())
                     elif line_[0] == '*':
                         self.d[wrd_].fav = True
@@ -1050,7 +1057,7 @@ def save_settings():
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
 print('                                  Dictionary  v5.0.0')
-print('                                   20.12.2022 21:37\n')
+print('                                   20.12.2022 21:48\n')
 print('======================================================================================\n')
 
 print(f'Файл со словарём "{filename}" открыт.')
