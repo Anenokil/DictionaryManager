@@ -861,10 +861,20 @@ class Dictionary(object):
         return True
 
 
+try:
+    open(SETTINGS_FN + '.txt', 'r')
+except FileNotFoundError:
+    with open(SETTINGS_FN + '.txt', 'w') as setF:
+        setF.write('words.txt')
 with open(SETTINGS_FN + '.txt', 'r') as setF:
     filename = setF.readline().strip()
 
 local_settings_fn = SETTINGS_FN + '-' + filename
+try:
+    open(local_settings_fn, 'r')
+except FileNotFoundError:
+    with open(local_settings_fn, 'w') as locSetF:
+        locSetF.print('ед.ч.@мн.ч.\nм.р.@ж.р.@с.р.\nим.п.@род.п.@дат.п.@вин.п.\n1 л.@2 л.@3 л.\nпр.вр.@н.вр.@б.вр.')
 with open(local_settings_fn, 'r') as locSetF:
     FORMS_NUM = locSetF.readline().strip().split('@')
     FORMS_GEN = locSetF.readline().strip().split('@')
@@ -928,7 +938,7 @@ def save_settings():
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
 print('                                  Dictionary  v5.0.0')
-print('                                   20.12.2022  7:45\n')
+print('                                   20.12.2022  8:34\n')
 print('======================================================================================\n')
 
 print(f'Файл со словарём "{filename}" открыт.')
