@@ -662,8 +662,6 @@ w der Apfel
 1
 0
 t €блоко
-f мн.ч.
-#Apfel
 w das Brot
 1
 1

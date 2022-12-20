@@ -20,6 +20,29 @@ def code(str_):
     return str_
 
 
+def add_frm(frm_list_):
+    new_f_ = input('\nВведите новый вариант: ')
+    if new_f_ in frm_list_:
+        print(f'Вариант "{new_f_}" уже существует')
+    elif new_f_ == '':
+        print(f'Недопустимый вариант')
+    elif '@' in new_f_:
+        print(f'Недопустимый символ: "@"')
+    else:
+        frm_list_ += [new_f_]
+
+
+def remove_frm(frm_list_):
+    print('\nВыберите один из предложенных вариантов')
+    for i in range(len(frm_list_)):
+        print(f'{i} - {frm_list_[i]}')
+    index_ = input('Введите номер варианта: ')
+    try:
+        frm_list_.pop(int(index_))
+    except (ValueError, IndexError):
+        print(f'Недопустимый номер варианта: "{index_}"')
+
+
 def choose_one_frm(frm_name_, frm_list_):
     while True:
         print(f'\nВыберите {frm_name_}')
@@ -32,25 +55,9 @@ def choose_one_frm(frm_name_, frm_list_):
         if cmd_ in ['Н', 'Y']:
             return ''
         elif cmd_ in ['Д', 'L']:
-            cmd_ = input('\nВведите новый вариант: ')
-            if cmd_ in frm_list_:
-                print(f'Вариант "{cmd_}" уже существует')
-            elif cmd_ == '':
-                print(f'Недопустимый вариант')
-            elif '@' in cmd_:
-                print(f'Недопустимый символ: "@"')
-            else:
-                frm_list_ += [cmd_]
-                return cmd_
+            add_frm(frm_list_)
         elif cmd_ in ['У', 'E']:
-            print('\nВыберите один из предложенных вариантов')
-            for i in range(len(frm_list_)):
-                print(f'{i} - {frm_list_[i]}')
-            index_ = input('Введите номер варианта: ')
-            try:
-                frm_list_.pop(int(index_))
-            except (ValueError, IndexError):
-                print(f'Недопустимый номер варианта: "{index_}"')
+            remove_frm(frm_list_)
         else:
             try:
                 return frm_list_[int(cmd_)]
@@ -528,7 +535,9 @@ class Dictionary(object):
 
     """ Удалить форму слова из словаря """
     def remove_frm(self, wrd_):
+        self.count_f -= self.d[wrd_].count_f
         self.d[wrd_].remove_frm()
+        self.count_f += self.d[wrd_].count_f
 
     """ Удалить запись из словаря """
     def remove_note(self, wrd_):
@@ -1041,7 +1050,7 @@ def save_settings():
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
 print('                                  Dictionary  v5.0.0')
-print('                                   20.12.2022 20:55\n')
+print('                                   20.12.2022 21:37\n')
 print('======================================================================================\n')
 
 print(f'Файл со словарём "{filename}" открыт.')
@@ -1058,6 +1067,7 @@ while True:
     print('НС - Найти запись по Слову')
     print('НП - Найти запись по Переводу')
     print('У  - Учить слова')
+    print('Ф  - настройки словоФорм')
     print('С  - Сохранить изменения')
     print('О  - Открыть другой словарь')
     print('З  - Завершить работу')
@@ -1173,6 +1183,47 @@ while True:
                 print(f'Неизвестная команда: "{cmd}"')
         else:
             print(f'Неизвестная команда: "{cmd}"')
+    elif cmd in ['Ф', 'A']:
+        while True:
+            print()
+            print('Какую форму вы хотите изменить?')
+            print('Ч - Число')
+            print('Р - Род')
+            print('П - Падеж')
+            print('Л - Лицо')
+            print('В - Время')
+            print('Н - Назад')
+            cmd = input().upper()
+            if cmd in ['Ч', 'X']:
+                frm_list = FORMS_NUM
+            elif cmd in ['Р', 'H']:
+                frm_list = FORMS_GEN
+            elif cmd in ['П', 'G']:
+                frm_list = FORMS_CASE
+            elif cmd in ['Л', 'K']:
+                frm_list = FORMS_FACE
+            elif cmd in ['В', 'D']:
+                frm_list = FORMS_TIME
+            elif cmd in ['Н', 'Y']:
+                break
+            else:
+                print(f'Неизвестная команда: "{cmd}"')
+                continue
+            print('\nСуществующие варианты:')
+            for i in range(len(frm_list)):
+                print(f'{frm_list[i]}')
+            print()
+            print('Что вы хотите сделать?')
+            print('Д - Добавить новую форму')
+            print('У - Удалить форму')
+            print('Н - Назад')
+            cmd = input().upper()
+            if cmd in ['Д', 'L']:
+                add_frm(frm_list)
+            elif cmd in ['У', 'E']:
+                remove_frm(frm_list)
+            else:
+                print(f'Неизвестная команда: "{cmd}"')
     elif cmd in ['С', 'C']:
         dct.save(filename)
         print()
