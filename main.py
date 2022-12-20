@@ -357,355 +357,355 @@ class Dictionary(object):
                 self.add_dsc(wrd_, line_[2:])
         return True
 
-
-def edit_note(dct_, wrd_):
-    has_changes_ = False
-    while True:
-        print()
-        dct_.print_edit(wrd_)
-        print()
-        print('Что вы хотите сделать?')
-        print('СЛ - изменить СЛово')
-        print('П - изменить Перевод')
-        print('СН - изменить СНоски')
-        if dct_.d[wrd_].fav:
-            print('И - убрать из Избранного')
-        else:
-            print('И - добавить в Избранное')
-        print('У - Удалить запись')
-        print('Н - вернуться Назад')
-        cmd_ = input().upper()
-        if cmd_ in ['СЛ', 'CK']:
+    """ Изменить запись в словаре """
+    def edit_note(self, wrd_):
+        has_changes_ = False
+        while True:
             print()
-            new_wrd_ = input('Введите слово: ')
-            dct_.edit_wrd(wrd_, new_wrd_)
-            wrd_ = new_wrd_
-            has_changes_ = True
-        elif cmd_ in ['П', 'G']:
+            self.print_edit(wrd_)
             print()
             print('Что вы хотите сделать?')
-            print('Д - Добавить перевод')
-            print('У - Удалить перевод')
+            print('СЛ - изменить СЛово')
+            print('П - изменить Перевод')
+            print('СН - изменить СНоски')
+            if self.d[wrd_].fav:
+                print('И - убрать из Избранного')
+            else:
+                print('И - добавить в Избранное')
+            print('У - Удалить запись')
+            print('Н - вернуться Назад')
             cmd_ = input().upper()
-            if cmd_ in ['Д', 'L']:
+            if cmd_ in ['СЛ', 'CK']:
                 print()
-                tr_ = input('Введите перевод: ')
-                dct_.add_tr(wrd_, tr_)
+                new_wrd_ = input('Введите слово: ')
+                self.edit_wrd(wrd_, new_wrd_)
+                wrd_ = new_wrd_
+                has_changes_ = True
+            elif cmd_ in ['П', 'G']:
+                print()
+                print('Что вы хотите сделать?')
+                print('Д - Добавить перевод')
+                print('У - Удалить перевод')
+                cmd_ = input().upper()
+                if cmd_ in ['Д', 'L']:
+                    print()
+                    tr_ = input('Введите перевод: ')
+                    self.add_tr(wrd_, tr_)
+                    has_changes_ = True
+                elif cmd_ in ['У', 'E']:
+                    print()
+                    self.remove_tr(wrd_)
+                    has_changes_ = True
+                else:
+                    print(f'Неизвестная команда: "{cmd_}"')
+            elif cmd_ in ['СН', 'CY']:
+                print()
+                print('Что вы хотите сделать?')
+                print('Д - Добавить сноску')
+                print('У - Удалить сноску')
+                cmd_ = input().upper()
+                if cmd_ in ['Д', 'L']:
+                    print()
+                    dsc_ = input('Введите сноску: ')
+                    self.add_dsc(wrd_, dsc_)
+                    has_changes_ = True
+                elif cmd_ in ['У', 'E']:
+                    print()
+                    self.remove_dsc(wrd_)
+                    has_changes_ = True
+                else:
+                    print(f'Неизвестная команда: "{cmd_}"')
+            elif cmd_ in ['И', 'B']:
+                self.d[wrd_].fav = not self.d[wrd_].fav
                 has_changes_ = True
             elif cmd_ in ['У', 'E']:
                 print()
-                dct_.remove_tr(wrd_)
-                has_changes_ = True
+                cmd_ = input('Вы уверены, что хотите удалить эту запись? (+ или -): ')
+                if cmd_ == '+':
+                    self.remove_note(wrd_)
+                    has_changes_ = True
+                    break
+            elif cmd_ in ['Н', 'Y']:
+                break
             else:
                 print(f'Неизвестная команда: "{cmd_}"')
-        elif cmd_ in ['СН', 'CY']:
+        return has_changes_
+
+    """ Выбор случайного слова с учётом сложности """
+    def random_smart(self):
+        sum_ = 0
+        for el_ in self.d.values():
+            sum_ += (100 - round(100 * el_.percent)) * 4 + 1
+        r_ = random.randint(1, sum_)
+
+        for wrd_ in self.d.keys():
+            r_ -= (100 - round(100 * self.d[wrd_].percent)) * 4 + 1
+            if r_ <= 0:
+                return wrd_
+
+    """ Учить слова - все """
+    def learn(self):
+        count_all = 0
+        count_correct = 0
+        used_words = set()
+        while True:
+            if len(used_words) == len(self.d):
+                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
+                break
+            while True:
+                wrd_ = random.choice(list(self.d.keys()))
+                if wrd_ not in used_words:
+                    break
+
             print()
-            print('Что вы хотите сделать?')
-            print('Д - Добавить сноску')
-            print('У - Удалить сноску')
-            cmd_ = input().upper()
-            if cmd_ in ['Д', 'L']:
-                print()
-                dsc_ = input('Введите сноску: ')
-                dct_.add_dsc(wrd_, dsc_)
-                has_changes_ = True
-            elif cmd_ in ['У', 'E']:
-                print()
-                dct_.remove_dsc(wrd_)
-                has_changes_ = True
+            self.print_with_stat(wrd_)
+            wrd_ans = input('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
+            if wrd_ans == '@':
+                self.d[wrd_].print_dsc()
+                wrd_ans = input('Введите слово (# - чтобы закончить): ')
+
+            if wrd_ans == wrd_:
+                self.d[wrd_].correct_try()
+                print('\033[32mВерно\033[38m')
+                count_correct += 1
+                used_words.add(wrd_)
+                if self.d[wrd_].fav:
+                    fav_ = input('Убрать слово из избранного? (+ или -): ')
+                    if fav_ == '+':
+                        self.d[wrd_].fav = False
+            elif wrd_ans == '#':
+                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
+                break
             else:
-                print(f'Неизвестная команда: "{cmd_}"')
-        elif cmd_ in ['И', 'B']:
-            dct_.d[wrd_].fav = not dct_.d[wrd_].fav
-            has_changes_ = True
-        elif cmd_ in ['У', 'E']:
+                self.d[wrd_].incorrect_try()
+                print(f'\033[31mНеверно. Правильный ответ: "{wrd_}"\033[38m')
+                if not self.d[wrd_].fav:
+                    fav_ = input('Добавить слово в избранное? (+ или -): ')
+                    if fav_ == '+':
+                        self.d[wrd_].fav = True
+            count_all += 1
+        return True
+
+    """ Учить слова - избранные """
+    def learn_fav(self):
+        count_all = 0
+        count_correct = 0
+        used_words = set()
+        while True:
+            while True:
+                if len(used_words) == len(self.d):
+                    print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
+                    return None
+                wrd_ = random.choice(list(self.d.keys()))
+                if not self.d[wrd_].fav:
+                    used_words.add(wrd_)
+                    continue
+                if wrd_ not in used_words:
+                    break
+
             print()
-            cmd_ = input('Вы уверены, что хотите удалить эту запись? (+ или -): ')
-            if cmd_ == '+':
-                dct_.remove_note(wrd_)
-                has_changes_ = True
-                break
-        elif cmd_ in ['Н', 'Y']:
-            break
-        else:
-            print(f'Неизвестная команда: "{cmd_}"')
-    return has_changes_
+            self.print_with_stat(wrd_)
+            wrd_ans = input('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
+            if wrd_ans == '@':
+                self.d[wrd_].print_dsc()
+                wrd_ans = input('Введите слово (# - чтобы закончить): ')
 
-
-def random_smart(dct_):
-    sum_ = 0
-    for el_ in dct_.d.values():
-        sum_ += (100 - round(100 * el_.percent)) * 4 + 1
-    r_ = random.randint(1, sum_)
-
-    for wrd_ in dct_.d.keys():
-        r_ -= (100 - round(100 * dct_.d[wrd_].percent)) * 4 + 1
-        if r_ <= 0:
-            return wrd_
-
-
-def learn(dct_):
-    count_all = 0
-    count_correct = 0
-    used_words = set()
-    while True:
-        if len(used_words) == len(dct_.d):
-            print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-            break
-        while True:
-            wrd_ = random.choice(list(dct_.d.keys()))
-            if wrd_ not in used_words:
-                break
-
-        print()
-        dct_.print_with_stat(wrd_)
-        wrd_ans = input('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-        if wrd_ans == '@':
-            dct_.d[wrd_].print_dsc()
-            wrd_ans = input('Введите слово (# - чтобы закончить): ')
-
-        if wrd_ans == wrd_:
-            dct_.d[wrd_].correct_try()
-            print('\033[32mВерно\033[38m')
-            count_correct += 1
-            used_words.add(wrd_)
-            if dct_.d[wrd_].fav:
-                fav_ = input('Убрать слово из избранного? (+ или -): ')
-                if fav_ == '+':
-                    dct_.d[wrd_].fav = False
-        elif wrd_ans == '#':
-            print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-            break
-        else:
-            dct_.d[wrd_].incorrect_try()
-            print(f'\033[31mНеверно. Правильный ответ: "{wrd_}"\033[38m')
-            if not dct_.d[wrd_].fav:
-                fav_ = input('Добавить слово в избранное? (+ или -): ')
-                if fav_ == '+':
-                    dct_.d[wrd_].fav = True
-        count_all += 1
-    return True
-
-
-def learn_fav(dct_):
-    count_all = 0
-    count_correct = 0
-    used_words = set()
-    while True:
-        while True:
-            if len(used_words) == len(dct_.d):
-                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-                return None
-            wrd_ = random.choice(list(dct_.d.keys()))
-            if not dct_.d[wrd_].fav:
+            if wrd_ans == wrd_:
+                self.d[wrd_].correct_try()
+                print('\033[32mВерно\033[38m')
+                count_correct += 1
                 used_words.add(wrd_)
-                continue
-            if wrd_ not in used_words:
-                break
-
-        print()
-        dct_.print_with_stat(wrd_)
-        wrd_ans = input('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-        if wrd_ans == '@':
-            dct_.d[wrd_].print_dsc()
-            wrd_ans = input('Введите слово (# - чтобы закончить): ')
-
-        if wrd_ans == wrd_:
-            dct_.d[wrd_].correct_try()
-            print('\033[32mВерно\033[38m')
-            count_correct += 1
-            used_words.add(wrd_)
-            if dct_.d[wrd_].fav:
-                fav_ = input('Убрать слово из избранного? (+ или -): ')
-                if fav_ == '+':
-                    dct_.d[wrd_].fav = False
-        elif wrd_ans == '#':
-            print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-            break
-        else:
-            dct_.d[wrd_].incorrect_try()
-            print(f'\033[31mНеверно. Правильный ответ: "{wrd_}"\033[38m')
-            if not dct_.d[wrd_].fav:
-                fav_ = input('Добавить слово в избранное? (+ или -): ')
-                if fav_ == '+':
-                    dct_.d[wrd_].fav = True
-        count_all += 1
-    return True
-
-
-def learn_smart(dct_):
-    count_all = 0
-    count_correct = 0
-    used_words = set()
-    while True:
-        if len(used_words) == len(dct_.d):
-            print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-            break
-        while True:
-            wrd_ = random_smart(dct_)
-            if wrd_ not in used_words:
-                break
-
-        print()
-        dct_.print_with_stat(wrd_)
-        wrd_ans = input('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-        if wrd_ans == '@':
-            dct_.d[wrd_].print_dsc()
-            wrd_ans = input('Введите слово (# - чтобы закончить): ')
-
-        if wrd_ans == wrd_:
-            dct_.d[wrd_].correct_try()
-            print('\033[32mВерно\033[38m')
-            count_correct += 1
-            used_words.add(wrd_)
-            if dct_.d[wrd_].fav:
-                fav_ = input('Убрать слово из избранного? (+ или -): ')
-                if fav_ == '+':
-                    dct_.d[wrd_].fav = False
-        elif wrd_ans == '#':
-            print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-            break
-        else:
-            dct_.d[wrd_].incorrect_try()
-            print(f'\033[31mНеверно. Правильный ответ: "{wrd_}"\033[38m')
-            if not dct_.d[wrd_].fav:
-                fav_ = input('Добавить слово в избранное? (+ или -): ')
-                if fav_ == '+':
-                    dct_.d[wrd_].fav = True
-        count_all += 1
-    return True
-
-
-def learn_t(dct_):
-    count_all = 0
-    count_correct = 0
-    used_words = set()
-    while True:
-        if len(used_words) == len(dct_.d):
-            print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-            break
-        while True:
-            wrd_ = random.choice(list(dct_.d.keys()))
-            if wrd_ not in used_words:
-                break
-
-        print()
-        dct_.print_with_stat2(wrd_)
-        wrd_ans = input('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-        if wrd_ans == '@':
-            dct_.d[wrd_].print_dsc()
-            wrd_ans = input('Введите перевод (# - чтобы закончить): ')
-
-        if wrd_ans in dct_.d[wrd_].tr:
-            dct_.d[wrd_].correct_try()
-            print('\033[32mВерно\033[38m')
-            count_correct += 1
-            used_words.add(wrd_)
-            if dct_.d[wrd_].fav:
-                fav_ = input('Убрать слово из избранного? (+ или -): ')
-                if fav_ == '+':
-                    dct_.d[wrd_].fav = False
-        elif wrd_ans == '#':
-            print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-            break
-        else:
-            dct_.d[wrd_].incorrect_try()
-            print(f'\033[31mНеверно. Правильный ответ: {dct_.d[wrd_].tr}\033[38m')
-            if not dct_.d[wrd_].fav:
-                fav_ = input('Добавить слово в избранное? (+ или -): ')
-                if fav_ == '+':
-                    dct_.d[wrd_].fav = True
-        count_all += 1
-    return True
-
-
-def learn_t_fav(dct_):
-    count_all = 0
-    count_correct = 0
-    used_words = set()
-    while True:
-        while True:
-            if len(used_words) == len(dct_.d):
+                if self.d[wrd_].fav:
+                    fav_ = input('Убрать слово из избранного? (+ или -): ')
+                    if fav_ == '+':
+                        self.d[wrd_].fav = False
+            elif wrd_ans == '#':
                 print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-                return None
-            wrd_ = random.choice(list(dct_.d.keys()))
-            if not dct_.d[wrd_].fav:
-                used_words.add(wrd_)
-                continue
-            if wrd_ not in used_words:
                 break
+            else:
+                self.d[wrd_].incorrect_try()
+                print(f'\033[31mНеверно. Правильный ответ: "{wrd_}"\033[38m')
+                if not self.d[wrd_].fav:
+                    fav_ = input('Добавить слово в избранное? (+ или -): ')
+                    if fav_ == '+':
+                        self.d[wrd_].fav = True
+            count_all += 1
+        return True
 
-        print()
-        dct_.print_with_stat2(wrd_)
-        wrd_ans = input('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-        if wrd_ans == '@':
-            dct_.d[wrd_].print_dsc()
-            wrd_ans = input('Введите перевод (# - чтобы закончить): ')
-
-        if wrd_ans in dct_.d[wrd_].tr:
-            dct_.d[wrd_].correct_try()
-            print('\033[32mВерно\033[38m')
-            count_correct += 1
-            used_words.add(wrd_)
-            if dct_.d[wrd_].fav:
-                fav_ = input('Убрать слово из избранного? (+ или -): ')
-                if fav_ == '+':
-                    dct_.d[wrd_].fav = False
-        elif wrd_ans == '#':
-            print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-            break
-        else:
-            dct_.d[wrd_].incorrect_try()
-            print(f'\033[31mНеверно. Правильный ответ: {dct_.d[wrd_].tr}\033[38m')
-            if not dct_.d[wrd_].fav:
-                fav_ = input('Добавить слово в избранное? (+ или -): ')
-                if fav_ == '+':
-                    dct_.d[wrd_].fav = True
-        count_all += 1
-    return True
-
-
-def learn_t_smart(dct_):
-    count_all = 0
-    count_correct = 0
-    used_words = set()
-    while True:
-        if len(used_words) == len(dct_.d):
-            print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-            break
+    """ Учить слова - все, сначала сложные """
+    def learn_hard(self):
+        count_all = 0
+        count_correct = 0
+        used_words = set()
         while True:
-            wrd_ = random_smart(dct_)
-            if wrd_ not in used_words:
+            if len(used_words) == len(self.d):
+                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
                 break
+            while True:
+                wrd_ = self.random_smart()
+                if wrd_ not in used_words:
+                    break
 
-        print()
-        dct_.print_with_stat2(wrd_)
-        wrd_ans = input('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-        if wrd_ans == '@':
-            dct_.d[wrd_].print_dsc()
-            wrd_ans = input('Введите перевод (# - чтобы закончить): ')
+            print()
+            self.print_with_stat(wrd_)
+            wrd_ans = input('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
+            if wrd_ans == '@':
+                self.d[wrd_].print_dsc()
+                wrd_ans = input('Введите слово (# - чтобы закончить): ')
 
-        if wrd_ans in dct_.d[wrd_].tr:
-            dct_.d[wrd_].correct_try()
-            print('\033[32mВерно\033[38m')
-            count_correct += 1
-            used_words.add(wrd_)
-            if dct_.d[wrd_].fav:
-                fav_ = input('Убрать слово из избранного? (+ или -): ')
-                if fav_ == '+':
-                    dct_.d[wrd_].fav = False
-        elif wrd_ans == '#':
-            print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-            break
-        else:
-            dct_.d[wrd_].incorrect_try()
-            print(f'\033[31mНеверно. Правильный ответ: {dct_.d[wrd_].tr}\033[38m')
-            if not dct_.d[wrd_].fav:
-                fav_ = input('Добавить слово в избранное? (+ или -): ')
-                if fav_ == '+':
-                    dct_.d[wrd_].fav = True
-        count_all += 1
-    return True
+            if wrd_ans == wrd_:
+                self.d[wrd_].correct_try()
+                print('\033[32mВерно\033[38m')
+                count_correct += 1
+                used_words.add(wrd_)
+                if self.d[wrd_].fav:
+                    fav_ = input('Убрать слово из избранного? (+ или -): ')
+                    if fav_ == '+':
+                        self.d[wrd_].fav = False
+            elif wrd_ans == '#':
+                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
+                break
+            else:
+                self.d[wrd_].incorrect_try()
+                print(f'\033[31mНеверно. Правильный ответ: "{wrd_}"\033[38m')
+                if not self.d[wrd_].fav:
+                    fav_ = input('Добавить слово в избранное? (+ или -): ')
+                    if fav_ == '+':
+                        self.d[wrd_].fav = True
+            count_all += 1
+        return True
+
+    """ Учить слова (обр.) - все """
+    def learn_t(self):
+        count_all = 0
+        count_correct = 0
+        used_words = set()
+        while True:
+            if len(used_words) == len(self.d):
+                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
+                break
+            while True:
+                wrd_ = random.choice(list(self.d.keys()))
+                if wrd_ not in used_words:
+                    break
+
+            print()
+            self.print_with_stat2(wrd_)
+            wrd_ans = input('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
+            if wrd_ans == '@':
+                self.d[wrd_].print_dsc()
+                wrd_ans = input('Введите перевод (# - чтобы закончить): ')
+
+            if wrd_ans in self.d[wrd_].tr:
+                self.d[wrd_].correct_try()
+                print('\033[32mВерно\033[38m')
+                count_correct += 1
+                used_words.add(wrd_)
+                if self.d[wrd_].fav:
+                    fav_ = input('Убрать слово из избранного? (+ или -): ')
+                    if fav_ == '+':
+                        self.d[wrd_].fav = False
+            elif wrd_ans == '#':
+                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
+                break
+            else:
+                self.d[wrd_].incorrect_try()
+                print(f'\033[31mНеверно. Правильный ответ: {self.d[wrd_].tr}\033[38m')
+                if not self.d[wrd_].fav:
+                    fav_ = input('Добавить слово в избранное? (+ или -): ')
+                    if fav_ == '+':
+                        self.d[wrd_].fav = True
+            count_all += 1
+        return True
+
+    """ Учить слова (обр.) - избранные """
+    def learn_t_fav(self):
+        count_all = 0
+        count_correct = 0
+        used_words = set()
+        while True:
+            while True:
+                if len(used_words) == len(self.d):
+                    print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
+                    return None
+                wrd_ = random.choice(list(self.d.keys()))
+                if not self.d[wrd_].fav:
+                    used_words.add(wrd_)
+                    continue
+                if wrd_ not in used_words:
+                    break
+
+            print()
+            self.print_with_stat2(wrd_)
+            wrd_ans = input('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
+            if wrd_ans == '@':
+                self.d[wrd_].print_dsc()
+                wrd_ans = input('Введите перевод (# - чтобы закончить): ')
+
+            if wrd_ans in self.d[wrd_].tr:
+                self.d[wrd_].correct_try()
+                print('\033[32mВерно\033[38m')
+                count_correct += 1
+                used_words.add(wrd_)
+                if self.d[wrd_].fav:
+                    fav_ = input('Убрать слово из избранного? (+ или -): ')
+                    if fav_ == '+':
+                        self.d[wrd_].fav = False
+            elif wrd_ans == '#':
+                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
+                break
+            else:
+                self.d[wrd_].incorrect_try()
+                print(f'\033[31mНеверно. Правильный ответ: {self.d[wrd_].tr}\033[38m')
+                if not self.d[wrd_].fav:
+                    fav_ = input('Добавить слово в избранное? (+ или -): ')
+                    if fav_ == '+':
+                        self.d[wrd_].fav = True
+            count_all += 1
+        return True
+
+    """ Учить слова (обр.) - все, сначала сложные """
+    def learn_t_hard(self):
+        count_all = 0
+        count_correct = 0
+        used_words = set()
+        while True:
+            if len(used_words) == len(self.d):
+                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
+                break
+            while True:
+                wrd_ = self.random_smart()
+                if wrd_ not in used_words:
+                    break
+
+            print()
+            self.print_with_stat2(wrd_)
+            wrd_ans = input('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
+            if wrd_ans == '@':
+                self.d[wrd_].print_dsc()
+                wrd_ans = input('Введите перевод (# - чтобы закончить): ')
+
+            if wrd_ans in self.d[wrd_].tr:
+                self.d[wrd_].correct_try()
+                print('\033[32mВерно\033[38m')
+                count_correct += 1
+                used_words.add(wrd_)
+                if self.d[wrd_].fav:
+                    fav_ = input('Убрать слово из избранного? (+ или -): ')
+                    if fav_ == '+':
+                        self.d[wrd_].fav = False
+            elif wrd_ans == '#':
+                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
+                break
+            else:
+                self.d[wrd_].incorrect_try()
+                print(f'\033[31mНеверно. Правильный ответ: {self.d[wrd_].tr}\033[38m')
+                if not self.d[wrd_].fav:
+                    fav_ = input('Добавить слово в избранное? (+ или -): ')
+                    if fav_ == '+':
+                        self.d[wrd_].fav = True
+            count_all += 1
+        return True
 
 
 dct = Dictionary()
@@ -715,8 +715,8 @@ if not dct.read(filename):
 
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
-print('                                  Dictionary  v4.0.0')
-print('                                   19.12.2022 23:05\n')
+print('                                  Dictionary  v4.0.1')
+print('                                   20.12.2022  3:39\n')
 print('======================================================================================\n')
 
 print(f'Файл со словарём "{filename}" открыт.')
@@ -759,12 +759,12 @@ while True:
             dct.d[wrd].fav = True
 
         has_changes = True
-        edit_note(dct, wrd)
+        dct.edit_note(wrd)
     elif cmd in ['И', 'B']:
         print()
         wrd = input('Введите слово, запись с которым хотите изменить: ')
         if wrd in dct.d.keys():
-            has_changes = edit_note(dct, wrd)
+            has_changes = dct.edit_note(wrd)
         else:
             print(f'Слово "{wrd}" отсутствует в словаре')
     elif cmd in ['НС', 'YC']:
@@ -801,11 +801,11 @@ while True:
             print('И - только Избранные слова')
             cmd = input().upper()
             if cmd in ['В', 'D']:
-                has_changes = learn(dct)
+                has_changes = dct.learn()
             elif cmd in ['И', 'B']:
-                has_changes = learn_fav(dct)
+                has_changes = dct.learn_fav()
             elif cmd in ['С', 'C']:
-                has_changes = learn_smart(dct)
+                has_changes = dct.learn_hard()
             else:
                 print(f'Неизвестная команда: "{cmd}"')
         elif cmd == '2':
@@ -816,11 +816,11 @@ while True:
             print('И - только Избранные слова')
             cmd = input().upper()
             if cmd in ['В', 'D']:
-                has_changes = learn_t(dct)
+                has_changes = dct.learn_t()
             elif cmd in ['И', 'B']:
-                has_changes = learn_t_fav(dct)
+                has_changes = dct.learn_t_fav()
             elif cmd in ['С', 'C']:
-                has_changes = learn_t_smart(dct)
+                has_changes = dct.learn_t_hard()
             else:
                 print(f'Неизвестная команда: "{cmd}"')
         else:
