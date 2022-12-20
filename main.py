@@ -24,6 +24,7 @@ def code(str_):
 
 
 class Note(object):
+    # self.wrd - слово
     # self.tr - список переводов
     # self.dsc - список доп. информации
     # self.count_t - количество переводов
@@ -33,7 +34,9 @@ class Note(object):
     # self.correct_tries - количество удачных попыток
     # self.percent - процент удачных попыток
     # self.last_tries - количество последних неудачных попыток (-1 - значит ещё не было попыток)
-    def __init__(self, tr_, dsc_=None, fav_=False, all_tries_=0, correct_tries_=0, last_tries_=-1):
+    def __init__(self, wrd_, tr_, dsc_=None, fav_=False, all_tries_=0, correct_tries_=0, last_tries_=-1):
+        self.wrd = wrd_
+        self.forms = {}
         self.tr = tr_ if type(tr_) == list else [tr_]
         if dsc_ == None:
             self.dsc = []
@@ -68,41 +71,60 @@ class Note(object):
         for dsc_ in self.dsc:
             print(' ' * tab_ + '> ' + code(dsc_))
 
-    """ Напечатать запись кратко """
-    def print(self):
+    """ Напечатать запись - кратко """
+    def print_briefly(self):
+        if self.fav:
+            print('(*)', end=' ')
+        else:
+            print('   ', end=' ')
+        if self.last_tries == -1:
+            print('[-:  0%]', end=' ')
+        else:
+            p_ = '{:.0%}'.format(self.percent)
+            print(f'[{self.last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']', end=' ')
+        print(code(self.wrd) + ': ', end='')
         self.print_tr()
         self.print_dsc(tab_=13)
 
-    """ Напечатать запись со статистикой """
-    def print_with_stat(self):
+    """ Напечатать запись - слово со статистикой """
+    def print_wrd_with_stat(self):
+        print(self.wrd, end='')
+        p_ = '{:.0%}'.format(self.percent)
+        print(f' [{self.last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']')
+
+    """ Напечатать запись - перевод со статистикой """
+    def print_tr_with_stat(self):
         self.print_tr(end_='')
         p_ = '{:.0%}'.format(self.percent)
         print(f' [{self.last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']')
 
     """ Напечатать запись со всей редактируемой информацией """
     def print_edit(self):
-        print('       Перевод: ', end='')
-        self.print_tr(end_='\n        Сноски: ')
+        print(f'       Слово: {self.wrd}')
+        print('     Перевод: ', end='')
+        self.print_tr(end_='\n      Сноски: ')
         if len(self.dsc) == 0:
             print('-')
         else:
             print('> ' + code(self.dsc[0]))
             for i in range(1, len(self.dsc)):
-                print('                > ' + code(self.dsc[i]))
-        print(f'     Избранное: {self.fav}')
+                print('              > ' + code(self.dsc[i]))
+        print(f'   Избранное: {self.fav}')
 
     """ Напечатать запись со всей информацией """
     def print_all(self):
-        print('       Перевод: ', end='')
-        self.print_tr(end_='\n        Сноски: ')
+        print(f'       Слово: {self.wrd}')
+        print('     Перевод: ', end='')
+        self.print_tr(end_='\n      Сноски: ')
         if len(self.dsc) == 0:
             print('-')
         else:
             print('> ' + code(self.dsc[0]))
             for i in range(1, len(self.dsc)):
-                print('                > ' + code(self.dsc[i]))
-        print(f'     Избранное: {self.fav}')
-        print(f'    Статистика: последних неверных ответов {self.last_tries}; доля верных ответов {self.correct_tries}/{self.all_tries} = ' + '{:.0%}'.format(self.percent))
+                print('              > ' + code(self.dsc[i]))
+        print(f'   Избранное: {self.fav}')
+        print(f'  Статистика: 1) Последних неверных ответов {self.last_tries}\n'
+              f'              2) Доля верных ответов {self.correct_tries}/{self.all_tries} = ' + '{:.0%}'.format(self.percent))
 
     """ Добавить перевод """
     def add_tr(self, new_tr_, show_msg_=True):
@@ -126,6 +148,16 @@ class Note(object):
         else:
             self.percent = 0
         self.last_tries = last_tries_
+
+    """ Объединить статистику при объединении двух записей """
+    def merge_stat(self, all_tries_, correct_tries_, last_tries_):
+        self.all_tries += all_tries_
+        self.correct_tries += correct_tries_
+        if self.all_tries:
+            self.percent = self.correct_tries / self.all_tries
+        else:
+            self.percent = 0
+        self.last_tries += last_tries_
 
     """ Обнулить счётчик, если верная попытка """
     def correct_try(self):
@@ -195,55 +227,34 @@ class Dictionary(object):
     """ Напечатать словарь """
     def print(self):
         for wrd_ in self.d.keys():
-            if self.d[wrd_].fav:
-                print('(*)', end=' ')
-            else:
-                print('   ', end=' ')
-            if self.d[wrd_].last_tries == -1:
-                print('[-:  0%]', end=' ')
-            else:
-                p_ = '{:.0%}'.format(self.d[wrd_].percent)
-                print(f'[{self.d[wrd_].last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']', end=' ')
-            print(code(wrd_) + ': ', end='')
-            self.d[wrd_].print()
+            self.d[wrd_].print_briefly()
         print(f'< {self.count_w} сл. | {self.count_t} перев. >')
 
     """ Напечатать словарь (только избранные слова) """
     def print_fav(self):
-        count_wrd_ = 0
-        count_tr_ = 0
+        count_w_ = 0
+        count_t_ = 0
         for wrd_ in self.d.keys():
             if self.d[wrd_].fav:
-                print('(*)', end=' ')
-                if self.d[wrd_].last_tries == -1:
-                    print('[-:  0%]', end=' ')
-                else:
-                    p_ = '{:.0%}'.format(self.d[wrd_].percent)
-                    print(f'[{self.d[wrd_].last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']', end=' ')
-                print(code(wrd_) + ': ', end='')
-                self.d[wrd_].print()
-                count_wrd_ += 1
-                count_tr_ += self.d[wrd_].count_t
-        print(f'< {count_wrd_}/{self.count_w} сл. | {count_tr_}/{self.count_t} перев. >')
+                self.d[wrd_].print_briefly()
+                count_w_ += 1
+                count_t_ += self.d[wrd_].count_t
+        print(f'< {count_w_}/{self.count_w} сл. | {count_t_}/{self.count_t} перев. >')
 
     """ Напечатать запись из словаря со статистикой """
-    def print_with_stat(self, wrd_):
-        self.d[wrd_].print_with_stat()
+    def print_tr_with_stat(self, wrd_):
+        self.d[wrd_].print_tr_with_stat()
 
     """ Напечатать запись из словаря со статистикой """
-    def print_with_stat2(self, wrd_):
-        print(wrd_, end='')
-        p_ = '{:.0%}'.format(self.d[wrd_].percent)
-        print(f' [{self.d[wrd_].last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']')
+    def print_wrd_with_stat(self, wrd_):
+        self.d[wrd_].print_wrd_with_stat()
 
     """ Напечатать запись из словаря со всей редактируемой информацией """
     def print_edit(self, wrd_):
-        print(f'         Слово: {wrd_}')
         self.d[wrd_].print_edit()
 
     """ Напечатать запись из словаря со всей информацией """
     def print_all(self, wrd_):
-        print(f'         Слово: {wrd_}')
         self.d[wrd_].print_all()
 
     """ Подсчитать среднюю долю правильных ответов """
@@ -262,7 +273,7 @@ class Dictionary(object):
             self.d[wrd_].add_tr(tr_, show_msg_)
             self.count_t += self.d[wrd_].count_t
         else:
-            self.d[wrd_] = Note([tr_])
+            self.d[wrd_] = Note(wrd_, [tr_])
             self.count_w += 1
             self.count_t += 1
 
@@ -277,10 +288,11 @@ class Dictionary(object):
                 self.add_dsc(new_wrd_, dsc_)
             self.count_t += self.d[new_wrd_].count_t
             self.count_w -= 1
-            self.d[new_wrd_].fav = self.d[wrd_].fav
-            self.d[new_wrd_].add_stat(self.d[wrd_].all_tries, self.d[wrd_].correct_tries, self.d[wrd_].last_tries)
+            if self.d[wrd_].fav:
+                self.d[new_wrd_].fav = True
+            self.d[new_wrd_].merge_stat(self.d[wrd_].all_tries, self.d[wrd_].correct_tries, self.d[wrd_].last_tries)
         else:
-            self.d[new_wrd_] = Note(self.d[wrd_].tr, self.d[wrd_].dsc, self.d[wrd_].fav, self.d[wrd_].all_tries, self.d[wrd_].correct_tries, self.d[wrd_].last_tries)
+            self.d[new_wrd_] = Note(new_wrd_, self.d[wrd_].tr, self.d[wrd_].dsc, self.d[wrd_].fav, self.d[wrd_].all_tries, self.d[wrd_].correct_tries, self.d[wrd_].last_tries)
         self.d.pop(wrd_)
 
     """ Добавить перевод к записи в словаре """
@@ -458,7 +470,7 @@ class Dictionary(object):
                     break
 
             print()
-            self.print_with_stat(wrd_)
+            self.print_tr_with_stat(wrd_)
             wrd_ans = input('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
             if wrd_ans == '@':
                 self.d[wrd_].print_dsc()
@@ -504,7 +516,7 @@ class Dictionary(object):
                     break
 
             print()
-            self.print_with_stat(wrd_)
+            self.print_tr_with_stat(wrd_)
             wrd_ans = input('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
             if wrd_ans == '@':
                 self.d[wrd_].print_dsc()
@@ -547,7 +559,7 @@ class Dictionary(object):
                     break
 
             print()
-            self.print_with_stat(wrd_)
+            self.print_tr_with_stat(wrd_)
             wrd_ans = input('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
             if wrd_ans == '@':
                 self.d[wrd_].print_dsc()
@@ -590,7 +602,7 @@ class Dictionary(object):
                     break
 
             print()
-            self.print_with_stat2(wrd_)
+            self.print_wrd_with_stat(wrd_)
             wrd_ans = input('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
             if wrd_ans == '@':
                 self.d[wrd_].print_dsc()
@@ -636,7 +648,7 @@ class Dictionary(object):
                     break
 
             print()
-            self.print_with_stat2(wrd_)
+            self.print_wrd_with_stat(wrd_)
             wrd_ans = input('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
             if wrd_ans == '@':
                 self.d[wrd_].print_dsc()
@@ -679,7 +691,7 @@ class Dictionary(object):
                     break
 
             print()
-            self.print_with_stat2(wrd_)
+            self.print_wrd_with_stat(wrd_)
             wrd_ans = input('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
             if wrd_ans == '@':
                 self.d[wrd_].print_dsc()
@@ -715,8 +727,8 @@ if not dct.read(filename):
 
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
-print('                                  Dictionary  v4.0.1')
-print('                                   20.12.2022  3:39\n')
+print('                                  Dictionary  v4.0.2')
+print('                                   20.12.2022  4:29\n')
 print('======================================================================================\n')
 
 print(f'Файл со словарём "{filename}" открыт.')
