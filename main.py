@@ -327,14 +327,15 @@ class Dictionary(object):
             with open(filename_, 'w') as file_:
                 for key_ in self.d.keys():
                     file_.write(f'w {key_}\n')
-                    file_.write(f'f {str(int(self.d[key_].fav))}\n')
-                    file_.write(f'a {str(self.d[key_].all_tries)}\n')
-                    file_.write(f'c {str(self.d[key_].correct_tries)}\n')
-                    file_.write(f'l {str(self.d[key_].last_tries)}\n')
+                    file_.write(f'{str(self.d[key_].all_tries)}\n')
+                    file_.write(f'{str(self.d[key_].correct_tries)}\n')
+                    file_.write(f'{str(self.d[key_].last_tries)}\n')
                     for val_ in self.d[key_].tr:
                         file_.write(f't {val_}\n')
                     for val_ in self.d[key_].dsc:
                         file_.write(f'd {val_}\n')
+                    if self.d[key_].fav:
+                        file_.write(f'f\n')
         except FileNotFoundError:
             print(f'Файл "{filename_}" не найден')
             exit(1)
@@ -343,31 +344,26 @@ class Dictionary(object):
     def read(self, filename_):
         try:
             with open(filename_, 'r') as file_:
-                lines_ = file_.read().strip().split('\n')
-            if lines_ == ['']:
-                lines_ = []
+                while True:
+                    line_ = file_.readline().strip()
+                    if not line_:
+                        break
+                    elif line_[0] == 'w':
+                        wrd_ = line_[2:]
+                        all_tries_ = int(file_.readline().strip())
+                        correct_tries_ = int(file_.readline().strip())
+                        last_tries_ = int(file_.readline().strip())
+                    elif line_[0] == 't':
+                        self.add_val(wrd_, line_[2:], False)
+                        self.d[wrd_].add_stat(all_tries_, correct_tries_, last_tries_)
+                    elif line_[0] == 'd':
+                        self.add_dsc(wrd_, line_[2:])
+                    elif line_[0] == 'f':
+                        self.d[wrd_].fav = True
+            return True
         except FileNotFoundError:
             print(f'Файл "{filename_}" не найден')
             return False
-
-        for line_ in lines_:
-            if line_[0] == 'w':
-                wrd_ = line_[2:]
-            elif line_[0] == 'f':
-                fav_ = bool(int(line_[2:]))
-            elif line_[0] == 'a':
-                all_tries_ = int(line_[2:])
-            elif line_[0] == 'c':
-                correct_tries_ = int(line_[2:])
-            elif line_[0] == 'l':
-                last_tries_ = int(line_[2:])
-            elif line_[0] == 't':
-                self.add_val(wrd_, line_[2:], False)
-                self.d[wrd_].fav = fav_
-                self.d[wrd_].add_stat(all_tries_, correct_tries_, last_tries_)
-            elif line_[0] == 'd':
-                self.add_dsc(wrd_, line_[2:])
-        return True
 
     """ Изменить запись в словаре """
     def edit_note(self, wrd_):
@@ -727,8 +723,8 @@ if not dct.read(filename):
 
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
-print('                                  Dictionary  v4.0.2')
-print('                                   20.12.2022  4:29\n')
+print('                                  Dictionary  v4.0.3')
+print('                                   20.12.2022  4:59\n')
 print('======================================================================================\n')
 
 print(f'Файл со словарём "{filename}" открыт.')
