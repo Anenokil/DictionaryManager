@@ -122,7 +122,7 @@ class Note(object):
         self.last_tries = last_tries_
 
     """ Напечатать перевод """
-    def print_tr(self, end_='\n'):
+    def tr_print(self, end_='\n'):
         is_first = True
         for tr_wrd in self.tr:
             if is_first:
@@ -133,12 +133,12 @@ class Note(object):
         print(end_, end='')
 
     """ Напечатать описание """
-    def print_dsc(self, tab_=0):
+    def dsc_print(self, tab_=0):
         for dsc_ in self.dsc:
             print(' ' * tab_ + f'> {code(dsc_)}')
 
     """ Напечатать формы слова """
-    def print_frm(self, tab_=0):
+    def frm_print(self, tab_=0):
         for n_ in self.forms.keys():
             print(' ' * tab_ + f'> {n_}: {code(self.forms[n_])}')
 
@@ -154,32 +154,38 @@ class Note(object):
             p_ = '{:.0%}'.format(self.percent)
             print(f'[{self.last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']', end=' ')
         print(code(self.wrd) + ': ', end='')
-        self.print_tr()
-        self.print_dsc(tab_=13)
+        self.tr_print()
+        self.dsc_print(tab_=13)
 
     """ Напечатать запись - слово со статистикой """
     def print_wrd_with_stat(self):
         print(self.wrd, end='')
-        p_ = '{:.0%}'.format(self.percent)
-        print(f' [{self.last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']')
+        if self.last_tries == -1:
+            print(' [-:  0%]')
+        else:
+            p_ = '{:.0%}'.format(self.percent)
+            print(f' [{self.last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']')
 
     """ Напечатать запись - перевод со статистикой """
     def print_tr_with_stat(self):
-        self.print_tr(end_='')
-        p_ = '{:.0%}'.format(self.percent)
-        print(f' [{self.last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']')
+        self.tr_print(end_='')
+        if self.last_tries == -1:
+            print(' [-:  0%]')
+        else:
+            p_ = '{:.0%}'.format(self.percent)
+            print(f' [{self.last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']')
 
     """ Напечатать запись со всей редактируемой информацией """
     def print_edit(self):
         print(f'       Слово: {self.wrd}')
         print('     Перевод: ', end='')
-        self.print_tr()
+        self.tr_print()
         print(' Формы слова:', end='')
         if self.count_f == 0:
             print(' -')
         else:
             print()
-            self.print_frm(tab_=8)
+            self.frm_print(tab_=8)
         print('      Сноски: ', end='')
         if len(self.dsc) == 0:
             print('-')
@@ -193,13 +199,13 @@ class Note(object):
     def print_all(self):
         print(f'       Слово: {self.wrd}')
         print('     Перевод: ', end='')
-        self.print_tr()
+        self.tr_print()
         print(' Формы слова:', end='')
         if self.count_f == 0:
             print(' -')
         else:
             print()
-            self.print_frm(tab_=8)
+            self.frm_print(tab_=8)
         print('      Сноски: ', end='')
         if len(self.dsc) == 0:
             print('-')
@@ -208,8 +214,12 @@ class Note(object):
             for i in range(1, len(self.dsc)):
                 print('              > ' + code(self.dsc[i]))
         print(f'   Избранное: {self.fav}')
-        print(f'  Статистика: 1) Последних неверных ответов {self.last_tries}\n'
-              f'              2) Доля верных ответов {self.correct_tries}/{self.all_tries} = ' + '{:.0%}'.format(self.percent))
+        if self.last_tries == -1:
+            print(f'  Статистика: 1) Последних неверных ответов -')
+            print(f'              2) Доля верных ответов 0')
+        else:
+            print(f'  Статистика: 1) Последних неверных ответов {self.last_tries}')
+            print(f'              2) Доля верных ответов {self.correct_tries}/{self.all_tries} = ' + '{:.0%}'.format(self.percent))
 
     """ Добавить перевод """
     def add_tr(self, new_tr_, show_msg_=True):
@@ -324,6 +334,66 @@ class Note(object):
             print(f'Неверный номер варианта: "{index_}"')
 
 
+""" Угадать слово по переводу """
+def guess_wrd(note_, count_correct_, count_all_):
+    print()
+    note_.print_tr_with_stat()
+    wrd_ans = input('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
+    if wrd_ans == '@':
+        note_.dsc_print()
+        wrd_ans = input('Введите слово (# - чтобы закончить): ')
+    if wrd_ans == '#':
+        print(f'\033[33mВаш результат: {count_correct_}/{count_all_}\033[38m')
+        return 1
+
+    if wrd_ans == note_.wrd:
+        note_.correct_try()
+        print('\033[32mВерно\033[38m')
+        if note_.fav:
+            fav_ = input('Убрать слово из избранного? (+ или -): ')
+            if fav_ == '+':
+                note_.fav = False
+        return 2
+    else:
+        note_.incorrect_try()
+        print(f'\033[31mНеверно. Правильный ответ: "{note_.wrd}"\033[38m')
+        if not note_.fav:
+            fav_ = input('Добавить слово в избранное? (+ или -): ')
+            if fav_ == '+':
+                note_.fav = True
+        return 3
+
+
+""" Угадать перевод по слову """
+def guess_tr(note_, count_correct_, count_all_):
+    print()
+    note_.print_wrd_with_stat()
+    wrd_ans = input('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
+    if wrd_ans == '@':
+        note_.dsc_print()
+        wrd_ans = input('Введите перевод (# - чтобы закончить): ')
+    if wrd_ans == '#':
+        print(f'\033[33mВаш результат: {count_correct_}/{count_all_}\033[38m')
+        return 1
+
+    if wrd_ans in note_.tr:
+        note_.correct_try()
+        print('\033[32mВерно\033[38m')
+        if note_.fav:
+            fav_ = input('Убрать слово из избранного? (+ или -): ')
+            if fav_ == '+':
+                note_.fav = False
+        return 2
+    else:
+        note_.incorrect_try()
+        print(f'\033[31mНеверно. Правильный ответ: {note_.tr}\033[38m')
+        if not note_.fav:
+            fav_ = input('Добавить слово в избранное? (+ или -): ')
+            if fav_ == '+':
+                note_.fav = True
+        return 3
+
+
 class Dictionary(object):
     # self.d - сам словарь
     # self.count_w - количество записей в словаре
@@ -349,22 +419,6 @@ class Dictionary(object):
                 count_w_ += 1
                 count_t_ += self.d[wrd_].count_t
         print(f'< {count_w_}/{self.count_w} сл. | {count_t_}/{self.count_t} перев. >')
-
-    """ Напечатать запись из словаря со статистикой """
-    def print_tr_with_stat(self, wrd_):
-        self.d[wrd_].print_tr_with_stat()
-
-    """ Напечатать запись из словаря со статистикой """
-    def print_wrd_with_stat(self, wrd_):
-        self.d[wrd_].print_wrd_with_stat()
-
-    """ Напечатать запись из словаря со всей редактируемой информацией """
-    def print_edit(self, wrd_):
-        self.d[wrd_].print_edit()
-
-    """ Напечатать запись из словаря со всей информацией """
-    def print_all(self, wrd_):
-        self.d[wrd_].print_all()
 
     """ Подсчитать среднюю долю правильных ответов """
     def count_rating(self):
@@ -493,7 +547,7 @@ class Dictionary(object):
         has_changes_ = False
         while True:
             print()
-            self.print_edit(wrd_)
+            self.d[wrd_].print_edit()
             print()
             print('Что вы хотите сделать?')
             print('СЛ - изменить СЛово')
@@ -610,33 +664,16 @@ class Dictionary(object):
                 if wrd_ not in used_words:
                     break
 
-            print()
-            self.print_tr_with_stat(wrd_)
-            wrd_ans = input('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-            if wrd_ans == '@':
-                self.d[wrd_].print_dsc()
-                wrd_ans = input('Введите слово (# - чтобы закончить): ')
-
-            if wrd_ans == wrd_:
-                self.d[wrd_].correct_try()
-                print('\033[32mВерно\033[38m')
+            res_ = guess_wrd(self.d[wrd_], count_correct, count_all)
+            if res_ == 1:
+                break
+            elif res_ == 2:
+                count_all += 1
                 count_correct += 1
                 used_words.add(wrd_)
-                if self.d[wrd_].fav:
-                    fav_ = input('Убрать слово из избранного? (+ или -): ')
-                    if fav_ == '+':
-                        self.d[wrd_].fav = False
-            elif wrd_ans == '#':
-                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-                break
-            else:
-                self.d[wrd_].incorrect_try()
-                print(f'\033[31mНеверно. Правильный ответ: "{wrd_}"\033[38m')
-                if not self.d[wrd_].fav:
-                    fav_ = input('Добавить слово в избранное? (+ или -): ')
-                    if fav_ == '+':
-                        self.d[wrd_].fav = True
-            count_all += 1
+            elif res_ == 3:
+                count_all += 1
+
         return True
 
     """ Учить слова - избранные """
@@ -656,33 +693,16 @@ class Dictionary(object):
                 if wrd_ not in used_words:
                     break
 
-            print()
-            self.print_tr_with_stat(wrd_)
-            wrd_ans = input('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-            if wrd_ans == '@':
-                self.d[wrd_].print_dsc()
-                wrd_ans = input('Введите слово (# - чтобы закончить): ')
-
-            if wrd_ans == wrd_:
-                self.d[wrd_].correct_try()
-                print('\033[32mВерно\033[38m')
+            res_ = guess_wrd(self.d[wrd_], count_correct, count_all)
+            if res_ == 1:
+                break
+            elif res_ == 2:
+                count_all += 1
                 count_correct += 1
                 used_words.add(wrd_)
-                if self.d[wrd_].fav:
-                    fav_ = input('Убрать слово из избранного? (+ или -): ')
-                    if fav_ == '+':
-                        self.d[wrd_].fav = False
-            elif wrd_ans == '#':
-                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-                break
-            else:
-                self.d[wrd_].incorrect_try()
-                print(f'\033[31mНеверно. Правильный ответ: "{wrd_}"\033[38m')
-                if not self.d[wrd_].fav:
-                    fav_ = input('Добавить слово в избранное? (+ или -): ')
-                    if fav_ == '+':
-                        self.d[wrd_].fav = True
-            count_all += 1
+            elif res_ == 3:
+                count_all += 1
+
         return True
 
     """ Учить слова - все, сначала сложные """
@@ -699,33 +719,16 @@ class Dictionary(object):
                 if wrd_ not in used_words:
                     break
 
-            print()
-            self.print_tr_with_stat(wrd_)
-            wrd_ans = input('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-            if wrd_ans == '@':
-                self.d[wrd_].print_dsc()
-                wrd_ans = input('Введите слово (# - чтобы закончить): ')
-
-            if wrd_ans == wrd_:
-                self.d[wrd_].correct_try()
-                print('\033[32mВерно\033[38m')
+            res_ = guess_wrd(self.d[wrd_], count_correct, count_all)
+            if res_ == 1:
+                break
+            elif res_ == 2:
+                count_all += 1
                 count_correct += 1
                 used_words.add(wrd_)
-                if self.d[wrd_].fav:
-                    fav_ = input('Убрать слово из избранного? (+ или -): ')
-                    if fav_ == '+':
-                        self.d[wrd_].fav = False
-            elif wrd_ans == '#':
-                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-                break
-            else:
-                self.d[wrd_].incorrect_try()
-                print(f'\033[31mНеверно. Правильный ответ: "{wrd_}"\033[38m')
-                if not self.d[wrd_].fav:
-                    fav_ = input('Добавить слово в избранное? (+ или -): ')
-                    if fav_ == '+':
-                        self.d[wrd_].fav = True
-            count_all += 1
+            elif res_ == 3:
+                count_all += 1
+
         return True
 
     """ Учить слова (обр.) - все """
@@ -742,33 +745,16 @@ class Dictionary(object):
                 if wrd_ not in used_words:
                     break
 
-            print()
-            self.print_wrd_with_stat(wrd_)
-            wrd_ans = input('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-            if wrd_ans == '@':
-                self.d[wrd_].print_dsc()
-                wrd_ans = input('Введите перевод (# - чтобы закончить): ')
-
-            if wrd_ans in self.d[wrd_].tr:
-                self.d[wrd_].correct_try()
-                print('\033[32mВерно\033[38m')
+            res_ = guess_tr(self.d[wrd_], count_correct, count_all)
+            if res_ == 1:
+                break
+            elif res_ == 2:
+                count_all += 1
                 count_correct += 1
                 used_words.add(wrd_)
-                if self.d[wrd_].fav:
-                    fav_ = input('Убрать слово из избранного? (+ или -): ')
-                    if fav_ == '+':
-                        self.d[wrd_].fav = False
-            elif wrd_ans == '#':
-                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-                break
-            else:
-                self.d[wrd_].incorrect_try()
-                print(f'\033[31mНеверно. Правильный ответ: {self.d[wrd_].tr}\033[38m')
-                if not self.d[wrd_].fav:
-                    fav_ = input('Добавить слово в избранное? (+ или -): ')
-                    if fav_ == '+':
-                        self.d[wrd_].fav = True
-            count_all += 1
+            elif res_ == 3:
+                count_all += 1
+
         return True
 
     """ Учить слова (обр.) - избранные """
@@ -788,33 +774,16 @@ class Dictionary(object):
                 if wrd_ not in used_words:
                     break
 
-            print()
-            self.print_wrd_with_stat(wrd_)
-            wrd_ans = input('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-            if wrd_ans == '@':
-                self.d[wrd_].print_dsc()
-                wrd_ans = input('Введите перевод (# - чтобы закончить): ')
-
-            if wrd_ans in self.d[wrd_].tr:
-                self.d[wrd_].correct_try()
-                print('\033[32mВерно\033[38m')
+            res_ = guess_tr(self.d[wrd_], count_correct, count_all)
+            if res_ == 1:
+                break
+            elif res_ == 2:
+                count_all += 1
                 count_correct += 1
                 used_words.add(wrd_)
-                if self.d[wrd_].fav:
-                    fav_ = input('Убрать слово из избранного? (+ или -): ')
-                    if fav_ == '+':
-                        self.d[wrd_].fav = False
-            elif wrd_ans == '#':
-                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-                break
-            else:
-                self.d[wrd_].incorrect_try()
-                print(f'\033[31mНеверно. Правильный ответ: {self.d[wrd_].tr}\033[38m')
-                if not self.d[wrd_].fav:
-                    fav_ = input('Добавить слово в избранное? (+ или -): ')
-                    if fav_ == '+':
-                        self.d[wrd_].fav = True
-            count_all += 1
+            elif res_ == 3:
+                count_all += 1
+
         return True
 
     """ Учить слова (обр.) - все, сначала сложные """
@@ -831,33 +800,16 @@ class Dictionary(object):
                 if wrd_ not in used_words:
                     break
 
-            print()
-            self.print_wrd_with_stat(wrd_)
-            wrd_ans = input('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-            if wrd_ans == '@':
-                self.d[wrd_].print_dsc()
-                wrd_ans = input('Введите перевод (# - чтобы закончить): ')
-
-            if wrd_ans in self.d[wrd_].tr:
-                self.d[wrd_].correct_try()
-                print('\033[32mВерно\033[38m')
+            res_ = guess_tr(self.d[wrd_], count_correct, count_all)
+            if res_ == 1:
+                break
+            elif res_ == 2:
+                count_all += 1
                 count_correct += 1
                 used_words.add(wrd_)
-                if self.d[wrd_].fav:
-                    fav_ = input('Убрать слово из избранного? (+ или -): ')
-                    if fav_ == '+':
-                        self.d[wrd_].fav = False
-            elif wrd_ans == '#':
-                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
-                break
-            else:
-                self.d[wrd_].incorrect_try()
-                print(f'\033[31mНеверно. Правильный ответ: {self.d[wrd_].tr}\033[38m')
-                if not self.d[wrd_].fav:
-                    fav_ = input('Добавить слово в избранное? (+ или -): ')
-                    if fav_ == '+':
-                        self.d[wrd_].fav = True
-            count_all += 1
+            elif res_ == 3:
+                count_all += 1
+
         return True
 
 
@@ -874,7 +826,7 @@ try:
     open(local_settings_fn, 'r')
 except FileNotFoundError:
     with open(local_settings_fn, 'w') as locSetF:
-        locSetF.print('ед.ч.@мн.ч.\nм.р.@ж.р.@с.р.\nим.п.@род.п.@дат.п.@вин.п.\n1 л.@2 л.@3 л.\nпр.вр.@н.вр.@б.вр.')
+        locSetF.write('ед.ч.@мн.ч.\nм.р.@ж.р.@с.р.\nим.п.@род.п.@дат.п.@вин.п.\n1 л.@2 л.@3 л.\nпр.вр.@н.вр.@б.вр.')
 with open(local_settings_fn, 'r') as locSetF:
     FORMS_NUM = locSetF.readline().strip().split('@')
     FORMS_GEN = locSetF.readline().strip().split('@')
@@ -938,7 +890,7 @@ def save_settings():
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
 print('                                  Dictionary  v5.0.0')
-print('                                   20.12.2022  8:34\n')
+print('                                   20.12.2022 19:20\n')
 print('======================================================================================\n')
 
 print(f'Файл со словарём "{filename}" открыт.')
@@ -993,17 +945,17 @@ while True:
         print()
         wrd = input('Введите слово, которое хотите найти: ')
         if wrd in dct.d.keys():
-            dct.print_all(wrd)
+            dct.d[wrd].print_all()
         else:
             print(f'Слово "{wrd}" отсутствует в словаре')
     elif cmd in ['НП', 'YG']:
         print()
         tr = input('Введите перевод слова, которое хотите найти: ')
         isFound = False
-        for key in dct.d.keys():
-            if tr in dct.d[key].tr:
+        for wrd in dct.d.keys():
+            if tr in dct.d[wrd].tr:
                 isFound = True
-                dct.print_all(key)
+                dct.d[wrd].print_all()
                 print()
         if not isFound:
             print(f'Слово с переводом "{tr}" отсутствует в словаре')
