@@ -159,21 +159,31 @@ class Note(object):
 
     """ Напечатать запись - слово со статистикой """
     def print_wrd_with_stat(self):
-        print(self.wrd, end='')
+        print(self.wrd, end=' ')
         if self.last_tries == -1:
-            print(' [-:  0%]')
+            print('[-:  0%]')
         else:
             p_ = '{:.0%}'.format(self.percent)
-            print(f' [{self.last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']')
+            print(f'[{self.last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']')
 
     """ Напечатать запись - перевод со статистикой """
     def print_tr_with_stat(self):
-        self.tr_print(end_='')
+        self.tr_print(end_=' ')
         if self.last_tries == -1:
-            print(' [-:  0%]')
+            print('[-:  0%]')
         else:
             p_ = '{:.0%}'.format(self.percent)
-            print(f' [{self.last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']')
+            print(f'[{self.last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']')
+
+    """ Напечатать запись - перевод с формой и со статистикой """
+    def print_tr_frm_with_stat(self, frm_type_):
+        self.tr_print(end_=' ')
+        print(f'({frm_type_})', end=' ')
+        if self.last_tries == -1:
+            print('[-:  0%]')
+        else:
+            p_ = '{:.0%}'.format(self.percent)
+            print(f'[{self.last_tries}:' + (' ' * (4 - len(p_))) + p_ + ']')
 
     """ Напечатать запись со всей редактируемой информацией """
     def print_edit(self):
@@ -235,12 +245,12 @@ class Note(object):
         self.count_d += 1
 
     """ Добавить форму слова """
-    def add_frm(self, frm_type_, new_frm_):
-        if frm_type_ in self.forms.keys():
-            print(f'Слово уже имеет форму {frm_type_}: {self.forms[frm_type_]}')
-        else:
+    def add_frm(self, frm_type_, new_frm_, show_msg_=True):
+        if frm_type_ not in self.forms.keys():
             self.forms[frm_type_] = new_frm_
             self.count_f += 1
+        elif show_msg_:
+            print(f'Слово уже имеет форму {frm_type_}: {self.forms[frm_type_]}')
 
     """ Добавить статистику """
     def add_stat(self, all_tries_, correct_tries_, last_tries_):
@@ -364,6 +374,36 @@ def guess_wrd(note_, count_correct_, count_all_):
         return 3
 
 
+""" Угадать слово по переводу """
+def guess_wrd_f(note_, wrd_f_, count_correct_, count_all_):
+    print()
+    note_.print_tr_frm_with_stat(wrd_f_)
+    wrd_ans = input('Введите слово в данной форме (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
+    if wrd_ans == '@':
+        note_.dsc_print()
+        wrd_ans = input('Введите слово в данной форме (# - чтобы закончить): ')
+    if wrd_ans == '#':
+        print(f'\033[33mВаш результат: {count_correct_}/{count_all_}\033[38m')
+        return 1
+
+    if wrd_ans == note_.forms[wrd_f_]:
+        note_.correct_try()
+        print('\033[32mВерно\033[38m')
+        if note_.fav:
+            fav_ = input('Убрать слово из избранного? (+ или -): ')
+            if fav_ == '+':
+                note_.fav = False
+        return 2
+    else:
+        note_.incorrect_try()
+        print(f'\033[31mНеверно. Правильный ответ: "{note_.wrd}"\033[38m')
+        if not note_.fav:
+            fav_ = input('Добавить слово в избранное? (+ или -): ')
+            if fav_ == '+':
+                note_.fav = True
+        return 3
+
+
 """ Угадать перевод по слову """
 def guess_tr(note_, count_correct_, count_all_):
     print()
@@ -398,27 +438,31 @@ class Dictionary(object):
     # self.d - сам словарь
     # self.count_w - количество записей в словаре
     # self.count_t - количество переводов в словаре
+    # self.count_f - количество неначальных словоформ в словаре
     def __init__(self):
         self.d = {}
         self.count_w = 0
         self.count_t = 0
+        self.count_f = 0
 
     """ Напечатать словарь """
     def print(self):
         for wrd_ in self.d.keys():
             self.d[wrd_].print_briefly()
-        print(f'< {self.count_w} сл. | {self.count_t} перев. >')
+        print(f'< {self.count_w} сл. | {self.count_w + self.count_f} словоформ. | {self.count_t} перев. >')
 
     """ Напечатать словарь (только избранные слова) """
     def print_fav(self):
         count_w_ = 0
         count_t_ = 0
+        count_f_ = 0
         for wrd_ in self.d.keys():
             if self.d[wrd_].fav:
                 self.d[wrd_].print_briefly()
                 count_w_ += 1
                 count_t_ += self.d[wrd_].count_t
-        print(f'< {count_w_}/{self.count_w} сл. | {count_t_}/{self.count_t} перев. >')
+                count_f_ += self.d[wrd_].count_f
+        print(f'< {count_w_}/{self.count_w} сл. | {count_w_ + count_f_}/{self.count_w + self.count_f} словоформ. | {count_t_}/{self.count_t} перев. >')
 
     """ Подсчитать среднюю долю правильных ответов """
     def count_rating(self):
@@ -432,9 +476,7 @@ class Dictionary(object):
     """ Добавить запись в словарь """
     def add_val(self, wrd_, tr_, show_msg_=True):
         if wrd_ in self.d.keys():
-            self.count_t -= self.d[wrd_].count_t
-            self.d[wrd_].add_tr(tr_, show_msg_)
-            self.count_t += self.d[wrd_].count_t
+            self.add_tr(wrd_, tr_, show_msg_)
         else:
             self.d[wrd_] = Note(wrd_, [tr_])
             self.count_w += 1
@@ -469,8 +511,10 @@ class Dictionary(object):
         self.d[wrd_].add_dsc(dsc_)
 
     """ Добавить форму слова к записи в словаре """
-    def add_frm(self, wrd_, frm_type_, frm_):
-        self.d[wrd_].add_frm(frm_type_, frm_)
+    def add_frm(self, wrd_, frm_type_, frm_, show_msg_=True):
+        self.count_f -= self.d[wrd_].count_f
+        self.d[wrd_].add_frm(frm_type_, frm_, show_msg_)
+        self.count_f += self.d[wrd_].count_f
 
     """ Удалить перевод из словаря """
     def remove_tr(self, wrd_):
@@ -656,7 +700,7 @@ class Dictionary(object):
         count_correct = 0
         used_words = set()
         while True:
-            if len(used_words) == len(self.d):
+            if len(used_words) == self.count_w:
                 print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
                 break
             while True:
@@ -683,7 +727,7 @@ class Dictionary(object):
         used_words = set()
         while True:
             while True:
-                if len(used_words) == len(self.d):
+                if len(used_words) == self.count_w:
                     print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
                     return None
                 wrd_ = random.choice(list(self.d.keys()))
@@ -711,7 +755,7 @@ class Dictionary(object):
         count_correct = 0
         used_words = set()
         while True:
-            if len(used_words) == len(self.d):
+            if len(used_words) == self.count_w:
                 print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
                 break
             while True:
@@ -731,13 +775,120 @@ class Dictionary(object):
 
         return True
 
+    """ Учить слова (словоформы) - все """
+    def learn_f(self):
+        count_all = 0
+        count_correct = 0
+        used_words = set()
+        while True:
+            if len(used_words) == self.count_w + self.count_f:
+                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
+                break
+            while True:
+                wrd_ = random.choice(list(self.d.keys()))
+                rnd_f_ = random.randint(-1, self.d[wrd_].count_f - 1)
+                if rnd_f_ == -1:
+                    wrd_f_ = wrd_
+                    if wrd_f_ not in used_words:
+                        res_ = guess_wrd(self.d[wrd_], count_correct, count_all)
+                        break
+                else:
+                    wrd_f_ = random.choice(list(self.d[wrd_].forms.keys()))
+                    if wrd_f_ not in used_words:
+                        res_ = guess_wrd_f(self.d[wrd_], wrd_f_, count_correct, count_all)
+                        break
+
+            if res_ == 1:
+                break
+            elif res_ == 2:
+                count_all += 1
+                count_correct += 1
+                used_words.add(wrd_f_)
+            elif res_ == 3:
+                count_all += 1
+
+        return True
+
+    """ Учить слова (словоформы) - избранные """
+    def learn_f_fav(self):
+        count_all = 0
+        count_correct = 0
+        used_words = set()
+        while True:
+            while True:
+                if len(used_words) == self.count_w + self.count_f:
+                    print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
+                    return None
+                wrd_ = random.choice(list(self.d.keys()))
+                if not self.d[wrd_].fav:
+                    used_words.add(wrd_)
+                    for frm_ in self.d[wrd_].forms.keys():
+                        used_words.add(frm_)
+                    continue
+                rnd_f_ = random.randint(-1, self.d[wrd_].count_f - 1)
+                if rnd_f_ == -1:
+                    wrd_f_ = wrd_
+                    if wrd_f_ not in used_words:
+                        res_ = guess_wrd(self.d[wrd_], count_correct, count_all)
+                        break
+                else:
+                    wrd_f_ = random.choice(list(self.d[wrd_].forms.keys()))
+                    if wrd_f_ not in used_words:
+                        res_ = guess_wrd_f(self.d[wrd_], wrd_f_, count_correct, count_all)
+                        break
+
+            if res_ == 1:
+                break
+            elif res_ == 2:
+                count_all += 1
+                count_correct += 1
+                used_words.add(wrd_f_)
+            elif res_ == 3:
+                count_all += 1
+
+        return True
+
+    """ Учить слова (словоформы) - все, сначала сложные """
+    def learn_f_hard(self):
+        count_all = 0
+        count_correct = 0
+        used_words = set()
+        while True:
+            if len(used_words) == self.count_w + self.count_f:
+                print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
+                break
+            while True:
+                wrd_ = self.random_smart()
+                rnd_f_ = random.randint(-1, self.d[wrd_].count_f - 1)
+                if rnd_f_ == -1:
+                    wrd_f_ = wrd_
+                    if wrd_f_ not in used_words:
+                        res_ = guess_wrd(self.d[wrd_], count_correct, count_all)
+                        break
+                else:
+                    wrd_f_ = random.choice(list(self.d[wrd_].forms.keys()))
+                    if wrd_f_ not in used_words:
+                        res_ = guess_wrd_f(self.d[wrd_], wrd_f_, count_correct, count_all)
+                        break
+
+            if res_ == 1:
+                break
+            elif res_ == 2:
+                count_all += 1
+                count_correct += 1
+                used_words.add(wrd_f_)
+            elif res_ == 3:
+                count_all += 1
+
+        return True
+
     """ Учить слова (обр.) - все """
     def learn_t(self):
         count_all = 0
         count_correct = 0
         used_words = set()
         while True:
-            if len(used_words) == len(self.d):
+            if len(used_words) == self.count_w:
                 print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
                 break
             while True:
@@ -764,7 +915,7 @@ class Dictionary(object):
         used_words = set()
         while True:
             while True:
-                if len(used_words) == len(self.d):
+                if len(used_words) == self.count_w:
                     print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
                     return None
                 wrd_ = random.choice(list(self.d.keys()))
@@ -792,7 +943,7 @@ class Dictionary(object):
         count_correct = 0
         used_words = set()
         while True:
-            if len(used_words) == len(self.d):
+            if len(used_words) == self.count_w:
                 print(f'\033[33mВаш результат: {count_correct}/{count_all}\033[38m')
                 break
             while True:
@@ -890,7 +1041,7 @@ def save_settings():
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
 print('                                  Dictionary  v5.0.0')
-print('                                   20.12.2022 19:20\n')
+print('                                   20.12.2022 20:55\n')
 print('======================================================================================\n')
 
 print(f'Файл со словарём "{filename}" открыт.')
@@ -970,16 +1121,39 @@ while True:
         if cmd == '1':
             print()
             print('Выберите способ')
-            print('В - Все слова')
-            print('С - все слова (в первую очередь Сложные)')
-            print('И - только Избранные слова')
+            print('1 - Со всеми словоформами')
+            print('2 - Только начальные формы')
             cmd = input().upper()
-            if cmd in ['В', 'D']:
-                has_changes = dct.learn()
-            elif cmd in ['И', 'B']:
-                has_changes = dct.learn_fav()
-            elif cmd in ['С', 'C']:
-                has_changes = dct.learn_hard()
+            if cmd == '1':
+                print()
+                print('Выберите способ')
+                print('В - Все слова')
+                print('С - все слова (в первую очередь Сложные)')
+                print('И - только Избранные слова')
+                cmd = input().upper()
+                if cmd in ['В', 'D']:
+                    has_changes = dct.learn_f()
+                elif cmd in ['И', 'B']:
+                    has_changes = dct.learn_f_fav()
+                elif cmd in ['С', 'C']:
+                    has_changes = dct.learn_f_hard()
+                else:
+                    print(f'Неизвестная команда: "{cmd}"')
+            elif cmd == '2':
+                print()
+                print('Выберите способ')
+                print('В - Все слова')
+                print('С - все слова (в первую очередь Сложные)')
+                print('И - только Избранные слова')
+                cmd = input().upper()
+                if cmd in ['В', 'D']:
+                    has_changes = dct.learn()
+                elif cmd in ['И', 'B']:
+                    has_changes = dct.learn_fav()
+                elif cmd in ['С', 'C']:
+                    has_changes = dct.learn_hard()
+                else:
+                    print(f'Неизвестная команда: "{cmd}"')
             else:
                 print(f'Неизвестная команда: "{cmd}"')
         elif cmd == '2':
