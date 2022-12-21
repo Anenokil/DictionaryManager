@@ -1,6 +1,9 @@
 import random
+import os
 
+RESOURCES_DIR = 'resources'
 SETTINGS_FN = 'settings'
+SETTINGS_PATH = os.path.join(RESOURCES_DIR, SETTINGS_FN + '.txt')
 
 
 def code(_str):  # Добавить немецкие буквы
@@ -998,7 +1001,7 @@ def read_dct(_dct, _filename):  # Прочитать словарь из фай�
             if _cmd in ['О', 'J']:
                 print()
                 _filename = input('Введите название файла со словарём (если он ещё не существует, то будет создан пустой словарь): ')
-                with open(SETTINGS_FN + '.txt', 'w') as _setF:
+                with open(SETTINGS_PATH, 'w') as _setF:
                     _setF.write(filename)
                 _dct = Dictionary()
                 read_dct(_dct, _filename)
@@ -1010,13 +1013,13 @@ def read_dct(_dct, _filename):  # Прочитать словарь из фай�
 
 
 def read_local_settings(_filename):  # Прочитать файл с настройками словаря
-    _local_settings_fn = SETTINGS_FN + '-' + _filename
+    _local_settings_path = os.path.join(RESOURCES_DIR, SETTINGS_FN + '-' + _filename)
     try:
-        open(_local_settings_fn, 'r')
+        open(_local_settings_path, 'r')
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-        with open(_local_settings_fn, 'w') as _locSetF:
+        with open(_local_settings_path, 'w') as _locSetF:
             _locSetF.write('ед.ч.@мн.ч.\nм.р.@ж.р.@с.р.\nим.п.@род.п.@дат.п.@вин.п.\n1 л.@2 л.@3 л.\nпр.вр.@н.вр.@б.вр.')
-    with open(_local_settings_fn, 'r') as _locSetF:
+    with open(_local_settings_path, 'r') as _locSetF:
         _f_num = _locSetF.readline().strip().split('@')
         _f_gen = _locSetF.readline().strip().split('@')
         _f_case = _locSetF.readline().strip().split('@')
@@ -1026,8 +1029,8 @@ def read_local_settings(_filename):  # Прочитать файл с настр
 
 
 def save_local_settings(_filename):  # Сохранить настройки словаря
-    _local_settings_fn = SETTINGS_FN + '-' + _filename
-    with open(_local_settings_fn, 'w') as _locSetF:
+    _local_settings_path = os.path.join(RESOURCES_DIR, SETTINGS_FN + '-' + _filename)
+    with open(_local_settings_path, 'w') as _locSetF:
         _is_first = True
         for _i in range(len(FORMS_NUM)):
             if _is_first:
@@ -1075,16 +1078,16 @@ def save_local_settings(_filename):  # Сохранить настройки с�
 
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
-print('                                  Dictionary  v5.1.2')
-print('                                   22.12.2022  2:22\n')
+print('                                  Dictionary  v5.1.3')
+print('                                   22.12.2022  2:35\n')
 print('======================================================================================\n')
 
 try:  # Открываем файл с названием словаря
-    open(SETTINGS_FN + '.txt', 'r')
+    open(SETTINGS_PATH, 'r')
 except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-    with open(SETTINGS_FN + '.txt', 'w') as setF:
+    with open(SETTINGS_PATH, 'w') as setF:
         setF.write('words.txt')
-with open(SETTINGS_FN + '.txt', 'r') as setF:
+with open(SETTINGS_PATH, 'r') as setF:
     filename = setF.readline().strip()
 
 dct = Dictionary()
@@ -1273,7 +1276,7 @@ while True:
                 dct.save(filename)
         print()
         filename = input('Введите название файла со словарём (если он ещё не существует, то будет создан пустой словарь): ')
-        with open(SETTINGS_FN + '.txt', 'w') as setF:
+        with open(SETTINGS_PATH, 'w') as setF:
             setF.write(filename)
         dct = Dictionary()
         read_dct(dct, filename)
