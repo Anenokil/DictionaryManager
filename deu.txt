@@ -14,8 +14,8 @@ wdu
 0
 ты
 wihr
-2
-2
+3
+3
 0
 вы
 dне уваж.
@@ -329,8 +329,8 @@ wdie Tochter
 дочь
 tдочка
 wdie Tasche
-1
-1
+2
+2
 0
 сумка
 wdas Fleisch
@@ -533,8 +533,8 @@ wwo
 0
 где
 wwoher
-1
-1
+2
+2
 0
 откуда
 wwohin
@@ -611,8 +611,8 @@ wder Morgen
 0
 утро
 wmorgen
+7
 6
-5
 0
 завтра
 walt
@@ -668,8 +668,8 @@ wdas Brot
 0
 хлеб
 wdas Br#otchen
-1
-1
+2
+2
 0
 булка
 wdie Zitrone
@@ -757,8 +757,8 @@ wleben
 0
 жить
 wwohnen
-8
-6
+9
+7
 0
 проживать
 tжить
@@ -848,8 +848,8 @@ wschreiben
 0
 писать
 wsprechen
-1
-1
+2
+2
 0
 говорить
 tразговаривать
@@ -876,13 +876,13 @@ wbrauchen
 0
 нуждатьс€
 wdas Getr#ank
+9
 8
-7
 0
 напиток
 wder Salat
+11
 10
-9
 0
 салат
 wnur
@@ -1010,8 +1010,8 @@ tпрокатитьс€
 tехать
 tездить
 wdas Rad
-1
-1
+2
+2
 0
 колесо
 tвелик
@@ -1052,8 +1052,8 @@ tвозможно
 tверо€тный
 tверо€тно
 wdie Birne
-1
-1
+2
+2
 0
 груша
 wh#oren
@@ -1133,8 +1133,8 @@ wlecker
 0
 вкусный
 wder Ball
+11
 10
-9
 0
 м€ч
 wteuer
@@ -1148,8 +1148,8 @@ weinfach
 0
 простой
 wauch
-1
-1
+2
+2
 0
 тоже
 wder Lehrer
@@ -1365,9 +1365,9 @@ wder Sonntag
 0
 воскресенье
 wdas Wochenende
-10
-8
-1
+11
+9
+0
 выходные
 wder Winter
 1
@@ -1647,8 +1647,8 @@ wstehen
 0
 сто€ть
 waufstehen
+10
 9
-8
 0
 вставать
 wnormal
@@ -1678,8 +1678,8 @@ wdann
 0
 тогда
 w#uber
-7
-5
+8
+6
 0
 над
 wdie Sonne
@@ -1784,8 +1784,8 @@ wtot
 0
 мЄртвый
 wdas Wort
+9
 8
-7
 0
 слово
 wfrisch
@@ -1889,8 +1889,8 @@ wdie Haare
 0
 волосы
 wverzeih
-17
-13
+18
+14
 0
 прости
 wdie Frage
@@ -1931,8 +1931,8 @@ wdie Fahrt
 0
 поездка
 wder Zug
+11
 10
-9
 0
 поезд
 wdas Schiff
@@ -1942,8 +1942,8 @@ wdas Schiff
 судно
 tкорабль
 wdas Flugzeug
+17
 16
-15
 0
 самолЄт
 wreich
@@ -1986,8 +1986,8 @@ wder Finger
 палец
 dна руке
 wdie Zehe
-6
-6
+7
+7
 0
 палец
 dна ноге
@@ -2035,8 +2035,8 @@ wdie Dunkelheit
 тьма
 tтемнота
 wdie Br#ucke
-15
-13
+16
+14
 0
 мост
 wdie Subtraktion
@@ -2063,8 +2063,8 @@ wdie Zunge
 €зык
 dорган
 wder Teller
+10
 9
-8
 0
 тарелка
 wder Zahn
@@ -2078,8 +2078,8 @@ wdie Z#ahne
 0
 зубы
 wdie Multiplikation
-1
-1
+2
+2
 0
 умножение
 wdie Division
@@ -2134,8 +2134,8 @@ wdie Gleichung
 0
 уравнение
 wder Vergleich
+11
 10
-9
 0
 сравнение
 tнеравенство
@@ -2191,8 +2191,8 @@ wder Russe
 русский
 tросси€нин
 wdie Kleidung
-18
-16
+19
+17
 0
 одежда
 wder Deutsche
@@ -2231,8 +2231,8 @@ wdas Feuer
 0
 огонь
 wder Fernseher
+12
 11
-10
 0
 телевизор
 wder Stein
@@ -2337,8 +2337,8 @@ wmillion
 миллион
 t1000000
 wmilliarde
+5
 4
-3
 0
 миллиард
 t1000000000
@@ -2380,8 +2380,8 @@ wdie Beere
 0
 €года
 wder Pilz
-9
-7
+10
+8
 0
 гриб
 werste
@@ -2395,8 +2395,8 @@ wzweite
 0
 второй
 wdritte
+7
 6
-5
 0
 третий
 wvierte
@@ -2405,13 +2405,13 @@ wvierte
 0
 четвЄртый
 wf#unfte
-7
-5
+8
+6
 0
 п€тый
 wsechste
+8
 7
-6
 0
 шестой
 wsiebente
@@ -2442,44 +2442,39 @@ wzehnte
 0
 дес€тый
 wwerden
-16
-12
+18
+14
 0
 становитьс€
 tстать
-*
 wm#ussen
-12
-10
+15
+13
 0
 быть вынужденным
 dкак must
-*
 wsagen
-13
-10
+15
+12
 0
 говорить
 tсказать
 dкороткое слово
-*
 wsollen
-20
-13
+22
+15
 0
 быть должным
 dкак should
-*
 wwollen
+16
 12
-8
 0
 хотеть
 tжелать
-*
 wlassen
-19
-10
+25
+16
 0
 позвол€ть
 tоставл€ть
@@ -2487,110 +2482,103 @@ tпозволить
 tоставить
 *
 wfinden
-2
-2
+4
+4
 0
 находить
 tнайти
-*
 wbleiben
-25
-10
+33
+16
 0
 оставатьс€
 tостатьс€
 *
 wnehmen
-19
-11
+25
+16
 0
 брать
 tвз€ть
 *
 wtun
-9
-8
+15
+14
 0
 делать
 dкороткое слово
 *
 wglauben
-17
-8
+23
+14
 0
 верить
-*
 whalten
+12
 10
-8
 0
 держать
 tостанавливатьс€
 tдержатьс€
 tудержать
 tудерживать
-*
 wnennen
-10
-8
+15
+13
 0
 называть
 tназыватьс€
 tназвать
 tназватьс€
-*
 wzeigen
-16
-9
+22
+15
 0
 показывать
+tпоказать
 *
 wf#uhren
-13
-10
+15
+12
 0
 вести
 tуправл€ть
 tруководить
 tводить
-*
 wbringen
+14
 12
-10
 0
 приносить
-*
 wmeinen
-15
-10
+18
+13
 0
 считать
 tдумать
 tиметь в виду
 dкак mean
-*
 wkennen
-15
-11
+22
+16
 0
 знать
 tпомнить
 *
 wgelten
-26
-10
+34
+16
 0
 считатьс€
 *
 wfolgen
-17
-13
+20
+16
 0
 следовать
-*
 wbestehen
-23
-10
+29
+16
 0
 существовать
 tсосто€ть
@@ -2598,64 +2586,119 @@ tсдавать
 dсдавать экзамен
 *
 wbekommen
-13
-10
+20
+16
 0
 получать
 tполучить
 *
 wbeginnen
-3
-3
+4
+4
 0
 начинать
 tначинатьс€
 tначать
 tначатьс€
 db...
-*
 werz#ahlen
-14
-9
+20
+15
 0
 рассказывать
 tсообщить
 tповедать
-*
+tрассказать
 wdie Arbeit
-3
-3
+4
+4
 0
 работа
 tтруд
-*
 wdie Freiheit
-5
-4
+7
+6
 0
 свобода
-*
 wfrei
-3
-3
+5
+5
 0
 свободный
-*
 wdie Mathematik
-3
-3
+4
+4
 0
 математика
-*
 wdie Lampe
+5
+5
 0
-0
--1
 лампа
-*
 wdie Schule
+5
+5
+0
+школа
+wdie Farbe
 0
 0
 -1
-школа
+цвет
+*
+wder Nord
+0
+0
+-1
+север
+dкороткое слово
+*
+wder Norden
+0
+0
+-1
+север
+dдлинное слово
+*
+wder S#ud
+0
+0
+-1
+юг
+dкороткое слово
+*
+wder S#uden
+0
+0
+-1
+юг
+dдлинное слово
+*
+wder Ost
+0
+0
+-1
+восток
+dкороткое слово
+*
+wder Osten
+0
+0
+-1
+восток
+dдлинное слово
+*
+wder West
+0
+0
+-1
+запад
+dкороткое слово
+*
+wder Westen
+0
+0
+-1
+запад
+dдлинное слово
 *
