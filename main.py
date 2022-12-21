@@ -318,7 +318,7 @@ class Note(object):
         else:
             self.remove_tr_i(_index)
 
-    """ Удалить информацию """
+    """ Удалить сноску """
     def remove_dsc(self):
         print('Выберите одно из предложенного')
         for _i in range(self.count_d):
@@ -512,7 +512,7 @@ class Dictionary(object):
         self.d[_wrd].add_tr(_tr, _show_msg)
         self.count_t += self.d[_wrd].count_t
 
-    """ Добавить информацию к записи в словаре """
+    """ Добавить сноску к записи в словаре """
     def add_dsc(self, _wrd, _dsc):
         self.d[_wrd].add_dsc(_dsc)
 
@@ -547,7 +547,7 @@ class Dictionary(object):
 
     """ Сохранить словарь в файл (и настройки) """
     def save(self, _filename):
-        save_settings()
+        save_local_settings(_filename)
         with open(_filename, 'w') as _file:
             for _note in self.d.values():
                 _file.write(f'w{_note.wrd}\n')
@@ -976,8 +976,58 @@ class Dictionary(object):
         return True
 
 
-def save_settings():  # Сохранить настройки словаря
-    with open(local_settings_fn, 'w') as _locSetF:
+def read_dct(_dct, _filename):  # Прочитать словарь из файла (с обработкой ошибок)
+    _res_code = _dct.read(_filename)
+    if _res_code == 0:  # Если чтение прошло успешно, то выводится соответствующее сообщение
+        print(f'Файл со словарём "{_filename}" открыт')
+        read_local_settings(_filename)
+    if _res_code == 1:  # Если файл отсутствует, то создаётся пустой словарь
+        print(f'Файл "{_filename}" не найден')
+        open(_filename, 'w')
+        _dct.read(_filename)
+        print('Создан файл с пустым словарём')
+        read_local_settings(_filename)
+    if _res_code == 2:  # Если файл повреждён, то предлагается открыть другой файл
+        print(f'Файл "{_filename}" повреждён или некорректен')
+        while True:
+            print()
+            print('Хотите открыть другой словарь?')
+            print('О - Открыть другой словарь')
+            print('З - Завершить работу')
+            _cmd = input().upper()
+            if _cmd in ['О', 'J']:
+                print()
+                _filename = input('Введите название файла со словарём (если он ещё не существует, то будет создан пустой словарь): ')
+                with open(SETTINGS_FN + '.txt', 'w') as _setF:
+                    _setF.write(filename)
+                _dct = Dictionary()
+                read_dct(_dct, _filename)
+                break
+            elif _cmd in ['З', 'P']:
+                exit()
+            else:
+                print(f'Неизвестная команда: "{_cmd}"')
+
+
+def read_local_settings(_filename):  # Прочитать файл с настройками словаря
+    _local_settings_fn = SETTINGS_FN + '-' + _filename
+    try:
+        open(_local_settings_fn, 'r')
+    except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
+        with open(_local_settings_fn, 'w') as _locSetF:
+            _locSetF.write('ед.ч.@мн.ч.\nм.р.@ж.р.@с.р.\nим.п.@род.п.@дат.п.@вин.п.\n1 л.@2 л.@3 л.\nпр.вр.@н.вр.@б.вр.')
+    with open(_local_settings_fn, 'r') as _locSetF:
+        _f_num = _locSetF.readline().strip().split('@')
+        _f_gen = _locSetF.readline().strip().split('@')
+        _f_case = _locSetF.readline().strip().split('@')
+        _f_face = _locSetF.readline().strip().split('@')
+        _f_time = _locSetF.readline().strip().split('@')
+    return _f_num, _f_gen, _f_case, _f_face, _f_time
+
+
+def save_local_settings(_filename):  # Сохранить настройки словаря
+    _local_settings_fn = SETTINGS_FN + '-' + _filename
+    with open(_local_settings_fn, 'w') as _locSetF:
         _is_first = True
         for _i in range(len(FORMS_NUM)):
             if _is_first:
@@ -1025,8 +1075,8 @@ def save_settings():  # Сохранить настройки словаря
 
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
-print('                                  Dictionary  v5.1.0')
-print('                                   22.12.2022  1:47\n')
+print('                                  Dictionary  v5.1.2')
+print('                                   22.12.2022  2:22\n')
 print('======================================================================================\n')
 
 try:  # Открываем файл с названием словаря
@@ -1037,50 +1087,9 @@ except FileNotFoundError:  # Если файл отсутствует, то со
 with open(SETTINGS_FN + '.txt', 'r') as setF:
     filename = setF.readline().strip()
 
-local_settings_fn = SETTINGS_FN + '-' + filename
-try:  # Открываем файл с настройками словаря
-    open(local_settings_fn, 'r')
-except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-    with open(local_settings_fn, 'w') as locSetF:
-        locSetF.write('ед.ч.@мн.ч.\nм.р.@ж.р.@с.р.\nим.п.@род.п.@дат.п.@вин.п.\n1 л.@2 л.@3 л.\nпр.вр.@н.вр.@б.вр.')
-with open(local_settings_fn, 'r') as locSetF:
-    FORMS_NUM = locSetF.readline().strip().split('@')
-    FORMS_GEN = locSetF.readline().strip().split('@')
-    FORMS_CASE = locSetF.readline().strip().split('@')
-    FORMS_FACE = locSetF.readline().strip().split('@')
-    FORMS_TIME = locSetF.readline().strip().split('@')
-
 dct = Dictionary()
-res_code = dct.read(filename)  # Открываем файл со словарём
-if res_code == 0:  # Если чтение прошло успешно, то выводится соответствующее сообщение
-    print(f'Файл со словарём "{filename}" открыт')
-if res_code == 1:  # Если файл отсутствует, то создаётся пустой словарь
-    print(f'Файл "{filename}" не найден')
-    open(filename, 'w')
-    dct.read(filename)
-    print('Создан файл с пустым словарём')
-if res_code == 2:  # Если файл повреждён, то предлагается открыть другой файл
-    print(f'Файл "{filename}" повреждён или некорректен')
-    while True:
-        print()
-        print('Хотите открыть другой словарь?')
-        print('О - Открыть другой словарь')
-        print('З - Завершить работу')
-        cmd = input().upper()
-        if cmd in ['О', 'J']:
-            print()
-            filename = input('Введите название файла со словарём (если он ещё не существует, то будет создан пустой словарь): ')
-            dct = Dictionary()
-            if dct.read(filename) != 0:
-                open(filename, 'w')
-                dct.read(filename)
-            with open(SETTINGS_FN + '.txt', 'w') as setF:
-                setF.write(filename)
-            break
-        elif cmd in ['З', 'P']:
-            exit()
-        else:
-            print(f'Неизвестная команда: "{cmd}"')
+read_dct(dct, filename)  # Открываем файл со словарём
+FORMS_NUM, FORMS_GEN, FORMS_CASE, FORMS_FACE, FORMS_TIME = read_local_settings(filename)  # Открываем файл с настройками словаря
 
 print('\nИспользуйте эти комбинации для немецких букв: #a = ä, #o = ö, #u = ü, #s = ß')
 
@@ -1264,12 +1273,10 @@ while True:
                 dct.save(filename)
         print()
         filename = input('Введите название файла со словарём (если он ещё не существует, то будет создан пустой словарь): ')
-        dct = Dictionary()
-        if dct.read(filename) != 0:
-            open(filename, 'w')
-            dct.read(filename)
         with open(SETTINGS_FN + '.txt', 'w') as setF:
             setF.write(filename)
+        dct = Dictionary()
+        read_dct(dct, filename)
     elif cmd in ['З', 'P']:
         if has_changes:
             cmd = input('Хотите сохранить изменения и свой прогресс? (+ или -): ')
@@ -1280,5 +1287,4 @@ while True:
         print(f'Неизвестная команда: "{cmd}"')
 
 # разобраться с цветами
-# при комманде О проверять ошибки
 # изменить систему типов форм слова
