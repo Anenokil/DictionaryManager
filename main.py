@@ -5,8 +5,7 @@ RESOURCES_DIR = 'resources'
 SAVES_DIR = os.path.join(RESOURCES_DIR, 'saves')
 SETTINGS_FN = os.path.join(RESOURCES_DIR, 'settings.txt')
 LOCAL_SETTINGS_DIR = os.path.join(RESOURCES_DIR, 'local_settings')
-
-form_parameters = {}
+FORMS_SEPARATOR = '@'
 
 
 def code(_str):  # Добавить немецкие буквы
@@ -26,19 +25,39 @@ def code(_str):  # Добавить немецкие буквы
     return _str
 
 
+def code_tpl(_tuple, _separator=FORMS_SEPARATOR):  # Перевести кортеж в строку
+    _res = ''
+    if len(_tuple) != 0:
+        _res += _tuple[0]
+    for _i in range(1, len(_tuple)):
+        _res += f'{_separator}{_tuple[_i]}'
+    return _res
+
+
+def decode_tpl(_str, _separator=FORMS_SEPARATOR):  # Перевести строку в кортеж
+    return tuple(_str.split(_separator))
+
+
+def tpl(_tuple):
+    return code_tpl(_tuple, ', ')
+
+
 def add_frm_val(_frm_list):  # Добавить значение параметра формы слова
     _new_f = input('\nВведите новое значение параметра: ')
     if _new_f in _frm_list:
         print(f'Значение "{_new_f}" уже существует')
     elif _new_f == '':
-        print(f'Недопустимое значение')
-    elif '@' in _new_f:
-        print(f'Недопустимый символ: "@"')
+        print('Недопустимое значение')
+    elif FORMS_SEPARATOR in _new_f:
+        print(f'Недопустимый символ: "{FORMS_SEPARATOR}"')
     else:
         _frm_list += [_new_f]
 
 
 def remove_frm_val(_frm_list):  # Удалить значение параметра формы слова
+    if len(_frm_list) == 1:
+        print('\nВы не можете удалить единственное значение параметра')
+        return
     print('\nВыберите один из предложенных вариантов')
     for _i in range(len(_frm_list)):
         print(f'{_i} - {_frm_list[_i]}')
@@ -54,7 +73,7 @@ def add_frm_param(_frm_parameters):  # Добавить параметр фор�
     if _new_p in _frm_parameters.keys():
         print(f'Параметр "{_new_p}" уже существует')
     elif _new_p == '':
-        print(f'Недопустимый параметр')
+        print('Недопустимый параметр')
     else:
         _frm_parameters[_new_p] = []
         print('Необходимо добавить хотя бы одно значение для параметра')
@@ -98,16 +117,12 @@ def choose_frm_param(_frm_name, _frm_list):  # Выбрать один из па
 
 def choose_frm_type():  # Выбор типа формы слова
     print('Выберите тип формы слова')
-    _res = ''
-    _add_space = False
+    _res = []
     for _key in form_parameters:
         _tmp = choose_frm_param(_key, form_parameters[_key])
         if _tmp != '':
-            if _add_space:
-                _res += ' '
-            _add_space = True
-        _res += _tmp
-    return _res
+            _res += [_tmp]
+    return tuple(_res)
 
 
 class Note(object):
@@ -161,7 +176,7 @@ class Note(object):
     """ Напечатать формы слова """
     def frm_print(self, _tab=0):
         for _key in self.forms.keys():
-            print(' ' * _tab + f'[{_key}] {code(self.forms[_key])}')
+            print(' ' * _tab + f'[{tpl(_key)}] {code(self.forms[_key])}')
 
     """ Напечатать статистику """
     def stat_print(self, _end='\n'):
@@ -185,6 +200,20 @@ class Note(object):
         self.tr_print()
         self.dsc_print(_tab=13)
 
+    """ Напечатать запись - кратко с формами """
+    def print_briefly_with_forms(self):
+        if self.fav:
+            print('(*)', end=' ')
+        else:
+            print('   ', end=' ')
+
+        self.stat_print(_end=' ')
+
+        print(code(self.wrd) + ': ', end='')
+        self.tr_print()
+        self.frm_print(_tab=13)
+        self.dsc_print(_tab=13)
+
     """ Напечатать запись - слово со статистикой """
     def print_wrd_with_stat(self):
         print(code(self.wrd), end=' ')
@@ -206,18 +235,20 @@ class Note(object):
         print(f'       Слово: {code(self.wrd)}')
         print('     Перевод: ', end='')
         self.tr_print()
-        print(' Формы слова:', end='')
+        print(' Формы слова: ', end='')
         if self.count_f == 0:
-            print(' -')
+            print('-')
         else:
-            print()
-            self.frm_print(_tab=8)
+            _keys = [_key for _key in self.forms.keys()]
+            print(f'[{tpl(_keys[0])}] {code(self.forms[_keys[0]])}')
+            for _i in range(1, self.count_f):
+                print(f'              [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
         print('      Сноски: ', end='')
-        if len(self.dsc) == 0:
+        if self.count_d == 0:
             print('-')
         else:
             print(f'> {code(self.dsc[0])}')
-            for _i in range(1, len(self.dsc)):
+            for _i in range(1, self.count_d):
                 print(f'              > {code(self.dsc[_i])}')
         print(f'   Избранное: {self.fav}')
 
@@ -226,18 +257,20 @@ class Note(object):
         print(f'       Слово: {code(self.wrd)}')
         print('     Перевод: ', end='')
         self.tr_print()
-        print(' Формы слова:', end='')
+        print(' Формы слова: ', end='')
         if self.count_f == 0:
-            print(' -')
+            print('-')
         else:
-            print()
-            self.frm_print(_tab=8)
+            _keys = [_key for _key in self.forms.keys()]
+            print(f'[{tpl(_keys[0])}] {code(self.forms[_keys[0]])}')
+            for _i in range(1, self.count_f):
+                print(f'              [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
         print('      Сноски: ', end='')
-        if len(self.dsc) == 0:
+        if self.count_d == 0:
             print('-')
         else:
             print(f'> {code(self.dsc[0])}')
-            for _i in range(1, len(self.dsc)):
+            for _i in range(1, self.count_d):
                 print(f'              > {code(self.dsc[_i])}')
         print(f'   Избранное: {self.fav}')
         if self.last_tries == -1:
@@ -266,7 +299,7 @@ class Note(object):
             self.forms[_frm_type] = _new_frm
             self.count_f += 1
         elif _show_msg:
-            print(f'Слово уже имеет форму {_frm_type}: {self.forms[_frm_type]}')
+            print(f'Слово уже имеет форму {tpl(_frm_type)}: {self.forms[_frm_type]}')
 
     """ Добавить статистику """
     def add_stat(self, _all_tries, _correct_tries, _last_tries):
@@ -306,6 +339,9 @@ class Note(object):
 
     """ Удалить перевод """
     def remove_tr(self):
+        if self.count_t == 1:
+            print('Вы не можете удалить единственный перевод слова')
+            return
         print('Выберите один из предложенных вариантов')
         for _i in range(self.count_t):
             print(f'{_i} - {code(self.tr[_i])}')
@@ -337,7 +373,7 @@ class Note(object):
         _keys = [_key for _key in self.forms.keys()]
         print('Выберите один из предложенных вариантов')
         for _i in range(self.count_f):
-            print(f'{_i} - {_keys[_i]}: {code(self.forms[_keys[_i]])}')
+            print(f'{_i} - [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
         _index = input('Введите номер варианта: ')
         try:
             _index = int(_index)
@@ -359,7 +395,7 @@ class Note(object):
         for _dsc in self.dsc:
             _file.write(f'd{_dsc}\n')
         for _frm_type in self.forms.keys():
-            _file.write(f'f{_frm_type}\n{self.forms[_frm_type]}\n')
+            _file.write(f'f{code_tpl(_frm_type)}\n{self.forms[_frm_type]}\n')
         if self.fav:
             _file.write('*\n')
 
@@ -468,6 +504,12 @@ class Dictionary(object):
             _note.print_briefly()
         print(f'< {self.count_w} сл. | {self.count_w + self.count_f} словоформ. | {self.count_t} перев. >')
 
+    """ Напечатать словарь (со всеми формами) """
+    def print_with_forms(self):
+        for _note in self.d.values():
+            _note.print_briefly_with_forms()
+        print(f'< {self.count_w} сл. | {self.count_w + self.count_f} словоформ. | {self.count_t} перев. >')
+
     """ Напечатать словарь (только избранные слова) """
     def print_fav(self):
         _count_w = 0
@@ -476,6 +518,19 @@ class Dictionary(object):
         for _note in self.d.values():
             if _note.fav:
                 _note.print_briefly()
+                _count_w += 1
+                _count_t += _note.count_t
+                _count_f += _note.count_f
+        print(f'< {_count_w}/{self.count_w} сл. | {_count_w + _count_f}/{self.count_w + self.count_f} словоформ. | {_count_t}/{self.count_t} перев. >')
+
+    """ Напечатать словарь (только избранные слова, со всеми формами) """
+    def print_fav_with_forms(self):
+        _count_w = 0
+        _count_t = 0
+        _count_f = 0
+        for _note in self.d.values():
+            if _note.fav:
+                _note.print_briefly_with_forms()
                 _count_w += 1
                 _count_t += _note.count_t
                 _count_f += _note.count_f
@@ -588,7 +643,7 @@ class Dictionary(object):
                     elif _line[0] == 'd':
                         self.add_dsc(_wrd, _line[1:])
                     elif _line[0] == 'f':
-                        _frm_type = _line[1:]
+                        _frm_type = decode_tpl(_line[1:])
                         self.add_frm(_wrd, _frm_type, _file.readline().strip())
                     elif _line[0] == '*':
                         self.d[_wrd].fav = True
@@ -633,9 +688,6 @@ class Dictionary(object):
                     _has_changes = True
                 elif _cmd in ['У', 'E']:
                     print()
-                    if self.d[_wrd].count_t == 1:
-                        print('Вы не можете удалить единственный перевод слова')
-                        continue
                     self.remove_tr(_wrd)
                     _has_changes = True
                 elif _cmd in ['Н', 'Y']:
@@ -993,15 +1045,15 @@ def read_local_settings(_filename):  # Прочитать файл с настр
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
         with open(_local_settings_fn, 'w') as _locSetF:
             _locSetF.write('Число\n'
-                           'ед.ч.@мн.ч.\n'
+                           f'ед.ч.{FORMS_SEPARATOR}мн.ч.\n'
                            'Род\n'
-                           'м.р.@ж.р.@с.р.\n'
+                           f'м.р.{FORMS_SEPARATOR}ж.р.{FORMS_SEPARATOR}с.р.\n'
                            'Падеж\n'
-                           'им.п.@род.п.@дат.п.@вин.п.\n'
+                           f'им.п.{FORMS_SEPARATOR}род.п.{FORMS_SEPARATOR}дат.п.{FORMS_SEPARATOR}вин.п.\n'
                            'Лицо\n'
-                           '1 л.@2 л.@3 л.\n'
+                           f'1 л.{FORMS_SEPARATOR}2 л.{FORMS_SEPARATOR}3 л.\n'
                            'Время\n'
-                           'пр.вр.@н.вр.@б.вр.')
+                           f'пр.вр.{FORMS_SEPARATOR}н.вр.{FORMS_SEPARATOR}б.вр.')
 
     _form_parameters = {}
     with open(_local_settings_fn, 'r') as _locSetF:
@@ -1009,7 +1061,7 @@ def read_local_settings(_filename):  # Прочитать файл с настр
             _key = _locSetF.readline().strip()
             if not _key:
                 break
-            _values = _locSetF.readline().strip().split('@')
+            _values = _locSetF.readline().strip().split(FORMS_SEPARATOR)
             _form_parameters[_key] = _values
     return _form_parameters
 
@@ -1022,7 +1074,7 @@ def save_local_settings(_form_parameters, _filename):  # Сохранить на
             if len(_form_parameters[_key]) != 0:
                 _locSetF.write(_form_parameters[_key][0])
             for _i in range(1, len(_form_parameters[_key])):
-                _locSetF.write(f'@{_form_parameters[_key][_i]}')
+                _locSetF.write(f'{FORMS_SEPARATOR}{_form_parameters[_key][_i]}')
             _locSetF.write('\n')
 
 
@@ -1066,8 +1118,8 @@ def save_dct(_dct, _form_parameters, _filename):  # Сохранить слов�
 
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
-print('                               Dictionary  v6.0.0_PRE-2')
-print('                                   22.12.2022  5:58\n')
+print('                               Dictionary  v6.0.0_PRE-3')
+print('                                   22.12.2022  8:09\n')
 print('======================================================================================\n')
 
 try:  # Открываем файл с названием словаря
@@ -1099,11 +1151,17 @@ while True:
     print('З  - Завершить работу')
     cmd = input().upper()
     if cmd in ['Н', 'Y']:
-        print()
-        dct.print()
+        cmd = input('\nВыводить все формы слов? (+ или -): ')
+        if cmd == '+':
+            dct.print_with_forms()
+        else:
+            dct.print()
     elif cmd in ['НИ', 'YB']:
-        print()
-        dct.print_fav()
+        cmd = input('\nВыводить все формы слов? (+ или -): ')
+        if cmd == '+':
+            dct.print_fav_with_forms()
+        else:
+            dct.print_fav()
     elif cmd in ['Д', 'L']:
         wrd = input('\nВведите слово, которое хотите добавить в словарь: ')
         tr = input('Введите перевод слова: ')
@@ -1280,5 +1338,5 @@ while True:
         print(f'Неизвестная команда: "{cmd}"')
 
 # разобраться с цветами
-# изменить систему типов форм слова
-# Сделать чтобы можно было делать несколько статей с одинак словами
+# доработать систему типов форм слова
+# сделать чтобы можно было делать несколько статей с одинаковыми словами
