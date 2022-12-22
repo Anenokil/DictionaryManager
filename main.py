@@ -295,7 +295,7 @@ class Note(object):
     """ Напечатать запись - перевод с формой и со статистикой """
     def print_tr_and_frm_with_stat(self, _frm_type):
         self.tr_print(_end=' ')
-        print(f'({_frm_type})', end=' ')
+        print(f'({tpl(_frm_type)})', end=' ')
         self.stat_print()
 
     """ Напечатать запись со всей редактируемой информацией """
@@ -951,14 +951,18 @@ class Dictionary(object):
         return _has_changes
 
     """ Выбор случайного слова с учётом сложности """
-    def random_smart(self):
+    def random_hard(self):
         _sum = 0
         for _note in self.d.values():
-            _sum += (100 - round(100 * _note.percent)) * 4 + 1
+            _sum += (100 - round(100 * _note.percent)) * 5 + 1
+            if _note.all_tries < 5:
+                _sum += (6 - _note.all_tries) * 40
         _r = random.randint(1, _sum)
 
         for _key in self.d.keys():
-            _r -= (100 - round(100 * self.d[_key].percent)) * 4 + 1
+            _r -= (100 - round(100 * self.d[_key].percent)) * 5 + 1
+            if self.d[_key].all_tries < 5:
+                _r -= (6 - self.d[_key].all_tries) * 40
             if _r <= 0:
                 return _key
 
@@ -1027,7 +1031,7 @@ class Dictionary(object):
                 print(f'\033[33mВаш результат: {_count_correct}/{_count_all}\033[38m')
                 break
             while True:
-                _key = self.random_smart()
+                _key = self.random_hard()
                 if _key not in _used_words:
                     break
 
@@ -1126,7 +1130,7 @@ class Dictionary(object):
                 print(f'\033[33mВаш результат: {_count_correct}/{_count_all}\033[38m')
                 break
             while True:
-                _key = self.random_smart()
+                _key = self.random_hard()
                 _rnd_f = random.randint(-1, self.d[_key].count_f - 1)
                 if _rnd_f == -1:
                     _wrd_f = _key
@@ -1215,7 +1219,7 @@ class Dictionary(object):
                 print(f'\033[33mВаш результат: {_count_correct}/{_count_all}\033[38m')
                 break
             while True:
-                _key = self.random_smart()
+                _key = self.random_hard()
                 if _key not in _used_words:
                     break
 
@@ -1374,8 +1378,8 @@ def forms_settings(_dct, _form_parameters):  # Настройки форм сл�
 
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
-print('                              Dictionary  v6.0.0_PRE-6.1')
-print('                                   22.12.2022 12:59\n')
+print('                              Dictionary  v6.0.0_PRE-6.2')
+print('                                   22.12.2022 18:33\n')
 print('======================================================================================\n')
 
 try:  # Открываем файл с названием словаря
@@ -1438,7 +1442,7 @@ while True:
         wrd = input('\nВведите слово, статью с которым хотите изменить: ')
         if wrd_to_key(wrd, 0) not in dct.d.keys():
             print(f'Слово "{wrd}" отсутствует в словаре')
-            break
+            continue
         has_changes = dct.edit_note(wrd)
     elif cmd in ['НС', 'YC']:
         wrd = input('\nВведите слово, которое хотите найти: ')
