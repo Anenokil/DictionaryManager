@@ -25,7 +25,20 @@ def code(_str):  # Добавить немецкие буквы
     return _str
 
 
-def code_tpl(_tuple, _separator=FORMS_SEPARATOR):  # Перевести кортеж в строку
+def tpl(_tuple):  # Перевести кортеж в строку (для вывода на экран)
+    _res = ''
+    _is_first = True
+    for _i in range(len(_tuple)):
+        if _tuple[_i] != '':
+            if _is_first:
+                _res += f'{_tuple[_i]}'
+                _is_first = False
+            else:
+                _res += f', {_tuple[_i]}'
+    return _res
+
+
+def code_tpl(_tuple, _separator=FORMS_SEPARATOR):  # Перевести кортеж в строку (для сохранения в файл)
     _res = ''
     if len(_tuple) != 0:
         _res += _tuple[0]
@@ -38,11 +51,7 @@ def decode_tpl(_str, _separator=FORMS_SEPARATOR):  # Перевести стро
     return tuple(_str.split(_separator))
 
 
-def tpl(_tuple):
-    return code_tpl(_tuple, ', ')
-
-
-def add_frm_val(_frm_list):  # Добавить значение параметра формы слова
+def add_frm_val(_frm_list):  # Добавить значение параметра форм
     _new_f = input('\nВведите новое значение параметра: ')
     if _new_f in _frm_list:
         print(f'Значение "{_new_f}" уже существует')
@@ -54,7 +63,7 @@ def add_frm_val(_frm_list):  # Добавить значение парамет�
         _frm_list += [_new_f]
 
 
-def remove_frm_val(_frm_list):  # Удалить значение параметра формы слова
+def remove_frm_val(_frm_list, _dct):  # Удалить значение параметра форм
     if len(_frm_list) == 1:
         print('\nВы не можете удалить единственное значение параметра')
         return
@@ -63,9 +72,15 @@ def remove_frm_val(_frm_list):  # Удалить значение парамет
         print(f'{_i} - {_frm_list[_i]}')
     _index = input('Введите номер варианта: ')
     try:
-        _frm_list.pop(int(_index))
+        _index = int(_index)
+        _frm_val = _frm_list[_index]
+        _cmd = input('\nВсе формы слов, содержащие это значение, будут удалены! Вы уверены? (+ или -): ')
+        if _cmd == '+':
+            _frm_list.pop(_index)
     except (ValueError, IndexError):
         print(f'Недопустимый номер варианта: "{_index}"')
+    else:
+        _dct.remove_forms_with_val(_index, _frm_val)
 
 
 def add_frm_param(_frm_parameters):  # Добавить параметр форм
@@ -81,16 +96,21 @@ def add_frm_param(_frm_parameters):  # Добавить параметр фор�
             add_frm_val(_frm_parameters[_new_p])
 
 
-def remove_frm_param(_frm_parameters):  # Удалить параметр форм
+def remove_frm_param(_frm_parameters, _dct):  # Удалить параметр форм
     print('\nВыберите один из предложенных вариантов')
     _keys = [_key for _key in _frm_parameters.keys()]
     for _i in range(len(_keys)):
         print(f'{_i} - {_keys[_i]}')
     _index = input('Введите номер варианта: ')
     try:
-        _frm_parameters.pop(_keys[int(_index)])
+        _index = int(_index)
+        _cmd = input('\nВсе формы слов, содержащие этот параметр, будут удалены! Вы уверены? (+ или -): ')
+        if _cmd == '+':
+            _frm_parameters.pop(_keys[_index])
     except (ValueError, IndexError):
         print(f'Недопустимый номер варианта: "{_index}"')
+    else:
+        _dct.remove_forms_with_param(_index)
 
 
 def choose_frm_param(_frm_name, _frm_list):  # Выбрать значение одного из параметров формы слова
@@ -117,8 +137,7 @@ def choose_frm_type():  # Выбрать параметр формы слова
     _res = []
     for _key in form_parameters:
         _tmp = choose_frm_param(_key, form_parameters[_key])
-        if _tmp != '':
-            _res += [_tmp]
+        _res += [_tmp]
     return tuple(_res)
 
 
@@ -366,7 +385,7 @@ class Note(object):
             self.count_d -= 1
 
     """ Удалить форму слова """
-    def remove_frm(self):
+    def remove_frm_with_choose(self):
         _keys = [_key for _key in self.forms.keys()]
         print('Выберите один из предложенных вариантов')
         for _i in range(self.count_f):
@@ -379,6 +398,26 @@ class Note(object):
             print(f'Недопустимый номер варианта: "{_index}"')
         else:
             self.count_f -= 1
+
+    """ Удалить все формы слова, содержащие данное значение """
+    def remove_frm_with_val(self, _pos, _frm_val):
+        _to_remove = []
+        for _frm in self.forms.keys():
+            if _frm[_pos] == _frm_val:
+                _to_remove += [_frm]
+                self.count_f -= 1
+        for _el in _to_remove:
+            self.forms.pop(_el)
+
+    """ Удалить все формы слова, содержащие данный параметр """
+    def remove_frm_with_param(self, _pos):
+        _to_remove = []
+        for _frm in self.forms.keys():
+            if _frm[_pos] != '':
+                _to_remove += [_frm]
+                self.count_f -= 1
+        for _el in _to_remove:
+            self.forms.pop(_el)
 
     """ Сохранить запись в файл """
     def save(self, _file):
@@ -602,10 +641,24 @@ class Dictionary(object):
         self.d[_wrd].remove_dsc()
 
     """ Удалить форму слова из словаря """
-    def remove_frm(self, _wrd):
+    def remove_frm_with_choose(self, _wrd):
         self.count_f -= self.d[_wrd].count_f
-        self.d[_wrd].remove_frm()
+        self.d[_wrd].remove_frm_with_choose()
         self.count_f += self.d[_wrd].count_f
+
+    """ Удалить все формы, содержащие данное значение """
+    def remove_forms_with_val(self, _pos, _frm_val):
+        for _note in self.d.values():
+            self.count_f -= _note.count_f
+            _note.remove_frm_with_val(_pos, _frm_val)
+            self.count_f += _note.count_f
+
+    """ Удалить все формы, содержащие данный параметр """
+    def remove_forms_with_param(self, _pos):
+        for _note in self.d.values():
+            self.count_f -= _note.count_f
+            _note.remove_frm_with_param(_pos)
+            self.count_f += _note.count_f
 
     """ Удалить запись из словаря """
     def remove_note(self, _wrd):
@@ -711,7 +764,7 @@ class Dictionary(object):
                     if self.d[_wrd].count_f == 0:
                         print('У этого слова нет других форм')
                         continue
-                    self.remove_frm(_wrd)
+                    self.remove_frm_with_choose(_wrd)
                     _has_changes = True
                 elif _cmd in ['Н', 'Y']:
                     continue
@@ -1115,8 +1168,8 @@ def save_dct(_dct, _form_parameters, _filename):  # Сохранить слов�
 
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
-print('                              Dictionary  v6.0.0_PRE-3.1')
-print('                                   22.12.2022  8:16\n')
+print('                               Dictionary  v6.0.0_PRE-4')
+print('                                   22.12.2022  9:12\n')
 print('======================================================================================\n')
 
 try:  # Открываем файл с названием словаря
@@ -1269,7 +1322,7 @@ while True:
             if cmd in ['Д', 'L']:
                 add_frm_param(form_parameters)
             elif cmd in ['У', 'E']:
-                remove_frm_param(form_parameters)
+                remove_frm_param(form_parameters, dct)
             elif cmd in ['И', 'B']:
                 while True:
                     print('\nКакой параметр форм вы хотите изменить?')
@@ -1299,7 +1352,7 @@ while True:
                         if cmd in ['Д', 'L']:
                             add_frm_val(frm_list)
                         elif cmd in ['У', 'E']:
-                            remove_frm_val(frm_list)
+                            remove_frm_val(frm_list, dct)
                         elif cmd in ['Н', 'Y']:
                             break
                         else:
@@ -1335,5 +1388,4 @@ while True:
         print(f'Неизвестная команда: "{cmd}"')
 
 # разобраться с цветами
-# доработать систему типов форм слова
 # сделать чтобы можно было делать несколько статей с одинаковыми словами
