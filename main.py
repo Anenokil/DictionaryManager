@@ -588,11 +588,11 @@ def guess_tr(_note, _count_correct, _count_all):  # Угадать перево�
         return 3
 
 
-MAX_SIMILAR_WORDS = 1000
+MAX_SIMILAR_WORDS = 100
 
 
 def wrd_to_key(_wrd, _num):  # Превратить слово из статьи в ключ для словаря
-    return str(_num // 100) + str(_num // 10 % 10) + str(_num % 100) + _wrd
+    return str(_num // 10) + str(_num % 10) + _wrd
 
 
 def key_to_wrd(_key):  # Превратить ключ для словаря в слово из статьи
@@ -1310,10 +1310,72 @@ def save_dct(_dct, _form_parameters, _filename):  # Сохранить слов�
     save_local_settings(_form_parameters, _filename)
 
 
+def forms_settings(_dct, _form_parameters):  # Настройки форм слов
+    while True:
+        print('\nСуществующие параметры форм:')
+        _keys = [_key for _key in _form_parameters.keys()]
+        for _i in range(len(_keys)):
+            print(f'{_keys[_i]}')
+        print('\nЧто вы хотите сделать?')
+        print('Д - Добавить параметр форм')
+        print('У - Удалить параметр форм')
+        print('П - Переименовать параметр форм')
+        print('И - Изменить значения параметра форм')
+        print('Н - Назад')
+        _cmd = input().upper()
+        if _cmd in ['Д', 'L']:
+            add_frm_param(_form_parameters)
+        elif _cmd in ['У', 'E']:
+            remove_frm_param(_form_parameters, _dct)
+        elif _cmd in ['П', 'G']:
+            rename_frm_param(_form_parameters, _dct)
+        elif _cmd in ['И', 'B']:
+            while True:
+                print('\nКакой параметр форм вы хотите изменить?')
+                print('Выберите одно из предложенного')
+                _keys = [_key for _key in _form_parameters.keys()]
+                for _i in range(len(_keys)):
+                    print(f'{_i} - {_keys[i]}')
+                print('Н - Назад')
+                _index = input('Введите номер варианта: ')
+                if _index.upper() in ['Н', 'Y']:
+                    break
+                try:
+                    _index = int(_index)
+                    _frm_list = _form_parameters[_keys[_index]]
+                except (ValueError, IndexError):
+                    print(f'Неверный номер варианта: "{_index}"')
+                    continue
+                while True:
+                    print('\nСуществующие значения параметра:')
+                    for _i in range(len(_frm_list)):
+                        print(f'{_frm_list[_i]}')
+                    print('\nЧто вы хотите сделать?')
+                    print('Д - Добавить значение параметра')
+                    print('У - Удалить значение параметра')
+                    print('П - Переименовать значение параметра')
+                    print('Н - Назад')
+                    _cmd = input().upper()
+                    if _cmd in ['Д', 'L']:
+                        add_frm_val(_frm_list)
+                    elif _cmd in ['У', 'E']:
+                        remove_frm_val(_frm_list, _dct)
+                    elif _cmd in ['П', 'G']:
+                        rename_frm_val(_frm_list, _dct)
+                    elif _cmd in ['Н', 'Y']:
+                        break
+                    else:
+                        print(f'Неизвестная команда: "{_cmd}"')
+        elif _cmd in ['Н', 'Y']:
+            break
+        else:
+            print(f'Неизвестная команда: "{_cmd}"')
+
+
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
-print('                               Dictionary  v6.0.0_PRE-6')
-print('                                   22.12.2022 12:45\n')
+print('                              Dictionary  v6.0.0_PRE-6.1')
+print('                                   22.12.2022 12:59\n')
 print('======================================================================================\n')
 
 try:  # Открываем файл с названием словаря
@@ -1457,65 +1519,7 @@ while True:
         else:
             print(f'Неизвестная команда: "{cmd}"')
     elif cmd in ['Ф', 'A']:
-        while True:
-            print('\nСуществующие параметры форм:')
-            keys = [key for key in form_parameters.keys()]
-            for i in range(len(keys)):
-                print(f'{keys[i]}')
-            print('\nЧто вы хотите сделать?')
-            print('Д - Добавить параметр форм')
-            print('У - Удалить параметр форм')
-            print('П - Переименовать параметр форм')
-            print('И - Изменить значения параметра форм')
-            print('Н - Назад')
-            cmd = input().upper()
-            if cmd in ['Д', 'L']:
-                add_frm_param(form_parameters)
-            elif cmd in ['У', 'E']:
-                remove_frm_param(form_parameters, dct)
-            elif cmd in ['П', 'G']:
-                rename_frm_param(form_parameters, dct)
-            elif cmd in ['И', 'B']:
-                while True:
-                    print('\nКакой параметр форм вы хотите изменить?')
-                    print('Выберите одно из предложенного')
-                    keys = [key for key in form_parameters.keys()]
-                    for i in range(len(keys)):
-                        print(f'{i} - {keys[i]}')
-                    print('Н - Назад')
-                    index = input('Введите номер варианта: ')
-                    if index.upper() in ['Н', 'Y']:
-                        break
-                    try:
-                        index = int(index)
-                        frm_list = form_parameters[keys[index]]
-                    except (ValueError, IndexError):
-                        print(f'Неверный номер варианта: "{index}"')
-                        continue
-                    while True:
-                        print('\nСуществующие значения параметра:')
-                        for i in range(len(frm_list)):
-                            print(f'{frm_list[i]}')
-                        print('\nЧто вы хотите сделать?')
-                        print('Д - Добавить значение параметра')
-                        print('У - Удалить значение параметра')
-                        print('П - Переименовать значение параметра')
-                        print('Н - Назад')
-                        cmd = input().upper()
-                        if cmd in ['Д', 'L']:
-                            add_frm_val(frm_list)
-                        elif cmd in ['У', 'E']:
-                            remove_frm_val(frm_list, dct)
-                        elif cmd in ['П', 'G']:
-                            rename_frm_val(frm_list, dct)
-                        elif cmd in ['Н', 'Y']:
-                            break
-                        else:
-                            print(f'Неизвестная команда: "{cmd}"')
-            elif cmd in ['Н', 'Y']:
-                break
-            else:
-                print(f'Неизвестная команда: "{cmd}"')
+        forms_settings(dct, form_parameters)
     elif cmd in ['С', 'C']:
         save_dct(dct, form_parameters, filename)
         save_local_settings(form_parameters, filename)
