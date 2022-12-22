@@ -1,6 +1,6 @@
 import random
 import os
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 import ctypes
 
 kernel32 = ctypes.windll.kernel32
@@ -88,7 +88,7 @@ def remove_frm_val(_frm_list, _dct):  # Удалить значение пара
     try:
         _index = int(_index)
         _frm_val = _frm_list[_index]
-    except (ValueError, IndexError):
+    except (ValueError, TypeError, IndexError):
         print(f'{Fore.RED}Недопустимый номер варианта: "{_index}"{Style.RESET_ALL}')
     else:
         _cmd = input('\nВсе формы слов, содержащие это значение, будут удалены! Вы уверены? (+ или -): ')
@@ -105,7 +105,7 @@ def rename_frm_val(_frm_list, _dct):  # Переименовать значен�
     try:
         _index = int(_index)
         _frm_val = _frm_list[_index]
-    except (ValueError, IndexError):
+    except (ValueError, TypeError, IndexError):
         print(f'{Fore.RED}Недопустимый номер варианта: "{_index}"{Style.RESET_ALL}')
     else:
         while True:
@@ -139,7 +139,7 @@ def remove_frm_param(_frm_parameters, _dct):  # Удалить параметр 
     try:
         _index = int(_index)
         _key = _keys[_index]
-    except (ValueError, IndexError):
+    except (ValueError, TypeError, IndexError):
         print(f'{Fore.RED}Недопустимый номер варианта: "{_index}"{Style.RESET_ALL}')
     else:
         _cmd = input('\nВсе формы слов, содержащие этот параметр, будут удалены! Вы уверены? (+ или -): ')
@@ -157,7 +157,7 @@ def rename_frm_param(_frm_parameters, _dct):  # Переименовать па�
     try:
         _index = int(_index)
         _key = _keys[_index]
-    except (ValueError, IndexError):
+    except (ValueError, TypeError, IndexError):
         print(f'{Fore.RED}Недопустимый номер варианта: "{_index}"{Style.RESET_ALL}')
     else:
         while True:
@@ -175,8 +175,8 @@ def choose_frm_param(_frm_name, _frm_list):  # Выбрать значение �
         print(f'\nВыберите {_frm_name}')
         for _i in range(len(_frm_list)):
             print(f'{_i} - {_frm_list[_i]}')
-        print('Н - Не указывать/Неприменимо')
-        print('Д - Добавить новый вариант')
+        print(f'{Fore.YELLOW}Н - Не указывать/Неприменимо{Style.RESET_ALL}')
+        print(f'{Fore.YELLOW}Д - Добавить новый вариант{Style.RESET_ALL}')
         _cmd = input().upper()
         if _cmd in ['Н', 'Y']:
             return ''
@@ -185,16 +185,43 @@ def choose_frm_param(_frm_name, _frm_list):  # Выбрать значение �
         else:
             try:
                 return _frm_list[int(_cmd)]
-            except (ValueError, IndexError):
+            except (ValueError, TypeError, IndexError):
                 print(f'{Fore.RED}Недопустимый вариант: "{_cmd}"{Style.RESET_ALL}')
 
 
 def choose_frm_type():  # Выбрать параметр формы слова
-    print('Выберите тип формы слова')
     _res = []
-    for _key in form_parameters:
-        _tmp = choose_frm_param(_key, form_parameters[_key])
-        _res += [_tmp]
+    _keys = list(form_parameters.keys())
+    print('Выберите параметр')
+    for _i in range(len(_keys)):
+        print(f'{_i} - {_keys[_i]}')
+        _res += ['']
+    _res_void = tuple(_res)
+    _index = input()
+
+    while True:
+        try:
+            _index = int(_index)
+            _key = _keys[_index]
+            _res[_index] = choose_frm_param(_key, form_parameters[_key])
+        except (ValueError, TypeError, IndexError):
+            print(f'{Fore.RED}Недопустимый вариант: "{_index}"{Style.RESET_ALL}')
+
+        _is_void = _res == list(_res_void)
+        print()
+        if not _is_void:
+            print(f'{Fore.MAGENTA}Шаблон формы: {tpl(_res)}{Style.RESET_ALL}\n')
+
+        print('Выберите параметр')
+        for _i in range(len(_keys)):
+            print(f'{_i} - {_keys[_i]}')
+        if not _is_void:
+            print(f'{Fore.YELLOW}З - Закончить с шаблоном и ввести форму слова{Style.RESET_ALL}')
+
+        _index = input()
+        if _index.upper() in ['З', 'P']:
+            if not _is_void:
+                break
     return tuple(_res)
 
 
@@ -1385,8 +1412,8 @@ def forms_settings(_dct, _form_parameters):  # Настройки форм сл�
 
 print('======================================================================================\n')  # Вывод информации о программе
 print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
-print(f'                               {Fore.CYAN}Dictionary{Style.RESET_ALL}  v6.0.0_PRE-7')
-print('                                   22.12.2022 20:03\n')
+print(f'                               {Fore.CYAN}Dictionary{Style.RESET_ALL}  v6.0.0_PRE-8')
+print('                                   22.12.2022 22:53\n')
 print('======================================================================================\n')
 
 try:  # Открываем файл с названием словаря
@@ -1404,7 +1431,7 @@ print(f'\nИспользуйте эти комбинации для немецк
       f'{Fore.YELLOW}#a = ä{Style.RESET_ALL}, '
       f'{Fore.YELLOW}#o = ö{Style.RESET_ALL}, '
       f'{Fore.YELLOW}#u = ü{Style.RESET_ALL}, '
-      f'{Fore.YELLOW}#s = ß{Style.RESET_ALL}.')
+      f'{Fore.YELLOW}#s = ß{Style.RESET_ALL}')
 
 has_changes = False
 while True:
@@ -1560,5 +1587,3 @@ while True:
         break
     else:
         print(f'{Fore.RED}Неизвестная команда: "{cmd}"{Style.RESET_ALL}')
-
-# count_f в Dictionary
