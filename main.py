@@ -83,13 +83,33 @@ def remove_frm_val(_frm_list, _dct):  # Удалить значение пара
     try:
         _index = int(_index)
         _frm_val = _frm_list[_index]
-        _cmd = input('\nВсе формы слов, содержащие это значение, будут удалены! Вы уверены? (+ или -): ')
-        if _cmd == '+':
-            _frm_list.pop(_index)
     except (ValueError, IndexError):
         print(f'Недопустимый номер варианта: "{_index}"')
     else:
+        _cmd = input('\nВсе формы слов, содержащие это значение, будут удалены! Вы уверены? (+ или -): ')
+        if _cmd == '+':
+            _frm_list.pop(_index)
         _dct.remove_forms_with_val(_index, _frm_val)
+
+
+def rename_frm_val(_frm_list, _dct):  # Переименовать значение параметра форм
+    print('\nВыберите один из предложенных вариантов')
+    for _i in range(len(_frm_list)):
+        print(f'{_i} - {_frm_list[_i]}')
+    _index = input('Введите номер варианта: ')
+    try:
+        _index = int(_index)
+        _frm_val = _frm_list[_index]
+    except (ValueError, IndexError):
+        print(f'Недопустимый номер варианта: "{_index}"')
+    else:
+        while True:
+            _new_frm_val = input('\nВведите новое название для значения параметра: ')
+            if _new_frm_val not in _frm_list:
+                break
+            print('Значение с таким названием уже есть')
+        _dct.rename_forms_with_val(_index, _frm_val, _new_frm_val)
+        _frm_list[_index] = _new_frm_val
 
 
 def add_frm_param(_frm_parameters):  # Добавить параметр форм
@@ -113,13 +133,36 @@ def remove_frm_param(_frm_parameters, _dct):  # Удалить параметр 
     _index = input('Введите номер варианта: ')
     try:
         _index = int(_index)
-        _cmd = input('\nВсе формы слов, содержащие этот параметр, будут удалены! Вы уверены? (+ или -): ')
-        if _cmd == '+':
-            _frm_parameters.pop(_keys[_index])
+        _key = _keys[_index]
     except (ValueError, IndexError):
         print(f'Недопустимый номер варианта: "{_index}"')
     else:
+        _cmd = input('\nВсе формы слов, содержащие этот параметр, будут удалены! Вы уверены? (+ или -): ')
+        if _cmd == '+':
+            _frm_parameters.pop(_key)
         _dct.remove_forms_with_param(_index)
+
+
+def rename_frm_param(_frm_parameters, _dct):  # Переименовать параметр форм
+    print('\nВыберите один из предложенных вариантов')
+    _keys = [_key for _key in _frm_parameters.keys()]
+    for _i in range(len(_keys)):
+        print(f'{_i} - {_keys[_i]}')
+    _index = input('Введите номер варианта: ')
+    try:
+        _index = int(_index)
+        _key = _keys[_index]
+    except (ValueError, IndexError):
+        print(f'Недопустимый номер варианта: "{_index}"')
+    else:
+        while True:
+            _new_key = input('\nВведите новое название параметра: ')
+            if _new_key not in _frm_parameters:
+                break
+            print('Параметр с таким названием уже есть')
+        #_dct.rename_forms_with_param(_index, _new_frm_parameters)
+        _frm_parameters[_new_key] = _frm_parameters[_key]
+        _frm_parameters.pop(_key)
 
 
 def choose_frm_param(_frm_name, _frm_list):  # Выбрать значение одного из параметров формы слова
@@ -416,6 +459,19 @@ class Note(object):
                 _to_remove += [_frm]
                 self.count_f -= 1
         for _el in _to_remove:
+            self.forms.pop(_el)
+
+    """ Переименовать все формы слова, содержащие данное значение """
+    def rename_frm_with_val(self, _pos, _frm_val, _new_frm_val):
+        _to_rename = []
+        for _frm in self.forms.keys():
+            if _frm[_pos] == _frm_val:
+                _to_rename += [_frm]
+        for _el in _to_rename:
+            _lst = list(_el)
+            _lst[_pos] = _new_frm_val
+            _lst = tuple(_lst)
+            self.forms[_lst] = self.forms[_el]
             self.forms.pop(_el)
 
     """ Удалить все формы слова, содержащие данный параметр """
@@ -730,6 +786,11 @@ class Dictionary(object):
             self.count_f -= _note.count_f
             _note.remove_frm_with_val(_pos, _frm_val)
             self.count_f += _note.count_f
+
+    """ Переименовать все формы, содержащие данное значение """
+    def rename_forms_with_val(self, _pos, _frm_val, _new_frm_val):
+        for _note in self.d.values():
+            _note.rename_frm_with_val(_pos, _frm_val, _new_frm_val)
 
     """ Удалить все формы, содержащие данный параметр """
     def remove_forms_with_param(self, _pos):
@@ -1194,8 +1255,8 @@ def read_local_settings(_filename):  # Прочитать файл с настр
             _key = _locSetF.readline().strip()
             if not _key:
                 break
-            _values = _locSetF.readline().strip().split(FORMS_SEPARATOR)
-            _form_parameters[_key] = _values
+            _value = _locSetF.readline().strip().split(FORMS_SEPARATOR)
+            _form_parameters[_key] = _value
     return _form_parameters
 
 
@@ -1251,8 +1312,8 @@ def save_dct(_dct, _form_parameters, _filename):  # Сохранить слов�
 
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
-print('                               Dictionary  v6.0.0_PRE-5')
-print('                                   22.12.2022 11:04\n')
+print('                               Dictionary  v6.0.0_PRE-6')
+print('                                   22.12.2022 12:45\n')
 print('======================================================================================\n')
 
 try:  # Открываем файл с названием словаря
@@ -1404,13 +1465,16 @@ while True:
             print('\nЧто вы хотите сделать?')
             print('Д - Добавить параметр форм')
             print('У - Удалить параметр форм')
-            print('И - Изменить параметр форм')
+            print('П - Переименовать параметр форм')
+            print('И - Изменить значения параметра форм')
             print('Н - Назад')
             cmd = input().upper()
             if cmd in ['Д', 'L']:
                 add_frm_param(form_parameters)
             elif cmd in ['У', 'E']:
                 remove_frm_param(form_parameters, dct)
+            elif cmd in ['П', 'G']:
+                rename_frm_param(form_parameters, dct)
             elif cmd in ['И', 'B']:
                 while True:
                     print('\nКакой параметр форм вы хотите изменить?')
@@ -1435,12 +1499,15 @@ while True:
                         print('\nЧто вы хотите сделать?')
                         print('Д - Добавить значение параметра')
                         print('У - Удалить значение параметра')
+                        print('П - Переименовать значение параметра')
                         print('Н - Назад')
                         cmd = input().upper()
                         if cmd in ['Д', 'L']:
                             add_frm_val(frm_list)
                         elif cmd in ['У', 'E']:
                             remove_frm_val(frm_list, dct)
+                        elif cmd in ['П', 'G']:
+                            rename_frm_val(frm_list, dct)
                         elif cmd in ['Н', 'Y']:
                             break
                         else:
@@ -1476,4 +1543,4 @@ while True:
         print(f'Неизвестная команда: "{cmd}"')
 
 # разобраться с цветами
-# добавить переименовывание форм
+# count_f в Dictionary
