@@ -6,6 +6,8 @@ SAVES_DIR = os.path.join(RESOURCES_DIR, 'saves')
 SETTINGS_FN = os.path.join(RESOURCES_DIR, 'settings.txt')
 LOCAL_SETTINGS_DIR = os.path.join(RESOURCES_DIR, 'local_settings')
 
+FORM_PARAMETERS = {}
+
 
 def code(_str):  # Добавить немецкие буквы
     _str = _str.replace('##', '1ä')
@@ -24,19 +26,44 @@ def code(_str):  # Добавить немецкие буквы
     return _str
 
 
-def add_frm(_frm_list):  # Добавить вариант формы слова
-    _new_f = input('\nВведите новый вариант: ')
+def add_frm_param(_frm_parameters):  # Добавить параметр форм
+    _new_p = input('\nВведите новый параметр: ')
+    if _new_p in _frm_parameters.keys():
+        print(f'Параметр "{_new_p}" уже существует')
+    elif _new_p == '':
+        print(f'Недопустимый параметр')
+    else:
+        _frm_parameters[_new_p] = []
+        print('Необходимо добавить хотя бы одно значение для параметра')
+        while(_frm_parameters[_new_p] == []):
+            add_frm(_frm_parameters[_new_p])
+
+
+def remove_frm_param(_frm_parameters):  # Удалить параметр форм
+    print('\nВыберите один из предложенных вариантов')
+    _keys = [_key for _key in _frm_parameters.keys()]
+    for _i in range(len(_keys)):
+        print(f'{_i} - {_keys[_i]}')
+    _index = input('Введите номер варианта: ')
+    try:
+        _frm_parameters.pop(_keys[int(_index)])
+    except (ValueError, IndexError):
+        print(f'Недопустимый номер варианта: "{_index}"')
+
+
+def add_frm(_frm_list):  # Добавить значение параметра формы слова
+    _new_f = input('\nВведите новое значение параметра: ')
     if _new_f in _frm_list:
-        print(f'Вариант "{_new_f}" уже существует')
+        print(f'Значение "{_new_f}" уже существует')
     elif _new_f == '':
-        print(f'Недопустимый вариант')
+        print(f'Недопустимое значение')
     elif '@' in _new_f:
         print(f'Недопустимый символ: "@"')
     else:
         _frm_list += [_new_f]
 
 
-def remove_frm(_frm_list):  # Удалить вариант формы слова
+def remove_frm(_frm_list):  # Удалить значение параметра формы слова
     print('\nВыберите один из предложенных вариантов')
     for _i in range(len(_frm_list)):
         print(f'{_i} - {_frm_list[_i]}')
@@ -71,29 +98,15 @@ def choose_frm_param(_frm_name, _frm_list):  # Выбрать один из па
 
 def choose_frm_type():  # Выбор типа формы слова
     print('Выберите тип формы слова')
-    _num = choose_frm_param('число', FORMS_NUM)
-    _gen = choose_frm_param('род', FORMS_GEN)
-    _case = choose_frm_param('падеж', FORMS_CASE)
-    _face = choose_frm_param('лицо', FORMS_FACE)
-    _time = choose_frm_param('время', FORMS_TIME)
-
-    _res = _num
-    if _num != '':
-        if _gen != '' or _case != '' or _face != '' or _time != '':
-            _res += ' '
-    _res += _gen
-    if _gen != '':
-        if _case != '' or _face != '' or _time != '':
-            _res += ' '
-    _res += _case
-    if _case != '':
-        if _face != '' or _time != '':
-            _res += ' '
-    _res += _face
-    if _face != '':
-        if _time != '':
-            _res += ' '
-    _res += _time
+    _res = ''
+    _add_space = False
+    for _key in FORM_PARAMETERS:
+        _tmp = choose_frm_param(_key, FORM_PARAMETERS[_key])
+        if _tmp != '':
+            if _add_space:
+                _res += ' '
+            _add_space = True
+        _res += _tmp
     return _res
 
 
@@ -549,9 +562,8 @@ class Dictionary(object):
         self.count_f -= self.d[_wrd].count_f
         self.d.pop(_wrd)
 
-    """ Сохранить словарь в файл (и настройки) """
+    """ Сохранить словарь в файл """
     def save(self, _filename):
-        save_local_settings(_filename)
         with open(_filename, 'w') as _file:
             for _note in self.d.values():
                 _file.write(f'w{_note.wrd}\n')
@@ -980,19 +992,59 @@ class Dictionary(object):
         return True
 
 
-def read_dct(_dct, _filename):  # Прочитать словарь из файла (с обработкой ошибок)
+def read_local_settings(_filename):  # Прочитать файл с настройками словаря
+    _local_settings_fn = os.path.join(LOCAL_SETTINGS_DIR, _filename)
+    try:
+        open(_local_settings_fn, 'r')
+    except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
+        with open(_local_settings_fn, 'w') as _locSetF:
+            _locSetF.write('Число\n'
+                           'ед.ч.@мн.ч.\n'
+                           'Род\n'
+                           'м.р.@ж.р.@с.р.\n'
+                           'Падеж\n'
+                           'им.п.@род.п.@дат.п.@вин.п.\n'
+                           'Лицо\n'
+                           '1 л.@2 л.@3 л.\n'
+                           'Время\n'
+                           'пр.вр.@н.вр.@б.вр.')
+
+    _form_parameters = {}
+    with open(_local_settings_fn, 'r') as _locSetF:
+        while True:
+            _key = _locSetF.readline().strip()
+            if not _key:
+                break
+            _values = _locSetF.readline().strip().split('@')
+            _form_parameters[_key] = _values
+    return _form_parameters
+
+
+def save_local_settings(_form_parameters, _filename):  # Сохранить настройки словаря
+    _local_settings_fn = os.path.join(LOCAL_SETTINGS_DIR, _filename)
+    with open(_local_settings_fn, 'w') as _locSetF:
+        for _key in _form_parameters.keys():
+            _locSetF.write(f'{_key}\n')
+            if len(_form_parameters[_key]) != 0:
+                _locSetF.write(_form_parameters[_key][0])
+            for _i in range(1, len(_form_parameters[_key])):
+                _locSetF.write(f'@{_form_parameters[_key][_i]}')
+            _locSetF.write('\n')
+
+
+def read_dct(_dct, _filename):  # Прочитать словарь и его настройки из файлов
     _filepath = os.path.join(SAVES_DIR, _filename)
     _res_code = _dct.read(_filepath)
     if _res_code == 0:  # Если чтение прошло успешно, то выводится соответствующее сообщение
         print(f'Файл со словарём "{_filename}" открыт')
-        read_local_settings(_filename)
-    if _res_code == 1:  # Если файл отсутствует, то создаётся пустой словарь
+        return read_local_settings(_filename)
+    elif _res_code == 1:  # Если файл отсутствует, то создаётся пустой словарь
         print(f'Файл "{_filename}" не найден')
         open(_filepath, 'w')
         _dct.read(_filepath)
         print('Создан файл с пустым словарём')
-        read_local_settings(_filename)
-    if _res_code == 2:  # Если файл повреждён, то предлагается открыть другой файл
+        return read_local_settings(_filename)
+    elif _res_code == 2:  # Если файл повреждён, то предлагается открыть другой файл
         print(f'Файл "{_filename}" повреждён или некорректен')
         while True:
             print()
@@ -1014,74 +1066,16 @@ def read_dct(_dct, _filename):  # Прочитать словарь из фай�
                 print(f'Неизвестная команда: "{_cmd}"')
 
 
-def read_local_settings(_filename):  # Прочитать файл с настройками словаря
-    _local_settings_FN = os.path.join(LOCAL_SETTINGS_DIR, _filename)
-    try:
-        open(_local_settings_FN, 'r')
-    except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-        with open(_local_settings_FN, 'w') as _locSetF:
-            _locSetF.write('ед.ч.@мн.ч.\nм.р.@ж.р.@с.р.\nим.п.@род.п.@дат.п.@вин.п.\n1 л.@2 л.@3 л.\nпр.вр.@н.вр.@б.вр.')
-    with open(_local_settings_FN, 'r') as _locSetF:
-        _f_num = _locSetF.readline().strip().split('@')
-        _f_gen = _locSetF.readline().strip().split('@')
-        _f_case = _locSetF.readline().strip().split('@')
-        _f_face = _locSetF.readline().strip().split('@')
-        _f_time = _locSetF.readline().strip().split('@')
-    return _f_num, _f_gen, _f_case, _f_face, _f_time
-
-
-def save_local_settings(_filename):  # Сохранить настройки словаря
-    _local_settings_FN = os.path.join(LOCAL_SETTINGS_DIR, _filename)
-    with open(_local_settings_FN, 'w') as _locSetF:
-        _is_first = True
-        for _i in range(len(FORMS_NUM)):
-            if _is_first:
-                _is_first = False
-            else:
-                _locSetF.write('@')
-            _locSetF.write(FORMS_NUM[_i])
-        _locSetF.write('\n')
-
-        _is_first = True
-        for _i in range(len(FORMS_GEN)):
-            if _is_first:
-                _is_first = False
-            else:
-                _locSetF.write('@')
-            _locSetF.write(FORMS_GEN[_i])
-        _locSetF.write('\n')
-
-        _is_first = True
-        for _i in range(len(FORMS_CASE)):
-            if _is_first:
-                _is_first = False
-            else:
-                _locSetF.write('@')
-            _locSetF.write(FORMS_CASE[_i])
-        _locSetF.write('\n')
-
-        _is_first = True
-        for _i in range(len(FORMS_FACE)):
-            if _is_first:
-                _is_first = False
-            else:
-                _locSetF.write('@')
-            _locSetF.write(FORMS_FACE[_i])
-        _locSetF.write('\n')
-
-        _is_first = True
-        for _i in range(len(FORMS_TIME)):
-            if _is_first:
-                _is_first = False
-            else:
-                _locSetF.write('@')
-            _locSetF.write(FORMS_TIME[_i])
+def save_dct(_dct, _form_parameters, _filename):  # Сохранить словарь и его настройки
+    _filepath = os.path.join(SAVES_DIR, _filename)
+    _dct.save(_filepath)
+    save_local_settings(_form_parameters, _filename)
 
 
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
-print('                                  Dictionary  v5.1.5')
-print('                                   22.12.2022  3:16\n')
+print('                               Dictionary  v6.0.0_PRE-1')
+print('                                   22.12.2022  5:04\n')
 print('======================================================================================\n')
 
 try:  # Открываем файл с названием словаря
@@ -1093,8 +1087,7 @@ with open(SETTINGS_FN, 'r') as setF:
     filename = setF.readline().strip()
 
 dct = Dictionary()
-read_dct(dct, filename)  # Открываем файл со словарём
-FORMS_NUM, FORMS_GEN, FORMS_CASE, FORMS_FACE, FORMS_TIME = read_local_settings(filename)  # Открываем файл с настройками словаря
+FORM_PARAMETERS = read_dct(dct, filename)  # Загружаем словарь и его настройки
 
 print('\nИспользуйте эти комбинации для немецких букв: #a = ä, #o = ö, #u = ü, #s = ß')
 
@@ -1227,47 +1220,63 @@ while True:
             print(f'Неизвестная команда: "{cmd}"')
     elif cmd in ['Ф', 'A']:
         while True:
-            print()
-            print('Какую форму вы хотите изменить?')
-            print('Ч - Число')
-            print('Р - Род')
-            print('П - Падеж')
-            print('Л - Лицо')
-            print('В - Время')
+            print('\nСуществующие параметры форм:')
+            keys = [key for key in FORM_PARAMETERS.keys()]
+            for i in range(len(keys)):
+                print(f'{keys[i]}')
+            print('\nЧто вы хотите сделать?')
+            print('Д - Добавить параметр форм')
+            print('У - Удалить параметр форм')
+            print('И - Изменить параметр форм')
             print('Н - Назад')
             cmd = input().upper()
-            if cmd in ['Ч', 'X']:
-                frm_list = FORMS_NUM
-            elif cmd in ['Р', 'H']:
-                frm_list = FORMS_GEN
-            elif cmd in ['П', 'G']:
-                frm_list = FORMS_CASE
-            elif cmd in ['Л', 'K']:
-                frm_list = FORMS_FACE
-            elif cmd in ['В', 'D']:
-                frm_list = FORMS_TIME
+            if cmd in ['Д', 'L']:
+                add_frm_param(FORM_PARAMETERS)
+            elif cmd in ['У', 'E']:
+                remove_frm_param(FORM_PARAMETERS)
+            elif cmd in ['И', 'B']:
+                while True:
+                    print()
+                    print('Какой параметр форм вы хотите изменить?')
+                    print('Выберите одно из предложенного')
+                    keys = [key for key in FORM_PARAMETERS.keys()]
+                    for i in range(len(keys)):
+                        print(f'{i} - {keys[i]}')
+                    print('Н - Назад')
+                    index = input('Введите номер варианта: ')
+                    if index.upper() in ['Н', 'Y']:
+                        break
+                    try:
+                        index = int(index)
+                        frm_list = FORM_PARAMETERS[keys[index]]
+                    except (ValueError, IndexError):
+                        print(f'Неверный номер варианта: "{index}"')
+                        continue
+                    while True:
+                        print('\nСуществующие значения параметра:')
+                        for i in range(len(frm_list)):
+                            print(f'{frm_list[i]}')
+                        print()
+                        print('Что вы хотите сделать?')
+                        print('Д - Добавить значение параметра')
+                        print('У - Удалить значение параметра')
+                        print('Н - Назад')
+                        cmd = input().upper()
+                        if cmd in ['Д', 'L']:
+                            add_frm(frm_list)
+                        elif cmd in ['У', 'E']:
+                            remove_frm(frm_list)
+                        elif cmd in ['Н', 'Y']:
+                            break
+                        else:
+                            print(f'Неизвестная команда: "{cmd}"')
             elif cmd in ['Н', 'Y']:
                 break
             else:
                 print(f'Неизвестная команда: "{cmd}"')
-                continue
-            print('\nСуществующие варианты:')
-            for i in range(len(frm_list)):
-                print(f'{frm_list[i]}')
-            print()
-            print('Что вы хотите сделать?')
-            print('Д - Добавить новую форму')
-            print('У - Удалить форму')
-            print('Н - Назад')
-            cmd = input().upper()
-            if cmd in ['Д', 'L']:
-                add_frm(frm_list)
-            elif cmd in ['У', 'E']:
-                remove_frm(frm_list)
-            else:
-                print(f'Неизвестная команда: "{cmd}"')
     elif cmd in ['С', 'C']:
-        dct.save(filename)
+        save_dct(dct, FORM_PARAMETERS, filename)
+        save_local_settings(FORM_PARAMETERS, filename)
         print()
         print('Успешно сохранено')
         has_changes = False
@@ -1275,21 +1284,24 @@ while True:
         if has_changes:
             cmd = input('Хотите сохранить изменения и свой прогресс? (+ или -): ')
             if cmd == '+':
-                dct.save(filename)
+                save_dct(dct, FORM_PARAMETERS, filename)
+                save_local_settings(FORM_PARAMETERS, filename)
         print()
         filename = input('Введите название файла со словарём (если он ещё не существует, то будет создан пустой словарь): ')
         with open(SETTINGS_FN, 'w') as setF:
             setF.write(filename)
         dct = Dictionary()
-        read_dct(dct, filename)
+        FORM_PARAMETERS = read_dct(dct, filename)
     elif cmd in ['З', 'P']:
         if has_changes:
             cmd = input('Хотите сохранить изменения и свой прогресс? (+ или -): ')
             if cmd == '+':
-                dct.save(filename)
+                save_dct(dct, FORM_PARAMETERS, filename)
+                save_local_settings(FORM_PARAMETERS, filename)
         break
     else:
         print(f'Неизвестная команда: "{cmd}"')
 
 # разобраться с цветами
 # изменить систему типов форм слова
+# Сделать, чтоб нельзя было удалить все переводы
