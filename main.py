@@ -7,6 +7,15 @@ SETTINGS_FN = os.path.join(RESOURCES_DIR, 'settings.txt')
 LOCAL_SETTINGS_DIR = os.path.join(RESOURCES_DIR, 'local_settings')
 FORMS_SEPARATOR = '@'
 
+"""
+    Про формы:
+    
+    apple - слово
+    apples - форма слова
+    число - параметр формы слова
+    мн.ч., ед.ч. - значения параметра формы слова
+"""
+
 
 def code(_str):  # Добавить немецкие буквы
     _str = _str.replace('##', '1ä')
@@ -523,6 +532,17 @@ def guess_tr(_note, _count_correct, _count_all):  # Угадать перево�
         return 3
 
 
+MAX_SIMILAR_WORDS = 1000
+
+
+def wrd_to_key(_wrd, _num):  # Превратить слово из статьи в ключ для словаря
+    return str(_num // 100) + str(_num // 10 % 10) + str(_num % 100) + _wrd
+
+
+def key_to_wrd(_key):  # Превратить ключ для словаря в слово из статьи
+    return _key[3:]
+
+
 class Dictionary(object):
     # self.d - сам словарь
     # self.count_w - количество записей в словаре
@@ -581,67 +601,125 @@ class Dictionary(object):
             _sum_den += _note.all_tries
         return _sum_num / _sum_den
 
+    """ Выбрать одну статью из нескольки с одинаковыми словами """
+    def choose_one_of_similar(self, _wrd):
+        if wrd_to_key(_wrd, 1) not in self.d.keys():
+            return wrd_to_key(_wrd, 0)
+        print('\nВыберите одну из статей')
+        for _i in range(MAX_SIMILAR_WORDS):
+            _key = wrd_to_key(_wrd, _i)
+            if _key not in self.d.keys():
+                break
+            print(f'\n({_i})')
+            self.d[_key].print_all()
+        while True:
+            _index = input('\nВведите номер варианта: ')
+            try:
+                return wrd_to_key(_wrd, int(_index))
+            except (ValueError, TypeError):
+                print(f'Недопустимый номер варианта: "{_index}"')
+
     """ Добавить запись в словарь (при чтении сохранения) """
     def add_note(self, _wrd, _tr, _all_tries, _correct_tries, _last_tries):
-        self.d[_wrd] = Note(_wrd, [_tr], _all_tries=_all_tries, _correct_tries=_correct_tries, _last_tries=_last_tries)
-        self.count_w += 1
-        self.count_t += 1
+        for _i in range(MAX_SIMILAR_WORDS):
+            if wrd_to_key(_wrd, _i) not in self.d.keys():
+                _key = wrd_to_key(_wrd, _i)
+                self.d[_key] = Note(_wrd, [_tr], _all_tries=_all_tries, _correct_tries=_correct_tries, _last_tries=_last_tries)
+                self.count_w += 1
+                self.count_t += 1
+                return _key
+            _i += 1
 
-    """ Добавить запись в словарь """
+    """ Добавить запись в словарь (для пользователя) """
     def add_val(self, _wrd, _tr, _show_msg=True):
-        if _wrd in self.d.keys():
-            self.add_tr(_wrd, _tr, _show_msg)
+        if wrd_to_key(_wrd, 0) in self.d.keys():
+            while True:
+                print('\nСтатья с таким словом уже есть в словаре')
+                print('Что вы хотите сделать?')
+                print('Д - Добавить к существующей статье')
+                print('Н - создать Новую статью')
+                _cmd = input().upper()
+                if _cmd in ['Д', 'L']:
+                    _key = self.choose_one_of_similar(_wrd)
+                    self.add_tr(_key, _tr, _show_msg, _transform=False)
+                    return _key
+                elif _cmd in ['Н', 'Y']:
+                    for _i in range(MAX_SIMILAR_WORDS):
+                        _key = wrd_to_key(_wrd, _i)
+                        if _key not in self.d.keys():
+                            self.d[_key] = Note(_wrd, [_tr])
+                            self.count_w += 1
+                            self.count_t += 1
+                            return _key
+                        _i += 1
+                else:
+                    print(f'Неизвестная команда: "{_cmd}"')
         else:
-            self.d[_wrd] = Note(_wrd, [_tr])
+            _key = wrd_to_key(_wrd, 0)
+            self.d[_key] = Note(_wrd, [_tr])
             self.count_w += 1
             self.count_t += 1
+            return _key
 
     """ Изменить слово """
-    def edit_wrd(self, _wrd, _new_wrd):
-        if _new_wrd in self.d.keys():
-            self.count_t -= self.d[_wrd].count_t
-            self.count_t -= self.d[_new_wrd].count_t
-            for _tr in self.d[_wrd].tr:
-                self.d[_new_wrd].add_tr(_tr, False)
-            for _dsc in self.d[_wrd].dsc:
-                self.add_dsc(_new_wrd, _dsc)
-            self.count_t += self.d[_new_wrd].count_t
+    def edit_wrd(self, _key, _new_key):
+        if _new_key in self.d.keys():
+            self.count_t -= self.d[_key].count_t
+            self.count_t -= self.d[_new_key].count_t
+            for _tr in self.d[_key].tr:
+                self.d[_new_key].add_tr(_tr, False)
+            for _dsc in self.d[_key].dsc:
+                self.add_dsc(_new_key, _dsc)
+            self.count_t += self.d[_new_key].count_t
             self.count_w -= 1
-            if self.d[_wrd].fav:
-                self.d[_new_wrd].fav = True
-            self.d[_new_wrd].merge_stat(self.d[_wrd].all_tries, self.d[_wrd].correct_tries, self.d[_wrd].last_tries)
+            if self.d[_key].fav:
+                self.d[_new_key].fav = True
+            self.d[_new_key].merge_stat(self.d[_key].all_tries, self.d[_key].correct_tries, self.d[_key].last_tries)
         else:
-            self.d[_new_wrd] = Note(_new_wrd, self.d[_wrd].tr, self.d[_wrd].dsc, self.d[_wrd].fav, self.d[_wrd].all_tries, self.d[_wrd].correct_tries, self.d[_wrd].last_tries)
-        self.d.pop(_wrd)
+            self.d[_new_key] = Note(key_to_wrd(_new_key), self.d[_key].tr, self.d[_key].dsc, self.d[_key].fav,
+                                    self.d[_key].all_tries, self.d[_key].correct_tries, self.d[_key].last_tries)
+        self.d.pop(_key)
 
     """ Добавить перевод к записи в словаре """
-    def add_tr(self, _wrd, _tr, _show_msg=True):
+    def add_tr(self, _wrd, _tr, _show_msg=True, _transform=True):
+        if _transform:
+            _wrd = self.choose_one_of_similar(_wrd)
         self.count_t -= self.d[_wrd].count_t
         self.d[_wrd].add_tr(_tr, _show_msg)
         self.count_t += self.d[_wrd].count_t
 
     """ Добавить сноску к записи в словаре """
-    def add_dsc(self, _wrd, _dsc):
+    def add_dsc(self, _wrd, _dsc, _transform=True):
+        if _transform:
+            _wrd = self.choose_one_of_similar(_wrd)
         self.d[_wrd].add_dsc(_dsc)
 
     """ Добавить форму слова к записи в словаре """
-    def add_frm(self, _wrd, _frm_type, _frm, _show_msg=True):
+    def add_frm(self, _wrd, _frm_type, _frm, _show_msg=True, _transform=True):
+        if _transform:
+            _wrd = self.choose_one_of_similar(_wrd)
         self.count_f -= self.d[_wrd].count_f
         self.d[_wrd].add_frm(_frm_type, _frm, _show_msg)
         self.count_f += self.d[_wrd].count_f
 
     """ Удалить перевод из словаря """
-    def remove_tr(self, _wrd):
+    def remove_tr(self, _wrd, _transform=True):
+        if _transform:
+            _wrd = self.choose_one_of_similar(_wrd)
         self.count_t -= self.d[_wrd].count_t
         self.d[_wrd].remove_tr()
         self.count_t += self.d[_wrd].count_t
 
     """ Удалить описание из словаря """
-    def remove_dsc(self, _wrd):
+    def remove_dsc(self, _wrd, _transform=True):
+        if _transform:
+            _wrd = self.choose_one_of_similar(_wrd)
         self.d[_wrd].remove_dsc()
 
     """ Удалить форму слова из словаря """
-    def remove_frm_with_choose(self, _wrd):
+    def remove_frm_with_choose(self, _wrd, _transform=True):
+        if _transform:
+            _wrd = self.choose_one_of_similar(_wrd)
         self.count_f -= self.d[_wrd].count_f
         self.d[_wrd].remove_frm_with_choose()
         self.count_f += self.d[_wrd].count_f
@@ -661,8 +739,10 @@ class Dictionary(object):
             self.count_f += _note.count_f
 
     """ Удалить запись из словаря """
-    def remove_note(self, _wrd):
+    def remove_note(self, _wrd, _transform=True):
         self.count_w -= 1
+        if _transform:
+            _wrd = self.choose_one_of_similar(_wrd)
         self.count_t -= self.d[_wrd].count_t
         self.count_f -= self.d[_wrd].count_f
         self.d.pop(_wrd)
@@ -687,16 +767,16 @@ class Dictionary(object):
                         _correct_tries = int(_file.readline().strip())
                         _last_tries = int(_file.readline().strip())
                         _tr = _file.readline().strip()
-                        self.add_note(_wrd, _tr, _all_tries, _correct_tries, _last_tries)
+                        _key = self.add_note(_wrd, _tr, _all_tries, _correct_tries, _last_tries)
                     elif _line[0] == 't':
-                        self.add_tr(_wrd, _line[1:], False)
+                        self.add_tr(_key, _line[1:], False, _transform=False)
                     elif _line[0] == 'd':
-                        self.add_dsc(_wrd, _line[1:])
+                        self.add_dsc(_key, _line[1:], _transform=False)
                     elif _line[0] == 'f':
                         _frm_type = decode_tpl(_line[1:])
-                        self.add_frm(_wrd, _frm_type, _file.readline().strip())
+                        self.add_frm(_key, _frm_type, _file.readline().strip(), _transform=False)
                     elif _line[0] == '*':
-                        self.d[_wrd].fav = True
+                        self.d[_key].fav = True
             return 0
         except FileNotFoundError:
             return 1
@@ -704,7 +784,9 @@ class Dictionary(object):
             return 2
 
     """ Изменить запись в словаре """
-    def edit_note(self, _wrd):
+    def edit_note(self, _wrd, _transform=True):
+        if _transform:
+            _wrd = self.choose_one_of_similar(_wrd)
         _has_changes = False
         while True:
             print()
@@ -723,6 +805,7 @@ class Dictionary(object):
             _cmd = input().upper()
             if _cmd in ['СЛ', 'CK']:
                 _new_wrd = input('\nВведите новое слово: ')
+                _new_wrd = self.choose_one_of_similar(_new_wrd)
                 self.edit_wrd(_wrd, _new_wrd)
                 _wrd = _new_wrd
                 _has_changes = True
@@ -734,11 +817,11 @@ class Dictionary(object):
                 _cmd = input().upper()
                 if _cmd in ['Д', 'L']:
                     _tr = input('\nВведите перевод: ')
-                    self.add_tr(_wrd, _tr)
+                    self.add_tr(_wrd, _tr, _transform=False)
                     _has_changes = True
                 elif _cmd in ['У', 'E']:
                     print()
-                    self.remove_tr(_wrd)
+                    self.remove_tr(_wrd, _transform=False)
                     _has_changes = True
                 elif _cmd in ['Н', 'Y']:
                     continue
@@ -757,14 +840,14 @@ class Dictionary(object):
                         print(f'\nУ слова "{_wrd}" уже есть такая форма')
                     else:
                         _frm = input('\nВведите форму слова: ')
-                        self.add_frm(_wrd, _frm_type, _frm)
+                        self.add_frm(_wrd, _frm_type, _frm, _transform=False)
                         _has_changes = True
                 elif _cmd in ['У', 'E']:
                     print()
                     if self.d[_wrd].count_f == 0:
                         print('У этого слова нет других форм')
                         continue
-                    self.remove_frm_with_choose(_wrd)
+                    self.remove_frm_with_choose(_wrd, _transform=False)
                     _has_changes = True
                 elif _cmd in ['Н', 'Y']:
                     continue
@@ -778,14 +861,14 @@ class Dictionary(object):
                 _cmd = input().upper()
                 if _cmd in ['Д', 'L']:
                     _dsc = input('\nВведите сноску: ')
-                    self.add_dsc(_wrd, _dsc)
+                    self.add_dsc(_wrd, _dsc, _transform=False)
                     _has_changes = True
                 elif _cmd in ['У', 'E']:
                     print()
                     if self.d[_wrd].count_d == 0:
                         print('В этой статье нет сносок')
                         continue
-                    self.remove_dsc(_wrd)
+                    self.remove_dsc(_wrd, _transform=False)
                     _has_changes = True
                 elif _cmd in ['Н', 'Y']:
                     continue
@@ -797,7 +880,7 @@ class Dictionary(object):
             elif _cmd in ['У', 'E']:
                 _cmd = input('\nВы уверены, что хотите удалить эту запись? (+ или -): ')
                 if _cmd == '+':
-                    self.remove_note(_wrd)
+                    self.remove_note(_wrd, _transform=False)
                     _has_changes = True
                     break
             elif _cmd in ['Н', 'Y']:
@@ -813,10 +896,10 @@ class Dictionary(object):
             _sum += (100 - round(100 * _note.percent)) * 4 + 1
         _r = random.randint(1, _sum)
 
-        for _wrd in self.d.keys():
-            _r -= (100 - round(100 * self.d[_wrd].percent)) * 4 + 1
+        for _key in self.d.keys():
+            _r -= (100 - round(100 * self.d[_key].percent)) * 4 + 1
             if _r <= 0:
-                return _wrd
+                return _key
 
     """ Учить слова - все """
     def learn(self):
@@ -828,17 +911,17 @@ class Dictionary(object):
                 print(f'\033[33mВаш результат: {_count_correct}/{_count_all}\033[38m')
                 break
             while True:
-                _wrd = random.choice(list(self.d.keys()))
-                if _wrd not in _used_words:
+                _key = random.choice(list(self.d.keys()))
+                if _key not in _used_words:
                     break
 
-            _res = guess_wrd(self.d[_wrd], _count_correct, _count_all)
+            _res = guess_wrd(self.d[_key], _count_correct, _count_all)
             if _res == 1:
                 break
             elif _res == 2:
                 _count_all += 1
                 _count_correct += 1
-                _used_words.add(_wrd)
+                _used_words.add(_key)
             elif _res == 3:
                 _count_all += 1
 
@@ -854,20 +937,20 @@ class Dictionary(object):
                 if len(_used_words) == self.count_w:
                     print(f'\033[33mВаш результат: {_count_correct}/{_count_all}\033[38m')
                     return None
-                _wrd = random.choice(list(self.d.keys()))
-                if not self.d[_wrd].fav:
-                    _used_words.add(_wrd)
+                _key = random.choice(list(self.d.keys()))
+                if not self.d[_key].fav:
+                    _used_words.add(_key)
                     continue
-                if _wrd not in _used_words:
+                if _key not in _used_words:
                     break
 
-            _res = guess_wrd(self.d[_wrd], _count_correct, _count_all)
+            _res = guess_wrd(self.d[_key], _count_correct, _count_all)
             if _res == 1:
                 break
             elif _res == 2:
                 _count_all += 1
                 _count_correct += 1
-                _used_words.add(_wrd)
+                _used_words.add(_key)
             elif _res == 3:
                 _count_all += 1
 
@@ -883,17 +966,17 @@ class Dictionary(object):
                 print(f'\033[33mВаш результат: {_count_correct}/{_count_all}\033[38m')
                 break
             while True:
-                _wrd = self.random_smart()
-                if _wrd not in _used_words:
+                _key = self.random_smart()
+                if _key not in _used_words:
                     break
 
-            _res = guess_wrd(self.d[_wrd], _count_correct, _count_all)
+            _res = guess_wrd(self.d[_key], _count_correct, _count_all)
             if _res == 1:
                 break
             elif _res == 2:
                 _count_all += 1
                 _count_correct += 1
-                _used_words.add(_wrd)
+                _used_words.add(_key)
             elif _res == 3:
                 _count_all += 1
 
@@ -909,17 +992,17 @@ class Dictionary(object):
                 print(f'\033[33mВаш результат: {_count_correct}/{_count_all}\033[38m')
                 break
             while True:
-                _wrd = random.choice(list(self.d.keys()))
-                _rnd_f = random.randint(-1, self.d[_wrd].count_f - 1)
+                _key = random.choice(list(self.d.keys()))
+                _rnd_f = random.randint(-1, self.d[_key].count_f - 1)
                 if _rnd_f == -1:
-                    _wrd_f = _wrd
+                    _wrd_f = _key
                     if _wrd_f not in _used_words:
-                        _res = guess_wrd(self.d[_wrd], _count_correct, _count_all)
+                        _res = guess_wrd(self.d[_key], _count_correct, _count_all)
                         break
                 else:
-                    _wrd_f = random.choice(list(self.d[_wrd].forms.keys()))
+                    _wrd_f = random.choice(list(self.d[_key].forms.keys()))
                     if _wrd_f not in _used_words:
-                        _res = guess_wrd_f(self.d[_wrd], _wrd_f, _count_correct, _count_all)
+                        _res = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all)
                         break
 
             if _res == 1:
@@ -943,22 +1026,22 @@ class Dictionary(object):
                 if len(_used_words) == self.count_w + self.count_f:
                     print(f'\033[33mВаш результат: {_count_correct}/{_count_all}\033[38m')
                     return None
-                _wrd = random.choice(list(self.d.keys()))
-                if not self.d[_wrd].fav:
-                    _used_words.add(_wrd)
-                    for _frm in self.d[_wrd].forms.keys():
+                _key = random.choice(list(self.d.keys()))
+                if not self.d[_key].fav:
+                    _used_words.add(_key)
+                    for _frm in self.d[_key].forms.keys():
                         _used_words.add(_frm)
                     continue
-                _rnd_f = random.randint(-1, self.d[_wrd].count_f - 1)
+                _rnd_f = random.randint(-1, self.d[_key].count_f - 1)
                 if _rnd_f == -1:
-                    _wrd_f = _wrd
+                    _wrd_f = _key
                     if _wrd_f not in _used_words:
-                        _res = guess_wrd(self.d[_wrd], _count_correct, _count_all)
+                        _res = guess_wrd(self.d[_key], _count_correct, _count_all)
                         break
                 else:
-                    _wrd_f = random.choice(list(self.d[_wrd].forms.keys()))
+                    _wrd_f = random.choice(list(self.d[_key].forms.keys()))
                     if _wrd_f not in _used_words:
-                        _res = guess_wrd_f(self.d[_wrd], _wrd_f, _count_correct, _count_all)
+                        _res = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all)
                         break
 
             if _res == 1:
@@ -982,17 +1065,17 @@ class Dictionary(object):
                 print(f'\033[33mВаш результат: {_count_correct}/{_count_all}\033[38m')
                 break
             while True:
-                _wrd = self.random_smart()
-                _rnd_f = random.randint(-1, self.d[_wrd].count_f - 1)
+                _key = self.random_smart()
+                _rnd_f = random.randint(-1, self.d[_key].count_f - 1)
                 if _rnd_f == -1:
-                    _wrd_f = _wrd
+                    _wrd_f = _key
                     if _wrd_f not in _used_words:
-                        _res = guess_wrd(self.d[_wrd], _count_correct, _count_all)
+                        _res = guess_wrd(self.d[_key], _count_correct, _count_all)
                         break
                 else:
-                    _wrd_f = random.choice(list(self.d[_wrd].forms.keys()))
+                    _wrd_f = random.choice(list(self.d[_key].forms.keys()))
                     if _wrd_f not in _used_words:
-                        _res = guess_wrd_f(self.d[_wrd], _wrd_f, _count_correct, _count_all)
+                        _res = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all)
                         break
 
             if _res == 1:
@@ -1016,17 +1099,17 @@ class Dictionary(object):
                 print(f'\033[33mВаш результат: {_count_correct}/{_count_all}\033[38m')
                 break
             while True:
-                _wrd = random.choice(list(self.d.keys()))
-                if _wrd not in _used_words:
+                _key = random.choice(list(self.d.keys()))
+                if _key not in _used_words:
                     break
 
-            _res = guess_tr(self.d[_wrd], _count_correct, _count_all)
+            _res = guess_tr(self.d[_key], _count_correct, _count_all)
             if _res == 1:
                 break
             elif _res == 2:
                 _count_all += 1
                 _count_correct += 1
-                _used_words.add(_wrd)
+                _used_words.add(_key)
             elif _res == 3:
                 _count_all += 1
 
@@ -1042,20 +1125,20 @@ class Dictionary(object):
                 if len(_used_words) == self.count_w:
                     print(f'\033[33mВаш результат: {_count_correct}/{_count_all}\033[38m')
                     return None
-                _wrd = random.choice(list(self.d.keys()))
-                if not self.d[_wrd].fav:
-                    _used_words.add(_wrd)
+                _key = random.choice(list(self.d.keys()))
+                if not self.d[_key].fav:
+                    _used_words.add(_key)
                     continue
-                if _wrd not in _used_words:
+                if _key not in _used_words:
                     break
 
-            _res = guess_tr(self.d[_wrd], _count_correct, _count_all)
+            _res = guess_tr(self.d[_key], _count_correct, _count_all)
             if _res == 1:
                 break
             elif _res == 2:
                 _count_all += 1
                 _count_correct += 1
-                _used_words.add(_wrd)
+                _used_words.add(_key)
             elif _res == 3:
                 _count_all += 1
 
@@ -1071,17 +1154,17 @@ class Dictionary(object):
                 print(f'\033[33mВаш результат: {_count_correct}/{_count_all}\033[38m')
                 break
             while True:
-                _wrd = self.random_smart()
-                if _wrd not in _used_words:
+                _key = self.random_smart()
+                if _key not in _used_words:
                     break
 
-            _res = guess_tr(self.d[_wrd], _count_correct, _count_all)
+            _res = guess_tr(self.d[_key], _count_correct, _count_all)
             if _res == 1:
                 break
             elif _res == 2:
                 _count_all += 1
                 _count_correct += 1
-                _used_words.add(_wrd)
+                _used_words.add(_key)
             elif _res == 3:
                 _count_all += 1
 
@@ -1168,8 +1251,8 @@ def save_dct(_dct, _form_parameters, _filename):  # Сохранить слов�
 
 print('======================================================================================\n')  # Вывод информации о программе
 print('                            Anenokil development  presents')
-print('                               Dictionary  v6.0.0_PRE-4')
-print('                                   22.12.2022  9:12\n')
+print('                               Dictionary  v6.0.0_PRE-5')
+print('                                   22.12.2022 11:04\n')
 print('======================================================================================\n')
 
 try:  # Открываем файл с названием словаря
@@ -1215,39 +1298,44 @@ while True:
     elif cmd in ['Д', 'L']:
         wrd = input('\nВведите слово, которое хотите добавить в словарь: ')
         tr = input('Введите перевод слова: ')
-        dct.add_val(wrd, tr)
+        key = dct.add_val(wrd, tr)
 
         cmd = input('Хотите добавить сноску? (+ или -): ')
         if cmd == '+':
             dsc = input('Введите сноску: ')
-            dct.add_dsc(wrd, dsc)
+            dct.add_dsc(key, dsc, _transform=False)
 
         fav = input('Хотите добавить статью в избранное? (+ или -): ')
         if fav == '+':
-            dct.d[wrd].fav = True
+            dct.d[key].fav = True
 
         has_changes = True
-        dct.edit_note(wrd)
+        dct.edit_note(key, _transform=False)
     elif cmd in ['И', 'B']:
         wrd = input('\nВведите слово, статью с которым хотите изменить: ')
-        if wrd in dct.d.keys():
-            has_changes = dct.edit_note(wrd)
-        else:
+        if wrd_to_key(wrd, 0) not in dct.d.keys():
             print(f'Слово "{wrd}" отсутствует в словаре')
+            break
+        has_changes = dct.edit_note(wrd)
     elif cmd in ['НС', 'YC']:
         wrd = input('\nВведите слово, которое хотите найти: ')
-        if wrd in dct.d.keys():
-            dct.d[wrd].print_all()
-        else:
+        if wrd_to_key(wrd, 0) not in dct.d.keys():
             print(f'Слово "{wrd}" отсутствует в словаре')
+            continue
+        for i in range(MAX_SIMILAR_WORDS):
+            key = wrd_to_key(wrd, i)
+            if key not in dct.d.keys():
+                break
+            print()
+            dct.d[key].print_all()
     elif cmd in ['НП', 'YG']:
         tr = input('\nВведите перевод слова, которое хотите найти: ')
         isFound = False
-        for wrd in dct.d.keys():
-            if tr in dct.d[wrd].tr:
+        for key in dct.d.keys():
+            if tr in dct.d[key].tr:
                 isFound = True
                 print()
-                dct.d[wrd].print_all()
+                dct.d[key].print_all()
         if not isFound:
             print(f'Слово с переводом "{tr}" отсутствует в словаре')
     elif cmd in ['У', 'E']:
@@ -1388,4 +1476,4 @@ while True:
         print(f'Неизвестная команда: "{cmd}"')
 
 # разобраться с цветами
-# сделать чтобы можно было делать несколько статей с одинаковыми словами
+# добавить переименовывание форм
