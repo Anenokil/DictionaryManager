@@ -109,7 +109,7 @@ def remove_frm_val(_frm_list, _dct):
 
 
 # Переименовать значение параметра форм
-def rename_frm_val(_frm_list, _dct):
+def rename_frm_val(_frm_list, _pos, _dct):
     print('\nВыберите один из предложенных вариантов')
     for _i in range(len(_frm_list)):
         print(f'{_i} - {_frm_list[_i]}')
@@ -125,7 +125,7 @@ def rename_frm_val(_frm_list, _dct):
             if _new_frm_val not in _frm_list:
                 break
             print(f'{Fore.RED}Значение с таким названием уже есть{Style.RESET_ALL}')
-        _dct.rename_forms_with_val(_index, _frm_val, _new_frm_val)
+        _dct.rename_forms_with_val(_pos, _frm_val, _new_frm_val)
         _frm_list[_index] = _new_frm_val
 
 
@@ -1435,7 +1435,7 @@ def forms_settings(_dct, _form_parameters):
                     elif _cmd in ['У', 'E']:
                         remove_frm_val(_frm_list, _dct)
                     elif _cmd in ['П', 'G']:
-                        rename_frm_val(_frm_list, _dct)
+                        rename_frm_val(_frm_list, _index, _dct)
                     elif _cmd in ['Н', 'Y']:
                         break
                     else:
@@ -1449,8 +1449,8 @@ def forms_settings(_dct, _form_parameters):
 # Вывод информации о программе
 print('======================================================================================\n')
 print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
-print(f'                               {Fore.CYAN}Dictionary{Style.RESET_ALL}  v6.0.0_PRE-9')
-print('                                   23.12.2022 21:03\n')
+print(f'                               {Fore.CYAN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-10')
+print('                                   23.12.2022 22:31\n')
 print('======================================================================================')
 
 try:  # Открываем файл с названием словаря

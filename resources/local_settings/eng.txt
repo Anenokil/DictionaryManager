@@ -1,6 +1,6 @@
-„исло
-ед.ч.@мн.ч.
-Ћицо
-1 л.@2 л.@3 л.
-¬рем€
-пр.вр.@н.вр.@б.вр.
+Number
+Sing@Plur
+Face
+1F@2F@3F
+Time
+PaS@PaC@PaP@PaPC@PrS@PrC@PrP@PrPC@FS@FC@FP@FPC

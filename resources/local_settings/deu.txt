@@ -1,10 +1,10 @@
-Number
+Numerus
 Sing@Plur
-Gender
+Genus
 M@N@F
-Case
+Kasus
 Nom@Gen@Dat@Akk
-Face
+Person
 1 л.@2 л.@3 л.
-Time
+Tempus
 пр.вр.@н.вр.@б.вр.
