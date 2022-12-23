@@ -598,7 +598,7 @@ def guess_wrd_f(_note, _wrd_f, _count_correct, _count_all):
         return 2
     else:
         _note.incorrect_try()
-        print(f'{Fore.RED}Неверно. Правильный ответ: "{_note.wrd}"{Style.RESET_ALL}')
+        print(f'{Fore.RED}Неверно. Правильный ответ: "{_note.forms[_wrd_f]}"{Style.RESET_ALL}')
         if not _note.fav:
             _fav = input('Добавить слово в избранное? (+ или -): ')
             if _fav == '+':
@@ -1116,12 +1116,12 @@ class Dictionary(object):
                 _rnd_f = random.randint(-1, self.d[_key].count_f - 1)
                 if _rnd_f == -1:
                     _wrd_f = _key
-                    if _wrd_f not in _used_words:
+                    if (_key, _wrd_f) not in _used_words:
                         _res = guess_wrd(self.d[_key], _count_correct, _count_all)
                         break
                 else:
                     _wrd_f = random.choice(list(self.d[_key].forms.keys()))
-                    if _wrd_f not in _used_words:
+                    if (_key, _wrd_f) not in _used_words:
                         _res = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all)
                         break
 
@@ -1130,7 +1130,7 @@ class Dictionary(object):
             elif _res == 2:
                 _count_all += 1
                 _count_correct += 1
-                _used_words.add(_wrd_f)
+                _used_words.add((_key, _wrd_f))
             elif _res == 3:
                 _count_all += 1
 
@@ -1148,19 +1148,19 @@ class Dictionary(object):
                     return None
                 _key = random.choice(list(self.d.keys()))
                 if not self.d[_key].fav:
-                    _used_words.add(_key)
+                    _used_words.add((_key, _key))
                     for _frm in self.d[_key].forms.keys():
-                        _used_words.add(_frm)
+                        _used_words.add((_key, _frm))
                     continue
                 _rnd_f = random.randint(-1, self.d[_key].count_f - 1)
                 if _rnd_f == -1:
                     _wrd_f = _key
-                    if _wrd_f not in _used_words:
+                    if (_key, _wrd_f) not in _used_words:
                         _res = guess_wrd(self.d[_key], _count_correct, _count_all)
                         break
                 else:
                     _wrd_f = random.choice(list(self.d[_key].forms.keys()))
-                    if _wrd_f not in _used_words:
+                    if (_key, _wrd_f) not in _used_words:
                         _res = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all)
                         break
 
@@ -1169,7 +1169,7 @@ class Dictionary(object):
             elif _res == 2:
                 _count_all += 1
                 _count_correct += 1
-                _used_words.add(_wrd_f)
+                _used_words.add((_key, _wrd_f))
             elif _res == 3:
                 _count_all += 1
 
@@ -1189,12 +1189,12 @@ class Dictionary(object):
                 _rnd_f = random.randint(-1, self.d[_key].count_f - 1)
                 if _rnd_f == -1:
                     _wrd_f = _key
-                    if _wrd_f not in _used_words:
+                    if (_key, _wrd_f) not in _used_words:
                         _res = guess_wrd(self.d[_key], _count_correct, _count_all)
                         break
                 else:
                     _wrd_f = random.choice(list(self.d[_key].forms.keys()))
-                    if _wrd_f not in _used_words:
+                    if (_key, _wrd_f) not in _used_words:
                         _res = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all)
                         break
 
@@ -1203,7 +1203,7 @@ class Dictionary(object):
             elif _res == 2:
                 _count_all += 1
                 _count_correct += 1
-                _used_words.add(_wrd_f)
+                _used_words.add((_key, _wrd_f))
             elif _res == 3:
                 _count_all += 1
 
@@ -1449,8 +1449,8 @@ def forms_settings(_dct, _form_parameters):
 # Вывод информации о программе
 print('======================================================================================\n')
 print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
-print(f'                               {Fore.CYAN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-10')
-print('                                   23.12.2022 22:31\n')
+print(f'                               {Fore.CYAN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-11')
+print('                                   23.12.2022 23:03\n')
 print('======================================================================================')
 
 try:  # Открываем файл с названием словаря
