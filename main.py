@@ -243,6 +243,17 @@ def choose_frm_type():
     return tuple(_res)
 
 
+# Найти в строке подстроку
+def search_matches(_wrd, _search_wrd):
+    _len = len(_search_wrd)
+    if _wrd != _search_wrd:
+        _pos = _wrd.upper().find(_search_wrd.upper())
+        if _pos != -1:
+            _res = _wrd[:_pos] + Fore.GREEN + _wrd[_pos:_pos + _len] + Style.RESET_ALL + _wrd[_pos + _len:]
+            return _res
+    return ''
+
+
 class Note(object):
     # self.wrd - слово
     # self.tr - список переводов
@@ -1512,8 +1523,8 @@ def forms_settings(_dct, _form_parameters):
 # Вывод информации о программе
 print('======================================================================================\n')
 print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
-print(f'                               {Fore.CYAN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-13')
-print('                                   23.12.2022  0:12\n')
+print(f'                               {Fore.CYAN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-14')
+print('                                   23.12.2022  0:59\n')
 print('======================================================================================')
 
 try:  # Открываем файл с названием словаря
@@ -1589,26 +1600,59 @@ while True:
             continue
         has_changes = dct.edit_note(wrd)
     elif cmd in ['НС', 'YC']:
-        wrd = input('\nВведите слово, которое хотите найти: ')
-        if wrd_to_key(wrd, 0) not in dct.d.keys():
-            print(f'{Fore.RED}Слово "{wrd}" отсутствует в словаре{Style.RESET_ALL}')
+        search_wrd = input('\nВведите слово, которое хотите найти: ')
+
+        print('\nЧастичное совпадение:')
+        is_found = False
+        for key in dct.d.keys():
+            wrd = key_to_wrd(key)
+            res = search_matches(wrd, search_wrd)
+            if res != '':
+                is_found = True
+                print(res)
+        if not is_found:
+            print(f'{Fore.RED}Частичных совпадений не найдено{Style.RESET_ALL}')
+
+        print('\nПолное совпадение:')
+        if wrd_to_key(search_wrd, 0) not in dct.d.keys():
+            print(f'{Fore.RED}Слово "{search_wrd}" отсутствует в словаре{Style.RESET_ALL}')
             continue
         for i in range(MAX_SIMILAR_WORDS):
-            key = wrd_to_key(wrd, i)
+            key = wrd_to_key(search_wrd, i)
             if key not in dct.d.keys():
                 break
             print()
             dct.d[key].print_all()
     elif cmd in ['НП', 'YG']:
-        tr = input('\nВведите перевод слова, которое хотите найти: ')
-        isFound = False
-        for key in dct.d.keys():
-            if tr in dct.d[key].tr:
-                isFound = True
+        search_tr = input('\nВведите перевод слова, которое хотите найти: ')
+
+        print('\nЧастичное совпадение:', end='')
+        is_found = False
+        for note in dct.d.values():
+            is_first = True
+            for tr in note.tr:
+                res = search_matches(tr, search_tr)
+                if res != '':
+                    is_found = True
+                    if is_first:
+                        is_first = False
+                        print()
+                    else:
+                        print(', ', end='')
+                    print(res, end='')
+        print()
+        if not is_found:
+            print(f'{Fore.RED}Частичных совпадений не найдено{Style.RESET_ALL}')
+
+        print('\nПолное совпадение:')
+        is_found = False
+        for note in dct.d.values():
+            if search_tr in note.tr:
+                is_found = True
                 print()
-                dct.d[key].print_all()
-        if not isFound:
-            print(f'{Fore.RED}Слово с переводом "{tr}" отсутствует в словаре{Style.RESET_ALL}')
+                note.print_all()
+        if not is_found:
+            print(f'{Fore.RED}Слово с переводом "{search_tr}" отсутствует в словаре{Style.RESET_ALL}')
     elif cmd in ['У', 'E']:
         print(Fore.YELLOW + '\nВаша общая доля правильных ответов: {:.2%}'.format(dct.count_rating()) + Style.RESET_ALL)
         print('\nВыберите способ')
