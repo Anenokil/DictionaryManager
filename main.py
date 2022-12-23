@@ -137,6 +137,7 @@ def add_frm_param(_frm_parameters):
     elif _new_p == '':
         print(f'{Fore.RED}Недопустимый параметр{Style.RESET_ALL}')
     else:
+        # _dct.add_forms_param(_index, _new_frm_parameters)
         _frm_parameters[_new_p] = []
         print('Необходимо добавить хотя бы одно значение для параметра')
         while _frm_parameters[_new_p] == []:
@@ -159,6 +160,7 @@ def remove_frm_param(_frm_parameters, _dct):
         _cmd = input('\nВсе формы слов, содержащие этот параметр, будут удалены! Вы уверены? (+ или -): ')
         if _cmd == '+':
             _frm_parameters.pop(_key)
+        # _dct.remove_forms_param(_index, _new_frm_parameters)
         _dct.remove_forms_with_param(_index)
 
 
@@ -180,7 +182,7 @@ def rename_frm_param(_frm_parameters, _dct):
             if _new_key not in _frm_parameters:
                 break
             print(f'{Fore.RED}Параметр с таким названием уже есть{Style.RESET_ALL}')
-        # _dct.rename_forms_with_param(_index, _new_frm_parameters)
+        # _dct.rename_forms_param(_index, _new_frm_parameters)
         _frm_parameters[_new_key] = _frm_parameters[_key]
         _frm_parameters.pop(_key)
 
@@ -489,12 +491,27 @@ class Note(object):
             print(f'{_i} - [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
         _index = input('Введите номер варианта: ')
         try:
-            _index = int(_index)
-            self.forms.pop(_keys[_index])
-        except (ValueError, IndexError):
+            _key = _keys[int(_index)]
+        except (ValueError, TypeError, IndexError):
             allert_inp('Недопустимый номер варианта', _index)
         else:
+            self.forms.pop(_key)
             self.count_f -= 1
+
+    """ Изменить форму слова """
+    def edit_frm_with_choose(self):
+        _keys = [_key for _key in self.forms.keys()]
+        print('Выберите один из предложенных вариантов')
+        for _i in range(self.count_f):
+            print(f'{_i} - [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
+        _index = input('Введите номер варианта: ')
+        try:
+            _key = _keys[int(_index)]
+        except (ValueError, TypeError, IndexError):
+            allert_inp('Недопустимый номер варианта', _index)
+        else:
+            _frm = input('Введите форму слова: ')
+            self.forms[_key] = _frm
 
     """ Удалить все формы слова, содержащие данное значение """
     def remove_frm_with_val(self, _pos, _frm_val):
@@ -832,6 +849,12 @@ class Dictionary(object):
         self.d[_wrd].remove_frm_with_choose()
         self.count_f += self.d[_wrd].count_f
 
+    """ Изменить форму слова """
+    def edit_frm_with_choose(self, _wrd, _transform=True):
+        if _transform:
+            _wrd = self.choose_one_of_similar(_wrd)
+        self.d[_wrd].edit_frm_with_choose()
+
     """ Удалить все формы, содержащие данное значение """
     def remove_forms_with_val(self, _pos, _frm_val):
         for _note in self.d.values():
@@ -946,6 +969,7 @@ class Dictionary(object):
             elif _cmd in ['Ф', 'A']:
                 print('\nЧто вы хотите сделать?')
                 print('Д - Добавить форму')
+                print('И - Изменить форму')
                 print('У - Удалить форму')
                 print(f'{Fore.YELLOW}Н - Назад{Style.RESET_ALL}')
                 _cmd = input().upper()
@@ -953,15 +977,22 @@ class Dictionary(object):
                     print()
                     _frm_type = choose_frm_type()
                     if _frm_type in self.d[_wrd].forms.keys():
-                        print(f'\n{Fore.RED}У слова "{_wrd}" уже есть такая форма{Style.RESET_ALL}')
+                        print(f'\n{Fore.RED}У слова "{key_to_wrd(_wrd)}" уже есть такая форма{Style.RESET_ALL}')
                     else:
                         _frm = input('\nВведите форму слова: ')
                         self.add_frm(_wrd, _frm_type, _frm, _transform=False)
                         _has_changes = True
+                elif _cmd in ['И', 'B']:
+                    print()
+                    if self.d[_wrd].count_f == 0:
+                        print(f'{Fore.RED}У слова "{key_to_wrd(_wrd)}" нет других форм{Style.RESET_ALL}')
+                        continue
+                    self.edit_frm_with_choose(_wrd, _transform=False)
+                    _has_changes = True
                 elif _cmd in ['У', 'E']:
                     print()
                     if self.d[_wrd].count_f == 0:
-                        print(f'{Fore.RED}У этого слова нет других форм{Style.RESET_ALL}')
+                        print(f'{Fore.RED}У слова "{key_to_wrd(_wrd)}" нет других форм{Style.RESET_ALL}')
                         continue
                     self.remove_frm_with_choose(_wrd, _transform=False)
                     _has_changes = True
@@ -1449,8 +1480,8 @@ def forms_settings(_dct, _form_parameters):
 # Вывод информации о программе
 print('======================================================================================\n')
 print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
-print(f'                               {Fore.CYAN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-11')
-print('                                   23.12.2022 23:03\n')
+print(f'                               {Fore.CYAN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-12')
+print('                                   23.12.2022 23:42\n')
 print('======================================================================================')
 
 try:  # Открываем файл с названием словаря
