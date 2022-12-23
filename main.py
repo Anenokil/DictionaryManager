@@ -130,17 +130,17 @@ def rename_frm_val(_frm_list, _pos, _dct):
 
 
 # Добавить параметр форм
-def add_frm_param(_frm_parameters):
+def add_frm_param(_frm_parameters, _dct):
     _new_p = input('\nВведите новый параметр: ')
     if _new_p in _frm_parameters.keys():
         print(f'{Fore.RED}Параметр "{_new_p}" уже существует{Style.RESET_ALL}')
     elif _new_p == '':
         print(f'{Fore.RED}Недопустимый параметр{Style.RESET_ALL}')
     else:
-        # _dct.add_forms_param(_index, _new_frm_parameters)
+        _dct.add_forms_param()
         _frm_parameters[_new_p] = []
         print('Необходимо добавить хотя бы одно значение для параметра')
-        while _frm_parameters[_new_p] == []:
+        while not _frm_parameters[_new_p]:
             add_frm_val(_frm_parameters[_new_p])
 
 
@@ -160,8 +160,7 @@ def remove_frm_param(_frm_parameters, _dct):
         _cmd = input('\nВсе формы слов, содержащие этот параметр, будут удалены! Вы уверены? (+ или -): ')
         if _cmd == '+':
             _frm_parameters.pop(_key)
-        # _dct.remove_forms_param(_index, _new_frm_parameters)
-        _dct.remove_forms_with_param(_index)
+        _dct.remove_forms_param(_index)
 
 
 # Переименовать параметр форм
@@ -182,7 +181,7 @@ def rename_frm_param(_frm_parameters, _dct):
             if _new_key not in _frm_parameters:
                 break
             print(f'{Fore.RED}Параметр с таким названием уже есть{Style.RESET_ALL}')
-        # _dct.rename_forms_param(_index, _new_frm_parameters)
+        _dct.rename_forms_param(_index)
         _frm_parameters[_new_key] = _frm_parameters[_key]
         _frm_parameters.pop(_key)
 
@@ -536,15 +535,38 @@ class Note(object):
             self.forms[_lst] = self.forms[_el]
             self.forms.pop(_el)
 
-    """ Удалить все формы слова, содержащие данный параметр """
-    def remove_frm_with_param(self, _pos):
+    """ Добавить данный параметр ко всем формам """
+    def add_frm_param(self):
+        _keys = list(self.forms.keys())
+        for _key in _keys:
+            _new_key = list(_key)
+            _new_key += ['']
+            _new_key = tuple(_new_key)
+            self.forms[_new_key] = self.forms[_key]
+            self.forms.pop(_key)
+
+    """ Удалить данный параметр у всех форм """
+    def remove_frm_param(self, _pos):
         _to_remove = []
+        _to_edit = []
         for _frm in self.forms.keys():
             if _frm[_pos] != '':
                 _to_remove += [_frm]
                 self.count_f -= 1
-        for _el in _to_remove:
-            self.forms.pop(_el)
+            else:
+                _to_edit += [_frm]
+        for _key in _to_edit:
+            _new_key = list(_key)
+            _new_key.pop(_pos)
+            _new_key = tuple(_new_key)
+            self.forms[_new_key] = self.forms[_key]
+            self.forms.pop(_key)
+        for _key in _to_remove:
+            self.forms.pop(_key)
+
+    """ Переименовать данный параметр у всех форм """
+    def rename_frm_param(self, _pos):
+        return None  # Заглушка
 
     """ Сохранить запись в файл """
     def save(self, _file):
@@ -663,7 +685,7 @@ def wrd_to_key(_wrd, _num):
 
 # Превратить ключ для словаря в слово из статьи
 def key_to_wrd(_key):
-    return _key[3:]
+    return _key[2:]
 
 
 class Dictionary(object):
@@ -867,12 +889,22 @@ class Dictionary(object):
         for _note in self.d.values():
             _note.rename_frm_with_val(_pos, _frm_val, _new_frm_val)
 
-    """ Удалить все формы, содержащие данный параметр """
-    def remove_forms_with_param(self, _pos):
+    """ Добавить данный параметр формы ко всем записям """
+    def add_forms_param(self):
+        for _note in self.d.values():
+            _note.add_frm_param()
+
+    """ Удалить данный параметр формы у всех записей """
+    def remove_forms_param(self, _pos):
         for _note in self.d.values():
             self.count_f -= _note.count_f
-            _note.remove_frm_with_param(_pos)
+            _note.remove_frm_param(_pos)
             self.count_f += _note.count_f
+
+    """ Переименовать данный параметр формы у всех записей """
+    def rename_forms_param(self, _pos):
+        for _note in self.d.values():
+            _note.rename_frm_param(_pos)
 
     """ Удалить запись из словаря """
     def remove_note(self, _wrd, _transform=True):
@@ -1429,7 +1461,7 @@ def forms_settings(_dct, _form_parameters):
         print(f'{Fore.YELLOW}Н - Назад{Style.RESET_ALL}')
         _cmd = input().upper()
         if _cmd in ['Д', 'L']:
-            add_frm_param(_form_parameters)
+            add_frm_param(_form_parameters, _dct)
         elif _cmd in ['У', 'E']:
             remove_frm_param(_form_parameters, _dct)
         elif _cmd in ['П', 'G']:
@@ -1480,8 +1512,8 @@ def forms_settings(_dct, _form_parameters):
 # Вывод информации о программе
 print('======================================================================================\n')
 print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
-print(f'                               {Fore.CYAN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-12')
-print('                                   23.12.2022 23:42\n')
+print(f'                               {Fore.CYAN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-13')
+print('                                   23.12.2022  0:12\n')
 print('======================================================================================')
 
 try:  # Открываем файл с названием словаря
