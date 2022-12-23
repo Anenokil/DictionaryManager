@@ -22,7 +22,13 @@ FORMS_SEPARATOR = '@'
 """
 
 
-def code(_str):  # Добавить немецкие буквы
+# Вывести сообщение о некорректном вводе
+def allert_inp(_text, _input):
+    print(f'{Fore.RED}{_text}: "{_input}"{Style.RESET_ALL}')
+
+
+# Добавить немецкие буквы
+def code(_str):
     _str = _str.replace('##', '1ä')
     _str = _str.replace('#a', '2ä')
 
@@ -39,7 +45,8 @@ def code(_str):  # Добавить немецкие буквы
     return _str
 
 
-def tpl(_tuple):  # Перевести кортеж в строку (для вывода на экран)
+# Перевести кортеж в строку (для вывода на экран)
+def tpl(_tuple):
     _res = ''
     _is_first = True
     for _i in range(len(_tuple)):
@@ -52,7 +59,8 @@ def tpl(_tuple):  # Перевести кортеж в строку (для вы
     return _res
 
 
-def code_tpl(_tuple, _separator=FORMS_SEPARATOR):  # Перевести кортеж в строку (для сохранения в файл)
+# Перевести кортеж в строку (для сохранения в файл)
+def code_tpl(_tuple, _separator=FORMS_SEPARATOR):
     _res = ''
     if len(_tuple) != 0:
         _res += _tuple[0]
@@ -61,23 +69,26 @@ def code_tpl(_tuple, _separator=FORMS_SEPARATOR):  # Перевести корт
     return _res
 
 
-def decode_tpl(_str, _separator=FORMS_SEPARATOR):  # Перевести строку в кортеж
+# Перевести строку в кортеж
+def decode_tpl(_str, _separator=FORMS_SEPARATOR):
     return tuple(_str.split(_separator))
 
 
-def add_frm_val(_frm_list):  # Добавить значение параметра форм
+# Добавить значение параметра форм
+def add_frm_val(_frm_list):
     _new_f = input('\nВведите новое значение параметра: ')
     if _new_f in _frm_list:
         print(f'{Fore.RED}Значение "{_new_f}" уже существует{Style.RESET_ALL}')
     elif _new_f == '':
         print(f'{Fore.RED}Недопустимое значение{Style.RESET_ALL}')
     elif FORMS_SEPARATOR in _new_f:
-        print(f'{Fore.RED}Недопустимый символ: "{FORMS_SEPARATOR}"{Style.RESET_ALL}')
+        allert_inp('Недопустимый символ', FORMS_SEPARATOR)
     else:
         _frm_list += [_new_f]
 
 
-def remove_frm_val(_frm_list, _dct):  # Удалить значение параметра форм
+# Удалить значение параметра форм
+def remove_frm_val(_frm_list, _dct):
     if len(_frm_list) == 1:
         print(f'\n{Fore.RED}Вы не можете удалить единственное значение параметра{Style.RESET_ALL}')
         return
@@ -89,7 +100,7 @@ def remove_frm_val(_frm_list, _dct):  # Удалить значение пара
         _index = int(_index)
         _frm_val = _frm_list[_index]
     except (ValueError, TypeError, IndexError):
-        print(f'{Fore.RED}Недопустимый номер варианта: "{_index}"{Style.RESET_ALL}')
+        allert_inp('Недопустимый номер варианта', _index)
     else:
         _cmd = input('\nВсе формы слов, содержащие это значение, будут удалены! Вы уверены? (+ или -): ')
         if _cmd == '+':
@@ -97,7 +108,8 @@ def remove_frm_val(_frm_list, _dct):  # Удалить значение пара
         _dct.remove_forms_with_val(_index, _frm_val)
 
 
-def rename_frm_val(_frm_list, _dct):  # Переименовать значение параметра форм
+# Переименовать значение параметра форм
+def rename_frm_val(_frm_list, _dct):
     print('\nВыберите один из предложенных вариантов')
     for _i in range(len(_frm_list)):
         print(f'{_i} - {_frm_list[_i]}')
@@ -106,7 +118,7 @@ def rename_frm_val(_frm_list, _dct):  # Переименовать значен�
         _index = int(_index)
         _frm_val = _frm_list[_index]
     except (ValueError, TypeError, IndexError):
-        print(f'{Fore.RED}Недопустимый номер варианта: "{_index}"{Style.RESET_ALL}')
+        allert_inp('Недопустимый номер варианта', _index)
     else:
         while True:
             _new_frm_val = input('\nВведите новое название для значения параметра: ')
@@ -117,7 +129,8 @@ def rename_frm_val(_frm_list, _dct):  # Переименовать значен�
         _frm_list[_index] = _new_frm_val
 
 
-def add_frm_param(_frm_parameters):  # Добавить параметр форм
+# Добавить параметр форм
+def add_frm_param(_frm_parameters):
     _new_p = input('\nВведите новый параметр: ')
     if _new_p in _frm_parameters.keys():
         print(f'{Fore.RED}Параметр "{_new_p}" уже существует{Style.RESET_ALL}')
@@ -130,7 +143,8 @@ def add_frm_param(_frm_parameters):  # Добавить параметр фор�
             add_frm_val(_frm_parameters[_new_p])
 
 
-def remove_frm_param(_frm_parameters, _dct):  # Удалить параметр форм
+# Удалить параметр форм
+def remove_frm_param(_frm_parameters, _dct):
     print('\nВыберите один из предложенных вариантов')
     _keys = [_key for _key in _frm_parameters.keys()]
     for _i in range(len(_keys)):
@@ -140,7 +154,7 @@ def remove_frm_param(_frm_parameters, _dct):  # Удалить параметр 
         _index = int(_index)
         _key = _keys[_index]
     except (ValueError, TypeError, IndexError):
-        print(f'{Fore.RED}Недопустимый номер варианта: "{_index}"{Style.RESET_ALL}')
+        allert_inp('Недопустимый номер варианта', _index)
     else:
         _cmd = input('\nВсе формы слов, содержащие этот параметр, будут удалены! Вы уверены? (+ или -): ')
         if _cmd == '+':
@@ -148,7 +162,8 @@ def remove_frm_param(_frm_parameters, _dct):  # Удалить параметр 
         _dct.remove_forms_with_param(_index)
 
 
-def rename_frm_param(_frm_parameters, _dct):  # Переименовать параметр форм
+# Переименовать параметр форм
+def rename_frm_param(_frm_parameters, _dct):
     print('\nВыберите один из предложенных вариантов')
     _keys = [_key for _key in _frm_parameters.keys()]
     for _i in range(len(_keys)):
@@ -158,19 +173,20 @@ def rename_frm_param(_frm_parameters, _dct):  # Переименовать па�
         _index = int(_index)
         _key = _keys[_index]
     except (ValueError, TypeError, IndexError):
-        print(f'{Fore.RED}Недопустимый номер варианта: "{_index}"{Style.RESET_ALL}')
+        allert_inp('Недопустимый номер варианта', _index)
     else:
         while True:
             _new_key = input('\nВведите новое название параметра: ')
             if _new_key not in _frm_parameters:
                 break
             print(f'{Fore.RED}Параметр с таким названием уже есть{Style.RESET_ALL}')
-        #_dct.rename_forms_with_param(_index, _new_frm_parameters)
+        # _dct.rename_forms_with_param(_index, _new_frm_parameters)
         _frm_parameters[_new_key] = _frm_parameters[_key]
         _frm_parameters.pop(_key)
 
 
-def choose_frm_param(_frm_name, _frm_list):  # Выбрать значение одного из параметров формы слова
+# Выбрать значение одного из параметров формы слова
+def choose_frm_param(_frm_name, _frm_list):
     while True:
         print(f'\nВыберите {_frm_name}')
         for _i in range(len(_frm_list)):
@@ -186,10 +202,11 @@ def choose_frm_param(_frm_name, _frm_list):  # Выбрать значение �
             try:
                 return _frm_list[int(_cmd)]
             except (ValueError, TypeError, IndexError):
-                print(f'{Fore.RED}Недопустимый вариант: "{_cmd}"{Style.RESET_ALL}')
+                allert_inp('Недопустимый вариант', _cmd)
 
 
-def choose_frm_type():  # Выбрать параметр формы слова
+# Выбрать параметр формы слова
+def choose_frm_type():
     _res = []
     _keys = list(form_parameters.keys())
     print('Выберите параметр')
@@ -205,7 +222,7 @@ def choose_frm_type():  # Выбрать параметр формы слова
             _key = _keys[_index]
             _res[_index] = choose_frm_param(_key, form_parameters[_key])
         except (ValueError, TypeError, IndexError):
-            print(f'{Fore.RED}Недопустимый вариант: "{_index}"{Style.RESET_ALL}')
+            allert_inp('Недопустимый вариант', _index)
 
         _is_void = _res == list(_res_void)
         print()
@@ -241,7 +258,7 @@ class Note(object):
     def __init__(self, _wrd, _tr, _dsc=None, _fav=False, _all_tries=0, _correct_tries=0, _last_tries=-1):
         self.wrd = _wrd
         self.tr = _tr if type(_tr) == list else [_tr]
-        if _dsc == None:
+        if _dsc is None:
             self.dsc = []
         elif type(_dsc) == list:
             self.dsc = _dsc
@@ -289,30 +306,24 @@ class Note(object):
             print(f'[{self.last_tries}:{_tab}{_perc}]', end=_end)
         print(Style.RESET_ALL, end='')
 
-    """ Напечатать запись - кратко """
-    def print_briefly(self):
+    """ Служебная функция для print_briefly и print_briefly_with_forms """
+    def _print_briefly(self):
         if self.fav:
             print(f'{Fore.MAGENTA}(*){Style.RESET_ALL}', end=' ')
         else:
             print('   ', end=' ')
-
         self.stat_print(_end=' ')
-
-        print(code(self.wrd) + ': ', end='')
+        print(code(self.wrd) + Fore.RED + ': ' + Style.RESET_ALL, end='')
         self.tr_print()
+
+    """ Напечатать запись - кратко """
+    def print_briefly(self):
+        self._print_briefly()
         self.dsc_print(_tab=13)
 
     """ Напечатать запись - кратко с формами """
     def print_briefly_with_forms(self):
-        if self.fav:
-            print(f'{Fore.MAGENTA}(*){Style.RESET_ALL}', end=' ')
-        else:
-            print('   ', end=' ')
-
-        self.stat_print(_end=' ')
-
-        print(code(self.wrd) + ': ', end='')
-        self.tr_print()
+        self._print_briefly()
         self.frm_print(_tab=13)
         self.dsc_print(_tab=13)
 
@@ -452,7 +463,7 @@ class Note(object):
             _index = int(_index)
             self.tr.pop(_index)
         except (ValueError, IndexError):
-            print(f'{Fore.RED}Недопустимый номер варианта: "{_index}"{Style.RESET_ALL}')
+            allert_inp('Недопустимый номер варианта', _index)
         else:
             self.count_t -= 1
 
@@ -466,7 +477,7 @@ class Note(object):
             _index = int(_index)
             self.dsc.pop(_index)
         except (ValueError, IndexError):
-            print(f'{Fore.RED}Недопустимый номер варианта: "{_index}"{Style.RESET_ALL}')
+            allert_inp('Недопустимый номер варианта', _index)
         else:
             self.count_d -= 1
 
@@ -481,7 +492,7 @@ class Note(object):
             _index = int(_index)
             self.forms.pop(_keys[_index])
         except (ValueError, IndexError):
-            print(f'{Fore.RED}Недопустимый номер варианта: "{_index}"{Style.RESET_ALL}')
+            allert_inp('Недопустимый номер варианта', _index)
         else:
             self.count_f -= 1
 
@@ -535,7 +546,8 @@ class Note(object):
             _file.write('*\n')
 
 
-def guess_wrd(_note, _count_correct, _count_all):  # Угадать слово по переводу
+# Угадать слово по переводу
+def guess_wrd(_note, _count_correct, _count_all):
     print()
     _note.print_tr_with_stat()
     _wrd_ans = input(f'Введите слово {Fore.YELLOW}(# - чтобы закончить, @ - чтобы посмотреть сноски){Style.RESET_ALL}: ')
@@ -564,7 +576,8 @@ def guess_wrd(_note, _count_correct, _count_all):  # Угадать слово �
         return 3
 
 
-def guess_wrd_f(_note, _wrd_f, _count_correct, _count_all):  # Угадать словоформу по переводу
+# Угадать словоформу по переводу
+def guess_wrd_f(_note, _wrd_f, _count_correct, _count_all):
     print()
     _note.print_tr_and_frm_with_stat(_wrd_f)
     _wrd_ans = input(f'Введите слово в данной форме {Fore.YELLOW}(# - чтобы закончить, @ - чтобы посмотреть сноски){Style.RESET_ALL}: ')
@@ -593,7 +606,8 @@ def guess_wrd_f(_note, _wrd_f, _count_correct, _count_all):  # Угадать с
         return 3
 
 
-def guess_tr(_note, _count_correct, _count_all):  # Угадать перевод по слову
+# Угадать перевод по слову
+def guess_tr(_note, _count_correct, _count_all):
     print()
     _note.print_wrd_with_stat()
     _wrd_ans = input(f'Введите перевод {Fore.YELLOW}(# - чтобы закончить, @ - чтобы посмотреть сноски){Style.RESET_ALL}: ')
@@ -625,11 +639,13 @@ def guess_tr(_note, _count_correct, _count_all):  # Угадать перево�
 MAX_SIMILAR_WORDS = 100
 
 
-def wrd_to_key(_wrd, _num):  # Превратить слово из статьи в ключ для словаря
+# Превратить слово из статьи в ключ для словаря
+def wrd_to_key(_wrd, _num):
     return str(_num // 10) + str(_num % 10) + _wrd
 
 
-def key_to_wrd(_key):  # Превратить ключ для словаря в слово из статьи
+# Превратить ключ для словаря в слово из статьи
+def key_to_wrd(_key):
     return _key[3:]
 
 
@@ -689,6 +705,8 @@ class Dictionary(object):
         for _note in self.d.values():
             _sum_num += _note.correct_tries
             _sum_den += _note.all_tries
+        if _sum_den == 0:
+            return 0
         return _sum_num / _sum_den
 
     """ Выбрать одну статью из нескольки с одинаковыми словами """
@@ -707,7 +725,7 @@ class Dictionary(object):
             try:
                 return wrd_to_key(_wrd, int(_index))
             except (ValueError, TypeError):
-                print(f'{Fore.RED}Недопустимый номер варианта: "{_index}"{Style.RESET_ALL}')
+                allert_inp('Недопустимый номер варианта', _index)
 
     """ Добавить запись в словарь (при чтении сохранения) """
     def add_note(self, _wrd, _tr, _all_tries, _correct_tries, _last_tries):
@@ -743,7 +761,7 @@ class Dictionary(object):
                             return _key
                         _i += 1
                 else:
-                    print(f'{Fore.RED}Неизвестная команда: "{_cmd}"{Style.RESET_ALL}')
+                    allert_inp('Неизвестная команда', _cmd)
         else:
             _key = wrd_to_key(_wrd, 0)
             self.d[_key] = Note(_wrd, [_tr])
@@ -912,6 +930,9 @@ class Dictionary(object):
                 _cmd = input().upper()
                 if _cmd in ['Д', 'L']:
                     _tr = input('\nВведите перевод: ')
+                    if _tr == '':
+                        print(f'{Fore.RED}Перевод не может быть пустым{Style.RESET_ALL}')
+                        continue
                     self.add_tr(_wrd, _tr, _transform=False)
                     _has_changes = True
                 elif _cmd in ['У', 'E']:
@@ -968,7 +989,7 @@ class Dictionary(object):
                 elif _cmd in ['Н', 'Y']:
                     continue
                 else:
-                    print(f'{Fore.RED}Неизвестная команда: "{_cmd}"{Style.RESET_ALL}')
+                    allert_inp('Неизвестная команда', _cmd)
             elif _cmd in ['И', 'B']:
                 self.d[_wrd].fav = not self.d[_wrd].fav
                 _has_changes = True
@@ -981,7 +1002,7 @@ class Dictionary(object):
             elif _cmd in ['Н', 'Y']:
                 break
             else:
-                print(f'{Fore.RED}Неизвестная команда: "{_cmd}"{Style.RESET_ALL}')
+                allert_inp('Неизвестная команда', _cmd)
         return _has_changes
 
     """ Выбор случайного слова с учётом сложности """
@@ -1270,7 +1291,8 @@ class Dictionary(object):
         return True
 
 
-def read_local_settings(_filename):  # Прочитать файл с настройками словаря
+# Прочитать файл с настройками словаря
+def read_local_settings(_filename):
     _local_settings_fn = os.path.join(LOCAL_SETTINGS_DIR, _filename)
     try:
         open(_local_settings_fn, 'r')
@@ -1298,7 +1320,8 @@ def read_local_settings(_filename):  # Прочитать файл с настр
     return _form_parameters
 
 
-def save_local_settings(_form_parameters, _filename):  # Сохранить настройки словаря
+# Сохранить настройки словаря
+def save_local_settings(_form_parameters, _filename):
     _local_settings_fn = os.path.join(LOCAL_SETTINGS_DIR, _filename)
     with open(_local_settings_fn, 'w') as _locSetF:
         for _key in _form_parameters.keys():
@@ -1310,9 +1333,11 @@ def save_local_settings(_form_parameters, _filename):  # Сохранить на
             _locSetF.write('\n')
 
 
-def read_dct(_dct, _filename):  # Прочитать словарь и его настройки из файлов
+# Прочитать словарь и его настройки из файлов
+def read_dct(_dct, _filename):
     _filepath = os.path.join(SAVES_DIR, _filename)
     _res_code = _dct.read(_filepath)
+    print()
     if _res_code == 0:  # Если чтение прошло успешно, то выводится соответствующее сообщение
         print(f'Файл со словарём {Fore.YELLOW}"{_filename}"{Style.RESET_ALL} открыт')
         return read_local_settings(_filename)
@@ -1332,23 +1357,34 @@ def read_dct(_dct, _filename):  # Прочитать словарь и его н
             if _cmd in ['О', 'J']:
                 _filename = input('\nВведите название файла со словарём (если он ещё не существует, то будет создан пустой словарь): ')
                 with open(SETTINGS_FN, 'w') as _setF:
-                    _setF.write(filename)
+                    _setF.write(dct_filename)
                 _dct = Dictionary()
                 read_dct(_dct, _filename)
                 break
             elif _cmd in ['З', 'P']:
                 exit()
             else:
-                print(f'{Fore.RED}Неизвестная команда: "{_cmd}"{Style.RESET_ALL}')
+                allert_inp('Неизвестная команда', _cmd)
 
 
-def save_dct(_dct, _form_parameters, _filename):  # Сохранить словарь и его настройки
+# Создать и прочитать словарь и его настройки
+def create_dct(_dct, _filename):
+    _filepath = os.path.join(SAVES_DIR, _filename)
+    open(_filepath, 'w')
+    _dct.read(_filepath)
+    print(f'\nФайл "{_filename}" успешно создан и открыт')
+    return read_local_settings(_filename)
+
+
+# Сохранить словарь и его настройки
+def save_dct(_dct, _form_parameters, _filename):
     _filepath = os.path.join(SAVES_DIR, _filename)
     _dct.save(_filepath)
     save_local_settings(_form_parameters, _filename)
 
 
-def forms_settings(_dct, _form_parameters):  # Настройки форм слов
+# Настройки форм слов
+def forms_settings(_dct, _form_parameters):
     while True:
         print('\nСуществующие параметры форм:')
         _keys = [_key for _key in _form_parameters.keys()]
@@ -1382,7 +1418,7 @@ def forms_settings(_dct, _form_parameters):  # Настройки форм сл�
                     _index = int(_index)
                     _frm_list = _form_parameters[_keys[_index]]
                 except (ValueError, IndexError):
-                    print(f'{Fore.RED}Неверный номер варианта: "{_index}"{Style.RESET_ALL}')
+                    allert_inp('Недопустимый номер варианта', _index)
                     continue
                 while True:
                     print('\nСуществующие значения параметра:')
@@ -1403,18 +1439,19 @@ def forms_settings(_dct, _form_parameters):  # Настройки форм сл�
                     elif _cmd in ['Н', 'Y']:
                         break
                     else:
-                        print(f'{Fore.RED}Неизвестная команда: "{_cmd}"{Style.RESET_ALL}')
+                        allert_inp('Неизвестная команда', _cmd)
         elif _cmd in ['Н', 'Y']:
             break
         else:
-            print(f'{Fore.RED}Неизвестная команда: "{_cmd}"{Style.RESET_ALL}')
+            allert_inp('Неизвестная команда', _cmd)
 
 
-print('======================================================================================\n')  # Вывод информации о программе
-print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
-print(f'                               {Fore.CYAN}Dictionary{Style.RESET_ALL}  v6.0.0_PRE-8')
-print('                                   22.12.2022 22:53\n')
+# Вывод информации о программе
 print('======================================================================================\n')
+print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
+print(f'                               {Fore.CYAN}Dictionary{Style.RESET_ALL}  v6.0.0_PRE-9')
+print('                                   23.12.2022 21:03\n')
+print('======================================================================================')
 
 try:  # Открываем файл с названием словаря
     open(SETTINGS_FN, 'r')
@@ -1422,10 +1459,10 @@ except FileNotFoundError:  # Если файл отсутствует, то со
     with open(SETTINGS_FN, 'w') as setF:
         setF.write('words.txt')
 with open(SETTINGS_FN, 'r') as setF:
-    filename = setF.readline().strip()
+    dct_filename = setF.readline().strip()
 
 dct = Dictionary()
-form_parameters = read_dct(dct, filename)  # Загружаем словарь и его настройки
+form_parameters = read_dct(dct, dct_filename)  # Загружаем словарь и его настройки
 
 print(f'\nИспользуйте эти комбинации для немецких букв: '
       f'{Fore.YELLOW}#a = ä{Style.RESET_ALL}, '
@@ -1443,9 +1480,9 @@ while True:
     print('НС - Найти статью по Слову')
     print('НП - Найти статью по Переводу')
     print('У  - Учить слова')
-    print('Ф  - настройки словоФорм')
+    print('Ф  - открыть настройки словоФорм')
     print('С  - Сохранить изменения')
-    print('О  - Открыть другой словарь')
+    print('СЛ - открыть список СЛоварей')
     print('З  - Завершить работу')
     cmd = input().upper()
     if cmd in ['Н', 'Y']:
@@ -1462,7 +1499,13 @@ while True:
             dct.print_fav()
     elif cmd in ['Д', 'L']:
         wrd = input('\nВведите слово, которое хотите добавить в словарь: ')
+        if wrd == '':
+            print(f'{Fore.RED}Слово не может быть пустым{Style.RESET_ALL}')
+            continue
         tr = input('Введите перевод слова: ')
+        if tr == '':
+            print(f'{Fore.RED}Перевод не может быть пустым{Style.RESET_ALL}')
+            continue
         key = dct.add_val(wrd, tr)
 
         cmd = input('Хотите добавить сноску? (+ или -): ')
@@ -1527,7 +1570,7 @@ while True:
                 elif cmd in ['С', 'C']:
                     has_changes = dct.learn_f_hard()
                 else:
-                    print(f'{Fore.RED}Неизвестная команда: "{cmd}"{Style.RESET_ALL}')
+                    allert_inp('Неизвестная команда', cmd)
             elif cmd == '2':
                 print('\nВыберите способ')
                 print('В - Все слова')
@@ -1541,9 +1584,9 @@ while True:
                 elif cmd in ['С', 'C']:
                     has_changes = dct.learn_hard()
                 else:
-                    print(f'{Fore.RED}Неизвестная команда: "{cmd}"{Style.RESET_ALL}')
+                    allert_inp('Неизвестная команда', cmd)
             else:
-                print(f'{Fore.RED}Неизвестная команда: "{cmd}"{Style.RESET_ALL}')
+                allert_inp('Неизвестная команда', cmd)
         elif cmd == '2':
             print('\nВыберите способ')
             print('В - Все слова')
@@ -1557,33 +1600,128 @@ while True:
             elif cmd in ['С', 'C']:
                 has_changes = dct.learn_t_hard()
             else:
-                print(f'{Fore.RED}Неизвестная команда: "{cmd}"{Style.RESET_ALL}')
+                allert_inp('Неизвестная команда', cmd)
         else:
-            print(f'{Fore.RED}Неизвестная команда: "{cmd}"{Style.RESET_ALL}')
+            allert_inp('Неизвестная команда', cmd)
     elif cmd in ['Ф', 'A']:
         forms_settings(dct, form_parameters)
+        has_changes = True
     elif cmd in ['С', 'C']:
-        save_dct(dct, form_parameters, filename)
-        save_local_settings(form_parameters, filename)
+        save_dct(dct, form_parameters, dct_filename)
+        save_local_settings(form_parameters, dct_filename)
         print(f'\n{Fore.GREEN}Успешно сохранено{Style.RESET_ALL}')
         has_changes = False
-    elif cmd in ['О', 'J']:
-        if has_changes:
-            cmd = input('Хотите сохранить изменения и свой прогресс? (+ или -): ')
-            if cmd == '+':
-                save_dct(dct, form_parameters, filename)
-                save_local_settings(form_parameters, filename)
-        filename = input('\nВведите название файла со словарём (если он ещё не существует, то будет создан пустой словарь): ')
-        with open(SETTINGS_FN, 'w') as setF:
-            setF.write(filename)
-        dct = Dictionary()
-        form_parameters = read_dct(dct, filename)
+    elif cmd in ['СЛ', 'CK']:
+        while True:
+            print(f'\nСуществующие словари:')
+            s_count = 0
+            s_list = []
+            for filename in os.listdir(SAVES_DIR):
+                base_name, ext = os.path.splitext(filename)
+                if ext == '.txt':
+                    if filename == dct_filename:
+                        print(f'{s_count} - {filename} {Fore.MAGENTA}(ТЕКУЩИЙ){Style.RESET_ALL}')
+                    else:
+                        print(f'{s_count} - {filename}')
+                    s_list += [filename]
+                    s_count += 1
+
+            print(f'\nЧто вы хотите сделать?')
+            print(f'О - Открыть словарь')
+            print(f'С - Создать новый словарь')
+            print(f'П - Переименовать словарь')
+            print(f'У - Удалить словарь')
+            print(f'{Fore.YELLOW}Н - Назад{Style.RESET_ALL}')
+            cmd = input().upper()
+
+            if cmd in ['Н', 'Y']:
+                break
+            elif cmd in ['П', 'G']:
+                cmd = input('\nВведите номер словаря: ')
+                try:
+                    old_name = s_list[int(cmd)]
+                except (ValueError, TypeError, IndexError):
+                    allert_inp('Недопустимый номер варианта', cmd)
+                    continue
+
+                new_name = input('Введите новое название: ')
+                if new_name[-4:] != '.txt':
+                    new_name += '.txt'
+                if new_name == '.txt':
+                    print(f'{Fore.RED}Недопустимое название{Style.RESET_ALL}')
+                    continue
+                if new_name in s_list:
+                    print(f'{Fore.RED}Файл с таким названием уже существует{Style.RESET_ALL}')
+                    continue
+
+                os.rename(os.path.join(SAVES_DIR, old_name), os.path.join(SAVES_DIR, new_name))
+                os.rename(os.path.join(LOCAL_SETTINGS_DIR, old_name), os.path.join(LOCAL_SETTINGS_DIR, new_name))
+                if dct_filename == old_name:
+                    dct_filename = new_name
+                    with open(SETTINGS_FN, 'w') as setF:
+                        setF.write(new_name)
+                print(f'\nСловарь "{old_name}" успешно переименован в "{new_name}"')
+            elif cmd in ['У', 'E']:
+                cmd = input('\nВведите номер словаря: ')
+                try:
+                    filename = s_list[int(cmd)]
+                except (ValueError, TypeError, IndexError):
+                    allert_inp('Недопустимый номер варианта', cmd)
+                    continue
+                if filename == dct_filename:
+                    print(f'{Fore.RED}Вы не можете удалить этот словарь, т.к. он сейчас открыт{Style.RESET_ALL}')
+                    continue
+                cmd = input(f'Вы уверены? Словарь "{filename}" будет безвозвратно удалён! (+ или -): ')
+                if cmd == '+':
+                    os.remove(os.path.join(SAVES_DIR, filename))
+                    os.remove(os.path.join(LOCAL_SETTINGS_DIR, filename))
+                    print(f'\nСловарь "{filename}" успешно удалён')
+            elif cmd in ['С', 'C']:
+                filename = input('\nВведите название файла со словарём: ')
+                if filename[-4:] != '.txt':
+                    filename += '.txt'
+                if filename == '.txt':
+                    print(f'{Fore.RED}Недопустимое название{Style.RESET_ALL}')
+                    continue
+                if filename in s_list:
+                    print(f'{Fore.RED}Файл с таким названием уже существует{Style.RESET_ALL}')
+                    continue
+
+                if has_changes:
+                    cmd = input('\nХотите сохранить изменения и свой прогресс? (+ или -): ')
+                    if cmd == '+':
+                        save_dct(dct, form_parameters, dct_filename)
+                        save_local_settings(form_parameters, dct_filename)
+                dct_filename = filename
+                with open(SETTINGS_FN, 'w') as setF:
+                    setF.write(filename)
+                dct = Dictionary()
+                form_parameters = create_dct(dct, filename)
+            elif cmd in ['О', 'J']:
+                cmd = input('\nВведите номер словаря: ')
+                try:
+                    filename = s_list[int(cmd)]
+                except (ValueError, TypeError, IndexError):
+                    allert_inp('Недопустимый номер варианта', cmd)
+                    continue
+                if has_changes:
+                    cmd = input('\nХотите сохранить изменения и свой прогресс? (+ или -): ')
+                    if cmd == '+':
+                        save_dct(dct, form_parameters, dct_filename)
+                        save_local_settings(form_parameters, dct_filename)
+                dct_filename = filename
+                with open(SETTINGS_FN, 'w') as setF:
+                    setF.write(filename)
+                dct = Dictionary()
+                form_parameters = read_dct(dct, filename)
+            else:
+                allert_inp('Неизвестная команда', cmd)
     elif cmd in ['З', 'P']:
         if has_changes:
             cmd = input('Хотите сохранить изменения и свой прогресс? (+ или -): ')
             if cmd == '+':
-                save_dct(dct, form_parameters, filename)
-                save_local_settings(form_parameters, filename)
+                save_dct(dct, form_parameters, dct_filename)
+                save_local_settings(form_parameters, dct_filename)
         break
     else:
-        print(f'{Fore.RED}Неизвестная команда: "{cmd}"{Style.RESET_ALL}')
+        allert_inp('Неизвестная команда', cmd)
