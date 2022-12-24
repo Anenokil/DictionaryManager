@@ -55,9 +55,13 @@ def code(_str):
     return _str
 
 
-# Заменить немецкие буквы английскими
+# Заменить немецкие буквы английскими (для find_matches)
 def deu_to_eng(_str):
-    _str = _str.replace('##', 'ä')
+    _str = _str.replace('##', '1ä')
+    _str = _str.replace('ss', '2ä')
+    _str = _str.replace('sS', '2ä')
+    _str = _str.replace('SS', '3ä')
+    _str = _str.replace('Ss', '3ä')
 
     _str = _str.replace('#a', 'a')
     _str = _str.replace('#A', 'A')
@@ -68,7 +72,9 @@ def deu_to_eng(_str):
     _str = _str.replace('#s', 's')
     _str = _str.replace('#S', 'S')
 
-    _str = _str.replace('ä', '#')
+    _str = _str.replace('1ä', '#')
+    _str = _str.replace('2ä', 's')
+    _str = _str.replace('3ä', 'S')
     return _str
 
 
@@ -217,9 +223,11 @@ def construct_frm_template(_form_parameters):
 def find_matches(_wrd, _search_wrd):
     _len = len(_search_wrd)
     if _wrd != _search_wrd:
-        _pos = deu_to_eng(_wrd).upper().find(deu_to_eng(_search_wrd).upper())
+        _pos = deu_to_eng(_wrd).lower().find(deu_to_eng(_search_wrd).lower())
         if _pos != -1:
-            _res = code(_wrd)[:_pos] + Fore.GREEN + code(_wrd)[_pos:_pos + _len] + Style.RESET_ALL + code(_wrd)[_pos + _len:]
+            _coded_wrd = code(_wrd)
+            _end = _pos + _len
+            _res = f'{_coded_wrd[:_pos]}{Fore.GREEN}{_coded_wrd[_pos:_end]}{Style.RESET_ALL}{_coded_wrd[_end:]}'
             return _res
     return ''
 
@@ -1113,7 +1121,7 @@ class Dictionary(object):
         for _entry in self.d.values():
             _sum += (100 - round(100 * _entry.score)) * 5 + 1
             if _entry.all_att < 5:
-                _sum += (5 - _entry.all_att) * 40
+                _sum += (5 - _entry.all_att) * 20
             if 100 * _entry.score < _min_good_score_perc:
                 _sum += 60
         _r = random.randint(1, _sum)
@@ -1121,7 +1129,7 @@ class Dictionary(object):
         for _key in self.d.keys():
             _r -= (100 - round(100 * self.d[_key].score)) * 5 + 1
             if self.d[_key].all_att < 5:
-                _r -= (5 - self.d[_key].all_att) * 40
+                _r -= (5 - self.d[_key].all_att) * 20
             if 100 * self.d[_key].score < _min_good_score_perc:
                 _r -= 60
             if _r <= 0:
@@ -1657,8 +1665,8 @@ def forms_settings(_dct, _form_parameters):
 # Вывод информации о программе
 print('======================================================================================\n')
 print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
-print(f'                               {Fore.GREEN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-17')
-print('                                   23.12.2022  9:46\n')
+print(f'                               {Fore.GREEN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-18')
+print('                                   23.12.2022 10:21\n')
 print('======================================================================================')
 
 try:  # Открываем файл с названием словаря
@@ -1695,12 +1703,14 @@ while True:
     cmd = input().upper()
     if cmd in ['Н', 'Y']:
         cmd = input('\nВыводить все формы слов? (+ или -): ')
+        print()
         if cmd == '+':
             dct.print_with_forms(min_good_score_perc)
         else:
             dct.print(min_good_score_perc)
     elif cmd in ['НИ', 'YB']:
         cmd = input('\nВыводить все формы слов? (+ или -): ')
+        print()
         if cmd == '+':
             dct.print_fav_with_forms(min_good_score_perc)
         else:
@@ -1823,16 +1833,16 @@ while True:
             if cmd in ['М', 'V']:
                 print(f'\nТекущее значение: {min_good_score_perc}%')
                 print('Статьи, у которых процент угадывания ниже этого значения, помечаются в словаре красным цветом')
-                _new_val = input('Введите новое значение: ')
+                new_val = input('Введите новое значение: ')
                 try:
-                    _new_val = int(_new_val)
+                    new_val = int(new_val)
                 except (ValueError, TypeError):
-                    warn_inp('Некорректный ввод', _new_val)
+                    warn_inp('Некорректный ввод', new_val)
                 else:
-                    if _new_val < 0 or _new_val > 100:
-                        warn_inp('Некорректный ввод', _new_val)
+                    if new_val < 0 or new_val > 100:
+                        warn_inp('Некорректный ввод', new_val)
                         continue
-                    min_good_score_perc = _new_val
+                    min_good_score_perc = new_val
             elif cmd in ['Ф', 'A']:
                 forms_settings(dct, form_parameters)
                 has_changes = True
