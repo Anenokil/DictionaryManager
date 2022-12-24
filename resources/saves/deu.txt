@@ -77,7 +77,7 @@ weins
 один
 t1
 wzwei
-1#1#0
+2#2#0
 два
 t2
 wdrei
@@ -93,15 +93,15 @@ wf#unf
 пять
 t5
 wsechs
-1#1#0
+2#2#0
 шесть
 t6
 wsieben
-1#1#0
+2#2#0
 семь
 t7
 wacht
-1#1#0
+2#2#0
 восемь
 t8
 wneun
@@ -113,7 +113,7 @@ wzehn
 десять
 t10
 welf
-2#2#0
+3#3#0
 одиннадцать
 t11
 wzw#olf
@@ -137,7 +137,7 @@ wsechzehn
 шестнадцать
 t16
 wsiebzehn
-1#1#0
+2#2#0
 семнадцать
 t17
 wachtzehn
@@ -157,7 +157,7 @@ wja
 1#1#0
 да
 wnein
-2#2#0
+3#3#0
 нет
 wder Mann
 2#2#0
@@ -174,7 +174,7 @@ tгоспожа
 fPlur@@@@
 Frauen
 wder Mensch
-1#1#0
+2#2#0
 человек
 fPlur@@@@
 Menschen
@@ -189,7 +189,7 @@ wder Kuli
 dшариковая
 dкороткое слово
 wder Kugelschreiber
-1#1#0
+2#2#0
 ручка
 dшариковая
 dдлинное слово
@@ -216,12 +216,12 @@ wdas Wasser
 1#1#0
 вода
 wdie Katze
-1#1#0
+2#2#0
 кошка
 fPlur@@@@
 Katzen
 wder Kater
-2#2#0
+3#3#0
 кот
 fPlur@@@@
 Kater
@@ -286,7 +286,7 @@ tдочка
 fPlur@@@@
 T#ochter
 wdie Tasche
-2#2#0
+4#4#0
 сумка
 wdas Fleisch
 1#1#0
@@ -364,10 +364,10 @@ wviel
 1#1#0
 много
 wwenig
-1#1#0
+2#2#0
 мало
 wrichtig
-2#2#0
+3#3#0
 верный
 tверно
 tправильный
@@ -398,7 +398,7 @@ tлегко
 tпростой
 tпросто
 wder Kaffee
-1#1#0
+2#2#0
 кофе
 wder Tee
 1#1#0
@@ -416,7 +416,7 @@ wwas
 1#1#0
 что
 wwer
-3#3#0
+4#4#0
 кто
 wwo
 1#1#0
@@ -428,7 +428,7 @@ wwohin
 1#1#0
 куда
 wwann
-1#1#0
+2#2#0
 когда
 wwarum
 1#1#0
@@ -464,7 +464,7 @@ wder Tag
 1#1#0
 день
 wder Abend
-1#1#0
+2#2#0
 вечер
 wder Morgen
 1#1#0
@@ -482,7 +482,7 @@ wdie Eltern
 2#2#0
 родители
 wdas Essen
-1#1#0
+2#2#0
 еда
 tпища
 tпитание
@@ -506,13 +506,13 @@ wder Apfel
 fPlur@@@@
 #Apfel
 wdas Brot
-1#1#0
+2#2#0
 хлеб
 wdas Br#otchen
 2#2#0
 булка
 wdie Zitrone
-2#2#0
+3#3#0
 лимон
 fPlur@@@@
 Zitronen
@@ -522,7 +522,7 @@ wdie Orange
 fPlur@@@@
 Orangen
 wdie Tomate
-1#1#0
+2#2#0
 томат
 tпомидор
 tпомидорка
@@ -550,7 +550,7 @@ wdie Suppe
 1#1#0
 суп
 wdas Haus
-1#1#0
+2#2#0
 дом
 tздание
 fPlur@@@@
@@ -563,7 +563,7 @@ wund
 и
 tа
 woder
-1#1#0
+2#2#0
 или
 wgern
 1#1#0
@@ -580,7 +580,7 @@ wleben
 2#2#0
 жить
 wwohnen
-11#9#0
+12#10#0
 проживать
 tжить
 whaben
@@ -594,7 +594,7 @@ wdas Leben
 1#1#0
 жизнь
 wdie Liebe
-1#1#0
+2#2#0
 любовь
 wzu
 1#1#0
@@ -614,7 +614,7 @@ wwei#s
 1#1#0
 белый
 wdie Zeitung
-1#1#0
+2#2#0
 газета
 wdas Buch
 1#1#0
@@ -634,7 +634,7 @@ wschnell
 быстрый
 tбыстро
 wschreiben
-1#1#0
+2#2#0
 писать
 wsprechen
 3#3#0
@@ -658,7 +658,7 @@ wdas Getr#ank
 10#9#0
 напиток
 wder Salat
-13#12#0
+14#13#0
 салат
 wnur
 1#1#0
@@ -667,14 +667,14 @@ wnoch
 3#3#0
 ещё
 wrussisch
-1#1#0
+2#2#0
 русский
 tрусский язык
 wder Wein
-6#4#0
+8#6#0
 вино
 wdas Bier
-3#2#0
+5#4#0
 пиво
 wdie Flasche
 2#2#0
@@ -689,7 +689,7 @@ wdas Salz
 1#1#0
 соль
 wder Zuker
-3#2#0
+4#3#0
 сахар
 *
 wder Wodka
@@ -727,7 +727,7 @@ wlesen
 1#1#0
 читать
 wdas Spiel
-2#2#0
+3#3#0
 игра
 wspielen
 3#3#0
@@ -747,7 +747,7 @@ wdas Rad
 tвелик
 tвелосипед
 wdas Fahrrad
-1#1#0
+2#2#0
 велосипед
 wdas Herz
 2#2#0
@@ -792,7 +792,7 @@ wder Tisch
 1#1#0
 стол
 wdie Butter
-1#1#0
+2#1#1
 сливочное масло
 tмасло
 wder K#ase
@@ -802,11 +802,11 @@ wfertig
 1#1#0
 готовый
 weigentlich
-1#1#0
+2#2#0
 собственно
 tдействительно
 wdie Sache
-1#1#0
+2#2#0
 вещь
 wlaufen
 2#2#0
@@ -835,7 +835,7 @@ wauch
 2#2#0
 тоже
 wder Lehrer
-1#1#0
+2#2#0
 учитель
 wder Student
 1#1#0
@@ -847,22 +847,22 @@ wm#ude
 уставший
 tусталый
 wkrank
-2#2#0
+3#3#0
 больной
 wgesund
-1#1#0
+2#2#0
 здоровый
 wdas Problem
 1#1#0
 проблема
 wbestellen
-1#1#0
+2#2#0
 заказывать
 wdas Lied
 1#1#0
 песня
 wdas Bild
-1#1#0
+2#2#0
 картина
 tизображение
 wschwimmen
@@ -879,7 +879,7 @@ wmalen
 2#2#0
 рисовать
 wsingen
-1#1#0
+2#2#0
 петь
 wklar
 1#1#0
@@ -940,7 +940,7 @@ wimmer
 1#1#0
 всегда
 wjetzt
-1#1#0
+2#2#0
 сейчас
 wder Wochentag
 1#1#0
@@ -950,7 +950,7 @@ wder Montag
 1#1#0
 понедельник
 wder Dienstag
-1#1#0
+2#2#0
 вторник
 wder Mittwoch
 1#1#0
@@ -1019,15 +1019,15 @@ wder Dezember
 1#1#0
 декабрь
 wzwanzig
-2#2#0
+3#3#0
 двадцать
 t20
 wdrei#sig
-2#2#0
+3#3#0
 тридцать
 t30
 wvierzig
-1#1#0
+2#2#0
 сорок
 t40
 wf#unfzig
@@ -1047,7 +1047,7 @@ wachtzig
 восемьдесят
 t80
 wneunzig
-2#2#0
+3#3#0
 девяносто
 t90
 whundert
@@ -1055,7 +1055,7 @@ whundert
 сто
 t100
 wtausend
-1#1#0
+2#2#0
 тысяча
 t1000
 wgrau
@@ -1068,25 +1068,25 @@ wbraun
 1#1#0
 коричневый
 wgelb
-1#1#0
+2#2#0
 жёлтый
 wdas Ende
-1#1#0
+2#2#0
 конец
 wder Teil
-1#1#0
+2#2#0
 часть
 wdie Welt
 1#1#0
 мир
 wdas Land
-3#2#0
+4#3#0
 страна
 wdie Stadt
 2#2#0
 город
 wdas Dorf
-1#1#0
+2#2#0
 деревня
 wdie Stra#se
 1#1#0
@@ -1109,7 +1109,7 @@ wdort
 1#1#0
 там
 wlinks
-2#2#0
+3#3#0
 слева
 wrechts
 6#6#0
@@ -1133,22 +1133,22 @@ wliegen
 2#2#0
 лежать
 wfliegen
-1#1#0
+2#2#0
 летать
 wschlafen
 1#1#0
 спать
 wstehen
-1#1#0
+2#2#0
 стоять
 waufstehen
-11#10#0
+12#11#0
 вставать
 wnormal
 1#1#0
 нормальный
 wlang
-1#1#0
+2#2#0
 длинный
 wkurz
 5#5#0
@@ -1164,7 +1164,7 @@ w#uber
 10#8#0
 над
 wdie Sonne
-1#1#0
+2#2#0
 солнце
 wdie Hilfe
 2#2#0
@@ -1179,7 +1179,7 @@ wbitter
 1#1#0
 горький
 wdas Ei
-1#1#0
+2#2#0
 яйцо
 wder Kuchen
 1#1#0
@@ -1207,13 +1207,16 @@ wder Kopf
 2#2#0
 голова
 wder Arm
-1#1#0
+2#1#1
 рука
+tрукоять
+fPlur@@@@
+Arme
 wder Mund
 6#6#0
 рот
 wdas Bein
-1#1#0
+2#2#0
 нога
 wder Bauch
 1#1#0
@@ -1298,7 +1301,7 @@ wdie Frage
 2#2#0
 вопрос
 wdie Antwort
-2#2#0
+3#3#0
 ответ
 wbezahlen
 5#5#0
@@ -1310,7 +1313,7 @@ wlernen
 2#2#0
 учиться
 wstudieren
-1#1#0
+2#2#0
 учиться
 tучиться в университете
 tизучать
@@ -1335,7 +1338,7 @@ wdas Reich
 империя
 tцарство
 wder Frankreich
-1#1#0
+2#2#0
 Франция
 wwenn
 2#2#0
@@ -1432,7 +1435,7 @@ weng
 близко
 de...
 wnegativ
-1#1#0
+2#2#0
 отрицательный
 tнегативный
 wpositiv
@@ -1569,11 +1572,11 @@ wder Bayern
 6#6#0
 Бавария
 wmillion
-1#1#0
+2#2#0
 миллион
 t1000000
 wmilliarde
-9#6#1
+10#7#0
 миллиард
 t1000000000
 *
@@ -1616,7 +1619,7 @@ wvierte
 3#3#0
 четвёртый
 wf#unfte
-11#9#0
+12#9#1
 пятый
 wsechste
 9#8#0
@@ -1626,7 +1629,7 @@ wsiebente
 седьмой
 dдлинное слово
 wachte
-4#3#1
+5#4#0
 восьмой
 wsiebte
 3#3#0
@@ -1656,7 +1659,7 @@ wsollen
 быть должным
 dкак should
 wwollen
-18#14#0
+19#15#0
 хотеть
 tжелать
 wlassen
@@ -1714,7 +1717,7 @@ wbringen
 15#13#0
 приносить
 wmeinen
-19#14#0
+21#16#0
 считать
 tдумать
 tиметь в виду
@@ -1724,20 +1727,20 @@ wkennen
 знать
 tпомнить
 wgelten
-44#25#0
+45#26#0
 считаться
 *
 wfolgen
 21#17#0
 следовать
 wbestehen
-37#24#0
+38#25#0
 существовать
 tсостоять
 tсдавать
 dсдавать экзамен
 wbekommen
-27#22#0
+28#23#0
 получать
 tполучить
 db...
@@ -1786,11 +1789,11 @@ wder Norden
 север
 dдлинное слово
 wder S#ud
-11#9#0
+12#10#0
 юг
 dкороткое слово
 wder S#uden
-7#6#0
+8#7#0
 юг
 dдлинное слово
 wder Ost
@@ -1810,7 +1813,7 @@ wder Westen
 запад
 dдлинное слово
 wsie
-2#1#1
+3#2#0
 они
 f@@Gen@@
 ihrer
@@ -1819,7 +1822,7 @@ ihnen
 f@@Akk@@
 sie
 wtraurig
-6#4#0
+7#5#0
 печальный
 tгрустный
 dtraurig sein - грустить
@@ -1832,7 +1835,7 @@ tпылать
 tсжигать
 tжечь
 wholen
-7#5#0
+8#6#0
 получить
 tполучать
 dh...
@@ -1852,3 +1855,11 @@ wder Gott
 wdie Gottheit
 3#3#0
 божество
+wdie Hand
+0#0#-1
+рука
+tладонь
+tкисть
+fPlur@@@@
+H#ande
+*

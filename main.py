@@ -127,13 +127,13 @@ def remove_frm_param_val(_vals, _dct):
         return
     print('\nВыберите один из предложенных вариантов')
     for _i in range(len(_vals)):
-        print(f'{_i} - {_vals[_i]}')
-    _index = input('Введите номер варианта: ')
+        print(f'{_i + 1} - {_vals[_i]}')
+    _cmd = input('Введите номер варианта: ')
     try:
-        _index = int(_index)
+        _index = int(_cmd) - 1
         _val = _vals[_index]
     except (ValueError, TypeError, IndexError):
-        warn_inp('Недопустимый номер варианта', _index)
+        warn_inp('Недопустимый номер варианта', _cmd)
     else:
         _cmd = input('\nВсе формы слов, содержащие это значение, будут удалены! Вы уверены? (+ или -): ')
         if _cmd == '+':
@@ -145,13 +145,13 @@ def remove_frm_param_val(_vals, _dct):
 def rename_frm_param_val(_vals, _pos, _dct):
     print('\nВыберите один из предложенных вариантов')
     for _i in range(len(_vals)):
-        print(f'{_i} - {_vals[_i]}')
-    _index = input('Введите номер варианта: ')
+        print(f'{_i + 1} - {_vals[_i]}')
+    _cmd = input('Введите номер варианта: ')
     try:
-        _index = int(_index)
+        _index = int(_cmd) - 1
         _val = _vals[_index]
     except (ValueError, TypeError, IndexError):
-        warn_inp('Недопустимый номер варианта', _index)
+        warn_inp('Недопустимый номер варианта', _cmd)
     else:
         while True:
             _new_val = input('\nВведите новое название для значения параметра: ')
@@ -167,7 +167,7 @@ def choose_frm_param_val(_par, _par_vals):
     while True:
         print(f'\nВыберите {_par}')
         for _i in range(len(_par_vals)):
-            print(f'{_i} - {_par_vals[_i]}')
+            print(f'{_i + 1} - {_par_vals[_i]}')
         spec_action('Н - Не указывать/Неприменимо')
         spec_action('Д - Добавить новый вариант')
         _cmd = input().upper()
@@ -177,7 +177,7 @@ def choose_frm_param_val(_par, _par_vals):
             add_frm_param_val(_par_vals)
         else:
             try:
-                return _par_vals[int(_cmd)]
+                return _par_vals[int(_cmd) - 1]
             except (ValueError, TypeError, IndexError):
                 warn_inp('Недопустимый вариант', _cmd)
 
@@ -188,18 +188,18 @@ def construct_frm_template(_form_parameters):
     _parameters = list(_form_parameters.keys())
     print('Выберите параметр')
     for _i in range(len(_parameters)):
-        print(f'{_i} - {_parameters[_i]}')
+        print(f'{_i + 1} - {_parameters[_i]}')
         _res += ['']
     _void_frm = _res.copy()
-    _index = input()
+    _cmd = input()
 
     while True:
         try:
-            _index = int(_index)
+            _index = int(_cmd) - 1
             _par = _parameters[_index]
             _res[_index] = choose_frm_param_val(_par, _form_parameters[_par])
         except (ValueError, TypeError, IndexError):
-            warn_inp('Недопустимый вариант', _index)
+            warn_inp('Недопустимый вариант', _cmd)
 
         _is_void = (_res == _void_frm)
         print()
@@ -208,12 +208,12 @@ def construct_frm_template(_form_parameters):
 
         print('Выберите параметр')
         for _i in range(len(_parameters)):
-            print(f'{_i} - {_parameters[_i]}')
+            print(f'{_i + 1} - {_parameters[_i]}')
         if not _is_void:
             spec_action('З - Закончить с шаблоном и ввести форму слова')
 
-        _index = input()
-        if _index.upper() in ['З', 'P']:
+        _cmd = input()
+        if _cmd.upper() in ['З', 'P']:
             if not _is_void:
                 break
     return tuple(_res)
@@ -334,7 +334,7 @@ class Entry(object):
     """ Напечатать статью - перевод с формой и со статистикой """
     def print_tr_and_frm_with_stat(self, _frm_key, _min_good_score_perc):
         self.tr_print(_end=' ')
-        print(f'({tpl(_frm_key)})', end=' ')
+        print(f'{Fore.BLUE}({tpl(_frm_key)}){Style.RESET_ALL}', end=' ')
         self.stat_print(_min_good_score_perc)
 
     """ Напечатать статью - со всей редактируемой информацией """
@@ -418,13 +418,12 @@ class Entry(object):
             return
         print('Выберите один из предложенных вариантов')
         for _i in range(self.count_t):
-            print(f'{_i} - {code(self.tr[_i])}')
-        _index = input('Введите номер варианта: ')
+            print(f'{_i + 1} - {code(self.tr[_i])}')
+        _cmd = input('Введите номер варианта: ')
         try:
-            _index = int(_index)
-            self.tr.pop(_index)
+            self.tr.pop(int(_cmd))
         except (ValueError, TypeError, IndexError):
-            warn_inp('Недопустимый номер варианта', _index)
+            warn_inp('Недопустимый номер варианта', _cmd)
         else:
             self.count_t -= 1
 
@@ -432,13 +431,12 @@ class Entry(object):
     def remove_note_with_choose(self):
         print('Выберите один из предложенных вариантов')
         for _i in range(self.count_n):
-            print(f'{_i} - {code(self.notes[_i])}')
-        _index = input('Введите номер варианта: ')
+            print(f'{_i + 1} - {code(self.notes[_i])}')
+        _cmd = input('Введите номер варианта: ')
         try:
-            _index = int(_index)
-            self.notes.pop(_index)
+            self.notes.pop(int(_cmd) - 1)
         except (ValueError, TypeError, IndexError):
-            warn_inp('Недопустимый номер варианта', _index)
+            warn_inp('Недопустимый номер варианта', _cmd)
         else:
             self.count_n -= 1
 
@@ -447,12 +445,12 @@ class Entry(object):
         _keys = [_key for _key in self.forms.keys()]
         print('Выберите один из предложенных вариантов')
         for _i in range(self.count_f):
-            print(f'{_i} - [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
-        _index = input('Введите номер варианта: ')
+            print(f'{_i + 1} - [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
+        _cmd = input('Введите номер варианта: ')
         try:
-            _key = _keys[int(_index)]
+            _key = _keys[int(_cmd) - 1]
         except (ValueError, TypeError, IndexError):
-            warn_inp('Недопустимый номер варианта', _index)
+            warn_inp('Недопустимый номер варианта', _cmd)
         else:
             self.forms.pop(_key)
             self.count_f -= 1
@@ -462,12 +460,12 @@ class Entry(object):
         _keys = [_key for _key in self.forms.keys()]
         print('Выберите один из предложенных вариантов')
         for _i in range(self.count_f):
-            print(f'{_i} - [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
-        _index = input('Введите номер варианта: ')
+            print(f'{_i + 1} - [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
+        _cmd = input('Введите номер варианта: ')
         try:
-            _key = _keys[int(_index)]
+            _key = _keys[int(_cmd) - 1]
         except (ValueError, TypeError, IndexError):
-            warn_inp('Недопустимый номер варианта', _index)
+            warn_inp('Недопустимый номер варианта', _cmd)
         else:
             _new_frm = input('Введите форму слова: ')
             if _new_frm == '':
@@ -599,7 +597,7 @@ def guess_wrd(_entry, _count_correct, _count_all, _min_good_score_perc):
 
 
 # Угадать словоформу по переводу
-def guess_wrd_f(_entry, _wrd_f, _count_correct, _count_all, _min_good_score_perc):
+def guess_form(_entry, _wrd_f, _count_correct, _count_all, _min_good_score_perc):
     print()
     _entry.print_tr_and_frm_with_stat(_wrd_f, _min_good_score_perc)
     _ans = input(f'Введите слово в данной форме {Fore.YELLOW}(# - чтобы закончить, @ - чтобы посмотреть сноски)'
@@ -792,17 +790,17 @@ class Dictionary(object):
             if _key not in self.d.keys():
                 _max_i = _i - 1
                 break
-            print(f'{Fore.MAGENTA}\n({_i}){Style.RESET_ALL}')
+            print(f'{Fore.MAGENTA}\n({_i + 1}){Style.RESET_ALL}')
             self.d[_key].print_all()
         while True:
-            _index = input('\nВведите номер варианта: ')
+            _cmd = input('\nВведите номер варианта: ')
             try:
-                _index = int(_index)
+                _index = int(_cmd) - 1
             except (ValueError, TypeError):
-                warn_inp('Недопустимый номер варианта', _index)
+                warn_inp('Недопустимый номер варианта', _cmd)
             else:
                 if _index < 0 or _index > _max_i:
-                    warn_inp('Недопустимый номер варианта', _index)
+                    warn_inp('Недопустимый номер варианта', _cmd)
                 else:
                     return wrd_to_key(_wrd, _index)
 
@@ -1236,7 +1234,7 @@ class Dictionary(object):
                 else:
                     _wrd_f = list(self.d[_key].forms.keys())[_rnd_f]
                     if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all, _min_good_score_perc)
+                        _res_code = guess_form(self.d[_key], _wrd_f, _count_correct, _count_all, _min_good_score_perc)
                         break
 
             if _res_code == 1:
@@ -1275,7 +1273,7 @@ class Dictionary(object):
                 else:
                     _wrd_f = list(self.d[_key].forms.keys())[_rnd_f]
                     if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all, _min_good_score_perc)
+                        _res_code = guess_form(self.d[_key], _wrd_f, _count_correct, _count_all, _min_good_score_perc)
                         break
 
             if _res_code == 1:
@@ -1309,7 +1307,7 @@ class Dictionary(object):
                 else:
                     _wrd_f = list(self.d[_key].forms.keys())[_rnd_f]
                     if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all, _min_good_score_perc)
+                        _res_code = guess_form(self.d[_key], _wrd_f, _count_correct, _count_all, _min_good_score_perc)
                         break
 
             if _res_code == 1:
@@ -1562,13 +1560,13 @@ def remove_frm_param(_parameters, _dct):
     print('\nВыберите один из предложенных вариантов')
     _keys = [_key for _key in _parameters.keys()]
     for _i in range(len(_keys)):
-        print(f'{_i} - {_keys[_i]}')
-    _index = input('Введите номер варианта: ')
+        print(f'{_i + 1} - {_keys[_i]}')
+    _cmd = input('Введите номер варианта: ')
     try:
-        _index = int(_index)
+        _index = int(_cmd) - 1
         _key = _keys[_index]
     except (ValueError, TypeError, IndexError):
-        warn_inp('Недопустимый номер варианта', _index)
+        warn_inp('Недопустимый номер варианта', _cmd)
     else:
         _cmd = input('\nВсе формы слов, содержащие этот параметр, будут удалены! Вы уверены? (+ или -): ')
         if _cmd == '+':
@@ -1581,13 +1579,13 @@ def rename_frm_param(_parameters, _dct):
     print('\nВыберите один из предложенных вариантов')
     _keys = [_key for _key in _parameters.keys()]
     for _i in range(len(_keys)):
-        print(f'{_i} - {_keys[_i]}')
-    _index = input('Введите номер варианта: ')
+        print(f'{_i + 1} - {_keys[_i]}')
+    _cmd = input('Введите номер варианта: ')
     try:
-        _index = int(_index)
+        _index = int(_cmd) - 1
         _key = _keys[_index]
     except (ValueError, TypeError, IndexError):
-        warn_inp('Недопустимый номер варианта', _index)
+        warn_inp('Недопустимый номер варианта', _cmd)
     else:
         while True:
             _new_key = input('\nВведите новое название параметра: ')
@@ -1625,16 +1623,16 @@ def forms_settings(_dct, _form_parameters):
                 print('Выберите одно из предложенного')
                 _keys = [_key for _key in _form_parameters.keys()]
                 for _i in range(len(_keys)):
-                    print(f'{_i} - {_keys[_i]}')
+                    print(f'{_i + 1} - {_keys[_i]}')
                 spec_action('Н - Назад')
-                _index = input('Введите номер варианта: ')
-                if _index.upper() in ['Н', 'Y']:
+                _cmd = input('Введите номер варианта: ')
+                if _cmd.upper() in ['Н', 'Y']:
                     break
                 try:
-                    _index = int(_index)
+                    _index = int(_cmd) - 1
                     _frm_vals = _form_parameters[_keys[_index]]
                 except (ValueError, TypeError, IndexError):
-                    warn_inp('Недопустимый номер варианта', _index)
+                    warn_inp('Недопустимый номер варианта', _cmd)
                     continue
                 while True:
                     print('\nСуществующие значения параметра:')
@@ -1665,8 +1663,8 @@ def forms_settings(_dct, _form_parameters):
 # Вывод информации о программе
 print('======================================================================================\n')
 print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
-print(f'                               {Fore.GREEN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-18')
-print('                                   23.12.2022 10:21\n')
+print(f'                               {Fore.GREEN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-19')
+print('                                   23.12.2022 10:57\n')
 print('======================================================================================')
 
 try:  # Открываем файл с названием словаря
