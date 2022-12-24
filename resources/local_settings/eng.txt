@@ -1,7 +1,0 @@
-75
-Number
-Sing@Plur
-Face
-1F@2F@3F
-Time
-PaS@PaC@PaP@PaPC@PrS@PrC@PrP@PrPC@FS@FC@FP@FPC
