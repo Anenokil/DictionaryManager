@@ -1,4 +1,4 @@
-0.75
+75
 Numerus
 Sing@Plur
 Genus
