@@ -32,7 +32,7 @@ def warn(_text):
     print(f'{Fore.RED}{_text}{Style.RESET_ALL}')
 
 
-# Специальное действие
+# Вывести предложение специального действия
 def spec_action(_text):
     print(f'{Fore.YELLOW}{_text}{Style.RESET_ALL}')
 
@@ -207,7 +207,7 @@ def find_matches(_wrd, _search_wrd):
     return ''
 
 
-MIN_GOOD_SCORE = 0.67  # Минимальная доля удачных попыток, считающаяся хорошей
+min_good_score = 0.67  # Минимальная доля удачных попыток, считающаяся хорошей
 
 
 class Entry(object):
@@ -263,8 +263,8 @@ class Entry(object):
             print(' ' * _tab + f'[{tpl(_key)}] {code(self.forms[_key])}')
 
     """ Напечатать статистику """
-    def stat_print(self, _end='\n'):
-        if self.score < MIN_GOOD_SCORE:
+    def stat_print(self, _min_good_score, _end='\n'):
+        if self.score < _min_good_score:
             print(Fore.RED, end='')
         elif self.last_att > 0:
             print(Fore.YELLOW, end='')
@@ -279,41 +279,41 @@ class Entry(object):
         print(Style.RESET_ALL, end='')
 
     """ Служебный метод для print_briefly и print_briefly_with_forms """
-    def _print_briefly(self):
+    def _print_briefly(self, _min_good_score):
         if self.fav:
             print(f'{Fore.MAGENTA}(*){Style.RESET_ALL}', end=' ')
         else:
             print('   ', end=' ')
-        self.stat_print(_end=' ')
+        self.stat_print(_min_good_score, _end=' ')
         print(f'{code(self.wrd)}{Fore.RED}: {Style.RESET_ALL}', end='')
         self.tr_print()
 
     """ Напечатать статью - кратко """
-    def print_briefly(self):
-        self._print_briefly()
+    def print_briefly(self, _min_good_score):
+        self._print_briefly(_min_good_score)
         self.notes_print(_tab=13)
 
     """ Напечатать статью - кратко с формами """
-    def print_briefly_with_forms(self):
-        self._print_briefly()
+    def print_briefly_with_forms(self, _min_good_score):
+        self._print_briefly(_min_good_score)
         self.frm_print(_tab=13)
         self.notes_print(_tab=13)
 
     """ Напечатать статью - слово со статистикой """
-    def print_wrd_with_stat(self):
+    def print_wrd_with_stat(self, _min_good_score):
         print(code(self.wrd), end=' ')
-        self.stat_print()
+        self.stat_print(_min_good_score)
 
     """ Напечатать статью - перевод со статистикой """
-    def print_tr_with_stat(self):
+    def print_tr_with_stat(self, _min_good_score):
         self.tr_print(_end=' ')
-        self.stat_print()
+        self.stat_print(_min_good_score)
 
     """ Напечатать статью - перевод с формой и со статистикой """
-    def print_tr_and_frm_with_stat(self, _frm_key):
+    def print_tr_and_frm_with_stat(self, _frm_key, _min_good_score):
         self.tr_print(_end=' ')
         print(f'({tpl(_frm_key)})', end=' ')
-        self.stat_print()
+        self.stat_print(_min_good_score)
 
     """ Напечатать статью - со всей редактируемой информацией """
     def print_editable(self):
@@ -547,9 +547,9 @@ class Entry(object):
 
 
 # Угадать слово по переводу
-def guess_wrd(_entry, _count_correct, _count_all):
+def guess_wrd(_entry, _count_correct, _count_all, _min_good_score):
     print()
-    _entry.print_tr_with_stat()
+    _entry.print_tr_with_stat(_min_good_score)
     _ans = input(f'Введите слово {Fore.YELLOW}(# - чтобы закончить, @ - чтобы посмотреть сноски){Style.RESET_ALL}: ')
     if _ans == '@':
         _entry.notes_print()
@@ -577,9 +577,9 @@ def guess_wrd(_entry, _count_correct, _count_all):
 
 
 # Угадать словоформу по переводу
-def guess_wrd_f(_entry, _wrd_f, _count_correct, _count_all):
+def guess_wrd_f(_entry, _wrd_f, _count_correct, _count_all, _min_good_score):
     print()
-    _entry.print_tr_and_frm_with_stat(_wrd_f)
+    _entry.print_tr_and_frm_with_stat(_wrd_f, _min_good_score)
     _ans = input(f'Введите слово в данной форме {Fore.YELLOW}(# - чтобы закончить, @ - чтобы посмотреть сноски)'
                  f'{Style.RESET_ALL}: ')
     if _ans == '@':
@@ -608,9 +608,9 @@ def guess_wrd_f(_entry, _wrd_f, _count_correct, _count_all):
 
 
 # Угадать перевод по слову
-def guess_tr(_entry, _count_correct, _count_all):
+def guess_tr(_entry, _count_correct, _count_all, _min_good_score):
     print()
-    _entry.print_wrd_with_stat()
+    _entry.print_wrd_with_stat(_min_good_score)
     _ans = input(f'Введите перевод {Fore.YELLOW}(# - чтобы закончить, @ - чтобы посмотреть сноски){Style.RESET_ALL}: ')
     if _ans == '@':
         _entry.notes_print()
@@ -682,15 +682,15 @@ class Dictionary(object):
               f'{self.count_t} {_t} >{Style.RESET_ALL}')
 
     """ Напечатать словарь """
-    def print(self):
+    def print(self, _min_good_score):
         for _entry in self.d.values():
-            _entry.print_briefly()
+            _entry.print_briefly(_min_good_score)
         self._print_stat()
 
     """ Напечатать словарь (со всеми формами) """
-    def print_with_forms(self):
+    def print_with_forms(self, _min_good_score):
         for _entry in self.d.values():
-            _entry.print_briefly_with_forms()
+            _entry.print_briefly_with_forms(_min_good_score)
         self._print_stat()
 
     """ Служебный метод для print_fav и print_fav_with_forms """
@@ -703,26 +703,26 @@ class Dictionary(object):
               f'{_count_t}/{self.count_t} {_t} >{Style.RESET_ALL}')
 
     """ Напечатать словарь (только избранные слова) """
-    def print_fav(self):
+    def print_fav(self, _min_good_score):
         _count_w = 0
         _count_t = 0
         _count_f = 0
         for _entry in self.d.values():
             if _entry.fav:
-                _entry.print_briefly()
+                _entry.print_briefly(_min_good_score)
                 _count_w += 1
                 _count_t += _entry.count_t
                 _count_f += _entry.count_f
         self._print_stat_fav(_count_w, _count_t, _count_f)
 
     """ Напечатать словарь (только избранные слова, со всеми формами) """
-    def print_fav_with_forms(self):
+    def print_fav_with_forms(self, _min_good_score):
         _count_w = 0
         _count_t = 0
         _count_f = 0
         for _entry in self.d.values():
             if _entry.fav:
-                _entry.print_briefly_with_forms()
+                _entry.print_briefly_with_forms(_min_good_score)
                 _count_w += 1
                 _count_t += _entry.count_t
                 _count_f += _entry.count_f
@@ -1094,23 +1094,27 @@ class Dictionary(object):
         return _sum_num / _sum_den
 
     """ Выбор случайного слова с учётом сложности """
-    def random_hard(self):
+    def random_hard(self, _min_good_score):
         _sum = 0
         for _entry in self.d.values():
             _sum += (100 - round(100 * _entry.score)) * 5 + 1
             if _entry.all_att < 5:
                 _sum += (5 - _entry.all_att) * 40
+            if _entry.score < _min_good_score:
+                _sum += 60
         _r = random.randint(1, _sum)
 
         for _key in self.d.keys():
             _r -= (100 - round(100 * self.d[_key].score)) * 5 + 1
             if self.d[_key].all_att < 5:
                 _r -= (5 - self.d[_key].all_att) * 40
+            if self.d[_key].score < _min_good_score:
+                _r -= 60
             if _r <= 0:
                 return _key
 
     """ Учить слова - все """
-    def learn(self):
+    def learn(self, _min_good_score):
         _count_all = 0
         _count_correct = 0
         _used_words = set()
@@ -1123,7 +1127,7 @@ class Dictionary(object):
                 if _key not in _used_words:
                     break
 
-            _res_code = guess_wrd(self.d[_key], _count_correct, _count_all)
+            _res_code = guess_wrd(self.d[_key], _count_correct, _count_all, _min_good_score)
             if _res_code == 1:
                 break
             elif _res_code == 2:
@@ -1136,7 +1140,7 @@ class Dictionary(object):
         return True
 
     """ Учить слова - избранные """
-    def learn_fav(self):
+    def learn_fav(self, _min_good_score):
         _count_all = 0
         _count_correct = 0
         _used_words = set()
@@ -1152,7 +1156,7 @@ class Dictionary(object):
                 if _key not in _used_words:
                     break
 
-            _res_code = guess_wrd(self.d[_key], _count_correct, _count_all)
+            _res_code = guess_wrd(self.d[_key], _count_correct, _count_all, _min_good_score)
             if _res_code == 1:
                 break
             elif _res_code == 2:
@@ -1165,7 +1169,7 @@ class Dictionary(object):
         return True
 
     """ Учить слова - все, сначала сложные """
-    def learn_hard(self):
+    def learn_hard(self, _min_good_score):
         _count_all = 0
         _count_correct = 0
         _used_words = set()
@@ -1174,11 +1178,11 @@ class Dictionary(object):
                 print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
                 break
             while True:
-                _key = self.random_hard()
+                _key = self.random_hard(_min_good_score)
                 if _key not in _used_words:
                     break
 
-            _res_code = guess_wrd(self.d[_key], _count_correct, _count_all)
+            _res_code = guess_wrd(self.d[_key], _count_correct, _count_all, _min_good_score)
             if _res_code == 1:
                 break
             elif _res_code == 2:
@@ -1191,7 +1195,7 @@ class Dictionary(object):
         return True
 
     """ Учить слова (словоформы) - все """
-    def learn_f(self):
+    def learn_f(self, _min_good_score):
         _count_all = 0
         _count_correct = 0
         _used_words = set()
@@ -1205,12 +1209,12 @@ class Dictionary(object):
                 if _rnd_f == -1:
                     _wrd_f = _key
                     if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_wrd(self.d[_key], _count_correct, _count_all)
+                        _res_code = guess_wrd(self.d[_key], _count_correct, _count_all, _min_good_score)
                         break
                 else:
                     _wrd_f = list(self.d[_key].forms.keys())[_rnd_f]
                     if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all)
+                        _res_code = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all, _min_good_score)
                         break
 
             if _res_code == 1:
@@ -1225,7 +1229,7 @@ class Dictionary(object):
         return True
 
     """ Учить слова (словоформы) - избранные """
-    def learn_f_fav(self):
+    def learn_f_fav(self, _min_good_score):
         _count_all = 0
         _count_correct = 0
         _used_words = set()
@@ -1244,12 +1248,12 @@ class Dictionary(object):
                 if _rnd_f == -1:
                     _wrd_f = _key
                     if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_wrd(self.d[_key], _count_correct, _count_all)
+                        _res_code = guess_wrd(self.d[_key], _count_correct, _count_all, _min_good_score)
                         break
                 else:
                     _wrd_f = list(self.d[_key].forms.keys())[_rnd_f]
                     if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all)
+                        _res_code = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all, _min_good_score)
                         break
 
             if _res_code == 1:
@@ -1264,7 +1268,7 @@ class Dictionary(object):
         return True
 
     """ Учить слова (словоформы) - все, сначала сложные """
-    def learn_f_hard(self):
+    def learn_f_hard(self, _min_good_score):
         _count_all = 0
         _count_correct = 0
         _used_words = set()
@@ -1273,17 +1277,17 @@ class Dictionary(object):
                 print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
                 break
             while True:
-                _key = self.random_hard()
+                _key = self.random_hard(_min_good_score)
                 _rnd_f = random.randint(-1, self.d[_key].count_f - 1)
                 if _rnd_f == -1:
                     _wrd_f = _key
                     if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_wrd(self.d[_key], _count_correct, _count_all)
+                        _res_code = guess_wrd(self.d[_key], _count_correct, _count_all, _min_good_score)
                         break
                 else:
                     _wrd_f = list(self.d[_key].forms.keys())[_rnd_f]
                     if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all)
+                        _res_code = guess_wrd_f(self.d[_key], _wrd_f, _count_correct, _count_all, _min_good_score)
                         break
 
             if _res_code == 1:
@@ -1298,7 +1302,7 @@ class Dictionary(object):
         return True
 
     """ Учить слова (обр.) - все """
-    def learn_t(self):
+    def learn_t(self, _min_good_score):
         _count_all = 0
         _count_correct = 0
         _used_words = set()
@@ -1311,7 +1315,7 @@ class Dictionary(object):
                 if _key not in _used_words:
                     break
 
-            _res_code = guess_tr(self.d[_key], _count_correct, _count_all)
+            _res_code = guess_tr(self.d[_key], _count_correct, _count_all, _min_good_score)
             if _res_code == 1:
                 break
             elif _res_code == 2:
@@ -1324,7 +1328,7 @@ class Dictionary(object):
         return True
 
     """ Учить слова (обр.) - избранные """
-    def learn_t_fav(self):
+    def learn_t_fav(self, _min_good_score):
         _count_all = 0
         _count_correct = 0
         _used_words = set()
@@ -1340,7 +1344,7 @@ class Dictionary(object):
                 if _key not in _used_words:
                     break
 
-            _res_code = guess_tr(self.d[_key], _count_correct, _count_all)
+            _res_code = guess_tr(self.d[_key], _count_correct, _count_all, _min_good_score)
             if _res_code == 1:
                 break
             elif _res_code == 2:
@@ -1353,7 +1357,7 @@ class Dictionary(object):
         return True
 
     """ Учить слова (обр.) - все, сначала сложные """
-    def learn_t_hard(self):
+    def learn_t_hard(self, _min_good_score):
         _count_all = 0
         _count_correct = 0
         _used_words = set()
@@ -1362,11 +1366,11 @@ class Dictionary(object):
                 print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
                 break
             while True:
-                _key = self.random_hard()
+                _key = self.random_hard(_min_good_score)
                 if _key not in _used_words:
                     break
 
-            _res_code = guess_tr(self.d[_key], _count_correct, _count_all)
+            _res_code = guess_tr(self.d[_key], _count_correct, _count_all, _min_good_score)
             if _res_code == 1:
                 break
             elif _res_code == 2:
@@ -1420,7 +1424,8 @@ def read_local_settings(_filename):
         open(_local_settings_fn, 'r')
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
         with open(_local_settings_fn, 'w') as _loc_set_file:
-            _loc_set_file.write('Число\n'
+            _loc_set_file.write('0.67\n'
+                                'Число\n'
                                 f'ед.ч.{FORMS_SEPARATOR}мн.ч.\n'
                                 'Род\n'
                                 f'м.р.{FORMS_SEPARATOR}ж.р.{FORMS_SEPARATOR}с.р.\n'
@@ -1433,19 +1438,21 @@ def read_local_settings(_filename):
 
     _form_parameters = {}
     with open(_local_settings_fn, 'r') as _loc_set_file:
+        _min_good_score = float(_loc_set_file.readline().strip())
         while True:
             _key = _loc_set_file.readline().strip()
             if not _key:
                 break
             _value = _loc_set_file.readline().strip().split(FORMS_SEPARATOR)
             _form_parameters[_key] = _value
-    return _form_parameters
+    return _min_good_score, _form_parameters
 
 
 # Сохранить настройки словаря
-def save_local_settings(_form_parameters, _filename):
+def save_local_settings(_min_good_score, _form_parameters, _filename):
     _local_settings_fn = os.path.join(LOCAL_SETTINGS_DIR, _filename)
     with open(_local_settings_fn, 'w') as _loc_set_file:
+        _loc_set_file.write(f'{_min_good_score}\n')
         for _key in _form_parameters.keys():
             _loc_set_file.write(f'{_key}\n')
             _loc_set_file.write(_form_parameters[_key][0])
@@ -1499,10 +1506,18 @@ def create_dct(_dct, _filename):
 
 
 # Сохранить словарь и его настройки
-def save_dct(_dct, _form_parameters, _filename):
+def save_all(_dct, _min_good_score, _form_parameters, _filename):
     _filepath = os.path.join(SAVES_DIR, _filename)
     _dct.save(_filepath)
-    save_local_settings(_form_parameters, _filename)
+    save_local_settings(_min_good_score, _form_parameters, _filename)
+
+
+# Предложить сохранение, если были изменения
+def save_if_has_changes(_dct, _min_good_score, _form_parameters, _filename):
+    _cmd = input('\nХотите сохранить изменения и свой прогресс? (+ или -): ')
+    if _cmd == '+':
+        save_all(_dct, _min_good_score, _form_parameters, _filename)
+        print(f'\n{Fore.GREEN}Изменения и прогресс успешно сохранены{Style.RESET_ALL}')
 
 
 # Добавить параметр словоформ
@@ -1625,20 +1640,11 @@ def forms_settings(_dct, _form_parameters):
             warn_inp('Неизвестная команда', _cmd)
 
 
-# Предложить сохранение, если были изменения
-def save_if_has_changes(_dct, _form_parameters, _filename):
-    _cmd = input('\nХотите сохранить изменения и свой прогресс? (+ или -): ')
-    if _cmd == '+':
-        save_dct(_dct, _form_parameters, _filename)
-        save_local_settings(_form_parameters, _filename)
-        print(f'\n{Fore.GREEN}Изменения и прогресс успешно сохранены{Style.RESET_ALL}')
-
-
 # Вывод информации о программе
 print('======================================================================================\n')
 print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
-print(f'                               {Fore.GREEN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-15')
-print('                                   23.12.2022  8:24\n')
+print(f'                               {Fore.GREEN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-16')
+print('                                   23.12.2022  9:18\n')
 print('======================================================================================')
 
 try:  # Открываем файл с названием словаря
@@ -1650,7 +1656,7 @@ with open(SETTINGS_FN, 'r') as set_file:
     dct_filename = set_file.readline().strip()
 
 dct = Dictionary()
-form_parameters = read_dct(dct, dct_filename)  # Загружаем словарь и его настройки
+min_good_score, form_parameters = read_dct(dct, dct_filename)  # Загружаем словарь и его настройки
 
 print(f'\nИспользуйте эти комбинации для немецких букв: '
       f'{Fore.YELLOW}#a = ä{Style.RESET_ALL}, '
@@ -1668,7 +1674,7 @@ while True:
     print('НС - Найти статью по Слову')
     print('НП - Найти статью по Переводу')
     print('У  - Учить слова')
-    print('Ф  - открыть настройки словоФорм')
+    print('НА - открыть НАстройки')
     print('С  - Сохранить изменения')
     print('СЛ - открыть список СЛоварей')
     print('З  - Завершить работу')
@@ -1676,15 +1682,15 @@ while True:
     if cmd in ['Н', 'Y']:
         cmd = input('\nВыводить все формы слов? (+ или -): ')
         if cmd == '+':
-            dct.print_with_forms()
+            dct.print_with_forms(min_good_score)
         else:
-            dct.print()
+            dct.print(min_good_score)
     elif cmd in ['НИ', 'YB']:
         cmd = input('\nВыводить все формы слов? (+ или -): ')
         if cmd == '+':
-            dct.print_fav_with_forms()
+            dct.print_fav_with_forms(min_good_score)
         else:
-            dct.print_fav()
+            dct.print_fav(min_good_score)
     elif cmd in ['Д', 'L']:
         wrd = input('\nВведите слово, которое хотите добавить в словарь: ')
         if wrd == '':
@@ -1754,11 +1760,11 @@ while True:
                 print('И - только Избранные слова')
                 cmd = input().upper()
                 if cmd in ['В', 'D']:
-                    has_changes = dct.learn_f()
+                    has_changes = dct.learn_f(min_good_score)
                 elif cmd in ['И', 'B']:
-                    has_changes = dct.learn_f_fav()
+                    has_changes = dct.learn_f_fav(min_good_score)
                 elif cmd in ['С', 'C']:
-                    has_changes = dct.learn_f_hard()
+                    has_changes = dct.learn_f_hard(min_good_score)
                 else:
                     warn_inp('Неизвестная команда', cmd)
             elif cmd == '2':
@@ -1768,11 +1774,11 @@ while True:
                 print('И - только Избранные слова')
                 cmd = input().upper()
                 if cmd in ['В', 'D']:
-                    has_changes = dct.learn()
+                    has_changes = dct.learn(min_good_score)
                 elif cmd in ['И', 'B']:
-                    has_changes = dct.learn_fav()
+                    has_changes = dct.learn_fav(min_good_score)
                 elif cmd in ['С', 'C']:
-                    has_changes = dct.learn_hard()
+                    has_changes = dct.learn_hard(min_good_score)
                 else:
                     warn_inp('Неизвестная команда', cmd)
             else:
@@ -1784,21 +1790,44 @@ while True:
             print('И - только Избранные слова')
             cmd = input().upper()
             if cmd in ['В', 'D']:
-                has_changes = dct.learn_t()
+                has_changes = dct.learn_t(min_good_score)
             elif cmd in ['И', 'B']:
-                has_changes = dct.learn_t_fav()
+                has_changes = dct.learn_t_fav(min_good_score)
             elif cmd in ['С', 'C']:
-                has_changes = dct.learn_t_hard()
+                has_changes = dct.learn_t_hard(min_good_score)
             else:
                 warn_inp('Неизвестная команда', cmd)
         else:
             warn_inp('Неизвестная команда', cmd)
-    elif cmd in ['Ф', 'A']:
-        forms_settings(dct, form_parameters)
-        has_changes = True
+    elif cmd in ['НА', 'YF']:
+        while True:
+            print('\nЧто вы хотите сделать?')
+            print('М - изменить Минимальный приемлемый процент удачных попыток отгадать слово')
+            print('Ф - открыть настройки словоФорм')
+            spec_action('Н - Назад')
+            cmd = input().upper()
+            if cmd in ['М', 'V']:
+                print(f'\nТекущее значение: {round(min_good_score * 100)}%')
+                print('Статьи, у которых процент угадывания ниже этого значения, помечаются в словаре красным цветом')
+                _new_val = input('Введите новое значение: ')
+                try:
+                    _new_val = int(_new_val)
+                except (ValueError, TypeError):
+                    warn_inp('Некорректный ввод', _new_val)
+                else:
+                    if _new_val < 0 or _new_val > 100:
+                        warn_inp('Некорректный ввод', _new_val)
+                        continue
+                    min_good_score = _new_val / 100
+            elif cmd in ['Ф', 'A']:
+                forms_settings(dct, form_parameters)
+                has_changes = True
+            elif cmd in ['Н', 'Y']:
+                break
+            else:
+                warn_inp('Неизвестная команда', cmd)
     elif cmd in ['С', 'C']:
-        save_dct(dct, form_parameters, dct_filename)
-        save_local_settings(form_parameters, dct_filename)
+        save_all(dct, min_good_score, form_parameters, dct_filename)
         print(f'\n{Fore.GREEN}Изменения и прогресс успешно сохранены{Style.RESET_ALL}')
         has_changes = False
     elif cmd in ['СЛ', 'CK']:
@@ -1879,12 +1908,12 @@ while True:
                     continue
 
                 if has_changes:
-                    save_if_has_changes(dct, form_parameters, dct_filename)
+                    save_if_has_changes(dct, min_good_score, form_parameters, dct_filename)
                 dct_filename = filename
                 with open(SETTINGS_FN, 'w') as set_file:
                     set_file.write(filename)
                 dct = Dictionary()
-                form_parameters = create_dct(dct, filename)
+                min_good_score, form_parameters = create_dct(dct, filename)
             elif cmd in ['О', 'J']:
                 cmd = input('\nВведите номер словаря: ')
                 try:
@@ -1894,17 +1923,17 @@ while True:
                     continue
 
                 if has_changes:
-                    save_if_has_changes(dct, form_parameters, dct_filename)
+                    save_if_has_changes(dct, min_good_score, form_parameters, dct_filename)
                 dct_filename = filename
                 with open(SETTINGS_FN, 'w') as set_file:
                     set_file.write(filename)
                 dct = Dictionary()
-                form_parameters = read_dct(dct, filename)
+                min_good_score, form_parameters = read_dct(dct, filename)
             else:
                 warn_inp('Неизвестная команда', cmd)
     elif cmd in ['З', 'P']:
         if has_changes:
-            save_if_has_changes(dct, form_parameters, dct_filename)
+            save_if_has_changes(dct, min_good_score, form_parameters, dct_filename)
         break
     else:
         warn_inp('Неизвестная команда', cmd)
