@@ -55,6 +55,23 @@ def code(_str):
     return _str
 
 
+# Заменить немецкие буквы английскими
+def deu_to_eng(_str):
+    _str = _str.replace('##', 'ä')
+
+    _str = _str.replace('#a', 'a')
+    _str = _str.replace('#A', 'A')
+    _str = _str.replace('#o', 'o')
+    _str = _str.replace('#O', 'O')
+    _str = _str.replace('#u', 'u')
+    _str = _str.replace('#U', 'U')
+    _str = _str.replace('#s', 's')
+    _str = _str.replace('#S', 'S')
+
+    _str = _str.replace('ä', '#')
+    return _str
+
+
 # Перевести кортеж в строку (для вывода на экран)
 def tpl(_tuple):
     _res = ''
@@ -200,9 +217,9 @@ def construct_frm_template(_form_parameters):
 def find_matches(_wrd, _search_wrd):
     _len = len(_search_wrd)
     if _wrd != _search_wrd:
-        _pos = _wrd.upper().find(_search_wrd.upper())
+        _pos = deu_to_eng(_wrd).upper().find(deu_to_eng(_search_wrd).upper())
         if _pos != -1:
-            _res = _wrd[:_pos] + Fore.GREEN + _wrd[_pos:_pos + _len] + Style.RESET_ALL + _wrd[_pos + _len:]
+            _res = code(_wrd)[:_pos] + Fore.GREEN + code(_wrd)[_pos:_pos + _len] + Style.RESET_ALL + code(_wrd)[_pos + _len:]
             return _res
     return ''
 
@@ -742,7 +759,7 @@ class Dictionary(object):
         _is_found = False
         for _entry in self.d.values():
             _is_first = True
-            for _tr in entry.tr:
+            for _tr in _entry.tr:
                 _res = find_matches(_tr, _search_tr)
                 if _res != '':
                     _is_found = True
@@ -1640,8 +1657,8 @@ def forms_settings(_dct, _form_parameters):
 # Вывод информации о программе
 print('======================================================================================\n')
 print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
-print(f'                              {Fore.GREEN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-16.1')
-print('                                   23.12.2022  9:29\n')
+print(f'                               {Fore.GREEN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-17')
+print('                                   23.12.2022  9:46\n')
 print('======================================================================================')
 
 try:  # Открываем файл с названием словаря
@@ -1716,7 +1733,7 @@ while True:
 
         print('\nПолное совпадение:')
         if wrd_to_key(search_wrd, 0) not in dct.d.keys():
-            print(f'{Fore.RED}Слово "{search_wrd}" отсутствует в словаре{Style.RESET_ALL}')
+            print(f'{Fore.RED}Слово "{code(search_wrd)}" отсутствует в словаре{Style.RESET_ALL}')
             continue
         for i in range(MAX_SAME_WORDS):
             key = wrd_to_key(search_wrd, i)
@@ -1738,7 +1755,7 @@ while True:
                 print()
                 entry.print_all()
         if not is_found:
-            print(f'{Fore.RED}Слово с переводом "{search_tr}" отсутствует в словаре{Style.RESET_ALL}')
+            print(f'{Fore.RED}Слово с переводом "{code(search_tr)}" отсутствует в словаре{Style.RESET_ALL}')
     elif cmd in ['У', 'E']:
         print(Fore.MAGENTA + '\nВаша общая доля правильных ответов: {:.2%}'.format(dct.count_rating()) + Style.RESET_ALL)
         print('\nВыберите способ')
