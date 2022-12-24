@@ -1663,8 +1663,8 @@ def forms_settings(_dct, _form_parameters):
 # Вывод информации о программе
 print('======================================================================================\n')
 print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
-print(f'                               {Fore.GREEN}Dictionary{Style.RESET_ALL} v6.0.0_PRE-19')
-print('                                   23.12.2022 10:57\n')
+print(f'                                  {Fore.GREEN}Dictionary{Style.RESET_ALL}  v6.0.0')
+print('                                   24.12.2022 18:16\n')
 print('======================================================================================')
 
 try:  # Открываем файл с названием словаря
@@ -1732,7 +1732,7 @@ while True:
             print('Возможно вы искали:')
             dct.print_words_with_str(wrd)
             continue
-        has_changes = dct.edit_entry(wrd, form_parameters)
+        has_changes = dct.edit_entry(wrd, form_parameters) or has_changes
     elif cmd in ['НС', 'YC']:
         search_wrd = input('\nВведите слово, которое хотите найти: ')
 
@@ -1782,11 +1782,11 @@ while True:
                 print('И - только Избранные слова')
                 cmd = input().upper()
                 if cmd in ['В', 'D']:
-                    has_changes = dct.learn_f(min_good_score_perc)
+                    has_changes = dct.learn_f(min_good_score_perc) or has_changes
                 elif cmd in ['И', 'B']:
-                    has_changes = dct.learn_f_fav(min_good_score_perc)
+                    has_changes = dct.learn_f_fav(min_good_score_perc) or has_changes
                 elif cmd in ['С', 'C']:
-                    has_changes = dct.learn_f_hard(min_good_score_perc)
+                    has_changes = dct.learn_f_hard(min_good_score_perc) or has_changes
                 else:
                     warn_inp('Неизвестная команда', cmd)
             elif cmd == '2':
@@ -1796,11 +1796,11 @@ while True:
                 print('И - только Избранные слова')
                 cmd = input().upper()
                 if cmd in ['В', 'D']:
-                    has_changes = dct.learn(min_good_score_perc)
+                    has_changes = dct.learn(min_good_score_perc) or has_changes
                 elif cmd in ['И', 'B']:
-                    has_changes = dct.learn_fav(min_good_score_perc)
+                    has_changes = dct.learn_fav(min_good_score_perc) or has_changes
                 elif cmd in ['С', 'C']:
-                    has_changes = dct.learn_hard(min_good_score_perc)
+                    has_changes = dct.learn_hard(min_good_score_perc) or has_changes
                 else:
                     warn_inp('Неизвестная команда', cmd)
             else:
@@ -1812,11 +1812,11 @@ while True:
             print('И - только Избранные слова')
             cmd = input().upper()
             if cmd in ['В', 'D']:
-                has_changes = dct.learn_t(min_good_score_perc)
+                has_changes = dct.learn_t(min_good_score_perc) or has_changes
             elif cmd in ['И', 'B']:
-                has_changes = dct.learn_t_fav(min_good_score_perc)
+                has_changes = dct.learn_t_fav(min_good_score_perc) or has_changes
             elif cmd in ['С', 'C']:
-                has_changes = dct.learn_t_hard(min_good_score_perc)
+                has_changes = dct.learn_t_hard(min_good_score_perc) or has_changes
             else:
                 warn_inp('Неизвестная команда', cmd)
         else:
