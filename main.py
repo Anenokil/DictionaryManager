@@ -1,5 +1,5 @@
-import random  # Для learn-функций
 import os
+import random
 from colorama import Fore, Style
 import ctypes  # Для цветного текста в консоли Windows
 
@@ -7,14 +7,25 @@ kernel32 = ctypes.windll.kernel32
 kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
 RESOURCES_DIR = 'resources'
-SAVES_DIR = os.path.join(RESOURCES_DIR, 'saves')
-SETTINGS_FN = os.path.join(RESOURCES_DIR, 'settings.txt')
-LOCAL_SETTINGS_DIR = os.path.join(RESOURCES_DIR, 'local_settings')
+SAVES_DIR = 'saves'
+SAVES_PATH = os.path.join(RESOURCES_DIR, SAVES_DIR)
+SETTINGS_FN = 'settings.txt'
+SETTINGS_PATH = os.path.join(RESOURCES_DIR, SETTINGS_FN)
+LOCAL_SETTINGS_DIR = 'local_settings'
+LOCAL_SETTINGS_PATH = os.path.join(RESOURCES_DIR, LOCAL_SETTINGS_DIR)
+
+if RESOURCES_DIR not in os.listdir(os.curdir):
+    os.mkdir(RESOURCES_DIR)
+if SAVES_DIR not in os.listdir(RESOURCES_DIR):
+    os.mkdir(SAVES_PATH)
+if LOCAL_SETTINGS_DIR not in os.listdir(RESOURCES_DIR):
+    os.mkdir(LOCAL_SETTINGS_PATH)
+
 FORMS_SEPARATOR = '@'
 
 """
     Про формы:
-    
+
     apple - слово
     apples - форма слова
     число - параметр формы слова
@@ -266,7 +277,7 @@ class Entry(object):
         self.score = _correct_att / _all_att if (_all_att != 0) else 0
         self.last_att = _last_att
 
-    """ Напечатать перевод """
+    # Напечатать перевод
     def tr_print(self, _end='\n'):
         if self.count_t != 0:
             print(code(self.tr[0]), end='')
@@ -274,17 +285,17 @@ class Entry(object):
             print(f', {code(self.tr[_i])}', end='')
         print(_end, end='')
 
-    """ Напечатать сноски """
+    # Напечатать сноски
     def notes_print(self, _tab=0):
         for _i in range(self.count_n):
             print(' ' * _tab + f'> {code(self.notes[_i])}')
 
-    """ Напечатать формы слова """
+    # Напечатать формы слова
     def frm_print(self, _tab=0):
         for _key in self.forms.keys():
             print(' ' * _tab + f'[{tpl(_key)}] {code(self.forms[_key])}')
 
-    """ Напечатать статистику """
+    # Напечатать статистику
     def stat_print(self, _min_good_score_perc, _end='\n'):
         if 100 * self.score < _min_good_score_perc:
             print(Fore.RED, end='')
@@ -300,7 +311,7 @@ class Entry(object):
             print(f'[{self.last_att}:{_tab}{_score}]', end=_end)
         print(Style.RESET_ALL, end='')
 
-    """ Служебный метод для print_briefly и print_briefly_with_forms """
+    # Служебный метод для print_briefly и print_briefly_with_forms
     def _print_briefly(self, _min_good_score_perc):
         if self.fav:
             print(f'{Fore.MAGENTA}(*){Style.RESET_ALL}', end=' ')
@@ -310,34 +321,34 @@ class Entry(object):
         print(f'{code(self.wrd)}{Fore.RED}: {Style.RESET_ALL}', end='')
         self.tr_print()
 
-    """ Напечатать статью - кратко """
+    # Напечатать статью - кратко
     def print_briefly(self, _min_good_score_perc):
         self._print_briefly(_min_good_score_perc)
         self.notes_print(_tab=13)
 
-    """ Напечатать статью - кратко с формами """
+    # Напечатать статью - кратко с формами
     def print_briefly_with_forms(self, _min_good_score_perc):
         self._print_briefly(_min_good_score_perc)
         self.frm_print(_tab=13)
         self.notes_print(_tab=13)
 
-    """ Напечатать статью - слово со статистикой """
+    # Напечатать статью - слово со статистикой
     def print_wrd_with_stat(self, _min_good_score_perc):
         print(code(self.wrd), end=' ')
         self.stat_print(_min_good_score_perc)
 
-    """ Напечатать статью - перевод со статистикой """
+    # Напечатать статью - перевод со статистикой
     def print_tr_with_stat(self, _min_good_score_perc):
         self.tr_print(_end=' ')
         self.stat_print(_min_good_score_perc)
 
-    """ Напечатать статью - перевод с формой и со статистикой """
+    # Напечатать статью - перевод с формой и со статистикой
     def print_tr_and_frm_with_stat(self, _frm_key, _min_good_score_perc):
         self.tr_print(_end=' ')
         print(f'{Fore.BLUE}({tpl(_frm_key)}){Style.RESET_ALL}', end=' ')
         self.stat_print(_min_good_score_perc)
 
-    """ Напечатать статью - со всей редактируемой информацией """
+    # Напечатать статью - со всей редактируемой информацией
     def print_editable(self):
         print(f'       Слово: {code(self.wrd)}')
         print('     Перевод: ', end='')
@@ -359,7 +370,7 @@ class Entry(object):
                 print(f'              > {code(self.notes[_i])}')
         print(f'   Избранное: {self.fav}')
 
-    """ Напечатать статью - со всей информацией """
+    # Напечатать статью - со всей информацией
     def print_all(self):
         print(f'       Слово: {code(self.wrd)}')
         print('     Перевод: ', end='')
@@ -388,7 +399,7 @@ class Entry(object):
             print(f'              2) Доля верных ответов: '
                   f'{self.correct_att}/{self.all_att} = ' + '{:.0%}'.format(self.score))
 
-    """ Добавить перевод """
+    # Добавить перевод
     def add_tr(self, _new_tr, _show_msg=True):
         if _new_tr not in self.tr:
             self.tr += [_new_tr]
@@ -396,12 +407,12 @@ class Entry(object):
         elif _show_msg:
             warn('У этого слова уже есть такой перевод')
 
-    """ Добавить сноску """
+    # Добавить сноску
     def add_note(self, _new_note):
         self.notes += [_new_note]
         self.count_n += 1
 
-    """ Добавить форму слова """
+    # Добавить форму слова
     def add_frm(self, _frm_key, _new_frm, _show_msg=True):
         if _new_frm == '':
             warn('Форма должна содержать хотя бы один символ')
@@ -411,7 +422,7 @@ class Entry(object):
         elif _show_msg:
             warn(f'Слово уже имеет форму с такими параметрами {tpl(_frm_key)}: {self.forms[_frm_key]}')
 
-    """ Удалить перевод """
+    # Удалить перевод
     def remove_tr_with_choose(self):
         if self.count_t == 1:
             warn('Вы не можете удалить единственный перевод слова')
@@ -427,7 +438,7 @@ class Entry(object):
         else:
             self.count_t -= 1
 
-    """ Удалить сноску """
+    # Удалить сноску
     def remove_note_with_choose(self):
         print('Выберите один из предложенных вариантов')
         for _i in range(self.count_n):
@@ -440,7 +451,7 @@ class Entry(object):
         else:
             self.count_n -= 1
 
-    """ Удалить форму слова """
+    # Удалить форму слова
     def remove_frm_with_choose(self):
         _keys = [_key for _key in self.forms.keys()]
         print('Выберите один из предложенных вариантов')
@@ -455,7 +466,7 @@ class Entry(object):
             self.forms.pop(_key)
             self.count_f -= 1
 
-    """ Изменить форму слова """
+    # Изменить форму слова
     def edit_frm_with_choose(self):
         _keys = [_key for _key in self.forms.keys()]
         print('Выберите один из предложенных вариантов')
@@ -473,21 +484,21 @@ class Entry(object):
             else:
                 self.forms[_key] = _new_frm
 
-    """ Объединить статистику при объединении двух статей """
+    # Объединить статистику при объединении двух статей
     def merge_stat(self, _all_att, _correct_att, _last_att):
         self.all_att += _all_att
         self.correct_att += _correct_att
         self.score = self.correct_att / self.all_att if (self.all_att != 0) else 0
         self.last_att += _last_att
 
-    """ Обновить статистику, если совершена верная попытка """
+    # Обновить статистику, если совершена верная попытка
     def correct_try(self):
         self.all_att += 1
         self.correct_att += 1
         self.score = self.correct_att / self.all_att
         self.last_att = 0
 
-    """ Обновить статистику, если совершена неверная попытка """
+    # Обновить статистику, если совершена неверная попытка
     def incorrect_try(self):
         self.all_att += 1
         self.score = self.correct_att / self.all_att
@@ -496,7 +507,7 @@ class Entry(object):
         else:
             self.last_att += 1
 
-    """ Удалить данное значение параметра у всех форм слова """
+    # Удалить данное значение параметра у всех форм слова
     def remove_forms_with_val(self, _pos, _frm_val):
         _to_remove = []
         for _key in self.forms.keys():
@@ -506,7 +517,7 @@ class Entry(object):
         for _key in _to_remove:
             self.forms.pop(_key)
 
-    """ Переименовать данное значение параметра у всех форм слова """
+    # Переименовать данное значение параметра у всех форм слова
     def rename_forms_with_val(self, _pos, _frm_val, _new_frm_val):
         _to_rename = []
         for _key in self.forms.keys():
@@ -519,7 +530,7 @@ class Entry(object):
             self.forms[_lst] = self.forms[_key]
             self.forms.pop(_key)
 
-    """ Добавить данный параметр ко всем формам слова """
+    # Добавить данный параметр ко всем формам слова
     def add_forms_param(self):
         _keys = list(self.forms.keys())
         for _key in _keys:
@@ -529,7 +540,7 @@ class Entry(object):
             self.forms[_new_key] = self.forms[_key]
             self.forms.pop(_key)
 
-    """ Удалить данный параметр у всех форм слова """
+    # Удалить данный параметр у всех форм слова
     def remove_forms_param(self, _pos):
         _to_remove = []
         _to_edit = []
@@ -548,10 +559,10 @@ class Entry(object):
         for _key in _to_remove:
             self.forms.pop(_key)
 
-    """ Переименовать данный параметр у всех форм слова """
-    #def rename_forms_param(self, _pos):
+    # Переименовать данный параметр у всех форм слова
+    """ def rename_forms_param(self, _pos): """
 
-    """ Сохранить статью в файл """
+    # Сохранить статью в файл
     def save(self, _file):
         _file.write(f'w{self.wrd}\n')
         _file.write(f'{self.all_att}#{self.correct_att}#{self.last_att}\n')
@@ -693,7 +704,7 @@ class Dictionary(object):
         self.count_t = 0
         self.count_f = 0
 
-    """ Служебный метод для print и print_with_forms """
+    # Служебный метод для print и print_with_forms
     def _print_stat(self):
         _w = set_postfix(self.count_w, ('слово', 'слова', 'слов'))
         _f = set_postfix(self.count_w + self.count_f, ('словоформа', 'словоформы', 'словоформ'))
@@ -701,19 +712,19 @@ class Dictionary(object):
         print(f'{Fore.BLUE}< {self.count_w} {_w} | {self.count_w + self.count_f} {_f} | '
               f'{self.count_t} {_t} >{Style.RESET_ALL}')
 
-    """ Напечатать словарь """
+    # Напечатать словарь
     def print(self, _min_good_score_perc):
         for _entry in self.d.values():
             _entry.print_briefly(_min_good_score_perc)
         self._print_stat()
 
-    """ Напечатать словарь (со всеми формами) """
+    # Напечатать словарь (со всеми формами)
     def print_with_forms(self, _min_good_score_perc):
         for _entry in self.d.values():
             _entry.print_briefly_with_forms(_min_good_score_perc)
         self._print_stat()
 
-    """ Служебный метод для print_fav и print_fav_with_forms """
+    # Служебный метод для print_fav и print_fav_with_forms
     def _print_stat_fav(self, _count_w, _count_t, _count_f):
         _w = set_postfix(_count_w, ('слово', 'слова', 'слов'))
         _f = set_postfix(_count_w + self.count_f, ('словоформа', 'словоформы', 'словоформ'))
@@ -722,7 +733,7 @@ class Dictionary(object):
               f'{_count_w + _count_f}/{self.count_w + self.count_f} {_f} | '
               f'{_count_t}/{self.count_t} {_t} >{Style.RESET_ALL}')
 
-    """ Напечатать словарь (только избранные слова) """
+    # Напечатать словарь (только избранные слова)
     def print_fav(self, _min_good_score_perc):
         _count_w = 0
         _count_t = 0
@@ -735,7 +746,7 @@ class Dictionary(object):
                 _count_f += _entry.count_f
         self._print_stat_fav(_count_w, _count_t, _count_f)
 
-    """ Напечатать словарь (только избранные слова, со всеми формами) """
+    # Напечатать словарь (только избранные слова, со всеми формами)
     def print_fav_with_forms(self, _min_good_score_perc):
         _count_w = 0
         _count_t = 0
@@ -748,7 +759,7 @@ class Dictionary(object):
                 _count_f += _entry.count_f
         self._print_stat_fav(_count_w, _count_t, _count_f)
 
-    """ Напечатать статьи, в которых слова содержат данную строку """
+    # Напечатать статьи, в которых слова содержат данную строку
     def print_words_with_str(self, _search_wrd):
         _is_found = False
         for _key in self.d.keys():
@@ -760,7 +771,7 @@ class Dictionary(object):
         if not _is_found:
             print(f'{Fore.RED}Частичных совпадений не найдено{Style.RESET_ALL}')
 
-    """ Напечатать статьи, в которых переводы содержат данную строку """
+    # Напечатать статьи, в которых переводы содержат данную строку
     def print_translations_with_str(self, _search_tr):
         _is_found = False
         for _entry in self.d.values():
@@ -779,7 +790,7 @@ class Dictionary(object):
         if not _is_found:
             print(f'{Fore.RED}Частичных совпадений не найдено{Style.RESET_ALL}')
 
-    """ Выбрать одну статью из нескольких с одинаковыми словами """
+    # Выбрать одну статью из нескольких с одинаковыми словами
     def choose_one_of_similar_entries(self, _wrd):
         if wrd_to_key(_wrd, 1) not in self.d.keys():
             return wrd_to_key(_wrd, 0)
@@ -804,26 +815,26 @@ class Dictionary(object):
                 else:
                     return wrd_to_key(_wrd, _index)
 
-    """ Добавить перевод к статье """
+    # Добавить перевод к статье
     def add_tr(self, _key_or_wrd, _tr, _show_msg=True, _is_key=False):
         _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
         self.count_t -= self.d[_key].count_t
         self.d[_key].add_tr(_tr, _show_msg)
         self.count_t += self.d[_key].count_t
 
-    """ Добавить сноску к статье """
+    # Добавить сноску к статье
     def add_note(self, _key_or_wrd, _note, _is_key=False):
         _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
         self.d[_key].add_note(_note)
 
-    """ Добавить форму слова к статье """
+    # Добавить форму слова к статье
     def add_frm(self, _key_or_wrd, _frm_key, _frm, _show_msg=True, _is_key=False):
         _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
         self.count_f -= self.d[_key].count_f
         self.d[_key].add_frm(_frm_key, _frm, _show_msg)
         self.count_f += self.d[_key].count_f
 
-    """ Изменить слово в статье """
+    # Изменить слово в статье
     def edit_wrd(self, _key, _new_wrd):
         if wrd_to_key(_new_wrd, 0) in self.d.keys():  # Если уже есть статья с таким словом
             while True:
@@ -881,31 +892,31 @@ class Dictionary(object):
             self.d.pop(_key)
             return _new_key
 
-    """ Изменить форму слова в статье """
+    # Изменить форму слова в статье
     def edit_frm_with_choose(self, _key_or_wrd, _is_key=False):
         _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
         self.d[_key].edit_frm_with_choose()
 
-    """ Удалить перевод в статье """
+    # Удалить перевод в статье
     def remove_tr_with_choose(self, _key_or_wrd, _is_key=False):
         _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
         self.count_t -= self.d[_key].count_t
         self.d[_key].remove_tr_with_choose()
         self.count_t += self.d[_key].count_t
 
-    """ Удалить описание в статье """
+    # Удалить описание в статье
     def remove_note_with_choose(self, _key_or_wrd, _is_key=False):
         _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
         self.d[_key].remove_note_with_choose()
 
-    """ Удалить форму слова в статье """
+    # Удалить форму слова в статье
     def remove_frm_with_choose(self, _key_or_wrd, _is_key=False):
         _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
         self.count_f -= self.d[_key].count_f
         self.d[_key].remove_frm_with_choose()
         self.count_f += self.d[_key].count_f
 
-    """ Добавить статью в словарь (для пользователя) """
+    # Добавить статью в словарь (для пользователя)
     def add_entry(self, _wrd, _tr, _show_msg=True):
         if wrd_to_key(_wrd, 0) in self.d.keys():  # Если уже есть статья с таким словом
             while True:
@@ -937,7 +948,7 @@ class Dictionary(object):
             self.count_t += 1
             return _key
 
-    """ Добавить статью в словарь (при чтении файла) """
+    # Добавить статью в словарь (при чтении файла)
     def load_entry(self, _wrd, _tr, _all_att, _correct_att, _last_att):
         for _i in range(MAX_SAME_WORDS):
             _key = wrd_to_key(_wrd, _i)
@@ -948,7 +959,7 @@ class Dictionary(object):
                 return _key
             _i += 1
 
-    """ Изменить статью """
+    # Изменить статью
     def edit_entry(self, _key_or_wrd, _form_parameters, _is_key=False):
         _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
         _has_changes = False
@@ -1065,7 +1076,7 @@ class Dictionary(object):
                 warn_inp('Неизвестная команда', _cmd)
         return _has_changes
 
-    """ Удалить статью """
+    # Удалить статью
     def remove_entry(self, _key_or_wrd, _is_key=False):
         _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
         self.count_w -= 1
@@ -1073,36 +1084,36 @@ class Dictionary(object):
         self.count_f -= self.d[_key].count_f
         self.d.pop(_key)
 
-    """ Удалить данное значение параметра у всех форм """
+    # Удалить данное значение параметра у всех форм
     def remove_forms_with_val(self, _pos, _frm_val):
         for _entry in self.d.values():
             self.count_f -= _entry.count_f
             _entry.remove_forms_with_val(_pos, _frm_val)
             self.count_f += _entry.count_f
 
-    """ Переименовать данное значение параметра у всех форм """
+    # Переименовать данное значение параметра у всех форм
     def rename_forms_with_val(self, _pos, _frm_val, _new_frm_val):
         for _entry in self.d.values():
             _entry.rename_forms_with_val(_pos, _frm_val, _new_frm_val)
 
-    """ Добавить данный параметр ко всем словоформам """
+    # Добавить данный параметр ко всем словоформам
     def add_forms_param(self):
         for _entry in self.d.values():
             _entry.add_forms_param()
 
-    """ Удалить данный параметр у всех словоформ """
+    # Удалить данный параметр у всех словоформ
     def remove_forms_param(self, _pos):
         for _entry in self.d.values():
             self.count_f -= _entry.count_f
             _entry.remove_forms_param(_pos)
             self.count_f += _entry.count_f
 
-    """ Переименовать данный параметр у всех словоформ """
-    #def rename_forms_param(self, _pos):
-        #for _entry in self.d.values():
-            #_entry.rename_frm_param(_pos)
+    # Переименовать данный параметр у всех словоформ
+    """def rename_forms_param(self, _pos):
+        for _entry in self.d.values():
+            _entry.rename_frm_param(_pos)"""
 
-    """ Подсчитать среднюю долю правильных ответов """
+    # Подсчитать среднюю долю правильных ответов
     def count_rating(self):
         _sum_num = 0
         _sum_den = 0
@@ -1113,7 +1124,7 @@ class Dictionary(object):
             return 0
         return _sum_num / _sum_den
 
-    """ Выбор случайного слова с учётом сложности """
+    # Выбор случайного слова с учётом сложности
     def random_hard(self, _min_good_score_perc):
         _sum = 0
         for _entry in self.d.values():
@@ -1133,7 +1144,7 @@ class Dictionary(object):
             if _r <= 0:
                 return _key
 
-    """ Учить слова - все """
+    # Учить слова - все
     def learn(self, _min_good_score_perc):
         _count_all = 0
         _count_correct = 0
@@ -1159,7 +1170,7 @@ class Dictionary(object):
 
         return True
 
-    """ Учить слова - избранные """
+    # Учить слова - избранные
     def learn_fav(self, _min_good_score_perc):
         _count_all = 0
         _count_correct = 0
@@ -1188,7 +1199,7 @@ class Dictionary(object):
 
         return True
 
-    """ Учить слова - все, сначала сложные """
+    # Учить слова - все, сначала сложные
     def learn_hard(self, _min_good_score_perc):
         _count_all = 0
         _count_correct = 0
@@ -1214,7 +1225,7 @@ class Dictionary(object):
 
         return True
 
-    """ Учить слова (словоформы) - все """
+    # Учить слова (словоформы) - все
     def learn_f(self, _min_good_score_perc):
         _count_all = 0
         _count_correct = 0
@@ -1248,7 +1259,7 @@ class Dictionary(object):
 
         return True
 
-    """ Учить слова (словоформы) - избранные """
+    # Учить слова (словоформы) - избранные
     def learn_f_fav(self, _min_good_score_perc):
         _count_all = 0
         _count_correct = 0
@@ -1287,7 +1298,7 @@ class Dictionary(object):
 
         return True
 
-    """ Учить слова (словоформы) - все, сначала сложные """
+    # Учить слова (словоформы) - все, сначала сложные
     def learn_f_hard(self, _min_good_score_perc):
         _count_all = 0
         _count_correct = 0
@@ -1321,7 +1332,7 @@ class Dictionary(object):
 
         return True
 
-    """ Учить слова (обр.) - все """
+    # Учить слова (обр.) - все
     def learn_t(self, _min_good_score_perc):
         _count_all = 0
         _count_correct = 0
@@ -1347,7 +1358,7 @@ class Dictionary(object):
 
         return True
 
-    """ Учить слова (обр.) - избранные """
+    # Учить слова (обр.) - избранные
     def learn_t_fav(self, _min_good_score_perc):
         _count_all = 0
         _count_correct = 0
@@ -1376,7 +1387,7 @@ class Dictionary(object):
 
         return True
 
-    """ Учить слова (обр.) - все, сначала сложные """
+    # Учить слова (обр.) - все, сначала сложные
     def learn_t_hard(self, _min_good_score_perc):
         _count_all = 0
         _count_correct = 0
@@ -1402,13 +1413,13 @@ class Dictionary(object):
 
         return True
 
-    """ Сохранить словарь в файл """
+    # Сохранить словарь в файл
     def save(self, _filename):
         with open(_filename, 'w') as _file:
             for _entry in self.d.values():
                 _entry.save(_file)
 
-    """ Прочитать словарь из файла """
+    # Прочитать словарь из файла
     def read(self, _filename):
         try:
             with open(_filename, 'r') as _file:
@@ -1439,12 +1450,12 @@ class Dictionary(object):
 
 # Загрузить настройки словаря из файла
 def read_local_settings(_filename):
-    _local_settings_fn = os.path.join(LOCAL_SETTINGS_DIR, _filename)
+    _local_settings_fn = os.path.join(LOCAL_SETTINGS_PATH, _filename)
     try:  # Проверка наличия файла
         open(_local_settings_fn, 'r')
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
         with open(_local_settings_fn, 'w') as _loc_set_file:
-            _loc_set_file.write('0.67\n'
+            _loc_set_file.write('67\n'
                                 'Число\n'
                                 f'ед.ч.{FORMS_SEPARATOR}мн.ч.\n'
                                 'Род\n'
@@ -1470,7 +1481,7 @@ def read_local_settings(_filename):
 
 # Сохранить настройки словаря
 def save_local_settings(_min_good_score_perc, _form_parameters, _filename):
-    _local_settings_fn = os.path.join(LOCAL_SETTINGS_DIR, _filename)
+    _local_settings_fn = os.path.join(LOCAL_SETTINGS_PATH, _filename)
     with open(_local_settings_fn, 'w') as _loc_set_file:
         _loc_set_file.write(f'{_min_good_score_perc}\n')
         for _key in _form_parameters.keys():
@@ -1483,7 +1494,7 @@ def save_local_settings(_min_good_score_perc, _form_parameters, _filename):
 
 # Загрузить словарь и его настройки из файлов
 def read_dct(_dct, _filename):
-    _filepath = os.path.join(SAVES_DIR, _filename)
+    _filepath = os.path.join(SAVES_PATH, _filename)
     _res_code = _dct.read(_filepath)
     print()
     if _res_code == 0:  # Если чтение прошло успешно, то выводится соответствующее сообщение
@@ -1505,7 +1516,7 @@ def read_dct(_dct, _filename):
             if _cmd in ['О', 'J']:
                 _filename = input('\nВведите название файла со словарём '
                                   '(если он ещё не существует, то будет создан пустой словарь): ')
-                with open(SETTINGS_FN, 'w') as _set_file:
+                with open(SETTINGS_PATH, 'w') as _set_file:
                     _set_file.write(dct_filename)
                 _dct = Dictionary()
                 read_dct(_dct, _filename)
@@ -1518,7 +1529,7 @@ def read_dct(_dct, _filename):
 
 # Создать и загрузить пустой словарь
 def create_dct(_dct, _filename):
-    _filepath = os.path.join(SAVES_DIR, _filename)
+    _filepath = os.path.join(SAVES_PATH, _filename)
     open(_filepath, 'w')
     _dct.read(_filepath)
     print(f'\nФайл "{_filename}" успешно создан и открыт')
@@ -1527,7 +1538,7 @@ def create_dct(_dct, _filename):
 
 # Сохранить словарь и его настройки
 def save_all(_dct, _min_good_score_perc, _form_parameters, _filename):
-    _filepath = os.path.join(SAVES_DIR, _filename)
+    _filepath = os.path.join(SAVES_PATH, _filename)
     _dct.save(_filepath)
     save_local_settings(_min_good_score_perc, _form_parameters, _filename)
 
@@ -1592,7 +1603,7 @@ def rename_frm_param(_parameters, _dct):
             if _new_key not in _parameters:
                 break
             warn('Параметр с таким названием уже есть')
-        #_dct.rename_forms_param(_index)
+        # _dct.rename_forms_param(_index)
         _parameters[_new_key] = _parameters[_key]
         _parameters.pop(_key)
 
@@ -1664,15 +1675,15 @@ def forms_settings(_dct, _form_parameters):
 print('======================================================================================\n')
 print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
 print(f'                                  {Fore.GREEN}Dictionary{Style.RESET_ALL}  v6.0.0')
-print('                                   24.12.2022 18:16\n')
+print('                                   25.12.2022 14:45\n')
 print('======================================================================================')
 
 try:  # Открываем файл с названием словаря
-    open(SETTINGS_FN, 'r')
+    open(SETTINGS_PATH, 'r')
 except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-    with open(SETTINGS_FN, 'w') as set_file:
+    with open(SETTINGS_PATH, 'w') as set_file:
         set_file.write('words.txt')
-with open(SETTINGS_FN, 'r') as set_file:
+with open(SETTINGS_PATH, 'r') as set_file:
     dct_filename = set_file.readline().strip()
 
 dct = Dictionary()
@@ -1857,7 +1868,7 @@ while True:
             print(f'\nСуществующие словари:')
             f_count = 0
             f_list = []
-            for filename in os.listdir(SAVES_DIR):
+            for filename in os.listdir(SAVES_PATH):
                 base_name, ext = os.path.splitext(filename)
                 if ext == '.txt':
                     if filename == dct_filename:
@@ -1895,11 +1906,11 @@ while True:
                     warn('Файл с таким названием уже существует')
                     continue
 
-                os.rename(os.path.join(SAVES_DIR, old_name), os.path.join(SAVES_DIR, new_name))
-                os.rename(os.path.join(LOCAL_SETTINGS_DIR, old_name), os.path.join(LOCAL_SETTINGS_DIR, new_name))
+                os.rename(os.path.join(SAVES_PATH, old_name), os.path.join(SAVES_PATH, new_name))
+                os.rename(os.path.join(LOCAL_SETTINGS_PATH, old_name), os.path.join(LOCAL_SETTINGS_PATH, new_name))
                 if dct_filename == old_name:
                     dct_filename = new_name
-                    with open(SETTINGS_FN, 'w') as set_file:
+                    with open(SETTINGS_PATH, 'w') as set_file:
                         set_file.write(new_name)
                 print(f'\nСловарь "{old_name}" успешно переименован в "{new_name}"')
             elif cmd in ['У', 'E']:
@@ -1915,8 +1926,8 @@ while True:
 
                 cmd = input(f'Вы уверены? Словарь "{filename}" будет безвозвратно удалён! (+ или -): ')
                 if cmd == '+':
-                    os.remove(os.path.join(SAVES_DIR, filename))
-                    os.remove(os.path.join(LOCAL_SETTINGS_DIR, filename))
+                    os.remove(os.path.join(SAVES_PATH, filename))
+                    os.remove(os.path.join(LOCAL_SETTINGS_PATH, filename))
                     print(f'\nСловарь "{filename}" успешно удалён')
             elif cmd in ['С', 'C']:
                 filename = input('\nВведите название файла со словарём: ')
@@ -1932,7 +1943,7 @@ while True:
                 if has_changes:
                     save_if_has_changes(dct, min_good_score_perc, form_parameters, dct_filename)
                 dct_filename = filename
-                with open(SETTINGS_FN, 'w') as set_file:
+                with open(SETTINGS_PATH, 'w') as set_file:
                     set_file.write(filename)
                 dct = Dictionary()
                 min_good_score_perc, form_parameters = create_dct(dct, filename)
@@ -1947,7 +1958,7 @@ while True:
                 if has_changes:
                     save_if_has_changes(dct, min_good_score_perc, form_parameters, dct_filename)
                 dct_filename = filename
-                with open(SETTINGS_FN, 'w') as set_file:
+                with open(SETTINGS_PATH, 'w') as set_file:
                     set_file.write(filename)
                 dct = Dictionary()
                 min_good_score_perc, form_parameters = read_dct(dct, filename)
