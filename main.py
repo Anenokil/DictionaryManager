@@ -1128,19 +1128,19 @@ class Dictionary(object):
     def random_hard(self, _min_good_score_perc):
         _sum = 0
         for _entry in self.d.values():
-            _sum += (100 - round(100 * _entry.score)) * 5 + 1
+            _sum += (100 - round(100 * _entry.score)) * 7 + 1
             if _entry.all_att < 5:
                 _sum += (5 - _entry.all_att) * 20
             if 100 * _entry.score < _min_good_score_perc:
-                _sum += 60
+                _sum += 100
         _r = random.randint(1, _sum)
 
         for _key in self.d.keys():
-            _r -= (100 - round(100 * self.d[_key].score)) * 5 + 1
+            _r -= (100 - round(100 * self.d[_key].score)) * 7 + 1
             if self.d[_key].all_att < 5:
                 _r -= (5 - self.d[_key].all_att) * 20
             if 100 * self.d[_key].score < _min_good_score_perc:
-                _r -= 60
+                _r -= 100
             if _r <= 0:
                 return _key
 
@@ -1675,7 +1675,7 @@ def forms_settings(_dct, _form_parameters):
 print('======================================================================================\n')
 print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
 print(f'                                  {Fore.GREEN}Dictionary{Style.RESET_ALL}  v6.0.0')
-print('                                   25.12.2022 14:45\n')
+print('                                   25.12.2022 15:34\n')
 print('======================================================================================')
 
 try:  # Открываем файл с названием словаря
