@@ -1,10 +1,5 @@
 import os
 import random
-from colorama import Fore, Style
-import ctypes  # Для цветного текста в консоли Windows
-
-kernel32 = ctypes.windll.kernel32
-kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
 RESOURCES_DIR = 'resources'
 SAVES_DIR = 'saves'
@@ -35,17 +30,17 @@ FORMS_SEPARATOR = '@'
 
 # Вывести предупреждение о некорректном вводе с указанием ввода
 def warn_inp(_text, _input):
-    print(f'{Fore.RED}{_text}: "{_input}"{Style.RESET_ALL}')
+    print(f'[!] {_text}: "{_input}" [!]')
 
 
 # Вывести другое предупреждение
 def warn(_text):
-    print(f'{Fore.RED}{_text}{Style.RESET_ALL}')
+    print(f'[!] {_text} [!]')
 
 
 # Вывести предложение специального действия
 def spec_action(_text):
-    print(f'{Fore.YELLOW}{_text}{Style.RESET_ALL}')
+    print(f'{_text} (*)')
 
 
 # Добавить немецкие буквы
@@ -215,7 +210,7 @@ def construct_frm_template(_form_parameters):
         _is_void = (_res == _void_frm)
         print()
         if not _is_void:
-            print(f'{Fore.MAGENTA}Текущий шаблон формы: {tpl(_res)}{Style.RESET_ALL}\n')
+            print(f'Текущий шаблон формы: {tpl(_res)}\n')
 
         print('Выберите параметр')
         for _i in range(len(_parameters)):
@@ -238,7 +233,7 @@ def find_matches(_wrd, _search_wrd):
         if _pos != -1:
             _coded_wrd = code(_wrd)
             _end = _pos + _len
-            _res = f'{_coded_wrd[:_pos]}{Fore.GREEN}{_coded_wrd[_pos:_end]}{Style.RESET_ALL}{_coded_wrd[_end:]}'
+            _res = f'{_coded_wrd[:_pos]}[{_coded_wrd[_pos:_end]}]{_coded_wrd[_end:]}'
             return _res
     return ''
 
@@ -297,28 +292,21 @@ class Entry(object):
 
     # Напечатать статистику
     def stat_print(self, _min_good_score_perc, _end='\n'):
-        if 100 * self.score < _min_good_score_perc:
-            print(Fore.RED, end='')
-        elif self.last_att > 0:
-            print(Fore.YELLOW, end='')
-        else:
-            print(Fore.GREEN, end='')
         if self.last_att == -1:
             print('[-:  0%]', end=_end)
         else:
             _score = '{:.0%}'.format(self.score)
             _tab = ' ' * (4 - len(_score))
             print(f'[{self.last_att}:{_tab}{_score}]', end=_end)
-        print(Style.RESET_ALL, end='')
 
     # Служебный метод для print_briefly и print_briefly_with_forms
     def _print_briefly(self, _min_good_score_perc):
         if self.fav:
-            print(f'{Fore.MAGENTA}(*){Style.RESET_ALL}', end=' ')
+            print('(*)', end=' ')
         else:
             print('   ', end=' ')
         self.stat_print(_min_good_score_perc, _end=' ')
-        print(f'{code(self.wrd)}{Fore.RED}: {Style.RESET_ALL}', end='')
+        print(f'{code(self.wrd)}: ', end='')
         self.tr_print()
 
     # Напечатать статью - кратко
@@ -345,7 +333,7 @@ class Entry(object):
     # Напечатать статью - перевод с формой и со статистикой
     def print_tr_and_frm_with_stat(self, _frm_key, _min_good_score_perc):
         self.tr_print(_end=' ')
-        print(f'{Fore.BLUE}({tpl(_frm_key)}){Style.RESET_ALL}', end=' ')
+        print(f'({tpl(_frm_key)})', end=' ')
         self.stat_print(_min_good_score_perc)
 
     # Напечатать статью - со всей редактируемой информацией
@@ -581,17 +569,17 @@ class Entry(object):
 def guess_wrd(_entry, _count_correct, _count_all, _min_good_score_perc):
     print()
     _entry.print_tr_with_stat(_min_good_score_perc)
-    _ans = input(f'Введите слово {Fore.YELLOW}(# - чтобы закончить, @ - чтобы посмотреть сноски){Style.RESET_ALL}: ')
+    _ans = input('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
     if _ans == '@':
         _entry.notes_print()
-        _ans = input(f'Введите слово {Fore.YELLOW}(# - чтобы закончить){Style.RESET_ALL}: ')
+        _ans = input('Введите слово (# - чтобы закончить): ')
     if _ans == '#':
-        print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
+        print(f'Ваш результат: {_count_correct}/{_count_all}')
         return 1
 
     if _ans == _entry.wrd:
         _entry.correct_try()
-        print(f'{Fore.GREEN}Верно{Style.RESET_ALL}')
+        print('Верно')
         if _entry.fav:
             _fav = input('Оставить слово в избранном? (+ или -): ')
             if _fav == '-':
@@ -599,7 +587,7 @@ def guess_wrd(_entry, _count_correct, _count_all, _min_good_score_perc):
         return 2
     else:
         _entry.incorrect_try()
-        print(f'{Fore.RED}Неверно. Правильный ответ: "{_entry.wrd}"{Style.RESET_ALL}')
+        print(f'Неверно. Правильный ответ: "{_entry.wrd}"')
         if not _entry.fav:
             _fav = input('Добавить слово в избранное? (+ или -): ')
             if _fav == '+':
@@ -611,18 +599,18 @@ def guess_wrd(_entry, _count_correct, _count_all, _min_good_score_perc):
 def guess_form(_entry, _wrd_f, _count_correct, _count_all, _min_good_score_perc):
     print()
     _entry.print_tr_and_frm_with_stat(_wrd_f, _min_good_score_perc)
-    _ans = input(f'Введите слово в данной форме {Fore.YELLOW}(# - чтобы закончить, @ - чтобы посмотреть сноски)'
-                 f'{Style.RESET_ALL}: ')
+    _ans = input('Введите слово в данной форме (# - чтобы закончить, @ - чтобы посмотреть сноски)'
+                 f': ')
     if _ans == '@':
         _entry.notes_print()
-        _ans = input(f'Введите слово в данной форме {Fore.YELLOW}(# - чтобы закончить){Style.RESET_ALL}: ')
+        _ans = input('Введите слово в данной форме (# - чтобы закончить): ')
     if _ans == '#':
-        print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
+        print(f'Ваш результат: {_count_correct}/{_count_all}')
         return 1
 
     if _ans == _entry.forms[_wrd_f]:
         _entry.correct_try()
-        print(f'{Fore.GREEN}Верно{Style.RESET_ALL}')
+        print('Верно')
         if _entry.fav:
             _fav = input('Оставить слово в избранном? (+ или -): ')
             if _fav == '-':
@@ -630,7 +618,7 @@ def guess_form(_entry, _wrd_f, _count_correct, _count_all, _min_good_score_perc)
         return 2
     else:
         _entry.incorrect_try()
-        print(f'{Fore.RED}Неверно. Правильный ответ: "{_entry.forms[_wrd_f]}"{Style.RESET_ALL}')
+        print(f'Неверно. Правильный ответ: "{_entry.forms[_wrd_f]}"')
         if not _entry.fav:
             _fav = input('Добавить слово в избранное? (+ или -): ')
             if _fav == '+':
@@ -642,17 +630,17 @@ def guess_form(_entry, _wrd_f, _count_correct, _count_all, _min_good_score_perc)
 def guess_tr(_entry, _count_correct, _count_all, _min_good_score_perc):
     print()
     _entry.print_wrd_with_stat(_min_good_score_perc)
-    _ans = input(f'Введите перевод {Fore.YELLOW}(# - чтобы закончить, @ - чтобы посмотреть сноски){Style.RESET_ALL}: ')
+    _ans = input('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
     if _ans == '@':
         _entry.notes_print()
-        _ans = input(f'Введите перевод {Fore.YELLOW}(# - чтобы закончить){Style.RESET_ALL}: ')
+        _ans = input('Введите перевод (# - чтобы закончить): ')
     if _ans == '#':
-        print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
+        print(f'Ваш результат: {_count_correct}/{_count_all}')
         return 1
 
     if _ans in _entry.tr:
         _entry.correct_try()
-        print(f'{Fore.GREEN}Верно{Style.RESET_ALL}')
+        print('Верно')
         if _entry.fav:
             _fav = input('Оставить слово в избранном? (+ или -): ')
             if _fav == '-':
@@ -660,7 +648,7 @@ def guess_tr(_entry, _count_correct, _count_all, _min_good_score_perc):
         return 2
     else:
         _entry.incorrect_try()
-        print(f'{Fore.RED}Неверно. Правильный ответ: {_entry.tr}{Style.RESET_ALL}')
+        print(f'Неверно. Правильный ответ: {_entry.tr}')
         if not _entry.fav:
             _fav = input('Добавить слово в избранное? (+ или -): ')
             if _fav == '+':
@@ -709,8 +697,7 @@ class Dictionary(object):
         _w = set_postfix(self.count_w, ('слово', 'слова', 'слов'))
         _f = set_postfix(self.count_w + self.count_f, ('словоформа', 'словоформы', 'словоформ'))
         _t = set_postfix(self.count_t, ('перевод', 'перевода', 'переводов'))
-        print(f'{Fore.BLUE}< {self.count_w} {_w} | {self.count_w + self.count_f} {_f} | '
-              f'{self.count_t} {_t} >{Style.RESET_ALL}')
+        print(f'< {self.count_w} {_w} | {self.count_w + self.count_f} {_f} | {self.count_t} {_t} >')
 
     # Напечатать словарь
     def print(self, _min_good_score_perc):
@@ -729,9 +716,9 @@ class Dictionary(object):
         _w = set_postfix(_count_w, ('слово', 'слова', 'слов'))
         _f = set_postfix(_count_w + self.count_f, ('словоформа', 'словоформы', 'словоформ'))
         _t = set_postfix(_count_t, ('перевод', 'перевода', 'переводов'))
-        print(f'{Fore.BLUE}< {_count_w}/{self.count_w} {_w} | '
+        print(f'< {_count_w}/{self.count_w} {_w} | '
               f'{_count_w + _count_f}/{self.count_w + self.count_f} {_f} | '
-              f'{_count_t}/{self.count_t} {_t} >{Style.RESET_ALL}')
+              f'{_count_t}/{self.count_t} {_t} >')
 
     # Напечатать словарь (только избранные слова)
     def print_fav(self, _min_good_score_perc):
@@ -769,7 +756,7 @@ class Dictionary(object):
                 _is_found = True
                 print(_res)
         if not _is_found:
-            print(f'{Fore.RED}Частичных совпадений не найдено{Style.RESET_ALL}')
+            print('Частичных совпадений не найдено')
 
     # Напечатать статьи, в которых переводы содержат данную строку
     def print_translations_with_str(self, _search_tr):
@@ -788,7 +775,7 @@ class Dictionary(object):
                     print(_res, end='')
         print()
         if not _is_found:
-            print(f'{Fore.RED}Частичных совпадений не найдено{Style.RESET_ALL}')
+            print('Частичных совпадений не найдено')
 
     # Выбрать одну статью из нескольких с одинаковыми словами
     def choose_one_of_similar_entries(self, _wrd):
@@ -801,7 +788,7 @@ class Dictionary(object):
             if _key not in self.d.keys():
                 _max_i = _i - 1
                 break
-            print(f'{Fore.MAGENTA}\n({_i + 1}){Style.RESET_ALL}')
+            print(f'\n({_i + 1})')
             self.d[_key].print_all()
         while True:
             _cmd = input('\nВведите номер варианта: ')
@@ -838,7 +825,7 @@ class Dictionary(object):
     def edit_wrd(self, _key, _new_wrd):
         if wrd_to_key(_new_wrd, 0) in self.d.keys():  # Если уже есть статья с таким словом
             while True:
-                print(f'\n{Fore.YELLOW}Статья с таким словом уже есть в словаре{Style.RESET_ALL}')
+                print('\nСтатья с таким словом уже есть в словаре')
                 print('Что вы хотите сделать?')
                 print('Д - Добавить к существующей статье')
                 print('Н - создать Новую статью')
@@ -920,7 +907,7 @@ class Dictionary(object):
     def add_entry(self, _wrd, _tr, _show_msg=True):
         if wrd_to_key(_wrd, 0) in self.d.keys():  # Если уже есть статья с таким словом
             while True:
-                print(f'\n{Fore.YELLOW}Статья с таким словом уже есть в словаре{Style.RESET_ALL}')
+                print('\nСтатья с таким словом уже есть в словаре')
                 print('Что вы хотите сделать?')
                 print('Д - Добавить к существующей статье')
                 print('Н - создать Новую статью')
@@ -1151,7 +1138,7 @@ class Dictionary(object):
         _used_words = set()
         while True:
             if len(_used_words) == self.count_w:
-                print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
+                print(f'Ваш результат: {_count_correct}/{_count_all}')
                 break
             while True:
                 _key = random.choice(list(self.d.keys()))
@@ -1178,7 +1165,7 @@ class Dictionary(object):
         while True:
             while True:
                 if len(_used_words) == self.count_w:
-                    print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
+                    print(f'Ваш результат: {_count_correct}/{_count_all}')
                     return
                 _key = random.choice(list(self.d.keys()))
                 if not self.d[_key].fav:
@@ -1206,7 +1193,7 @@ class Dictionary(object):
         _used_words = set()
         while True:
             if len(_used_words) == self.count_w:
-                print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
+                print(f'Ваш результат: {_count_correct}/{_count_all}')
                 break
             while True:
                 _key = self.random_hard(_min_good_score_perc)
@@ -1232,7 +1219,7 @@ class Dictionary(object):
         _used_words = set()
         while True:
             if len(_used_words) == self.count_w + self.count_f:
-                print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
+                print(f'Ваш результат: {_count_correct}/{_count_all}')
                 break
             while True:
                 _key = random.choice(list(self.d.keys()))
@@ -1267,7 +1254,7 @@ class Dictionary(object):
         while True:
             while True:
                 if len(_used_words) == self.count_w + self.count_f:
-                    print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
+                    print(f'Ваш результат: {_count_correct}/{_count_all}')
                     return
                 _key = random.choice(list(self.d.keys()))
                 if not self.d[_key].fav:
@@ -1305,7 +1292,7 @@ class Dictionary(object):
         _used_words = set()
         while True:
             if len(_used_words) == self.count_w + self.count_f:
-                print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
+                print(f'Ваш результат: {_count_correct}/{_count_all}')
                 break
             while True:
                 _key = self.random_hard(_min_good_score_perc)
@@ -1339,7 +1326,7 @@ class Dictionary(object):
         _used_words = set()
         while True:
             if len(_used_words) == self.count_w:
-                print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
+                print(f'Ваш результат: {_count_correct}/{_count_all}')
                 break
             while True:
                 _key = random.choice(list(self.d.keys()))
@@ -1366,7 +1353,7 @@ class Dictionary(object):
         while True:
             while True:
                 if len(_used_words) == self.count_w:
-                    print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
+                    print(f'Ваш результат: {_count_correct}/{_count_all}')
                     return
                 _key = random.choice(list(self.d.keys()))
                 if not self.d[_key].fav:
@@ -1394,7 +1381,7 @@ class Dictionary(object):
         _used_words = set()
         while True:
             if len(_used_words) == self.count_w:
-                print(f'{Fore.MAGENTA}Ваш результат: {_count_correct}/{_count_all}{Style.RESET_ALL}')
+                print(f'Ваш результат: {_count_correct}/{_count_all}')
                 break
             while True:
                 _key = self.random_hard(_min_good_score_perc)
@@ -1498,7 +1485,7 @@ def read_dct(_dct, _filename):
     _res_code = _dct.read(_filepath)
     print()
     if _res_code == 0:  # Если чтение прошло успешно, то выводится соответствующее сообщение
-        print(f'Файл со словарём {Fore.YELLOW}"{_filename}"{Style.RESET_ALL} открыт')
+        print(f'Файл со словарём "{_filename}" открыт')
         return read_local_settings(_filename)
     elif _res_code == 1:  # Если файл отсутствует, то создаётся пустой словарь
         warn(f'Файл "{_filename}" не найден')
@@ -1548,7 +1535,7 @@ def save_if_has_changes(_dct, _min_good_score_perc, _form_parameters, _filename)
     _cmd = input('\nХотите сохранить изменения и свой прогресс? (+ или -): ')
     if _cmd == '+':
         save_all(_dct, _min_good_score_perc, _form_parameters, _filename)
-        print(f'\n{Fore.GREEN}Изменения и прогресс успешно сохранены{Style.RESET_ALL}')
+        print('\nИзменения и прогресс успешно сохранены')
 
 
 # Добавить параметр словоформ
@@ -1673,9 +1660,9 @@ def forms_settings(_dct, _form_parameters):
 
 # Вывод информации о программе
 print('======================================================================================\n')
-print(f'                            {Fore.RED}Anenokil development{Style.RESET_ALL}  presents')
-print(f'                                  {Fore.GREEN}Dictionary{Style.RESET_ALL}  v6.0.0')
-print('                                   25.12.2022 15:34\n')
+print(f'                            Anenokil development  presents')
+print(f'                                  Dictionary  v6.0.1')
+print('                                   27.12.2022 21:30\n')
 print('======================================================================================')
 
 try:  # Открываем файл с названием словаря
@@ -1689,11 +1676,7 @@ with open(SETTINGS_PATH, 'r') as set_file:
 dct = Dictionary()
 min_good_score_perc, form_parameters = read_dct(dct, dct_filename)  # Загружаем словарь и его настройки
 
-print(f'\nИспользуйте эти комбинации для немецких букв: '
-      f'{Fore.YELLOW}#a = ä{Style.RESET_ALL}, '
-      f'{Fore.YELLOW}#o = ö{Style.RESET_ALL}, '
-      f'{Fore.YELLOW}#u = ü{Style.RESET_ALL}, '
-      f'{Fore.YELLOW}#s = ß{Style.RESET_ALL}')
+print('\nМожете использовать эти комбинации для немецких букв: #a = ä, #o = ö, #u = ü, #s = ß (and ## = #)')
 
 has_changes = False
 while True:
@@ -1752,7 +1735,7 @@ while True:
 
         print('\nПолное совпадение:')
         if wrd_to_key(search_wrd, 0) not in dct.d.keys():
-            print(f'{Fore.RED}Слово "{code(search_wrd)}" отсутствует в словаре{Style.RESET_ALL}')
+            print(f'Слово "{code(search_wrd)}" отсутствует в словаре')
             continue
         for i in range(MAX_SAME_WORDS):
             key = wrd_to_key(search_wrd, i)
@@ -1774,9 +1757,9 @@ while True:
                 print()
                 entry.print_all()
         if not is_found:
-            print(f'{Fore.RED}Слово с переводом "{code(search_tr)}" отсутствует в словаре{Style.RESET_ALL}')
+            print(f'Слово с переводом "{code(search_tr)}" отсутствует в словаре')
     elif cmd in ['У', 'E']:
-        print(Fore.MAGENTA + '\nВаша общая доля правильных ответов: {:.2%}'.format(dct.count_rating()) + Style.RESET_ALL)
+        print('\nВаша общая доля правильных ответов: {:.2%}'.format(dct.count_rating()))
         print('\nВыберите способ')
         print('1 - Угадывать слово по переводу')
         print('2 - Угадывать перевод по слову')
@@ -1861,7 +1844,7 @@ while True:
                 warn_inp('Неизвестная команда', cmd)
     elif cmd in ['С', 'C']:
         save_all(dct, min_good_score_perc, form_parameters, dct_filename)
-        print(f'\n{Fore.GREEN}Изменения и прогресс успешно сохранены{Style.RESET_ALL}')
+        print('\nИзменения и прогресс успешно сохранены')
         has_changes = False
     elif cmd in ['СЛ', 'CK']:
         while True:
@@ -1872,7 +1855,7 @@ while True:
                 base_name, ext = os.path.splitext(filename)
                 if ext == '.txt':
                     if filename == dct_filename:
-                        print(f'{f_count} - {filename} {Fore.MAGENTA}(ТЕКУЩИЙ){Style.RESET_ALL}')
+                        print(f'{f_count} - {filename} (ТЕКУЩИЙ)')
                     else:
                         print(f'{f_count} - {filename}')
                     f_list += [filename]
