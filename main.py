@@ -30,8 +30,7 @@ FORMS_SEPARATOR = '@'
 
 # Ввод
 def inp(_text=''):
-    _res = input(_text)
-    return _res
+    return input(_text)
 
 
 # Вывод
@@ -1671,8 +1670,8 @@ def forms_settings(_dct, _form_parameters):
 # Вывод информации о программе
 outp('======================================================================================\n')
 outp('                            Anenokil development  presents')
-outp('                                  Dictionary  v6.0.3')
-outp('                                   30.12.2022  0:55\n')
+outp('                                  Dictionary  v6.0.4')
+outp('                                   30.12.2022  1:11\n')
 outp('======================================================================================')
 
 try:  # Открываем файл с названием словаря
