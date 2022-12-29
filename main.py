@@ -491,14 +491,14 @@ class Entry(object):
         self.last_att += _last_att
 
     # Обновить статистику, если совершена верная попытка
-    def correct_try(self):
+    def correct_att(self):
         self.all_att += 1
         self.correct_att += 1
         self.score = self.correct_att / self.all_att
         self.last_att = 0
 
     # Обновить статистику, если совершена неверная попытка
-    def incorrect_try(self):
+    def incorrect_att(self):
         self.all_att += 1
         self.score = self.correct_att / self.all_att
         if self.last_att == -1:
@@ -589,7 +589,7 @@ def guess_wrd(_entry, _count_correct, _count_all, _min_good_score_perc):
         return 1
 
     if _ans == _entry.wrd:
-        _entry.correct_try()
+        _entry.correct_att()
         outp('Верно')
         if _entry.fav:
             _fav = inp('Оставить слово в избранном? (+ или -): ')
@@ -597,7 +597,7 @@ def guess_wrd(_entry, _count_correct, _count_all, _min_good_score_perc):
                 _entry.fav = False
         return 2
     else:
-        _entry.incorrect_try()
+        _entry.incorrect_att()
         outp(f'Неверно. Правильный ответ: "{_entry.wrd}"')
         if not _entry.fav:
             _fav = inp('Добавить слово в избранное? (+ или -): ')
@@ -619,7 +619,7 @@ def guess_form(_entry, _wrd_f, _count_correct, _count_all, _min_good_score_perc)
         return 1
 
     if _ans == _entry.forms[_wrd_f]:
-        _entry.correct_try()
+        _entry.correct_att()
         outp('Верно')
         if _entry.fav:
             _fav = inp('Оставить слово в избранном? (+ или -): ')
@@ -627,7 +627,7 @@ def guess_form(_entry, _wrd_f, _count_correct, _count_all, _min_good_score_perc)
                 _entry.fav = False
         return 2
     else:
-        _entry.incorrect_try()
+        _entry.incorrect_att()
         outp(f'Неверно. Правильный ответ: "{_entry.forms[_wrd_f]}"')
         if not _entry.fav:
             _fav = inp('Добавить слово в избранное? (+ или -): ')
@@ -649,7 +649,7 @@ def guess_tr(_entry, _count_correct, _count_all, _min_good_score_perc):
         return 1
 
     if _ans in _entry.tr:
-        _entry.correct_try()
+        _entry.correct_att()
         outp('Верно')
         if _entry.fav:
             _fav = inp('Оставить слово в избранном? (+ или -): ')
@@ -657,7 +657,7 @@ def guess_tr(_entry, _count_correct, _count_all, _min_good_score_perc):
                 _entry.fav = False
         return 2
     else:
-        _entry.incorrect_try()
+        _entry.incorrect_att()
         outp(f'Неверно. Правильный ответ: {_entry.tr}')
         if not _entry.fav:
             _fav = inp('Добавить слово в избранное? (+ или -): ')
