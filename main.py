@@ -380,8 +380,8 @@ class Entry(object):
                 print(f'              > {code(self.notes[_i])}')
         print(f'   Избранное: {self.fav}')
         if self.last_att == -1:
-            print(f'  Статистика: 1) Последних неверных ответов: -')
-            print(f'              2) Доля верных ответов: 0')
+            print('  Статистика: 1) Последних неверных ответов: -')
+            print('              2) Доля верных ответов: 0')
         else:
             print(f'  Статистика: 1) Последних неверных ответов: {self.last_att}')
             print(f'              2) Доля верных ответов: '
@@ -599,8 +599,7 @@ def guess_wrd(_entry, _count_correct, _count_all, _min_good_score_perc):
 def guess_form(_entry, _wrd_f, _count_correct, _count_all, _min_good_score_perc):
     print()
     _entry.print_tr_and_frm_with_stat(_wrd_f, _min_good_score_perc)
-    _ans = input('Введите слово в данной форме (# - чтобы закончить, @ - чтобы посмотреть сноски)'
-                 f': ')
+    _ans = input('Введите слово в данной форме (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
     if _ans == '@':
         _entry.notes_print()
         _ans = input('Введите слово в данной форме (# - чтобы закончить): ')
@@ -1660,9 +1659,9 @@ def forms_settings(_dct, _form_parameters):
 
 # Вывод информации о программе
 print('======================================================================================\n')
-print(f'                            Anenokil development  presents')
-print(f'                                  Dictionary  v6.0.1')
-print('                                   27.12.2022 21:30\n')
+print('                            Anenokil development  presents')
+print('                                  Dictionary  v6.0.2')
+print('                                   29.12.2022 22:59\n')
 print('======================================================================================')
 
 try:  # Открываем файл с названием словаря
@@ -1848,7 +1847,7 @@ while True:
         has_changes = False
     elif cmd in ['СЛ', 'CK']:
         while True:
-            print(f'\nСуществующие словари:')
+            print('\nСуществующие словари:')
             f_count = 0
             f_list = []
             for filename in os.listdir(SAVES_PATH):
@@ -1861,11 +1860,11 @@ while True:
                     f_list += [filename]
                     f_count += 1
 
-            print(f'\nЧто вы хотите сделать?')
-            print(f'О - Открыть словарь')
-            print(f'С - Создать новый словарь')
-            print(f'П - Переименовать словарь')
-            print(f'У - Удалить словарь')
+            print('\nЧто вы хотите сделать?')
+            print('О - Открыть словарь')
+            print('С - Создать новый словарь')
+            print('П - Переименовать словарь')
+            print('У - Удалить словарь')
             spec_action('Н - Назад')
             cmd = input().upper()
 
