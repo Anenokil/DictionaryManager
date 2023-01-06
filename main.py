@@ -1455,13 +1455,13 @@ def read_local_settings(_filename):
                                 'Число\n'
                                 f'ед.ч.{FORMS_SEPARATOR}мн.ч.\n'
                                 'Род\n'
-                                f'м.р.{FORMS_SEPARATOR}ж.р.{FORMS_SEPARATOR}с.р.\n'
+                                f'м.р.{FORMS_SEPARATOR}ж.р.{FORMS_SEPARATOR}ср.р.\n'
                                 'Падеж\n'
                                 f'им.п.{FORMS_SEPARATOR}род.п.{FORMS_SEPARATOR}дат.п.{FORMS_SEPARATOR}вин.п.\n'
                                 'Лицо\n'
                                 f'1 л.{FORMS_SEPARATOR}2 л.{FORMS_SEPARATOR}3 л.\n'
                                 'Время\n'
-                                f'пр.вр.{FORMS_SEPARATOR}н.вр.{FORMS_SEPARATOR}б.вр.')
+                                f'пр.вр.{FORMS_SEPARATOR}н.вр.{FORMS_SEPARATOR}буд.вр.')
 
     _form_parameters = {}
     with open(_local_settings_fn, 'r') as _loc_set_file:
