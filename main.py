@@ -12,8 +12,8 @@ else:
     from Tkinter.filedialog import askdirectory
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_2'
-PROGRAM_DATE = '10.1.2023  17:48'
+PROGRAM_VERSION = 'v7.0.0-PRE_3'
+PROGRAM_DATE = '10.1.2023  19:21'
 
 """ Стили """
 
