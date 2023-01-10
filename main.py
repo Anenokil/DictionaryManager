@@ -12,8 +12,8 @@ else:
     from Tkinter.filedialog import askdirectory
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_3'
-PROGRAM_DATE = '10.1.2023  19:21'
+PROGRAM_VERSION = 'v7.0.0-PRE_4'
+PROGRAM_DATE = '10.1.2023  20:13'
 
 """ Стили """
 
@@ -463,32 +463,32 @@ class Entry(object):
         outp(f'   Избранное: {self.fav}')
 
     # Напечатать статью - со всей информацией
-    def print_all(self):
-        outp(f'       Слово: {code(self.wrd)}')
-        outp('     Перевод: ', _end='')
-        self.tr_print()
-        outp(' Формы слова: ', _end='')
+    def print_all(self, _output_widget):
+        outp(_dst=_output_widget, _text=f'       Слово: {code(self.wrd)}')
+        outp(_dst=_output_widget, _text='     Перевод: ', _end='')
+        self.tr_print(_output_widget)
+        outp(_dst=_output_widget, _text=' Формы слова: ', _end='')
         if self.count_f == 0:
-            outp('-')
+            outp(_dst=_output_widget, _text='-')
         else:
             _keys = [_key for _key in self.forms.keys()]
-            outp(f'[{tpl(_keys[0])}] {code(self.forms[_keys[0]])}')
+            outp(_dst=_output_widget, _text=f'[{tpl(_keys[0])}] {code(self.forms[_keys[0]])}')
             for _i in range(1, self.count_f):
-                outp(f'              [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
-        outp('      Сноски: ', _end='')
+                outp(_dst=_output_widget, _text=f'              [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
+        outp(_dst=_output_widget, _text='      Сноски: ', _end='')
         if self.count_n == 0:
-            outp('-')
+            outp(_dst=_output_widget, _text='-')
         else:
-            outp(f'> {code(self.notes[0])}')
+            outp(_dst=_output_widget, _text=f'> {code(self.notes[0])}')
             for _i in range(1, self.count_n):
-                outp(f'              > {code(self.notes[_i])}')
-        outp(f'   Избранное: {self.fav}')
+                outp(_dst=_output_widget, _text=f'              > {code(self.notes[_i])}')
+        outp(_dst=_output_widget, _text=f'   Избранное: {self.fav}')
         if self.last_att == -1:
-            outp('  Статистика: 1) Последних неверных ответов: -')
-            outp('              2) Доля верных ответов: 0')
+            outp(_dst=_output_widget, _text='  Статистика: 1) Последних неверных ответов: -')
+            outp(_dst=_output_widget, _text='              2) Доля верных ответов: 0')
         else:
-            outp(f'  Статистика: 1) Последних неверных ответов: {self.last_att}')
-            outp(f'              2) Доля верных ответов: '
+            outp(_dst=_output_widget, _text=f'  Статистика: 1) Последних неверных ответов: {self.last_att}')
+            outp(_dst=_output_widget, _text=f'              2) Доля верных ответов: '
                  f'{self.correct_att}/{self.all_att} = ' + '{:.0%}'.format(self.score))
 
     # Добавить перевод
@@ -852,19 +852,19 @@ class Dictionary(object):
         self._print_stat_fav(_output_widget, _count_w, _count_t, _count_f)
 
     # Напечатать статьи, в которых слова содержат данную строку
-    def print_words_with_str(self, _search_wrd):
+    def print_words_with_str(self, _dst, _search_wrd):
         _is_found = False
         for _key in self.d.keys():
             _wrd = key_to_wrd(_key)
             _res = find_matches(_wrd, _search_wrd)
             if _res != '':
                 _is_found = True
-                outp(_res)
+                outp(_dst=_dst, _text=_res)
         if not _is_found:
-            outp('Частичных совпадений не найдено')
+            outp(_dst=_dst, _text='Частичных совпадений не найдено')
 
     # Напечатать статьи, в которых переводы содержат данную строку
-    def print_translations_with_str(self, _search_tr):
+    def print_translations_with_str(self, _dst, _search_tr):
         _is_found = False
         for _entry in self.d.values():
             _is_first = True
@@ -874,13 +874,13 @@ class Dictionary(object):
                     _is_found = True
                     if _is_first:
                         _is_first = False
-                        outp()
+                        outp(_dst=_dst, _text='')
                     else:
-                        outp(', ', _end='')
-                    outp(_res, _end='')
-        outp()
+                        outp(_dst=_dst, _text=', ', _end='')
+                    outp(_dst=_dst, _text=_res, _end='')
+        outp(_dst=_dst, _text='')
         if not _is_found:
-            outp('Частичных совпадений не найдено')
+            outp(_dst=_dst, _text='Частичных совпадений не найдено')
 
     # Выбрать одну статью из нескольких с одинаковыми словами
     def choose_one_of_similar_entries(self, _wrd):
@@ -1912,56 +1912,77 @@ class SearchW(tk.Toplevel):
 
         self.frame_main = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
         # {
-        self.lbl_input   = tk.Label(self.frame_main, text='Введите слово:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.lbl_input   = tk.Label(self.frame_main, text='Введите запрос:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.entry_input = tk.Entry(self.frame_main, textvariable=self.var_wrd, width=60, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
         self.btn_search = tk.Button(self.frame_main, text='Поиск', command=self.search, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
         # }
-        self.scrollbar = tk.Scrollbar(self, bg=ST_BG[st])
-        self.text_res  = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        self.lbl_wrd       = tk.Label(self, text='Поиск по слову', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.scrollbar_wrd = tk.Scrollbar(self, bg=ST_BG[st])
+        self.text_wrd      = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        self.lbl_tr        = tk.Label(self, text='Поиск по переводу', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.scrollbar_tr  = tk.Scrollbar(self, bg=ST_BG[st])
+        self.text_tr       = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,  bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
 
-        self.frame_main.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
+        self.frame_main.grid(row=0, columnspan=4, padx=6, pady=(6, 4))
         # {
         self.lbl_input.grid(  row=0, column=0, padx=(6, 1), pady=6, sticky='E')
         self.entry_input.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
         self.btn_search.grid( row=0, column=2, padx=6,      pady=6)
         # }
-        self.text_res.grid( row=1, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.lbl_wrd.grid(      row=1, column=0, columnspan=2, padx=(6, 3), pady=(0, 3))
+        self.lbl_tr.grid(       row=1, column=2, columnspan=2, padx=(3, 6), pady=(0, 3))
+        self.text_wrd.grid(     row=2, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar_wrd.grid(row=2, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.text_tr.grid(      row=2, column=2, padx=(0, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar_tr.grid( row=2, column=3, padx=(0, 6), pady=(0, 6), sticky='NSW')
 
-        self.scrollbar.config(command=self.text_res.yview)
+        self.scrollbar_wrd.config(command=self.text_wrd.yview)
+        self.scrollbar_tr.config( command=self.text_tr.yview)
 
     # Поиск статьи
     def search(self):
+        # Поиск по слову
         search_wrd = self.var_wrd.get()
 
-        outp('\nЧастичное совпадение:')
-        dct.print_words_with_str(search_wrd)
+        self.text_wrd['state'] = 'normal'
+        self.text_wrd.delete(1.0, tk.END)
 
-        outp('\nПолное совпадение:')
+        outp(_dst=self.text_wrd, _text='Частичное совпадение:')
+        dct.print_words_with_str(self.text_wrd, search_wrd)
+
+        outp(_dst=self.text_wrd, _text='\nПолное совпадение:')
         if wrd_to_key(search_wrd, 0) not in dct.d.keys():
-            outp(f'Слово "{code(search_wrd)}" отсутствует в словаре')
+            outp(_dst=self.text_wrd, _text=f'Слово "{code(search_wrd)}" отсутствует в словаре', _end='')
         else:
             for i in range(MAX_SAME_WORDS):
                 key = wrd_to_key(search_wrd, i)
                 if key not in dct.d.keys():
                     break
-                outp()
-                dct.d[key].print_all()
-        ######
+                outp(_dst=self.text_wrd, _text='')
+                dct.d[key].print_all(self.text_wrd)
+
+        self.text_wrd['state'] = 'disabled'
+
+        # Поиск по переводу
         search_tr = self.var_wrd.get()
 
-        outp('\nЧастичное совпадение:', _end='')
-        dct.print_translations_with_str(search_tr)
+        self.text_tr['state'] = 'normal'
+        self.text_tr.delete(1.0, tk.END)
 
-        outp('\nПолное совпадение:')
+        outp(_dst=self.text_tr, _text='Частичное совпадение:', _end='')
+        dct.print_translations_with_str(self.text_tr, search_tr)
+
+        outp(_dst=self.text_tr, _text='\nПолное совпадение:')
         is_found = False
         for entry in dct.d.values():
             if search_tr in entry.tr:
                 is_found = True
-                outp()
-                entry.print_all()
+                outp(_dst=self.text_tr, _text='')
+                entry.print_all(self.text_tr)
         if not is_found:
-            outp(f'Слово с переводом "{code(search_tr)}" отсутствует в словаре')
+            outp(_dst=self.text_tr, _text=f'Слово с переводом "{code(search_tr)}" отсутствует в словаре', _end='')
+
+        self.text_tr['state'] = 'disabled'
 
     def open(self):
         self.grab_set()
@@ -2714,6 +2735,5 @@ root.mainloop()
 
 # Возможно вы искали частичных совпадений не найдено
 # строка 56 - добавить выбор стилей
-# find_matches: добавить проверку деления на ноль
 # AddW: добавление в избранное при создании
 # Попробовать tk.ScrolledText
