@@ -5,15 +5,13 @@ import sys
 if sys.version_info[0] == 3:
     import tkinter as tk
     import tkinter.ttk as ttk
-    from tkinter.filedialog import askdirectory
 else:
     import Tkinter as tk
     import Tkinter.ttk as ttk
-    from Tkinter.filedialog import askdirectory
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_4'
-PROGRAM_DATE = '10.1.2023  20:13'
+PROGRAM_VERSION = 'v7.0.0-PRE_5'
+PROGRAM_DATE = '11.1.2023 3:24'
 
 """ Стили """
 
@@ -55,6 +53,8 @@ ST_PROG_ABORT = {'light': '#FFB050', 'dark': '#FFB040', 'infernal': '#222222'}  
 ST_PROG_DONE  = {'light': '#0077FF', 'dark': '#1133DD', 'infernal': '#AA1166'}  # bg
 st = 'light'
 
+""" Папки и файлы """
+
 RESOURCES_DIR = 'resources'
 SAVES_DIR = 'saves'
 SAVES_PATH = os.path.join(RESOURCES_DIR, SAVES_DIR)
@@ -70,7 +70,12 @@ if SAVES_DIR not in os.listdir(RESOURCES_DIR):
 if LOCAL_SETTINGS_DIR not in os.listdir(RESOURCES_DIR):
     os.mkdir(LOCAL_SETTINGS_PATH)
 
+""" Другое """
+
 FORMS_SEPARATOR = '@'
+
+VALUES_ORDER = ('Угадывать слово по переводу', 'Угадывать перевод по слову')
+VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только избранные')
 
 """
     Про формы:
@@ -425,20 +430,20 @@ class Entry(object):
         self.notes_print(_output_widget, _tab=13)
 
     # Напечатать статью - слово со статистикой
-    def print_wrd_with_stat(self, _min_good_score_perc):
-        outp(code(self.wrd), _end=' ')
-        self.stat_print(_min_good_score_perc)
+    def print_wrd_with_stat(self, _output_widget, _min_good_score_perc):
+        outp(_dst=_output_widget, _text=code(self.wrd), _end=' ')
+        self.stat_print(_output_widget, _min_good_score_perc)
 
     # Напечатать статью - перевод со статистикой
-    def print_tr_with_stat(self, _min_good_score_perc):
-        self.tr_print(_end=' ')
-        self.stat_print(_min_good_score_perc)
+    def print_tr_with_stat(self, _output_widget, _min_good_score_perc):
+        self.tr_print(_output_widget, _end=' ')
+        self.stat_print(_output_widget, _min_good_score_perc)
 
     # Напечатать статью - перевод с формой и со статистикой
-    def print_tr_and_frm_with_stat(self, _frm_key, _min_good_score_perc):
-        self.tr_print(_end=' ')
-        outp(f'({tpl(_frm_key)})', _end=' ')
-        self.stat_print(_min_good_score_perc)
+    def print_tr_and_frm_with_stat(self, _output_widget, _frm_key, _min_good_score_perc):
+        self.tr_print(_output_widget, _end=' ')
+        outp(_dst=_output_widget, _text=f'({tpl(_frm_key)})', _end=' ')
+        self.stat_print(_output_widget, _min_good_score_perc)
 
     # Напечатать статью - со всей редактируемой информацией
     def print_editable(self):
@@ -667,96 +672,6 @@ class Entry(object):
             _file.write(f'f{code_tpl(_frm_key)}\n{self.forms[_frm_key]}\n')
         if self.fav:
             _file.write('*\n')
-
-
-# Угадать слово по переводу
-def guess_wrd(_entry, _count_correct, _count_all, _min_good_score_perc):
-    outp()
-    _entry.print_tr_with_stat(_min_good_score_perc)
-    _ans = inp('Введите слово (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-    if _ans == '@':
-        _entry.notes_print()
-        _ans = inp('Введите слово (# - чтобы закончить): ')
-    if _ans == '#':
-        outp(f'Ваш результат: {_count_correct}/{_count_all}')
-        return 1
-
-    if _ans == _entry.wrd:
-        _entry.correct()
-        outp('Верно')
-        if _entry.fav:
-            _fav = inp('Оставить слово в избранном? (+ или -): ')
-            if _fav == '-':
-                _entry.fav = False
-        return 2
-    else:
-        _entry.incorrect()
-        outp(f'Неверно. Правильный ответ: "{_entry.wrd}"')
-        if not _entry.fav:
-            _fav = inp('Добавить слово в избранное? (+ или -): ')
-            if _fav == '+':
-                _entry.fav = True
-        return 3
-
-
-# Угадать словоформу по переводу
-def guess_form(_entry, _wrd_f, _count_correct, _count_all, _min_good_score_perc):
-    outp()
-    _entry.print_tr_and_frm_with_stat(_wrd_f, _min_good_score_perc)
-    _ans = inp('Введите слово в данной форме (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-    if _ans == '@':
-        _entry.notes_print()
-        _ans = inp('Введите слово в данной форме (# - чтобы закончить): ')
-    if _ans == '#':
-        outp(f'Ваш результат: {_count_correct}/{_count_all}')
-        return 1
-
-    if _ans == _entry.forms[_wrd_f]:
-        _entry.correct()
-        outp('Верно')
-        if _entry.fav:
-            _fav = inp('Оставить слово в избранном? (+ или -): ')
-            if _fav == '-':
-                _entry.fav = False
-        return 2
-    else:
-        _entry.incorrect()
-        outp(f'Неверно. Правильный ответ: "{_entry.forms[_wrd_f]}"')
-        if not _entry.fav:
-            _fav = inp('Добавить слово в избранное? (+ или -): ')
-            if _fav == '+':
-                _entry.fav = True
-        return 3
-
-
-# Угадать перевод по слову
-def guess_tr(_entry, _count_correct, _count_all, _min_good_score_perc):
-    outp()
-    _entry.print_wrd_with_stat(_min_good_score_perc)
-    _ans = inp('Введите перевод (# - чтобы закончить, @ - чтобы посмотреть сноски): ')
-    if _ans == '@':
-        _entry.notes_print()
-        _ans = inp('Введите перевод (# - чтобы закончить): ')
-    if _ans == '#':
-        outp(f'Ваш результат: {_count_correct}/{_count_all}')
-        return 1
-
-    if _ans in _entry.tr:
-        _entry.correct()
-        outp('Верно')
-        if _entry.fav:
-            _fav = inp('Оставить слово в избранном? (+ или -): ')
-            if _fav == '-':
-                _entry.fav = False
-        return 2
-    else:
-        _entry.incorrect()
-        outp(f'Неверно. Правильный ответ: {_entry.tr}')
-        if not _entry.fav:
-            _fav = inp('Добавить слово в избранное? (+ или -): ')
-            if _fav == '+':
-                _entry.fav = True
-        return 3
 
 
 MAX_SAME_WORDS = 100  # Максимальное количество статей с одинаковым словом
@@ -1236,275 +1151,6 @@ class Dictionary(object):
             if _r <= 0:
                 return _key
 
-    # Учить слова - все
-    def learn(self, _min_good_score_perc):
-        _count_all = 0
-        _count_correct = 0
-        _used_words = set()
-        while True:
-            if len(_used_words) == self.count_w:
-                outp(f'Ваш результат: {_count_correct}/{_count_all}')
-                break
-            while True:
-                _key = random.choice(list(self.d.keys()))
-                if _key not in _used_words:
-                    break
-
-            _res_code = guess_wrd(self.d[_key], _count_correct, _count_all, _min_good_score_perc)
-            if _res_code == 1:
-                break
-            elif _res_code == 2:
-                _count_all += 1
-                _count_correct += 1
-                _used_words.add(_key)
-            elif _res_code == 3:
-                _count_all += 1
-
-        return True
-
-    # Учить слова - избранные
-    def learn_fav(self, _min_good_score_perc):
-        _count_all = 0
-        _count_correct = 0
-        _used_words = set()
-        while True:
-            while True:
-                if len(_used_words) == self.count_w:
-                    outp(f'Ваш результат: {_count_correct}/{_count_all}')
-                    return
-                _key = random.choice(list(self.d.keys()))
-                if not self.d[_key].fav:
-                    _used_words.add(_key)
-                    continue
-                if _key not in _used_words:
-                    break
-
-            _res_code = guess_wrd(self.d[_key], _count_correct, _count_all, _min_good_score_perc)
-            if _res_code == 1:
-                break
-            elif _res_code == 2:
-                _count_all += 1
-                _count_correct += 1
-                _used_words.add(_key)
-            elif _res_code == 3:
-                _count_all += 1
-
-        return True
-
-    # Учить слова - все, сначала сложные
-    def learn_hard(self, _min_good_score_perc):
-        _count_all = 0
-        _count_correct = 0
-        _used_words = set()
-        while True:
-            if len(_used_words) == self.count_w:
-                outp(f'Ваш результат: {_count_correct}/{_count_all}')
-                break
-            while True:
-                _key = self.random_hard(_min_good_score_perc)
-                if _key not in _used_words:
-                    break
-
-            _res_code = guess_wrd(self.d[_key], _count_correct, _count_all, _min_good_score_perc)
-            if _res_code == 1:
-                break
-            elif _res_code == 2:
-                _count_all += 1
-                _count_correct += 1
-                _used_words.add(_key)
-            elif _res_code == 3:
-                _count_all += 1
-
-        return True
-
-    # Учить слова (словоформы) - все
-    def learn_f(self, _min_good_score_perc):
-        _count_all = 0
-        _count_correct = 0
-        _used_words = set()
-        while True:
-            if len(_used_words) == self.count_w + self.count_f:
-                outp(f'Ваш результат: {_count_correct}/{_count_all}')
-                break
-            while True:
-                _key = random.choice(list(self.d.keys()))
-                _rnd_f = random.randint(-1, self.d[_key].count_f - 1)
-                if _rnd_f == -1:
-                    _wrd_f = _key
-                    if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_wrd(self.d[_key], _count_correct, _count_all, _min_good_score_perc)
-                        break
-                else:
-                    _wrd_f = list(self.d[_key].forms.keys())[_rnd_f]
-                    if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_form(self.d[_key], _wrd_f, _count_correct, _count_all, _min_good_score_perc)
-                        break
-
-            if _res_code == 1:
-                break
-            elif _res_code == 2:
-                _count_all += 1
-                _count_correct += 1
-                _used_words.add((_key, _wrd_f))
-            elif _res_code == 3:
-                _count_all += 1
-
-        return True
-
-    # Учить слова (словоформы) - избранные
-    def learn_f_fav(self, _min_good_score_perc):
-        _count_all = 0
-        _count_correct = 0
-        _used_words = set()
-        while True:
-            while True:
-                if len(_used_words) == self.count_w + self.count_f:
-                    outp(f'Ваш результат: {_count_correct}/{_count_all}')
-                    return
-                _key = random.choice(list(self.d.keys()))
-                if not self.d[_key].fav:
-                    _used_words.add((_key, _key))
-                    for _frm in self.d[_key].forms.keys():
-                        _used_words.add((_key, _frm))
-                    continue
-                _rnd_f = random.randint(-1, self.d[_key].count_f - 1)
-                if _rnd_f == -1:
-                    _wrd_f = _key
-                    if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_wrd(self.d[_key], _count_correct, _count_all, _min_good_score_perc)
-                        break
-                else:
-                    _wrd_f = list(self.d[_key].forms.keys())[_rnd_f]
-                    if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_form(self.d[_key], _wrd_f, _count_correct, _count_all, _min_good_score_perc)
-                        break
-
-            if _res_code == 1:
-                break
-            elif _res_code == 2:
-                _count_all += 1
-                _count_correct += 1
-                _used_words.add((_key, _wrd_f))
-            elif _res_code == 3:
-                _count_all += 1
-
-        return True
-
-    # Учить слова (словоформы) - все, сначала сложные
-    def learn_f_hard(self, _min_good_score_perc):
-        _count_all = 0
-        _count_correct = 0
-        _used_words = set()
-        while True:
-            if len(_used_words) == self.count_w + self.count_f:
-                outp(f'Ваш результат: {_count_correct}/{_count_all}')
-                break
-            while True:
-                _key = self.random_hard(_min_good_score_perc)
-                _rnd_f = random.randint(-1, self.d[_key].count_f - 1)
-                if _rnd_f == -1:
-                    _wrd_f = _key
-                    if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_wrd(self.d[_key], _count_correct, _count_all, _min_good_score_perc)
-                        break
-                else:
-                    _wrd_f = list(self.d[_key].forms.keys())[_rnd_f]
-                    if (_key, _wrd_f) not in _used_words:
-                        _res_code = guess_form(self.d[_key], _wrd_f, _count_correct, _count_all, _min_good_score_perc)
-                        break
-
-            if _res_code == 1:
-                break
-            elif _res_code == 2:
-                _count_all += 1
-                _count_correct += 1
-                _used_words.add((_key, _wrd_f))
-            elif _res_code == 3:
-                _count_all += 1
-
-        return True
-
-    # Учить слова (обр.) - все
-    def learn_t(self, _min_good_score_perc):
-        _count_all = 0
-        _count_correct = 0
-        _used_words = set()
-        while True:
-            if len(_used_words) == self.count_w:
-                outp(f'Ваш результат: {_count_correct}/{_count_all}')
-                break
-            while True:
-                _key = random.choice(list(self.d.keys()))
-                if _key not in _used_words:
-                    break
-
-            _res_code = guess_tr(self.d[_key], _count_correct, _count_all, _min_good_score_perc)
-            if _res_code == 1:
-                break
-            elif _res_code == 2:
-                _count_all += 1
-                _count_correct += 1
-                _used_words.add(_key)
-            elif _res_code == 3:
-                _count_all += 1
-
-        return True
-
-    # Учить слова (обр.) - избранные
-    def learn_t_fav(self, _min_good_score_perc):
-        _count_all = 0
-        _count_correct = 0
-        _used_words = set()
-        while True:
-            while True:
-                if len(_used_words) == self.count_w:
-                    outp(f'Ваш результат: {_count_correct}/{_count_all}')
-                    return
-                _key = random.choice(list(self.d.keys()))
-                if not self.d[_key].fav:
-                    _used_words.add(_key)
-                    continue
-                if _key not in _used_words:
-                    break
-
-            _res_code = guess_tr(self.d[_key], _count_correct, _count_all, _min_good_score_perc)
-            if _res_code == 1:
-                break
-            elif _res_code == 2:
-                _count_all += 1
-                _count_correct += 1
-                _used_words.add(_key)
-            elif _res_code == 3:
-                _count_all += 1
-
-        return True
-
-    # Учить слова (обр.) - все, сначала сложные
-    def learn_t_hard(self, _min_good_score_perc):
-        _count_all = 0
-        _count_correct = 0
-        _used_words = set()
-        while True:
-            if len(_used_words) == self.count_w:
-                outp(f'Ваш результат: {_count_correct}/{_count_all}')
-                break
-            while True:
-                _key = self.random_hard(_min_good_score_perc)
-                if _key not in _used_words:
-                    break
-
-            _res_code = guess_tr(self.d[_key], _count_correct, _count_all, _min_good_score_perc)
-            if _res_code == 1:
-                break
-            elif _res_code == 2:
-                _count_all += 1
-                _count_correct += 1
-                _used_words.add(_key)
-            elif _res_code == 3:
-                _count_all += 1
-
-        return True
-
     # Сохранить словарь в файл
     def save(self, _filename):
         with open(_filename, 'w') as _file:
@@ -1789,6 +1435,16 @@ def validate_percent(value):
     return value == '' or value.isnumeric() and int(value) <= 100
 
 
+# При выборе второго способа учёбы, нельзя добавить словоформы
+def validate_order_and_forms(value, check_forms):
+    print(value)
+    if value == VALUES_ORDER[1]:
+        check_forms['state'] = 'disabled'
+    else:
+        check_forms['state'] = 'normal'
+    return True
+
+
 # Всплывающее окно с сообщением
 class PopupMsgW(tk.Toplevel):
     def __init__(self, parent, msg, btn_text='Ясно', title=PROGRAM_NAME):
@@ -1822,6 +1478,8 @@ class PopupDialogueW(tk.Toplevel):
         self.destroy()
 
     def open(self):
+        self.grab_set()
+        self.wait_window()
         return self.answer
 
 
@@ -2319,11 +1977,9 @@ class LearnChooseW(tk.Toplevel):
 
         self.res = None
 
-        self.VALUES_ORDER = ('Угадывать слово по переводу', 'Угадывать перевод по слову')
-        self.VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только избранные')
-        self.var_order = tk.StringVar(value=self.VALUES_ORDER[0])
+        self.var_order = tk.StringVar(value=VALUES_ORDER[0])
         self.var_forms = tk.BooleanVar(value=True)
-        self.var_words = tk.StringVar(value=self.VALUES_WORDS[0])
+        self.var_words = tk.StringVar(value=VALUES_WORDS[0])
 
         # Стили для некоторых настроек
         self.st_combo = ttk.Style()
@@ -2337,13 +1993,13 @@ class LearnChooseW(tk.Toplevel):
         self.frame_main = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
         # {
         self.lbl_order = tk.Label(self.frame_main, text='Метод:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
-        self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=self.VALUES_ORDER, width=30, state='readonly', style='.TCombobox')
+        self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=VALUES_ORDER, validate='focusin', width=30, state='readonly', style='.TCombobox')
         self.lbl_forms = tk.Label(self.frame_main, text='Все словоформы:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='.TCheckbutton')
         self.lbl_words = tk.Label(self.frame_main, text='Подбор слов:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
-        self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=self.VALUES_WORDS, width=30, state='readonly', style='.TCombobox')
+        self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=VALUES_WORDS, width=30, state='readonly', style='.TCombobox')
         # }
-        self.btn_learn = tk.Button(self, text='Учить', command=self.learn, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        self.btn_start = tk.Button(self, text='Учить', command=self.start, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
 
         self.lbl_header.grid( row=0, column=0, padx=6, pady=(6, 3))
         self.frame_main.grid( row=1, column=0, padx=6, pady=(0, 3))
@@ -2355,10 +2011,13 @@ class LearnChooseW(tk.Toplevel):
         self.lbl_words.grid(  row=3, column=0, padx=(3, 1), pady=(0, 3), sticky='E')
         self.combo_words.grid(row=3, column=1, padx=(0, 3), pady=(0, 3), sticky='W')
         # }
-        self.btn_learn.grid(  row=2, column=0, padx=6, pady=(0, 6))
+        self.btn_start.grid(  row=2, column=0, padx=6, pady=(0, 6))
+
+        self.vcmd_order = (self.register(lambda value: validate_order_and_forms(value, self.check_forms)), '%P')
+        self.combo_order['validatecommand'] = self.vcmd_order
 
     # Учить слова
-    def learn(self):
+    def start(self):
         order = self.var_order.get()
         forms = self.var_forms.get()
         words = self.var_words.get()
@@ -2379,57 +2038,399 @@ class LearnW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[st])
 
+        self.current_key = None
+        self.current_form = None
+        self.rnd_f = None
+        self.count_all = 0
+        self.count_correct = 0
+        self.used_words = set()
         self.conf = conf
-        self.VALUES_ORDER = ('Угадывать слово по переводу', 'Угадывать перевод по слову')
-        self.VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только избранные')
+
+        self.var_input = tk.StringVar()
 
         self.scrollbar = tk.Scrollbar(self, bg=ST_BG[st])
         self.text_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
         self.scrollbar.config(command=self.text_dct.yview)
-        self.btn_learn = tk.Button(self, text='Учить', command=self.learn, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        self.frame_main = tk.Frame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # { {
+        self.btn_input = tk.Button(self.frame_main, text='Ввод', command=self.input, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        self.entry_input = tk.Entry(self.frame_main, textvariable=self.var_input, width=50, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.btn_notes = tk.Button(self.frame_main, text='Посмотреть сноски', command=self.notes, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        # } }
+        self.btn_stop  = tk.Button(self, text='Закончить', command=self.stop, bg=ST_CLOSE[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_CLS_SELECT[st])
 
-        self.text_dct.grid( row=0, column=0,     padx=(6, 0), pady=6,      sticky='NSEW')
-        self.scrollbar.grid(row=0, column=1,     padx=(0, 6), pady=6,      sticky='NSW')
-        self.btn_learn.grid(row=1, columnspan=2, padx=6,      pady=(0, 6))
+        self.text_dct.grid(  row=0, column=0,     padx=(6, 0), pady=6, sticky='NSEW')
+        self.scrollbar.grid( row=0, column=1,     padx=(0, 6), pady=6, sticky='NSW')
+        self.frame_main.grid(row=1, columnspan=2, padx=6,      pady=6)
+        # { {
+        self.btn_input.grid(  row=0, column=0, padx=(0, 3), pady=0, sticky='E')
+        self.entry_input.grid(row=0, column=1, padx=(0, 3), pady=0, sticky='W')
+        self.btn_notes.grid(  row=0, column=2, padx=0,      pady=0, sticky='W')
+        # } }
+        self.btn_stop.grid(row=2, columnspan=2, padx=6, pady=6)
 
-    # Напечатать одну статью
-    def add_log(self, msg='', tab=0, end='\n'):
+        self.start()
+
+    # Печать в текстовое поле
+    def outp(self, msg='', end='\n'):
         self.text_dct['state'] = 'normal'
-        if self.text_dct.yview()[1] == 1.0:
-            self.text_dct.insert(tk.END, ' ' * tab + str(msg) + end)
-            self.text_dct.yview_moveto(1.0)
-        else:
-            self.text_dct.insert(tk.END, ' ' * tab + str(msg) + end)
+        self.text_dct.insert(tk.END, msg + end)
+        self.text_dct.yview_moveto(1.0)
         self.text_dct['state'] = 'disabled'
 
     # Учить слова
-    def learn(self):
+    def start(self):
         global has_changes
+
         order = self.conf[0]
         forms = self.conf[1]
         words = self.conf[2]
-        if order == self.VALUES_ORDER[0]:
+        if order == VALUES_ORDER[0]:
             if forms:
-                if words == self.VALUES_WORDS[0]:
-                    has_changes = dct.learn_f(min_good_score_perc) or has_changes
-                elif words == self.VALUES_WORDS[1]:
-                    has_changes = dct.learn_f_hard(min_good_score_perc) or has_changes
+                if words == VALUES_WORDS[0]:
+                    has_changes = self.choose_f(dct, min_good_score_perc) or has_changes
+                elif words == VALUES_WORDS[1]:
+                    has_changes = self.choose_f_hard(dct, min_good_score_perc) or has_changes
                 else:
-                    has_changes = dct.learn_f_fav(min_good_score_perc) or has_changes
+                    has_changes = self.choose_f_fav(dct, min_good_score_perc) or has_changes
             else:
-                if words == self.VALUES_WORDS[0]:
-                    has_changes = dct.learn(min_good_score_perc) or has_changes
-                elif words == self.VALUES_WORDS[1]:
-                    has_changes = dct.learn_hard(min_good_score_perc) or has_changes
+                if words == VALUES_WORDS[0]:
+                    has_changes = self.choose(dct, min_good_score_perc) or has_changes
+                elif words == VALUES_WORDS[1]:
+                    has_changes = self.choose_hard(dct, min_good_score_perc) or has_changes
                 else:
-                    has_changes = dct.learn_fav(min_good_score_perc) or has_changes
+                    has_changes = self.choose_fav(dct, min_good_score_perc) or has_changes
         else:
-            if words == self.VALUES_WORDS[0]:
-                has_changes = dct.learn_t(min_good_score_perc) or has_changes
-            elif words == self.VALUES_WORDS[1]:
-                has_changes = dct.learn_t_hard(min_good_score_perc) or has_changes
+            if words == VALUES_WORDS[0]:
+                has_changes = self.choose_t(dct, min_good_score_perc) or has_changes
+            elif words == VALUES_WORDS[1]:
+                has_changes = self.choose_t_hard(dct, min_good_score_perc) or has_changes
             else:
-                has_changes = dct.learn_t_fav(min_good_score_perc) or has_changes
+                has_changes = self.choose_t_fav(dct, min_good_score_perc) or has_changes
+
+    # Ввод ответа
+    def input(self):
+        global has_changes
+
+        order = self.conf[0]
+        forms = self.conf[1]
+        words = self.conf[2]
+
+        if order == VALUES_ORDER[1]:
+            self.check_tr()
+        elif forms and self.rnd_f != -1:
+            self.check_form()
+        else:
+            self.check_wrd()
+
+        if order == VALUES_ORDER[0]:
+            if forms:
+                if words == VALUES_WORDS[0]:
+                    has_changes = self.choose_f(dct, min_good_score_perc) or has_changes
+                elif words == VALUES_WORDS[1]:
+                    has_changes = self.choose_f_hard(dct, min_good_score_perc) or has_changes
+                else:
+                    has_changes = self.choose_f_fav(dct, min_good_score_perc) or has_changes
+            else:
+                if words == VALUES_WORDS[0]:
+                    has_changes = self.choose(dct, min_good_score_perc) or has_changes
+                elif words == VALUES_WORDS[1]:
+                    has_changes = self.choose_hard(dct, min_good_score_perc) or has_changes
+                else:
+                    has_changes = self.choose_fav(dct, min_good_score_perc) or has_changes
+        else:
+            if words == VALUES_WORDS[0]:
+                has_changes = self.choose_t(dct, min_good_score_perc) or has_changes
+            elif words == VALUES_WORDS[1]:
+                has_changes = self.choose_t_hard(dct, min_good_score_perc) or has_changes
+            else:
+                has_changes = self.choose_t_fav(dct, min_good_score_perc) or has_changes
+
+        self.btn_notes['state'] = 'normal'
+
+    # Просмотр сносок
+    def notes(self):
+        self.text_dct['state'] = 'normal'
+        _entry = dct.d[self.current_key]
+        _entry.notes_print(self.text_dct)
+        self.text_dct.yview_moveto(1.0)
+        self.text_dct['state'] = 'disabled'
+        self.btn_notes['state'] = 'disabled'
+
+    # Завершение учёбы
+    def stop(self):
+        self.frame_main.grid_remove()
+        self.btn_stop.grid_remove()
+
+        if len(self.used_words) == dct.count_w:
+            PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
+        self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}')
+
+    # Проверка введённого слова
+    def check_wrd(self):
+        _entry = dct.d[self.current_key]
+        if self.entry_input.get() == _entry.wrd:
+            _entry.correct()
+            self.outp('Верно\n')
+            if _entry.fav:
+                w = PopupDialogueW(self, 'Оставить слово в избранном?', 'Да', 'Нет')
+                _answer = w.open()
+                if not _answer:
+                    _entry.fav = False
+            self.count_all += 1
+            self.count_correct += 1
+            self.used_words.add(self.current_key)
+        else:
+            _entry.incorrect()
+            self.outp(f'Неверно. Правильный ответ: "{_entry.wrd}"\n')
+            if not _entry.fav:
+                w = PopupDialogueW(self, 'Добавить слово в избранное?', 'Да', 'Нет')
+                _answer = w.open()
+                if _answer:
+                    _entry.fav = True
+            self.count_all += 1
+
+    # Проверка введённой словоформы
+    def check_form(self):
+        _entry = dct.d[self.current_key]
+        if self.entry_input.get() == _entry.forms[self.current_form]:
+            _entry.correct()
+            self.outp('Верно\n')
+            if _entry.fav:
+                w = PopupDialogueW(self, 'Оставить слово в избранном?', 'Да', 'Нет')
+                _answer = w.open()
+                if not _answer:
+                    _entry.fav = False
+            self.count_all += 1
+            self.count_correct += 1
+            self.used_words.add((self.current_key, self.current_form))
+        else:
+            _entry.incorrect()
+            self.outp(f'Неверно. Правильный ответ: "{_entry.forms[self.current_form]}"\n')
+            if not _entry.fav:
+                w = PopupDialogueW(self, 'Добавить слово в избранное?', 'Да', 'Нет')
+                _answer = w.open()
+                if _answer:
+                    _entry.fav = True
+            self.count_all += 1
+
+    # Проверка введённого перевода
+    def check_tr(self):
+        _entry = dct.d[self.current_key]
+        if self.entry_input.get() in _entry.tr:
+            _entry.correct()
+            self.outp('Верно\n')
+            if _entry.fav:
+                w = PopupDialogueW(self, 'Оставить слово в избранном?', 'Да', 'Нет')
+                _answer = w.open()
+                if not _answer:
+                    _entry.fav = False
+            self.count_all += 1
+            self.count_correct += 1
+            self.used_words.add(self.current_key)
+        else:
+            _entry.incorrect()
+            self.outp(f'Неверно. Правильный ответ: "{_entry.tr}"\n')
+            if not _entry.fav:
+                w = PopupDialogueW(self, 'Добавить слово в избранное?', 'Да', 'Нет')
+                _answer = w.open()
+                if _answer:
+                    _entry.fav = True
+            self.count_all += 1
+
+    # Выбор слова - все
+    def choose(self, _dct, _min_good_score_perc):
+        if len(self.used_words) == dct.count_w:
+            self.stop()
+            return
+        while True:
+            self.current_key = random.choice(list(dct.d.keys()))
+            if self.current_key not in self.used_words:
+                break
+
+        self.text_dct['state'] = 'normal'
+        dct.d[self.current_key].print_tr_with_stat(self.text_dct, min_good_score_perc)
+        self.text_dct['state'] = 'disabled'
+        self.outp('Введите слово')
+
+        return True
+
+    # Выбор слова - избранные
+    def choose_fav(self, _dct, _min_good_score_perc):
+        while True:
+            if len(self.used_words) == _dct.count_w:
+                self.stop()
+                return
+            self.current_key = random.choice(list(_dct.d.keys()))
+            if not _dct.d[self.current_key].fav:
+                self.used_words.add(self.current_key)
+                continue
+            if self.current_key not in self.used_words:
+                break
+
+        self.text_dct['state'] = 'normal'
+        dct.d[self.current_key].print_tr_with_stat(self.text_dct, min_good_score_perc)
+        self.text_dct['state'] = 'disabled'
+        self.outp('Введите слово')
+
+        return True
+
+    # Выбор слова - все, сначала сложные
+    def choose_hard(self, _dct, _min_good_score_perc):
+        if len(self.used_words) == _dct.count_w:
+            self.stop()
+            return
+        while True:
+            self.current_key = _dct.random_hard(_min_good_score_perc)
+            if self.current_key not in self.used_words:
+                break
+
+        self.text_dct['state'] = 'normal'
+        dct.d[self.current_key].print_tr_with_stat(self.text_dct, min_good_score_perc)
+        self.text_dct['state'] = 'disabled'
+        self.outp('Введите слово')
+
+        return True
+
+    # Выбор словоформы - все
+    def choose_f(self, _dct, _min_good_score_perc):
+        if len(self.used_words) == _dct.count_w + _dct.count_f:
+            self.stop()
+            return
+        while True:
+            self.current_key = random.choice(list(_dct.d.keys()))
+            self.rnd_f = random.randint(-1, _dct.d[self.current_key].count_f - 1)
+            if self.rnd_f == -1:
+                self.current_form = self.current_key
+                if self.current_key not in self.used_words:
+                    self.text_dct['state'] = 'normal'
+                    dct.d[self.current_key].print_tr_with_stat(self.text_dct, min_good_score_perc)
+                    self.text_dct['state'] = 'disabled'
+                    self.outp('Введите слово')
+                    break
+            else:
+                self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
+                if (self.current_key, self.current_form) not in self.used_words:
+                    self.text_dct['state'] = 'normal'
+                    dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form, min_good_score_perc)
+                    self.text_dct['state'] = 'disabled'
+                    self.outp('Введите слово в данной форме')
+                    break
+
+        return True
+
+    # Выбор словоформы - избранные
+    def choose_f_fav(self, _dct, _min_good_score_perc):
+        while True:
+            if len(self.used_words) == _dct.count_w + _dct.count_f:
+                self.stop()
+                return
+            self.current_key = random.choice(list(_dct.d.keys()))
+            if not _dct.d[self.current_key].fav:
+                self.used_words.add(self.current_key)
+                for _frm in _dct.d[self.current_key].forms.keys():
+                    self.used_words.add((self.current_key, _frm))
+                continue
+            self.rnd_f = random.randint(-1, _dct.d[self.current_key].count_f - 1)
+            if self.rnd_f == -1:
+                self.current_form = self.current_key
+                if self.current_key not in self.used_words:
+                    self.text_dct['state'] = 'normal'
+                    dct.d[self.current_key].print_tr_with_stat(self.text_dct, min_good_score_perc)
+                    self.text_dct['state'] = 'disabled'
+                    self.outp('Введите слово')
+                    break
+            else:
+                self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
+                if (self.current_key, self.current_form) not in self.used_words:
+                    self.text_dct['state'] = 'normal'
+                    dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form, min_good_score_perc)
+                    self.text_dct['state'] = 'disabled'
+                    self.outp('Введите слово в данной форме')
+                    break
+
+        return True
+
+    # Выбор словоформы - все, сначала сложные
+    def choose_f_hard(self, _dct, _min_good_score_perc):
+        if len(self.used_words) == _dct.count_w + _dct.count_f:
+            self.stop()
+            return
+        while True:
+            self.current_key = _dct.random_hard(_min_good_score_perc)
+            self.rnd_f = random.randint(-1, _dct.d[self.current_key].count_f - 1)
+            if self.rnd_f == -1:
+                self.current_form = self.current_key
+                if self.current_key not in self.used_words:
+                    self.text_dct['state'] = 'normal'
+                    dct.d[self.current_key].print_tr_with_stat(self.text_dct, min_good_score_perc)
+                    self.text_dct['state'] = 'disabled'
+                    self.outp('Введите слово')
+                    break
+            else:
+                self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
+                if (self.current_key, self.current_form) not in self.used_words:
+                    self.text_dct['state'] = 'normal'
+                    dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form, min_good_score_perc)
+                    self.text_dct['state'] = 'disabled'
+                    self.outp('Введите слово в данной форме')
+                    break
+
+        return True
+
+    # Выбор перевода - все
+    def choose_t(self, _dct, _min_good_score_perc):
+        if len(self.used_words) == _dct.count_w:
+            self.stop()
+            return
+        while True:
+            self.current_key = random.choice(list(_dct.d.keys()))
+            if self.current_key not in self.used_words:
+                break
+
+        self.text_dct['state'] = 'normal'
+        dct.d[self.current_key].print_wrd_with_stat(self.text_dct, min_good_score_perc)
+        self.text_dct['state'] = 'disabled'
+        self.outp('Введите перевод')
+
+        return True
+
+    # Выбор перевода - избранные
+    def choose_t_fav(self, _dct, _min_good_score_perc):
+        while True:
+            if len(self.used_words) == _dct.count_w:
+                self.stop()
+                return
+            self.current_key = random.choice(list(_dct.d.keys()))
+            if not _dct.d[self.current_key].fav:
+                self.used_words.add(self.current_key)
+                continue
+            if self.current_key not in self.used_words:
+                break
+
+        self.text_dct['state'] = 'normal'
+        dct.d[self.current_key].print_wrd_with_stat(self.text_dct, min_good_score_perc)
+        self.text_dct['state'] = 'disabled'
+        self.outp('Введите перевод')
+
+        return True
+
+    # Выбор перевода - все, сначала сложные
+    def choose_t_hard(self, _dct, _min_good_score_perc):
+        if len(self.used_words) == _dct.count_w:
+            self.stop()
+            return
+        while True:
+            self.current_key = _dct.random_hard(_min_good_score_perc)
+            if self.current_key not in self.used_words:
+                break
+
+        self.text_dct['state'] = 'normal'
+        dct.d[self.current_key].print_wrd_with_stat(self.text_dct, min_good_score_perc)
+        self.text_dct['state'] = 'disabled'
+        self.outp('Введите перевод')
+
+        return True
 
     def open(self):
         self.grab_set()
