@@ -94,23 +94,26 @@ def inp(_text=''):
 
 
 # Вывод
-def outp(_text='', _end='\n'):
-    print(_text, end=_end)
+def outp(_text='', _end='\n', _dst=None, _mode=tk.INSERT):
+    if _dst == None:
+        print('!!!!!!!!!!!!!')
+        return
+    _dst.insert(_mode, _text + _end)
 
 
 # Вывести предупреждение о некорректном вводе с указанием ввода
-def warn_inp(_text, _input):
-    outp(f'[!] {_text}: "{_input}" [!]')
+def warn_inp(_text, _input, _dst, _mode=tk.INSERT):
+    outp(f'[!] {_text}: "{_input}" [!]', _dst, _mode)
 
 
 # Вывести другое предупреждение
-def warn(_text):
-    outp(f'[!] {_text} [!]')
+def warn(_text, _dst, _mode=tk.INSERT):
+    outp(f'[!] {_text} [!]', _dst, _mode)
 
 
 # Вывести предложение специального действия
-def spec_action(_text):
-    outp(f'{_text} (*)')
+def spec_action(_text, _dst, _mode=tk.INSERT):
+    outp(f'{_text} (*)', _dst, _mode)
 
 
 # Добавить немецкие буквы
@@ -374,52 +377,52 @@ class Entry(object):
         return _res
 
     # Напечатать перевод
-    def tr_print(self, _end='\n'):
+    def tr_print(self, _output_widget, _end='\n'):
         if self.count_t != 0:
-            outp(code(self.tr[0]), _end='')
+            outp(_dst=_output_widget, _text=code(self.tr[0]), _end='')
         for _i in range(1, self.count_t):
-            outp(f', {code(self.tr[_i])}', _end='')
-        outp(_end, _end='')
+            outp(_dst=_output_widget, _text=f', {code(self.tr[_i])}', _end='')
+        outp(_dst=_output_widget, _text='', _end=_end)
 
     # Напечатать сноски
-    def notes_print(self, _tab=0):
+    def notes_print(self, _output_widget, _tab=0):
         for _i in range(self.count_n):
-            outp(' ' * _tab + f'> {code(self.notes[_i])}')
+            outp(_dst=_output_widget, _text=' ' * _tab + f'> {code(self.notes[_i])}')
 
     # Напечатать формы слова
-    def frm_print(self, _tab=0):
+    def frm_print(self, _output_widget, _tab=0):
         for _key in self.forms.keys():
-            outp(' ' * _tab + f'[{tpl(_key)}] {code(self.forms[_key])}')
+            outp(_dst=_output_widget, _text=' ' * _tab + f'[{tpl(_key)}] {code(self.forms[_key])}')
 
     # Напечатать статистику
-    def stat_print(self, _min_good_score_perc, _end='\n'):
+    def stat_print(self, _output_widget, _min_good_score_perc, _end='\n'):
         if self.last_att == -1:
-            outp('[-:  0%]', _end=_end)
+            outp(_dst=_output_widget, _text='[-:  0%]', _end=_end)
         else:
             _score = '{:.0%}'.format(self.score)
             _tab = ' ' * (4 - len(_score))
-            outp(f'[{self.last_att}:{_tab}{_score}]', _end=_end)
+            outp(_dst=_output_widget, _text=f'[{self.last_att}:{_tab}{_score}]', _end=_end)
 
     # Служебный метод для print_briefly и print_briefly_with_forms
-    def _print_briefly(self, _min_good_score_perc):
+    def _print_briefly(self, _output_widget, _min_good_score_perc):
         if self.fav:
-            outp('(*)', _end=' ')
+            outp(_dst=_output_widget, _text='(*)', _end=' ')
         else:
-            outp('   ', _end=' ')
-        self.stat_print(_min_good_score_perc, _end=' ')
-        outp(f'{code(self.wrd)}: ', _end='')
-        self.tr_print()
+            outp(_dst=_output_widget, _text='   ', _end=' ')
+        self.stat_print(_output_widget, _min_good_score_perc, _end=' ')
+        outp(_dst=_output_widget, _text=f'{code(self.wrd)}: ', _end='')
+        self.tr_print(_output_widget)
 
     # Напечатать статью - кратко
-    def print_briefly(self, _min_good_score_perc):
-        self._print_briefly(_min_good_score_perc)
-        self.notes_print(_tab=13)
+    def print_briefly(self, _output_widget, _min_good_score_perc):
+        self._print_briefly(_output_widget, _min_good_score_perc)
+        self.notes_print(_output_widget, _tab=13)
 
     # Напечатать статью - кратко с формами
-    def print_briefly_with_forms(self, _min_good_score_perc):
-        self._print_briefly(_min_good_score_perc)
-        self.frm_print(_tab=13)
-        self.notes_print(_tab=13)
+    def print_briefly_with_forms(self, _output_widget, _min_good_score_perc):
+        self._print_briefly(_output_widget, _min_good_score_perc)
+        self.frm_print(_output_widget, _tab=13)
+        self.notes_print(_output_widget, _tab=13)
 
     # Напечатать статью - слово со статистикой
     def print_wrd_with_stat(self, _min_good_score_perc):
@@ -793,58 +796,60 @@ class Dictionary(object):
         self.count_f = 0
 
     # Служебный метод для print и print_with_forms
-    def _print_stat(self):
+    def _print_stat(self, _output_widget):
         _w = set_postfix(self.count_w, ('слово', 'слова', 'слов'))
         _f = set_postfix(self.count_w + self.count_f, ('словоформа', 'словоформы', 'словоформ'))
         _t = set_postfix(self.count_t, ('перевод', 'перевода', 'переводов'))
-        outp(f'< {self.count_w} {_w} | {self.count_w + self.count_f} {_f} | {self.count_t} {_t} >')
+        outp(_dst=_output_widget,
+             _text=f'\n< {self.count_w} {_w} | {self.count_w + self.count_f} {_f} | {self.count_t} {_t} >')
 
     # Напечатать словарь
-    def print(self, _min_good_score_perc):
+    def print(self, _output_widget, _min_good_score_perc):
         for _entry in self.d.values():
-            _entry.print_briefly(_min_good_score_perc)
-        self._print_stat()
+            _entry.print_briefly(_output_widget, _min_good_score_perc)
+        self._print_stat(_output_widget)
 
     # Напечатать словарь (со всеми формами)
-    def print_with_forms(self, _min_good_score_perc):
+    def print_with_forms(self, _output_widget, _min_good_score_perc):
         for _entry in self.d.values():
-            _entry.print_briefly_with_forms(_min_good_score_perc)
-        self._print_stat()
+            _entry.print_briefly_with_forms(_output_widget, _min_good_score_perc)
+        self._print_stat(_output_widget)
 
     # Служебный метод для print_fav и print_fav_with_forms
-    def _print_stat_fav(self, _count_w, _count_t, _count_f):
+    def _print_stat_fav(self, _output_widget, _count_w, _count_t, _count_f):
         _w = set_postfix(_count_w, ('слово', 'слова', 'слов'))
         _f = set_postfix(_count_w + self.count_f, ('словоформа', 'словоформы', 'словоформ'))
         _t = set_postfix(_count_t, ('перевод', 'перевода', 'переводов'))
-        outp(f'< {_count_w}/{self.count_w} {_w} | '
+        outp(_dst=_output_widget,
+             _text=f'\n< {_count_w}/{self.count_w} {_w} | '
              f'{_count_w + _count_f}/{self.count_w + self.count_f} {_f} | '
              f'{_count_t}/{self.count_t} {_t} >')
 
     # Напечатать словарь (только избранные слова)
-    def print_fav(self, _min_good_score_perc):
+    def print_fav(self, _output_widget, _min_good_score_perc):
         _count_w = 0
         _count_t = 0
         _count_f = 0
         for _entry in self.d.values():
             if _entry.fav:
-                _entry.print_briefly(_min_good_score_perc)
+                _entry.print_briefly(_output_widget, _min_good_score_perc)
                 _count_w += 1
                 _count_t += _entry.count_t
                 _count_f += _entry.count_f
-        self._print_stat_fav(_count_w, _count_t, _count_f)
+        self._print_stat_fav(_output_widget, _count_w, _count_t, _count_f)
 
     # Напечатать словарь (только избранные слова, со всеми формами)
-    def print_fav_with_forms(self, _min_good_score_perc):
+    def print_fav_with_forms(self, _output_widget, _min_good_score_perc):
         _count_w = 0
         _count_t = 0
         _count_f = 0
         for _entry in self.d.values():
             if _entry.fav:
-                _entry.print_briefly_with_forms(_min_good_score_perc)
+                _entry.print_briefly_with_forms(_output_widget, _min_good_score_perc)
                 _count_w += 1
                 _count_t += _entry.count_t
                 _count_f += _entry.count_f
-        self._print_stat_fav(_count_w, _count_t, _count_f)
+        self._print_stat_fav(_output_widget, _count_w, _count_t, _count_f)
 
     # Напечатать статьи, в которых слова содержат данную строку
     def print_words_with_str(self, _search_wrd):
@@ -1759,11 +1764,11 @@ def forms_settings(_dct, _form_parameters):
 
 
 # Вывод информации о программе
-outp( '======================================================================================\n')
-outp( '                            Anenokil development  presents')
-outp(f'                               {PROGRAM_NAME}  {PROGRAM_VERSION}')
-outp(f'                                   {PROGRAM_DATE}\n')
-outp( '======================================================================================')
+print( '======================================================================================\n')
+print( '                            Anenokil development  presents')
+print(f'                               {PROGRAM_NAME}  {PROGRAM_VERSION}')
+print(f'                                   {PROGRAM_DATE}\n')
+print( '======================================================================================')
 
 try:  # Открываем файл с названием словаря
     open(SETTINGS_PATH, 'r')
@@ -1776,7 +1781,7 @@ with open(SETTINGS_PATH, 'r') as set_file:
 dct = Dictionary()
 min_good_score_perc, form_parameters = read_dct(dct, dct_filename)  # Загружаем словарь и его настройки
 
-outp('\nМожете использовать эти комбинации для немецких букв: #a = ä, #o = ö, #u = ü, #s = ß (и ## = #)')
+print('\nМожете использовать эти комбинации для немецких букв: #a = ä, #o = ö, #u = ü, #s = ß (и ## = #)')
 
 
 # Ввод только целых чисел от 0 до 100
@@ -2261,28 +2266,22 @@ class PrintW(tk.Toplevel):
         self.text_dct.grid(   row=1, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
         self.scrollbar.grid(  row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
 
-    # Напечатать одну статью
-    def add_log(self, msg='', tab=0, end='\n'):
-        self.text_dct['state'] = 'normal'
-        if self.text_dct.yview()[1] == 1.0:
-            self.text_dct.insert(tk.END, ' ' * tab + str(msg) + end)
-            self.text_dct.yview_moveto(1.0)
-        else:
-            self.text_dct.insert(tk.END, ' ' * tab + str(msg) + end)
-        self.text_dct['state'] = 'disabled'
-
     # Напечатать словарь
     def print(self):
+        self.text_dct['state'] = 'normal'
+        self.text_dct.delete(1.0, tk.END)
         if self.var_fav.get():
             if self.var_forms.get():
-                dct.print_fav_with_forms(min_good_score_perc)
+                dct.print_fav_with_forms(self.text_dct, min_good_score_perc)
             else:
-                dct.print_fav(min_good_score_perc)
+                dct.print_fav(self.text_dct, min_good_score_perc)
         else:
             if self.var_forms.get():
-                dct.print_with_forms(min_good_score_perc)
+                dct.print_with_forms(self.text_dct, min_good_score_perc)
             else:
-                dct.print(min_good_score_perc)
+                dct.print(self.text_dct, min_good_score_perc)
+        self.text_dct.yview_moveto(1.0)
+        self.text_dct['state'] = 'disabled'
 
     def open(self):
         self.grab_set()
@@ -2714,7 +2713,7 @@ root = MainW()
 root.mainloop()
 
 # Возможно вы искали частичных совпадений не найдено
-# строка   56 - добавить выбор стилей
+# строка 56 - добавить выбор стилей
 # find_matches: добавить проверку деления на ноль
 # AddW: добавление в избранное при создании
 # Попробовать tk.ScrolledText
