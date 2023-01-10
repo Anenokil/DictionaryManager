@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_5'
-PROGRAM_DATE = '11.1.2023 3:24'
+PROGRAM_VERSION = 'v7.0.0-PRE_6'
+PROGRAM_DATE = '11.1.2023 3:30'
 
 """ Стили """
 
@@ -2455,7 +2455,7 @@ class SettingsW(tk.Toplevel):
         # {
         self.lbl_MGSP   = tk.Label(self.tab_local, text='Минимальный приемлемый процент удачных попыток отгадать слово:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.entry_MGSP = tk.Entry(self.tab_local, textvariable=self.var_MGSP, width=5, relief='solid', validate='key', vcmd=self.vcmd, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
-        self.lbl_MGSP_2 = tk.Label(self.tab_local, text='Статьи, у которых процент угадывания ниже этого значения, помечаются в словаре красным цветом', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.lbl_MGSP_2 = tk.Label(self.tab_local, text='Статьи, у которых процент угадывания ниже этого значения, будут считаться более сложными', bg=ST_BG[st], fg=ST_FG_TEXT[st])
 
         self.btn_forms  = tk.Button(self.tab_local, text='Настройки словоформ', command=self.forms,  bg=ST_BTN[st],  fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
         # }
