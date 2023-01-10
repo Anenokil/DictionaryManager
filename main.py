@@ -12,8 +12,8 @@ else:
     from Tkinter.filedialog import askdirectory
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_1'
-PROGRAM_DATE = '10.1.2023  17:43'
+PROGRAM_VERSION = 'v7.0.0-PRE_2'
+PROGRAM_DATE = '10.1.2023  17:48'
 
 """ Стили """
 
@@ -303,7 +303,10 @@ def find_matches(_wrd, _search_wrd):
         if _pos != -1:
             _coded_wrd = code(_wrd)
             _end = _pos + _len
-            _res = f'{_coded_wrd[:_pos]}[{_coded_wrd[_pos:_end]}]{_coded_wrd[_end:]}'
+            if _search_wrd == '':
+                _res = f'{_coded_wrd}'
+            else:
+                _res = f'{_coded_wrd[:_pos]}[{_coded_wrd[_pos:_end]}]{_coded_wrd[_end:]}'
             return _res
     return ''
 
