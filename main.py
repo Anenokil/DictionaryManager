@@ -1,5 +1,59 @@
 import os
 import random
+import math
+import sys
+if sys.version_info[0] == 3:
+    import tkinter as tk
+    import tkinter.ttk as ttk
+    from tkinter.filedialog import askdirectory
+else:
+    import Tkinter as tk
+    import Tkinter.ttk as ttk
+    from Tkinter.filedialog import askdirectory
+
+PROGRAM_NAME = 'Dictionary'
+PROGRAM_VERSION = 'v7.0.0-PRE_1'
+PROGRAM_DATE = '10.1.2023  17:43'
+
+""" Стили """
+
+# Все: bg
+# Все, кроме frame: fg
+# Все, кроме текста: border
+# Frame: relief
+# Кнопки: activebackground
+# Entry: selectbackground, highlightcolor
+
+ST_BG         = {'light': '#EEEEEE', 'dark': '#222222', 'infernal': '#DD1515'}  # bg или background
+ST_BG_RGB     = {'light': '#EEEEEE', 'dark': '#222222', 'infernal': '#993333'}  # bg
+ST_BG_FIELDS  = {'light': '#FFFFFF', 'dark': '#171717', 'infernal': '#CCCCCC'}  # bg
+ST_BG_ERR     = {'light': '#EE6666', 'dark': '#773333', 'infernal': '#FF0000'}  # bg
+
+ST_BORDER     = {'light': '#222222', 'dark': '#111111', 'infernal': '#330000'}  # highlightbackground
+ST_RELIEF     = {'light': 'groove',  'dark': 'solid',   'infernal': 'groove' }  # relief
+
+ST_SELECT     = {'light': '#BBBBBB', 'dark': '#444444', 'infernal': '#FF5500'}  # selectbackground
+ST_HIGHLIGHT  = {'light': '#00DD00', 'dark': '#007700', 'infernal': '#EEEEEE'}  # highlightcolor
+
+ST_BTN        = {'light': '#D0D0D0', 'dark': '#202020', 'infernal': '#DD2020'}  # bg
+ST_BTN_SELECT = {'light': '#BABABA', 'dark': '#272727', 'infernal': '#DD5020'}  # activebackground
+ST_MCM        = {'light': '#B0B0B0', 'dark': '#0E0E0E', 'infernal': '#CC3333'}  # bg
+ST_MCM_SELECT = {'light': '#9A9A9A', 'dark': '#151515', 'infernal': '#CC6333'}  # activebackground
+ST_ACCEPT     = {'light': '#88DD88', 'dark': '#446F44', 'infernal': '#CC6633'}  # bg
+ST_ACC_SELECT = {'light': '#77CC77', 'dark': '#558055', 'infernal': '#CC9633'}  # activebackground
+ST_CLOSE      = {'light': '#FF6666', 'dark': '#803333', 'infernal': '#CD0000'}  # bg
+ST_CLS_SELECT = {'light': '#EE5555', 'dark': '#904444', 'infernal': '#CD3000'}  # activebackground
+
+ST_FG_TEXT    = {'light': '#222222', 'dark': '#979797', 'infernal': '#000000'}  # fg или foreground
+ST_FG_LOGO    = {'light': '#FF7200', 'dark': '#803600', 'infernal': '#FF7200'}  # fg
+ST_FG_FOOTER  = {'light': '#666666', 'dark': '#666666', 'infernal': '#222222'}  # fg
+ST_FG_EXAMPLE = {'light': '#448899', 'dark': '#448899', 'infernal': '#010101'}  # fg
+ST_FG_KEY     = {'light': '#EE0000', 'dark': '#BC4040', 'infernal': '#FF0000'}  # fg
+
+ST_PROG       = {'light': '#06B025', 'dark': '#06B025', 'infernal': '#771111'}  # bg
+ST_PROG_ABORT = {'light': '#FFB050', 'dark': '#FFB040', 'infernal': '#222222'}  # bg
+ST_PROG_DONE  = {'light': '#0077FF', 'dark': '#1133DD', 'infernal': '#AA1166'}  # bg
+st = 'light'
 
 RESOURCES_DIR = 'resources'
 SAVES_DIR = 'saves'
@@ -26,6 +80,12 @@ FORMS_SEPARATOR = '@'
     число - параметр формы слова
     мн.ч., ед.ч. - значения параметра формы слова
 """
+
+
+# Количество строк, необходимых для записи текста, при данной длине строки
+def height(_text, _len_str):
+    _parts = _text.split('\n')
+    return sum(math.ceil(len(_part) / _len_str) for _part in _parts)
 
 
 # Ввод
@@ -281,6 +341,34 @@ class Entry(object):
         self.correct_att = _correct_att
         self.score = _correct_att / _all_att if (_all_att != 0) else 0
         self.last_att = _last_att
+
+    # Записать переводы в строку
+    def tr_to_str(self):
+        _res = ''
+        if self.count_t != 0:
+            _res += f'> {code(self.tr[0])}'
+        for _i in range(1, self.count_t):
+            _res += f'\n> {code(self.tr[_i])}'
+        return _res
+
+    # Записать сноски в строку
+    def notes_to_str(self):
+        _res = ''
+        if self.count_n != 0:
+            _res += f'> {code(self.notes[0])}'
+        for _i in range(1, self.count_n):
+            _res += f'\n> {code(self.notes[_i])}'
+        return _res
+
+    # Записать формы в строку
+    def frm_to_str(self):
+        _keys = list(self.forms.keys())
+        _res = ''
+        if self.count_f != 0:
+            _res += f'[{tpl(_keys[0])}] {code(self.forms[_keys[0]])}'
+        for _i in range(1, self.count_f):
+            _res += f'\n[{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}'
+        return _res
 
     # Напечатать перевод
     def tr_print(self, _end='\n'):
@@ -1668,11 +1756,11 @@ def forms_settings(_dct, _form_parameters):
 
 
 # Вывод информации о программе
-outp('======================================================================================\n')
-outp('                            Anenokil development  presents')
-outp('                                  Dictionary  v6.0.4')
-outp('                                   30.12.2022  1:11\n')
-outp('======================================================================================')
+outp( '======================================================================================\n')
+outp( '                            Anenokil development  presents')
+outp(f'                               {PROGRAM_NAME}  {PROGRAM_VERSION}')
+outp(f'                                   {PROGRAM_DATE}\n')
+outp( '======================================================================================')
 
 try:  # Открываем файл с названием словаря
     open(SETTINGS_PATH, 'r')
@@ -1685,59 +1773,158 @@ with open(SETTINGS_PATH, 'r') as set_file:
 dct = Dictionary()
 min_good_score_perc, form_parameters = read_dct(dct, dct_filename)  # Загружаем словарь и его настройки
 
-outp('\nМожете использовать эти комбинации для немецких букв: #a = ä, #o = ö, #u = ü, #s = ß (and ## = #)')
+outp('\nМожете использовать эти комбинации для немецких букв: #a = ä, #o = ö, #u = ü, #s = ß (и ## = #)')
 
-has_changes = False
-while True:
-    outp('\nЧто вы хотите сделать?')
-    outp('Н  - Напечатать словарь')
-    outp('НИ - Напечатать словарь (только Избранные статьи)')
-    outp('Д  - Добавить статью')
-    outp('И  - Изменить статью')
-    outp('НС - Найти статью по Слову')
-    outp('НП - Найти статью по Переводу')
-    outp('У  - Учить слова')
-    outp('НА - открыть НАстройки')
-    outp('С  - Сохранить изменения')
-    outp('СЛ - открыть список СЛоварей')
-    outp('З  - Завершить работу')
-    cmd = inp().upper()
-    if cmd in ['Н', 'Y']:
-        cmd = inp('\nВыводить все формы слов? (+ или -): ')
-        outp()
-        if cmd == '+':
-            dct.print_with_forms(min_good_score_perc)
-        else:
-            dct.print(min_good_score_perc)
-    elif cmd in ['НИ', 'YB']:
-        cmd = inp('\nВыводить все формы слов? (+ или -): ')
-        outp()
-        if cmd == '+':
-            dct.print_fav_with_forms(min_good_score_perc)
-        else:
-            dct.print_fav(min_good_score_perc)
-    elif cmd in ['Д', 'L']:
-        wrd = inp('\nВведите слово, которое хотите добавить в словарь: ')
-        if wrd == '':
-            warn('Слово должно содержать хотя бы один символ')
-            continue
-        tr = inp('Введите перевод слова: ')
-        if tr == '':
-            warn('Перевод должен содержать хотя бы один символ')
-            continue
-        key = dct.add_entry(wrd, tr)
-        has_changes = True
-        dct.edit_entry(key, form_parameters, _is_key=True)
-    elif cmd in ['И', 'B']:
-        wrd = inp('\nВведите слово, статью с которым хотите изменить: ')
-        if wrd_to_key(wrd, 0) not in dct.d.keys():
-            warn(f'Слово "{wrd}" отсутствует в словаре')
-            outp('Возможно вы искали:')
-            dct.print_words_with_str(wrd)
-            continue
-        has_changes = dct.edit_entry(wrd, form_parameters) or has_changes
-    elif cmd in ['НС', 'YC']:
-        search_wrd = inp('\nВведите слово, которое хотите найти: ')
+
+# Ввод только целых чисел от 0 до 100
+def validate_percent(value):
+    return value == '' or value.isnumeric() and int(value) <= 100
+
+
+# Всплывающее окно с сообщением
+class PopupMsgW(tk.Toplevel):
+    def __init__(self, parent, msg, btn_text='Ясно', title=PROGRAM_NAME):
+        super().__init__(parent)
+        self.title(title)
+        self.configure(bg=ST_BG[st])
+
+        tk.Label( self, text=msg,      bg=ST_BG[st],  fg=ST_FG_TEXT[st]).grid(row=0, column=0, padx=6, pady=4)
+        tk.Button(self, text=btn_text, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st], command=self.destroy).grid(row=1, column=0, padx=6, pady=4)
+
+
+# Всплывающее окно с сообщением и двумя кнопками
+class PopupDialogueW(tk.Toplevel):
+    def __init__(self, parent, msg='Вы уверены?', btn_yes='Да', btn_no='Отмена', title=PROGRAM_NAME):
+        super().__init__(parent)
+        self.title(title)
+        self.configure(bg=ST_BG[st])
+
+        self.answer = False
+
+        tk.Label( self, text=msg,     bg=ST_BG[st],     fg=ST_FG_TEXT[st]).grid(row=0, columnspan=2, padx=6, pady=4)
+        tk.Button(self, text=btn_yes, bg=ST_ACCEPT[st], fg=ST_FG_TEXT[st], activebackground=ST_ACC_SELECT[st], highlightbackground=ST_BORDER[st], command=self.yes).grid(row=1, column=0, padx=(6, 10), pady=4, sticky='E')
+        tk.Button(self, text=btn_no,  bg=ST_CLOSE[st],  fg=ST_FG_TEXT[st], activebackground=ST_CLS_SELECT[st], highlightbackground=ST_BORDER[st], command=self.no).grid( row=1, column=1, padx=(10, 6), pady=4, sticky='W')
+
+    def yes(self):
+        self.answer = True
+        self.destroy()
+
+    def no(self):
+        self.answer = False
+        self.destroy()
+
+    def open(self):
+        return self.answer
+
+
+# Всплывающее окно с полем Combobox
+class PopupChooseW(tk.Toplevel):
+    def __init__(self, parent, values, msg='Выберите один из вариантов', btn_text='Подтвердить', title=PROGRAM_NAME):
+        super().__init__(parent)
+        self.title(title)
+        self.configure(bg=ST_BG[st])
+
+        self.answer = tk.StringVar()
+
+        tk.Label(self, text=msg, bg=ST_BG[st], fg=ST_FG_TEXT[st]).grid(row=0, padx=6, pady=(4, 1))
+        self.st_combo = ttk.Style()
+        self.st_combo.configure(style='.TCombobox', background=ST_BG[st], foreground=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st])
+        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[st])], foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
+        ttk.Combobox(self, textvariable=self.answer, style='.TCombobox', values=values, state='readonly').grid(row=1, padx=6, pady=1)
+        tk.Button(self, text=btn_text, bg=ST_ACCEPT[st], fg=ST_FG_TEXT[st], activebackground=ST_ACC_SELECT[st], highlightbackground=ST_BORDER[st], command=self.destroy).grid(row=2, padx=6, pady=4)
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+        return self.answer.get()
+
+
+# Всплывающее окно с полем ввода и кнопкой
+class PopupEntryW(tk.Toplevel):
+    def __init__(self, parent, msg='Введите строку', btn_text='Подтвердить', title=PROGRAM_NAME):
+        super().__init__(parent)
+        self.title(title)
+        self.configure(bg=ST_BG[st])
+
+        self.var_text = tk.StringVar()
+
+        tk.Label(self, text=f'{msg}:', bg=ST_BG[st], fg=ST_FG_TEXT[st]).grid(row=0, column=0, padx=(6, 1), pady=(6, 0))
+        tk.Entry(self, textvariable=self.var_text, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], selectbackground=ST_SELECT[st], highlightcolor=ST_HIGHLIGHT[st]).grid(row=0, column=1, padx=(0, 6), pady=(6, 0))
+        tk.Button(self, text=btn_text, command=self.destroy, bg=ST_ACCEPT[st], fg=ST_FG_TEXT[st], activebackground=ST_ACC_SELECT[st], highlightbackground=ST_BORDER[st]).grid(row=1, columnspan=2, padx=6, pady=6)
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+        return self.var_text.get()
+
+
+# Всплывающее окно для ввода названия сохранения словаря
+class EnterSaveNameW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[st])
+
+        self.name_is_correct = False
+
+        self.var_name = tk.StringVar()
+
+        tk.Label(self, text='Введите название файла со словарём', bg=ST_BG[st], fg=ST_FG_TEXT[st]).grid(row=0, padx=6, pady=(4, 1))
+        tk.Entry(self, textvariable=self.var_name, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], selectbackground=ST_SELECT[st], highlightcolor=ST_HIGHLIGHT[st]).grid(row=1, padx=6, pady=1)
+        tk.Button(self, text='Подтвердить', bg=ST_ACCEPT[st], fg=ST_FG_TEXT[st], activebackground=ST_ACC_SELECT[st], highlightbackground=ST_BORDER[st], command=self.check_and_return).grid(row=2, padx=6, pady=4)
+
+    def check_and_return(self):
+        savename = self.var_name.get()
+        if savename == '':
+            w = PopupMsgW(self, 'Недопустимое название', title='Warning')
+            self.wait_window(w)
+            return
+        if f'{savename}.txt' in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
+            w2 = PopupMsgW(self, 'Файл с таким названием уже существует', title='Warning')
+            self.wait_window(w2)
+            return
+        self.name_is_correct = True
+        self.destroy()
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+        return self.name_is_correct, f'{self.var_name.get()}.txt'
+
+
+# Окно поиска статьи
+class SearchW(tk.Toplevel):
+    def __init__(self, parent, wrd):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Search')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[st])
+
+        self.var_wrd = tk.StringVar(value=wrd)
+
+        self.frame_main = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # {
+        self.lbl_input   = tk.Label(self.frame_main, text='Введите слово:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.entry_input = tk.Entry(self.frame_main, textvariable=self.var_wrd, width=60, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.btn_search = tk.Button(self.frame_main, text='Поиск', command=self.search, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        # }
+        self.scrollbar = tk.Scrollbar(self, bg=ST_BG[st])
+        self.text_res  = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+
+        self.frame_main.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
+        # {
+        self.lbl_input.grid(  row=0, column=0, padx=(6, 1), pady=6, sticky='E')
+        self.entry_input.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
+        self.btn_search.grid( row=0, column=2, padx=6,      pady=6)
+        # }
+        self.text_res.grid( row=1, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+
+        self.scrollbar.config(command=self.text_res.yview)
+
+    # Поиск статьи
+    def search(self):
+        search_wrd = self.var_wrd.get()
 
         outp('\nЧастичное совпадение:')
         dct.print_words_with_str(search_wrd)
@@ -1745,15 +1932,15 @@ while True:
         outp('\nПолное совпадение:')
         if wrd_to_key(search_wrd, 0) not in dct.d.keys():
             outp(f'Слово "{code(search_wrd)}" отсутствует в словаре')
-            continue
-        for i in range(MAX_SAME_WORDS):
-            key = wrd_to_key(search_wrd, i)
-            if key not in dct.d.keys():
-                break
-            outp()
-            dct.d[key].print_all()
-    elif cmd in ['НП', 'YG']:
-        search_tr = inp('\nВведите перевод слова, которое хотите найти: ')
+        else:
+            for i in range(MAX_SAME_WORDS):
+                key = wrd_to_key(search_wrd, i)
+                if key not in dct.d.keys():
+                    break
+                outp()
+                dct.d[key].print_all()
+        ######
+        search_tr = self.var_wrd.get()
 
         outp('\nЧастичное совпадение:', _end='')
         dct.print_translations_with_str(search_tr)
@@ -1767,198 +1954,764 @@ while True:
                 entry.print_all()
         if not is_found:
             outp(f'Слово с переводом "{code(search_tr)}" отсутствует в словаре')
-    elif cmd in ['У', 'E']:
-        outp('\nВаша общая доля правильных ответов: {:.2%}'.format(dct.count_rating()))
-        outp('\nВыберите способ')
-        outp('1 - Угадывать слово по переводу')
-        outp('2 - Угадывать перевод по слову')
-        cmd = inp().upper()
-        if cmd == '1':
-            outp('\nВыберите способ')
-            outp('1 - Со всеми словоформами')
-            outp('2 - Только начальные формы')
-            cmd = inp().upper()
-            if cmd == '1':
-                outp('\nВыберите способ')
-                outp('В - Все слова')
-                outp('С - все слова (в первую очередь Сложные)')
-                outp('И - только Избранные слова')
-                cmd = inp().upper()
-                if cmd in ['В', 'D']:
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+
+
+# Окно добавления статьи
+class AddW(tk.Toplevel):
+    def __init__(self, parent, wrd):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Add an entry')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[st])
+
+        self.key = None
+
+        self.var_wrd = tk.StringVar(value=wrd)
+        self.var_tr  = tk.StringVar()
+        self.var_fav = tk.BooleanVar(value=False)
+
+        self.st_check = ttk.Style()
+        self.st_check.configure(style='.TCheckbutton', background=ST_BG[st])
+        self.st_check.map('.TCheckbutton', background=[('active', ST_SELECT[st])])
+
+        self.lbl_wrd   = tk.Label( self, text='Введите слово:',   bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.entry_wrd = tk.Entry( self, textvariable=self.var_wrd, width=60, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.lbl_tr    = tk.Label( self, text='Введите перевод:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.entry_tr  = tk.Entry( self, textvariable=self.var_tr,  width=60, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.lbl_fav   = tk.Label( self, text='Избранное:',       bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.check_fav = ttk.Checkbutton(self, variable=self.var_fav, style='.TCheckbutton', state='disabled')
+        self.btn_add   = tk.Button(self, text='Добавить', command=self.add, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+
+        self.lbl_wrd.grid(  row=0, column=0,     padx=(6, 1), pady=(6, 3), sticky='E')
+        self.entry_wrd.grid(row=0, column=1,     padx=(0, 6), pady=(6, 3), sticky='W')
+        self.lbl_tr.grid(   row=1, column=0,     padx=(6, 1), pady=(0, 3), sticky='E')
+        self.entry_tr.grid( row=1, column=1,     padx=(0, 6), pady=(0, 3), sticky='W')
+        self.lbl_fav.grid(  row=2, column=0,     padx=(6, 1), pady=(0, 3), sticky='E')
+        self.check_fav.grid(row=2, column=1,     padx=(0, 6), pady=(0, 3), sticky='W')
+        self.btn_add.grid(  row=3, columnspan=2, padx=6,      pady=(0, 6))
+
+    # Добавление статьи
+    def add(self):
+        if self.var_wrd.get() == '':
+            PopupMsgW(self, 'Слово должно содержать хотя бы один символ', title='Warning')
+            return
+        if self.var_tr.get() == '':
+            PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning')
+            return
+        self.key = dct.add_entry(self.var_wrd.get(), self.var_tr.get())
+        global has_changes
+        has_changes = True
+        self.destroy()
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+        return self.key
+
+
+# Окно изменения статьи
+class EditW(tk.Toplevel):
+    def __init__(self, parent, key):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Edit an entry')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[st])
+
+        self.key = key
+        self.line_width = 35
+        self.max_height = 5
+        self.height_w = max(min(height(dct.d[key].wrd,            self.line_width), self.max_height), 1)
+        self.height_t =     min(height(dct.d[key].tr_to_str(),    self.line_width), self.max_height)
+        self.height_n =     min(height(dct.d[key].notes_to_str(), self.line_width), self.max_height)
+        self.height_f =     min(height(dct.d[key].frm_to_str(),   self.line_width), self.max_height)
+
+        self.var_wrd = tk.StringVar(value=dct.d[key].wrd)
+        self.var_fav = tk.BooleanVar(value=dct.d[key].fav)
+
+        self.st_check = ttk.Style()
+        self.st_check.configure(style='.TCheckbutton', background=ST_BG[st])
+        self.st_check.map('.TCheckbutton', background=[('active', ST_SELECT[st])])
+
+        self.frame_main = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # {
+        self.lbl_wrd       = tk.Label( self.frame_main, text='Слово:',     bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.scrollbar_wrd = tk.Scrollbar(self.frame_main, bg=ST_BG[st])
+        self.txt_wrd       = tk.Text(  self.frame_main, width=self.line_width, height=self.height_w, yscrollcommand=self.scrollbar_wrd.set, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.txt_wrd.insert(tk.INSERT, dct.d[key].wrd)
+        self.txt_wrd['state'] = 'disabled'
+        self.scrollbar_wrd.config(command=self.txt_wrd.yview)
+        self.btn_wrd_edt   = tk.Button(self.frame_main, text='изм.', command=self.wrd_edt, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+
+        self.lbl_tr        = tk.Label( self.frame_main, text='Перевод:',   bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.scrollbar_tr  = tk.Scrollbar(self.frame_main, bg=ST_BG[st])
+        self.txt_tr        = tk.Text(  self.frame_main, width=self.line_width, height=self.height_t, yscrollcommand=self.scrollbar_tr.set, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.txt_tr.insert(tk.INSERT, dct.d[key].tr_to_str())
+        self.txt_tr['state'] = 'disabled'
+        self.scrollbar_tr.config(command=self.txt_tr.yview)
+        self.frame_btns_tr = tk.Frame(self.frame_main, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # { {
+        self.btn_tr_add = tk.Button(self.frame_btns_tr, text='+', command=self.tr_add, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        self.btn_tr_del = tk.Button(self.frame_btns_tr, text='-', command=self.tr_del, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        # } }
+
+        self.lbl_notes     = tk.Label( self.frame_main, text='Сноски:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.scrollbar_notes = tk.Scrollbar(self.frame_main, bg=ST_BG[st])
+        self.txt_notes     = tk.Text(  self.frame_main, width=self.line_width, height=self.height_n, yscrollcommand=self.scrollbar_notes.set, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.txt_notes.insert(tk.INSERT, dct.d[key].notes_to_str())
+        self.txt_notes['state'] = 'disabled'
+        self.scrollbar_notes.config(command=self.txt_notes.yview)
+        self.frame_btns_notes = tk.Frame(self.frame_main, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # { {
+        self.btn_notes_add = tk.Button(self.frame_btns_notes, text='+', command=self.notes_add, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        self.btn_notes_del = tk.Button(self.frame_btns_notes, text='-', command=self.notes_del, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        # } }
+
+        self.lbl_frm       = tk.Label( self.frame_main, text='Формы слова:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.scrollbar_frm = tk.Scrollbar(self.frame_main, bg=ST_BG[st])
+        self.txt_frm       = tk.Text(  self.frame_main, width=self.line_width, height=self.height_f, yscrollcommand=self.scrollbar_frm.set, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.txt_frm.insert(tk.INSERT, dct.d[key].frm_to_str())
+        self.txt_frm['state'] = 'disabled'
+        self.scrollbar_frm.config(command=self.txt_frm.yview)
+        self.frame_btns_frm = tk.Frame(self.frame_main, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # { {
+        self.btn_frm_add = tk.Button(self.frame_btns_frm, text='+',    command=self.frm_add, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        self.btn_frm_del = tk.Button(self.frame_btns_frm, text='-',    command=self.frm_del, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        self.btn_frm_edt = tk.Button(self.frame_btns_frm, text='изм.', command=self.frm_edt, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        # } }
+
+        self.lbl_fav       = tk.Label( self.frame_main, text='Избранное:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.check_fav     = ttk.Checkbutton(self.frame_main, variable=self.var_fav, style='.TCheckbutton')
+        # }
+        self.btn_back   = tk.Button(self, text='Закончить',      command=self.back,   bg=ST_BTN[st],   fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        self.btn_delete = tk.Button(self, text='Удалить статью', command=self.delete, bg=ST_CLOSE[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_CLS_SELECT[st])
+
+        self.frame_main.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
+        # {
+        self.lbl_wrd.grid(      row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
+        self.txt_wrd.grid(      row=0, column=1, padx=(0, 1), pady=(6, 3), sticky='W')
+        self.scrollbar_wrd.grid(row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
+        self.btn_wrd_edt.grid(  row=0, column=3, padx=(3, 6), pady=(6, 3), sticky='W')
+
+        self.lbl_tr.grid(       row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.txt_tr.grid(       row=1, column=1, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.scrollbar_tr.grid( row=1, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
+        self.frame_btns_tr.grid(row=1, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
+        # { {
+        self.btn_tr_add.grid(row=0, column=0, padx=(0, 1), pady=0)
+        self.btn_tr_del.grid(row=0, column=1, padx=(1, 0), pady=0)
+        # } }
+
+        self.lbl_notes.grid(       row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.txt_notes.grid(       row=2, column=1, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.scrollbar_notes.grid( row=2, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
+        self.frame_btns_notes.grid(row=2, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
+        # { {
+        self.btn_notes_add.grid(row=0, column=0, padx=(0, 1), pady=0)
+        self.btn_notes_del.grid(row=0, column=1, padx=(1, 0), pady=0)
+        # } }
+
+        self.lbl_frm.grid(       row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.txt_frm.grid(       row=3, column=1, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.scrollbar_frm.grid( row=3, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
+        self.frame_btns_frm.grid(row=3, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
+        # { {
+        self.btn_frm_add.grid(row=0, column=0, padx=(0, 1), pady=0)
+        self.btn_frm_del.grid(row=0, column=1, padx=(1, 1), pady=0)
+        self.btn_frm_edt.grid(row=0, column=2, padx=(1, 0), pady=0)
+        # } }
+
+        self.lbl_fav.grid(  row=4, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_fav.grid(row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        # }
+        self.btn_back.grid(  row=1, column=0, padx=(0, 1), pady=(0, 6))
+        self.btn_delete.grid(row=1, column=1, padx=(0, 6), pady=(0, 6))
+
+        if dct.d[key].count_t < 2:
+            self.btn_tr_del.grid_remove()
+        if dct.d[key].count_n < 1:
+            self.btn_notes_del.grid_remove()
+        if dct.d[key].count_f < 1:
+            self.btn_frm_del.grid_remove()
+            self.btn_frm_edt.grid_remove()
+
+        if self.height_w < self.max_height:
+            self.scrollbar_wrd.grid_remove()
+        if self.height_t < self.max_height:
+            self.scrollbar_tr.grid_remove()
+        if self.height_n < self.max_height:
+            self.scrollbar_notes.grid_remove()
+        if self.height_f < self.max_height:
+            self.scrollbar_frm.grid_remove()
+
+    def wrd_edt(self):
+        _new_wrd = inp('\nВведите новое слово: ')
+        if _new_wrd == key_to_wrd(self.key):
+            PopupMsgW(self, 'Это то же самое слово', title='Warning')
+            return
+        self.key = dct.edit_wrd(self.key, _new_wrd)
+        global has_changes
+        has_changes = True
+
+    def tr_add(self):
+        w = PopupEntryW(self, 'Введите новый перевод')
+        _tr = w.open()
+        if _tr == '':
+            PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning')
+            return
+        dct.add_tr(self.key, _tr, _is_key=True)
+        global has_changes
+        has_changes = True
+
+    def tr_del(self):
+        dct.remove_tr_with_choose(self.key, _is_key=True)
+        global has_changes
+        has_changes = True
+
+    def notes_add(self):
+        w = PopupEntryW(self, 'Введите сноску')
+        _note = w.open()
+        dct.add_note(self.key, _note, _is_key=True)
+        global has_changes
+        has_changes = True
+
+    def notes_del(self):
+        dct.remove_note_with_choose(self.key, _is_key=True)
+        global has_changes
+        has_changes = True
+
+    def frm_add(self):
+        _frm_key = construct_frm_template(form_parameters)
+        if _frm_key in dct.d[self.key].forms.keys():
+            PopupMsgW(self, f'\nУ слова "{key_to_wrd(self.key)}" уже есть форма с такими параметрами', title='Warning')
+            return
+        w = PopupEntryW(self, 'Введите форму слова')
+        _frm = w.open()
+        dct.add_frm(self.key, _frm_key, _frm, _is_key=True)
+        global has_changes
+        has_changes = True
+
+    def frm_del(self):
+        dct.remove_frm_with_choose(self.key, _is_key=True)
+        global has_changes
+        has_changes = True
+
+    def frm_edt(self):
+        dct.edit_frm_with_choose(self.key, _is_key=True)
+        global has_changes
+        has_changes = True
+
+    def back(self):
+        self.destroy()
+
+    def delete(self):
+        _cmd = inp('\nВы уверены, что хотите удалить эту статью? (+ или -): ')
+        if _cmd == '+':
+            dct.remove_entry(self.key, _is_key=True)
+            global has_changes
+            has_changes = True
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+        dct.d[self.key].fav = self.var_fav.get()
+
+
+# Окно печати словаря
+class PrintW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Print')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[st])
+
+        self.var_fav   = tk.BooleanVar(value=False)
+        self.var_forms = tk.BooleanVar(value=True)
+
+        self.st_check = ttk.Style()
+        self.st_check.configure(style='.TCheckbutton', background=ST_BG[st])
+        self.st_check.map('.TCheckbutton', background=[('active', ST_SELECT[st])])
+
+        self.frame_main = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # {
+        self.lbl_fav     = tk.Label(self.frame_main, text='Только избранные:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.lbl_forms   = tk.Label(self.frame_main, text='Все формы:',        bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.check_fav   = ttk.Checkbutton(self.frame_main, variable=self.var_fav,   style='.TCheckbutton')
+        self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='.TCheckbutton')
+        self.btn_print   = tk.Button(self.frame_main, text='Печать', command=self.print, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        # }
+        self.scrollbar   = tk.Scrollbar(self, bg=ST_BG[st])
+        self.text_dct    = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        self.scrollbar.config(command=self.text_dct.yview)
+
+        self.frame_main.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
+        # {
+        self.lbl_fav.grid(    row=0, column=0, padx=(6, 1), pady=6, sticky='E')
+        self.check_fav.grid(  row=0, column=1, padx=(0, 6), pady=6, sticky='W')
+        self.lbl_forms.grid(  row=0, column=2, padx=(6, 1), pady=6, sticky='E')
+        self.check_forms.grid(row=0, column=3, padx=(0, 6), pady=6, sticky='W')
+        self.btn_print.grid(  row=0, column=4, padx=6,      pady=6)
+        # }
+        self.text_dct.grid(   row=1, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(  row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+
+    # Напечатать одну статью
+    def add_log(self, msg='', tab=0, end='\n'):
+        self.text_dct['state'] = 'normal'
+        if self.text_dct.yview()[1] == 1.0:
+            self.text_dct.insert(tk.END, ' ' * tab + str(msg) + end)
+            self.text_dct.yview_moveto(1.0)
+        else:
+            self.text_dct.insert(tk.END, ' ' * tab + str(msg) + end)
+        self.text_dct['state'] = 'disabled'
+
+    # Напечатать словарь
+    def print(self):
+        if self.var_fav.get():
+            if self.var_forms.get():
+                dct.print_fav_with_forms(min_good_score_perc)
+            else:
+                dct.print_fav(min_good_score_perc)
+        else:
+            if self.var_forms.get():
+                dct.print_with_forms(min_good_score_perc)
+            else:
+                dct.print(min_good_score_perc)
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+
+
+# Окно выбора режима перед изучением слов
+class LearnChooseW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Learn')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[st])
+
+        self.res = None
+
+        self.VALUES_ORDER = ('Угадывать слово по переводу', 'Угадывать перевод по слову')
+        self.VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только избранные')
+        self.var_order = tk.StringVar(value=self.VALUES_ORDER[0])
+        self.var_forms = tk.BooleanVar(value=True)
+        self.var_words = tk.StringVar(value=self.VALUES_WORDS[0])
+
+        # Стили для некоторых настроек
+        self.st_combo = ttk.Style()
+        self.st_combo.configure(style='.TCombobox', background=ST_BG[st], foreground=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st])
+        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[st])], foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
+        self.st_check = ttk.Style()
+        self.st_check.configure(style='.TCheckbutton', background=ST_BG[st])
+        self.st_check.map('.TCheckbutton', background=[('active', ST_SELECT[st])])
+
+        self.lbl_header = tk.Label(self, text='Выберите способ учёбы', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.frame_main = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # {
+        self.lbl_order = tk.Label(self.frame_main, text='Метод:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=self.VALUES_ORDER, width=30, state='readonly', style='.TCombobox')
+        self.lbl_forms = tk.Label(self.frame_main, text='Все словоформы:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='.TCheckbutton')
+        self.lbl_words = tk.Label(self.frame_main, text='Подбор слов:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=self.VALUES_WORDS, width=30, state='readonly', style='.TCombobox')
+        # }
+        self.btn_learn = tk.Button(self, text='Учить', command=self.learn, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+
+        self.lbl_header.grid( row=0, column=0, padx=6, pady=(6, 3))
+        self.frame_main.grid( row=1, column=0, padx=6, pady=(0, 3))
+        # {
+        self.lbl_order.grid(  row=1, column=0, padx=(3, 1), pady=(3, 3), sticky='E')
+        self.combo_order.grid(row=1, column=1, padx=(0, 3), pady=(0, 3), sticky='W')
+        self.lbl_forms.grid(  row=2, column=0, padx=(3, 1), pady=(0, 3), sticky='E')
+        self.check_forms.grid(row=2, column=1, padx=(0, 3), pady=(0, 3), sticky='W')
+        self.lbl_words.grid(  row=3, column=0, padx=(3, 1), pady=(0, 3), sticky='E')
+        self.combo_words.grid(row=3, column=1, padx=(0, 3), pady=(0, 3), sticky='W')
+        # }
+        self.btn_learn.grid(  row=2, column=0, padx=6, pady=(0, 6))
+
+    # Учить слова
+    def learn(self):
+        order = self.var_order.get()
+        forms = self.var_forms.get()
+        words = self.var_words.get()
+        self.res = (order, forms, words)
+        self.destroy()
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+        return self.res
+
+
+# Окно изучения слов
+class LearnW(tk.Toplevel):
+    def __init__(self, parent, conf):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Learn')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[st])
+
+        self.conf = conf
+        self.VALUES_ORDER = ('Угадывать слово по переводу', 'Угадывать перевод по слову')
+        self.VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только избранные')
+
+        self.scrollbar = tk.Scrollbar(self, bg=ST_BG[st])
+        self.text_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        self.scrollbar.config(command=self.text_dct.yview)
+        self.btn_learn = tk.Button(self, text='Учить', command=self.learn, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+
+        self.text_dct.grid( row=0, column=0,     padx=(6, 0), pady=6,      sticky='NSEW')
+        self.scrollbar.grid(row=0, column=1,     padx=(0, 6), pady=6,      sticky='NSW')
+        self.btn_learn.grid(row=1, columnspan=2, padx=6,      pady=(0, 6))
+
+    # Напечатать одну статью
+    def add_log(self, msg='', tab=0, end='\n'):
+        self.text_dct['state'] = 'normal'
+        if self.text_dct.yview()[1] == 1.0:
+            self.text_dct.insert(tk.END, ' ' * tab + str(msg) + end)
+            self.text_dct.yview_moveto(1.0)
+        else:
+            self.text_dct.insert(tk.END, ' ' * tab + str(msg) + end)
+        self.text_dct['state'] = 'disabled'
+
+    # Учить слова
+    def learn(self):
+        global has_changes
+        order = self.conf[0]
+        forms = self.conf[1]
+        words = self.conf[2]
+        if order == self.VALUES_ORDER[0]:
+            if forms:
+                if words == self.VALUES_WORDS[0]:
                     has_changes = dct.learn_f(min_good_score_perc) or has_changes
-                elif cmd in ['И', 'B']:
-                    has_changes = dct.learn_f_fav(min_good_score_perc) or has_changes
-                elif cmd in ['С', 'C']:
+                elif words == self.VALUES_WORDS[1]:
                     has_changes = dct.learn_f_hard(min_good_score_perc) or has_changes
                 else:
-                    warn_inp('Неизвестная команда', cmd)
-            elif cmd == '2':
-                outp('\nВыберите способ')
-                outp('В - Все слова')
-                outp('С - все слова (в первую очередь Сложные)')
-                outp('И - только Избранные слова')
-                cmd = inp().upper()
-                if cmd in ['В', 'D']:
+                    has_changes = dct.learn_f_fav(min_good_score_perc) or has_changes
+            else:
+                if words == self.VALUES_WORDS[0]:
                     has_changes = dct.learn(min_good_score_perc) or has_changes
-                elif cmd in ['И', 'B']:
-                    has_changes = dct.learn_fav(min_good_score_perc) or has_changes
-                elif cmd in ['С', 'C']:
+                elif words == self.VALUES_WORDS[1]:
                     has_changes = dct.learn_hard(min_good_score_perc) or has_changes
                 else:
-                    warn_inp('Неизвестная команда', cmd)
-            else:
-                warn_inp('Неизвестная команда', cmd)
-        elif cmd == '2':
-            outp('\nВыберите способ')
-            outp('В - Все слова')
-            outp('С - все слова (в первую очередь Сложные)')
-            outp('И - только Избранные слова')
-            cmd = inp().upper()
-            if cmd in ['В', 'D']:
+                    has_changes = dct.learn_fav(min_good_score_perc) or has_changes
+        else:
+            if words == self.VALUES_WORDS[0]:
                 has_changes = dct.learn_t(min_good_score_perc) or has_changes
-            elif cmd in ['И', 'B']:
-                has_changes = dct.learn_t_fav(min_good_score_perc) or has_changes
-            elif cmd in ['С', 'C']:
+            elif words == self.VALUES_WORDS[1]:
                 has_changes = dct.learn_t_hard(min_good_score_perc) or has_changes
             else:
-                warn_inp('Неизвестная команда', cmd)
+                has_changes = dct.learn_t_fav(min_good_score_perc) or has_changes
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+
+
+# Окно настроек
+class SettingsW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Settings')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[st])
+
+        self.var_MGSP = tk.StringVar(value=str(min_good_score_perc))
+
+        self.vcmd = (self.register(validate_percent), '%P')
+
+        self.tabs = ttk.Notebook(self)
+        self.tab_local = ttk.Frame(self.tabs)
+        self.tabs.add(self.tab_local,  text='Настройки словаря')
+        # {
+        self.lbl_MGSP   = tk.Label(self.tab_local, text='Минимальный приемлемый процент удачных попыток отгадать слово:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.entry_MGSP = tk.Entry(self.tab_local, textvariable=self.var_MGSP, width=5, relief='solid', validate='key', vcmd=self.vcmd, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.lbl_MGSP_2 = tk.Label(self.tab_local, text='Статьи, у которых процент угадывания ниже этого значения, помечаются в словаре красным цветом', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+
+        self.btn_forms  = tk.Button(self.tab_local, text='Настройки словоформ', command=self.forms,  bg=ST_BTN[st],  fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        # }
+        self.tab_global = ttk.Frame(self.tabs)
+        self.tabs.add(self.tab_global, text='Настройки программы')
+        # {
+        self.btn_dct_open   = tk.Button(self.tab_global, text='Открыть словарь',       command=self.dct_open,   bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_dct_create = tk.Button(self.tab_global, text='Создать словарь',       command=self.dct_create, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_dct_rename = tk.Button(self.tab_global, text='Переименовать словарь', command=self.dct_rename, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_dct_delete = tk.Button(self.tab_global, text='Удалить словарь',       command=self.dct_delete, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        # Настройки стилей
+        # }
+
+        self.tabs.grid()
+
+        self.lbl_MGSP.grid(  row=0, column=0,     padx=(6, 1), pady=6,      sticky='E')
+        self.entry_MGSP.grid(row=0, column=1,     padx=(0, 6), pady=6,      sticky='W')
+        self.lbl_MGSP_2.grid(row=1, columnspan=2, padx=6,      pady=(0, 6))
+        self.btn_forms.grid( row=2, columnspan=2, padx=6,      pady=(0, 6))
+
+        self.btn_dct_open.grid(  row=0, column=0, padx=(6, 3), pady=6)
+        self.btn_dct_create.grid(row=0, column=1, padx=(0, 3), pady=6)
+        self.btn_dct_rename.grid(row=0, column=2, padx=(0, 3), pady=6)
+        self.btn_dct_delete.grid(row=0, column=3, padx=(0, 6), pady=6)
+
+    # Настройки словоформ
+    def forms(self):
+        forms_settings(dct, form_parameters)
+        global has_changes
+        has_changes = True
+
+    def dct_open(self):
+        saves_count = 0
+        saves_list = []
+        for file_name in os.listdir(SAVES_PATH):
+            base_name, ext = os.path.splitext(file_name)
+            if ext == '.txt':
+                saves_list += [base_name]
+                saves_count += 1
+        if saves_count == 0:  # Если нет сохранённых словарей
+            PopupMsgW(self, 'Нет других сохранённых словарей', title='Warning')
+            return
         else:
-            warn_inp('Неизвестная команда', cmd)
-    elif cmd in ['НА', 'YF']:
-        while True:
-            outp('\nЧто вы хотите сделать?')
-            outp('М - изменить Минимальный приемлемый процент удачных попыток отгадать слово')
-            outp('Ф - открыть настройки словоФорм')
-            spec_action('Н - Назад')
-            cmd = inp().upper()
-            if cmd in ['М', 'V']:
-                outp(f'\nТекущее значение: {min_good_score_perc}%')
-                outp('Статьи, у которых процент угадывания ниже этого значения, помечаются в словаре красным цветом')
-                new_val = inp('Введите новое значение: ')
-                try:
-                    new_val = int(new_val)
-                except (ValueError, TypeError):
-                    warn_inp('Некорректный ввод', new_val)
-                else:
-                    if new_val < 0 or new_val > 100:
-                        warn_inp('Некорректный ввод', new_val)
-                        continue
-                    min_good_score_perc = new_val
-            elif cmd in ['Ф', 'A']:
-                forms_settings(dct, form_parameters)
-                has_changes = True
-            elif cmd in ['Н', 'Y']:
-                break
-            else:
-                warn_inp('Неизвестная команда', cmd)
-    elif cmd in ['С', 'C']:
-        save_all(dct, min_good_score_perc, form_parameters, dct_filename)
-        outp('\nИзменения и прогресс успешно сохранены')
-        has_changes = False
-    elif cmd in ['СЛ', 'CK']:
-        while True:
-            outp('\nСуществующие словари:')
-            f_count = 0
-            f_list = []
-            for filename in os.listdir(SAVES_PATH):
-                base_name, ext = os.path.splitext(filename)
-                if ext == '.txt':
-                    if filename == dct_filename:
-                        outp(f'{f_count} - {filename} (ТЕКУЩИЙ)')
-                    else:
-                        outp(f'{f_count} - {filename}')
-                    f_list += [filename]
-                    f_count += 1
+            window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите открыть')
+            filename = f'{window.open()}.txt'
+            if filename == '.txt':
+                return
 
-            outp('\nЧто вы хотите сделать?')
-            outp('О - Открыть словарь')
-            outp('С - Создать новый словарь')
-            outp('П - Переименовать словарь')
-            outp('У - Удалить словарь')
-            spec_action('Н - Назад')
-            cmd = inp().upper()
+        global dct, dct_filename, min_good_score_perc, form_parameters
 
-            if cmd in ['Н', 'Y']:
-                break
-            elif cmd in ['П', 'G']:
-                cmd = inp('\nВведите номер словаря: ')
-                try:
-                    old_name = f_list[int(cmd)]
-                except (ValueError, TypeError, IndexError):
-                    warn_inp('Недопустимый номер варианта', cmd)
-                    continue
-
-                new_name = inp('Введите новое название: ')
-                if new_name[-4:] != '.txt':
-                    new_name += '.txt'
-                if new_name == '.txt':
-                    warn('Недопустимое название')
-                    continue
-                if new_name in f_list:
-                    warn('Файл с таким названием уже существует')
-                    continue
-
-                os.rename(os.path.join(SAVES_PATH, old_name), os.path.join(SAVES_PATH, new_name))
-                os.rename(os.path.join(LOCAL_SETTINGS_PATH, old_name), os.path.join(LOCAL_SETTINGS_PATH, new_name))
-                if dct_filename == old_name:
-                    dct_filename = new_name
-                    with open(SETTINGS_PATH, 'w') as set_file:
-                        set_file.write(new_name)
-                outp(f'\nСловарь "{old_name}" успешно переименован в "{new_name}"')
-            elif cmd in ['У', 'E']:
-                cmd = inp('\nВведите номер словаря: ')
-                try:
-                    filename = f_list[int(cmd)]
-                except (ValueError, TypeError, IndexError):
-                    warn_inp('Недопустимый номер варианта', cmd)
-                    continue
-                if filename == dct_filename:
-                    warn('Вы не можете удалить словарь, который сейчас открыт')
-                    continue
-
-                cmd = inp(f'Вы уверены? Словарь "{filename}" будет безвозвратно удалён! (+ или -): ')
-                if cmd == '+':
-                    os.remove(os.path.join(SAVES_PATH, filename))
-                    os.remove(os.path.join(LOCAL_SETTINGS_PATH, filename))
-                    outp(f'\nСловарь "{filename}" успешно удалён')
-            elif cmd in ['С', 'C']:
-                filename = inp('\nВведите название файла со словарём: ')
-                if filename[-4:] != '.txt':
-                    filename += '.txt'
-                if filename == '.txt':
-                    warn('Недопустимое название')
-                    continue
-                if filename in f_list:
-                    warn('Файл с таким названием уже существует')
-                    continue
-
-                if has_changes:
-                    save_if_has_changes(dct, min_good_score_perc, form_parameters, dct_filename)
-                dct_filename = filename
-                with open(SETTINGS_PATH, 'w') as set_file:
-                    set_file.write(filename)
-                dct = Dictionary()
-                min_good_score_perc, form_parameters = create_dct(dct, filename)
-            elif cmd in ['О', 'J']:
-                cmd = inp('\nВведите номер словаря: ')
-                try:
-                    filename = f_list[int(cmd)]
-                except (ValueError, TypeError, IndexError):
-                    warn_inp('Недопустимый номер варианта', cmd)
-                    continue
-
-                if has_changes:
-                    save_if_has_changes(dct, min_good_score_perc, form_parameters, dct_filename)
-                dct_filename = filename
-                with open(SETTINGS_PATH, 'w') as set_file:
-                    set_file.write(filename)
-                dct = Dictionary()
-                min_good_score_perc, form_parameters = read_dct(dct, filename)
-            else:
-                warn_inp('Неизвестная команда', cmd)
-    elif cmd in ['З', 'P']:
         if has_changes:
             save_if_has_changes(dct, min_good_score_perc, form_parameters, dct_filename)
-        break
-    else:
-        warn_inp('Неизвестная команда', cmd)
+
+        dct_filename = filename
+        with open(SETTINGS_PATH, 'w') as set_file:
+            set_file.write(filename)
+        dct = Dictionary()
+        min_good_score_perc, form_parameters = read_dct(dct, filename)
+
+    def dct_create(self):
+        window = EnterSaveNameW(self)
+        filename_is_correct, filename = window.open()
+        if not filename_is_correct:
+            return
+
+        global dct, dct_filename, min_good_score_perc, form_parameters
+
+        if has_changes:
+            save_if_has_changes(dct, min_good_score_perc, form_parameters, dct_filename)
+        dct_filename = filename
+        with open(SETTINGS_PATH, 'w') as set_file:
+            set_file.write(filename)
+        dct = Dictionary()
+        min_good_score_perc, form_parameters = create_dct(dct, filename)
+
+    def dct_rename(self):
+        saves_count = 0
+        saves_list = []
+        for file_name in os.listdir(SAVES_PATH):
+            base_name, ext = os.path.splitext(file_name)
+            if ext == '.txt':
+                saves_list += [base_name]
+                saves_count += 1
+        window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите переименовать')
+        old_name = f'{window.open()}.txt'
+        if old_name == '.txt':
+            return
+
+        window2 = EnterSaveNameW(self)
+        new_name_is_correct, new_name = window2.open()
+        if not new_name_is_correct:
+            return
+
+        global dct_filename
+
+        os.rename(os.path.join(SAVES_PATH, old_name), os.path.join(SAVES_PATH, new_name))
+        os.rename(os.path.join(LOCAL_SETTINGS_PATH, old_name), os.path.join(LOCAL_SETTINGS_PATH, new_name))
+        if dct_filename == old_name:
+            dct_filename = new_name
+            with open(SETTINGS_PATH, 'w') as set_file:
+                set_file.write(new_name)
+        outp(f'\nСловарь "{old_name}" успешно переименован в "{new_name}"')
+
+    def dct_delete(self):
+        saves_count = 0
+        saves_list = []
+        for file_name in os.listdir(SAVES_PATH):
+            base_name, ext = os.path.splitext(file_name)
+            if ext == '.txt':
+                saves_list += [base_name]
+                saves_count += 1
+        if saves_count == 0:  # Если нет сохранённых словарей
+            PopupMsgW(self, 'Нет других сохранённых словарей', title='Warning')
+            return
+        else:
+            window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите удалить')
+            filename = f'{window.open()}.txt'
+            if filename == '.txt':
+                return
+            if filename == dct_filename:
+                PopupMsgW(self, 'Вы не можете удалить словарь, который сейчас открыт', title='Warning')
+                return
+
+        window2 = PopupDialogueW(self, f'Словарь "{filename}" будет безвозвратно удалён!\nВы уверены?')
+        self.wait_window(window2)
+        answer = window2.open()
+        if not answer:
+            return
+        os.remove(os.path.join(SAVES_PATH, filename))
+        os.remove(os.path.join(LOCAL_SETTINGS_PATH, filename))
+        PopupMsgW(self, f'\nСловарь "{filename}" успешно удалён')
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+
+
+# Окно сохранения
+class SaveChangesW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[st])
+
+        tk.Label( self, text='Хотите сохранить изменения и свой прогресс?', bg=ST_BG[st], fg=ST_FG_TEXT[st]).grid(row=0, columnspan=2, padx=6, pady=(6, 3))
+        tk.Button(self, text='Да',  command=self.yes, bg=ST_ACCEPT[st], fg=ST_FG_TEXT[st], activebackground=ST_ACC_SELECT[st], highlightbackground=ST_BORDER[st]).grid(row=1, column=0, padx=(6, 4), pady=(0, 6))
+        tk.Button(self, text='Нет', command=self.no,  bg=ST_CLOSE[st],  fg=ST_FG_TEXT[st], activebackground=ST_CLS_SELECT[st], highlightbackground=ST_BORDER[st]).grid(row=1, column=1, padx=(0, 6), pady=(0, 6))
+
+    def yes(self):
+        global dct, min_good_score_perc, form_parameters, dct_filename
+        save_all(dct, min_good_score_perc, form_parameters, dct_filename)
+        self.destroy()
+
+    def no(self):
+        self.destroy()
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+
+
+# Главное окно
+class MainW(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title(PROGRAM_NAME)
+        self.eval('tk::PlaceWindow . center')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[st])
+
+        self.var_word = tk.StringVar(value='')
+
+        self.frame_head = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # {
+        self.lbl_header1 = tk.Label(self.frame_head, text='Anenokil development presents', font='StdFont 15', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.lbl_header2 = tk.Label(self.frame_head, text=PROGRAM_NAME,                    font='Times 21',   bg=ST_BG[st], fg=ST_FG_LOGO[st])
+        # }
+        self.btn_print = tk.Button(self, text='Напечатать словарь', font='StdFont 12', command=self.print, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_learn = tk.Button(self, text='Учить слова',        font='StdFont 12', command=self.learn, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.frame_word = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # {
+        self.entry_word = tk.Entry(self.frame_word, textvariable=self.var_word, width=30, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.btn_search = tk.Button(self.frame_word, text='Найти статью',    font='StdFont 12', command=self.search, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_edit   = tk.Button(self.frame_word, text='Изменить статью', font='StdFont 12', command=self.edit,   bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_add    = tk.Button(self.frame_word, text='Добавить статью', font='StdFont 12', command=self.add,    bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        # }
+        self.btn_settings = tk.Button(self, text='Настройки',                      font='StdFont 12', command=self.settings, bg=ST_BTN[st],    fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_save     = tk.Button(self, text='Сохранить изменения и прогресс', font='StdFont 12', command=self.save,     bg=ST_ACCEPT[st], fg=ST_FG_TEXT[st], activebackground=ST_ACC_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_close    = tk.Button(self, text='Закрыть программу',              font='StdFont 12', command=self.close,    bg=ST_CLOSE[st],  fg=ST_FG_TEXT[st], activebackground=ST_CLS_SELECT[st], highlightbackground=ST_BORDER[st])
+
+        self.lbl_footer = tk.Label(self, text=f'{PROGRAM_VERSION} - {PROGRAM_DATE}', font='StdFont 8', bg=ST_BG[st], fg=ST_FG_FOOTER[st])
+
+        self.frame_head.grid(row=0, padx=6, pady=4)
+        # {
+        self.lbl_header1.grid(row=0, padx=7, pady=(7, 0))
+        self.lbl_header2.grid(row=1, padx=7, pady=(0, 7))
+        # }
+        self.btn_print.grid( row=1, pady=5)
+        self.btn_learn.grid( row=2, pady=5)
+        self.frame_word.grid(row=3, padx=6, pady=5)
+        # {
+        self.entry_word.grid(row=0, padx=3, pady=(5, 0))
+        self.btn_search.grid(row=1, padx=3, pady=(5, 0))
+        self.btn_edit.grid(  row=2, padx=3, pady=(5, 0))
+        self.btn_add.grid(   row=3, padx=3, pady=5)
+        # }
+        self.btn_settings.grid(row=4, pady=5)
+        self.btn_save.grid(    row=5, pady=5)
+        self.btn_close.grid(   row=6, pady=5)
+
+        self.lbl_footer.grid(row=7, padx=7, pady=(0, 3), sticky='S')
+
+    # Поиск статьи
+    def search(self):
+        wrd = self.var_word.get()
+        window = SearchW(self, wrd)
+        window.open()
+
+    # Добавление статьи
+    def add(self):
+        wrd = self.var_word.get()
+        window = AddW(self, wrd)
+        key = window.open()
+        if not key:
+            return
+        window2 = EditW(self, key)
+        window2.open()
+
+    # Изменение статьи
+    def edit(self):
+        wrd = self.var_word.get()
+        if wrd_to_key(wrd, 0) not in dct.d.keys():
+            warn(f'Слово "{wrd}" отсутствует в словаре')
+            outp('Возможно вы искали:')
+            dct.print_words_with_str(wrd)
+            return
+        key = dct.choose_one_of_similar_entries(wrd)
+        window = EditW(self, key)
+        window.open()
+
+    # Печать словаря
+    def print(self):
+        window = PrintW(self)
+        window.open()
+
+    # Учить слова
+    def learn(self):
+        window = LearnChooseW(self)
+        res = window.open()
+        if not res:
+            return
+        window2 = LearnW(self, res)
+        window2.open()
+
+    # Открыть настройки
+    def settings(self):
+        window = SettingsW(self)
+        window.open()
+
+    # Сохранить изменения
+    def save(self):
+        save_all(dct, min_good_score_perc, form_parameters, dct_filename)
+        outp('\nИзменения и прогресс успешно сохранены')
+        global has_changes
+        has_changes = False
+
+    # Закрытие программы
+    def close(self):
+        if has_changes:
+            window = SaveChangesW(self)
+            window.open()
+        self.quit()
+
+
+has_changes = False
+root = MainW()
+root.mainloop()
+
+# Возможно вы искали частичных совпадений не найдено
+# строка   56 - добавить выбор стилей
+# find_matches: добавить проверку деления на ноль
+# AddW: добавление в избранное при создании
+# Попробовать tk.ScrolledText
