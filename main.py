@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_19'
-PROGRAM_DATE = '12.1.2023 3:00 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_20'
+PROGRAM_DATE = '12.1.2023 3:03 (UTC+5)'
 
 """ Стили """
 
@@ -1958,6 +1958,9 @@ class EditW(tk.Toplevel):
         _tr = window.open()
         if _tr == '':
             PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning')
+            return
+        if _tr in dct.d[self.key].tr:
+            PopupMsgW(self, f'У слова "{dct.d[self.key].wrd}" уже есть такой перевод', title='Warning')
             return
         dct.add_tr(self.key, _tr, _window=self, _is_key=True)
         has_changes = True
