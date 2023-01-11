@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_13'
-PROGRAM_DATE = '12.1.2023 1:00 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_14'
+PROGRAM_DATE = '12.1.2023 1:12 (UTC+5)'
 
 """ Стили """
 
@@ -679,16 +679,18 @@ class Dictionary(object):
             for _tr in _entry.tr:
                 _res = find_matches(_tr, _search_tr)
                 if _res != '':
-                    _is_found = True
                     if _is_first:
                         _is_first = False
-                        outp(_dst=_output_widget, _text='')
+                        if _is_found:
+                            outp(_dst=_output_widget)
                     else:
                         outp(_dst=_output_widget, _text=', ', _end='')
+                    _is_found = True
                     outp(_dst=_output_widget, _text=_res, _end='')
-        outp(_dst=_output_widget, _text='')
         if not _is_found:
             outp(_dst=_output_widget, _text='Частичных совпадений не найдено')
+        else:
+            outp(_dst=_output_widget)
 
     # Выбрать одну статью из нескольких с одинаковыми словами
     def choose_one_of_similar_entries(self, _window, _wrd):
@@ -1605,7 +1607,7 @@ class SearchW(tk.Toplevel):
         self.text_tr['state'] = 'normal'
         self.text_tr.delete(1.0, tk.END)
 
-        outp(_dst=self.text_tr, _text='Частичное совпадение:', _end='')
+        outp(_dst=self.text_tr, _text='Частичное совпадение:')
         dct.print_translations_with_str(self.text_tr, search_tr)
 
         outp(_dst=self.text_tr, _text='\nПолное совпадение:')
