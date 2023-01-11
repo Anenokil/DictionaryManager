@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_10'
-PROGRAM_DATE = '11.1.2023  17:36 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_11'
+PROGRAM_DATE = '12.1.2023 0:38 (UTC+5)'
 
 """ Стили """
 
@@ -71,11 +71,19 @@ VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только и
 
 """
     Про формы:
+    
+    'чашка' - СЛОВО
 
-    apple - слово
-    apples - форма слова
-    число - параметр формы слова
-    мн.ч., ед.ч. - значения параметра формы слова
+    'чашка'   - начальная ФОРМА СЛОВА 'чашка'   (ед. число, им. падеж)
+    'чашками' -           ФОРМА СЛОВА 'чашка' (множ. число, тв. падеж)
+    
+      'ед. число, им. падеж' - ШАБЛОН ФОРМЫ 'чашка'
+    'множ. число, тв. падеж' - ШАБЛОН ФОРМЫ 'чашками'
+    
+    'число' и 'падеж' - ПАРАМЕТРЫ форм
+    
+    'ед. число' и 'множ. число' - ЗНАЧЕНИЯ ПАРАМЕТРА 'число'
+    'им. падеж' и   'тв. падеж' - ЗНАЧЕНИЯ ПАРАМЕТРА 'падеж'
 """
 
 
@@ -184,14 +192,15 @@ def decode_tpl(_str, _separator=FORMS_SEPARATOR):
 
 
 # Добавить значение параметра форм
-def add_frm_param_val(_vals):
-    _new_v = inp('\nВведите новое значение параметра: ')
+def add_frm_param_val(_window, _vals):
+    window = PopupEntryW(_window, 'Введите новое значение параметра')
+    _new_v = window.open()
     if _new_v in _vals:
-        warn(f'Значение "{_new_v}" уже существует')
+        PopupMsgW(_window, f'Значение "{_new_v}" уже существует')
     elif _new_v == '':
-        warn('Недопустимое значение')
+        PopupMsgW(_window, 'Недопустимое значение')
     elif FORMS_SEPARATOR in _new_v:
-        warn_inp('Недопустимый символ', FORMS_SEPARATOR)
+        PopupMsgW(_window, f'Недопустимый символ: {FORMS_SEPARATOR}')
     else:
         _vals += [_new_v]
 
@@ -236,63 +245,6 @@ def rename_frm_param_val(_vals, _pos, _dct):
             warn('Значение с таким названием уже есть')
         _dct.rename_forms_with_val(_pos, _val, _new_val)
         _vals[_index] = _new_val
-
-
-# Выбрать значение одного из параметров формы слова
-def choose_frm_param_val(_par, _par_vals):
-    while True:
-        outp(f'\nВыберите {_par}')
-        for _i in range(len(_par_vals)):
-            outp(f'{_i + 1} - {_par_vals[_i]}')
-        spec_action('Н - Не указывать/Неприменимо')
-        spec_action('Д - Добавить новый вариант')
-        _cmd = inp().upper()
-        if _cmd in ['Н', 'Y']:
-            return ''
-        elif _cmd in ['Д', 'L']:
-            add_frm_param_val(_par_vals)
-        else:
-            try:
-                return _par_vals[int(_cmd) - 1]
-            except (ValueError, TypeError, IndexError):
-                warn_inp('Недопустимый вариант', _cmd)
-
-
-# Создать шаблон для новой формы слова
-def construct_frm_template(_form_parameters):
-    _res = []
-    _parameters = list(_form_parameters.keys())
-    outp('Выберите параметр')
-    for _i in range(len(_parameters)):
-        outp(f'{_i + 1} - {_parameters[_i]}')
-        _res += ['']
-    _void_frm = _res.copy()
-    _cmd = inp()
-
-    while True:
-        try:
-            _index = int(_cmd) - 1
-            _par = _parameters[_index]
-            _res[_index] = choose_frm_param_val(_par, _form_parameters[_par])
-        except (ValueError, TypeError, IndexError):
-            warn_inp('Недопустимый вариант', _cmd)
-
-        _is_void = (_res == _void_frm)
-        outp()
-        if not _is_void:
-            outp(f'Текущий шаблон формы: {tpl(_res)}\n')
-
-        outp('Выберите параметр')
-        for _i in range(len(_parameters)):
-            outp(f'{_i + 1} - {_parameters[_i]}')
-        if not _is_void:
-            spec_action('З - Закончить с шаблоном и ввести форму слова')
-
-        _cmd = inp()
-        if _cmd.upper() in ['З', 'P']:
-            if not _is_void:
-                break
-    return tuple(_res)
 
 
 # Найти в строке подстроку и выделить её
@@ -511,67 +463,38 @@ class Entry(object):
         elif _show_msg:
             warn(f'Слово уже имеет форму с такими параметрами {tpl(_frm_key)}: {self.forms[_frm_key]}')
 
-    # Удалить перевод
-    def remove_tr_with_choose(self):
-        if self.count_t == 1:
-            warn('Вы не можете удалить единственный перевод слова')
-            return
-        outp('Выберите один из предложенных вариантов')
-        for _i in range(self.count_t):
-            outp(f'{_i + 1} - {code(self.tr[_i])}')
-        _cmd = inp('Введите номер варианта: ')
-        try:
-            self.tr.pop(int(_cmd))
-        except (ValueError, TypeError, IndexError):
-            warn_inp('Недопустимый номер варианта', _cmd)
-        else:
-            self.count_t -= 1
-
-    # Удалить сноску
-    def remove_note_with_choose(self):
-        outp('Выберите один из предложенных вариантов')
-        for _i in range(self.count_n):
-            outp(f'{_i + 1} - {code(self.notes[_i])}')
-        _cmd = inp('Введите номер варианта: ')
-        try:
-            self.notes.pop(int(_cmd) - 1)
-        except (ValueError, TypeError, IndexError):
-            warn_inp('Недопустимый номер варианта', _cmd)
-        else:
-            self.count_n -= 1
-
     # Удалить форму слова
-    def remove_frm_with_choose(self):
+    def remove_frm_with_choose(self, _window):
         _keys = [_key for _key in self.forms.keys()]
-        outp('Выберите один из предложенных вариантов')
-        for _i in range(self.count_f):
-            outp(f'{_i + 1} - [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
-        _cmd = inp('Введите номер варианта: ')
-        try:
-            _key = _keys[int(_cmd) - 1]
-        except (ValueError, TypeError, IndexError):
-            warn_inp('Недопустимый номер варианта', _cmd)
-        else:
-            self.forms.pop(_key)
-            self.count_f -= 1
+        _variants = [f'[{tpl(_key)}] {code(self.forms[_key])}' for _key in _keys]
+
+        _window_choose = PopupChooseW(_window, _variants, 'Выберите форму, которую хотите удалить')
+        _answer = _window_choose.open()
+        if _answer == '':
+            return
+        _index = _variants.index(_answer)
+        _key = _keys[_index]
+        self.forms.pop(_key)
+        self.count_f -= 1
 
     # Изменить форму слова
-    def edit_frm_with_choose(self):
+    def edit_frm_with_choose(self, _window):
         _keys = [_key for _key in self.forms.keys()]
-        outp('Выберите один из предложенных вариантов')
-        for _i in range(self.count_f):
-            outp(f'{_i + 1} - [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
-        _cmd = inp('Введите номер варианта: ')
-        try:
-            _key = _keys[int(_cmd) - 1]
-        except (ValueError, TypeError, IndexError):
-            warn_inp('Недопустимый номер варианта', _cmd)
-        else:
-            _new_frm = inp('Введите форму слова: ')
-            if _new_frm == '':
-                warn('Форма должна содержать хотя бы один символ')
-            else:
-                self.forms[_key] = _new_frm
+        _variants = [f'[{tpl(_key)}] {code(self.forms[_key])}' for _key in _keys]
+
+        _window_choose = PopupChooseW(_window, _variants, 'Выберите форму, которую хотите изменить')
+        _answer = _window_choose.open()
+        if _answer == '':
+            return
+        _index = _variants.index(_answer)
+        _key = _keys[_index]
+
+        _window_entry = PopupEntryW(_window, 'Введите форму слова')
+        _new_frm = _window_entry.open()
+        if _new_frm == '':
+            PopupMsgW(_window, 'Форма должна содержать хотя бы один символ', title='Warning')
+            return
+        self.forms[_key] = _new_frm
 
     # Объединить статистику при объединении двух статей
     def merge_stat(self, _all_att, _correct_att, _last_att):
@@ -759,19 +682,19 @@ class Dictionary(object):
         self._print_stat_fav(_output_widget, _count_w, _count_t, _count_f)
 
     # Напечатать статьи, в которых слова содержат данную строку
-    def print_words_with_str(self, _dst, _search_wrd):
+    def print_words_with_str(self, _output_widget, _search_wrd):
         _is_found = False
         for _key in self.d.keys():
             _wrd = key_to_wrd(_key)
             _res = find_matches(_wrd, _search_wrd)
             if _res != '':
                 _is_found = True
-                outp(_dst=_dst, _text=_res)
+                outp(_dst=_output_widget, _text=_res)
         if not _is_found:
-            outp(_dst=_dst, _text='Частичных совпадений не найдено')
+            outp(_dst=_output_widget, _text='Частичных совпадений не найдено')
 
     # Напечатать статьи, в которых переводы содержат данную строку
-    def print_translations_with_str(self, _dst, _search_tr):
+    def print_translations_with_str(self, _output_widget, _search_tr):
         _is_found = False
         for _entry in self.d.values():
             _is_first = True
@@ -781,13 +704,13 @@ class Dictionary(object):
                     _is_found = True
                     if _is_first:
                         _is_first = False
-                        outp(_dst=_dst, _text='')
+                        outp(_dst=_output_widget, _text='')
                     else:
-                        outp(_dst=_dst, _text=', ', _end='')
-                    outp(_dst=_dst, _text=_res, _end='')
-        outp(_dst=_dst, _text='')
+                        outp(_dst=_output_widget, _text=', ', _end='')
+                    outp(_dst=_output_widget, _text=_res, _end='')
+        outp(_dst=_output_widget, _text='')
         if not _is_found:
-            outp(_dst=_dst, _text='Частичных совпадений не найдено')
+            outp(_dst=_output_widget, _text='Частичных совпадений не найдено')
 
     # Выбрать одну статью из нескольких с одинаковыми словами
     def choose_one_of_similar_entries(self, _window, _wrd):
@@ -875,27 +798,37 @@ class Dictionary(object):
             return _new_key
 
     # Изменить форму слова в статье
-    def edit_frm_with_choose(self, _key_or_wrd, _is_key=False):
+    def edit_frm_with_choose(self, _window, _key_or_wrd, _is_key=False):
         _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
-        self.d[_key].edit_frm_with_choose()
+        self.d[_key].edit_frm_with_choose(_window)
 
     # Удалить перевод в статье
-    def remove_tr_with_choose(self, _key_or_wrd, _is_key=False):
-        _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
+    def remove_tr_with_choose(self, _window, _key_or_wrd, _is_key=False):
+        _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_window, _key_or_wrd)
         self.count_t -= self.d[_key].count_t
-        self.d[_key].remove_tr_with_choose()
+        _window_choose = PopupChooseW(_window, self.d[_key].tr, 'Выберите, какой перевод хотите удалить')
+        _cmd = _window_choose.open()
+        if not _cmd:
+            return
+        self.d[_key].tr.remove(_cmd)
+        self.d[_key].count_t -= 1
         self.count_t += self.d[_key].count_t
 
     # Удалить описание в статье
-    def remove_note_with_choose(self, _key_or_wrd, _is_key=False):
-        _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
-        self.d[_key].remove_note_with_choose()
+    def remove_note_with_choose(self, _window, _key_or_wrd, _is_key=False):
+        _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_window, _key_or_wrd)
+        _window_choose = PopupChooseW(_window, self.d[_key].notes, 'Выберите, какую сноску хотите удалить')
+        _cmd = _window_choose.open()
+        if not _cmd:
+            return
+        self.d[_key].notes.remove(_cmd)
+        self.d[_key].count_n -= 1
 
     # Удалить форму слова в статье
-    def remove_frm_with_choose(self, _key_or_wrd, _is_key=False):
+    def remove_frm_with_choose(self, _window, _key_or_wrd, _is_key=False):
         _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
         self.count_f -= self.d[_key].count_f
-        self.d[_key].remove_frm_with_choose()
+        self.d[_key].remove_frm_with_choose(_window)
         self.count_f += self.d[_key].count_f
 
     # Добавить статью в словарь (для пользователя)
@@ -937,123 +870,6 @@ class Dictionary(object):
                 self.count_t += 1
                 return _key
             _i += 1
-
-    # Изменить статью
-    def edit_entry(self, _key_or_wrd, _form_parameters, _is_key=False):
-        _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
-        _has_changes = False
-        while True:
-            outp()
-            self.d[_key].print_editable()
-            outp('\nЧто вы хотите сделать?')
-            outp('СЛ - изменить СЛово')
-            outp('П  - изменить Перевод')
-            outp('Ф  - изменить Формы слова')
-            outp('СН - изменить СНоски')
-            if self.d[_key].fav:
-                outp('И  - убрать из Избранного')
-            else:
-                outp('И  - добавить в Избранное')
-            outp('У  - Удалить статью')
-            spec_action('Н  - Назад')
-            _cmd = inp().upper()
-            if _cmd in ['СЛ', 'CK']:
-                _new_wrd = inp('\nВведите новое слово: ')
-                if _new_wrd == key_to_wrd(_key):
-                    warn('Это то же самое слово')
-                else:
-                    _key = self.edit_wrd(_key, _new_wrd)
-                    _has_changes = True
-            elif _cmd in ['П', 'G']:
-                outp('\nЧто вы хотите сделать?')
-                outp('Д - Добавить перевод')
-                outp('У - Удалить перевод')
-                spec_action('Н - Назад')
-                _cmd = inp().upper()
-                if _cmd in ['Д', 'L']:
-                    _tr = inp('\nВведите перевод: ')
-                    if _tr == '':
-                        warn('Перевод должен содержать хотя бы один символ')
-                        continue
-                    self.add_tr(_key, _tr, _is_key=True)
-                    _has_changes = True
-                elif _cmd in ['У', 'E']:
-                    outp()
-                    self.remove_tr_with_choose(_key, _is_key=True)
-                    _has_changes = True
-                elif _cmd in ['Н', 'Y']:
-                    continue
-                else:
-                    warn_inp('Неизвестная команда', _cmd)
-            elif _cmd in ['Ф', 'A']:
-                outp('\nЧто вы хотите сделать?')
-                outp('Д - Добавить форму')
-                outp('И - Изменить форму')
-                outp('У - Удалить форму')
-                spec_action('Н - Назад')
-                _cmd = inp().upper()
-                if _cmd in ['Д', 'L']:
-                    outp()
-                    _frm_key = construct_frm_template(_form_parameters)
-                    if _frm_key in self.d[_key].forms.keys():
-                        warn(f'\nУ слова "{key_to_wrd(_key)}" уже есть форма с такими параметрами')
-                    else:
-                        _frm = inp('\nВведите форму слова: ')
-                        self.add_frm(_key, _frm_key, _frm, _is_key=True)
-                        _has_changes = True
-                elif _cmd in ['И', 'B']:
-                    outp()
-                    if self.d[_key].count_f == 0:
-                        warn(f'У слова "{key_to_wrd(_key)}" нет других форм')
-                        continue
-                    self.edit_frm_with_choose(_key, _is_key=True)
-                    _has_changes = True
-                elif _cmd in ['У', 'E']:
-                    outp()
-                    if self.d[_key].count_f == 0:
-                        warn(f'У слова "{key_to_wrd(_key)}" нет других форм')
-                        continue
-                    self.remove_frm_with_choose(_key, _is_key=True)
-                    _has_changes = True
-                elif _cmd in ['Н', 'Y']:
-                    continue
-                else:
-                    warn_inp('Неизвестная команда', _cmd)
-            elif _cmd in ['СН', 'CY']:
-                outp('\nЧто вы хотите сделать?')
-                outp('Д - Добавить сноску')
-                outp('У - Удалить сноску')
-                spec_action('Н - Назад')
-                _cmd = inp().upper()
-                if _cmd in ['Д', 'L']:
-                    _note = inp('\nВведите сноску: ')
-                    self.add_note(_key, _note, _is_key=True)
-                    _has_changes = True
-                elif _cmd in ['У', 'E']:
-                    outp()
-                    if self.d[_key].count_n == 0:
-                        warn('В этой статье нет сносок')
-                        continue
-                    self.remove_note_with_choose(_key, _is_key=True)
-                    _has_changes = True
-                elif _cmd in ['Н', 'Y']:
-                    continue
-                else:
-                    warn_inp('Неизвестная команда', _cmd)
-            elif _cmd in ['И', 'B']:
-                self.d[_key].fav = not self.d[_key].fav
-                _has_changes = True
-            elif _cmd in ['У', 'E']:
-                _cmd = inp('\nВы уверены, что хотите удалить эту статью? (+ или -): ')
-                if _cmd == '+':
-                    self.remove_entry(_key, _is_key=True)
-                    _has_changes = True
-                    break
-            elif _cmd in ['Н', 'Y']:
-                break
-            else:
-                warn_inp('Неизвестная команда', _cmd)
-        return _has_changes
 
     # Удалить статью
     def remove_entry(self, _key_or_wrd, _is_key=False):
@@ -1385,7 +1201,7 @@ def forms_settings(_dct, _form_parameters):
 print( '======================================================================================\n')
 print( '                            Anenokil development  presents')
 print(f'                               {PROGRAM_NAME} {PROGRAM_VERSION}')
-print(f'                               {PROGRAM_DATE}\n')
+print(f'                                {PROGRAM_DATE}\n')
 print( '======================================================================================')
 
 try:  # Открываем файл с названием словаря
@@ -1495,19 +1311,20 @@ class PopupChooseW(tk.Toplevel):
         self.title(title)
         self.configure(bg=ST_BG[st])
 
-        self.answer = tk.StringVar()
+        self.var_answer = tk.StringVar()
 
-        tk.Label(self, text=msg, bg=ST_BG[st], fg=ST_FG_TEXT[st]).grid(row=0, padx=6, pady=(4, 1))
         self.st_combo = ttk.Style()
         self.st_combo.configure(style='.TCombobox', background=ST_BG[st], foreground=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st])
         self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[st])], foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
-        ttk.Combobox(self, textvariable=self.answer, style='.TCombobox', values=values, state='readonly').grid(row=1, padx=6, pady=1)
+
+        tk.Label(self, text=msg, bg=ST_BG[st], fg=ST_FG_TEXT[st]).grid(row=0, padx=6, pady=(4, 1))
+        ttk.Combobox(self, textvariable=self.var_answer, style='.TCombobox', values=values, state='readonly').grid(row=1, padx=6, pady=1)
         tk.Button(self, text=btn_text, bg=ST_BTNY[st], fg=ST_FG_TEXT[st], activebackground=ST_BTNY_SELECT[st], highlightbackground=ST_BORDER[st], command=self.destroy).grid(row=2, padx=6, pady=4)
 
     def open(self):
         self.grab_set()
         self.wait_window()
-        return self.answer.get()
+        return self.var_answer.get()
 
 
 # Всплывающее окно с полем ввода и кнопкой
@@ -1628,7 +1445,120 @@ class EnterSaveNameW(tk.Toplevel):
         return self.name_is_correct, f'{self.var_name.get()}.txt'
 
 
-# Окно поиска статьи
+# Окно выбора значения параметра шаблона словоформы
+class FormParValW(tk.Toplevel):
+    def __init__(self, parent, par_name, par_vals):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[st])
+
+        self.res = ''
+        self.vals = par_vals
+        self.var_par = tk.StringVar()
+
+        self.st_combo = ttk.Style()
+        self.st_combo.configure(style='.TCombobox', background=ST_BG[st], foreground=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st])
+        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[st])], foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
+
+        self.lbl_choose = tk.Label(    self, text=f'Задайте значение параметра "{par_name}"', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.combo      = ttk.Combobox(self, textvariable=self.var_par, style='.TCombobox', values=self.vals, state='readonly')
+        self.btn_choose = tk.Button(   self, text='Задать', command=self.choose, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_none   = tk.Button(   self, text='Не указывать/неприменимо', command=self.set_none, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_new    = tk.Button(   self, text='Добавить вариант', command=self.new_val, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+
+        self.lbl_choose.grid(row=0, column=0,     padx=(6, 1), pady=(6, 3))
+        self.combo.grid(     row=0, column=1,     padx=(0, 1), pady=(6, 3))
+        self.btn_choose.grid(row=0, column=2,     padx=(0, 6), pady=(6, 3))
+        self.btn_none.grid(  row=1, columnspan=3, padx=6,      pady=3)
+        self.btn_new.grid(   row=2, columnspan=3, padx=6,      pady=(3, 6))
+
+    # Выбрать параметр и задать ему значение
+    def choose(self):
+        self.res = self.var_par.get()
+        self.destroy()
+
+    # Сбросить значение параметра
+    def set_none(self):
+        self.res = ''
+        self.destroy()
+
+    # Добавить новое значение параметра
+    def new_val(self):
+        add_frm_param_val(self, self.vals)
+        self.combo['values'] = self.vals
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+        return self.res
+
+
+# Окно создания шаблона словоформы
+class FormTemplateW(tk.Toplevel):
+    def __init__(self, parent, key):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[st])
+
+        self.parameters = list(form_parameters.keys())
+        self.par_values = []
+        for _i in range(len(self.parameters)):
+            self.par_values += ['']
+        self.void_frm = self.par_values.copy()
+        self.key = key
+
+        self.var_template = tk.StringVar(value='Текущий шаблон формы: ""')
+        self.var_par = tk.StringVar()
+
+        self.st_combo = ttk.Style()
+        self.st_combo.configure(style='.TCombobox', background=ST_BG[st], foreground=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st])
+        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[st])], foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
+
+        self.lbl_template = tk.Label(    self, textvariable=self.var_template, bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.lbl_choose   = tk.Label(    self, text='Выберите параметр', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.combo        = ttk.Combobox(self, textvariable=self.var_par, style='.TCombobox', values=self.parameters, state='readonly')
+        self.btn_choose   = tk.Button(   self, text='Задать значение', command=self.choose, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_done     = tk.Button(   self, text='Закончить с шаблоном и ввести форму слова', command=self.done, state='disabled', bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+
+        self.lbl_template.grid(row=0, columnspan=3, padx=6,      pady=(6, 1))
+        self.lbl_choose.grid(  row=1, column=0,     padx=(6, 1), pady=(6, 1))
+        self.combo.grid(       row=1, column=1,     padx=(0, 1), pady=1)
+        self.btn_choose.grid(  row=1, column=2,     padx=(0, 6), pady=1)
+        self.btn_done.grid(    row=2, columnspan=3, padx=(0, 6), pady=6)
+
+    # Выбрать параметр и задать ему значение
+    def choose(self):
+        par = self.var_par.get()
+        index = self.parameters.index(par)
+
+        window = FormParValW(self, par, form_parameters[par])
+        self.par_values[index] = window.open()
+
+        self.var_template.set(f'Текущий шаблон формы: "{tpl(self.par_values)}"')
+
+        if self.par_values == self.void_frm:
+            self.btn_done['state'] = 'disabled'
+        else:
+            self.btn_done['state'] = 'normal'
+
+    # Закончить с шаблоном
+    def done(self):
+        if tuple(self.par_values) in dct.d[self.key].forms.keys():
+            PopupMsgW(self, f'\nУ слова "{key_to_wrd(self.key)}" уже есть форма с таким шаблоном', title='Warning')
+            return
+        self.destroy()
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+        if self.par_values == self.void_frm:
+            return None
+        if tuple(self.par_values) in dct.d[self.key].forms.keys():
+            return None
+        return tuple(self.par_values)
+
+
+# Окно поиска статей
 class SearchW(tk.Toplevel):
     def __init__(self, parent, wrd):
         super().__init__(parent)
@@ -1667,7 +1597,7 @@ class SearchW(tk.Toplevel):
         self.scrollbar_wrd.config(command=self.text_wrd.yview)
         self.scrollbar_tr.config( command=self.text_tr.yview)
 
-    # Поиск статьи
+    # Поиск статей
     def search(self):
         # Поиск по слову
         search_wrd = self.var_wrd.get()
@@ -1709,6 +1639,64 @@ class SearchW(tk.Toplevel):
                 entry.print_all(self.text_tr)
         if not is_found:
             outp(_dst=self.text_tr, _text=f'Слово с переводом "{code(search_tr)}" отсутствует в словаре', _end='')
+
+        self.text_tr['state'] = 'disabled'
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+
+
+# Окно вывода похожих статей для редактирования
+class ParticularMatchesW(tk.Toplevel):
+    def __init__(self, parent, wrd):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Similar')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[st])
+
+        self.var_wrd = tk.StringVar(value=wrd)
+
+        self.lbl_header    = tk.Label(self, text=f'Слово "{wrd}" отсутствует в словаре\nВозможно вы искали:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.lbl_wrd       = tk.Label(self, text=f'Слова, содержащие "{wrd}"', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.scrollbar_wrd = tk.Scrollbar(self, bg=ST_BG[st])
+        self.text_wrd      = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        self.lbl_tr        = tk.Label(self, text=f'Переводы, содержащие "{wrd}"', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.scrollbar_tr  = tk.Scrollbar(self, bg=ST_BG[st])
+        self.text_tr       = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,  bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+
+        self.lbl_header.grid(   row=0, column=0, columnspan=4, padx=6,      pady=(6, 3))
+        self.lbl_wrd.grid(      row=1, column=0, columnspan=2, padx=(6, 3), pady=(0, 3))
+        self.lbl_tr.grid(       row=1, column=2, columnspan=2, padx=(3, 6), pady=(0, 3))
+        self.text_wrd.grid(     row=2, column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar_wrd.grid(row=2, column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.text_tr.grid(      row=2, column=2,               padx=(0, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar_tr.grid( row=2, column=3,               padx=(0, 6), pady=(0, 6), sticky='NSW')
+
+        self.scrollbar_wrd.config(command=self.text_wrd.yview)
+        self.scrollbar_tr.config( command=self.text_tr.yview)
+
+        self.search()
+
+    # Поиск статей
+    def search(self):
+        # Поиск по слову
+        search_wrd = self.var_wrd.get()
+
+        self.text_wrd['state'] = 'normal'
+        self.text_wrd.delete(1.0, tk.END)
+
+        dct.print_words_with_str(self.text_wrd, search_wrd)
+
+        self.text_wrd['state'] = 'disabled'
+
+        # Поиск по переводу
+        search_tr = self.var_wrd.get()
+
+        self.text_tr['state'] = 'normal'
+        self.text_tr.delete(1.0, tk.END)
+
+        dct.print_translations_with_str(self.text_tr, search_tr)
 
         self.text_tr['state'] = 'disabled'
 
@@ -1801,17 +1789,17 @@ class EditW(tk.Toplevel):
 
         self.frame_main = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
         # {
-        self.lbl_wrd       = tk.Label( self.frame_main, text='Слово:',     bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.lbl_wrd       = tk.Label(    self.frame_main, text='Слово:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.scrollbar_wrd = tk.Scrollbar(self.frame_main, bg=ST_BG[st])
-        self.txt_wrd       = tk.Text(  self.frame_main, width=self.line_width, height=self.height_w, yscrollcommand=self.scrollbar_wrd.set, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.txt_wrd       = tk.Text(     self.frame_main, width=self.line_width, height=self.height_w, yscrollcommand=self.scrollbar_wrd.set, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
         self.txt_wrd.insert(tk.INSERT, dct.d[key].wrd)
         self.txt_wrd['state'] = 'disabled'
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
         self.btn_wrd_edt   = tk.Button(self.frame_main, text='изм.', command=self.wrd_edt, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
 
-        self.lbl_tr        = tk.Label( self.frame_main, text='Перевод:',   bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.lbl_tr        = tk.Label(    self.frame_main, text='Перевод:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.scrollbar_tr  = tk.Scrollbar(self.frame_main, bg=ST_BG[st])
-        self.txt_tr        = tk.Text(  self.frame_main, width=self.line_width, height=self.height_t, yscrollcommand=self.scrollbar_tr.set, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.txt_tr        = tk.Text(     self.frame_main, width=self.line_width, height=self.height_t, yscrollcommand=self.scrollbar_tr.set, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
         self.txt_tr.insert(tk.INSERT, dct.d[key].tr_to_str())
         self.txt_tr['state'] = 'disabled'
         self.scrollbar_tr.config(command=self.txt_tr.yview)
@@ -1821,9 +1809,9 @@ class EditW(tk.Toplevel):
         self.btn_tr_del = tk.Button(self.frame_btns_tr, text='-', command=self.tr_del, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
         # } }
 
-        self.lbl_notes     = tk.Label( self.frame_main, text='Сноски:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.lbl_notes       = tk.Label(    self.frame_main, text='Сноски:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.scrollbar_notes = tk.Scrollbar(self.frame_main, bg=ST_BG[st])
-        self.txt_notes     = tk.Text(  self.frame_main, width=self.line_width, height=self.height_n, yscrollcommand=self.scrollbar_notes.set, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.txt_notes       = tk.Text(     self.frame_main, width=self.line_width, height=self.height_n, yscrollcommand=self.scrollbar_notes.set, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
         self.txt_notes.insert(tk.INSERT, dct.d[key].notes_to_str())
         self.txt_notes['state'] = 'disabled'
         self.scrollbar_notes.config(command=self.txt_notes.yview)
@@ -1833,9 +1821,9 @@ class EditW(tk.Toplevel):
         self.btn_notes_del = tk.Button(self.frame_btns_notes, text='-', command=self.notes_del, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
         # } }
 
-        self.lbl_frm       = tk.Label( self.frame_main, text='Формы слова:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.lbl_frm       = tk.Label(    self.frame_main, text='Формы слова:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.scrollbar_frm = tk.Scrollbar(self.frame_main, bg=ST_BG[st])
-        self.txt_frm       = tk.Text(  self.frame_main, width=self.line_width, height=self.height_f, yscrollcommand=self.scrollbar_frm.set, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.txt_frm       = tk.Text(     self.frame_main, width=self.line_width, height=self.height_f, yscrollcommand=self.scrollbar_frm.set, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
         self.txt_frm.insert(tk.INSERT, dct.d[key].frm_to_str())
         self.txt_frm['state'] = 'disabled'
         self.scrollbar_frm.config(command=self.txt_frm.yview)
@@ -1846,8 +1834,8 @@ class EditW(tk.Toplevel):
         self.btn_frm_edt = tk.Button(self.frame_btns_frm, text='изм.', command=self.frm_edt, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
         # } }
 
-        self.lbl_fav       = tk.Label( self.frame_main, text='Избранное:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
-        self.check_fav     = ttk.Checkbutton(self.frame_main, variable=self.var_fav, style='.TCheckbutton')
+        self.lbl_fav   = tk.Label(       self.frame_main, text='Избранное:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=self.set_fav, style='.TCheckbutton')
         # }
         self.btn_back   = tk.Button(self, text='Закончить',      command=self.back,   bg=ST_BTN[st],  fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
         self.btn_delete = tk.Button(self, text='Удалить статью', command=self.delete, bg=ST_BTNN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTNN_SELECT[st])
@@ -1910,78 +1898,157 @@ class EditW(tk.Toplevel):
         if self.height_f < self.max_height:
             self.scrollbar_frm.grid_remove()
 
+    # Обновить поля
+    def refresh(self):
+        self.height_w = max(min(height(dct.d[self.key].wrd,            self.line_width), self.max_height), 1)
+        self.height_t =     min(height(dct.d[self.key].tr_to_str(),    self.line_width), self.max_height)
+        self.height_n =     min(height(dct.d[self.key].notes_to_str(), self.line_width), self.max_height)
+        self.height_f =     min(height(dct.d[self.key].frm_to_str(),   self.line_width), self.max_height)
+
+        self.txt_wrd  ['height'] = self.height_w
+        self.txt_tr   ['height'] = self.height_t
+        self.txt_notes['height'] = self.height_n
+        self.txt_frm  ['height'] = self.height_f
+
+        self.txt_wrd['state'] = 'normal'
+        self.txt_wrd.delete(1.0, tk.END)
+        self.txt_wrd.insert(tk.INSERT, dct.d[self.key].wrd)
+        self.txt_wrd['state'] = 'disabled'
+
+        self.txt_tr['state'] = 'normal'
+        self.txt_tr.delete(1.0, tk.END)
+        self.txt_tr.insert(tk.INSERT, dct.d[self.key].tr_to_str())
+        self.txt_tr['state'] = 'disabled'
+
+        self.txt_notes['state'] = 'normal'
+        self.txt_notes.delete(1.0, tk.END)
+        self.txt_notes.insert(tk.INSERT, dct.d[self.key].notes_to_str())
+        self.txt_notes['state'] = 'disabled'
+
+        self.txt_frm['state'] = 'normal'
+        self.txt_frm.delete(1.0, tk.END)
+        self.txt_frm.insert(tk.INSERT, dct.d[self.key].frm_to_str())
+        self.txt_frm['state'] = 'disabled'
+
+        self.btn_tr_del.grid(     row=0, column=1, padx=(1, 0), pady=0)
+        self.btn_notes_del.grid(  row=0, column=1, padx=(1, 0), pady=0)
+        self.btn_frm_del.grid(    row=0, column=1, padx=(1, 1), pady=0)
+        self.btn_frm_edt.grid(    row=0, column=2, padx=(1, 0), pady=0)
+        self.scrollbar_wrd.grid(  row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
+        self.scrollbar_tr.grid(   row=1, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
+        self.scrollbar_notes.grid(row=2, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
+        self.scrollbar_frm.grid(  row=3, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
+
+        if dct.d[self.key].count_t < 2:
+            self.btn_tr_del.grid_remove()
+        if dct.d[self.key].count_n < 1:
+            self.btn_notes_del.grid_remove()
+        if dct.d[self.key].count_f < 1:
+            self.btn_frm_del.grid_remove()
+            self.btn_frm_edt.grid_remove()
+
+        if self.height_w < self.max_height:
+            self.scrollbar_wrd.grid_remove()
+        if self.height_t < self.max_height:
+            self.scrollbar_tr.grid_remove()
+        if self.height_n < self.max_height:
+            self.scrollbar_notes.grid_remove()
+        if self.height_f < self.max_height:
+            self.scrollbar_frm.grid_remove()
+
     # Изменить слово
     def wrd_edt(self):
         global has_changes
 
-        _new_wrd = inp('\nВведите новое слово: ')
-        if _new_wrd == key_to_wrd(self.key):
+        window = PopupEntryW(self, 'Введите новое слово')
+        new_wrd = window.open()
+        if new_wrd == key_to_wrd(self.key):
             PopupMsgW(self, 'Это то же самое слово', title='Warning')
             return
-        self.key = dct.edit_wrd(self.key, _new_wrd)
+        self.key = dct.edit_wrd(self.key, new_wrd)
         has_changes = True
+
+        self.refresh()
 
     # Добавить перевод
     def tr_add(self):
         global has_changes
 
-        w = PopupEntryW(self, 'Введите новый перевод')
-        _tr = w.open()
+        window = PopupEntryW(self, 'Введите новый перевод')
+        _tr = window.open()
         if _tr == '':
             PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning')
             return
         dct.add_tr(self.key, _tr, _is_key=True)
         has_changes = True
 
+        self.refresh()
+
     # Удалить перевод
     def tr_del(self):
         global has_changes
 
-        dct.remove_tr_with_choose(self.key, _is_key=True)
+        dct.remove_tr_with_choose(self, self.key, _is_key=True)
         has_changes = True
+
+        self.refresh()
 
     # Добавить сноску
     def notes_add(self):
         global has_changes
 
-        w = PopupEntryW(self, 'Введите сноску')
-        _note = w.open()
-        dct.add_note(self.key, _note, _is_key=True)
+        window = PopupEntryW(self, 'Введите сноску')
+        note = window.open()
+        dct.add_note(self.key, note, _is_key=True)
         has_changes = True
+
+        self.refresh()
 
     # Удалить сноску
     def notes_del(self):
         global has_changes
 
-        dct.remove_note_with_choose(self.key, _is_key=True)
+        dct.remove_note_with_choose(self, self.key, _is_key=True)
         has_changes = True
+
+        self.refresh()
 
     # Добавить словоформу
     def frm_add(self):
         global has_changes
 
-        _frm_key = construct_frm_template(form_parameters)
-        if _frm_key in dct.d[self.key].forms.keys():
-            PopupMsgW(self, f'\nУ слова "{key_to_wrd(self.key)}" уже есть форма с такими параметрами', title='Warning')
+        window = FormTemplateW(self, self.key)
+        frm_key = window.open()
+        if not frm_key:
             return
-        w = PopupEntryW(self, 'Введите форму слова')
-        _frm = w.open()
-        dct.add_frm(self.key, _frm_key, _frm, _is_key=True)
+        window2 = PopupEntryW(self, 'Введите форму слова')
+        frm = window2.open()
+        dct.add_frm(self.key, frm_key, frm, _is_key=True)
         has_changes = True
+
+        self.refresh()
 
     # Удалить словоформу
     def frm_del(self):
         global has_changes
 
-        dct.remove_frm_with_choose(self.key, _is_key=True)
+        dct.remove_frm_with_choose(self, self.key, _is_key=True)
         has_changes = True
+
+        self.refresh()
 
     # Изменить словоформу
     def frm_edt(self):
         global has_changes
 
-        dct.edit_frm_with_choose(self.key, _is_key=True)
+        dct.edit_frm_with_choose(self, self.key, _is_key=True)
         has_changes = True
+
+        self.refresh()
+
+    # Добавить в избранное/убрать из избранного
+    def set_fav(self):
+        dct.d[self.key].fav = self.var_fav.get()
 
     # Закрыть настройки
     def back(self):
@@ -1991,15 +2058,16 @@ class EditW(tk.Toplevel):
     def delete(self):
         global has_changes
 
-        _cmd = inp('\nВы уверены, что хотите удалить эту статью? (+ или -): ')
-        if _cmd == '+':
+        window = PopupDialogueW(self, 'Вы уверены, что хотите удалить эту статью?')
+        answer = window.open()
+        if answer:
             dct.remove_entry(self.key, _is_key=True)
             has_changes = True
+            self.destroy()
 
     def open(self):
         self.grab_set()
         self.wait_window()
-        dct.d[self.key].fav = self.var_fav.get()
 
 
 # Окно печати словаря
@@ -2764,11 +2832,9 @@ class MainW(tk.Tk):
     def edit(self):
         wrd = self.var_word.get()
         if wrd_to_key(wrd, 0) not in dct.d.keys():
-            warn(f'Слово "{wrd}" отсутствует в словаре')
-            outp('Возможно вы искали:')
-            dct.print_words_with_str(wrd)
+            ParticularMatchesW(self, wrd).open()
             return
-        key = dct.choose_one_of_similar_entries(wrd)
+        key = dct.choose_one_of_similar_entries(self, wrd)
         window = EditW(self, key)
         window.open()
 
@@ -2812,6 +2878,11 @@ has_changes = False
 root = MainW()
 root.mainloop()
 
-# Возможно вы искали частичных совпадений не найдено
 # строка 56 - добавить выбор стилей
 # Попробовать tk.ScrolledText
+# при поиске перевода выводить слово
+# добавить изменение статьи по переводу
+# добавить комментарии
+# запретить несколько одинак переводов
+# запретить несколько одинак сносок
+# сноска должна содержать хотя бы 1 символ
