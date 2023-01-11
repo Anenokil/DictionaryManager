@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_9'
-PROGRAM_DATE = '11.1.2023  15:25 (U)'
+PROGRAM_VERSION = 'v7.0.0-PRE_10'
+PROGRAM_DATE = '11.1.2023  17:36 (UTC+5)'
 
 """ Стили """
 
@@ -22,35 +22,27 @@ PROGRAM_DATE = '11.1.2023  15:25 (U)'
 # Кнопки: activebackground
 # Entry: selectbackground, highlightcolor
 
-ST_BG         = {'light': '#EEEEEE', 'dark': '#222222', 'infernal': '#DD1515'}  # bg или background
-ST_BG_RGB     = {'light': '#EEEEEE', 'dark': '#222222', 'infernal': '#993333'}  # bg
-ST_BG_FIELDS  = {'light': '#FFFFFF', 'dark': '#171717', 'infernal': '#CCCCCC'}  # bg
-ST_BG_ERR     = {'light': '#EE6666', 'dark': '#773333', 'infernal': '#FF0000'}  # bg
+ST_BG          = {'light': '#EEEEEE', 'dark': '#222222', 'infernal': '#DD1515'}  # bg или background
+ST_BG_FIELDS   = {'light': '#FFFFFF', 'dark': '#171717', 'infernal': '#CCCCCC'}  # bg
+#ST_BG_ERR      = {'light': '#EE6666', 'dark': '#773333', 'infernal': '#FF0000'}  # bg
 
-ST_BORDER     = {'light': '#222222', 'dark': '#111111', 'infernal': '#330000'}  # highlightbackground
-ST_RELIEF     = {'light': 'groove',  'dark': 'solid',   'infernal': 'groove' }  # relief
+ST_BORDER      = {'light': '#222222', 'dark': '#111111', 'infernal': '#330000'}  # highlightbackground
+ST_RELIEF      = {'light': 'groove',  'dark': 'solid',   'infernal': 'groove' }  # relief
 
-ST_SELECT     = {'light': '#BBBBBB', 'dark': '#444444', 'infernal': '#FF5500'}  # selectbackground
-ST_HIGHLIGHT  = {'light': '#00DD00', 'dark': '#007700', 'infernal': '#EEEEEE'}  # highlightcolor
+ST_SELECT      = {'light': '#BBBBBB', 'dark': '#444444', 'infernal': '#FF5500'}  # selectbackground
+ST_HIGHLIGHT   = {'light': '#00DD00', 'dark': '#007700', 'infernal': '#EEEEEE'}  # highlightcolor
 
-ST_BTN        = {'light': '#D0D0D0', 'dark': '#202020', 'infernal': '#DD2020'}  # bg
-ST_BTN_SELECT = {'light': '#BABABA', 'dark': '#272727', 'infernal': '#DD5020'}  # activebackground
-ST_MCM        = {'light': '#B0B0B0', 'dark': '#0E0E0E', 'infernal': '#CC3333'}  # bg
-ST_MCM_SELECT = {'light': '#9A9A9A', 'dark': '#151515', 'infernal': '#CC6333'}  # activebackground
-ST_ACCEPT     = {'light': '#88DD88', 'dark': '#446F44', 'infernal': '#CC6633'}  # bg
-ST_ACC_SELECT = {'light': '#77CC77', 'dark': '#558055', 'infernal': '#CC9633'}  # activebackground
-ST_CLOSE      = {'light': '#FF6666', 'dark': '#803333', 'infernal': '#CD0000'}  # bg
-ST_CLS_SELECT = {'light': '#EE5555', 'dark': '#904444', 'infernal': '#CD3000'}  # activebackground
+ST_BTN         = {'light': '#D0D0D0', 'dark': '#202020', 'infernal': '#DD2020'}  # bg
+ST_BTN_SELECT  = {'light': '#BABABA', 'dark': '#272727', 'infernal': '#DD5020'}  # activebackground
+ST_BTNY        = {'light': '#88DD88', 'dark': '#446F44', 'infernal': '#CC6633'}  # bg
+ST_BTNY_SELECT = {'light': '#77CC77', 'dark': '#558055', 'infernal': '#CC9633'}  # activebackground
+ST_BTNN        = {'light': '#FF6666', 'dark': '#803333', 'infernal': '#CD0000'}  # bg
+ST_BTNN_SELECT = {'light': '#EE5555', 'dark': '#904444', 'infernal': '#CD3000'}  # activebackground
 
-ST_FG_TEXT    = {'light': '#222222', 'dark': '#979797', 'infernal': '#000000'}  # fg или foreground
-ST_FG_LOGO    = {'light': '#FF7200', 'dark': '#803600', 'infernal': '#FF7200'}  # fg
-ST_FG_FOOTER  = {'light': '#666666', 'dark': '#666666', 'infernal': '#222222'}  # fg
-ST_FG_EXAMPLE = {'light': '#448899', 'dark': '#448899', 'infernal': '#010101'}  # fg
-ST_FG_KEY     = {'light': '#EE0000', 'dark': '#BC4040', 'infernal': '#FF0000'}  # fg
+ST_FG_TEXT     = {'light': '#222222', 'dark': '#979797', 'infernal': '#000000'}  # fg или foreground
+ST_FG_LOGO     = {'light': '#FF7200', 'dark': '#803600', 'infernal': '#FF7200'}  # fg
+ST_FG_FOOTER   = {'light': '#666666', 'dark': '#666666', 'infernal': '#222222'}  # fg
 
-ST_PROG       = {'light': '#06B025', 'dark': '#06B025', 'infernal': '#771111'}  # bg
-ST_PROG_ABORT = {'light': '#FFB050', 'dark': '#FFB040', 'infernal': '#222222'}  # bg
-ST_PROG_DONE  = {'light': '#0077FF', 'dark': '#1133DD', 'infernal': '#AA1166'}  # bg
 st = 'light'
 
 """ Папки и файлы """
@@ -801,8 +793,8 @@ class Dictionary(object):
     def choose_one_of_similar_entries(self, _window, _wrd):
         if wrd_to_key(_wrd, 1) not in self.d.keys():
             return wrd_to_key(_wrd, 0)
-        _window2 = ChooseNoteW(_window, _wrd)
-        _answer = _window2.open()
+        _window_note = ChooseNoteW(_window, _wrd)
+        _answer = _window_note.open()
         return _answer
 
     # Добавить перевод к статье
@@ -1392,8 +1384,8 @@ def forms_settings(_dct, _form_parameters):
 # Вывод информации о программе
 print( '======================================================================================\n')
 print( '                            Anenokil development  presents')
-print(f'                               {PROGRAM_NAME}  {PROGRAM_VERSION}')
-print(f'                                 {PROGRAM_DATE}\n')
+print(f'                               {PROGRAM_NAME} {PROGRAM_VERSION}')
+print(f'                               {PROGRAM_DATE}\n')
 print( '======================================================================================')
 
 try:  # Открываем файл с названием словаря
@@ -1460,21 +1452,21 @@ class PopupDialogueW(tk.Toplevel):
             self.left_bg = ST_BTN[st]
             self.left_activebackground = ST_BTN_SELECT[st]
         elif st_left == 'yes':
-            self.left_bg = ST_ACCEPT[st]
-            self.left_activebackground = ST_ACC_SELECT[st]
+            self.left_bg = ST_BTNY[st]
+            self.left_activebackground = ST_BTNY_SELECT[st]
         elif st_left == 'no':
-            self.left_bg = ST_CLOSE[st]
-            self.left_activebackground = ST_CLS_SELECT[st]
+            self.left_bg = ST_BTNN[st]
+            self.left_activebackground = ST_BTNN_SELECT[st]
 
         if st_right == 'std':
             self.right_bg = ST_BTN[st]
             self.right_activebackground = ST_BTN_SELECT[st]
         elif st_right == 'yes':
-            self.right_bg = ST_ACCEPT[st]
-            self.right_activebackground = ST_ACC_SELECT[st]
+            self.right_bg = ST_BTNY[st]
+            self.right_activebackground = ST_BTNY_SELECT[st]
         elif st_right == 'no':
-            self.right_bg = ST_CLOSE[st]
-            self.right_activebackground = ST_CLS_SELECT[st]
+            self.right_bg = ST_BTNN[st]
+            self.right_activebackground = ST_BTNN_SELECT[st]
 
         tk.Label( self, text=msg,                           bg=ST_BG[st],     fg=ST_FG_TEXT[st]).grid(row=0, columnspan=2, padx=6, pady=4)
         tk.Button(self, text=btn_left,  command=self.left,  bg=self.left_bg,  fg=ST_FG_TEXT[st], activebackground=self.left_activebackground,  highlightbackground=ST_BORDER[st]).grid(row=1, column=0, padx=(6, 10), pady=4, sticky='E')
@@ -1510,7 +1502,7 @@ class PopupChooseW(tk.Toplevel):
         self.st_combo.configure(style='.TCombobox', background=ST_BG[st], foreground=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st])
         self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[st])], foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
         ttk.Combobox(self, textvariable=self.answer, style='.TCombobox', values=values, state='readonly').grid(row=1, padx=6, pady=1)
-        tk.Button(self, text=btn_text, bg=ST_ACCEPT[st], fg=ST_FG_TEXT[st], activebackground=ST_ACC_SELECT[st], highlightbackground=ST_BORDER[st], command=self.destroy).grid(row=2, padx=6, pady=4)
+        tk.Button(self, text=btn_text, bg=ST_BTNY[st], fg=ST_FG_TEXT[st], activebackground=ST_BTNY_SELECT[st], highlightbackground=ST_BORDER[st], command=self.destroy).grid(row=2, padx=6, pady=4)
 
     def open(self):
         self.grab_set()
@@ -1529,7 +1521,7 @@ class PopupEntryW(tk.Toplevel):
 
         tk.Label(self, text=f'{msg}:', bg=ST_BG[st], fg=ST_FG_TEXT[st]).grid(row=0, column=0, padx=(6, 1), pady=(6, 0))
         tk.Entry(self, textvariable=self.var_text, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], selectbackground=ST_SELECT[st], highlightcolor=ST_HIGHLIGHT[st]).grid(row=0, column=1, padx=(0, 6), pady=(6, 0))
-        tk.Button(self, text=btn_text, command=self.destroy, bg=ST_ACCEPT[st], fg=ST_FG_TEXT[st], activebackground=ST_ACC_SELECT[st], highlightbackground=ST_BORDER[st]).grid(row=1, columnspan=2, padx=6, pady=6)
+        tk.Button(self, text=btn_text, command=self.destroy, bg=ST_BTNY[st], fg=ST_FG_TEXT[st], activebackground=ST_BTNY_SELECT[st], highlightbackground=ST_BORDER[st]).grid(row=1, columnspan=2, padx=6, pady=6)
 
     def open(self):
         self.grab_set()
@@ -1615,7 +1607,7 @@ class EnterSaveNameW(tk.Toplevel):
 
         tk.Label(self, text='Введите название файла со словарём', bg=ST_BG[st], fg=ST_FG_TEXT[st]).grid(row=0, padx=6, pady=(4, 1))
         tk.Entry(self, textvariable=self.var_name, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], selectbackground=ST_SELECT[st], highlightcolor=ST_HIGHLIGHT[st]).grid(row=1, padx=6, pady=1)
-        tk.Button(self, text='Подтвердить', bg=ST_ACCEPT[st], fg=ST_FG_TEXT[st], activebackground=ST_ACC_SELECT[st], highlightbackground=ST_BORDER[st], command=self.check_and_return).grid(row=2, padx=6, pady=4)
+        tk.Button(self, text='Подтвердить', bg=ST_BTNY[st], fg=ST_FG_TEXT[st], activebackground=ST_BTNY_SELECT[st], highlightbackground=ST_BORDER[st], command=self.check_and_return).grid(row=2, padx=6, pady=4)
 
     def check_and_return(self):
         savename = self.var_name.get()
@@ -1857,8 +1849,8 @@ class EditW(tk.Toplevel):
         self.lbl_fav       = tk.Label( self.frame_main, text='Избранное:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.check_fav     = ttk.Checkbutton(self.frame_main, variable=self.var_fav, style='.TCheckbutton')
         # }
-        self.btn_back   = tk.Button(self, text='Закончить',      command=self.back,   bg=ST_BTN[st],   fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
-        self.btn_delete = tk.Button(self, text='Удалить статью', command=self.delete, bg=ST_CLOSE[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_CLS_SELECT[st])
+        self.btn_back   = tk.Button(self, text='Закончить',      command=self.back,   bg=ST_BTN[st],  fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        self.btn_delete = tk.Button(self, text='Удалить статью', command=self.delete, bg=ST_BTNN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTNN_SELECT[st])
 
         self.frame_main.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
         # {
@@ -2160,7 +2152,7 @@ class LearnW(tk.Toplevel):
         self.entry_input = tk.Entry(self.frame_main, textvariable=self.var_input, width=50, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
         self.btn_notes = tk.Button(self.frame_main, text='Посмотреть сноски', command=self.notes, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
         # } }
-        self.btn_stop  = tk.Button(self, text='Закончить', command=self.stop, bg=ST_CLOSE[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_CLS_SELECT[st])
+        self.btn_stop  = tk.Button(self, text='Закончить', command=self.stop, bg=ST_BTNN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTNN_SELECT[st])
 
         self.text_dct.grid(  row=0, column=0,     padx=(6, 0), pady=6, sticky='NSEW')
         self.scrollbar.grid( row=0, column=1,     padx=(0, 6), pady=6, sticky='NSW')
@@ -2726,9 +2718,9 @@ class MainW(tk.Tk):
         self.btn_edit   = tk.Button(self.frame_word, text='Изменить статью', font='StdFont 12', command=self.edit,   bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
         self.btn_add    = tk.Button(self.frame_word, text='Добавить статью', font='StdFont 12', command=self.add,    bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
         # }
-        self.btn_settings = tk.Button(self, text='Настройки',                      font='StdFont 12', command=self.settings, bg=ST_BTN[st],    fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        self.btn_save     = tk.Button(self, text='Сохранить изменения и прогресс', font='StdFont 12', command=self.save,     bg=ST_ACCEPT[st], fg=ST_FG_TEXT[st], activebackground=ST_ACC_SELECT[st], highlightbackground=ST_BORDER[st])
-        self.btn_close    = tk.Button(self, text='Закрыть программу',              font='StdFont 12', command=self.close,    bg=ST_CLOSE[st],  fg=ST_FG_TEXT[st], activebackground=ST_CLS_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_settings = tk.Button(self, text='Настройки',                      font='StdFont 12', command=self.settings, bg=ST_BTN[st],  fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st],  highlightbackground=ST_BORDER[st])
+        self.btn_save     = tk.Button(self, text='Сохранить изменения и прогресс', font='StdFont 12', command=self.save,     bg=ST_BTNY[st], fg=ST_FG_TEXT[st], activebackground=ST_BTNY_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_close    = tk.Button(self, text='Закрыть программу',              font='StdFont 12', command=self.close,    bg=ST_BTNN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTNN_SELECT[st], highlightbackground=ST_BORDER[st])
 
         self.lbl_footer = tk.Label(self, text=f'{PROGRAM_VERSION} - {PROGRAM_DATE}', font='StdFont 8', bg=ST_BG[st], fg=ST_FG_FOOTER[st])
 
