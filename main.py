@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_16'
-PROGRAM_DATE = '12.1.2023 1:51 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_17'
+PROGRAM_DATE = '12.1.2023 2:54 (UTC+5)'
 
 """ Стили """
 
@@ -419,12 +419,12 @@ class Entry(object):
                  f'{self.correct_att}/{self.all_att} = ' + '{:.0%}'.format(self.score))
 
     # Добавить перевод
-    def add_tr(self, _new_tr, _show_msg=True):
+    def add_tr(self, _new_tr, _window=None):
         if _new_tr not in self.tr:
             self.tr += [_new_tr]
             self.count_t += 1
-        elif _show_msg:
-            warn('У этого слова уже есть такой перевод')
+        elif _window:
+            PopupMsgW(_window, 'У этого слова уже есть такой перевод', title='Warning')
 
     # Добавить сноску
     def add_note(self, _new_note):
@@ -432,14 +432,14 @@ class Entry(object):
         self.count_n += 1
 
     # Добавить форму слова
-    def add_frm(self, _frm_key, _new_frm, _show_msg=True):
+    def add_frm(self, _frm_key, _new_frm, _window=None):
         if _new_frm == '':
-            warn('Форма должна содержать хотя бы один символ')
+            PopupMsgW(_window, 'Форма должна содержать хотя бы один символ', title='Warning')
         elif _frm_key not in self.forms.keys():
             self.forms[_frm_key] = _new_frm
             self.count_f += 1
-        elif _show_msg:
-            warn(f'Слово уже имеет форму с такими параметрами {tpl(_frm_key)}: {self.forms[_frm_key]}')
+        elif _window:
+            PopupMsgW(_window, f'Слово уже имеет форму с такими параметрами {tpl(_frm_key)}: {self.forms[_frm_key]}', title='Warning')
 
     # Удалить форму слова
     def remove_frm_with_choose(self, _window):
@@ -701,22 +701,21 @@ class Dictionary(object):
         return _answer
 
     # Добавить перевод к статье
-    def add_tr(self, _key_or_wrd, _tr, _show_msg=True, _is_key=False):
-        _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
+    def add_tr(self, _key_or_wrd, _tr, _window=None, _is_key=False):
+        _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_window, _key_or_wrd)
         self.count_t -= self.d[_key].count_t
-        self.d[_key].add_tr(_tr, _show_msg)
+        self.d[_key].add_tr(_tr, _window=_window)
         self.count_t += self.d[_key].count_t
 
     # Добавить сноску к статье
-    def add_note(self, _key_or_wrd, _note, _is_key=False):
-        _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
+    def add_note(self, _key, _note):
         self.d[_key].add_note(_note)
 
     # Добавить форму слова к статье
-    def add_frm(self, _key_or_wrd, _frm_key, _frm, _show_msg=True, _is_key=False):
-        _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_key_or_wrd)
+    def add_frm(self, _key_or_wrd, _frm_key, _frm, _window=None, _is_key=False):
+        _key = _key_or_wrd if _is_key else self.choose_one_of_similar_entries(_window, _key_or_wrd)
         self.count_f -= self.d[_key].count_f
-        self.d[_key].add_frm(_frm_key, _frm, _show_msg)
+        self.d[_key].add_frm(_frm_key, _frm, _window=_window)
         self.count_f += self.d[_key].count_f
 
     # Изменить слово в статье
@@ -736,7 +735,7 @@ class Dictionary(object):
                 self.count_f -= self.d[_new_key].count_f
 
                 for _tr in self.d[_key].tr:
-                    self.d[_new_key].add_tr(_tr, False)
+                    self.d[_new_key].add_tr(_tr)
                 for _note in self.d[_key].notes:
                     self.d[_new_key].add_note(_note)
                 for _frm_key in self.d[_key].forms.keys():
@@ -808,7 +807,7 @@ class Dictionary(object):
         self.count_f += self.d[_key].count_f
 
     # Добавить статью в словарь (для пользователя)
-    def add_entry(self, _window, _wrd, _tr, _show_msg=True):
+    def add_entry(self, _window, _wrd, _tr):
         if wrd_to_key(_wrd, 0) in self.d.keys():  # Если уже есть статья с таким словом
             while True:
                 window = PopupDialogueW(_window, 'Статья с таким словом уже есть в словаре\nЧто вы хотите сделать?',
@@ -817,7 +816,7 @@ class Dictionary(object):
                 _answer = window.open()
                 if _answer == 'l':
                     _key = self.choose_one_of_similar_entries(_window, _wrd)
-                    self.add_tr(_key, _tr, _show_msg, _is_key=True)
+                    self.add_tr(_key, _tr, _window=_window, _is_key=True)
                     return _key
                 elif _answer == 'r':
                     for _i in range(MAX_SAME_WORDS):
@@ -937,9 +936,9 @@ class Dictionary(object):
                         _tr = _file.readline().strip()
                         _key = self.load_entry(_wrd, _tr, _all_att, _correct_att, _last_att)
                     elif _line[0] == 't':
-                        self.add_tr(_key, _line[1:], False, _is_key=True)
+                        self.add_tr(_key, _line[1:], _is_key=True)
                     elif _line[0] == 'd':
-                        self.add_note(_key, _line[1:], _is_key=True)
+                        self.add_note(_key, _line[1:])
                     elif _line[0] == 'f':
                         _frm_key = decode_tpl(_line[1:])
                         self.add_frm(_key, _frm_key, _file.readline().strip(), _is_key=True)
@@ -1957,7 +1956,7 @@ class EditW(tk.Toplevel):
         if _tr == '':
             PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning')
             return
-        dct.add_tr(self.key, _tr, _is_key=True)
+        dct.add_tr(self.key, _tr, _window=self, _is_key=True)
         has_changes = True
 
         self.refresh()
@@ -1977,7 +1976,7 @@ class EditW(tk.Toplevel):
 
         window = PopupEntryW(self, 'Введите сноску')
         note = window.open()
-        dct.add_note(self.key, note, _is_key=True)
+        dct.add_note(self.key, note)
         has_changes = True
 
         self.refresh()
@@ -2001,7 +2000,7 @@ class EditW(tk.Toplevel):
             return
         window2 = PopupEntryW(self, 'Введите форму слова')
         frm = window2.open()
-        dct.add_frm(self.key, frm_key, frm, _is_key=True)
+        dct.add_frm(self.key, frm_key, frm, _window=self, _is_key=True)
         has_changes = True
 
         self.refresh()
