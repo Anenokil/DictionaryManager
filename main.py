@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_20'
-PROGRAM_DATE = '12.1.2023 3:03 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_21'
+PROGRAM_DATE = '12.1.2023 3:06 (UTC+5)'
 
 """ Стили """
 
@@ -1985,6 +1985,9 @@ class EditW(tk.Toplevel):
         if note == '':
             PopupMsgW(self, 'Сноска должна содержать хотя бы один символ', title='Warning')
             return
+        if note in dct.d[self.key].notes:
+            PopupMsgW(self, f'У слова "{dct.d[self.key].wrd}" уже есть такая сноска', title='Warning')
+            return
         dct.add_note(self.key, note)
         has_changes = True
 
@@ -2873,5 +2876,3 @@ root.mainloop()
 # при поиске перевода выводить слово
 # добавить изменение статьи по переводу
 # добавить комментарии
-# запретить несколько одинак переводов
-# запретить несколько одинак сносок
