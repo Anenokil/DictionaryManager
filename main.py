@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_18'
-PROGRAM_DATE = '12.1.2023 2:57 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_19'
+PROGRAM_DATE = '12.1.2023 3:00 (UTC+5)'
 
 """ Стили """
 
@@ -1939,6 +1939,9 @@ class EditW(tk.Toplevel):
 
         window = PopupEntryW(self, 'Введите новое слово')
         new_wrd = window.open()
+        if new_wrd == '':
+            PopupMsgW(self, 'Слово должно содержать хотя бы один символ', title='Warning')
+            return
         if new_wrd == key_to_wrd(self.key):
             PopupMsgW(self, 'Это то же самое слово', title='Warning')
             return
