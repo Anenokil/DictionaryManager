@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_12'
-PROGRAM_DATE = '12.1.2023 0:54 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_13'
+PROGRAM_DATE = '12.1.2023 1:00 (UTC+5)'
 
 """ Стили """
 
@@ -388,28 +388,6 @@ class Entry(object):
         self.tr_print(_output_widget, _end=' ')
         outp(_dst=_output_widget, _text=f'({tpl(_frm_key)})', _end=' ')
         self.stat_print(_output_widget, _min_good_score_perc)
-
-    # Напечатать статью - со всей редактируемой информацией
-    def print_editable(self):
-        outp(f'       Слово: {code(self.wrd)}')
-        outp('     Перевод: ', _end='')
-        self.tr_print()
-        outp(' Формы слова: ', _end='')
-        if self.count_f == 0:
-            outp('-')
-        else:
-            _keys = [_key for _key in self.forms.keys()]
-            outp(f'[{tpl(_keys[0])}] {code(self.forms[_keys[0]])}')
-            for _i in range(1, self.count_f):
-                outp(f'              [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
-        outp('      Сноски: ', _end='')
-        if self.count_n == 0:
-            outp('-')
-        else:
-            outp(f'> {code(self.notes[0])}')
-            for _i in range(1, self.count_n):
-                outp(f'              > {code(self.notes[_i])}')
-        outp(f'   Избранное: {self.fav}')
 
     # Напечатать статью - со всей информацией
     def print_all(self, _output_widget):
