@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_17'
-PROGRAM_DATE = '12.1.2023 2:54 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_18'
+PROGRAM_DATE = '12.1.2023 2:57 (UTC+5)'
 
 """ Стили """
 
@@ -1976,6 +1976,9 @@ class EditW(tk.Toplevel):
 
         window = PopupEntryW(self, 'Введите сноску')
         note = window.open()
+        if note == '':
+            PopupMsgW(self, 'Сноска должна содержать хотя бы один символ', title='Warning')
+            return
         dct.add_note(self.key, note)
         has_changes = True
 
@@ -2866,4 +2869,3 @@ root.mainloop()
 # добавить комментарии
 # запретить несколько одинак переводов
 # запретить несколько одинак сносок
-# сноска должна содержать хотя бы 1 символ
