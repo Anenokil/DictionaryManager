@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_8'
-PROGRAM_DATE = '11.1.2023 7:56'
+PROGRAM_VERSION = 'v7.0.0-PRE_9'
+PROGRAM_DATE = '11.1.2023  15:25 (U)'
 
 """ Стили """
 
@@ -798,29 +798,12 @@ class Dictionary(object):
             outp(_dst=_dst, _text='Частичных совпадений не найдено')
 
     # Выбрать одну статью из нескольких с одинаковыми словами
-    def choose_one_of_similar_entries(self, _wrd):
+    def choose_one_of_similar_entries(self, _window, _wrd):
         if wrd_to_key(_wrd, 1) not in self.d.keys():
             return wrd_to_key(_wrd, 0)
-        outp('\nВыберите одну из статей')
-        _max_i = MAX_SAME_WORDS - 1
-        for _i in range(MAX_SAME_WORDS):
-            _key = wrd_to_key(_wrd, _i)
-            if _key not in self.d.keys():
-                _max_i = _i - 1
-                break
-            outp(f'\n({_i + 1})')
-            self.d[_key].print_all()
-        while True:
-            _cmd = inp('\nВведите номер варианта: ')
-            try:
-                _index = int(_cmd) - 1
-            except (ValueError, TypeError):
-                warn_inp('Недопустимый номер варианта', _cmd)
-            else:
-                if _index < 0 or _index > _max_i:
-                    warn_inp('Недопустимый номер варианта', _cmd)
-                else:
-                    return wrd_to_key(_wrd, _index)
+        _window2 = ChooseNoteW(_window, _wrd)
+        _answer = _window2.open()
+        return _answer
 
     # Добавить перевод к статье
     def add_tr(self, _key_or_wrd, _tr, _show_msg=True, _is_key=False):
@@ -924,19 +907,16 @@ class Dictionary(object):
         self.count_f += self.d[_key].count_f
 
     # Добавить статью в словарь (для пользователя)
-    def add_entry(self, _wrd, _tr, _show_msg=True):
+    def add_entry(self, _window, _wrd, _tr, _show_msg=True):
         if wrd_to_key(_wrd, 0) in self.d.keys():  # Если уже есть статья с таким словом
             while True:
-                outp('\nСтатья с таким словом уже есть в словаре')
-                outp('Что вы хотите сделать?')
-                outp('Д - Добавить к существующей статье')
-                outp('Н - создать Новую статью')
-                _cmd = inp().upper()
-                if _cmd in ['Д', 'L']:
-                    _key = self.choose_one_of_similar_entries(_wrd)
+                window = PopupDialogueW(_window, 'Статья с таким словом уже есть в словаре\nЧто вы хотите сделать?', 'Добавить к существующей статье', 'Создать новую статью', st_left='std', st_right='std', val_left='l', val_right='r', val_initial='i')
+                _answer = window.open()
+                if _answer == 'l':
+                    _key = self.choose_one_of_similar_entries(_window, _wrd)
                     self.add_tr(_key, _tr, _show_msg, _is_key=True)
                     return _key
-                elif _cmd in ['Н', 'Y']:
+                elif _answer == 'r':
                     for _i in range(MAX_SAME_WORDS):
                         _key = wrd_to_key(_wrd, _i)
                         if _key not in self.d.keys():
@@ -945,9 +925,9 @@ class Dictionary(object):
                             self.count_t += 1
                             return _key
                         _i += 1
-                    warn('Слишком много статей с одинаковым словом')
+                    PopupMsgW(_window, 'Слишком много статей с одинаковым словом', title='Warning')
                 else:
-                    warn_inp('Неизвестная команда', _cmd)
+                    return None
         else:  # Если ещё нет статьи с таким словом
             _key = wrd_to_key(_wrd, 0)
             self.d[_key] = Entry(_wrd, [_tr])
@@ -1413,7 +1393,7 @@ def forms_settings(_dct, _form_parameters):
 print( '======================================================================================\n')
 print( '                            Anenokil development  presents')
 print(f'                               {PROGRAM_NAME}  {PROGRAM_VERSION}')
-print(f'                                   {PROGRAM_DATE}\n')
+print(f'                                 {PROGRAM_DATE}\n')
 print( '======================================================================================')
 
 try:  # Открываем файл с названием словаря
@@ -1430,9 +1410,14 @@ min_good_score_perc, form_parameters = read_dct(dct, dct_filename)  # Загру
 print('\nМожете использовать эти комбинации для немецких букв: #a = ä, #o = ö, #u = ü, #s = ß (и ## = #)')
 
 
+# Ввод только целых чисел от 0 до max
+def validate_int_max(value, max):
+    return value == '' or value.isnumeric() and int(value) <= max
+
+
 # Ввод только целых чисел от 0 до 100
 def validate_percent(value):
-    return value == '' or value.isnumeric() and int(value) <= 100
+    return validate_int_max(value, 100)
 
 
 # При выборе второго способа учёбы, нельзя добавить словоформы
@@ -1458,23 +1443,51 @@ class PopupMsgW(tk.Toplevel):
 
 # Всплывающее окно с сообщением и двумя кнопками
 class PopupDialogueW(tk.Toplevel):
-    def __init__(self, parent, msg='Вы уверены?', btn_yes='Да', btn_no='Отмена', title=PROGRAM_NAME):
+    def __init__(self, parent, msg='Вы уверены?', btn_left='Да', btn_right='Отмена', st_left='yes', st_right='no', val_left=True, val_right=False, val_initial=False, title=PROGRAM_NAME):
+        ALLOWED_ST_VALUES = ['std', 'yes', 'no']
+        assert st_left  in ALLOWED_ST_VALUES, f'Bad value: st_left\nAllowed values: {ALLOWED_ST_VALUES}'
+        assert st_right in ALLOWED_ST_VALUES, f'Bad value: st_right\nAllowed values: {ALLOWED_ST_VALUES}'
+
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[st])
 
-        self.answer = False
+        self.answer = val_initial
+        self.val_left  = val_left
+        self.val_right = val_right
 
-        tk.Label( self, text=msg,     bg=ST_BG[st],     fg=ST_FG_TEXT[st]).grid(row=0, columnspan=2, padx=6, pady=4)
-        tk.Button(self, text=btn_yes, bg=ST_ACCEPT[st], fg=ST_FG_TEXT[st], activebackground=ST_ACC_SELECT[st], highlightbackground=ST_BORDER[st], command=self.yes).grid(row=1, column=0, padx=(6, 10), pady=4, sticky='E')
-        tk.Button(self, text=btn_no,  bg=ST_CLOSE[st],  fg=ST_FG_TEXT[st], activebackground=ST_CLS_SELECT[st], highlightbackground=ST_BORDER[st], command=self.no).grid( row=1, column=1, padx=(10, 6), pady=4, sticky='W')
+        if st_left == 'std':
+            self.left_bg = ST_BTN[st]
+            self.left_activebackground = ST_BTN_SELECT[st]
+        elif st_left == 'yes':
+            self.left_bg = ST_ACCEPT[st]
+            self.left_activebackground = ST_ACC_SELECT[st]
+        elif st_left == 'no':
+            self.left_bg = ST_CLOSE[st]
+            self.left_activebackground = ST_CLS_SELECT[st]
 
-    def yes(self):
-        self.answer = True
+        if st_right == 'std':
+            self.right_bg = ST_BTN[st]
+            self.right_activebackground = ST_BTN_SELECT[st]
+        elif st_right == 'yes':
+            self.right_bg = ST_ACCEPT[st]
+            self.right_activebackground = ST_ACC_SELECT[st]
+        elif st_right == 'no':
+            self.right_bg = ST_CLOSE[st]
+            self.right_activebackground = ST_CLS_SELECT[st]
+
+        tk.Label( self, text=msg,                           bg=ST_BG[st],     fg=ST_FG_TEXT[st]).grid(row=0, columnspan=2, padx=6, pady=4)
+        tk.Button(self, text=btn_left,  command=self.left,  bg=self.left_bg,  fg=ST_FG_TEXT[st], activebackground=self.left_activebackground,  highlightbackground=ST_BORDER[st]).grid(row=1, column=0, padx=(6, 10), pady=4, sticky='E')
+        tk.Button(self, text=btn_right, command=self.right, bg=self.right_bg, fg=ST_FG_TEXT[st], activebackground=self.right_activebackground, highlightbackground=ST_BORDER[st]).grid(row=1, column=1, padx=(10, 6), pady=4, sticky='W')
+
+    # Нажатие на левую кнопку
+    def left(self):
+        self.answer = self.val_left
         self.destroy()
 
-    def no(self):
-        self.answer = False
+    # Нажатие на правую кнопку
+    def right(self):
+        self.answer = self.val_right
         self.destroy()
 
     def open(self):
@@ -1522,6 +1535,71 @@ class PopupEntryW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
         return self.var_text.get()
+
+
+# Окно выбора одной статьи из нескольких с одинаковыми словами
+class ChooseNoteW(tk.Toplevel):
+    def __init__(self, parent, wrd):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME}')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[st])
+
+        self.max = -1
+        self.wrd = wrd
+        self.answer = wrd_to_key(self.wrd, 0)
+
+        self.var_input = tk.StringVar()
+
+        self.vcmd_max = (self.register(lambda value: validate_int_max(value, self.max)), '%P')
+
+        self.frame_main = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # {
+        self.lbl_input   = tk.Label( self.frame_main, text='Выберите одну из статей:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.entry_input = tk.Entry( self.frame_main, textvariable=self.var_input, width=5, relief='solid', validate='key', vcmd=self.vcmd_max, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.btn_choose  = tk.Button(self.frame_main, text='Выбор', command=self.choose, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
+        # }
+        self.scrollbar   = tk.Scrollbar(self, bg=ST_BG[st])
+        self.text_words  = tk.Text(     self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+
+        self.frame_main.grid( row=0, columnspan=2, padx=6, pady=6)
+        # {
+        self.lbl_input.grid(  row=0, column=0, padx=(6, 1), pady=6, sticky='E')
+        self.entry_input.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
+        self.btn_choose.grid( row=0, column=2, padx=6,      pady=6)
+        # }
+        self.text_words.grid( row=1, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(  row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+
+        self.scrollbar.config(command=self.text_words.yview)
+
+        self.print_variants()
+
+    # Вывести варианты статей
+    def print_variants(self):
+        self.text_words['state'] = 'normal'
+        self.max = MAX_SAME_WORDS - 1
+        for _i in range(MAX_SAME_WORDS):
+            _key = wrd_to_key(self.wrd, _i)
+            if _key not in dct.d.keys():
+                self.max = _i - 1
+                break
+            outp(_dst=self.text_words, _text=f'\n({_i})')
+            dct.d[_key].print_all(self.text_words)
+        self.text_words['state'] = 'disabled'
+
+    # Выбор одной статьи из нескольких
+    def choose(self):
+        _input = self.var_input.get()
+        if _input != "":
+            _index = int(_input)
+            self.answer = wrd_to_key(self.wrd, _index)
+        self.destroy()
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+        return self.answer
 
 
 # Всплывающее окно для ввода названия сохранения словаря
@@ -1670,7 +1748,7 @@ class AddW(tk.Toplevel):
         self.lbl_tr    = tk.Label( self, text='Введите перевод:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.entry_tr  = tk.Entry( self, textvariable=self.var_tr,  width=60, relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
         self.lbl_fav   = tk.Label( self, text='Избранное:',       bg=ST_BG[st], fg=ST_FG_TEXT[st])
-        self.check_fav = ttk.Checkbutton(self, variable=self.var_fav, style='.TCheckbutton', state='disabled')
+        self.check_fav = ttk.Checkbutton(self, variable=self.var_fav, style='.TCheckbutton')
         self.btn_add   = tk.Button(self, text='Добавить', command=self.add, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
 
         self.lbl_wrd.grid(  row=0, column=0,     padx=(6, 1), pady=(6, 3), sticky='E')
@@ -1691,7 +1769,12 @@ class AddW(tk.Toplevel):
         if self.var_tr.get() == '':
             PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning')
             return
-        self.key = dct.add_entry(self.var_wrd.get(), self.var_tr.get())
+
+        self.key = dct.add_entry(self, self.var_wrd.get(), self.var_tr.get())
+        if not self.key:
+            return
+        dct.d[self.key].fav = self.var_fav.get()
+
         has_changes = True
         self.destroy()
 
@@ -2739,5 +2822,4 @@ root.mainloop()
 
 # Возможно вы искали частичных совпадений не найдено
 # строка 56 - добавить выбор стилей
-# AddW: добавление в избранное при создании
 # Попробовать tk.ScrolledText
