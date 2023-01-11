@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_11'
-PROGRAM_DATE = '12.1.2023 0:38 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_12'
+PROGRAM_DATE = '12.1.2023 0:54 (UTC+5)'
 
 """ Стили """
 
@@ -2211,6 +2211,7 @@ class LearnW(tk.Toplevel):
 
         self.var_input = tk.StringVar()
 
+        self.lbl_global_rating = tk.Label(self, text=f'Ваш общий рейтинг по словарю: {round(dct.count_rating() * 100)}%', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.scrollbar = tk.Scrollbar(self, bg=ST_BG[st])
         self.text_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
         self.scrollbar.config(command=self.text_dct.yview)
@@ -2222,15 +2223,16 @@ class LearnW(tk.Toplevel):
         # } }
         self.btn_stop  = tk.Button(self, text='Закончить', command=self.stop, bg=ST_BTNN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTNN_SELECT[st])
 
-        self.text_dct.grid(  row=0, column=0,     padx=(6, 0), pady=6, sticky='NSEW')
-        self.scrollbar.grid( row=0, column=1,     padx=(0, 6), pady=6, sticky='NSW')
-        self.frame_main.grid(row=1, columnspan=2, padx=6,      pady=6)
+        self.lbl_global_rating.grid(row=0, columnspan=2, padx=6,      pady=6)
+        self.text_dct.grid(         row=1, column=0,     padx=(6, 0), pady=6, sticky='NSEW')
+        self.scrollbar.grid(        row=1, column=1,     padx=(0, 6), pady=6, sticky='NSW')
+        self.frame_main.grid(       row=2, columnspan=2, padx=6,      pady=6)
         # { {
         self.btn_input.grid(  row=0, column=0, padx=(0, 3), pady=0, sticky='E')
         self.entry_input.grid(row=0, column=1, padx=(0, 3), pady=0, sticky='W')
         self.btn_notes.grid(  row=0, column=2, padx=0,      pady=0, sticky='W')
         # } }
-        self.btn_stop.grid(row=2, columnspan=2, padx=6, pady=6)
+        self.btn_stop.grid(row=3, columnspan=2, padx=6, pady=6)
 
         self.start()
 
@@ -2310,6 +2312,7 @@ class LearnW(tk.Toplevel):
                 has_changes = self.choose_t_fav(dct, min_good_score_perc) or has_changes
 
         self.btn_notes['state'] = 'normal'
+        self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {round(dct.count_rating() * 100)}%'
 
     # Просмотр сносок
     def notes(self):
