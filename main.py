@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_6'
-PROGRAM_DATE = '11.1.2023 3:30'
+PROGRAM_VERSION = 'v7.0.0-PRE_7'
+PROGRAM_DATE = '11.1.2023 7:46'
 
 """ Стили """
 
@@ -2593,30 +2593,6 @@ class SettingsW(tk.Toplevel):
         self.wait_window()
 
 
-# Окно сохранения
-class SaveChangesW(tk.Toplevel):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.configure(bg=ST_BG[st])
-
-        tk.Label( self, text='Хотите сохранить изменения и свой прогресс?', bg=ST_BG[st], fg=ST_FG_TEXT[st]).grid(row=0, columnspan=2, padx=6, pady=(6, 3))
-        tk.Button(self, text='Да',  command=self.yes, bg=ST_ACCEPT[st], fg=ST_FG_TEXT[st], activebackground=ST_ACC_SELECT[st], highlightbackground=ST_BORDER[st]).grid(row=1, column=0, padx=(6, 4), pady=(0, 6))
-        tk.Button(self, text='Нет', command=self.no,  bg=ST_CLOSE[st],  fg=ST_FG_TEXT[st], activebackground=ST_CLS_SELECT[st], highlightbackground=ST_BORDER[st]).grid(row=1, column=1, padx=(0, 6), pady=(0, 6))
-
-    def yes(self):
-        global dct, min_good_score_perc, form_parameters, dct_filename
-        save_all(dct, min_good_score_perc, form_parameters, dct_filename)
-        self.destroy()
-
-    def no(self):
-        self.destroy()
-
-    def open(self):
-        self.grab_set()
-        self.wait_window()
-
-
 # Главное окно
 class MainW(tk.Tk):
     def __init__(self):
@@ -2725,8 +2701,11 @@ class MainW(tk.Tk):
     # Закрытие программы
     def close(self):
         if has_changes:
-            window = SaveChangesW(self)
-            window.open()
+            window = PopupDialogueW(self, 'Хотите сохранить изменения и свой прогресс?', 'Да', 'Нет')
+            answer = window.open()
+            if answer:
+                global dct, min_good_score_perc, form_parameters, dct_filename
+                save_all(dct, min_good_score_perc, form_parameters, dct_filename)
         self.quit()
 
 
