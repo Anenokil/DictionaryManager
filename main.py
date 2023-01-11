@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_21'
-PROGRAM_DATE = '12.1.2023 3:06 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_22'
+PROGRAM_DATE = '12.1.2023 3:33 (UTC+5)'
 
 """ Стили """
 
@@ -139,7 +139,7 @@ def code(_str):
     return _str
 
 
-# Заменить немецкие буквы английскими (для find_matches)
+# Заменить немецкие буквы английскими (для find_and_highlight)
 def deu_to_eng(_str):
     _str = _str.replace('##', '1ä')
     _str = _str.replace('ss', '2ä')
@@ -248,7 +248,7 @@ def rename_frm_param_val(_vals, _pos, _dct):
 
 
 # Найти в строке подстроку и выделить её
-def find_matches(_wrd, _search_wrd):
+def find_and_highlight(_wrd, _search_wrd):
     _len = len(_search_wrd)
     if _wrd != _search_wrd:
         _pos = deu_to_eng(_wrd).lower().find(deu_to_eng(_search_wrd).lower())
@@ -664,7 +664,7 @@ class Dictionary(object):
         _is_found = False
         for _key in self.d.keys():
             _wrd = key_to_wrd(_key)
-            _res = find_matches(_wrd, _search_wrd)
+            _res = find_and_highlight(_wrd, _search_wrd)
             if _res != '':
                 _is_found = True
                 outp(_dst=_output_widget, _text=_res)
@@ -677,7 +677,7 @@ class Dictionary(object):
         for _entry in self.d.values():
             _is_first = True
             for _tr in _entry.tr:
-                _res = find_matches(_tr, _search_tr)
+                _res = find_and_highlight(_tr, _search_tr)
                 if _res != '':
                     if _is_first:
                         _is_first = False
@@ -1955,14 +1955,14 @@ class EditW(tk.Toplevel):
         global has_changes
 
         window = PopupEntryW(self, 'Введите новый перевод')
-        _tr = window.open()
-        if _tr == '':
+        tr = window.open()
+        if tr == '':
             PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning')
             return
-        if _tr in dct.d[self.key].tr:
+        if tr in dct.d[self.key].tr:
             PopupMsgW(self, f'У слова "{dct.d[self.key].wrd}" уже есть такой перевод', title='Warning')
             return
-        dct.add_tr(self.key, _tr, _window=self, _is_key=True)
+        dct.add_tr(self.key, tr, _window=self, _is_key=True)
         has_changes = True
 
         self.refresh()
@@ -2006,12 +2006,12 @@ class EditW(tk.Toplevel):
     def frm_add(self):
         global has_changes
 
-        window = FormTemplateW(self, self.key)
-        frm_key = window.open()
+        window_template = FormTemplateW(self, self.key)
+        frm_key = window_template.open()
         if not frm_key:
             return
-        window2 = PopupEntryW(self, 'Введите форму слова')
-        frm = window2.open()
+        window_form = PopupEntryW(self, 'Введите форму слова')
+        frm = window_form.open()
         dct.add_frm(self.key, frm_key, frm, _window=self, _is_key=True)
         has_changes = True
 
@@ -2120,7 +2120,7 @@ class PrintW(tk.Toplevel):
 
 
 # Окно выбора режима перед изучением слов
-class LearnChooseW(tk.Toplevel):
+class ChooseLearnModeW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Learn')
@@ -2239,6 +2239,7 @@ class LearnW(tk.Toplevel):
         order = self.conf[0]
         forms = self.conf[1]
         words = self.conf[2]
+
         if order == VALUES_ORDER[0]:
             if forms:
                 if words == VALUES_WORDS[0]:
@@ -2306,8 +2307,8 @@ class LearnW(tk.Toplevel):
     # Просмотр сносок
     def notes(self):
         self.text_dct['state'] = 'normal'
-        _entry = dct.d[self.current_key]
-        _entry.notes_print(self.text_dct)
+        entry = dct.d[self.current_key]
+        entry.notes_print(self.text_dct)
         self.text_dct.yview_moveto(1.0)
         self.text_dct['state'] = 'disabled'
         self.btn_notes['state'] = 'disabled'
@@ -2323,88 +2324,88 @@ class LearnW(tk.Toplevel):
 
     # Проверка введённого слова
     def check_wrd(self):
-        _entry = dct.d[self.current_key]
-        if self.entry_input.get() == _entry.wrd:
-            _entry.correct()
+        entry = dct.d[self.current_key]
+        if self.entry_input.get() == entry.wrd:
+            entry.correct()
             self.outp('Верно\n')
-            if _entry.fav:
-                w = PopupDialogueW(self, 'Оставить слово в избранном?', 'Да', 'Нет')
-                _answer = w.open()
-                if not _answer:
-                    _entry.fav = False
+            if entry.fav:
+                window= PopupDialogueW(self, 'Оставить слово в избранном?', 'Да', 'Нет')
+                answer = window.open()
+                if not answer:
+                    entry.fav = False
             self.count_all += 1
             self.count_correct += 1
             self.used_words.add(self.current_key)
         else:
-            _entry.incorrect()
-            self.outp(f'Неверно. Правильный ответ: "{_entry.wrd}"\n')
-            if not _entry.fav:
-                w = PopupDialogueW(self, 'Добавить слово в избранное?', 'Да', 'Нет')
-                _answer = w.open()
-                if _answer:
-                    _entry.fav = True
+            entry.incorrect()
+            self.outp(f'Неверно. Правильный ответ: "{entry.wrd}"\n')
+            if not entry.fav:
+                window = PopupDialogueW(self, 'Добавить слово в избранное?', 'Да', 'Нет')
+                answer = window.open()
+                if answer:
+                    entry.fav = True
             self.count_all += 1
 
     # Проверка введённой словоформы
     def check_form(self):
-        _entry = dct.d[self.current_key]
-        if self.entry_input.get() == _entry.forms[self.current_form]:
-            _entry.correct()
+        entry = dct.d[self.current_key]
+        if self.entry_input.get() == entry.forms[self.current_form]:
+            entry.correct()
             self.outp('Верно\n')
-            if _entry.fav:
-                w = PopupDialogueW(self, 'Оставить слово в избранном?', 'Да', 'Нет')
-                _answer = w.open()
-                if not _answer:
-                    _entry.fav = False
+            if entry.fav:
+                window = PopupDialogueW(self, 'Оставить слово в избранном?', 'Да', 'Нет')
+                answer = window.open()
+                if not answer:
+                    entry.fav = False
             self.count_all += 1
             self.count_correct += 1
             self.used_words.add((self.current_key, self.current_form))
         else:
-            _entry.incorrect()
-            self.outp(f'Неверно. Правильный ответ: "{_entry.forms[self.current_form]}"\n')
-            if not _entry.fav:
-                w = PopupDialogueW(self, 'Добавить слово в избранное?', 'Да', 'Нет')
-                _answer = w.open()
-                if _answer:
-                    _entry.fav = True
+            entry.incorrect()
+            self.outp(f'Неверно. Правильный ответ: "{entry.forms[self.current_form]}"\n')
+            if not entry.fav:
+                window = PopupDialogueW(self, 'Добавить слово в избранное?', 'Да', 'Нет')
+                answer = window.open()
+                if answer:
+                    entry.fav = True
             self.count_all += 1
 
     # Проверка введённого перевода
     def check_tr(self):
-        _entry = dct.d[self.current_key]
-        if self.entry_input.get() in _entry.tr:
-            _entry.correct()
+        entry = dct.d[self.current_key]
+        if self.entry_input.get() in entry.tr:
+            entry.correct()
             self.outp('Верно\n')
-            if _entry.fav:
-                w = PopupDialogueW(self, 'Оставить слово в избранном?', 'Да', 'Нет')
-                _answer = w.open()
-                if not _answer:
-                    _entry.fav = False
+            if entry.fav:
+                window = PopupDialogueW(self, 'Оставить слово в избранном?', 'Да', 'Нет')
+                answer = window.open()
+                if not answer:
+                    entry.fav = False
             self.count_all += 1
             self.count_correct += 1
             self.used_words.add(self.current_key)
         else:
-            _entry.incorrect()
-            self.outp(f'Неверно. Правильный ответ: "{_entry.tr}"\n')
-            if not _entry.fav:
-                w = PopupDialogueW(self, 'Добавить слово в избранное?', 'Да', 'Нет')
-                _answer = w.open()
-                if _answer:
-                    _entry.fav = True
+            entry.incorrect()
+            self.outp(f'Неверно. Правильный ответ: "{entry.tr}"\n')
+            if not entry.fav:
+                window = PopupDialogueW(self, 'Добавить слово в избранное?', 'Да', 'Нет')
+                answer = window.open()
+                if answer:
+                    entry.fav = True
             self.count_all += 1
 
     # Выбор слова - все
     def choose(self, _dct, _min_good_score_perc):
-        if len(self.used_words) == dct.count_w:
+        if len(self.used_words) == _dct.count_w:
             self.stop()
             return
         while True:
-            self.current_key = random.choice(list(dct.d.keys()))
+            self.current_key = random.choice(list(_dct.d.keys()))
             if self.current_key not in self.used_words:
                 break
 
         self.text_dct['state'] = 'normal'
-        dct.d[self.current_key].print_tr_with_stat(self.text_dct, min_good_score_perc)
+        _dct.d[self.current_key].print_tr_with_stat(self.text_dct, _min_good_score_perc)
         self.text_dct['state'] = 'disabled'
         self.outp('Введите слово')
 
@@ -2424,7 +2425,7 @@ class LearnW(tk.Toplevel):
                 break
 
         self.text_dct['state'] = 'normal'
-        dct.d[self.current_key].print_tr_with_stat(self.text_dct, min_good_score_perc)
+        _dct.d[self.current_key].print_tr_with_stat(self.text_dct, _min_good_score_perc)
         self.text_dct['state'] = 'disabled'
         self.outp('Введите слово')
 
@@ -2441,7 +2442,7 @@ class LearnW(tk.Toplevel):
                 break
 
         self.text_dct['state'] = 'normal'
-        dct.d[self.current_key].print_tr_with_stat(self.text_dct, min_good_score_perc)
+        _dct.d[self.current_key].print_tr_with_stat(self.text_dct, _min_good_score_perc)
         self.text_dct['state'] = 'disabled'
         self.outp('Введите слово')
 
@@ -2459,7 +2460,7 @@ class LearnW(tk.Toplevel):
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
                     self.text_dct['state'] = 'normal'
-                    dct.d[self.current_key].print_tr_with_stat(self.text_dct, min_good_score_perc)
+                    _dct.d[self.current_key].print_tr_with_stat(self.text_dct, _min_good_score_perc)
                     self.text_dct['state'] = 'disabled'
                     self.outp('Введите слово')
                     break
@@ -2467,7 +2468,7 @@ class LearnW(tk.Toplevel):
                 self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
                     self.text_dct['state'] = 'normal'
-                    dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form, min_good_score_perc)
+                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form, _min_good_score_perc)
                     self.text_dct['state'] = 'disabled'
                     self.outp('Введите слово в данной форме')
                     break
@@ -2483,15 +2484,15 @@ class LearnW(tk.Toplevel):
             self.current_key = random.choice(list(_dct.d.keys()))
             if not _dct.d[self.current_key].fav:
                 self.used_words.add(self.current_key)
-                for _frm in _dct.d[self.current_key].forms.keys():
-                    self.used_words.add((self.current_key, _frm))
+                for frm in _dct.d[self.current_key].forms.keys():
+                    self.used_words.add((self.current_key, frm))
                 continue
             self.rnd_f = random.randint(-1, _dct.d[self.current_key].count_f - 1)
             if self.rnd_f == -1:
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
                     self.text_dct['state'] = 'normal'
-                    dct.d[self.current_key].print_tr_with_stat(self.text_dct, min_good_score_perc)
+                    _dct.d[self.current_key].print_tr_with_stat(self.text_dct, _min_good_score_perc)
                     self.text_dct['state'] = 'disabled'
                     self.outp('Введите слово')
                     break
@@ -2499,7 +2500,7 @@ class LearnW(tk.Toplevel):
                 self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
                     self.text_dct['state'] = 'normal'
-                    dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form, min_good_score_perc)
+                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form, _min_good_score_perc)
                     self.text_dct['state'] = 'disabled'
                     self.outp('Введите слово в данной форме')
                     break
@@ -2518,7 +2519,7 @@ class LearnW(tk.Toplevel):
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
                     self.text_dct['state'] = 'normal'
-                    dct.d[self.current_key].print_tr_with_stat(self.text_dct, min_good_score_perc)
+                    _dct.d[self.current_key].print_tr_with_stat(self.text_dct, _min_good_score_perc)
                     self.text_dct['state'] = 'disabled'
                     self.outp('Введите слово')
                     break
@@ -2526,7 +2527,7 @@ class LearnW(tk.Toplevel):
                 self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
                     self.text_dct['state'] = 'normal'
-                    dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form, min_good_score_perc)
+                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form, _min_good_score_perc)
                     self.text_dct['state'] = 'disabled'
                     self.outp('Введите слово в данной форме')
                     break
@@ -2544,7 +2545,7 @@ class LearnW(tk.Toplevel):
                 break
 
         self.text_dct['state'] = 'normal'
-        dct.d[self.current_key].print_wrd_with_stat(self.text_dct, min_good_score_perc)
+        _dct.d[self.current_key].print_wrd_with_stat(self.text_dct, _min_good_score_perc)
         self.text_dct['state'] = 'disabled'
         self.outp('Введите перевод')
 
@@ -2564,7 +2565,7 @@ class LearnW(tk.Toplevel):
                 break
 
         self.text_dct['state'] = 'normal'
-        dct.d[self.current_key].print_wrd_with_stat(self.text_dct, min_good_score_perc)
+        _dct.d[self.current_key].print_wrd_with_stat(self.text_dct, _min_good_score_perc)
         self.text_dct['state'] = 'disabled'
         self.outp('Введите перевод')
 
@@ -2581,7 +2582,7 @@ class LearnW(tk.Toplevel):
                 break
 
         self.text_dct['state'] = 'normal'
-        dct.d[self.current_key].print_wrd_with_stat(self.text_dct, min_good_score_perc)
+        _dct.d[self.current_key].print_wrd_with_stat(self.text_dct, _min_good_score_perc)
         self.text_dct['state'] = 'disabled'
         self.outp('Введите перевод')
 
@@ -2657,11 +2658,11 @@ class SettingsW(tk.Toplevel):
         if saves_count == 0:  # Если нет сохранённых словарей
             PopupMsgW(self, 'Нет других сохранённых словарей', title='Warning')
             return
-        else:
-            window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите открыть')
-            filename = f'{window.open()}.txt'
-            if filename == '.txt':
-                return
+
+        window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите открыть')
+        filename = f'{window.open()}.txt'
+        if filename == '.txt':
+            return
 
         if has_changes:
             save_if_has_changes(dct, min_good_score_perc, form_parameters, dct_filename)
@@ -2684,8 +2685,8 @@ class SettingsW(tk.Toplevel):
         if has_changes:
             save_if_has_changes(dct, min_good_score_perc, form_parameters, dct_filename)
         dct_filename = filename
-        with open(SETTINGS_PATH, 'w') as set_file:
-            set_file.write(filename)
+        with open(SETTINGS_PATH, 'w') as settings_file:
+            settings_file.write(filename)
         dct = Dictionary()
         min_good_score_perc, form_parameters = create_dct(dct, filename)
 
@@ -2700,13 +2701,13 @@ class SettingsW(tk.Toplevel):
             if ext == '.txt':
                 saves_list += [base_name]
                 saves_count += 1
-        window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите переименовать')
-        old_name = f'{window.open()}.txt'
+        window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите переименовать')
+        old_name = f'{window_choose.open()}.txt'
         if old_name == '.txt':
             return
 
-        window2 = EnterSaveNameW(self)
-        new_name_is_correct, new_name = window2.open()
+        window_rename = EnterSaveNameW(self)
+        new_name_is_correct, new_name = window_rename.open()
         if not new_name_is_correct:
             return
 
@@ -2716,37 +2717,36 @@ class SettingsW(tk.Toplevel):
             dct_filename = new_name
             with open(SETTINGS_PATH, 'w') as set_file:
                 set_file.write(new_name)
-        outp(f'\nСловарь "{old_name}" успешно переименован в "{new_name}"')
+        outp(f'Словарь "{old_name}" успешно переименован в "{new_name}"')
 
     # Удалить словарь
     def dct_delete(self):
         saves_count = 0
         saves_list = []
-        for file_name in os.listdir(SAVES_PATH):
-            base_name, ext = os.path.splitext(file_name)
+        for filename in os.listdir(SAVES_PATH):
+            base_name, ext = os.path.splitext(filename)
             if ext == '.txt':
                 saves_list += [base_name]
                 saves_count += 1
         if saves_count == 0:  # Если нет сохранённых словарей
             PopupMsgW(self, 'Нет других сохранённых словарей', title='Warning')
             return
-        else:
-            window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите удалить')
-            filename = f'{window.open()}.txt'
-            if filename == '.txt':
-                return
-            if filename == dct_filename:
-                PopupMsgW(self, 'Вы не можете удалить словарь, который сейчас открыт', title='Warning')
-                return
 
-        window2 = PopupDialogueW(self, f'Словарь "{filename}" будет безвозвратно удалён!\nВы уверены?')
-        self.wait_window(window2)
-        answer = window2.open()
+        window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите удалить')
+        filename = f'{window_choose.open()}.txt'
+        if filename == '.txt':
+            return
+        if filename == dct_filename:
+            PopupMsgW(self, 'Вы не можете удалить словарь, который сейчас открыт', title='Warning')
+            return
+
+        window_confirm = PopupDialogueW(self, f'Словарь "{filename}" будет безвозвратно удалён!\nВы уверены?')
+        answer = window_confirm.open()
         if not answer:
             return
         os.remove(os.path.join(SAVES_PATH, filename))
         os.remove(os.path.join(LOCAL_SETTINGS_PATH, filename))
-        PopupMsgW(self, f'\nСловарь "{filename}" успешно удалён')
+        PopupMsgW(self, f'Словарь "{filename}" успешно удалён')
 
     def open(self):
         self.grab_set()
@@ -2807,18 +2807,15 @@ class MainW(tk.Tk):
     # Поиск статьи
     def search(self):
         wrd = self.var_word.get()
-        window = SearchW(self, wrd)
-        window.open()
+        SearchW(self, wrd).open()
 
     # Добавление статьи
     def add(self):
         wrd = self.var_word.get()
-        window = AddW(self, wrd)
-        key = window.open()
+        key = AddW(self, wrd).open()
         if not key:
             return
-        window2 = EditW(self, key)
-        window2.open()
+        EditW(self, key).open()
 
     # Изменение статьи
     def edit(self):
@@ -2827,34 +2824,31 @@ class MainW(tk.Tk):
             ParticularMatchesW(self, wrd).open()
             return
         key = dct.choose_one_of_similar_entries(self, wrd)
-        window = EditW(self, key)
-        window.open()
+        EditW(self, key).open()
 
     # Печать словаря
     def print(self):
-        window = PrintW(self)
-        window.open()
+        PrintW(self).open()
 
     # Учить слова
     def learn(self):
-        window = LearnChooseW(self)
-        res = window.open()
+        res = ChooseLearnModeW(self).open()
         if not res:
             return
-        window2 = LearnW(self, res)
-        window2.open()
+        LearnW(self, res).open()
 
     # Открыть настройки
     def settings(self):
-        window = SettingsW(self)
-        window.open()
+        SettingsW(self).open()
 
     # Сохранить изменения
     def save(self):
+        global has_changes
+
         save_all(dct, min_good_score_perc, form_parameters, dct_filename)
         PopupMsgW(self, 'Изменения и прогресс успешно сохранены')
         print('\nИзменения и прогресс успешно сохранены')
-        global has_changes
+
         has_changes = False
 
     # Закрытие программы
