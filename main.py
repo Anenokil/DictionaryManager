@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_15'
-PROGRAM_DATE = '12.1.2023 1:27 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_16'
+PROGRAM_DATE = '12.1.2023 1:51 (UTC+5)'
 
 """ Стили """
 
@@ -108,17 +108,17 @@ def outp(_text='', _end='\n', _dst=None, _mode=tk.INSERT):
 
 # Вывести предупреждение о некорректном вводе с указанием ввода
 def warn_inp(_text, _input, _dst, _mode=tk.INSERT):
-    outp(f'[!] {_text}: "{_input}" [!]', _dst, _mode)
+    outp(_dst=_dst, _text=f'[!] {_text}: "{_input}" [!]', _mode=_mode)
 
 
 # Вывести другое предупреждение
 def warn(_text, _dst, _mode=tk.INSERT):
-    outp(f'[!] {_text} [!]', _dst, _mode)
+    outp(_dst=_dst, _text=f'[!] {_text} [!]', _mode=_mode)
 
 
 # Вывести предложение специального действия
 def spec_action(_text, _dst, _mode=tk.INSERT):
-    outp(f'{_text} (*)', _dst, _mode)
+    outp(_dst=_dst, _text=f'{_text} (*)', _mode=_mode)
 
 
 # Добавить немецкие буквы
@@ -811,7 +811,9 @@ class Dictionary(object):
     def add_entry(self, _window, _wrd, _tr, _show_msg=True):
         if wrd_to_key(_wrd, 0) in self.d.keys():  # Если уже есть статья с таким словом
             while True:
-                window = PopupDialogueW(_window, 'Статья с таким словом уже есть в словаре\nЧто вы хотите сделать?', 'Добавить к существующей статье', 'Создать новую статью', st_left='std', st_right='std', val_left='l', val_right='r', val_initial='i')
+                window = PopupDialogueW(_window, 'Статья с таким словом уже есть в словаре\nЧто вы хотите сделать?',
+                                        'Добавить к существующей статье', 'Создать новую статью',
+                                        st_left='std', st_right='std', val_left='l', val_right='r', val_initial='i')
                 _answer = window.open()
                 if _answer == 'l':
                     _key = self.choose_one_of_similar_entries(_window, _wrd)
@@ -2839,7 +2841,8 @@ class MainW(tk.Tk):
     # Сохранить изменения
     def save(self):
         save_all(dct, min_good_score_perc, form_parameters, dct_filename)
-        outp('\nИзменения и прогресс успешно сохранены')
+        PopupMsgW(self, 'Изменения и прогресс успешно сохранены')
+        print('\nИзменения и прогресс успешно сохранены')
         global has_changes
         has_changes = False
 
