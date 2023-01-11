@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_14'
-PROGRAM_DATE = '12.1.2023 1:12 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_15'
+PROGRAM_DATE = '12.1.2023 1:27 (UTC+5)'
 
 """ Стили """
 
@@ -720,55 +720,51 @@ class Dictionary(object):
         self.count_f += self.d[_key].count_f
 
     # Изменить слово в статье
-    def edit_wrd(self, _key, _new_wrd):
+    def edit_wrd(self, _window, _key, _new_wrd):
         if wrd_to_key(_new_wrd, 0) in self.d.keys():  # Если уже есть статья с таким словом
-            while True:
-                outp('\nСтатья с таким словом уже есть в словаре')
-                outp('Что вы хотите сделать?')
-                outp('Д - Добавить к существующей статье')
-                outp('Н - создать Новую статью')
-                spec_action('О - Отмена')
-                _cmd = inp().upper()
-                if _cmd in ['Д', 'L']:
-                    _new_key = self.choose_one_of_similar_entries(_new_wrd)
 
-                    self.count_t -= self.d[_key].count_t
-                    self.count_t -= self.d[_new_key].count_t
-                    self.count_f -= self.d[_key].count_f
-                    self.count_f -= self.d[_new_key].count_f
+            window = PopupDialogueW(_window, 'Статья с таким словом уже есть в словаре\nЧто вы хотите сделать?',
+                                    'Добавить к существующей статье', 'Создать новую статью',
+                                    st_left='std', st_right='std', val_left='l', val_right='r', val_initial='i')
+            _answer = window.open()
+            if _answer == 'l':
+                _new_key = self.choose_one_of_similar_entries(_window, _new_wrd)
 
-                    for _tr in self.d[_key].tr:
-                        self.d[_new_key].add_tr(_tr, False)
-                    for _note in self.d[_key].notes:
-                        self.d[_new_key].add_note(_note)
-                    for _frm_key in self.d[_key].forms.keys():
-                        _frm = self.d[_key].forms[_frm_key]
-                        self.d[_new_key].add_form(_frm_key, _frm, False)
-                    if self.d[_key].fav:
-                        self.d[_new_key].fav = True
-                    self.d[_new_key].merge_stat(self.d[_key].all_att, self.d[_key].correct_att, self.d[_key].last_att)
+                self.count_t -= self.d[_key].count_t
+                self.count_t -= self.d[_new_key].count_t
+                self.count_f -= self.d[_key].count_f
+                self.count_f -= self.d[_new_key].count_f
 
-                    self.count_w -= 1
-                    self.count_t += self.d[_new_key].count_t
-                    self.count_f += self.d[_new_key].count_f
+                for _tr in self.d[_key].tr:
+                    self.d[_new_key].add_tr(_tr, False)
+                for _note in self.d[_key].notes:
+                    self.d[_new_key].add_note(_note)
+                for _frm_key in self.d[_key].forms.keys():
+                    _frm = self.d[_key].forms[_frm_key]
+                    self.d[_new_key].add_form(_frm_key, _frm, False)
+                if self.d[_key].fav:
+                    self.d[_new_key].fav = True
+                self.d[_new_key].merge_stat(self.d[_key].all_att, self.d[_key].correct_att, self.d[_key].last_att)
 
-                    self.d.pop(_key)
-                    return _new_key
-                elif _cmd in ['Н', 'Y']:
-                    for _i in range(MAX_SAME_WORDS):
-                        _new_key = wrd_to_key(_new_wrd, _i)
-                        if _new_key not in self.d.keys():
-                            self.d[_new_key] = Entry(_new_wrd, self.d[_key].tr, self.d[_key].notes, self.d[_key].forms,
-                                                     self.d[_key].fav, self.d[_key].all_att, self.d[_key].correct_att,
-                                                     self.d[_key].last_att)
-                            self.d.pop(_key)
-                            return _new_key
-                        _i += 1
-                    warn('Слишком много статей с одинаковым словом')
-                elif _cmd in ['О', 'J']:
-                    return _key
-                else:
-                    warn_inp('Неизвестная команда', _cmd)
+                self.count_w -= 1
+                self.count_t += self.d[_new_key].count_t
+                self.count_f += self.d[_new_key].count_f
+
+                self.d.pop(_key)
+                return _new_key
+            elif _answer == 'r':
+                for _i in range(MAX_SAME_WORDS):
+                    _new_key = wrd_to_key(_new_wrd, _i)
+                    if _new_key not in self.d.keys():
+                        self.d[_new_key] = Entry(_new_wrd, self.d[_key].tr, self.d[_key].notes, self.d[_key].forms,
+                                                 self.d[_key].fav, self.d[_key].all_att, self.d[_key].correct_att,
+                                                 self.d[_key].last_att)
+                        self.d.pop(_key)
+                        return _new_key
+                    _i += 1
+                PopupMsgW(_window, 'Слишком много статей с одинаковым словом', title='Warning')
+            else:
+                return None
         else:  # Если ещё нет статьи с таким словом
             _new_key = wrd_to_key(_new_wrd, 0)
             self.d[_new_key] = Entry(_new_wrd, self.d[_key].tr, self.d[_key].notes, self.d[_key].forms,
@@ -1945,7 +1941,7 @@ class EditW(tk.Toplevel):
         if new_wrd == key_to_wrd(self.key):
             PopupMsgW(self, 'Это то же самое слово', title='Warning')
             return
-        self.key = dct.edit_wrd(self.key, new_wrd)
+        self.key = dct.edit_wrd(self, self.key, new_wrd)
         has_changes = True
 
         self.refresh()
