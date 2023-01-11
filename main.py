@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_7'
-PROGRAM_DATE = '11.1.2023 7:46'
+PROGRAM_VERSION = 'v7.0.0-PRE_8'
+PROGRAM_DATE = '11.1.2023 7:56'
 
 """ Стили """
 
@@ -1683,6 +1683,8 @@ class AddW(tk.Toplevel):
 
     # Добавление статьи
     def add(self):
+        global has_changes
+
         if self.var_wrd.get() == '':
             PopupMsgW(self, 'Слово должно содержать хотя бы один символ', title='Warning')
             return
@@ -1690,7 +1692,6 @@ class AddW(tk.Toplevel):
             PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning')
             return
         self.key = dct.add_entry(self.var_wrd.get(), self.var_tr.get())
-        global has_changes
         has_changes = True
         self.destroy()
 
@@ -1834,43 +1835,56 @@ class EditW(tk.Toplevel):
         if self.height_f < self.max_height:
             self.scrollbar_frm.grid_remove()
 
+    # Изменить слово
     def wrd_edt(self):
+        global has_changes
+
         _new_wrd = inp('\nВведите новое слово: ')
         if _new_wrd == key_to_wrd(self.key):
             PopupMsgW(self, 'Это то же самое слово', title='Warning')
             return
         self.key = dct.edit_wrd(self.key, _new_wrd)
-        global has_changes
         has_changes = True
 
+    # Добавить перевод
     def tr_add(self):
+        global has_changes
+
         w = PopupEntryW(self, 'Введите новый перевод')
         _tr = w.open()
         if _tr == '':
             PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning')
             return
         dct.add_tr(self.key, _tr, _is_key=True)
-        global has_changes
         has_changes = True
 
+    # Удалить перевод
     def tr_del(self):
-        dct.remove_tr_with_choose(self.key, _is_key=True)
         global has_changes
+
+        dct.remove_tr_with_choose(self.key, _is_key=True)
         has_changes = True
 
+    # Добавить сноску
     def notes_add(self):
+        global has_changes
+
         w = PopupEntryW(self, 'Введите сноску')
         _note = w.open()
         dct.add_note(self.key, _note, _is_key=True)
-        global has_changes
         has_changes = True
 
+    # Удалить сноску
     def notes_del(self):
-        dct.remove_note_with_choose(self.key, _is_key=True)
         global has_changes
+
+        dct.remove_note_with_choose(self.key, _is_key=True)
         has_changes = True
 
+    # Добавить словоформу
     def frm_add(self):
+        global has_changes
+
         _frm_key = construct_frm_template(form_parameters)
         if _frm_key in dct.d[self.key].forms.keys():
             PopupMsgW(self, f'\nУ слова "{key_to_wrd(self.key)}" уже есть форма с такими параметрами', title='Warning')
@@ -1878,27 +1892,33 @@ class EditW(tk.Toplevel):
         w = PopupEntryW(self, 'Введите форму слова')
         _frm = w.open()
         dct.add_frm(self.key, _frm_key, _frm, _is_key=True)
-        global has_changes
         has_changes = True
 
+    # Удалить словоформу
     def frm_del(self):
+        global has_changes
+
         dct.remove_frm_with_choose(self.key, _is_key=True)
-        global has_changes
         has_changes = True
 
+    # Изменить словоформу
     def frm_edt(self):
-        dct.edit_frm_with_choose(self.key, _is_key=True)
         global has_changes
+
+        dct.edit_frm_with_choose(self.key, _is_key=True)
         has_changes = True
 
+    # Закрыть настройки
     def back(self):
         self.destroy()
 
+    # Удалить статью
     def delete(self):
+        global has_changes
+
         _cmd = inp('\nВы уверены, что хотите удалить эту статью? (+ или -): ')
         if _cmd == '+':
             dct.remove_entry(self.key, _is_key=True)
-            global has_changes
             has_changes = True
 
     def open(self):
@@ -2483,11 +2503,15 @@ class SettingsW(tk.Toplevel):
 
     # Настройки словоформ
     def forms(self):
-        forms_settings(dct, form_parameters)
         global has_changes
+
+        forms_settings(dct, form_parameters)
         has_changes = True
 
+    # Открыть словарь
     def dct_open(self):
+        global dct, dct_filename, min_good_score_perc, form_parameters
+
         saves_count = 0
         saves_list = []
         for file_name in os.listdir(SAVES_PATH):
@@ -2504,8 +2528,6 @@ class SettingsW(tk.Toplevel):
             if filename == '.txt':
                 return
 
-        global dct, dct_filename, min_good_score_perc, form_parameters
-
         if has_changes:
             save_if_has_changes(dct, min_good_score_perc, form_parameters, dct_filename)
 
@@ -2515,13 +2537,14 @@ class SettingsW(tk.Toplevel):
         dct = Dictionary()
         min_good_score_perc, form_parameters = read_dct(dct, filename)
 
+    # Создать словарь
     def dct_create(self):
+        global dct, dct_filename, min_good_score_perc, form_parameters
+
         window = EnterSaveNameW(self)
         filename_is_correct, filename = window.open()
         if not filename_is_correct:
             return
-
-        global dct, dct_filename, min_good_score_perc, form_parameters
 
         if has_changes:
             save_if_has_changes(dct, min_good_score_perc, form_parameters, dct_filename)
@@ -2531,7 +2554,10 @@ class SettingsW(tk.Toplevel):
         dct = Dictionary()
         min_good_score_perc, form_parameters = create_dct(dct, filename)
 
+    # Переименовать словарь
     def dct_rename(self):
+        global dct_filename
+
         saves_count = 0
         saves_list = []
         for file_name in os.listdir(SAVES_PATH):
@@ -2549,8 +2575,6 @@ class SettingsW(tk.Toplevel):
         if not new_name_is_correct:
             return
 
-        global dct_filename
-
         os.rename(os.path.join(SAVES_PATH, old_name), os.path.join(SAVES_PATH, new_name))
         os.rename(os.path.join(LOCAL_SETTINGS_PATH, old_name), os.path.join(LOCAL_SETTINGS_PATH, new_name))
         if dct_filename == old_name:
@@ -2559,6 +2583,7 @@ class SettingsW(tk.Toplevel):
                 set_file.write(new_name)
         outp(f'\nСловарь "{old_name}" успешно переименован в "{new_name}"')
 
+    # Удалить словарь
     def dct_delete(self):
         saves_count = 0
         saves_list = []
@@ -2704,7 +2729,6 @@ class MainW(tk.Tk):
             window = PopupDialogueW(self, 'Хотите сохранить изменения и свой прогресс?', 'Да', 'Нет')
             answer = window.open()
             if answer:
-                global dct, min_good_score_perc, form_parameters, dct_filename
                 save_all(dct, min_good_score_perc, form_parameters, dct_filename)
         self.quit()
 
