@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_22'
-PROGRAM_DATE = '12.1.2023 3:33 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_23'
+PROGRAM_DATE = '12.1.2023 3:35 (UTC+5)'
 
 """ Стили """
 
@@ -2096,6 +2096,8 @@ class PrintW(tk.Toplevel):
         # }
         self.text_dct.grid(   row=1, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
         self.scrollbar.grid(  row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+
+        self.print()
 
     # Напечатать словарь
     def print(self):
