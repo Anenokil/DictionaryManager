@@ -8,10 +8,11 @@ if sys.version_info[0] == 3:
 else:
     import Tkinter as tk
     import Tkinter.ttk as ttk
+import urllib.request as urllib2
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_36'
-PROGRAM_DATE = '13.1.2023 2:03 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-37'
+PROGRAM_DATE = '13.1.2023 3:54 (UTC+5)'
 
 """ Стили """
 
@@ -68,6 +69,9 @@ FORMS_SEPARATOR = '@'
 
 VALUES_ORDER = ('Угадывать слово по переводу', 'Угадывать перевод по слову')
 VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только избранные')
+
+URL_GITHUB = 'https://github.com/Anenokil/Dictionary'
+URL_VERSION = 'https://raw.githubusercontent.com/Anenokil/Dictionary/master/ver'
 
 """
     Про формы:
@@ -992,7 +996,7 @@ def read_dct(_window, _dct, _savename):
                                                  '(если он ещё не существует, то будет создан пустой словарь)')
             dct_savename = _window_entry.open()
             with open(SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
-                _settings_file.write(dct_savename)
+                _settings_file.write(f'{dct_savename}\n{show_updates}')
             _dct = Dictionary()
             return read_dct(_window, _dct, dct_savename)
         else:
@@ -1014,6 +1018,8 @@ def save_all(_dct, _min_good_score_perc, _form_parameters, _filename):
     _filepath = os.path.join(SAVES_PATH, _filename)
     _dct.save(_filepath)
     save_local_settings(_min_good_score_perc, _form_parameters, _filename)
+    with open(SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
+        _settings_file.write(f'{dct_savename}\n{show_updates}')
 
 
 # Предложить сохранение, если были изменения
@@ -1213,6 +1219,33 @@ class PopupEntryW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
         return self.var_text.get()
+
+
+# Окно уведомления о выходе новой версии
+class NewVersionW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title('New version available')
+        self.configure(bg=ST_BG[st])
+
+        self.var_url = tk.StringVar(value=URL_GITHUB)
+
+        self.lbl_msg = tk.Label(self, text=f'Доступна новая версия программы\n{last_version}',
+                                bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.entry_url = tk.Entry(self, textvariable=self.var_url, state='readonly', width=40, justify='center',
+                                  relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st],
+                                  highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st],
+                                  selectbackground=ST_SELECT[st])
+        self.btn_ok = tk.Button(self, text='Ясно', command=self.destroy, bg=ST_BTN[st], fg=ST_FG_TEXT[st],
+                                activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+
+        self.lbl_msg.grid(  row=1, column=0, padx=6, pady=(4, 0))
+        self.entry_url.grid(row=2, column=0, padx=6, pady=(0, 4))
+        self.btn_ok.grid(   row=3, column=0, padx=6, pady=4)
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
 
 
 # Окно выбора одной статьи из нескольких с одинаковыми словами
@@ -2699,8 +2732,13 @@ class SettingsW(tk.Toplevel):
         self.configure(bg=ST_BG[st])
 
         self.var_MGSP = tk.StringVar(value=str(min_good_score_perc))
+        self.var_show_updates = tk.BooleanVar(value=show_updates)
 
         self.vcmd = (self.register(validate_percent), '%P')
+
+        self.st_check = ttk.Style()
+        self.st_check.configure(style='.TCheckbutton', background=ST_BG[st])
+        self.st_check.map('.TCheckbutton', background=[('active', ST_SELECT[st])])
 
         self.tabs = ttk.Notebook(self)
         self.tab_local = ttk.Frame(self.tabs)
@@ -2719,15 +2757,23 @@ class SettingsW(tk.Toplevel):
         self.tab_global = ttk.Frame(self.tabs)
         self.tabs.add(self.tab_global, text='Настройки программы')
         # {
-        self.lbl_dcts          = tk.Label(     self.tab_global, text='Существующие словари:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
-        self.scrollbar         = tk.Scrollbar( self.tab_global, bg=ST_BG[st])
-        self.text_dcts         = tk.Text(      self.tab_global, width=20, height=10, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
-        self.frame_dct_buttons = tk.LabelFrame(self.tab_global, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        self.frame_show_updates = tk.LabelFrame(self.tab_global, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
         # { {
+        self.lbl_show_updates   = tk.Label(       self.frame_show_updates, text='Сообщать о выходе новых версий:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.check_show_updates = ttk.Checkbutton(self.frame_show_updates, variable=self.var_show_updates, style='.TCheckbutton', command=self.set_show_updates)
+        # } }
+        self.frame_dcts = tk.LabelFrame(self.tab_global, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # { {
+        self.lbl_dcts          = tk.Label(     self.frame_dcts, text='Существующие словари:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.scrollbar         = tk.Scrollbar( self.frame_dcts, bg=ST_BG[st])
+        self.text_dcts         = tk.Text(      self.frame_dcts, width=20, height=10, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        self.frame_dct_buttons = tk.LabelFrame(self.frame_dcts, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # { { {
         self.btn_dct_open   = tk.Button(self.frame_dct_buttons, text='Открыть словарь',       command=self.dct_open,   bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
         self.btn_dct_create = tk.Button(self.frame_dct_buttons, text='Создать словарь',       command=self.dct_create, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
         self.btn_dct_rename = tk.Button(self.frame_dct_buttons, text='Переименовать словарь', command=self.dct_rename, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
         self.btn_dct_delete = tk.Button(self.frame_dct_buttons, text='Удалить словарь',       command=self.dct_delete, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        # } } }
         # } }
         # Настройки стилей
         # }
@@ -2744,15 +2790,23 @@ class SettingsW(tk.Toplevel):
         # }
         self.btn_forms.grid(row=1, padx=6, pady=(0, 6))
         #
+        self.frame_show_updates.grid(row=0, padx=6, pady=6)
+        # {
+        self.lbl_show_updates.grid(  row=0, column=0, padx=(6, 0), pady=6)
+        self.check_show_updates.grid(row=0, column=1, padx=(0, 6), pady=6)
+        # }
+        self.frame_dcts.grid(row=1, padx=6, pady=6)
+        # {
         self.lbl_dcts.grid(         row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
         self.text_dcts.grid(        row=1,            column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
         self.scrollbar.grid(        row=1,            column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
         self.frame_dct_buttons.grid(row=0, rowspan=2, column=2,               padx=6,      pady=6)
-        # {
-        self.btn_dct_open.grid(  row=0, column=2, padx=6, pady=6)
-        self.btn_dct_create.grid(row=0, column=3, padx=6, pady=6)
-        self.btn_dct_rename.grid(row=1, column=2, padx=6, pady=6)
-        self.btn_dct_delete.grid(row=1, column=3, padx=6, pady=6)
+        # { {
+        self.btn_dct_open.grid(  row=0, column=0, padx=6, pady=6)
+        self.btn_dct_create.grid(row=0, column=1, padx=6, pady=6)
+        self.btn_dct_rename.grid(row=1, column=0, padx=6, pady=6)
+        self.btn_dct_delete.grid(row=1, column=1, padx=6, pady=6)
+        # } }
         # }
 
         self.scrollbar.config(command=self.text_dcts.yview)
@@ -2775,6 +2829,17 @@ class SettingsW(tk.Toplevel):
         global has_changes
 
         FormsSettingsW(self).open()
+        has_changes = True
+
+    # Разрешить/запретить сообщать о новых версиях
+    def set_show_updates(self):
+        global show_updates, has_changes
+
+        if show_updates == 0:
+            show_updates = 1
+        else:
+            show_updates = 0
+
         has_changes = True
 
     # Открыть словарь
@@ -2802,7 +2867,7 @@ class SettingsW(tk.Toplevel):
 
         dct_savename = savename
         with open(SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
-            settings_file.write(savename)
+            settings_file.write(f'{savename}\n{show_updates}')
         dct = Dictionary()
         min_good_score_perc, form_parameters = read_dct(self, dct, savename)
 
@@ -2824,7 +2889,7 @@ class SettingsW(tk.Toplevel):
             save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename())
         dct_savename = savename
         with open(SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
-            settings_file.write(savename)
+            settings_file.write(f'{savename}\n{show_updates}')
         dct = Dictionary()
         min_good_score_perc, form_parameters = create_dct(dct, savename)
 
@@ -2861,7 +2926,7 @@ class SettingsW(tk.Toplevel):
         if dct_savename == old_savename:
             dct_savename = new_savename
             with open(SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
-                settings_file.write(new_savename)
+                settings_file.write(f'{new_savename}\n{show_updates}')
             self.lbl_dct_name['text'] = f'Открыт словарь "{new_savename}"'
         print(f'Словарь "{old_savename}" успешно переименован в "{new_savename}"')
 
@@ -3032,10 +3097,11 @@ print( '========================================================================
 try:  # Открываем файл с названием словаря
     open(SETTINGS_PATH, 'r', encoding='utf-8')
 except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-    with open(SETTINGS_PATH, 'w', encoding='utf-8') as set_file:
-        set_file.write('words')
-with open(SETTINGS_PATH, 'r', encoding='utf-8') as set_file:
-    dct_savename = set_file.readline().strip()
+    with open(SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
+        settings_file.write('words\n1')
+with open(SETTINGS_PATH, 'r', encoding='utf-8') as settings_file:
+    dct_savename = settings_file.readline().strip()
+    show_updates = int(settings_file.readline().strip())
 
 
 # Получить название файла с открытым словарём
@@ -3043,11 +3109,26 @@ def dct_filename():
     return f'{dct_savename}.txt'
 
 
+root = MainW()
+
 dct = Dictionary()
 has_changes = False
-root = MainW()
 min_good_score_perc, form_parameters = read_dct(root, dct, dct_savename)  # Загружаем словарь и его настройки
 print('\nМожете использовать эти комбинации для немецких букв: #a -> ä, #o -> ö, #u -> ü, #s -> ß (и ## -> #)')
+
+print('\nПроверка обновлений:', end=' ')
+try:
+    data = urllib2.urlopen(URL_VERSION)
+    last_version = str(data.read().decode('utf-8')).strip()
+    if PROGRAM_VERSION == last_version:
+        print('Установлена последняя доступная версия')
+    else:
+        print(f'Доступна новая версия: {last_version}')
+        if show_updates:
+            NewVersionW(root)
+except:
+    print('Ошибка, возможно отсутствует соединение')
+
 root.mainloop()
 
 # строка 56 - добавить выбор стилей
@@ -3058,3 +3139,6 @@ root.mainloop()
 # сделать покрасивее поле выбора нового словаря при ошибке загрузки
 # проверить корректность работы переименовывания значения параметра формы слова
 # PrintW: печатать количество слов в отдельный label
+# автоочистка полей ввода
+# enter
+# принимать несколько ответов при угадывании слова
