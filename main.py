@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_31'
-PROGRAM_DATE = '12.1.2023  21:45 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_32'
+PROGRAM_DATE = '13.1.2023 0:13 (UTC+5)'
 
 """ Стили """
 
@@ -2148,6 +2148,7 @@ class PrintW(tk.Toplevel):
         self.st_check.configure(style='.TCheckbutton', background=ST_BG[st])
         self.st_check.map('.TCheckbutton', background=[('active', ST_SELECT[st])])
 
+        self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{dct_savename}"', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.frame_main = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
         # {
         self.lbl_fav     = tk.Label(self.frame_main, text='Только избранные:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
@@ -2156,11 +2157,12 @@ class PrintW(tk.Toplevel):
         self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='.TCheckbutton')
         self.btn_print   = tk.Button(self.frame_main, text='Печать', command=self.print, bg=ST_BTN[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], activebackground=ST_BTN_SELECT[st])
         # }
-        self.scrollbar   = tk.Scrollbar(self, bg=ST_BG[st])
-        self.text_dct    = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        self.scrollbar = tk.Scrollbar(self, bg=ST_BG[st])
+        self.text_dct  = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
         self.scrollbar.config(command=self.text_dct.yview)
 
-        self.frame_main.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
+        self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
+        self.frame_main.grid(  row=1, columnspan=2, padx=6, pady=(0, 4))
         # {
         self.lbl_fav.grid(    row=0, column=0, padx=(6, 1), pady=6, sticky='E')
         self.check_fav.grid(  row=0, column=1, padx=(0, 6), pady=6, sticky='W')
@@ -2168,8 +2170,8 @@ class PrintW(tk.Toplevel):
         self.check_forms.grid(row=0, column=3, padx=(0, 6), pady=6, sticky='W')
         self.btn_print.grid(  row=0, column=4, padx=6,      pady=6)
         # }
-        self.text_dct.grid(   row=1, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(  row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.text_dct.grid( row=2, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(row=2, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
 
         self.print()
 
@@ -3005,7 +3007,7 @@ class MainW(tk.Tk):
 print( '======================================================================================\n')
 print( '                            Anenokil development  presents')
 print(f'                               {PROGRAM_NAME} {PROGRAM_VERSION}')
-print(f'                               {PROGRAM_DATE}\n')
+print(f'                                {PROGRAM_DATE}\n')
 print( '======================================================================================')
 
 try:  # Открываем файл с названием словаря
@@ -3034,7 +3036,6 @@ root.mainloop()
 # при поиске перевода выводить слово
 # добавить изменение статьи по переводу
 # добавить комментарии
-# PrintW Название текущего словаря self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{dct_savename}"', bg=ST_BG[st], fg=ST_FG_TEXT[st])
 # PopupMsgW.open() где надо а где нет
 # PopupEntryW и другие: onClose
 # сделать покрасивее поле выбора нового словаря при ошибке загрузки
