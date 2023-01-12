@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_27'
-PROGRAM_DATE = '12.1.2023  21:18 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_28'
+PROGRAM_DATE = '12.1.2023  21:27 (UTC+5)'
 
 """ Стили """
 
@@ -1024,39 +1024,6 @@ def save_if_has_changes(_window, _dct, _min_good_score_perc, _form_parameters, _
         print('\nИзменения и прогресс успешно сохранены')
 
 
-# Всплывающее окно для ввода названия параметра словоформ
-class EnterFormParameterNameW(tk.Toplevel):
-    def __init__(self, parent, parameters):
-        super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.configure(bg=ST_BG[st])
-
-        self.name_is_correct = False
-        self.parameters = parameters
-
-        self.var_name = tk.StringVar()
-
-        tk.Label( self, text='Введите название нового параметра', bg=ST_BG[st], fg=ST_FG_TEXT[st]).grid(row=0, padx=6, pady=(4, 1))
-        tk.Entry( self, textvariable=self.var_name, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], selectbackground=ST_SELECT[st], highlightcolor=ST_HIGHLIGHT[st]).grid(row=1, padx=6, pady=1)
-        tk.Button(self, text='Подтвердить', bg=ST_BTNY[st], fg=ST_FG_TEXT[st], activebackground=ST_BTNY_SELECT[st], highlightbackground=ST_BORDER[st], command=self.check_and_return).grid(row=2, padx=6, pady=4)
-
-    def check_and_return(self):
-        par_name = self.var_name.get()
-        if par_name == '':
-            PopupMsgW(self, 'Недопустимое название параметра', title='Warning')
-            return
-        if par_name in self.parameters:  # Если уже есть параметр с таким названием
-            PopupMsgW(self, f'Параметр "{par_name}" уже существует', title='Warning')
-            return
-        self.name_is_correct = True
-        self.destroy()
-
-    def open(self):
-        self.grab_set()
-        self.wait_window()
-        return self.name_is_correct, self.var_name.get()
-
-
 # Добавить параметр словоформ
 def add_frm_param(_window, _parameters, _dct):
     window = EnterFormParameterNameW(_window, _parameters.keys())
@@ -1101,196 +1068,6 @@ def rename_frm_param(_window, _parameters, _dct):
     # _dct.rename_forms_param(_index)
     _parameters[_new_key] = _parameters[_key]
     _parameters.pop(_key)
-
-
-# Окно настроек словоформ
-class FormsSettingsW(tk.Toplevel):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.configure(bg=ST_BG[st])
-
-        self.var_par = tk.StringVar()
-
-        self.st_combo = ttk.Style()
-        self.st_combo.configure(style='.TCombobox', background=ST_BG[st], foreground=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st])
-        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[st])], foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
-
-        self.lbl_form_par  = tk.Label(     self, text='Существующие параметры форм:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
-        self.scrollbar     = tk.Scrollbar( self, bg=ST_BG[st])
-        self.text_form_par = tk.Text(      self, width=20, height=10, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
-        self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
-        # {
-        self.btn_add    = tk.Button(self.frame_buttons, text='Добавить параметр форм',           command=self.add,    bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        self.btn_delete = tk.Button(self.frame_buttons, text='Удалить параметр форм',            command=self.delete, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        self.btn_rename = tk.Button(self.frame_buttons, text='Переименовать параметр форм',      command=self.rename, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        self.btn_values = tk.Button(self.frame_buttons, text='Изменить значения параметра форм', command=self.values, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        # }
-
-        self.lbl_form_par.grid( row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
-        self.text_form_par.grid(row=1,            column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(    row=1,            column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.frame_buttons.grid(row=0, rowspan=2, column=2,               padx=6,      pady=6)
-        # {
-        self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
-        self.btn_delete.grid(row=1, padx=6, pady=3)
-        self.btn_rename.grid(row=2, padx=6, pady=3)
-        self.btn_values.grid(row=3, padx=6, pady=(3, 6))
-        # }
-
-        self.scrollbar.config(command=self.text_form_par.yview)
-
-        self.refresh()
-
-    # Добавить параметр
-    def add(self):
-        add_frm_param(self, form_parameters, dct)
-        self.refresh()
-
-    # Удалить параметр
-    def delete(self):
-        remove_frm_param(self, form_parameters, dct)
-        self.refresh()
-
-    # Переименовать параметр
-    def rename(self):
-        rename_frm_param(self, form_parameters, dct)
-        self.refresh()
-
-    # Изменить значения параметра
-    def values(self):
-        _keys = [_key for _key in form_parameters.keys()]
-        _key = PopupChooseW(self, _keys, 'Какой параметр форм вы хотите изменить?').open()
-        if _key == '':
-            return
-        FormsParameterSettingsW(self, _key).open()
-
-    # Напечатать существующие параметры форм
-    def print_form_par_list(self):
-        self.text_form_par['state'] = 'normal'
-        self.text_form_par.delete(1.0, tk.END)
-        for key in form_parameters.keys():
-            self.text_form_par.insert(tk.INSERT, f'{key}\n')
-        self.text_form_par['state'] = 'disabled'
-
-    # Обновить отображаемую информацию
-    def refresh(self):
-        self.print_form_par_list()
-        if form_parameters:
-            self.btn_delete['state'] = 'normal'
-            self.btn_rename['state'] = 'normal'
-            self.btn_values['state'] = 'normal'
-        else:
-            self.btn_delete['state'] = 'disabled'
-            self.btn_rename['state'] = 'disabled'
-            self.btn_values['state'] = 'disabled'
-
-    def open(self):
-        self.grab_set()
-        self.wait_window()
-
-
-# Окно настроек параметра словоформ
-class FormsParameterSettingsW(tk.Toplevel):
-    def __init__(self, parent, parameter):
-        super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.configure(bg=ST_BG[st])
-
-        self.parameter = parameter
-        self.par_vals = form_parameters[self.parameter]
-
-        self.var_par = tk.StringVar()
-
-        self.st_combo = ttk.Style()
-        self.st_combo.configure(style='.TCombobox', background=ST_BG[st], foreground=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st])
-        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[st])], foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
-
-        self.lbl_par_val   = tk.Label(     self, text=f'Существующие значения параметра "{parameter}":', bg=ST_BG[st], fg=ST_FG_TEXT[st])
-        self.scrollbar     = tk.Scrollbar( self, bg=ST_BG[st])
-        self.text_par_val  = tk.Text(      self, width=20, height=10, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
-        self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
-        # {
-        self.btn_add    = tk.Button(self.frame_buttons, text='Добавить значение параметра',      command=self.add,    bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        self.btn_delete = tk.Button(self.frame_buttons, text='Удалить значение параметра',       command=self.delete, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        self.btn_rename = tk.Button(self.frame_buttons, text='Переименовать значение параметра', command=self.rename, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        # }
-
-        self.lbl_par_val.grid(  row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
-        self.text_par_val.grid( row=1,            column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(    row=1,            column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.frame_buttons.grid(row=0, rowspan=2, column=2,               padx=6,      pady=6)
-        # {
-        self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
-        self.btn_delete.grid(row=1, padx=6, pady=3)
-        self.btn_rename.grid(row=2, padx=6, pady=3)
-        # }
-
-        self.scrollbar.config(command=self.text_par_val.yview)
-
-        self.refresh()
-
-    # Добавить значение параметра
-    def add(self):
-        add_frm_param_val(self, self.par_vals)
-        self.refresh()
-
-    # Удалить значение параметра
-    def delete(self):
-        delete_frm_param_val(self, self.par_vals, dct)
-        self.refresh()
-
-    # Переименовать значение параметра
-    def rename(self):
-        _index = tuple(form_parameters).index(self.parameter)
-        rename_frm_param_val(self, self.par_vals, _index, dct)
-        self.refresh()
-
-    # Напечатать существующие параметры форм
-    def print_par_val_list(self):
-        self.text_par_val['state'] = 'normal'
-        self.text_par_val.delete(1.0, tk.END)
-        for key in self.par_vals:
-            self.text_par_val.insert(tk.INSERT, f'{key}\n')
-        self.text_par_val['state'] = 'disabled'
-
-    # Обновить отображаемую информацию
-    def refresh(self):
-        self.print_par_val_list()
-        if len(self.par_vals) == 1:
-            self.btn_delete['state'] = 'disabled'
-        else:
-            self.btn_delete['state'] = 'normal'
-
-    def open(self):
-        self.grab_set()
-        self.wait_window()
-
-
-# Вывод информации о программе
-print( '======================================================================================\n')
-print( '                            Anenokil development  presents')
-print(f'                               {PROGRAM_NAME} {PROGRAM_VERSION}')
-print(f'                               {PROGRAM_DATE}\n')
-print( '======================================================================================')
-
-try:  # Открываем файл с названием словаря
-    open(SETTINGS_PATH, 'r')
-except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-    with open(SETTINGS_PATH, 'w') as set_file:
-        set_file.write('words.txt')
-with open(SETTINGS_PATH, 'r') as set_file:
-    dct_filename = set_file.readline().strip()
-
-
-# Получить название открытого словаря
-def dct_savename():
-    return dct_filename[:-4]
-
-
-dct = Dictionary()
-
-print('\nМожете использовать эти комбинации для немецких букв: #a = ä, #o = ö, #u = ü, #s = ß (и ## = #)')
 
 
 # Ввод только целых чисел от 0 до max
@@ -1512,6 +1289,39 @@ class EnterSaveNameW(tk.Toplevel):
             return
         if f'{savename}.txt' in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
             PopupMsgW(self, 'Файл с таким названием уже существует', title='Warning')
+            return
+        self.name_is_correct = True
+        self.destroy()
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+        return self.name_is_correct, self.var_name.get()
+
+
+# Всплывающее окно для ввода названия параметра словоформ
+class EnterFormParameterNameW(tk.Toplevel):
+    def __init__(self, parent, parameters):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[st])
+
+        self.name_is_correct = False
+        self.parameters = parameters
+
+        self.var_name = tk.StringVar()
+
+        tk.Label( self, text='Введите название нового параметра', bg=ST_BG[st], fg=ST_FG_TEXT[st]).grid(row=0, padx=6, pady=(4, 1))
+        tk.Entry( self, textvariable=self.var_name, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], selectbackground=ST_SELECT[st], highlightcolor=ST_HIGHLIGHT[st]).grid(row=1, padx=6, pady=1)
+        tk.Button(self, text='Подтвердить', bg=ST_BTNY[st], fg=ST_FG_TEXT[st], activebackground=ST_BTNY_SELECT[st], highlightbackground=ST_BORDER[st], command=self.check_and_return).grid(row=2, padx=6, pady=4)
+
+    def check_and_return(self):
+        par_name = self.var_name.get()
+        if par_name == '':
+            PopupMsgW(self, 'Недопустимое название параметра', title='Warning')
+            return
+        if par_name in self.parameters:  # Если уже есть параметр с таким названием
+            PopupMsgW(self, f'Параметр "{par_name}" уже существует', title='Warning')
             return
         self.name_is_correct = True
         self.destroy()
@@ -1776,6 +1586,170 @@ class ParticularMatchesW(tk.Toplevel):
         dct.print_translations_with_str(self.text_tr, search_tr)
 
         self.text_tr['state'] = 'disabled'
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+
+
+# Окно настроек словоформ
+class FormsSettingsW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[st])
+
+        self.var_par = tk.StringVar()
+
+        self.st_combo = ttk.Style()
+        self.st_combo.configure(style='.TCombobox', background=ST_BG[st], foreground=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st])
+        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[st])], foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
+
+        self.lbl_form_par  = tk.Label(     self, text='Существующие параметры форм:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.scrollbar     = tk.Scrollbar( self, bg=ST_BG[st])
+        self.text_form_par = tk.Text(      self, width=20, height=10, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # {
+        self.btn_add    = tk.Button(self.frame_buttons, text='Добавить параметр форм',           command=self.add,    bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_delete = tk.Button(self.frame_buttons, text='Удалить параметр форм',            command=self.delete, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_rename = tk.Button(self.frame_buttons, text='Переименовать параметр форм',      command=self.rename, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_values = tk.Button(self.frame_buttons, text='Изменить значения параметра форм', command=self.values, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        # }
+
+        self.lbl_form_par.grid( row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
+        self.text_form_par.grid(row=1,            column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(    row=1,            column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.frame_buttons.grid(row=0, rowspan=2, column=2,               padx=6,      pady=6)
+        # {
+        self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
+        self.btn_delete.grid(row=1, padx=6, pady=3)
+        self.btn_rename.grid(row=2, padx=6, pady=3)
+        self.btn_values.grid(row=3, padx=6, pady=(3, 6))
+        # }
+
+        self.scrollbar.config(command=self.text_form_par.yview)
+
+        self.refresh()
+
+    # Добавить параметр
+    def add(self):
+        add_frm_param(self, form_parameters, dct)
+        self.refresh()
+
+    # Удалить параметр
+    def delete(self):
+        remove_frm_param(self, form_parameters, dct)
+        self.refresh()
+
+    # Переименовать параметр
+    def rename(self):
+        rename_frm_param(self, form_parameters, dct)
+        self.refresh()
+
+    # Изменить значения параметра
+    def values(self):
+        _keys = [_key for _key in form_parameters.keys()]
+        _key = PopupChooseW(self, _keys, 'Какой параметр форм вы хотите изменить?').open()
+        if _key == '':
+            return
+        FormsParameterSettingsW(self, _key).open()
+
+    # Напечатать существующие параметры форм
+    def print_form_par_list(self):
+        self.text_form_par['state'] = 'normal'
+        self.text_form_par.delete(1.0, tk.END)
+        for key in form_parameters.keys():
+            self.text_form_par.insert(tk.INSERT, f'{key}\n')
+        self.text_form_par['state'] = 'disabled'
+
+    # Обновить отображаемую информацию
+    def refresh(self):
+        self.print_form_par_list()
+        if form_parameters:
+            self.btn_delete['state'] = 'normal'
+            self.btn_rename['state'] = 'normal'
+            self.btn_values['state'] = 'normal'
+        else:
+            self.btn_delete['state'] = 'disabled'
+            self.btn_rename['state'] = 'disabled'
+            self.btn_values['state'] = 'disabled'
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+
+
+# Окно настроек параметра словоформ
+class FormsParameterSettingsW(tk.Toplevel):
+    def __init__(self, parent, parameter):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[st])
+
+        self.parameter = parameter
+        self.par_vals = form_parameters[self.parameter]
+
+        self.var_par = tk.StringVar()
+
+        self.st_combo = ttk.Style()
+        self.st_combo.configure(style='.TCombobox', background=ST_BG[st], foreground=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st])
+        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[st])], foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
+
+        self.lbl_par_val   = tk.Label(     self, text=f'Существующие значения параметра "{parameter}":', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.scrollbar     = tk.Scrollbar( self, bg=ST_BG[st])
+        self.text_par_val  = tk.Text(      self, width=20, height=10, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # {
+        self.btn_add    = tk.Button(self.frame_buttons, text='Добавить значение параметра',      command=self.add,    bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_delete = tk.Button(self.frame_buttons, text='Удалить значение параметра',       command=self.delete, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_rename = tk.Button(self.frame_buttons, text='Переименовать значение параметра', command=self.rename, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        # }
+
+        self.lbl_par_val.grid(  row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
+        self.text_par_val.grid( row=1,            column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(    row=1,            column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.frame_buttons.grid(row=0, rowspan=2, column=2,               padx=6,      pady=6)
+        # {
+        self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
+        self.btn_delete.grid(row=1, padx=6, pady=3)
+        self.btn_rename.grid(row=2, padx=6, pady=3)
+        # }
+
+        self.scrollbar.config(command=self.text_par_val.yview)
+
+        self.refresh()
+
+    # Добавить значение параметра
+    def add(self):
+        add_frm_param_val(self, self.par_vals)
+        self.refresh()
+
+    # Удалить значение параметра
+    def delete(self):
+        delete_frm_param_val(self, self.par_vals, dct)
+        self.refresh()
+
+    # Переименовать значение параметра
+    def rename(self):
+        _index = tuple(form_parameters).index(self.parameter)
+        rename_frm_param_val(self, self.par_vals, _index, dct)
+        self.refresh()
+
+    # Напечатать существующие параметры форм
+    def print_par_val_list(self):
+        self.text_par_val['state'] = 'normal'
+        self.text_par_val.delete(1.0, tk.END)
+        for key in self.par_vals:
+            self.text_par_val.insert(tk.INSERT, f'{key}\n')
+        self.text_par_val['state'] = 'disabled'
+
+    # Обновить отображаемую информацию
+    def refresh(self):
+        self.print_par_val_list()
+        if len(self.par_vals) == 1:
+            self.btn_delete['state'] = 'disabled'
+        else:
+            self.btn_delete['state'] = 'normal'
 
     def open(self):
         self.grab_set()
@@ -3029,9 +3003,32 @@ class MainW(tk.Tk):
         self.quit()
 
 
+# Вывод информации о программе
+print( '======================================================================================\n')
+print( '                            Anenokil development  presents')
+print(f'                               {PROGRAM_NAME} {PROGRAM_VERSION}')
+print(f'                               {PROGRAM_DATE}\n')
+print( '======================================================================================')
+
+try:  # Открываем файл с названием словаря
+    open(SETTINGS_PATH, 'r')
+except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
+    with open(SETTINGS_PATH, 'w') as set_file:
+        set_file.write('words.txt')
+with open(SETTINGS_PATH, 'r') as set_file:
+    dct_filename = set_file.readline().strip()
+
+
+# Получить название открытого словаря
+def dct_savename():
+    return dct_filename[:-4]
+
+
+dct = Dictionary()
 has_changes = False
 root = MainW()
 min_good_score_perc, form_parameters = read_dct(root, dct, dct_savename())  # Загружаем словарь и его настройки
+print('\nМожете использовать эти комбинации для немецких букв: #a = ä, #o = ö, #u = ü, #s = ß (и ## = #)')
 root.mainloop()
 
 # строка 56 - добавить выбор стилей
