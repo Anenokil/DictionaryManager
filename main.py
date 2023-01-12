@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_35'
-PROGRAM_DATE = '13.1.2023 1:32 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_36'
+PROGRAM_DATE = '13.1.2023 2:03 (UTC+5)'
 
 """ Стили """
 
@@ -650,6 +650,7 @@ class Dictionary(object):
                         _is_first = False
                         if _is_found:
                             outp(_output_widget)
+                        outp(_output_widget, _entry.wrd, _end=': ')
                     else:
                         outp(_output_widget, ', ', _end='')
                     _is_found = True
@@ -3051,7 +3052,6 @@ root.mainloop()
 
 # строка 56 - добавить выбор стилей
 # Попробовать tk.ScrolledText
-# при поиске перевода выводить слово
 # добавить изменение статьи по переводу
 # добавить комментарии
 # PopupEntryW и другие: onClose
