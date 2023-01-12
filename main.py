@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_32'
-PROGRAM_DATE = '13.1.2023 0:13 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_33'
+PROGRAM_DATE = '13.1.2023 0:19 (UTC+5)'
 
 """ Стили """
 
@@ -2080,6 +2080,12 @@ class EditW(tk.Toplevel):
     def frm_add(self):
         global has_changes
 
+        if not form_parameters:
+            PopupMsgW(self, 'Отсутствуют параметры форм!\n'
+                            'Чтобы добавить, перейдите в\n'
+                            'Настройки/Настройки словаря/Настройки словоформ').open()
+            return
+
         window_template = FormTemplateW(self, self.key)
         frm_key = window_template.open()
         if not frm_key:
@@ -3039,5 +3045,4 @@ root.mainloop()
 # PopupMsgW.open() где надо а где нет
 # PopupEntryW и другие: onClose
 # сделать покрасивее поле выбора нового словаря при ошибке загрузки
-# если нет форм, то на editW убрать кнопку добавить форму (+)
 # проверить корректность работы переименовывания значения параметра формы слова
