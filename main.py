@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_24'
-PROGRAM_DATE = '12.1.2023  20:42 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_25'
+PROGRAM_DATE = '12.1.2023  20:59 (UTC+5)'
 
 """ Стили """
 
@@ -104,21 +104,6 @@ def outp(_text='', _end='\n', _dst=None, _mode=tk.INSERT):
         print('!!!!!!!!!!!!!')
         return
     _dst.insert(_mode, _text + _end)
-
-
-# Вывести предупреждение о некорректном вводе с указанием ввода
-def warn_inp(_text, _input, _dst, _mode=tk.INSERT):
-    outp(_dst=_dst, _text=f'[!] {_text}: "{_input}" [!]', _mode=_mode)
-
-
-# Вывести другое предупреждение
-def warn(_text, _dst, _mode=tk.INSERT):
-    outp(_dst=_dst, _text=f'[!] {_text} [!]', _mode=_mode)
-
-
-# Вывести предложение специального действия
-def spec_action(_text, _dst, _mode=tk.INSERT):
-    outp(_dst=_dst, _text=f'{_text} (*)', _mode=_mode)
 
 
 # Добавить немецкие буквы
