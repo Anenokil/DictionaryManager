@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_29'
-PROGRAM_DATE = '12.1.2023  21:29 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_30'
+PROGRAM_DATE = '12.1.2023  21:34 (UTC+5)'
 
 """ Стили """
 
@@ -553,7 +553,7 @@ def set_postfix(_n, _wrd_forms):
         return _wrd_forms[2]
     elif _n % 10 == 1:
         return _wrd_forms[0]
-    elif _n % 10 < 5:
+    elif 1 < _n % 10 < 5:
         return _wrd_forms[1]
     else:
         return _wrd_forms[2]
@@ -3041,6 +3041,5 @@ root.mainloop()
 # PopupEntryW и другие: onClose
 # убрать в settings    .txt
 # сделать покрасивее поле выбора нового словаря при ошибке загрузки
-# ошибка в окончаниях при нуле
 # если нет форм, то на editW убрать кнопку добавить форму (+)
 # проверить корректность работы переименовывания значения параметра формы слова
