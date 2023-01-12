@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_34'
-PROGRAM_DATE = '13.1.2023 1:29 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_35'
+PROGRAM_DATE = '13.1.2023 1:32 (UTC+5)'
 
 """ Стили """
 
@@ -885,14 +885,14 @@ class Dictionary(object):
 
     # Сохранить словарь в файл
     def save(self, _filename):
-        with open(_filename, 'w') as _file:
+        with open(_filename, 'w', encoding='utf-8') as _file:
             for _entry in self.d.values():
                 _entry.save(_file)
 
     # Прочитать словарь из файла
     def read(self, _filename):
         try:
-            with open(_filename, 'r') as _file:
+            with open(_filename, 'r', encoding='utf-8') as _file:
                 while True:
                     _line = _file.readline().strip()
                     if not _line:
@@ -924,9 +924,9 @@ class Dictionary(object):
 def read_local_settings(_filename):
     _local_settings_fn = os.path.join(LOCAL_SETTINGS_PATH, _filename)
     try:  # Проверка наличия файла
-        open(_local_settings_fn, 'r')
+        open(_local_settings_fn, 'r', encoding='utf-8')
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-        with open(_local_settings_fn, 'w') as _loc_set_file:
+        with open(_local_settings_fn, 'w', encoding='utf-8') as _loc_set_file:
             _loc_set_file.write('67\n'
                                 'Число\n'
                                 f'ед.ч.{FORMS_SEPARATOR}мн.ч.\n'
@@ -940,7 +940,7 @@ def read_local_settings(_filename):
                                 f'пр.вр.{FORMS_SEPARATOR}н.вр.{FORMS_SEPARATOR}буд.вр.')
 
     _form_parameters = {}
-    with open(_local_settings_fn, 'r') as _loc_set_file:
+    with open(_local_settings_fn, 'r', encoding='utf-8') as _loc_set_file:
         _min_good_score_perc = int(_loc_set_file.readline().strip())
         while True:
             _key = _loc_set_file.readline().strip()
@@ -954,7 +954,7 @@ def read_local_settings(_filename):
 # Сохранить настройки словаря
 def save_local_settings(_min_good_score_perc, _form_parameters, _filename):
     _local_settings_fn = os.path.join(LOCAL_SETTINGS_PATH, _filename)
-    with open(_local_settings_fn, 'w') as _loc_set_file:
+    with open(_local_settings_fn, 'w', encoding='utf-8') as _loc_set_file:
         _loc_set_file.write(f'{_min_good_score_perc}\n')
         for _key in _form_parameters.keys():
             _loc_set_file.write(f'{_key}\n')
@@ -976,7 +976,7 @@ def read_dct(_window, _dct, _savename):
         return read_local_settings(_filename)
     elif _res_code == 1:  # Если файл отсутствует, то создаётся пустой словарь
         print(f'\nСловарь "{_savename}" не найден!')
-        open(_filepath, 'w')
+        open(_filepath, 'w', encoding='utf-8')
         _dct.read(_filepath)
         print('Создан и загружен пустой словарь')
         return read_local_settings(_filename)
@@ -990,7 +990,7 @@ def read_dct(_window, _dct, _savename):
             _window_entry = PopupEntryW(_window, 'Введите название словаря\n'
                                                  '(если он ещё не существует, то будет создан пустой словарь)')
             dct_savename = _window_entry.open()
-            with open(SETTINGS_PATH, 'w') as _settings_file:
+            with open(SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
                 _settings_file.write(dct_savename)
             _dct = Dictionary()
             return read_dct(_window, _dct, dct_savename)
@@ -1002,7 +1002,7 @@ def read_dct(_window, _dct, _savename):
 def create_dct(_dct, _savename):
     _filename = f'{_savename}.txt'
     _filepath = os.path.join(SAVES_PATH, _filename)
-    open(_filepath, 'w')
+    open(_filepath, 'w', encoding='utf-8')
     _dct.read(_filepath)
     print(f'\nСловарь "{_savename}" успешно создан и открыт')
     return read_local_settings(_filename)
@@ -2800,7 +2800,7 @@ class SettingsW(tk.Toplevel):
             save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename())
 
         dct_savename = savename
-        with open(SETTINGS_PATH, 'w') as settings_file:
+        with open(SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
             settings_file.write(savename)
         dct = Dictionary()
         min_good_score_perc, form_parameters = read_dct(self, dct, savename)
@@ -2822,7 +2822,7 @@ class SettingsW(tk.Toplevel):
         if has_changes:
             save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename())
         dct_savename = savename
-        with open(SETTINGS_PATH, 'w') as settings_file:
+        with open(SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
             settings_file.write(savename)
         dct = Dictionary()
         min_good_score_perc, form_parameters = create_dct(dct, savename)
@@ -2859,8 +2859,8 @@ class SettingsW(tk.Toplevel):
         os.rename(os.path.join(LOCAL_SETTINGS_PATH, old_filename), os.path.join(LOCAL_SETTINGS_PATH, new_filename))
         if dct_savename == old_savename:
             dct_savename = new_savename
-            with open(SETTINGS_PATH, 'w') as set_file:
-                set_file.write(new_savename)
+            with open(SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
+                settings_file.write(new_savename)
             self.lbl_dct_name['text'] = f'Открыт словарь "{new_savename}"'
         print(f'Словарь "{old_savename}" успешно переименован в "{new_savename}"')
 
@@ -3029,11 +3029,11 @@ print(f'                                {PROGRAM_DATE}\n')
 print( '======================================================================================')
 
 try:  # Открываем файл с названием словаря
-    open(SETTINGS_PATH, 'r')
+    open(SETTINGS_PATH, 'r', encoding='utf-8')
 except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-    with open(SETTINGS_PATH, 'w') as set_file:
-        set_file.write('words.txt')
-with open(SETTINGS_PATH, 'r') as set_file:
+    with open(SETTINGS_PATH, 'w', encoding='utf-8') as set_file:
+        set_file.write('words')
+with open(SETTINGS_PATH, 'r', encoding='utf-8') as set_file:
     dct_savename = set_file.readline().strip()
 
 
@@ -3058,4 +3058,3 @@ root.mainloop()
 # сделать покрасивее поле выбора нового словаря при ошибке загрузки
 # проверить корректность работы переименовывания значения параметра формы слова
 # PrintW: печатать количество слов в отдельный label
-# кодировка
