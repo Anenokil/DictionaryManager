@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_33'
-PROGRAM_DATE = '13.1.2023 0:19 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_34'
+PROGRAM_DATE = '13.1.2023 1:29 (UTC+5)'
 
 """ Стили """
 
@@ -391,7 +391,7 @@ class Entry(object):
             self.tr += [_new_tr]
             self.count_t += 1
         elif _window:
-            PopupMsgW(_window, 'У этого слова уже есть такой перевод', title='Warning')
+            PopupMsgW(_window, 'У этого слова уже есть такой перевод', title='Warning').open()
 
     # Добавить сноску
     def add_note(self, _new_note):
@@ -401,12 +401,13 @@ class Entry(object):
     # Добавить форму слова
     def add_frm(self, _frm_key, _new_frm, _window=None):
         if _new_frm == '':
-            PopupMsgW(_window, 'Форма должна содержать хотя бы один символ', title='Warning')
+            PopupMsgW(_window, 'Форма должна содержать хотя бы один символ', title='Warning').open()
         elif _frm_key not in self.forms.keys():
             self.forms[_frm_key] = _new_frm
             self.count_f += 1
         elif _window:
-            PopupMsgW(_window, f'Слово уже имеет форму с такими параметрами {tpl(_frm_key)}: {self.forms[_frm_key]}', title='Warning')
+            PopupMsgW(_window, f'Слово уже имеет форму с такими параметрами {tpl(_frm_key)}: {self.forms[_frm_key]}',
+                      title='Warning').open()
 
     # Удалить форму слова
     def remove_frm_with_choose(self, _window):
@@ -437,7 +438,7 @@ class Entry(object):
         _window_entry = PopupEntryW(_window, 'Введите форму слова')
         _new_frm = _window_entry.open()
         if _new_frm == '':
-            PopupMsgW(_window, 'Форма должна содержать хотя бы один символ', title='Warning')
+            PopupMsgW(_window, 'Форма должна содержать хотя бы один символ', title='Warning').open()
             return
         self.forms[_key] = _new_frm
 
@@ -727,7 +728,7 @@ class Dictionary(object):
                         self.d.pop(_key)
                         return _new_key
                     _i += 1
-                PopupMsgW(_window, 'Слишком много статей с одинаковым словом', title='Warning')
+                PopupMsgW(_window, 'Слишком много статей с одинаковым словом', title='Warning').open()
             else:
                 return None
         else:  # Если ещё нет статьи с таким словом
@@ -793,7 +794,7 @@ class Dictionary(object):
                             self.count_t += 1
                             return _key
                         _i += 1
-                    PopupMsgW(_window, 'Слишком много статей с одинаковым словом', title='Warning')
+                    PopupMsgW(_window, 'Слишком много статей с одинаковым словом', title='Warning').open()
                 else:
                     return None
         else:  # Если ещё нет статьи с таким словом
@@ -1020,7 +1021,7 @@ def save_if_has_changes(_window, _dct, _min_good_score_perc, _form_parameters, _
     _answer = _window_dia.open()
     if _answer:
         save_all(_dct, _min_good_score_perc, _form_parameters, _filename)
-        PopupMsgW(_window, 'Изменения и прогресс успешно сохранены')
+        PopupMsgW(_window, 'Изменения и прогресс успешно сохранены').open()
         print('\nИзменения и прогресс успешно сохранены')
 
 
@@ -1097,12 +1098,23 @@ class PopupMsgW(tk.Toplevel):
         self.title(title)
         self.configure(bg=ST_BG[st])
 
-        tk.Label( self, text=msg,      bg=ST_BG[st],  fg=ST_FG_TEXT[st]).grid(row=0, column=0, padx=6, pady=4)
-        tk.Button(self, text=btn_text, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st], command=self.destroy).grid(row=1, column=0, padx=6, pady=4)
+        self.closed = True  # Если окно закрыто крестиком, возвращает True, иначе - False
+
+        self.lbl_msg = tk.Label(self, text=msg, bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.btn_ok = tk.Button(self, text=btn_text, command=self.ok, bg=ST_BTN[st], fg=ST_FG_TEXT[st],
+                                activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+
+        self.lbl_msg.grid(row=1, column=0, padx=6, pady=4)
+        self.btn_ok.grid( row=2, column=0, padx=6, pady=4)
+
+    def ok(self):
+        self.closed = False
+        self.destroy()
 
     def open(self):
         self.grab_set()
         self.wait_window()
+        return self.closed
 
 
 # Всплывающее окно с сообщением и двумя кнопками
@@ -1285,10 +1297,10 @@ class EnterSaveNameW(tk.Toplevel):
     def check_and_return(self):
         savename = self.var_name.get()
         if savename == '':
-            PopupMsgW(self, 'Недопустимое название', title='Warning')
+            PopupMsgW(self, 'Недопустимое название', title='Warning').open()
             return
         if f'{savename}.txt' in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
-            PopupMsgW(self, 'Файл с таким названием уже существует', title='Warning')
+            PopupMsgW(self, 'Файл с таким названием уже существует', title='Warning').open()
             return
         self.name_is_correct = True
         self.destroy()
@@ -1318,10 +1330,10 @@ class EnterFormParameterNameW(tk.Toplevel):
     def check_and_return(self):
         par_name = self.var_name.get()
         if par_name == '':
-            PopupMsgW(self, 'Недопустимое название параметра', title='Warning')
+            PopupMsgW(self, 'Недопустимое название параметра', title='Warning').open()
             return
         if par_name in self.parameters:  # Если уже есть параметр с таким названием
-            PopupMsgW(self, f'Параметр "{par_name}" уже существует', title='Warning')
+            PopupMsgW(self, f'Параметр "{par_name}" уже существует', title='Warning').open()
             return
         self.name_is_correct = True
         self.destroy()
@@ -1431,7 +1443,7 @@ class FormTemplateW(tk.Toplevel):
     # Закончить с шаблоном
     def done(self):
         if tuple(self.par_values) in dct.d[self.key].forms.keys():
-            PopupMsgW(self, f'\nУ слова "{key_to_wrd(self.key)}" уже есть форма с таким шаблоном', title='Warning')
+            PopupMsgW(self, f'У слова "{key_to_wrd(self.key)}" уже есть форма с таким шаблоном', title='Warning').open()
             return
         self.destroy()
 
@@ -1795,10 +1807,10 @@ class AddW(tk.Toplevel):
         global has_changes
 
         if self.var_wrd.get() == '':
-            PopupMsgW(self, 'Слово должно содержать хотя бы один символ', title='Warning')
+            PopupMsgW(self, 'Слово должно содержать хотя бы один символ', title='Warning').open()
             return
         if self.var_tr.get() == '':
-            PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning')
+            PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning').open()
             return
 
         self.key = dct.add_entry(self, self.var_wrd.get(), self.var_tr.get())
@@ -2014,10 +2026,10 @@ class EditW(tk.Toplevel):
         window = PopupEntryW(self, 'Введите новое слово')
         new_wrd = window.open()
         if new_wrd == '':
-            PopupMsgW(self, 'Слово должно содержать хотя бы один символ', title='Warning')
+            PopupMsgW(self, 'Слово должно содержать хотя бы один символ', title='Warning').open()
             return
         if new_wrd == key_to_wrd(self.key):
-            PopupMsgW(self, 'Это то же самое слово', title='Warning')
+            PopupMsgW(self, 'Это то же самое слово', title='Warning').open()
             return
         self.key = dct.edit_wrd(self, self.key, new_wrd)
         has_changes = True
@@ -2031,10 +2043,10 @@ class EditW(tk.Toplevel):
         window = PopupEntryW(self, 'Введите новый перевод')
         tr = window.open()
         if tr == '':
-            PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning')
+            PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning').open()
             return
         if tr in dct.d[self.key].tr:
-            PopupMsgW(self, f'У слова "{dct.d[self.key].wrd}" уже есть такой перевод', title='Warning')
+            PopupMsgW(self, f'У слова "{dct.d[self.key].wrd}" уже есть такой перевод', title='Warning').open()
             return
         dct.add_tr(self.key, tr, _window=self, _is_key=True)
         has_changes = True
@@ -2057,10 +2069,10 @@ class EditW(tk.Toplevel):
         window = PopupEntryW(self, 'Введите сноску')
         note = window.open()
         if note == '':
-            PopupMsgW(self, 'Сноска должна содержать хотя бы один символ', title='Warning')
+            PopupMsgW(self, 'Сноска должна содержать хотя бы один символ', title='Warning').open()
             return
         if note in dct.d[self.key].notes:
-            PopupMsgW(self, f'У слова "{dct.d[self.key].wrd}" уже есть такая сноска', title='Warning')
+            PopupMsgW(self, f'У слова "{dct.d[self.key].wrd}" уже есть такая сноска', title='Warning').open()
             return
         dct.add_note(self.key, note)
         has_changes = True
@@ -2082,8 +2094,8 @@ class EditW(tk.Toplevel):
 
         if not form_parameters:
             PopupMsgW(self, 'Отсутствуют параметры форм!\n'
-                            'Чтобы добавить, перейдите в\n'
-                            'Настройки/Настройки словаря/Настройки словоформ').open()
+                            'Чтобы их добавить, перейдите в\n'
+                            'Настройки/Настройки словаря/Настройки словоформ', title='Warning').open()
             return
 
         window_template = FormTemplateW(self, self.key)
@@ -2776,7 +2788,7 @@ class SettingsW(tk.Toplevel):
                 saves_list += [base_name]
                 saves_count += 1
         if saves_count == 0:  # Если нет сохранённых словарей
-            PopupMsgW(self, 'Нет других сохранённых словарей', title='Warning')
+            PopupMsgW(self, 'Нет других сохранённых словарей', title='Warning').open()
             return
 
         window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите открыть')
@@ -2864,7 +2876,7 @@ class SettingsW(tk.Toplevel):
                 saves_list += [base_name]
                 saves_count += 1
         if saves_count == 0:  # Если нет сохранённых словарей
-            PopupMsgW(self, 'Нет других сохранённых словарей', title='Warning')
+            PopupMsgW(self, 'Нет других сохранённых словарей', title='Warning').open()
             return
 
         window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите удалить')
@@ -2873,7 +2885,7 @@ class SettingsW(tk.Toplevel):
         if savename == '':
             return
         if savename == dct_savename:
-            PopupMsgW(self, 'Вы не можете удалить словарь, который сейчас открыт', title='Warning')
+            PopupMsgW(self, 'Нельзя удалить словарь, который сейчас открыт', title='Warning').open()
             return
 
         window_confirm = PopupDialogueW(self, f'Словарь "{savename}" будет безвозвратно удалён!\nВы уверены?')
@@ -2882,7 +2894,7 @@ class SettingsW(tk.Toplevel):
             return
         os.remove(os.path.join(SAVES_PATH, filename))
         os.remove(os.path.join(LOCAL_SETTINGS_PATH, filename))
-        PopupMsgW(self, f'Словарь "{savename}" успешно удалён')
+        PopupMsgW(self, f'Словарь "{savename}" успешно удалён').open()
 
         self.print_dct_list()
 
@@ -2997,7 +3009,7 @@ class MainW(tk.Tk):
         global has_changes
 
         save_all(dct, min_good_score_perc, form_parameters, dct_filename())
-        PopupMsgW(self, 'Изменения и прогресс успешно сохранены')
+        PopupMsgW(self, 'Изменения и прогресс успешно сохранены').open()
         print('\nИзменения и прогресс успешно сохранены')
 
         has_changes = False
@@ -3042,7 +3054,8 @@ root.mainloop()
 # при поиске перевода выводить слово
 # добавить изменение статьи по переводу
 # добавить комментарии
-# PopupMsgW.open() где надо а где нет
 # PopupEntryW и другие: onClose
 # сделать покрасивее поле выбора нового словаря при ошибке загрузки
 # проверить корректность работы переименовывания значения параметра формы слова
+# PrintW: печатать количество слов в отдельный label
+# кодировка
