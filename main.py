@@ -11,8 +11,8 @@ else:
 import urllib.request as urllib2
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-37'
-PROGRAM_DATE = '13.1.2023 3:54 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-38'
+PROGRAM_DATE = '13.1.2023 4:15 (UTC+5)'
 
 """ Стили """
 
@@ -575,34 +575,31 @@ class Dictionary(object):
         self.count_t = 0
         self.count_f = 0
 
-    # Служебный метод для print и print_with_forms
-    def _print_stat(self, _output_widget):
+    # Вывести информацию о количестве статей в словаре
+    def dct_info(self):
         _w = set_postfix(self.count_w, ('слово', 'слова', 'слов'))
         _f = set_postfix(self.count_w + self.count_f, ('словоформа', 'словоформы', 'словоформ'))
         _t = set_postfix(self.count_t, ('перевод', 'перевода', 'переводов'))
-        outp(_output_widget, f'\n< {self.count_w} {_w} | {self.count_w + self.count_f} {_f} | {self.count_t} {_t} >')
+        return(f'< {self.count_w} {_w} | {self.count_w + self.count_f} {_f} | {self.count_t} {_t} >')
 
     # Напечатать словарь
     def print(self, _output_widget, _min_good_score_perc):
         for _entry in self.d.values():
             _entry.print_briefly(_output_widget, _min_good_score_perc)
-        self._print_stat(_output_widget)
 
     # Напечатать словарь (со всеми формами)
     def print_with_forms(self, _output_widget, _min_good_score_perc):
         for _entry in self.d.values():
             _entry.print_briefly_with_forms(_output_widget, _min_good_score_perc)
-        self._print_stat(_output_widget)
 
-    # Служебный метод для print_fav и print_fav_with_forms
-    def _print_stat_fav(self, _output_widget, _count_w, _count_t, _count_f):
+    # Вывести информацию о количестве избранных статей в словаре
+    def dct_info_fav(self, _count_w, _count_t, _count_f):
         _w = set_postfix(_count_w, ('слово', 'слова', 'слов'))
         _f = set_postfix(_count_w + self.count_f, ('словоформа', 'словоформы', 'словоформ'))
         _t = set_postfix(_count_t, ('перевод', 'перевода', 'переводов'))
-        outp(_output_widget,
-             f'\n< {_count_w}/{self.count_w} {_w} | '
-             f'{_count_w + _count_f}/{self.count_w + self.count_f} {_f} | '
-             f'{_count_t}/{self.count_t} {_t} >')
+        return(f'< {_count_w}/{self.count_w} {_w} | '
+               f'{_count_w + _count_f}/{self.count_w + self.count_f} {_f} | '
+               f'{_count_t}/{self.count_t} {_t} >')
 
     # Напечатать словарь (только избранные слова)
     def print_fav(self, _output_widget, _min_good_score_perc):
@@ -615,7 +612,7 @@ class Dictionary(object):
                 _count_w += 1
                 _count_t += _entry.count_t
                 _count_f += _entry.count_f
-        self._print_stat_fav(_output_widget, _count_w, _count_t, _count_f)
+        return _count_w, _count_t, _count_f
 
     # Напечатать словарь (только избранные слова, со всеми формами)
     def print_fav_with_forms(self, _output_widget, _min_good_score_perc):
@@ -628,7 +625,7 @@ class Dictionary(object):
                 _count_w += 1
                 _count_t += _entry.count_t
                 _count_f += _entry.count_f
-        self._print_stat_fav(_output_widget, _count_w, _count_t, _count_f)
+        return _count_w, _count_t, _count_f
 
     # Напечатать статьи, в которых слова содержат данную строку
     def print_words_with_str(self, _output_widget, _search_wrd):
@@ -2195,6 +2192,7 @@ class PrintW(tk.Toplevel):
 
         self.var_fav   = tk.BooleanVar(value=False)
         self.var_forms = tk.BooleanVar(value=True)
+        self.var_info  = tk.StringVar()
 
         self.st_check = ttk.Style()
         self.st_check.configure(style='.TCheckbutton', background=ST_BG[st])
@@ -2211,7 +2209,7 @@ class PrintW(tk.Toplevel):
         # }
         self.scrollbar = tk.Scrollbar(self, bg=ST_BG[st])
         self.text_dct  = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
-        self.scrollbar.config(command=self.text_dct.yview)
+        self.lbl_info  = tk.Label(self, textvariable=self.var_info, bg=ST_BG[st], fg=ST_FG_TEXT[st])
 
         self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
         self.frame_main.grid(  row=1, columnspan=2, padx=6, pady=(0, 4))
@@ -2222,8 +2220,11 @@ class PrintW(tk.Toplevel):
         self.check_forms.grid(row=0, column=3, padx=(0, 6), pady=6, sticky='W')
         self.btn_print.grid(  row=0, column=4, padx=6,      pady=6)
         # }
-        self.text_dct.grid( row=2, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(row=2, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.text_dct.grid( row=2, column=0,     padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(row=2, column=1,     padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.lbl_info.grid( row=3, columnspan=2, padx=6,      pady=(0, 6))
+
+        self.scrollbar.config(command=self.text_dct.yview)
 
         self.print()
 
@@ -2233,14 +2234,16 @@ class PrintW(tk.Toplevel):
         self.text_dct.delete(1.0, tk.END)
         if self.var_fav.get():
             if self.var_forms.get():
-                dct.print_fav_with_forms(self.text_dct, min_good_score_perc)
+                w, t, f = dct.print_fav_with_forms(self.text_dct, min_good_score_perc)
             else:
-                dct.print_fav(self.text_dct, min_good_score_perc)
+                w, t, f = dct.print_fav(self.text_dct, min_good_score_perc)
+            self.var_info.set(dct.dct_info_fav(w, t, f))
         else:
             if self.var_forms.get():
                 dct.print_with_forms(self.text_dct, min_good_score_perc)
             else:
                 dct.print(self.text_dct, min_good_score_perc)
+            self.var_info.set(dct.dct_info())
         self.text_dct.yview_moveto(1.0)
         self.text_dct['state'] = 'disabled'
 
@@ -3138,7 +3141,6 @@ root.mainloop()
 # PopupEntryW и другие: onClose
 # сделать покрасивее поле выбора нового словаря при ошибке загрузки
 # проверить корректность работы переименовывания значения параметра формы слова
-# PrintW: печатать количество слов в отдельный label
 # автоочистка полей ввода
 # enter
 # принимать несколько ответов при угадывании слова
