@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_28'
-PROGRAM_DATE = '12.1.2023  21:27 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_29'
+PROGRAM_DATE = '12.1.2023  21:29 (UTC+5)'
 
 """ Стили """
 
@@ -3028,7 +3028,7 @@ dct = Dictionary()
 has_changes = False
 root = MainW()
 min_good_score_perc, form_parameters = read_dct(root, dct, dct_savename())  # Загружаем словарь и его настройки
-print('\nМожете использовать эти комбинации для немецких букв: #a = ä, #o = ö, #u = ü, #s = ß (и ## = #)')
+print('\nМожете использовать эти комбинации для немецких букв: #a -> ä, #o -> ö, #u -> ü, #s -> ß (и ## -> #)')
 root.mainloop()
 
 # строка 56 - добавить выбор стилей
