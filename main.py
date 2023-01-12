@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_23'
-PROGRAM_DATE = '12.1.2023 3:35 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_24'
+PROGRAM_DATE = '12.1.2023  20:42 (UTC+5)'
 
 """ Стили """
 
@@ -192,59 +192,49 @@ def decode_tpl(_str, _separator=FORMS_SEPARATOR):
 
 
 # Добавить значение параметра форм
-def add_frm_param_val(_window, _vals):
-    window = PopupEntryW(_window, 'Введите новое значение параметра')
+def add_frm_param_val(_window, _vals, _text='Введите новое значение параметра'):
+    window = PopupEntryW(_window, _text)
     _new_v = window.open()
     if _new_v in _vals:
-        PopupMsgW(_window, f'Значение "{_new_v}" уже существует')
+        PopupMsgW(_window, f'Значение "{_new_v}" уже существует', title='Warning').open()
     elif _new_v == '':
-        PopupMsgW(_window, 'Недопустимое значение')
+        PopupMsgW(_window, 'Недопустимое значение', title='Warning').open()
     elif FORMS_SEPARATOR in _new_v:
-        PopupMsgW(_window, f'Недопустимый символ: {FORMS_SEPARATOR}')
+        PopupMsgW(_window, f'Недопустимый символ: {FORMS_SEPARATOR}', title='Warning').open()
     else:
         _vals += [_new_v]
 
 
 # Удалить значение параметра форм
-def remove_frm_param_val(_vals, _dct):
-    if len(_vals) == 1:
-        warn('\nВы не можете удалить единственное значение параметра')
+def delete_frm_param_val(_window, _vals, _dct):
+    _val = PopupChooseW(_window, _vals).open()
+    if _val == '':
         return
-    outp('\nВыберите один из предложенных вариантов')
-    for _i in range(len(_vals)):
-        outp(f'{_i + 1} - {_vals[_i]}')
-    _cmd = inp('Введите номер варианта: ')
-    try:
-        _index = int(_cmd) - 1
-        _val = _vals[_index]
-    except (ValueError, TypeError, IndexError):
-        warn_inp('Недопустимый номер варианта', _cmd)
-    else:
-        _cmd = inp('\nВсе формы слов, содержащие это значение, будут удалены! Вы уверены? (+ или -): ')
-        if _cmd == '+':
-            _vals.pop(_index)
-            _dct.remove_forms_with_val(_index, _val)
+    _window_dia = PopupDialogueW(_window, 'Все формы слов, содержащие это значение, будут удалены!\nВы уверены?')
+    _answer = _window_dia.open()
+    if _answer:
+        _index = _vals.index(_val)
+        _vals.pop(_index)
+        _dct.remove_forms_with_val(_index, _val)
 
 
 # Переименовать значение параметра форм
-def rename_frm_param_val(_vals, _pos, _dct):
-    outp('\nВыберите один из предложенных вариантов')
-    for _i in range(len(_vals)):
-        outp(f'{_i + 1} - {_vals[_i]}')
-    _cmd = inp('Введите номер варианта: ')
-    try:
-        _index = int(_cmd) - 1
-        _val = _vals[_index]
-    except (ValueError, TypeError, IndexError):
-        warn_inp('Недопустимый номер варианта', _cmd)
-    else:
-        while True:
-            _new_val = inp('\nВведите новое название для значения параметра: ')
-            if _new_val not in _vals:
-                break
-            warn('Значение с таким названием уже есть')
-        _dct.rename_forms_with_val(_pos, _val, _new_val)
-        _vals[_index] = _new_val
+def rename_frm_param_val(_window, _vals, _pos, _dct):
+    _val = PopupChooseW(_window, _vals).open()
+    if _val == '':
+        return
+    while True:
+        _new_val = PopupEntryW(_window, 'Введите новое название для значения параметра').open()
+        if _new_val == '':
+            PopupMsgW(_window, 'Недопустимое название значения', title='Warning').open()
+            continue
+        if _new_val in _vals:
+            PopupMsgW(_window, 'Значение с таким названием уже есть', title='Warning').open()
+            continue
+        break
+    _dct.rename_forms_with_val(_pos, _val, _new_val)
+    _index = _vals.index(_val)
+    _vals[_index] = _new_val
 
 
 # Найти в строке подстроку и выделить её
@@ -949,6 +939,8 @@ class Dictionary(object):
             return 1
         except (ValueError, TypeError):
             return 2
+        except Exception:
+            return 3
 
 
 # Загрузить настройки словаря из файла
@@ -996,46 +988,46 @@ def save_local_settings(_min_good_score_perc, _form_parameters, _filename):
 
 
 # Загрузить словарь и его настройки из файлов
-def read_dct(_dct, _filename):
+def read_dct(_window, _dct, _savename):
+    global dct_filename
+    _filename = f'{_savename}.txt'
     _filepath = os.path.join(SAVES_PATH, _filename)
     _res_code = _dct.read(_filepath)
-    outp()
     if _res_code == 0:  # Если чтение прошло успешно, то выводится соответствующее сообщение
-        outp(f'Файл со словарём "{_filename}" открыт')
+        print(f'\nСловарь "{_savename}" успешно открыт')
         return read_local_settings(_filename)
     elif _res_code == 1:  # Если файл отсутствует, то создаётся пустой словарь
-        warn(f'Файл "{_filename}" не найден')
+        print(f'\nСловарь "{_savename}" не найден!')
         open(_filepath, 'w')
         _dct.read(_filepath)
-        outp('Создан и открыт файл с пустым словарём')
+        print('Создан и загружен пустой словарь')
         return read_local_settings(_filename)
-    elif _res_code == 2:  # Если файл повреждён, то предлагается открыть другой файл
-        warn(f'Файл "{_filename}" повреждён или некорректен')
-        while True:
-            outp('\nХотите открыть другой словарь?')
-            outp('О - Открыть другой словарь')
-            outp('З - Завершить работу')
-            _cmd = inp().upper()
-            if _cmd in ['О', 'J']:
-                _filename = inp('\nВведите название файла со словарём '
-                                '(если он ещё не существует, то будет создан пустой словарь): ')
-                with open(SETTINGS_PATH, 'w') as _set_file:
-                    _set_file.write(dct_filename)
-                _dct = Dictionary()
-                read_dct(_dct, _filename)
-                break
-            elif _cmd in ['З', 'P']:
-                exit()
-            else:
-                warn_inp('Неизвестная команда', _cmd)
+    else:  # Если файл повреждён, то предлагается открыть другой файл
+        print(f'\nФайл со словарём "{_savename}" повреждён или некорректен!')
+        _window_dia = PopupDialogueW(_window, f'Файл со словарём "{_savename}" повреждён или некорректен!\n'
+                                              f'Хотите открыть другой словарь?', 'Да', 'Завершить работу',
+                                     val_left='l', val_right='r', val_initial='i')
+        _answer = _window_dia.open()
+        if _answer == 'l':
+            _window_entry = PopupEntryW(_window, 'Введите название словаря\n'
+                                                 '(если он ещё не существует, то будет создан пустой словарь)')
+            _savename = _window_entry.open()
+            dct_filename = f'{_savename}.txt'
+            with open(SETTINGS_PATH, 'w') as _settings_file:
+                _settings_file.write(_savename + '.txt')
+            _dct = Dictionary()
+            return read_dct(_window, _dct, _savename)
+        else:
+            exit()
 
 
 # Создать и загрузить пустой словарь
-def create_dct(_dct, _filename):
+def create_dct(_dct, _savename):
+    _filename = f'{_savename}.txt'
     _filepath = os.path.join(SAVES_PATH, _filename)
     open(_filepath, 'w')
     _dct.read(_filepath)
-    outp(f'\nФайл "{_filename}" успешно создан и открыт')
+    print(f'\nСловарь "{_savename}" успешно создан и открыт')
     return read_local_settings(_filename)
 
 
@@ -1047,138 +1039,263 @@ def save_all(_dct, _min_good_score_perc, _form_parameters, _filename):
 
 
 # Предложить сохранение, если были изменения
-def save_if_has_changes(_dct, _min_good_score_perc, _form_parameters, _filename):
-    _cmd = inp('\nХотите сохранить изменения и свой прогресс? (+ или -): ')
-    if _cmd == '+':
+def save_if_has_changes(_window, _dct, _min_good_score_perc, _form_parameters, _filename):
+    _window_dia = PopupDialogueW(_window, 'Хотите сохранить изменения и свой прогресс?', 'Да', 'Нет')
+    _answer = _window_dia.open()
+    if _answer:
         save_all(_dct, _min_good_score_perc, _form_parameters, _filename)
-        outp('\nИзменения и прогресс успешно сохранены')
+        PopupMsgW(_window, 'Изменения и прогресс успешно сохранены')
+        print('\nИзменения и прогресс успешно сохранены')
+
+
+# Всплывающее окно для ввода названия параметра словоформ
+class EnterFormParameterNameW(tk.Toplevel):
+    def __init__(self, parent, parameters):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[st])
+
+        self.name_is_correct = False
+        self.parameters = parameters
+
+        self.var_name = tk.StringVar()
+
+        tk.Label( self, text='Введите название нового параметра', bg=ST_BG[st], fg=ST_FG_TEXT[st]).grid(row=0, padx=6, pady=(4, 1))
+        tk.Entry( self, textvariable=self.var_name, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], selectbackground=ST_SELECT[st], highlightcolor=ST_HIGHLIGHT[st]).grid(row=1, padx=6, pady=1)
+        tk.Button(self, text='Подтвердить', bg=ST_BTNY[st], fg=ST_FG_TEXT[st], activebackground=ST_BTNY_SELECT[st], highlightbackground=ST_BORDER[st], command=self.check_and_return).grid(row=2, padx=6, pady=4)
+
+    def check_and_return(self):
+        par_name = self.var_name.get()
+        if par_name == '':
+            PopupMsgW(self, 'Недопустимое название параметра', title='Warning')
+            return
+        if par_name in self.parameters:  # Если уже есть параметр с таким названием
+            PopupMsgW(self, f'Параметр "{par_name}" уже существует', title='Warning')
+            return
+        self.name_is_correct = True
+        self.destroy()
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+        return self.name_is_correct, self.var_name.get()
 
 
 # Добавить параметр словоформ
-def add_frm_param(_parameters, _dct):
-    _new_p = inp('\nВведите название нового параметр: ')
-    if _new_p in _parameters.keys():
-        warn(f'Параметр "{_new_p}" уже существует')
-    elif _new_p == '':
-        warn('Недопустимое название параметра')
-    else:
-        _dct.add_forms_param()
-        _parameters[_new_p] = []
-        outp('Необходимо добавить хотя бы одно значение для параметра')
-        while not _parameters[_new_p]:
-            add_frm_param_val(_parameters[_new_p])
+def add_frm_param(_window, _parameters, _dct):
+    window = EnterFormParameterNameW(_window, _parameters.keys())
+    _name_is_correct, _new_p = window.open()
+    if not _name_is_correct:
+        return
+    _dct.add_forms_param()
+    _parameters[_new_p] = []
+    while not _parameters[_new_p]:
+        add_frm_param_val(_window, _parameters[_new_p], 'Необходимо добавить хотя бы одно значение для параметра')
 
 
 # Удалить параметр словоформ
-def remove_frm_param(_parameters, _dct):
-    outp('\nВыберите один из предложенных вариантов')
+def remove_frm_param(_window, _parameters, _dct):
     _keys = [_key for _key in _parameters.keys()]
-    for _i in range(len(_keys)):
-        outp(f'{_i + 1} - {_keys[_i]}')
-    _cmd = inp('Введите номер варианта: ')
-    try:
-        _index = int(_cmd) - 1
-        _key = _keys[_index]
-    except (ValueError, TypeError, IndexError):
-        warn_inp('Недопустимый номер варианта', _cmd)
-    else:
-        _cmd = inp('\nВсе формы слов, содержащие этот параметр, будут удалены! Вы уверены? (+ или -): ')
-        if _cmd == '+':
-            _parameters.pop(_key)
-            _dct.remove_forms_param(_index)
+    _key = PopupChooseW(_window, _keys, btn_text='Удалить').open()
+    if _key == '':
+        return
+    _window = PopupDialogueW(_window, 'Все формы слов, содержащие этот параметр, будут удалены!\nВы уверены?')
+    _answer = _window.open()
+    if _answer:
+        _pos = _keys.index(_key)
+        _parameters.pop(_key)
+        _dct.remove_forms_param(_pos)
 
 
 # Переименовать параметр словоформ
-def rename_frm_param(_parameters, _dct):
-    outp('\nВыберите один из предложенных вариантов')
+def rename_frm_param(_window, _parameters, _dct):
     _keys = [_key for _key in _parameters.keys()]
-    for _i in range(len(_keys)):
-        outp(f'{_i + 1} - {_keys[_i]}')
-    _cmd = inp('Введите номер варианта: ')
-    try:
-        _index = int(_cmd) - 1
-        _key = _keys[_index]
-    except (ValueError, TypeError, IndexError):
-        warn_inp('Недопустимый номер варианта', _cmd)
-    else:
-        while True:
-            _new_key = inp('\nВведите новое название параметра: ')
-            if _new_key not in _parameters:
-                break
-            warn('Параметр с таким названием уже есть')
-        # _dct.rename_forms_param(_index)
-        _parameters[_new_key] = _parameters[_key]
-        _parameters.pop(_key)
-
-
-# Открыть настройки словоформ
-def forms_settings(_dct, _form_parameters):
+    _key = PopupChooseW(_window, _keys, btn_text='Переименовать').open()
+    if _key == '':
+        return
     while True:
-        outp('\nСуществующие параметры форм:')
-        _keys = [_key for _key in _form_parameters.keys()]
-        for _i in range(len(_keys)):
-            outp(f'{_keys[_i]}')
-        outp('\nЧто вы хотите сделать?')
-        outp('Д - Добавить параметр форм')
-        outp('У - Удалить параметр форм')
-        outp('П - Переименовать параметр форм')
-        outp('И - Изменить значения параметра форм')
-        spec_action('Н - Назад')
-        _cmd = inp().upper()
-        if _cmd in ['Д', 'L']:
-            add_frm_param(_form_parameters, _dct)
-        elif _cmd in ['У', 'E']:
-            remove_frm_param(_form_parameters, _dct)
-        elif _cmd in ['П', 'G']:
-            rename_frm_param(_form_parameters, _dct)
-        elif _cmd in ['И', 'B']:
-            while True:
-                outp('\nКакой параметр форм вы хотите изменить?')
-                outp('Выберите одно из предложенного')
-                _keys = [_key for _key in _form_parameters.keys()]
-                for _i in range(len(_keys)):
-                    outp(f'{_i + 1} - {_keys[_i]}')
-                spec_action('Н - Назад')
-                _cmd = inp('Введите номер варианта: ')
-                if _cmd.upper() in ['Н', 'Y']:
-                    break
-                try:
-                    _index = int(_cmd) - 1
-                    _frm_vals = _form_parameters[_keys[_index]]
-                except (ValueError, TypeError, IndexError):
-                    warn_inp('Недопустимый номер варианта', _cmd)
-                    continue
-                while True:
-                    outp('\nСуществующие значения параметра:')
-                    for _i in range(len(_frm_vals)):
-                        outp(f'{_frm_vals[_i]}')
-                    outp('\nЧто вы хотите сделать?')
-                    outp('Д - Добавить значение параметра')
-                    outp('У - Удалить значение параметра')
-                    outp('П - Переименовать значение параметра')
-                    spec_action('Н - Назад')
-                    _cmd = inp().upper()
-                    if _cmd in ['Д', 'L']:
-                        add_frm_param_val(_frm_vals)
-                    elif _cmd in ['У', 'E']:
-                        remove_frm_param_val(_frm_vals, _dct)
-                    elif _cmd in ['П', 'G']:
-                        rename_frm_param_val(_frm_vals, _index, _dct)
-                    elif _cmd in ['Н', 'Y']:
-                        break
-                    else:
-                        warn_inp('Неизвестная команда', _cmd)
-        elif _cmd in ['Н', 'Y']:
-            break
+        _new_key = PopupEntryW(_window, 'Введите новое название параметра').open()
+        if _new_key == '':
+            PopupMsgW(_window, 'Недопустимое название параметра', title='Warning').open()
+            continue
+        if _new_key in _parameters:
+            PopupMsgW(_window, 'Параметр с таким названием уже есть', title='Warning').open()
+            continue
+        break
+    # _dct.rename_forms_param(_index)
+    _parameters[_new_key] = _parameters[_key]
+    _parameters.pop(_key)
+
+
+# Окно настроек словоформ
+class FormsSettingsW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[st])
+
+        self.var_par = tk.StringVar()
+
+        self.st_combo = ttk.Style()
+        self.st_combo.configure(style='.TCombobox', background=ST_BG[st], foreground=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st])
+        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[st])], foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
+
+        self.lbl_form_par  = tk.Label(     self, text='Существующие параметры форм:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.scrollbar     = tk.Scrollbar( self, bg=ST_BG[st])
+        self.text_form_par = tk.Text(      self, width=20, height=10, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # {
+        self.btn_add    = tk.Button(self.frame_buttons, text='Добавить параметр форм',           command=self.add,    bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_delete = tk.Button(self.frame_buttons, text='Удалить параметр форм',            command=self.delete, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_rename = tk.Button(self.frame_buttons, text='Переименовать параметр форм',      command=self.rename, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_values = tk.Button(self.frame_buttons, text='Изменить значения параметра форм', command=self.values, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        # }
+
+        self.lbl_form_par.grid( row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
+        self.text_form_par.grid(row=1,            column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(    row=1,            column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.frame_buttons.grid(row=0, rowspan=2, column=2,               padx=6,      pady=6)
+        # {
+        self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
+        self.btn_delete.grid(row=1, padx=6, pady=3)
+        self.btn_rename.grid(row=2, padx=6, pady=3)
+        self.btn_values.grid(row=3, padx=6, pady=(3, 6))
+        # }
+
+        self.scrollbar.config(command=self.text_form_par.yview)
+
+        self.refresh()
+
+    # Добавить параметр
+    def add(self):
+        add_frm_param(self, form_parameters, dct)
+        self.refresh()
+
+    # Удалить параметр
+    def delete(self):
+        remove_frm_param(self, form_parameters, dct)
+        self.refresh()
+
+    # Переименовать параметр
+    def rename(self):
+        rename_frm_param(self, form_parameters, dct)
+        self.refresh()
+
+    # Изменить значения параметра
+    def values(self):
+        _keys = [_key for _key in form_parameters.keys()]
+        _key = PopupChooseW(self, _keys, 'Какой параметр форм вы хотите изменить?').open()
+        if _key == '':
+            return
+        FormsParameterSettingsW(self, _key).open()
+
+    # Напечатать существующие параметры форм
+    def print_form_par_list(self):
+        self.text_form_par['state'] = 'normal'
+        self.text_form_par.delete(1.0, tk.END)
+        for key in form_parameters.keys():
+            self.text_form_par.insert(tk.INSERT, f'{key}\n')
+        self.text_form_par['state'] = 'disabled'
+
+    # Обновить отображаемую информацию
+    def refresh(self):
+        self.print_form_par_list()
+        if form_parameters:
+            self.btn_delete['state'] = 'normal'
+            self.btn_rename['state'] = 'normal'
+            self.btn_values['state'] = 'normal'
         else:
-            warn_inp('Неизвестная команда', _cmd)
+            self.btn_delete['state'] = 'disabled'
+            self.btn_rename['state'] = 'disabled'
+            self.btn_values['state'] = 'disabled'
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+
+
+# Окно настроек параметра словоформ
+class FormsParameterSettingsW(tk.Toplevel):
+    def __init__(self, parent, parameter):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[st])
+
+        self.parameter = parameter
+        self.par_vals = form_parameters[self.parameter]
+
+        self.var_par = tk.StringVar()
+
+        self.st_combo = ttk.Style()
+        self.st_combo.configure(style='.TCombobox', background=ST_BG[st], foreground=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st])
+        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[st])], foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
+
+        self.lbl_par_val   = tk.Label(     self, text=f'Существующие значения параметра "{parameter}":', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.scrollbar     = tk.Scrollbar( self, bg=ST_BG[st])
+        self.text_par_val  = tk.Text(      self, width=20, height=10, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # {
+        self.btn_add    = tk.Button(self.frame_buttons, text='Добавить значение параметра',      command=self.add,    bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_delete = tk.Button(self.frame_buttons, text='Удалить значение параметра',       command=self.delete, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_rename = tk.Button(self.frame_buttons, text='Переименовать значение параметра', command=self.rename, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        # }
+
+        self.lbl_par_val.grid(  row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
+        self.text_par_val.grid( row=1,            column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(    row=1,            column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.frame_buttons.grid(row=0, rowspan=2, column=2,               padx=6,      pady=6)
+        # {
+        self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
+        self.btn_delete.grid(row=1, padx=6, pady=3)
+        self.btn_rename.grid(row=2, padx=6, pady=3)
+        # }
+
+        self.scrollbar.config(command=self.text_par_val.yview)
+
+        self.refresh()
+
+    # Добавить значение параметра
+    def add(self):
+        add_frm_param_val(self, self.par_vals)
+        self.refresh()
+
+    # Удалить значение параметра
+    def delete(self):
+        delete_frm_param_val(self, self.par_vals, dct)
+        self.refresh()
+
+    # Переименовать значение параметра
+    def rename(self):
+        _index = tuple(form_parameters).index(self.parameter)
+        rename_frm_param_val(self, self.par_vals, _index, dct)
+        self.refresh()
+
+    # Напечатать существующие параметры форм
+    def print_par_val_list(self):
+        self.text_par_val['state'] = 'normal'
+        self.text_par_val.delete(1.0, tk.END)
+        for key in self.par_vals:
+            self.text_par_val.insert(tk.INSERT, f'{key}\n')
+        self.text_par_val['state'] = 'disabled'
+
+    # Обновить отображаемую информацию
+    def refresh(self):
+        self.print_par_val_list()
+        if len(self.par_vals) == 1:
+            self.btn_delete['state'] = 'disabled'
+        else:
+            self.btn_delete['state'] = 'normal'
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
 
 
 # Вывод информации о программе
 print( '======================================================================================\n')
 print( '                            Anenokil development  presents')
 print(f'                               {PROGRAM_NAME} {PROGRAM_VERSION}')
-print(f'                                {PROGRAM_DATE}\n')
+print(f'                               {PROGRAM_DATE}\n')
 print( '======================================================================================')
 
 try:  # Открываем файл с названием словаря
@@ -1189,8 +1306,13 @@ except FileNotFoundError:  # Если файл отсутствует, то со
 with open(SETTINGS_PATH, 'r') as set_file:
     dct_filename = set_file.readline().strip()
 
+
+# Получить название открытого словаря
+def dct_savename():
+    return dct_filename[:-4]
+
+
 dct = Dictionary()
-min_good_score_perc, form_parameters = read_dct(dct, dct_filename)  # Загружаем словарь и его настройки
 
 print('\nМожете использовать эти комбинации для немецких букв: #a = ä, #o = ö, #u = ü, #s = ß (и ## = #)')
 
@@ -1224,6 +1346,10 @@ class PopupMsgW(tk.Toplevel):
 
         tk.Label( self, text=msg,      bg=ST_BG[st],  fg=ST_FG_TEXT[st]).grid(row=0, column=0, padx=6, pady=4)
         tk.Button(self, text=btn_text, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st], command=self.destroy).grid(row=1, column=0, padx=6, pady=4)
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
 
 
 # Всплывающее окно с сообщением и двумя кнопками
@@ -1406,12 +1532,10 @@ class EnterSaveNameW(tk.Toplevel):
     def check_and_return(self):
         savename = self.var_name.get()
         if savename == '':
-            w = PopupMsgW(self, 'Недопустимое название', title='Warning')
-            self.wait_window(w)
+            PopupMsgW(self, 'Недопустимое название', title='Warning')
             return
         if f'{savename}.txt' in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
-            w2 = PopupMsgW(self, 'Файл с таким названием уже существует', title='Warning')
-            self.wait_window(w2)
+            PopupMsgW(self, 'Файл с таким названием уже существует', title='Warning')
             return
         self.name_is_correct = True
         self.destroy()
@@ -1419,7 +1543,7 @@ class EnterSaveNameW(tk.Toplevel):
     def open(self):
         self.grab_set()
         self.wait_window()
-        return self.name_is_correct, f'{self.var_name.get()}.txt'
+        return self.name_is_correct, self.var_name.get()
 
 
 # Окно выбора значения параметра шаблона словоформы
@@ -2609,46 +2733,82 @@ class SettingsW(tk.Toplevel):
 
         self.tabs = ttk.Notebook(self)
         self.tab_local = ttk.Frame(self.tabs)
-        self.tabs.add(self.tab_local,  text='Настройки словаря')
+        self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{dct_savename()}"', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.tabs.add(self.tab_local, text='Настройки словаря')
         # {
-        self.lbl_MGSP   = tk.Label(self.tab_local, text='Минимальный приемлемый процент удачных попыток отгадать слово:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
-        self.entry_MGSP = tk.Entry(self.tab_local, textvariable=self.var_MGSP, width=5, relief='solid', validate='key', vcmd=self.vcmd, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
-        self.lbl_MGSP_2 = tk.Label(self.tab_local, text='Статьи, у которых процент угадывания ниже этого значения, будут считаться более сложными', bg=ST_BG[st], fg=ST_FG_TEXT[st])
-
+        self.frame_MGSP = tk.LabelFrame(self.tab_local, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # { {
+        self.lbl_MGSP   = tk.Label( self.frame_MGSP, text='Минимальный приемлемый процент угадываний слова:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.entry_MGSP = tk.Entry( self.frame_MGSP, textvariable=self.var_MGSP, width=5, relief='solid', validate='key', vcmd=self.vcmd, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.btn_MGSP   = tk.Button(self.frame_MGSP, text='Принять', command=self.set_MGSP, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.lbl_MGSP_2 = tk.Label( self.frame_MGSP, text='Статьи, у которых процент угадывания ниже этого значения, будут считаться более сложными', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        # } }
         self.btn_forms  = tk.Button(self.tab_local, text='Настройки словоформ', command=self.forms,  bg=ST_BTN[st],  fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
         # }
         self.tab_global = ttk.Frame(self.tabs)
         self.tabs.add(self.tab_global, text='Настройки программы')
         # {
-        self.btn_dct_open   = tk.Button(self.tab_global, text='Открыть словарь',       command=self.dct_open,   bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        self.btn_dct_create = tk.Button(self.tab_global, text='Создать словарь',       command=self.dct_create, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        self.btn_dct_rename = tk.Button(self.tab_global, text='Переименовать словарь', command=self.dct_rename, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        self.btn_dct_delete = tk.Button(self.tab_global, text='Удалить словарь',       command=self.dct_delete, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.lbl_dcts          = tk.Label(     self.tab_global, text='Существующие словари:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.scrollbar         = tk.Scrollbar( self.tab_global, bg=ST_BG[st])
+        self.text_dcts         = tk.Text(      self.tab_global, width=20, height=10, state='disabled', yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        self.frame_dct_buttons = tk.LabelFrame(self.tab_global, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # { {
+        self.btn_dct_open   = tk.Button(self.frame_dct_buttons, text='Открыть словарь',       command=self.dct_open,   bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_dct_create = tk.Button(self.frame_dct_buttons, text='Создать словарь',       command=self.dct_create, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_dct_rename = tk.Button(self.frame_dct_buttons, text='Переименовать словарь', command=self.dct_rename, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_dct_delete = tk.Button(self.frame_dct_buttons, text='Удалить словарь',       command=self.dct_delete, bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        # } }
         # Настройки стилей
         # }
 
-        self.tabs.grid()
-
+        self.lbl_dct_name.grid(row=0, padx=6, pady=(6, 0))
+        self.tabs.grid(        row=1, padx=6, pady=(0, 6))
+        #
+        self.frame_MGSP.grid(row=0, padx=6, pady=6, sticky='E')
+        # {
         self.lbl_MGSP.grid(  row=0, column=0,     padx=(6, 1), pady=6,      sticky='E')
-        self.entry_MGSP.grid(row=0, column=1,     padx=(0, 6), pady=6,      sticky='W')
-        self.lbl_MGSP_2.grid(row=1, columnspan=2, padx=6,      pady=(0, 6))
-        self.btn_forms.grid( row=2, columnspan=2, padx=6,      pady=(0, 6))
+        self.entry_MGSP.grid(row=0, column=1,     padx=(0, 1), pady=6,      sticky='W')
+        self.btn_MGSP.grid(  row=0, column=2,     padx=(0, 6), pady=6,      sticky='W')
+        self.lbl_MGSP_2.grid(row=1, columnspan=3, padx=6,      pady=(0, 6))
+        # }
+        self.btn_forms.grid(row=1, padx=6, pady=(0, 6))
+        #
+        self.lbl_dcts.grid(         row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
+        self.text_dcts.grid(        row=1,            column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(        row=1,            column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.frame_dct_buttons.grid(row=0, rowspan=2, column=2,               padx=6,      pady=6)
+        # {
+        self.btn_dct_open.grid(  row=0, column=2, padx=6, pady=6)
+        self.btn_dct_create.grid(row=0, column=3, padx=6, pady=6)
+        self.btn_dct_rename.grid(row=1, column=2, padx=6, pady=6)
+        self.btn_dct_delete.grid(row=1, column=3, padx=6, pady=6)
+        # }
 
-        self.btn_dct_open.grid(  row=0, column=0, padx=(6, 3), pady=6)
-        self.btn_dct_create.grid(row=0, column=1, padx=(0, 3), pady=6)
-        self.btn_dct_rename.grid(row=0, column=2, padx=(0, 3), pady=6)
-        self.btn_dct_delete.grid(row=0, column=3, padx=(0, 6), pady=6)
+        self.scrollbar.config(command=self.text_dcts.yview)
+
+        self.print_dct_list()
+
+    # Изменить значение MGSP
+    def set_MGSP(self):
+        global has_changes, min_good_score_perc
+
+        val = self.var_MGSP.get()
+        if val == '':
+            min_good_score_perc = 0
+        else:
+            min_good_score_perc = int(val)
+        has_changes = True
 
     # Настройки словоформ
     def forms(self):
         global has_changes
 
-        forms_settings(dct, form_parameters)
+        FormsSettingsW(self).open()
         has_changes = True
 
     # Открыть словарь
     def dct_open(self):
-        global dct, dct_filename, min_good_score_perc, form_parameters
+        global dct, dct_filename, min_good_score_perc, form_parameters, has_changes
 
         saves_count = 0
         saves_list = []
@@ -2662,35 +2822,47 @@ class SettingsW(tk.Toplevel):
             return
 
         window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите открыть')
-        filename = f'{window.open()}.txt'
-        if filename == '.txt':
+        savename = window.open()
+        filename = f'{savename}.txt'
+        if savename == '':
             return
 
         if has_changes:
-            save_if_has_changes(dct, min_good_score_perc, form_parameters, dct_filename)
+            save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename)
 
-        dct_filename = filename
-        with open(SETTINGS_PATH, 'w') as set_file:
-            set_file.write(filename)
-        dct = Dictionary()
-        min_good_score_perc, form_parameters = read_dct(dct, filename)
-
-    # Создать словарь
-    def dct_create(self):
-        global dct, dct_filename, min_good_score_perc, form_parameters
-
-        window = EnterSaveNameW(self)
-        filename_is_correct, filename = window.open()
-        if not filename_is_correct:
-            return
-
-        if has_changes:
-            save_if_has_changes(dct, min_good_score_perc, form_parameters, dct_filename)
         dct_filename = filename
         with open(SETTINGS_PATH, 'w') as settings_file:
             settings_file.write(filename)
         dct = Dictionary()
-        min_good_score_perc, form_parameters = create_dct(dct, filename)
+        min_good_score_perc, form_parameters = read_dct(self, dct, savename)
+
+        self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
+        has_changes = False
+
+        self.print_dct_list()
+
+    # Создать словарь
+    def dct_create(self):
+        global dct, dct_filename, min_good_score_perc, form_parameters, has_changes
+
+        window = EnterSaveNameW(self)
+        filename_is_correct, savename = window.open()
+        filename = f'{savename}.txt'
+        if not filename_is_correct:
+            return
+
+        if has_changes:
+            save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename)
+        dct_filename = filename
+        with open(SETTINGS_PATH, 'w') as settings_file:
+            settings_file.write(filename)
+        dct = Dictionary()
+        min_good_score_perc, form_parameters = create_dct(dct, savename)
+
+        self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
+        has_changes = False
+
+        self.print_dct_list()
 
     # Переименовать словарь
     def dct_rename(self):
@@ -2704,22 +2876,27 @@ class SettingsW(tk.Toplevel):
                 saves_list += [base_name]
                 saves_count += 1
         window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите переименовать')
-        old_name = f'{window_choose.open()}.txt'
-        if old_name == '.txt':
+        old_savename = window_choose.open()
+        old_filename = f'{old_savename}.txt'
+        if old_savename == '':
             return
 
         window_rename = EnterSaveNameW(self)
-        new_name_is_correct, new_name = window_rename.open()
+        new_name_is_correct, new_savename = window_rename.open()
+        new_filename = f'{new_savename}.txt'
         if not new_name_is_correct:
             return
 
-        os.rename(os.path.join(SAVES_PATH, old_name), os.path.join(SAVES_PATH, new_name))
-        os.rename(os.path.join(LOCAL_SETTINGS_PATH, old_name), os.path.join(LOCAL_SETTINGS_PATH, new_name))
-        if dct_filename == old_name:
-            dct_filename = new_name
+        os.rename(os.path.join(SAVES_PATH, old_filename), os.path.join(SAVES_PATH, new_filename))
+        os.rename(os.path.join(LOCAL_SETTINGS_PATH, old_filename), os.path.join(LOCAL_SETTINGS_PATH, new_filename))
+        if dct_filename == old_filename:
+            dct_filename = new_filename
             with open(SETTINGS_PATH, 'w') as set_file:
-                set_file.write(new_name)
-        outp(f'Словарь "{old_name}" успешно переименован в "{new_name}"')
+                set_file.write(new_filename)
+            self.lbl_dct_name['text'] = f'Открыт словарь "{new_savename}"'
+        outp(f'Словарь "{old_savename}" успешно переименован в "{new_savename}"')
+
+        self.print_dct_list()
 
     # Удалить словарь
     def dct_delete(self):
@@ -2735,20 +2912,36 @@ class SettingsW(tk.Toplevel):
             return
 
         window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите удалить')
-        filename = f'{window_choose.open()}.txt'
-        if filename == '.txt':
+        savename = window_choose.open()
+        filename = f'{savename}.txt'
+        if savename == '':
             return
         if filename == dct_filename:
             PopupMsgW(self, 'Вы не можете удалить словарь, который сейчас открыт', title='Warning')
             return
 
-        window_confirm = PopupDialogueW(self, f'Словарь "{filename}" будет безвозвратно удалён!\nВы уверены?')
+        window_confirm = PopupDialogueW(self, f'Словарь "{savename}" будет безвозвратно удалён!\nВы уверены?')
         answer = window_confirm.open()
         if not answer:
             return
         os.remove(os.path.join(SAVES_PATH, filename))
         os.remove(os.path.join(LOCAL_SETTINGS_PATH, filename))
-        PopupMsgW(self, f'Словарь "{filename}" успешно удалён')
+        PopupMsgW(self, f'Словарь "{savename}" успешно удалён')
+
+        self.print_dct_list()
+
+    # Вывод существующих словарей
+    def print_dct_list(self):
+        self.text_dcts['state'] = 'normal'
+        self.text_dcts.delete(1.0, tk.END)
+        for filename in os.listdir(SAVES_PATH):
+            base_name, ext = os.path.splitext(filename)
+            if ext == '.txt':
+                if filename == dct_filename:
+                    self.text_dcts.insert(tk.INSERT, f'"{base_name}" (ОТКРЫТ)\n')
+                else:
+                    self.text_dcts.insert(tk.INSERT, f'"{base_name}"\n')
+        self.text_dcts['state'] = 'disabled'
 
     def open(self):
         self.grab_set()
@@ -2856,15 +3049,13 @@ class MainW(tk.Tk):
     # Закрытие программы
     def close(self):
         if has_changes:
-            window = PopupDialogueW(self, 'Хотите сохранить изменения и свой прогресс?', 'Да', 'Нет')
-            answer = window.open()
-            if answer:
-                save_all(dct, min_good_score_perc, form_parameters, dct_filename)
+            save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename)
         self.quit()
 
 
 has_changes = False
 root = MainW()
+min_good_score_perc, form_parameters = read_dct(root, dct, dct_savename())  # Загружаем словарь и его настройки
 root.mainloop()
 
 # строка 56 - добавить выбор стилей
@@ -2872,3 +3063,11 @@ root.mainloop()
 # при поиске перевода выводить слово
 # добавить изменение статьи по переводу
 # добавить комментарии
+# PrintW Название текущего словаря self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{dct_savename()}"', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+# PopupMsgW.open() где надо а где нет
+# PopupEntryW и другие: onClose
+# убрать в settings    .txt
+# сделать покрасивее поле выбора нового словаря при ошибке загрузки
+# ошибка в окончаниях при нуле
+# если нет форм, то на editW убрать кнопку добавить форму (+)
+# проверить корректность работы переименовывания значения параметра формы слова
