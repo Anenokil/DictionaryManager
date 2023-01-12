@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_26'
-PROGRAM_DATE = '12.1.2023  21:16 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_27'
+PROGRAM_DATE = '12.1.2023  21:18 (UTC+5)'
 
 """ Стили """
 
@@ -91,11 +91,6 @@ VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только и
 def height(_text, _len_str):
     _parts = _text.split('\n')
     return sum(math.ceil(len(_part) / _len_str) for _part in _parts)
-
-
-# Ввод
-def inp(_text=''):
-    return input(_text)
 
 
 # Вывод
