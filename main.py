@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_25'
-PROGRAM_DATE = '12.1.2023  20:59 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_26'
+PROGRAM_DATE = '12.1.2023  21:16 (UTC+5)'
 
 """ Стили """
 
@@ -99,10 +99,7 @@ def inp(_text=''):
 
 
 # Вывод
-def outp(_text='', _end='\n', _dst=None, _mode=tk.INSERT):
-    if _dst == None:
-        print('!!!!!!!!!!!!!')
-        return
+def outp(_dst, _text='', _end='\n', _mode=tk.INSERT):
     _dst.insert(_mode, _text + _end)
 
 
@@ -303,38 +300,38 @@ class Entry(object):
     # Напечатать перевод
     def tr_print(self, _output_widget, _end='\n'):
         if self.count_t != 0:
-            outp(_dst=_output_widget, _text=code(self.tr[0]), _end='')
+            outp(_output_widget, code(self.tr[0]), _end='')
         for _i in range(1, self.count_t):
-            outp(_dst=_output_widget, _text=f', {code(self.tr[_i])}', _end='')
-        outp(_dst=_output_widget, _text='', _end=_end)
+            outp(_output_widget, f', {code(self.tr[_i])}', _end='')
+        outp(_output_widget, '', _end=_end)
 
     # Напечатать сноски
     def notes_print(self, _output_widget, _tab=0):
         for _i in range(self.count_n):
-            outp(_dst=_output_widget, _text=' ' * _tab + f'> {code(self.notes[_i])}')
+            outp(_output_widget, ' ' * _tab + f'> {code(self.notes[_i])}')
 
     # Напечатать формы слова
     def frm_print(self, _output_widget, _tab=0):
         for _key in self.forms.keys():
-            outp(_dst=_output_widget, _text=' ' * _tab + f'[{tpl(_key)}] {code(self.forms[_key])}')
+            outp(_output_widget, ' ' * _tab + f'[{tpl(_key)}] {code(self.forms[_key])}')
 
     # Напечатать статистику
     def stat_print(self, _output_widget, _min_good_score_perc, _end='\n'):
         if self.last_att == -1:
-            outp(_dst=_output_widget, _text='[-:  0%]', _end=_end)
+            outp(_output_widget, '[-:  0%]', _end=_end)
         else:
             _score = '{:.0%}'.format(self.score)
             _tab = ' ' * (4 - len(_score))
-            outp(_dst=_output_widget, _text=f'[{self.last_att}:{_tab}{_score}]', _end=_end)
+            outp(_output_widget, f'[{self.last_att}:{_tab}{_score}]', _end=_end)
 
     # Служебный метод для print_briefly и print_briefly_with_forms
     def _print_briefly(self, _output_widget, _min_good_score_perc):
         if self.fav:
-            outp(_dst=_output_widget, _text='(*)', _end=' ')
+            outp(_output_widget, '(*)', _end=' ')
         else:
-            outp(_dst=_output_widget, _text='   ', _end=' ')
+            outp(_output_widget, '   ', _end=' ')
         self.stat_print(_output_widget, _min_good_score_perc, _end=' ')
-        outp(_dst=_output_widget, _text=f'{code(self.wrd)}: ', _end='')
+        outp(_output_widget, f'{code(self.wrd)}: ', _end='')
         self.tr_print(_output_widget)
 
     # Напечатать статью - кратко
@@ -350,7 +347,7 @@ class Entry(object):
 
     # Напечатать статью - слово со статистикой
     def print_wrd_with_stat(self, _output_widget, _min_good_score_perc):
-        outp(_dst=_output_widget, _text=code(self.wrd), _end=' ')
+        outp(_output_widget, code(self.wrd), _end=' ')
         self.stat_print(_output_widget, _min_good_score_perc)
 
     # Напечатать статью - перевод со статистикой
@@ -361,36 +358,36 @@ class Entry(object):
     # Напечатать статью - перевод с формой и со статистикой
     def print_tr_and_frm_with_stat(self, _output_widget, _frm_key, _min_good_score_perc):
         self.tr_print(_output_widget, _end=' ')
-        outp(_dst=_output_widget, _text=f'({tpl(_frm_key)})', _end=' ')
+        outp(_output_widget, f'({tpl(_frm_key)})', _end=' ')
         self.stat_print(_output_widget, _min_good_score_perc)
 
     # Напечатать статью - со всей информацией
     def print_all(self, _output_widget):
-        outp(_dst=_output_widget, _text=f'       Слово: {code(self.wrd)}')
-        outp(_dst=_output_widget, _text='     Перевод: ', _end='')
+        outp(_output_widget, f'       Слово: {code(self.wrd)}')
+        outp(_output_widget, '     Перевод: ', _end='')
         self.tr_print(_output_widget)
-        outp(_dst=_output_widget, _text=' Формы слова: ', _end='')
+        outp(_output_widget, ' Формы слова: ', _end='')
         if self.count_f == 0:
-            outp(_dst=_output_widget, _text='-')
+            outp(_output_widget, '-')
         else:
             _keys = [_key for _key in self.forms.keys()]
-            outp(_dst=_output_widget, _text=f'[{tpl(_keys[0])}] {code(self.forms[_keys[0]])}')
+            outp(_output_widget, f'[{tpl(_keys[0])}] {code(self.forms[_keys[0]])}')
             for _i in range(1, self.count_f):
-                outp(_dst=_output_widget, _text=f'              [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
-        outp(_dst=_output_widget, _text='      Сноски: ', _end='')
+                outp(_output_widget, f'              [{tpl(_keys[_i])}] {code(self.forms[_keys[_i]])}')
+        outp(_output_widget, '      Сноски: ', _end='')
         if self.count_n == 0:
-            outp(_dst=_output_widget, _text='-')
+            outp(_output_widget, '-')
         else:
-            outp(_dst=_output_widget, _text=f'> {code(self.notes[0])}')
+            outp(_output_widget, f'> {code(self.notes[0])}')
             for _i in range(1, self.count_n):
-                outp(_dst=_output_widget, _text=f'              > {code(self.notes[_i])}')
-        outp(_dst=_output_widget, _text=f'   Избранное: {self.fav}')
+                outp(_output_widget, f'              > {code(self.notes[_i])}')
+        outp(_output_widget, f'   Избранное: {self.fav}')
         if self.last_att == -1:
-            outp(_dst=_output_widget, _text='  Статистика: 1) Последних неверных ответов: -')
-            outp(_dst=_output_widget, _text='              2) Доля верных ответов: 0')
+            outp(_output_widget, '  Статистика: 1) Последних неверных ответов: -')
+            outp(_output_widget, '              2) Доля верных ответов: 0')
         else:
-            outp(_dst=_output_widget, _text=f'  Статистика: 1) Последних неверных ответов: {self.last_att}')
-            outp(_dst=_output_widget, _text=f'              2) Доля верных ответов: '
+            outp(_output_widget, f'  Статистика: 1) Последних неверных ответов: {self.last_att}')
+            outp(_output_widget, f'              2) Доля верных ответов: '
                  f'{self.correct_att}/{self.all_att} = ' + '{:.0%}'.format(self.score))
 
     # Добавить перевод
@@ -583,8 +580,7 @@ class Dictionary(object):
         _w = set_postfix(self.count_w, ('слово', 'слова', 'слов'))
         _f = set_postfix(self.count_w + self.count_f, ('словоформа', 'словоформы', 'словоформ'))
         _t = set_postfix(self.count_t, ('перевод', 'перевода', 'переводов'))
-        outp(_dst=_output_widget,
-             _text=f'\n< {self.count_w} {_w} | {self.count_w + self.count_f} {_f} | {self.count_t} {_t} >')
+        outp(_output_widget, f'\n< {self.count_w} {_w} | {self.count_w + self.count_f} {_f} | {self.count_t} {_t} >')
 
     # Напечатать словарь
     def print(self, _output_widget, _min_good_score_perc):
@@ -603,8 +599,8 @@ class Dictionary(object):
         _w = set_postfix(_count_w, ('слово', 'слова', 'слов'))
         _f = set_postfix(_count_w + self.count_f, ('словоформа', 'словоформы', 'словоформ'))
         _t = set_postfix(_count_t, ('перевод', 'перевода', 'переводов'))
-        outp(_dst=_output_widget,
-             _text=f'\n< {_count_w}/{self.count_w} {_w} | '
+        outp(_output_widget,
+             f'\n< {_count_w}/{self.count_w} {_w} | '
              f'{_count_w + _count_f}/{self.count_w + self.count_f} {_f} | '
              f'{_count_t}/{self.count_t} {_t} >')
 
@@ -642,9 +638,9 @@ class Dictionary(object):
             _res = find_and_highlight(_wrd, _search_wrd)
             if _res != '':
                 _is_found = True
-                outp(_dst=_output_widget, _text=_res)
+                outp(_output_widget, _res)
         if not _is_found:
-            outp(_dst=_output_widget, _text='Частичных совпадений не найдено')
+            outp(_output_widget, 'Частичных совпадений не найдено')
 
     # Напечатать статьи, в которых переводы содержат данную строку
     def print_translations_with_str(self, _output_widget, _search_tr):
@@ -657,15 +653,15 @@ class Dictionary(object):
                     if _is_first:
                         _is_first = False
                         if _is_found:
-                            outp(_dst=_output_widget)
+                            outp(_output_widget)
                     else:
-                        outp(_dst=_output_widget, _text=', ', _end='')
+                        outp(_output_widget, ', ', _end='')
                     _is_found = True
-                    outp(_dst=_output_widget, _text=_res, _end='')
+                    outp(_output_widget, _res, _end='')
         if not _is_found:
-            outp(_dst=_output_widget, _text='Частичных совпадений не найдено')
+            outp(_output_widget, 'Частичных совпадений не найдено')
         else:
-            outp(_dst=_output_widget)
+            outp(_output_widget)
 
     # Выбрать одну статью из нескольких с одинаковыми словами
     def choose_one_of_similar_entries(self, _window, _wrd):
@@ -1481,7 +1477,7 @@ class ChooseNoteW(tk.Toplevel):
             if _key not in dct.d.keys():
                 self.max = _i - 1
                 break
-            outp(_dst=self.text_words, _text=f'\n({_i})')
+            outp(self.text_words, f'\n({_i})')
             dct.d[_key].print_all(self.text_words)
         self.text_words['state'] = 'disabled'
 
@@ -1691,18 +1687,18 @@ class SearchW(tk.Toplevel):
         self.text_wrd['state'] = 'normal'
         self.text_wrd.delete(1.0, tk.END)
 
-        outp(_dst=self.text_wrd, _text='Частичное совпадение:')
+        outp(self.text_wrd, 'Частичное совпадение:')
         dct.print_words_with_str(self.text_wrd, search_wrd)
 
-        outp(_dst=self.text_wrd, _text='\nПолное совпадение:')
+        outp(self.text_wrd, '\nПолное совпадение:')
         if wrd_to_key(search_wrd, 0) not in dct.d.keys():
-            outp(_dst=self.text_wrd, _text=f'Слово "{code(search_wrd)}" отсутствует в словаре', _end='')
+            outp(self.text_wrd, f'Слово "{code(search_wrd)}" отсутствует в словаре', _end='')
         else:
             for i in range(MAX_SAME_WORDS):
                 key = wrd_to_key(search_wrd, i)
                 if key not in dct.d.keys():
                     break
-                outp(_dst=self.text_wrd, _text='')
+                outp(self.text_wrd)
                 dct.d[key].print_all(self.text_wrd)
 
         self.text_wrd['state'] = 'disabled'
@@ -1713,18 +1709,18 @@ class SearchW(tk.Toplevel):
         self.text_tr['state'] = 'normal'
         self.text_tr.delete(1.0, tk.END)
 
-        outp(_dst=self.text_tr, _text='Частичное совпадение:')
+        outp(self.text_tr, 'Частичное совпадение:')
         dct.print_translations_with_str(self.text_tr, search_tr)
 
-        outp(_dst=self.text_tr, _text='\nПолное совпадение:')
+        outp(self.text_tr, '\nПолное совпадение:')
         is_found = False
         for entry in dct.d.values():
             if search_tr in entry.tr:
                 is_found = True
-                outp(_dst=self.text_tr, _text='')
+                outp(self.text_tr)
                 entry.print_all(self.text_tr)
         if not is_found:
-            outp(_dst=self.text_tr, _text=f'Слово с переводом "{code(search_tr)}" отсутствует в словаре', _end='')
+            outp(self.text_tr, f'Слово с переводом "{code(search_tr)}" отсутствует в словаре', _end='')
 
         self.text_tr['state'] = 'disabled'
 
@@ -2879,7 +2875,7 @@ class SettingsW(tk.Toplevel):
             with open(SETTINGS_PATH, 'w') as set_file:
                 set_file.write(new_filename)
             self.lbl_dct_name['text'] = f'Открыт словарь "{new_savename}"'
-        outp(f'Словарь "{old_savename}" успешно переименован в "{new_savename}"')
+        print(f'Словарь "{old_savename}" успешно переименован в "{new_savename}"')
 
         self.print_dct_list()
 
