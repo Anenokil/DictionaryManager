@@ -10,8 +10,8 @@ else:
     import Tkinter.ttk as ttk
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0-PRE_30'
-PROGRAM_DATE = '12.1.2023  21:34 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0-PRE_31'
+PROGRAM_DATE = '12.1.2023  21:45 (UTC+5)'
 
 """ Стили """
 
@@ -965,7 +965,8 @@ def save_local_settings(_min_good_score_perc, _form_parameters, _filename):
 
 # Загрузить словарь и его настройки из файлов
 def read_dct(_window, _dct, _savename):
-    global dct_filename
+    global dct_savename
+
     _filename = f'{_savename}.txt'
     _filepath = os.path.join(SAVES_PATH, _filename)
     _res_code = _dct.read(_filepath)
@@ -987,12 +988,11 @@ def read_dct(_window, _dct, _savename):
         if _answer == 'l':
             _window_entry = PopupEntryW(_window, 'Введите название словаря\n'
                                                  '(если он ещё не существует, то будет создан пустой словарь)')
-            _savename = _window_entry.open()
-            dct_filename = f'{_savename}.txt'
+            dct_savename = _window_entry.open()
             with open(SETTINGS_PATH, 'w') as _settings_file:
-                _settings_file.write(_savename + '.txt')
+                _settings_file.write(dct_savename)
             _dct = Dictionary()
-            return read_dct(_window, _dct, _savename)
+            return read_dct(_window, _dct, dct_savename)
         else:
             exit()
 
@@ -2683,7 +2683,7 @@ class SettingsW(tk.Toplevel):
 
         self.tabs = ttk.Notebook(self)
         self.tab_local = ttk.Frame(self.tabs)
-        self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{dct_savename()}"', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{dct_savename}"', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.tabs.add(self.tab_local, text='Настройки словаря')
         # {
         self.frame_MGSP = tk.LabelFrame(self.tab_local, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
@@ -2758,7 +2758,7 @@ class SettingsW(tk.Toplevel):
 
     # Открыть словарь
     def dct_open(self):
-        global dct, dct_filename, min_good_score_perc, form_parameters, has_changes
+        global dct, dct_savename, min_good_score_perc, form_parameters, has_changes
 
         saves_count = 0
         saves_list = []
@@ -2773,16 +2773,15 @@ class SettingsW(tk.Toplevel):
 
         window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите открыть')
         savename = window.open()
-        filename = f'{savename}.txt'
         if savename == '':
             return
 
         if has_changes:
-            save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename)
+            save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename())
 
-        dct_filename = filename
+        dct_savename = savename
         with open(SETTINGS_PATH, 'w') as settings_file:
-            settings_file.write(filename)
+            settings_file.write(savename)
         dct = Dictionary()
         min_good_score_perc, form_parameters = read_dct(self, dct, savename)
 
@@ -2793,19 +2792,18 @@ class SettingsW(tk.Toplevel):
 
     # Создать словарь
     def dct_create(self):
-        global dct, dct_filename, min_good_score_perc, form_parameters, has_changes
+        global dct, dct_savename, min_good_score_perc, form_parameters, has_changes
 
         window = EnterSaveNameW(self)
         filename_is_correct, savename = window.open()
-        filename = f'{savename}.txt'
         if not filename_is_correct:
             return
 
         if has_changes:
-            save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename)
-        dct_filename = filename
+            save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename())
+        dct_savename = savename
         with open(SETTINGS_PATH, 'w') as settings_file:
-            settings_file.write(filename)
+            settings_file.write(savename)
         dct = Dictionary()
         min_good_score_perc, form_parameters = create_dct(dct, savename)
 
@@ -2816,7 +2814,7 @@ class SettingsW(tk.Toplevel):
 
     # Переименовать словарь
     def dct_rename(self):
-        global dct_filename
+        global dct_savename
 
         saves_count = 0
         saves_list = []
@@ -2839,10 +2837,10 @@ class SettingsW(tk.Toplevel):
 
         os.rename(os.path.join(SAVES_PATH, old_filename), os.path.join(SAVES_PATH, new_filename))
         os.rename(os.path.join(LOCAL_SETTINGS_PATH, old_filename), os.path.join(LOCAL_SETTINGS_PATH, new_filename))
-        if dct_filename == old_filename:
-            dct_filename = new_filename
+        if dct_savename == old_savename:
+            dct_savename = new_savename
             with open(SETTINGS_PATH, 'w') as set_file:
-                set_file.write(new_filename)
+                set_file.write(new_savename)
             self.lbl_dct_name['text'] = f'Открыт словарь "{new_savename}"'
         print(f'Словарь "{old_savename}" успешно переименован в "{new_savename}"')
 
@@ -2866,7 +2864,7 @@ class SettingsW(tk.Toplevel):
         filename = f'{savename}.txt'
         if savename == '':
             return
-        if filename == dct_filename:
+        if savename == dct_savename:
             PopupMsgW(self, 'Вы не можете удалить словарь, который сейчас открыт', title='Warning')
             return
 
@@ -2887,7 +2885,7 @@ class SettingsW(tk.Toplevel):
         for filename in os.listdir(SAVES_PATH):
             base_name, ext = os.path.splitext(filename)
             if ext == '.txt':
-                if filename == dct_filename:
+                if filename == dct_filename():
                     self.text_dcts.insert(tk.INSERT, f'"{base_name}" (ОТКРЫТ)\n')
                 else:
                     self.text_dcts.insert(tk.INSERT, f'"{base_name}"\n')
@@ -2990,7 +2988,7 @@ class MainW(tk.Tk):
     def save(self):
         global has_changes
 
-        save_all(dct, min_good_score_perc, form_parameters, dct_filename)
+        save_all(dct, min_good_score_perc, form_parameters, dct_filename())
         PopupMsgW(self, 'Изменения и прогресс успешно сохранены')
         print('\nИзменения и прогресс успешно сохранены')
 
@@ -2999,7 +2997,7 @@ class MainW(tk.Tk):
     # Закрытие программы
     def close(self):
         if has_changes:
-            save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename)
+            save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename())
         self.quit()
 
 
@@ -3016,18 +3014,18 @@ except FileNotFoundError:  # Если файл отсутствует, то со
     with open(SETTINGS_PATH, 'w') as set_file:
         set_file.write('words.txt')
 with open(SETTINGS_PATH, 'r') as set_file:
-    dct_filename = set_file.readline().strip()
+    dct_savename = set_file.readline().strip()
 
 
-# Получить название открытого словаря
-def dct_savename():
-    return dct_filename[:-4]
+# Получить название файла с открытым словарём
+def dct_filename():
+    return f'{dct_savename}.txt'
 
 
 dct = Dictionary()
 has_changes = False
 root = MainW()
-min_good_score_perc, form_parameters = read_dct(root, dct, dct_savename())  # Загружаем словарь и его настройки
+min_good_score_perc, form_parameters = read_dct(root, dct, dct_savename)  # Загружаем словарь и его настройки
 print('\nМожете использовать эти комбинации для немецких букв: #a -> ä, #o -> ö, #u -> ü, #s -> ß (и ## -> #)')
 root.mainloop()
 
@@ -3036,10 +3034,9 @@ root.mainloop()
 # при поиске перевода выводить слово
 # добавить изменение статьи по переводу
 # добавить комментарии
-# PrintW Название текущего словаря self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{dct_savename()}"', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+# PrintW Название текущего словаря self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{dct_savename}"', bg=ST_BG[st], fg=ST_FG_TEXT[st])
 # PopupMsgW.open() где надо а где нет
 # PopupEntryW и другие: onClose
-# убрать в settings    .txt
 # сделать покрасивее поле выбора нового словаря при ошибке загрузки
 # если нет форм, то на editW убрать кнопку добавить форму (+)
 # проверить корректность работы переименовывания значения параметра формы слова
