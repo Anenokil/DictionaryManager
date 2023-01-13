@@ -13,8 +13,8 @@ import urllib.request as urllib2
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-51'
-PROGRAM_DATE = '13.1.2023  22:25 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-52'
+PROGRAM_DATE = '13.1.2023  22:37 (UTC+5)'
 
 """ Стили """
 
@@ -1328,7 +1328,7 @@ class PopupEntryW(tk.Toplevel):
 
 
 # Окно уведомления о выходе новой версии
-class NewVersionW(tk.Toplevel):
+class LastVersionW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title('New version available')
@@ -1342,7 +1342,7 @@ class NewVersionW(tk.Toplevel):
         self.entry_url = tk.Entry(self, textvariable=self.var_url, state='readonly', width=40, justify='center',
                                   relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st],
                                   highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st],
-                                  selectbackground=ST_SELECT[st])
+                                  selectbackground=ST_SELECT[st], readonlybackground=ST_BG_FIELDS[st])
         self.btn_ok = tk.Button(self, text='Ясно', command=self.destroy, overrelief='groove',
                                 bg=ST_BTN[st], fg=ST_FG_TEXT[st],
                                 activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
@@ -3553,7 +3553,7 @@ try:
     else:
         print(f'Доступна новая версия: {last_version}')
         if show_updates:
-            NewVersionW(root)
+            LastVersionW(root)
 except:
     print('Ошибка, возможно отсутствует соединение')
 
@@ -3561,6 +3561,7 @@ print('\nМожете использовать эти комбинации дл�
 
 root.mainloop()
 
+# доработать стили
 # попробовать tk.ScrolledText
 # добавить warn()
 # добавить изменение статьи по переводу
