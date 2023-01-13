@@ -11,8 +11,8 @@ else:
 import urllib.request as urllib2
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-38'
-PROGRAM_DATE = '13.1.2023 4:15 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-39'
+PROGRAM_DATE = '13.1.2023 5:55 (UTC+5)'
 
 """ Стили """
 
@@ -2435,6 +2435,7 @@ class LearnW(tk.Toplevel):
                 has_changes = self.choose_t_fav(dct, min_good_score_perc) or has_changes
 
         self.btn_notes['state'] = 'normal'
+        self.entry_input.delete(0, tk.END)
         self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {round(dct.count_rating() * 100)}%'
 
     # Просмотр сносок
@@ -2473,7 +2474,7 @@ class LearnW(tk.Toplevel):
             entry.incorrect()
             self.outp(f'Неверно. Правильный ответ: "{entry.wrd}"\n')
             if not entry.fav:
-                window = PopupDialogueW(self, 'Добавить слово в избранное?', 'Да', 'Нет')
+                window = PopupDialogueW(self, 'Неверно.\nХотите добавить слово в избранное?', 'Да', 'Нет')
                 answer = window.open()
                 if answer:
                     entry.fav = True
@@ -2497,7 +2498,7 @@ class LearnW(tk.Toplevel):
             entry.incorrect()
             self.outp(f'Неверно. Правильный ответ: "{entry.forms[self.current_form]}"\n')
             if not entry.fav:
-                window = PopupDialogueW(self, 'Добавить слово в избранное?', 'Да', 'Нет')
+                window = PopupDialogueW(self, 'Неверно.\nХотите добавить слово в избранное?', 'Да', 'Нет')
                 answer = window.open()
                 if answer:
                     entry.fav = True
@@ -2521,7 +2522,7 @@ class LearnW(tk.Toplevel):
             entry.incorrect()
             self.outp(f'Неверно. Правильный ответ: "{entry.tr}"\n')
             if not entry.fav:
-                window = PopupDialogueW(self, 'Добавить слово в избранное?', 'Да', 'Нет')
+                window = PopupDialogueW(self, 'Неверно.\nХотите добавить слово в избранное?', 'Да', 'Нет')
                 answer = window.open()
                 if answer:
                     entry.fav = True
@@ -3141,6 +3142,5 @@ root.mainloop()
 # PopupEntryW и другие: onClose
 # сделать покрасивее поле выбора нового словаря при ошибке загрузки
 # проверить корректность работы переименовывания значения параметра формы слова
-# автоочистка полей ввода
 # enter
 # принимать несколько ответов при угадывании слова
