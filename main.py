@@ -13,8 +13,8 @@ import urllib.request as urllib2
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-42'
-PROGRAM_DATE = '13.1.2023  14:21 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-43'
+PROGRAM_DATE = '13.1.2023  14:22 (UTC+5)'
 
 """ Стили """
 
@@ -709,7 +709,7 @@ class Dictionary(object):
                         _is_first_in_line = False
                         if _is_found:
                             outp(_output_widget)  # Вывод новой строки после найденной статьи (кроме первой)
-                        outp(_output_widget, _entry.wrd, _end=': ')  # Вывод слова
+                        outp(_output_widget, deu_encode(_entry.wrd), _end=': ')  # Вывод слова
                     else:
                         # Вывод запятой после найденного перевода(кроме первого в статье перевода)
                         outp(_output_widget, ', ', _end='')
