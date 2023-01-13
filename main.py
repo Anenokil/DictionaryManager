@@ -13,10 +13,12 @@ import urllib.request as urllib2
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-50'
-PROGRAM_DATE = '13.1.2023  20:15 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-51'
+PROGRAM_DATE = '13.1.2023  22:25 (UTC+5)'
 
 """ Стили """
+
+STYLES = ('light', 'dark', 'infernal')
 
 # Все: bg
 # Все, кроме frame: fg
@@ -45,8 +47,6 @@ ST_BTNN_SELECT = {'light': '#EE5555', 'dark': '#904444', 'infernal': '#CD3000'} 
 ST_FG_TEXT     = {'light': '#222222', 'dark': '#979797', 'infernal': '#000000'}  # Цвет обычного текста
 ST_FG_LOGO     = {'light': '#FF7200', 'dark': '#803600', 'infernal': '#FF7200'}  # Цвет текста логотипа
 ST_FG_FOOTER   = {'light': '#666666', 'dark': '#666666', 'infernal': '#222222'}  # Цвет текста нижнего колонтитула
-
-st = 'light'
 
 """ Папки и файлы """
 
@@ -1093,7 +1093,9 @@ def read_dct(_window, _dct, _savename):
                     PopupMsgW(_window, 'Название словаря должно содержать хотя бы один символ', title='Warning').open()
                     continue
                 with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
-                    _settings_file.write(f'{dct_savename}\n{show_updates}')
+                    _settings_file.write(f'{dct_savename}\n'
+                                         f'{show_updates}\n'
+                                         f'{st}')
                 _dct = Dictionary()
                 return read_dct(_window, _dct, dct_savename)
             else:
@@ -1116,7 +1118,9 @@ def save_all(_dct, _min_good_score_perc, _form_parameters, _filename):
     _dct.save(_filepath)
     save_local_settings(_min_good_score_perc, _form_parameters, _filename)
     with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
-        _settings_file.write(f'{dct_savename}\n{show_updates}')
+        _settings_file.write(f'{dct_savename}\n'
+                             f'{show_updates}\n'
+                             f'{st}')
 
 
 # Предложить сохранение, если были изменения
@@ -3026,6 +3030,7 @@ class SettingsW(tk.Toplevel):
 
         self.var_MGSP = tk.StringVar(value=str(min_good_score_perc))
         self.var_show_updates = tk.BooleanVar(value=bool(show_updates))
+        self.var_style = tk.StringVar(value=st)
 
         # Только целые числа от 0 до 100
         self.vcmd = (self.register(validate_percent), '%P')
@@ -3034,9 +3039,20 @@ class SettingsW(tk.Toplevel):
         self.st_check = ttk.Style()
         self.st_check.configure(style='.TCheckbutton', background=ST_BG[st])
         self.st_check.map('.TCheckbutton', background=[('active', ST_SELECT[st])])
+        # Стиль для combobox
+        self.st_combo = ttk.Style()
+        self.st_combo.configure(style='.TCombobox', background=ST_BG[st], foreground=ST_FG_TEXT[st],
+                                highlightbackground=ST_BORDER[st])
+        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[st])],
+                          foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
+        # Стиль для notebook
+        self.st_note = ttk.Style()
+        self.st_note.configure(style='.TNotebook', background=ST_BG[st], foreground=ST_FG_TEXT[st],
+                               highlightbackground=ST_BORDER[st])
 
-        self.tabs = ttk.Notebook(self)
-        self.tab_local = ttk.Frame(self.tabs)
+        self.tabs = ttk.Notebook(self, style='.TNotebook')
+        self.tab_local = tk.Frame(self.tabs, bg=ST_BG[st], highlightbackground=ST_BORDER[st],
+                                  relief=ST_RELIEF[st])
         self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{dct_savename}"', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.tabs.add(self.tab_local, text='Настройки словаря')
         # {
@@ -3050,7 +3066,7 @@ class SettingsW(tk.Toplevel):
                                    highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st],
                                    selectbackground=ST_SELECT[st])
         self.btn_MGSP = tk.Button(self.frame_MGSP, text='Принять', command=self.set_MGSP, overrelief='groove',
-                                  bg=ST_BTN[st], fg=ST_FG_TEXT[st], activebackground=ST_BTN_SELECT[st],
+                                  bg=ST_BTNY[st], fg=ST_FG_TEXT[st], activebackground=ST_BTNY_SELECT[st],
                                   highlightbackground=ST_BORDER[st])
         self.lbl_MGSP_2 = tk.Label(self.frame_MGSP, text='Статьи, у которых процент угадывания ниже этого значения,'
                                                          'будут считаться более сложными',
@@ -3060,7 +3076,8 @@ class SettingsW(tk.Toplevel):
                                    overrelief='groove', bg=ST_BTN[st], fg=ST_FG_TEXT[st],
                                    activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
         # }
-        self.tab_global = ttk.Frame(self.tabs)
+        self.tab_global = tk.Frame(self.tabs, bg=ST_BG[st], highlightbackground=ST_BORDER[st],
+                                   relief=ST_RELIEF[st])
         self.tabs.add(self.tab_global, text='Настройки программы')
         # {
         self.frame_show_updates = tk.LabelFrame(self.tab_global, bg=ST_BG[st], highlightbackground=ST_BORDER[st],
@@ -3096,7 +3113,16 @@ class SettingsW(tk.Toplevel):
                                         activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
         # } } }
         # } }
-        # Настройки стилей
+        self.frame_styles = tk.LabelFrame(self.tab_global, bg=ST_BG[st], highlightbackground=ST_BORDER[st],
+                                          relief=ST_RELIEF[st])
+        # { {
+        self.lbl_styles = tk.Label(self.frame_styles, text='Стиль:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.combo_styles = ttk.Combobox(self.frame_styles, textvariable=self.var_style, values=STYLES,
+                                         state='readonly', style='.TCombobox')
+        self.btn_set_style = tk.Button(self.frame_styles, text='Принять', command=self.set_style, overrelief='groove',
+                                       bg=ST_BTNY[st], fg=ST_FG_TEXT[st],
+                                       activebackground=ST_BTNY_SELECT[st], highlightbackground=ST_BORDER[st])
+        # } }
         # }
 
         self.lbl_dct_name.grid(row=0, padx=6, pady=(6, 0))
@@ -3128,6 +3154,12 @@ class SettingsW(tk.Toplevel):
         self.btn_dct_rename.grid(row=1, column=0, padx=6, pady=6)
         self.btn_dct_delete.grid(row=1, column=1, padx=6, pady=6)
         # } }
+        # }
+        self.frame_styles.grid(row=2, padx=6, pady=6)
+        # {
+        self.lbl_styles.grid(   row=0, column=0, padx=(6, 1), pady=6)
+        self.combo_styles.grid( row=0, column=1, padx=(0, 6), pady=6)
+        self.btn_set_style.grid(row=0, column=2, padx=(0, 6), pady=6)
         # }
 
         self.scrollbar.config(command=self.text_dcts.yview)
@@ -3188,7 +3220,9 @@ class SettingsW(tk.Toplevel):
 
         dct_savename = savename
         with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
-            settings_file.write(f'{savename}\n{show_updates}')
+            settings_file.write(f'{savename}\n'
+                                f'{show_updates}\n'
+                                f'{st}')
         dct = Dictionary()
         min_good_score_perc, form_parameters = read_dct(self, dct, savename)
 
@@ -3210,7 +3244,9 @@ class SettingsW(tk.Toplevel):
 
         dct_savename = savename
         with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
-            settings_file.write(f'{savename}\n{show_updates}')
+            settings_file.write(f'{savename}\n'
+                                f'{show_updates}\n'
+                                f'{st}')
         dct = Dictionary()
         min_good_score_perc, form_parameters = create_dct(dct, savename)
 
@@ -3248,7 +3284,9 @@ class SettingsW(tk.Toplevel):
         if dct_savename == old_savename:
             dct_savename = new_savename
             with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
-                settings_file.write(f'{new_savename}\n{show_updates}')
+                settings_file.write(f'{new_savename}\n'
+                                    f'{show_updates}\n'
+                                    f'{st}')
             self.lbl_dct_name['text'] = f'Открыт словарь "{new_savename}"'
         print(f'Словарь "{old_savename}" успешно переименован в "{new_savename}"')
 
@@ -3301,6 +3339,13 @@ class SettingsW(tk.Toplevel):
                 else:
                     self.text_dcts.insert(tk.INSERT, f'"{base_name}"\n')
         self.text_dcts['state'] = 'disabled'
+
+    # Установить выбранный стиль
+    def set_style(self):
+        global st
+
+        st = self.var_style.get()
+        self.destroy()
 
     def open(self):
         self.grab_set()
@@ -3418,6 +3463,37 @@ class MainW(tk.Tk):
     def settings(self):
         SettingsW(self).open()
 
+        # Обновление стилей
+        self.configure(bg=ST_BG[st])
+        self.frame_head.configure(bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # {
+        self.lbl_header1.configure(bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.lbl_header2.configure(bg=ST_BG[st], fg=ST_FG_LOGO[st])
+        # }
+        self.btn_print.configure(bg=ST_BTN[st], fg=ST_FG_TEXT[st],
+                                 activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_learn.configure(bg=ST_BTN[st], fg=ST_FG_TEXT[st],
+                                 activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.frame_word.configure(bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
+        # {
+        self.entry_word.configure(bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st],
+                                  highlightcolor=ST_HIGHLIGHT[st], selectbackground=ST_SELECT[st])
+        self.btn_search.configure(bg=ST_BTN[st], fg=ST_FG_TEXT[st],
+                                  activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_edit.configure(bg=ST_BTN[st], fg=ST_FG_TEXT[st],
+                                activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_add.configure(bg=ST_BTN[st], fg=ST_FG_TEXT[st],
+                               activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        # }
+        self.btn_settings.configure(bg=ST_BTN[st], fg=ST_FG_TEXT[st],
+                                    activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_save.configure(bg=ST_BTNY[st], fg=ST_FG_TEXT[st],
+                                activebackground=ST_BTNY_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_close.configure(bg=ST_BTNN[st], fg=ST_FG_TEXT[st],
+                                 activebackground=ST_BTNN_SELECT[st], highlightbackground=ST_BORDER[st])
+
+        self.lbl_footer.configure(bg=ST_BG[st], fg=ST_FG_FOOTER[st])
+
     # Сохранить изменения
     def save(self):
         global has_changes
@@ -3445,13 +3521,14 @@ try:  # Открываем файл с названием словаря
     open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8')
 except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
     with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
-        settings_file.write('words\n1')
+        settings_file.write('words\n1\nlight')
 with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as settings_file:
     dct_savename = settings_file.readline().strip()
     try:
         show_updates = int(settings_file.readline().strip())
     except (ValueError, TypeError):
         show_updates = 1
+    st = settings_file.readline().strip()
 
 
 # Получить название файла с открытым словарём
@@ -3484,7 +3561,6 @@ print('\nМожете использовать эти комбинации дл�
 
 root.mainloop()
 
-# строка 56 - добавить выбор стилей
 # попробовать tk.ScrolledText
 # добавить warn()
 # добавить изменение статьи по переводу
