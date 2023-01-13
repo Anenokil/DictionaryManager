@@ -13,8 +13,8 @@ import urllib.request as urllib2
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-45'
-PROGRAM_DATE = '13.1.2023  16:58 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-46'
+PROGRAM_DATE = '13.1.2023  17:02 (UTC+5)'
 
 """ Стили """
 
@@ -3405,7 +3405,10 @@ except FileNotFoundError:  # Если файл отсутствует, то со
         settings_file.write('words\n1')
 with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as settings_file:
     dct_savename = settings_file.readline().strip()
-    show_updates = int(settings_file.readline().strip())
+    try:
+        show_updates = int(settings_file.readline().strip())
+    except (ValueError, TypeError):
+        show_updates = 1
 
 
 # Получить название файла с открытым словарём
@@ -3446,7 +3449,6 @@ root.mainloop()
 # принимать несколько ответов при угадывании слова
 # если ответ немного отличается от правильного, то ...
 
-# что если в settings.txt не будет версии
 # формы - переместить удалить и переименовать
 # новая строка в лэйбле
 # debug rename_par
