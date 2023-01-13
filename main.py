@@ -13,8 +13,8 @@ import urllib.request as urllib2
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-49'
-PROGRAM_DATE = '13.1.2023  20:03 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-50'
+PROGRAM_DATE = '13.1.2023  20:15 (UTC+5)'
 
 """ Стили """
 
@@ -1164,8 +1164,8 @@ class PopupMsgW(tk.Toplevel):
                                 bg=ST_BTN[st], fg=ST_FG_TEXT[st],
                                 activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
 
-        self.lbl_msg.grid(row=1, column=0, padx=6, pady=4)
-        self.btn_ok.grid( row=2, column=0, padx=6, pady=4)
+        self.lbl_msg.grid(row=0, column=0, padx=6, pady=4)
+        self.btn_ok.grid( row=1, column=0, padx=6, pady=4)
 
     # Нажатие на кнопку
     def ok(self):
@@ -1308,9 +1308,9 @@ class PopupEntryW(tk.Toplevel):
                                 bg=ST_BTNY[st], fg=ST_FG_TEXT[st],
                                 activebackground=ST_BTNY_SELECT[st], highlightbackground=ST_BORDER[st])
 
-        self.lbl_msg.grid(  row=0, column=0,     padx=(6, 1), pady=(6, 0))
-        self.entry_inp.grid(row=0, column=1,     padx=(0, 6), pady=(6, 0))
-        self.btn_ok.grid(   row=1, columnspan=2, padx=6,      pady=6)
+        self.lbl_msg.grid(  row=0, padx=6, pady=(6, 3))
+        self.entry_inp.grid(row=1, padx=6, pady=(0, 6))
+        self.btn_ok.grid(   row=2, padx=6, pady=(0, 6))
 
     # Нажатие на кнопку
     def ok(self):
@@ -3486,8 +3486,8 @@ root.mainloop()
 
 # строка 56 - добавить выбор стилей
 # попробовать tk.ScrolledText
+# добавить warn()
 # добавить изменение статьи по переводу
-# сделать покрасивее поле выбора нового словаря при ошибке загрузки
-# enter
 # принимать несколько ответов при угадывании слова
 # если ответ немного отличается от правильного, то ...
+# enter
