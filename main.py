@@ -13,8 +13,8 @@ import urllib.request as urllib2
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-46'
-PROGRAM_DATE = '13.1.2023  17:02 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-47'
+PROGRAM_DATE = '13.1.2023  17:30 (UTC+5)'
 
 """ Стили """
 
@@ -181,33 +181,22 @@ def encode_tpl(_str):
 
 # Добавить значение параметра форм
 def add_frm_param_val(_window, _values, _text='Введите новое значение параметра'):
-    _window_entry = PopupEntryW(_window, _text)  # Ввод нового значения
-    _closed, _new_val = _window_entry.open()
-    if _closed:
-        return
-    if _new_val == '':
-        PopupMsgW(_window, 'Значение параметра должно содержать хотя бы один символ', title='Warning').open()
-    elif _new_val in _values:
-        PopupMsgW(_window, f'Значение "{_new_val}" уже существует', title='Warning').open()
-    elif FORMS_SEPARATOR in _new_val:
-        PopupMsgW(_window, f'Недопустимый символ: {FORMS_SEPARATOR}', title='Warning').open()
-    else:
-        _values += [_new_val]
-
-
-# Удалить значение параметра форм
-def delete_frm_param_val(_window, _values, _dct):
-    _window_choose = PopupChooseW(_window, _values)  # Выбор значения, которое нужно удалить
-    _closed, _val = _window_choose.open()
-    if _closed or _val == '':
-        return
-    _window_dia = PopupDialogueW(_window, 'Все словоформы, содержащие это значение параметра, будут удалены!\n'
-                                          'Хотите продолжить?')
-    _answer = _window_dia.open()
-    if _answer:
-        _index = _values.index(_val)
-        _values.pop(_index)
-        _dct.delete_forms_with_val(_index, _val)  # Удалить все словоформы, содержащие это значение параметра
+    while True:
+        _window_entry = PopupEntryW(_window, _text)  # Ввод нового значения
+        _closed, _new_val = _window_entry.open()
+        if _closed:
+            return None
+        if _new_val == '':
+            PopupMsgW(_window, 'Значение параметра должно содержать хотя бы один символ', title='Warning').open()
+            continue
+        if _new_val in _values:
+            PopupMsgW(_window, f'Значение "{_new_val}" уже существует', title='Warning').open()
+            continue
+        if FORMS_SEPARATOR in _new_val:
+            PopupMsgW(_window, f'Недопустимый символ: {FORMS_SEPARATOR}', title='Warning').open()
+            continue
+        break
+    return _new_val
 
 
 # Переименовать значение параметра форм
@@ -235,32 +224,35 @@ def rename_frm_param_val(_window, _values, _pos, _dct):
     _values[_index] = _new_val
 
 
+# Удалить значение параметра форм
+def delete_frm_param_val(_window, _values, _dct):
+    _window_choose = PopupChooseW(_window, _values)  # Выбор значения, которое нужно удалить
+    _closed, _val = _window_choose.open()
+    if _closed or _val == '':
+        return
+    _window_dia = PopupDialogueW(_window, 'Все словоформы, содержащие это значение параметра, будут удалены!\n'
+                                          'Хотите продолжить?')
+    _answer = _window_dia.open()
+    if _answer:
+        _index = _values.index(_val)
+        _values.pop(_index)
+        _dct.delete_forms_with_val(_index, _val)  # Удалить все словоформы, содержащие это значение параметра
+
+
 # Добавить параметр словоформ
 def add_frm_param(_window, _parameters, _dct):
     _window_entry = EnterFormParameterNameW(_window, _parameters.keys())
     _name_is_correct, _new_par = _window_entry.open()
     if not _name_is_correct:
         return
+
+    _new_val = add_frm_param_val(_window, (), 'Необходимо добавить хотя бы одно значение для параметра')
+    if not _new_val:
+        return
+
     _dct.add_forms_param()
     _parameters[_new_par] = []
-    while not _parameters[_new_par]:
-        add_frm_param_val(_window, _parameters[_new_par], 'Необходимо добавить хотя бы одно значение для параметра')
-
-
-# Удалить параметр словоформ
-def delete_frm_param(_window, _parameters, _dct):
-    _keys = [_key for _key in _parameters.keys()]
-    _window_choose = PopupChooseW(_window, _keys, btn_text='Удалить')
-    _closed, _key = _window_choose.open()
-    if _closed or _key == '':
-        return
-    _window_dia = PopupDialogueW(_window, 'Все словоформы, содержащие этот параметр, будут удалены!\n'
-                                          'Хотите продолжить?')
-    _answer = _window_dia.open()
-    if _answer:
-        _pos = _keys.index(_key)
-        _parameters.pop(_key)
-        _dct.delete_forms_param(_pos)
+    _parameters[_new_par] += [_new_val]
 
 
 # Переименовать параметр словоформ
@@ -285,6 +277,22 @@ def rename_frm_param(_window, _parameters, _dct):
     # _dct.rename_forms_param(_index)
     _parameters[_new_key] = _parameters[_key]
     _parameters.pop(_key)
+
+
+# Удалить параметр словоформ
+def delete_frm_param(_window, _parameters, _dct):
+    _keys = [_key for _key in _parameters.keys()]
+    _window_choose = PopupChooseW(_window, _keys, btn_text='Удалить')
+    _closed, _key = _window_choose.open()
+    if _closed or _key == '':
+        return
+    _window_dia = PopupDialogueW(_window, 'Все словоформы, содержащие этот параметр, будут удалены!\n'
+                                          'Хотите продолжить?')
+    _answer = _window_dia.open()
+    if _answer:
+        _pos = _keys.index(_key)
+        _parameters.pop(_key)
+        _dct.delete_forms_param(_pos)
 
 
 # Найти в строке подстроку и выделить её
@@ -1537,7 +1545,10 @@ class ChooseFormParValW(tk.Toplevel):
 
     # Добавить новое значение параметра
     def new_val(self):
-        add_frm_param_val(self, self.vals)
+        new_value = add_frm_param_val(self, self.vals)
+        if not new_value:
+            return
+        self.vals += [new_value]
         self.combo['values'] = self.vals
 
     def open(self):
@@ -1707,10 +1718,10 @@ class FormsSettingsW(tk.Toplevel):
         self.btn_add = tk.Button(self.frame_buttons, text='Добавить параметр форм', command=self.add,
                                  overrelief='groove', bg=ST_BTN[st], fg=ST_FG_TEXT[st],
                                  activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        self.btn_delete = tk.Button(self.frame_buttons, text='Удалить параметр форм', command=self.delete,
+        self.btn_rename = tk.Button(self.frame_buttons, text='Переименовать параметр форм', command=self.rename,
                                     overrelief='groove', bg=ST_BTN[st], fg=ST_FG_TEXT[st],
                                     activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        self.btn_rename = tk.Button(self.frame_buttons, text='Переименовать параметр форм', command=self.rename,
+        self.btn_delete = tk.Button(self.frame_buttons, text='Удалить параметр форм', command=self.delete,
                                     overrelief='groove', bg=ST_BTN[st], fg=ST_FG_TEXT[st],
                                     activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
         self.btn_values = tk.Button(self.frame_buttons, text='Изменить значения параметра форм', command=self.values,
@@ -1724,8 +1735,8 @@ class FormsSettingsW(tk.Toplevel):
         self.frame_buttons.grid(row=0, rowspan=2, column=2,               padx=6,      pady=6)
         # {
         self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
-        self.btn_delete.grid(row=1, padx=6, pady=3)
-        self.btn_rename.grid(row=2, padx=6, pady=3)
+        self.btn_rename.grid(row=1, padx=6, pady=3)
+        self.btn_delete.grid(row=2, padx=6, pady=3)
         self.btn_values.grid(row=3, padx=6, pady=(3, 6))
         # }
 
@@ -1812,10 +1823,10 @@ class FormsParameterSettingsW(tk.Toplevel):
         self.btn_add = tk.Button(self.frame_buttons, text='Добавить значение параметра', command=self.add,
                                  overrelief='groove', bg=ST_BTN[st], fg=ST_FG_TEXT[st],
                                  activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        self.btn_delete = tk.Button(self.frame_buttons, text='Удалить значение параметра', command=self.delete,
+        self.btn_rename = tk.Button(self.frame_buttons, text='Переименовать значение параметра', command=self.rename,
                                     overrelief='groove', bg=ST_BTN[st], fg=ST_FG_TEXT[st],
                                     activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
-        self.btn_rename = tk.Button(self.frame_buttons, text='Переименовать значение параметра', command=self.rename,
+        self.btn_delete = tk.Button(self.frame_buttons, text='Удалить значение параметра', command=self.delete,
                                     overrelief='groove', bg=ST_BTN[st], fg=ST_FG_TEXT[st],
                                     activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
         # }
@@ -1826,8 +1837,8 @@ class FormsParameterSettingsW(tk.Toplevel):
         self.frame_buttons.grid(row=0, rowspan=2, column=2,               padx=6,      pady=6)
         # {
         self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
-        self.btn_delete.grid(row=1, padx=6, pady=3)
-        self.btn_rename.grid(row=2, padx=6, pady=3)
+        self.btn_rename.grid(row=1, padx=6, pady=3)
+        self.btn_delete.grid(row=2, padx=6, pady=3)
         # }
 
         self.scrollbar.config(command=self.text_par_val.yview)
@@ -1836,7 +1847,10 @@ class FormsParameterSettingsW(tk.Toplevel):
 
     # Добавить значение параметра
     def add(self):
-        add_frm_param_val(self, self.par_vals)
+        new_val = add_frm_param_val(self, self.par_vals)
+        if not new_val:
+            return
+        self.par_vals += [new_val]
         self.refresh()
 
     # Удалить значение параметра
@@ -3449,9 +3463,6 @@ root.mainloop()
 # принимать несколько ответов при угадывании слова
 # если ответ немного отличается от правильного, то ...
 
-# формы - переместить удалить и переименовать
-# новая строка в лэйбле
-# debug rename_par
-# debug rename_par_val
+# новая строка в лэйбле (настройки форм)
 # шаблон - кнопка 'задать значение' - увеличить padx
 # выберите какой перевод/сноску/форму хотите удалить (изм. форму) - увеличить ширину entry
