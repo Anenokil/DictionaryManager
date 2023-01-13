@@ -223,6 +223,8 @@ def rename_frm_param_val(_window, _values, _pos, _dct):
         if _new_val in _values:
             PopupMsgW(_window, f'Значение "{_new_val}" уже существует', title='Warning').open()
             continue
+        if FORMS_SEPARATOR in _new_val:
+            PopupMsgW(_window, f'Недопустимый символ: {FORMS_SEPARATOR}', title='Warning').open()
         break
     _dct.rename_forms_with_val(_pos, _old_val, _new_val)  # Переименовать значение во всех словоформах, его содержащих
     _index = _values.index(_old_val)
