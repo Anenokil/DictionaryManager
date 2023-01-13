@@ -13,8 +13,8 @@ import urllib.request as urllib2
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-47'
-PROGRAM_DATE = '13.1.2023  17:30 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-48'
+PROGRAM_DATE = '13.1.2023  19:02 (UTC+5)'
 
 """ Стили """
 
@@ -100,6 +100,12 @@ MAX_SAME_WORDS = 100  # Максимальное количество стате
 def height(_text, _len_str):
     _parts = _text.split('\n')
     return sum(math.ceil(len(_part) / _len_str) for _part in _parts)
+
+
+# Ширина моноширинного поля, в которое должны помещаться данные значения
+def width(_values, _min, _max):
+    max_of_vals = max(len(_val) for _val in _values)
+    return min(max(max_of_vals, _min), _max)
 
 
 # Вывод текста на виджет
@@ -201,7 +207,7 @@ def add_frm_param_val(_window, _values, _text='Введите новое зна�
 
 # Переименовать значение параметра форм
 def rename_frm_param_val(_window, _values, _pos, _dct):
-    _window_choose = PopupChooseW(_window, _values)  # Выбор значения, которое нужно переименовать
+    _window_choose = PopupChooseW(_window, _values, combo_width=width(_values, 5, 100))  # Выбор значения, которое нужно переименовать
     _closed, _old_val = _window_choose.open()
     if _closed or _old_val == '':
         return
@@ -226,7 +232,7 @@ def rename_frm_param_val(_window, _values, _pos, _dct):
 
 # Удалить значение параметра форм
 def delete_frm_param_val(_window, _values, _dct):
-    _window_choose = PopupChooseW(_window, _values)  # Выбор значения, которое нужно удалить
+    _window_choose = PopupChooseW(_window, _values, combo_width=width(_values, 5, 100))  # Выбор значения, которое нужно удалить
     _closed, _val = _window_choose.open()
     if _closed or _val == '':
         return
@@ -258,7 +264,7 @@ def add_frm_param(_window, _parameters, _dct):
 # Переименовать параметр словоформ
 def rename_frm_param(_window, _parameters, _dct):
     _keys = [_key for _key in _parameters.keys()]
-    _window_choose = PopupChooseW(_window, _keys, btn_text='Переименовать')
+    _window_choose = PopupChooseW(_window, _keys, btn_text='Переименовать', combo_width=width(_keys, 5, 100))
     _closed, _key = _window_choose.open()
     if _closed or _key == '':
         return
@@ -282,7 +288,7 @@ def rename_frm_param(_window, _parameters, _dct):
 # Удалить параметр словоформ
 def delete_frm_param(_window, _parameters, _dct):
     _keys = [_key for _key in _parameters.keys()]
-    _window_choose = PopupChooseW(_window, _keys, btn_text='Удалить')
+    _window_choose = PopupChooseW(_window, _keys, btn_text='Удалить', combo_width=width(_keys, 5, 100))
     _closed, _key = _window_choose.open()
     if _closed or _key == '':
         return
@@ -495,7 +501,8 @@ class Entry(object):
         _keys = [_key for _key in self.forms.keys()]
         _variants = [f'[{tpl(_key)}] {deu_encode(self.forms[_key])}' for _key in _keys]
 
-        _window_choose = PopupChooseW(_window, _variants, 'Выберите форму, которую хотите удалить')
+        _window_choose = PopupChooseW(_window, _variants, 'Выберите форму, которую хотите удалить',
+                                      combo_width=width(_variants, 5, 100))
         _closed, _answer = _window_choose.open()
         if _closed or _answer == '':
             return
@@ -509,7 +516,8 @@ class Entry(object):
         _keys = [_key for _key in self.forms.keys()]
         _variants = [f'[{tpl(_key)}] {deu_encode(self.forms[_key])}' for _key in _keys]
 
-        _window_choose = PopupChooseW(_window, _variants, 'Выберите форму, которую хотите изменить')
+        _window_choose = PopupChooseW(_window, _variants, 'Выберите форму, которую хотите изменить',
+                                      combo_width=width(_variants, 5, 100))
         _closed, _answer = _window_choose.open()
         if _closed or _answer == '':
             return
@@ -827,7 +835,8 @@ class Dictionary(object):
     # Удалить перевод в статье
     def delete_tr_with_choose(self, _window, _key):
         self.count_t -= self.d[_key].count_t
-        _window_choose = PopupChooseW(_window, self.d[_key].tr, 'Выберите, какой перевод хотите удалить')
+        _window_choose = PopupChooseW(_window, self.d[_key].tr, 'Выберите, какой перевод хотите удалить',
+                                      combo_width=width(self.d[_key].tr, 5, 100))
         _closed, _tr = _window_choose.open()
         if _closed or _tr == '':
             return
@@ -837,7 +846,8 @@ class Dictionary(object):
 
     # Удалить описание в статье
     def delete_note_with_choose(self, _window, _key):
-        _window_choose = PopupChooseW(_window, self.d[_key].notes, 'Выберите, какую сноску хотите удалить')
+        _window_choose = PopupChooseW(_window, self.d[_key].notes, 'Выберите, какую сноску хотите удалить',
+                                      combo_width=width(self.d[_key].notes, 5, 100))
         _closed, _note = _window_choose.open()
         if _closed or _note == '':
             return
@@ -1231,7 +1241,8 @@ class PopupDialogueW(tk.Toplevel):
 
 # Всплывающее окно с полем Combobox
 class PopupChooseW(tk.Toplevel):
-    def __init__(self, parent, values, msg='Выберите один из вариантов', btn_text='Подтвердить', title=PROGRAM_NAME):
+    def __init__(self, parent, values, msg='Выберите один из вариантов', btn_text='Подтвердить',
+                 combo_width=20, title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[st])
@@ -1248,8 +1259,8 @@ class PopupChooseW(tk.Toplevel):
                           foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
 
         self.lbl_msg = tk.Label(self, text=msg, bg=ST_BG[st], fg=ST_FG_TEXT[st])
-        self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values,
-                                       state='readonly', style='.TCombobox')
+        self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values, width=combo_width,
+                                       font='TkFixedFont', state='readonly', style='.TCombobox')
         self.btn_ok = tk.Button(self, text=btn_text, command=self.ok, overrelief='groove',
                                 bg=ST_BTNY[st], fg=ST_FG_TEXT[st],
                                 activebackground=ST_BTNY_SELECT[st], highlightbackground=ST_BORDER[st])
@@ -1258,6 +1269,9 @@ class PopupChooseW(tk.Toplevel):
         self.combo_vals.grid(row=1, padx=6, pady=1)
         self.btn_ok.grid(    row=2, padx=6, pady=4)
 
+        self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
+
+    # Нажатие на кнопку
     def ok(self):
         self.closed = False
         self.destroy()
@@ -1280,7 +1294,7 @@ class PopupEntryW(tk.Toplevel):
         self.var_text = tk.StringVar()
 
         self.lbl_msg = tk.Label(self, text=f'{msg}:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
-        self.entry_inp = tk.Entry(self, textvariable=self.var_text, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st],
+        self.entry_inp = tk.Entry(self, textvariable=self.var_text, width=30, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st],
                                   highlightbackground=ST_BORDER[st], selectbackground=ST_SELECT[st],
                                   highlightcolor=ST_HIGHLIGHT[st])
         self.btn_ok = tk.Button(self, text=btn_text, command=self.ok, overrelief='groove',
@@ -1418,7 +1432,7 @@ class EnterSaveNameW(tk.Toplevel):
         self.var_name = tk.StringVar()
 
         self.lbl_msg = tk.Label(self, text='Введите название файла со словарём', bg=ST_BG[st], fg=ST_FG_TEXT[st])
-        self.entry_name = tk.Entry(self, textvariable=self.var_name, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st],
+        self.entry_name = tk.Entry(self, textvariable=self.var_name, width=30, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st],
                                    highlightbackground=ST_BORDER[st], selectbackground=ST_SELECT[st],
                                    highlightcolor=ST_HIGHLIGHT[st])
         self.btn_ok = tk.Button(self, text='Подтвердить', command=self.check_and_return, overrelief='groove',
@@ -1459,7 +1473,8 @@ class EnterFormParameterNameW(tk.Toplevel):
 
         self.var_name = tk.StringVar()
 
-        self.lbl_msg = tk.Label(self, text='Введите название нового параметра', bg=ST_BG[st], fg=ST_FG_TEXT[st])
+        self.lbl_msg = tk.Label(self, text='Введите название нового параметра', width=30,
+                                bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.entry_name = tk.Entry(self, textvariable=self.var_name, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st],
                                    highlightbackground=ST_BORDER[st], selectbackground=ST_SELECT[st],
                                    highlightcolor=ST_HIGHLIGHT[st])
@@ -1491,7 +1506,7 @@ class EnterFormParameterNameW(tk.Toplevel):
 
 # Окно выбора значения параметра словоформы
 class ChooseFormParValW(tk.Toplevel):
-    def __init__(self, parent, par_name, par_vals):
+    def __init__(self, parent, par_name, par_vals, combo_width=20):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[st])
@@ -1510,8 +1525,8 @@ class ChooseFormParValW(tk.Toplevel):
 
         self.lbl_choose = tk.Label(self, text=f'Задайте значение параметра "{par_name}"',
                                    bg=ST_BG[st], fg=ST_FG_TEXT[st])
-        self.combo = ttk.Combobox(self, textvariable=self.var_par, values=self.vals,
-                                  state='readonly', style='.TCombobox')
+        self.combo = ttk.Combobox(self, textvariable=self.var_par, values=self.vals, width=combo_width,
+                                  font='TkFixedFont', state='readonly', style='.TCombobox')
         self.btn_choose = tk.Button(self, text='Задать', command=self.choose, overrelief='groove',
                                     bg=ST_BTN[st], fg=ST_FG_TEXT[st],
                                     activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
@@ -1523,10 +1538,12 @@ class ChooseFormParValW(tk.Toplevel):
                                  activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
 
         self.lbl_choose.grid(row=0, column=0,     padx=(6, 1), pady=(6, 3))
-        self.combo.grid(     row=0, column=1,     padx=(0, 1), pady=(6, 3))
+        self.combo.grid(     row=0, column=1,     padx=(0, 3), pady=(6, 3))
         self.btn_choose.grid(row=0, column=2,     padx=(0, 6), pady=(6, 3))
         self.btn_none.grid(  row=1, columnspan=3, padx=6,      pady=3)
         self.btn_new.grid(   row=2, columnspan=3, padx=6,      pady=(3, 6))
+
+        self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
 
     # Выбрать параметр и задать ему значение
     def choose(self):
@@ -1559,7 +1576,7 @@ class ChooseFormParValW(tk.Toplevel):
 
 # Окно создания шаблона словоформы
 class CreateFormTemplateW(tk.Toplevel):
-    def __init__(self, parent, key):
+    def __init__(self, parent, key, combo_width=20):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[st])
@@ -1583,8 +1600,8 @@ class CreateFormTemplateW(tk.Toplevel):
 
         self.lbl_template = tk.Label(self, textvariable=self.var_template, bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.lbl_choose = tk.Label(self, text='Выберите параметр', bg=ST_BG[st], fg=ST_FG_TEXT[st])
-        self.combo = ttk.Combobox(self, textvariable=self.var_par, values=self.parameters, state='readonly',
-                                  style='.TCombobox')
+        self.combo = ttk.Combobox(self, textvariable=self.var_par, values=self.parameters, width=combo_width,
+                                  font='TkFixedFont', state='readonly', style='.TCombobox')
         self.btn_choose = tk.Button(self, text='Задать значение', command=self.choose, overrelief='groove',
                                     bg=ST_BTN[st], fg=ST_FG_TEXT[st],
                                     activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
@@ -1594,9 +1611,11 @@ class CreateFormTemplateW(tk.Toplevel):
 
         self.lbl_template.grid(row=0, columnspan=3, padx=6,      pady=(6, 1))
         self.lbl_choose.grid(  row=1, column=0,     padx=(6, 1), pady=(6, 1))
-        self.combo.grid(       row=1, column=1,     padx=(0, 1), pady=1)
+        self.combo.grid(       row=1, column=1,     padx=(0, 3), pady=1)
         self.btn_choose.grid(  row=1, column=2,     padx=(0, 6), pady=1)
         self.btn_done.grid(    row=2, columnspan=3, padx=(0, 6), pady=6)
+
+        self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
 
     # Выбрать параметр и задать ему значение
     def choose(self):
@@ -1605,7 +1624,7 @@ class CreateFormTemplateW(tk.Toplevel):
             return
         index = self.parameters.index(par)
 
-        window = ChooseFormParValW(self, par, form_parameters[par])
+        window = ChooseFormParValW(self, par, form_parameters[par], combo_width=width(form_parameters[par], 5, 100))
         closed, val = window.open()
         if closed:
             return
@@ -1710,7 +1729,7 @@ class FormsSettingsW(tk.Toplevel):
 
         self.lbl_form_par  = tk.Label(self, text='Существующие параметры форм:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.scrollbar = tk.Scrollbar(self, bg=ST_BG[st])
-        self.text_form_par = tk.Text(self, width=20, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
+        self.text_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
                                      bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st],
                                      relief=ST_RELIEF[st])
         self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
@@ -1729,10 +1748,10 @@ class FormsSettingsW(tk.Toplevel):
                                     activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
         # }
 
-        self.lbl_form_par.grid( row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
-        self.text_form_par.grid(row=1,            column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(    row=1,            column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.frame_buttons.grid(row=0, rowspan=2, column=2,               padx=6,      pady=6)
+        self.lbl_form_par.grid( row=0,            column=0, padx=(6, 0), pady=(6, 0))
+        self.text_form_par.grid(row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(    row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.frame_buttons.grid(row=0, rowspan=2, column=2, padx=6,      pady=6)
         # {
         self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
         self.btn_rename.grid(row=1, padx=6, pady=3)
@@ -1762,7 +1781,7 @@ class FormsSettingsW(tk.Toplevel):
     # Перейти к настройкам значения параметра
     def values(self):
         keys = [_key for _key in form_parameters.keys()]
-        window = PopupChooseW(self, keys, 'Какой параметр форм вы хотите изменить?')
+        window = PopupChooseW(self, keys, 'Какой параметр форм вы хотите изменить?', combo_width=width(keys, 5, 100))
         closed, key = window.open()
         if closed or key == '':
             return
@@ -1812,10 +1831,10 @@ class FormsParameterSettingsW(tk.Toplevel):
         self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[st])],
                           foreground=[('readonly', ST_FG_TEXT[st])], highlightbackground=[('readonly', ST_BORDER[st])])
 
-        self.lbl_par_val = tk.Label(self, text=f'Существующие значения параметра "{parameter}":',
+        self.lbl_par_val = tk.Label(self, text=f'Существующие значения параметра\n"{parameter}":',
                                     bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.scrollbar = tk.Scrollbar(self, bg=ST_BG[st])
-        self.text_par_val = tk.Text(self, width=20, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
+        self.text_par_val = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
                                     bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st], highlightbackground=ST_BORDER[st],
                                     relief=ST_RELIEF[st])
         self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[st], highlightbackground=ST_BORDER[st], relief=ST_RELIEF[st])
@@ -1831,10 +1850,10 @@ class FormsParameterSettingsW(tk.Toplevel):
                                     activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
         # }
 
-        self.lbl_par_val.grid(  row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
-        self.text_par_val.grid( row=1,            column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(    row=1,            column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.frame_buttons.grid(row=0, rowspan=2, column=2,               padx=6,      pady=6)
+        self.lbl_par_val.grid(  row=0,            column=0, padx=(6, 0), pady=(6, 0))
+        self.text_par_val.grid( row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(    row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.frame_buttons.grid(row=0, rowspan=2, column=2, padx=6,      pady=6)
         # {
         self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
         self.btn_rename.grid(row=1, padx=6, pady=3)
@@ -2444,7 +2463,7 @@ class EditW(tk.Toplevel):
                             'Настройки/Настройки словаря/Настройки словоформ', title='Warning').open()
             return
 
-        window_template = CreateFormTemplateW(self, self.key)  # Создание шаблона словоформы
+        window_template = CreateFormTemplateW(self, self.key, combo_width=width(form_parameters, 5, 100))  # Создание шаблона словоформы
         frm_key = window_template.open()
         if not frm_key:
             return
@@ -3152,7 +3171,8 @@ class SettingsW(tk.Toplevel):
             PopupMsgW(self, 'Нет других сохранённых словарей', title='Warning').open()
             return
 
-        window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите открыть')
+        window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите открыть',
+                              combo_width=width(saves_list, 5, 100))
         closed, savename = window.open()
         if closed or savename == '':
             return
@@ -3203,7 +3223,8 @@ class SettingsW(tk.Toplevel):
             if ext == '.txt':
                 saves_list += [base_name]
                 saves_count += 1
-        window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите переименовать')
+        window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите переименовать',
+                                     combo_width=width(saves_list, 5, 100))
         closed, old_savename = window_choose.open()
         if closed or old_savename == '':
             return
@@ -3239,7 +3260,8 @@ class SettingsW(tk.Toplevel):
             PopupMsgW(self, 'Нет других сохранённых словарей', title='Warning').open()
             return
 
-        window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите удалить')
+        window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите удалить',
+                                     combo_width=width(saves_list, 5, 100))
         closed, savename = window_choose.open()
         if closed or savename == '':
             return
@@ -3438,8 +3460,6 @@ has_changes = False
 # Загружаем словарь и его настройки (локальные настройки)
 min_good_score_perc, form_parameters = read_dct(root, dct, dct_savename)
 
-print('\nМожете использовать эти комбинации для немецких букв: #a -> ä, #o -> ö, #u -> ü, #s -> ß (и ## -> #)')
-
 print('\nПроверка обновлений:', end=' ')
 try:
     data = urllib2.urlopen(URL_LAST_VERSION)
@@ -3453,6 +3473,8 @@ try:
 except:
     print('Ошибка, возможно отсутствует соединение')
 
+print('\nМожете использовать эти комбинации для немецких букв: #a -> ä, #o -> ö, #u -> ü, #s -> ß (и ## -> #)')
+
 root.mainloop()
 
 # строка 56 - добавить выбор стилей
@@ -3462,7 +3484,3 @@ root.mainloop()
 # enter
 # принимать несколько ответов при угадывании слова
 # если ответ немного отличается от правильного, то ...
-
-# новая строка в лэйбле (настройки форм)
-# шаблон - кнопка 'задать значение' - увеличить padx
-# выберите какой перевод/сноску/форму хотите удалить (изм. форму) - увеличить ширину entry
