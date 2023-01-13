@@ -13,8 +13,8 @@ import urllib.request as urllib2
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-43'
-PROGRAM_DATE = '13.1.2023  14:22 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-45'
+PROGRAM_DATE = '13.1.2023  16:58 (UTC+5)'
 
 """ Стили """
 
@@ -182,7 +182,9 @@ def encode_tpl(_str):
 # Добавить значение параметра форм
 def add_frm_param_val(_window, _values, _text='Введите новое значение параметра'):
     _window_entry = PopupEntryW(_window, _text)  # Ввод нового значения
-    _new_val = _window_entry.open()
+    _closed, _new_val = _window_entry.open()
+    if _closed:
+        return
     if _new_val == '':
         PopupMsgW(_window, 'Значение параметра должно содержать хотя бы один символ', title='Warning').open()
     elif _new_val in _values:
@@ -196,8 +198,8 @@ def add_frm_param_val(_window, _values, _text='Введите новое зна�
 # Удалить значение параметра форм
 def delete_frm_param_val(_window, _values, _dct):
     _window_choose = PopupChooseW(_window, _values)  # Выбор значения, которое нужно удалить
-    _val = _window_choose.open()
-    if _val == '':
+    _closed, _val = _window_choose.open()
+    if _closed or _val == '':
         return
     _window_dia = PopupDialogueW(_window, 'Все словоформы, содержащие это значение параметра, будут удалены!\n'
                                           'Хотите продолжить?')
@@ -211,12 +213,14 @@ def delete_frm_param_val(_window, _values, _dct):
 # Переименовать значение параметра форм
 def rename_frm_param_val(_window, _values, _pos, _dct):
     _window_choose = PopupChooseW(_window, _values)  # Выбор значения, которое нужно переименовать
-    _old_val = _window_choose.open()
-    if _old_val == '':
+    _closed, _old_val = _window_choose.open()
+    if _closed or _old_val == '':
         return
     while True:
         _window_entry = PopupEntryW(_window, 'Введите новое название для значения параметра')  # Ввод нового значения
-        _new_val = _window_entry.open()
+        _closed, _new_val = _window_entry.open()
+        if _closed:
+            return
         if _new_val == '':
             PopupMsgW(_window, 'Значение параметра должно содержать хотя бы один символ', title='Warning').open()
             continue
@@ -247,11 +251,11 @@ def add_frm_param(_window, _parameters, _dct):
 def delete_frm_param(_window, _parameters, _dct):
     _keys = [_key for _key in _parameters.keys()]
     _window_choose = PopupChooseW(_window, _keys, btn_text='Удалить')
-    _key = _window_choose.open()
-    if _key == '':
+    _closed, _key = _window_choose.open()
+    if _closed or _key == '':
         return
     _window_dia = PopupDialogueW(_window, 'Все словоформы, содержащие этот параметр, будут удалены!\n'
-                                      'Хотите продолжить?')
+                                          'Хотите продолжить?')
     _answer = _window_dia.open()
     if _answer:
         _pos = _keys.index(_key)
@@ -263,17 +267,19 @@ def delete_frm_param(_window, _parameters, _dct):
 def rename_frm_param(_window, _parameters, _dct):
     _keys = [_key for _key in _parameters.keys()]
     _window_choose = PopupChooseW(_window, _keys, btn_text='Переименовать')
-    _key = _window_choose.open()
-    if _key == '':
+    _closed, _key = _window_choose.open()
+    if _closed or _key == '':
         return
     while True:
         _window_entry = PopupEntryW(_window, 'Введите новое название параметра')
-        _new_key = _window_entry.open()
+        _closed, _new_key = _window_entry.open()
+        if _closed:
+            return
         if _new_key == '':
-            PopupMsgW(_window, 'Недопустимое название параметра', title='Warning').open()
+            PopupMsgW(_window, 'Название параметра должно содержать хотя бы один символ', title='Warning').open()
             continue
         if _new_key in _parameters:
-            PopupMsgW(_window, 'Параметр с таким названием уже есть', title='Warning').open()
+            PopupMsgW(_window, f'Параметр "{_new_key}" уже существует', title='Warning').open()
             continue
         break
     # _dct.rename_forms_param(_index)
@@ -482,8 +488,8 @@ class Entry(object):
         _variants = [f'[{tpl(_key)}] {deu_encode(self.forms[_key])}' for _key in _keys]
 
         _window_choose = PopupChooseW(_window, _variants, 'Выберите форму, которую хотите удалить')
-        _answer = _window_choose.open()
-        if _answer == '':
+        _closed, _answer = _window_choose.open()
+        if _closed or _answer == '':
             return
         _index = _variants.index(_answer)
         _key = _keys[_index]
@@ -496,14 +502,16 @@ class Entry(object):
         _variants = [f'[{tpl(_key)}] {deu_encode(self.forms[_key])}' for _key in _keys]
 
         _window_choose = PopupChooseW(_window, _variants, 'Выберите форму, которую хотите изменить')
-        _answer = _window_choose.open()
-        if _answer == '':
+        _closed, _answer = _window_choose.open()
+        if _closed or _answer == '':
             return
         _index = _variants.index(_answer)
         _key = _keys[_index]
 
         _window_entry = PopupEntryW(_window, 'Введите форму слова')
-        _new_frm = _window_entry.open()
+        _closed, _new_frm = _window_entry.open()
+        if _closed:
+            return
         if _new_frm == '':
             PopupMsgW(_window, 'Форма должна содержать хотя бы один символ', title='Warning').open()
             return
@@ -727,7 +735,9 @@ class Dictionary(object):
         if wrd_to_key(_wrd, 1) not in self.d.keys():  # Если статья только одна, то возвращает её ключ
             return wrd_to_key(_wrd, 0)
         _window_note = ChooseNoteW(_window, _wrd)
-        _answer = _window_note.open()
+        _closed, _answer = _window_note.open()
+        if _closed:
+            return None
         return _answer
 
     # Добавить перевод к статье
@@ -756,6 +766,8 @@ class Dictionary(object):
             _answer = window.open()
             if _answer == 'l':  # Добавить к существующей статье
                 _new_key = self.choose_one_of_similar_entries(_window, _new_wrd)
+                if not _new_key:
+                    return None
 
                 self.count_t -= self.d[_key].count_t
                 self.count_t -= self.d[_new_key].count_t
@@ -808,8 +820,8 @@ class Dictionary(object):
     def delete_tr_with_choose(self, _window, _key):
         self.count_t -= self.d[_key].count_t
         _window_choose = PopupChooseW(_window, self.d[_key].tr, 'Выберите, какой перевод хотите удалить')
-        _tr = _window_choose.open()
-        if not _tr:
+        _closed, _tr = _window_choose.open()
+        if _closed or _tr == '':
             return
         self.d[_key].tr.remove(_tr)
         self.d[_key].count_t -= 1
@@ -818,8 +830,8 @@ class Dictionary(object):
     # Удалить описание в статье
     def delete_note_with_choose(self, _window, _key):
         _window_choose = PopupChooseW(_window, self.d[_key].notes, 'Выберите, какую сноску хотите удалить')
-        _note = _window_choose.open()
-        if not _note:
+        _closed, _note = _window_choose.open()
+        if _closed or _note == '':
             return
         self.d[_key].notes.remove(_note)
         self.d[_key].count_n -= 1
@@ -841,6 +853,8 @@ class Dictionary(object):
                 _answer = window.open()
                 if _answer == 'l':  # Добавить к существующей статье
                     _key = self.choose_one_of_similar_entries(_window, _wrd)
+                    if not _key:
+                        return None
                     self.add_tr(_key, _tr, _window)
                     return _key
                 elif _answer == 'r':  # Создать новую статью
@@ -1039,20 +1053,26 @@ def read_dct(_window, _dct, _savename):
         return read_local_settings(_filename)
     else:  # Если файл повреждён, то предлагается открыть другой файл
         print(f'\nФайл со словарём "{_savename}" повреждён или некорректен!')
-        _window_dia = PopupDialogueW(_window, f'Файл со словарём "{_savename}" повреждён или некорректен!\n'
-                                              f'Хотите открыть другой словарь?', 'Да', 'Завершить работу',
-                                     val_left='l', val_right='r', val_on_close='c')
-        _answer = _window_dia.open()
-        if _answer == 'l':
-            _window_entry = PopupEntryW(_window, 'Введите название словаря\n'
-                                                 '(если он ещё не существует, то будет создан пустой словарь)')
-            dct_savename = _window_entry.open()
-            with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
-                _settings_file.write(f'{dct_savename}\n{show_updates}')
-            _dct = Dictionary()
-            return read_dct(_window, _dct, dct_savename)
-        else:
-            exit()
+        while True:
+            _window_dia = PopupDialogueW(_window, f'Файл со словарём "{_savename}" повреждён или некорректен!\n'
+                                                  f'Хотите открыть другой словарь?',
+                                         'Да', 'Завершить работу', title='Warning')
+            _answer = _window_dia.open()
+            if _answer:
+                _window_entry = PopupEntryW(_window, 'Введите название словаря\n'
+                                                     '(если он ещё не существует, то будет создан пустой словарь)')
+                _closed, dct_savename = _window_entry.open()
+                if _closed:
+                    continue
+                if dct_savename == '':
+                    PopupMsgW(_window, 'Название словаря должно содержать хотя бы один символ', title='Warning').open()
+                    continue
+                with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
+                    _settings_file.write(f'{dct_savename}\n{show_updates}')
+                _dct = Dictionary()
+                return read_dct(_window, _dct, dct_savename)
+            else:
+                exit()
 
 
 # Создать и загрузить пустой словарь
@@ -1208,6 +1228,8 @@ class PopupChooseW(tk.Toplevel):
         self.title(title)
         self.configure(bg=ST_BG[st])
 
+        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+
         self.var_answer = tk.StringVar()
 
         # Стиль для combobox
@@ -1220,7 +1242,7 @@ class PopupChooseW(tk.Toplevel):
         self.lbl_msg = tk.Label(self, text=msg, bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values,
                                        state='readonly', style='.TCombobox')
-        self.btn_ok = tk.Button(self, text=btn_text, command=self.destroy, overrelief='groove',
+        self.btn_ok = tk.Button(self, text=btn_text, command=self.ok, overrelief='groove',
                                 bg=ST_BTNY[st], fg=ST_FG_TEXT[st],
                                 activebackground=ST_BTNY_SELECT[st], highlightbackground=ST_BORDER[st])
 
@@ -1228,10 +1250,14 @@ class PopupChooseW(tk.Toplevel):
         self.combo_vals.grid(row=1, padx=6, pady=1)
         self.btn_ok.grid(    row=2, padx=6, pady=4)
 
+    def ok(self):
+        self.closed = False
+        self.destroy()
+
     def open(self):
         self.grab_set()
         self.wait_window()
-        return self.var_answer.get()
+        return self.closed, self.var_answer.get()
 
 
 # Всплывающее окно с полем ввода и кнопкой
@@ -1241,13 +1267,15 @@ class PopupEntryW(tk.Toplevel):
         self.title(title)
         self.configure(bg=ST_BG[st])
 
+        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+
         self.var_text = tk.StringVar()
 
         self.lbl_msg = tk.Label(self, text=f'{msg}:', bg=ST_BG[st], fg=ST_FG_TEXT[st])
         self.entry_inp = tk.Entry(self, textvariable=self.var_text, bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st],
                                   highlightbackground=ST_BORDER[st], selectbackground=ST_SELECT[st],
                                   highlightcolor=ST_HIGHLIGHT[st])
-        self.btn_ok = tk.Button(self, text=btn_text, command=self.destroy, overrelief='groove',
+        self.btn_ok = tk.Button(self, text=btn_text, command=self.ok, overrelief='groove',
                                 bg=ST_BTNY[st], fg=ST_FG_TEXT[st],
                                 activebackground=ST_BTNY_SELECT[st], highlightbackground=ST_BORDER[st])
 
@@ -1255,10 +1283,15 @@ class PopupEntryW(tk.Toplevel):
         self.entry_inp.grid(row=0, column=1,     padx=(0, 6), pady=(6, 0))
         self.btn_ok.grid(   row=1, columnspan=2, padx=6,      pady=6)
 
+    # Нажатие на кнопку
+    def ok(self):
+        self.closed = False
+        self.destroy()
+
     def open(self):
         self.grab_set()
         self.wait_window()
-        return self.var_text.get()
+        return self.closed, self.var_text.get()
 
 
 # Окно уведомления о выходе новой версии
@@ -1298,9 +1331,10 @@ class ChooseNoteW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[st])
 
+        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
         self.vals_count = -1  # Количество вариантов для выбора (вычисляется в self.print_variants)
         self.wrd = wrd
-        self.answer = wrd_to_key(self.wrd, 0)  # При закрытии окна крестиком, возвращается нулевой вариант
+        self.answer = None
 
         self.var_input = tk.StringVar()
 
@@ -1355,12 +1389,13 @@ class ChooseNoteW(tk.Toplevel):
         if _input != "":
             _index = int(_input)
             self.answer = wrd_to_key(self.wrd, _index)
+        self.closed = False
         self.destroy()
 
     def open(self):
         self.grab_set()
         self.wait_window()
-        return self.answer
+        return self.closed, self.answer
 
 
 # Окно для ввода названия словаря
@@ -1453,6 +1488,7 @@ class ChooseFormParValW(tk.Toplevel):
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[st])
 
+        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
         self.res = ''
         self.vals = par_vals
         self.var_par = tk.StringVar()
@@ -1486,12 +1522,17 @@ class ChooseFormParValW(tk.Toplevel):
 
     # Выбрать параметр и задать ему значение
     def choose(self):
-        self.res = self.var_par.get()
+        val = self.var_par.get()
+        if val == '':
+            return
+        self.res = val
+        self.closed = False
         self.destroy()
 
     # Сбросить значение параметра
     def set_none(self):
         self.res = ''
+        self.closed = False
         self.destroy()
 
     # Добавить новое значение параметра
@@ -1502,7 +1543,7 @@ class ChooseFormParValW(tk.Toplevel):
     def open(self):
         self.grab_set()
         self.wait_window()
-        return self.res
+        return self.closed, self.res
 
 
 # Окно создания шаблона словоформы
@@ -1549,10 +1590,15 @@ class CreateFormTemplateW(tk.Toplevel):
     # Выбрать параметр и задать ему значение
     def choose(self):
         par = self.var_par.get()
+        if par == '':
+            return
         index = self.parameters.index(par)
 
         window = ChooseFormParValW(self, par, form_parameters[par])
-        self.template[index] = window.open()
+        closed, val = window.open()
+        if closed:
+            return
+        self.template[index] = val
 
         self.var_template.set(f'Текущий шаблон формы: "{tpl(self.template)}"')
 
@@ -1706,8 +1752,8 @@ class FormsSettingsW(tk.Toplevel):
     def values(self):
         keys = [_key for _key in form_parameters.keys()]
         window = PopupChooseW(self, keys, 'Какой параметр форм вы хотите изменить?')
-        key = window.open()
-        if key == '':
+        closed, key = window.open()
+        if closed or key == '':
             return
         FormsParameterSettingsW(self, key).open()
 
@@ -2299,16 +2345,21 @@ class EditW(tk.Toplevel):
         global has_changes
 
         window = PopupEntryW(self, 'Введите новое слово')
-        new_wrd = window.open()
+        closed, new_wrd = window.open()
+        if closed:
+            return
         if new_wrd == '':
             PopupMsgW(self, 'Слово должно содержать хотя бы один символ', title='Warning').open()
             return
         if new_wrd == key_to_wrd(self.key):
             PopupMsgW(self, 'Это то же самое слово', title='Warning').open()
             return
-        self.key = dct.edit_wrd(self, self.key, new_wrd)
-        has_changes = True
 
+        self.key = dct.edit_wrd(self, self.key, new_wrd)
+        if not self.key:
+            return
+
+        has_changes = True
         self.refresh()
 
     # Добавить перевод
@@ -2316,16 +2367,19 @@ class EditW(tk.Toplevel):
         global has_changes
 
         window = PopupEntryW(self, 'Введите новый перевод')
-        tr = window.open()
+        closed, tr = window.open()
+        if closed:
+            return
         if tr == '':
             PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning').open()
             return
         if tr in dct.d[self.key].tr:
             PopupMsgW(self, f'У слова "{dct.d[self.key].wrd}" уже есть такой перевод', title='Warning').open()
             return
-        dct.add_tr(self.key, tr, self)
-        has_changes = True
 
+        dct.add_tr(self.key, tr, self)
+
+        has_changes = True
         self.refresh()
 
     # Удалить перевод
@@ -2333,8 +2387,8 @@ class EditW(tk.Toplevel):
         global has_changes
 
         dct.delete_tr_with_choose(self, self.key)
-        has_changes = True
 
+        has_changes = True
         self.refresh()
 
     # Добавить сноску
@@ -2342,16 +2396,19 @@ class EditW(tk.Toplevel):
         global has_changes
 
         window = PopupEntryW(self, 'Введите сноску')
-        note = window.open()
+        closed, note = window.open()
+        if closed:
+            return
         if note == '':
             PopupMsgW(self, 'Сноска должна содержать хотя бы один символ', title='Warning').open()
             return
         if note in dct.d[self.key].notes:
             PopupMsgW(self, f'У слова "{dct.d[self.key].wrd}" уже есть такая сноска', title='Warning').open()
             return
-        dct.add_note(self.key, note)
-        has_changes = True
 
+        dct.add_note(self.key, note)
+
+        has_changes = True
         self.refresh()
 
     # Удалить сноску
@@ -2359,8 +2416,8 @@ class EditW(tk.Toplevel):
         global has_changes
 
         dct.delete_note_with_choose(self, self.key)
-        has_changes = True
 
+        has_changes = True
         self.refresh()
 
     # Добавить словоформу
@@ -2378,10 +2435,13 @@ class EditW(tk.Toplevel):
         if not frm_key:
             return
         window_form = PopupEntryW(self, 'Введите форму слова')  # Ввод словоформы
-        frm = window_form.open()
-        dct.add_frm(self.key, frm_key, frm, self)
-        has_changes = True
+        closed, frm = window_form.open()
+        if closed:
+            return
 
+        dct.add_frm(self.key, frm_key, frm, self)
+
+        has_changes = True
         self.refresh()
 
     # Удалить словоформу
@@ -2389,8 +2449,8 @@ class EditW(tk.Toplevel):
         global has_changes
 
         dct.delete_frm_with_choose(self, self.key)
-        has_changes = True
 
+        has_changes = True
         self.refresh()
 
     # Изменить словоформу
@@ -2398,8 +2458,8 @@ class EditW(tk.Toplevel):
         global has_changes
 
         dct.edit_frm_with_choose(self, self.key)
-        has_changes = True
 
+        has_changes = True
         self.refresh()
 
     # Добавить в избранное/убрать из избранного
@@ -2652,7 +2712,7 @@ class LearnW(tk.Toplevel):
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
-                window = PopupDialogueW(self, 'Верно.\nОставить слово в избранном?', 'Да', 'Нет')
+                window = PopupDialogueW(self, 'Верно.\nОставить слово в избранном?', 'Да', 'Нет', val_on_close=True)
                 answer = window.open()
                 if not answer:
                     entry.fav = False
@@ -2676,7 +2736,7 @@ class LearnW(tk.Toplevel):
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
-                window = PopupDialogueW(self, 'Верно.\nОставить слово в избранном?', 'Да', 'Нет')
+                window = PopupDialogueW(self, 'Верно.\nОставить слово в избранном?', 'Да', 'Нет', val_on_close=True)
                 answer = window.open()
                 if not answer:
                     entry.fav = False
@@ -2700,7 +2760,7 @@ class LearnW(tk.Toplevel):
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
-                window = PopupDialogueW(self, 'Верно.\nОставить слово в избранном?', 'Да', 'Нет')
+                window = PopupDialogueW(self, 'Верно.\nОставить слово в избранном?', 'Да', 'Нет', val_on_close=True)
                 answer = window.open()
                 if not answer:
                     entry.fav = False
@@ -3079,8 +3139,8 @@ class SettingsW(tk.Toplevel):
             return
 
         window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите открыть')
-        savename = window.open()
-        if savename == '':
+        closed, savename = window.open()
+        if closed or savename == '':
             return
 
         save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename())
@@ -3130,17 +3190,17 @@ class SettingsW(tk.Toplevel):
                 saves_list += [base_name]
                 saves_count += 1
         window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите переименовать')
-        old_savename = window_choose.open()
-        old_filename = f'{old_savename}.txt'
-        if old_savename == '':
+        closed, old_savename = window_choose.open()
+        if closed or old_savename == '':
             return
 
         window_rename = EnterSaveNameW(self)
         new_name_is_correct, new_savename = window_rename.open()
-        new_filename = f'{new_savename}.txt'
         if not new_name_is_correct:
             return
 
+        old_filename = f'{old_savename}.txt'
+        new_filename = f'{new_savename}.txt'
         os.rename(os.path.join(SAVES_PATH, old_filename), os.path.join(SAVES_PATH, new_filename))
         os.rename(os.path.join(LOCAL_SETTINGS_PATH, old_filename), os.path.join(LOCAL_SETTINGS_PATH, new_filename))
         if dct_savename == old_savename:
@@ -3166,9 +3226,8 @@ class SettingsW(tk.Toplevel):
             return
 
         window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите удалить')
-        savename = window_choose.open()
-        filename = f'{savename}.txt'
-        if savename == '':
+        closed, savename = window_choose.open()
+        if closed or savename == '':
             return
         if savename == dct_savename:
             PopupMsgW(self, 'Нельзя удалить словарь, который сейчас открыт', title='Warning').open()
@@ -3179,6 +3238,8 @@ class SettingsW(tk.Toplevel):
         answer = window_confirm.open()
         if not answer:
             return
+
+        filename = f'{savename}.txt'
         os.remove(os.path.join(SAVES_PATH, filename))
         os.remove(os.path.join(LOCAL_SETTINGS_PATH, filename))
         PopupMsgW(self, f'Словарь "{savename}" успешно удалён').open()
@@ -3291,6 +3352,8 @@ class MainW(tk.Tk):
             ParticularMatchesW(self, wrd).open()
             return
         key = dct.choose_one_of_similar_entries(self, wrd)
+        if not key:
+            return None
         EditW(self, key).open()
 
     # Добавление статьи
@@ -3376,11 +3439,17 @@ except:
 root.mainloop()
 
 # строка 56 - добавить выбор стилей
-# Попробовать tk.ScrolledText
+# попробовать tk.ScrolledText
 # добавить изменение статьи по переводу
-# PopupEntryW и другие: onClose
 # сделать покрасивее поле выбора нового словаря при ошибке загрузки
-# проверить корректность работы переименовывания значения параметра словоформы
 # enter
 # принимать несколько ответов при угадывании слова
 # если ответ немного отличается от правильного, то ...
+
+# что если в settings.txt не будет версии
+# формы - переместить удалить и переименовать
+# новая строка в лэйбле
+# debug rename_par
+# debug rename_par_val
+# шаблон - кнопка 'задать значение' - увеличить padx
+# выберите какой перевод/сноску/форму хотите удалить (изм. форму) - увеличить ширину entry
