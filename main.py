@@ -13,8 +13,8 @@ import urllib.request as urllib2
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-48'
-PROGRAM_DATE = '13.1.2023  19:02 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-49'
+PROGRAM_DATE = '13.1.2023  20:03 (UTC+5)'
 
 """ Стили """
 
@@ -1012,9 +1012,18 @@ class Dictionary(object):
 # Загрузить локальные настройки (настройки словаря) из файла
 def read_local_settings(_filename):
     _local_settings_fn = os.path.join(LOCAL_SETTINGS_PATH, _filename)
-    try:  # Проверка наличия файла
-        open(_local_settings_fn, 'r', encoding='utf-8')
-    except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
+    _form_parameters = {}
+    try:
+        with open(_local_settings_fn, 'r', encoding='utf-8') as _loc_set_file:
+            _min_good_score_perc = int(_loc_set_file.readline().strip())
+            while True:
+                _key = _loc_set_file.readline().strip()
+                if not _key:
+                    break
+                _value = _loc_set_file.readline().strip().split(FORMS_SEPARATOR)
+                _form_parameters[_key] = _value
+    # Если файл отсутствует или повреждён, то создаётся файл по умолчанию
+    except (FileNotFoundError, ValueError, TypeError):
         with open(_local_settings_fn, 'w', encoding='utf-8') as _loc_set_file:
             _loc_set_file.write('67\n'
                                 'Число\n'
@@ -1027,16 +1036,14 @@ def read_local_settings(_filename):
                                 f'1 л.{FORMS_SEPARATOR}2 л.{FORMS_SEPARATOR}3 л.\n'
                                 'Время\n'
                                 f'пр.вр.{FORMS_SEPARATOR}н.вр.{FORMS_SEPARATOR}буд.вр.')
-
-    _form_parameters = {}
-    with open(_local_settings_fn, 'r', encoding='utf-8') as _loc_set_file:
-        _min_good_score_perc = int(_loc_set_file.readline().strip())
-        while True:
-            _key = _loc_set_file.readline().strip()
-            if not _key:
-                break
-            _value = _loc_set_file.readline().strip().split(FORMS_SEPARATOR)
-            _form_parameters[_key] = _value
+        with open(_local_settings_fn, 'r', encoding='utf-8') as _loc_set_file:
+            _min_good_score_perc = int(_loc_set_file.readline().strip())
+            while True:
+                _key = _loc_set_file.readline().strip()
+                if not _key:
+                    break
+                _value = _loc_set_file.readline().strip().split(FORMS_SEPARATOR)
+                _form_parameters[_key] = _value
     return _min_good_score_perc, _form_parameters
 
 
