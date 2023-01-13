@@ -13,8 +13,8 @@ import urllib.request as urllib2
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-41'
-PROGRAM_DATE = '13.1.2023  13:52 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-42'
+PROGRAM_DATE = '13.1.2023  14:21 (UTC+5)'
 
 """ Стили """
 
@@ -2015,6 +2015,8 @@ class SearchW(tk.Toplevel):
 
         self.scrollbar_wrd.config(command=self.text_wrd.yview)
         self.scrollbar_tr.config( command=self.text_tr.yview)
+
+        self.search()
 
     # Поиск статей
     def search(self):
