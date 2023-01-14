@@ -15,8 +15,36 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-56'
-PROGRAM_DATE = '14.1.2023  15:44 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-57'
+PROGRAM_DATE = '14.1.2023  16:14 (UTC+5)'
+
+""" Папки и файлы """
+
+# Ссылка на страницу программы на GitHub
+URL_GITHUB = 'https://github.com/Anenokil/Dictionary'
+# Ссылка на файл с названием последней версией
+URL_LAST_VERSION = 'https://raw.githubusercontent.com/Anenokil/Dictionary/master/ver'
+# Ссылка для установки последней версии
+URL_DOWNLOAD_ZIP = 'https://github.com/Anenokil/Dictionary/archive/refs/heads/master.zip'
+
+NEW_VERSION_DIR = f'{PROGRAM_NAME}-master'  # Временная папка с обновлением
+NEW_VERSION_ZIP = f'{NEW_VERSION_DIR}.zip'  # Архив с обновлением
+
+RESOURCES_DIR = 'resources'  # Папка с ресурсами
+SAVES_DIR = 'saves'  # Папка с сохранениями
+SAVES_PATH = os.path.join(RESOURCES_DIR, SAVES_DIR)
+LOCAL_SETTINGS_DIR = 'local_settings'  # Папка с локальными настройками (настройки словаря)
+LOCAL_SETTINGS_PATH = os.path.join(RESOURCES_DIR, LOCAL_SETTINGS_DIR)
+GLOBAL_SETTINGS_FN = 'settings.txt'  # Файл с глобальными настройками (настройки программы)
+GLOBAL_SETTINGS_PATH = os.path.join(RESOURCES_DIR, GLOBAL_SETTINGS_FN)
+
+# Если папки отсутствуют, то они создаются
+if RESOURCES_DIR not in os.listdir(os.curdir):
+    os.mkdir(RESOURCES_DIR)
+if SAVES_DIR not in os.listdir(RESOURCES_DIR):
+    os.mkdir(SAVES_PATH)
+if LOCAL_SETTINGS_DIR not in os.listdir(RESOURCES_DIR):
+    os.mkdir(LOCAL_SETTINGS_PATH)
 
 """ Стили """
 
@@ -50,36 +78,12 @@ ST_FG_TEXT     = {'light': '#222222', 'dark': '#979797', 'infernal': '#000000'} 
 ST_FG_LOGO     = {'light': '#FF7200', 'dark': '#803600', 'infernal': '#FF7200'}  # Цвет текста логотипа
 ST_FG_FOOTER   = {'light': '#666666', 'dark': '#666666', 'infernal': '#222222'}  # Цвет текста нижнего колонтитула
 
-""" Папки и файлы """
-
-RESOURCES_DIR = 'resources'  # Папка с ресурсами
-SAVES_DIR = 'saves'  # Папка с сохранениями
-SAVES_PATH = os.path.join(RESOURCES_DIR, SAVES_DIR)
-LOCAL_SETTINGS_DIR = 'local_settings'  # Папка с локальными настройками (настройки словаря)
-LOCAL_SETTINGS_PATH = os.path.join(RESOURCES_DIR, LOCAL_SETTINGS_DIR)
-GLOBAL_SETTINGS_FN = 'settings.txt'  # Файл с глобальными настройками (настройки программы)
-GLOBAL_SETTINGS_PATH = os.path.join(RESOURCES_DIR, GLOBAL_SETTINGS_FN)
-
-# Если папки отсутствуют, то они создаются
-if RESOURCES_DIR not in os.listdir(os.curdir):
-    os.mkdir(RESOURCES_DIR)
-if SAVES_DIR not in os.listdir(RESOURCES_DIR):
-    os.mkdir(SAVES_PATH)
-if LOCAL_SETTINGS_DIR not in os.listdir(RESOURCES_DIR):
-    os.mkdir(LOCAL_SETTINGS_PATH)
-
 """ Другое """
 
 FORMS_SEPARATOR = '@'  # Разделитель для записи форм в файл
 
 VALUES_ORDER = ('Угадывать слово по переводу', 'Угадывать перевод по слову')
 VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только избранные')
-
-URL_GITHUB = 'https://github.com/Anenokil/Dictionary'
-URL_LAST_VERSION = 'https://raw.githubusercontent.com/Anenokil/Dictionary/master/ver'
-URL_DOWNLOAD_ZIP = 'https://github.com/Anenokil/Dictionary/archive/refs/heads/master.zip'
-NEW_VERSION_DIR = f'{PROGRAM_NAME}-master'
-NEW_VERSION_ZIP = f'{NEW_VERSION_DIR}.zip'
 
 MAX_SAME_WORDS = 100  # Максимальное количество статей с одинаковым словом
 
