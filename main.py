@@ -9,12 +9,13 @@ else:
     import Tkinter as tk
     import Tkinter.ttk as ttk
 import urllib.request as urllib2
+import webbrowser
 
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-52'
-PROGRAM_DATE = '13.1.2023  22:37 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-53'
+PROGRAM_DATE = '14.1.2023  14:03 (UTC+5)'
 
 """ Стили """
 
@@ -75,6 +76,7 @@ VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только и
 
 URL_GITHUB = 'https://github.com/Anenokil/Dictionary'
 URL_LAST_VERSION = 'https://raw.githubusercontent.com/Anenokil/Dictionary/master/ver'
+URL_DOWNLOAD_ZIP = 'https://github.com/Anenokil/Dictionary/archive/refs/heads/master.zip'
 
 MAX_SAME_WORDS = 100  # Максимальное количество статей с одинаковым словом
 
@@ -1343,13 +1345,26 @@ class LastVersionW(tk.Toplevel):
                                   relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st],
                                   highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st],
                                   selectbackground=ST_SELECT[st], readonlybackground=ST_BG_FIELDS[st])
-        self.btn_ok = tk.Button(self, text='Ясно', command=self.destroy, overrelief='groove',
+        self.btn_download = tk.Button(self, text='Скачать', command=self.download, overrelief='groove',
+                                      bg=ST_BTN[st], fg=ST_FG_TEXT[st],
+                                      activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
+        self.btn_close = tk.Button(self, text='Закрыть', command=self.destroy, overrelief='groove',
                                 bg=ST_BTN[st], fg=ST_FG_TEXT[st],
                                 activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
 
-        self.lbl_msg.grid(  row=1, column=0, padx=6, pady=(4, 0))
-        self.entry_url.grid(row=2, column=0, padx=6, pady=(0, 4))
-        self.btn_ok.grid(   row=3, column=0, padx=6, pady=4)
+        self.lbl_msg.grid(     row=1, columnspan=2, padx=6, pady=(4, 0))
+        self.entry_url.grid(   row=2, columnspan=2, padx=6, pady=(0, 4))
+        self.btn_download.grid(row=3, column=0,     padx=6, pady=4)
+        self.btn_close.grid(   row=3, column=1,     padx=6, pady=4)
+
+    # Скачать файл с последней версией
+    def download(self):
+        try:
+            webbrowser.open(URL_DOWNLOAD_ZIP, new=2)
+        except:
+            PopupMsgW(self, 'Не удалось загрузить файл!\n', title='Warning').open()
+            return
+        self.destroy()
 
     def open(self):
         self.grab_set()
