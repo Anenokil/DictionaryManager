@@ -15,8 +15,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-59'
-PROGRAM_DATE = '14.1.2023  19:42 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-60'
+PROGRAM_DATE = '14.1.2023  20:14 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -117,7 +117,7 @@ def width(_values, _min, _max):
 
 
 # Вывод текста на виджет
-def outp(_output_widget, _text='', _end='\n', _mode=tk.INSERT):
+def outp(_output_widget, _text='', _end='\n', _mode=tk.END):
     _output_widget.insert(_mode, _text + _end)
 
 
@@ -1853,7 +1853,7 @@ class FormsSettingsW(tk.Toplevel):
         self.text_form_par['state'] = 'normal'
         self.text_form_par.delete(1.0, tk.END)
         for key in form_parameters.keys():
-            self.text_form_par.insert(tk.INSERT, f'{key}\n')
+            self.text_form_par.insert(tk.END, f'{key}\n')
         self.text_form_par['state'] = 'disabled'
 
     # Обновить отображаемую информацию
@@ -1949,7 +1949,7 @@ class FormsParameterSettingsW(tk.Toplevel):
         self.text_par_val['state'] = 'normal'
         self.text_par_val.delete(1.0, tk.END)
         for key in self.par_vals:
-            self.text_par_val.insert(tk.INSERT, f'{key}\n')
+            self.text_par_val.insert(tk.END, f'{key}\n')
         self.text_par_val['state'] = 'disabled'
 
     # Обновить отображаемую информацию
@@ -2242,7 +2242,7 @@ class EditW(tk.Toplevel):
                                yscrollcommand=self.scrollbar_wrd.set, relief='solid', bg=ST_BG_FIELDS[th],
                                fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                selectbackground=ST_SELECT[th])
-        self.txt_wrd.insert(tk.INSERT, dct.d[key].wrd)
+        self.txt_wrd.insert(tk.END, dct.d[key].wrd)
         self.txt_wrd['state'] = 'disabled'
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
         self.btn_wrd_edt = tk.Button(self.frame_main, text='изм.', command=self.wrd_edt, overrelief='groove',
@@ -2255,7 +2255,7 @@ class EditW(tk.Toplevel):
                               yscrollcommand=self.scrollbar_tr.set, relief='solid', bg=ST_BG_FIELDS[th],
                               fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                               selectbackground=ST_SELECT[th])
-        self.txt_tr.insert(tk.INSERT, dct.d[key].tr_to_str())
+        self.txt_tr.insert(tk.END, dct.d[key].tr_to_str())
         self.txt_tr['state'] = 'disabled'
         self.scrollbar_tr.config(command=self.txt_tr.yview)
         self.frame_btns_tr = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
@@ -2274,7 +2274,7 @@ class EditW(tk.Toplevel):
                                  yscrollcommand=self.scrollbar_notes.set, relief='solid', bg=ST_BG_FIELDS[th],
                                  fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                  selectbackground=ST_SELECT[th])
-        self.txt_notes.insert(tk.INSERT, dct.d[key].notes_to_str())
+        self.txt_notes.insert(tk.END, dct.d[key].notes_to_str())
         self.txt_notes['state'] = 'disabled'
         self.scrollbar_notes.config(command=self.txt_notes.yview)
         self.frame_btns_notes = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
@@ -2293,7 +2293,7 @@ class EditW(tk.Toplevel):
                                yscrollcommand=self.scrollbar_frm.set, relief='solid', bg=ST_BG_FIELDS[th],
                                fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                selectbackground=ST_SELECT[th])
-        self.txt_frm.insert(tk.INSERT, dct.d[key].frm_to_str())
+        self.txt_frm.insert(tk.END, dct.d[key].frm_to_str())
         self.txt_frm['state'] = 'disabled'
         self.scrollbar_frm.config(command=self.txt_frm.yview)
         self.frame_btns_frm = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
@@ -2390,22 +2390,22 @@ class EditW(tk.Toplevel):
 
         self.txt_wrd['state'] = 'normal'
         self.txt_wrd.delete(1.0, tk.END)
-        self.txt_wrd.insert(tk.INSERT, dct.d[self.key].wrd)
+        self.txt_wrd.insert(tk.END, dct.d[self.key].wrd)
         self.txt_wrd['state'] = 'disabled'
 
         self.txt_tr['state'] = 'normal'
         self.txt_tr.delete(1.0, tk.END)
-        self.txt_tr.insert(tk.INSERT, dct.d[self.key].tr_to_str())
+        self.txt_tr.insert(tk.END, dct.d[self.key].tr_to_str())
         self.txt_tr['state'] = 'disabled'
 
         self.txt_notes['state'] = 'normal'
         self.txt_notes.delete(1.0, tk.END)
-        self.txt_notes.insert(tk.INSERT, dct.d[self.key].notes_to_str())
+        self.txt_notes.insert(tk.END, dct.d[self.key].notes_to_str())
         self.txt_notes['state'] = 'disabled'
 
         self.txt_frm['state'] = 'normal'
         self.txt_frm.delete(1.0, tk.END)
-        self.txt_frm.insert(tk.INSERT, dct.d[self.key].frm_to_str())
+        self.txt_frm.insert(tk.END, dct.d[self.key].frm_to_str())
         self.txt_frm['state'] = 'disabled'
 
         self.btn_tr_del.grid(     row=0, column=1, padx=(1, 0), pady=0)
@@ -3385,9 +3385,9 @@ class SettingsW(tk.Toplevel):
             base_name, ext = os.path.splitext(filename)
             if ext == '.txt':
                 if filename == dct_filename():
-                    self.text_dcts.insert(tk.INSERT, f'"{base_name}" (ОТКРЫТ)\n')
+                    self.text_dcts.insert(tk.END, f'"{base_name}" (ОТКРЫТ)\n')
                 else:
-                    self.text_dcts.insert(tk.INSERT, f'"{base_name}"\n')
+                    self.text_dcts.insert(tk.END, f'"{base_name}"\n')
         self.text_dcts['state'] = 'disabled'
 
     # Установить выбранную тему
