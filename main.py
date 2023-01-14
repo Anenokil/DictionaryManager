@@ -8,14 +8,15 @@ if sys.version_info[0] == 3:
 else:
     import Tkinter as tk
     import Tkinter.ttk as ttk
-import urllib.request as urllib2
-import webbrowser
+import urllib.request as urllib2  # Для проверки наличия обновлений
+import wget  # Для загрузки обновления
+import zipfile  # Для распаковки обновления
 
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-53'
-PROGRAM_DATE = '14.1.2023  14:03 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-54'
+PROGRAM_DATE = '14.1.2023  15:04 (UTC+5)'
 
 """ Стили """
 
@@ -77,6 +78,7 @@ VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только и
 URL_GITHUB = 'https://github.com/Anenokil/Dictionary'
 URL_LAST_VERSION = 'https://raw.githubusercontent.com/Anenokil/Dictionary/master/ver'
 URL_DOWNLOAD_ZIP = 'https://github.com/Anenokil/Dictionary/archive/refs/heads/master.zip'
+NEW_VERSION_ZIP_FILENAME = f'{PROGRAM_NAME}-master.zip'
 
 MAX_SAME_WORDS = 100  # Максимальное количество статей с одинаковым словом
 
@@ -1360,9 +1362,30 @@ class LastVersionW(tk.Toplevel):
     # Скачать файл с последней версией
     def download(self):
         try:
-            webbrowser.open(URL_DOWNLOAD_ZIP, new=2)
+            wget.download(URL_DOWNLOAD_ZIP, out=os.path.dirname(__file__))  # Скачиваем архив с обновлением
+            with zipfile.ZipFile(NEW_VERSION_ZIP_FILENAME, 'r') as zip_file:
+                zip_file.extractall('tmp_update')  # Распаковываем архив во временную папку
+            os.remove(NEW_VERSION_ZIP_FILENAME)  # Удаляем архив
+            # Удаляем файлы текущей версии
+            os.remove('ver')
+            os.remove('README.txt')
+            os.remove('README.md')
+            os.remove('main.py')
+            # Из временной папки достаём файлы новой версии
+            os.replace(os.path.join('tmp_update', 'Dictionary-master', 'ver'),
+                       'ver')
+            os.replace(os.path.join('tmp_update', 'Dictionary-master', 'README.txt'),
+                       'README.txt')
+            os.replace(os.path.join('tmp_update', 'Dictionary-master', 'README.md'),
+                       'README.md')
+            os.replace(os.path.join('tmp_update', 'Dictionary-master', 'main.py'),
+                       'main.py')
+            # Удаляем временную папку
+            os.rmdir(os.path.join('tmp_update', 'Dictionary-master'))
+            os.rmdir('tmp_update')
+            exit(777)
         except:
-            PopupMsgW(self, 'Не удалось загрузить файл!\n', title='Warning').open()
+            PopupMsgW(self, 'Не удалось загрузить и установить обновление!', title='Warning').open()
             return
         self.destroy()
 
@@ -3583,3 +3606,5 @@ root.mainloop()
 # принимать несколько ответов при угадывании слова
 # если ответ немного отличается от правильного, то ...
 # enter
+
+# обновлять стиль NewVersionW
