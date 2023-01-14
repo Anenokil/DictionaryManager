@@ -15,8 +15,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-54'
-PROGRAM_DATE = '14.1.2023  15:04 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-55'
+PROGRAM_DATE = '14.1.2023  15:36 (UTC+5)'
 
 """ Стили """
 
@@ -78,7 +78,8 @@ VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только и
 URL_GITHUB = 'https://github.com/Anenokil/Dictionary'
 URL_LAST_VERSION = 'https://raw.githubusercontent.com/Anenokil/Dictionary/master/ver'
 URL_DOWNLOAD_ZIP = 'https://github.com/Anenokil/Dictionary/archive/refs/heads/master.zip'
-NEW_VERSION_ZIP_FILENAME = f'{PROGRAM_NAME}-master.zip'
+NEW_VERSION_DIR = f'{PROGRAM_NAME}-master'
+NEW_VERSION_ZIP = f'{NEW_VERSION_DIR}.zip'
 
 MAX_SAME_WORDS = 100  # Максимальное количество статей с одинаковым словом
 
@@ -1347,7 +1348,7 @@ class LastVersionW(tk.Toplevel):
                                   relief='solid', bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st],
                                   highlightbackground=ST_BORDER[st], highlightcolor=ST_HIGHLIGHT[st],
                                   selectbackground=ST_SELECT[st], readonlybackground=ST_BG_FIELDS[st])
-        self.btn_download = tk.Button(self, text='Скачать', command=self.download, overrelief='groove',
+        self.btn_update = tk.Button(self, text='Обновить', command=self.download_and_install, overrelief='groove',
                                       bg=ST_BTN[st], fg=ST_FG_TEXT[st],
                                       activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
         self.btn_close = tk.Button(self, text='Закрыть', command=self.destroy, overrelief='groove',
@@ -1356,38 +1357,46 @@ class LastVersionW(tk.Toplevel):
 
         self.lbl_msg.grid(     row=1, columnspan=2, padx=6, pady=(4, 0))
         self.entry_url.grid(   row=2, columnspan=2, padx=6, pady=(0, 4))
-        self.btn_download.grid(row=3, column=0,     padx=6, pady=4)
+        self.btn_update.grid(row=3, column=0,     padx=6, pady=4)
         self.btn_close.grid(   row=3, column=1,     padx=6, pady=4)
 
-    # Скачать файл с последней версией
-    def download(self):
-        try:
+    # Скачать и установить обновление
+    def download_and_install(self):
+        try:  # Загрузка
+            print('download zip')
             wget.download(URL_DOWNLOAD_ZIP, out=os.path.dirname(__file__))  # Скачиваем архив с обновлением
-            with zipfile.ZipFile(NEW_VERSION_ZIP_FILENAME, 'r') as zip_file:
-                zip_file.extractall('tmp_update')  # Распаковываем архив во временную папку
-            os.remove(NEW_VERSION_ZIP_FILENAME)  # Удаляем архив
+        except:
+            PopupMsgW(self, 'Не удалось загрузить обновление!', title='Warning').open()
+            self.destroy()
+        try:  # Установка
+            # Распаковываем архив во временную папку
+            print('\nextracting')
+            with zipfile.ZipFile(NEW_VERSION_ZIP, 'r') as zip_file:
+                zip_file.extractall(os.path.dirname(__file__))
+            # Удаляем архив
+            print('delete zip')
+            os.remove(NEW_VERSION_ZIP)
             # Удаляем файлы текущей версии
+            print('delete old files')
             os.remove('ver')
             os.remove('README.txt')
             os.remove('README.md')
             os.remove('main.py')
             # Из временной папки достаём файлы новой версии
-            os.replace(os.path.join('tmp_update', 'Dictionary-master', 'ver'),
-                       'ver')
-            os.replace(os.path.join('tmp_update', 'Dictionary-master', 'README.txt'),
-                       'README.txt')
-            os.replace(os.path.join('tmp_update', 'Dictionary-master', 'README.md'),
-                       'README.md')
-            os.replace(os.path.join('tmp_update', 'Dictionary-master', 'main.py'),
-                       'main.py')
+            print('set new files')
+            os.replace(os.path.join(NEW_VERSION_DIR, 'ver'), 'ver')
+            os.replace(os.path.join(NEW_VERSION_DIR, 'README.txt'), 'README.txt')
+            os.replace(os.path.join(NEW_VERSION_DIR, 'README.md'), 'README.md')
+            os.replace(os.path.join(NEW_VERSION_DIR, 'main.py'), 'main.py')
             # Удаляем временную папку
-            os.rmdir(os.path.join('tmp_update', 'Dictionary-master'))
-            os.rmdir('tmp_update')
-            exit(777)
+            print('delete tmp dir')
+            os.rmdir(NEW_VERSION_DIR)
+            PopupMsgW(self, 'Обновление успешно установлено\nПрограмма закроется').open()
         except:
-            PopupMsgW(self, 'Не удалось загрузить и установить обновление!', title='Warning').open()
-            return
-        self.destroy()
+            PopupMsgW(self, 'Не удалось установить обновление!', title='Warning').open()
+            self.destroy()
+        else:
+            exit(777)
 
     def open(self):
         self.grab_set()
