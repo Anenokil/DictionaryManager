@@ -15,8 +15,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-55'
-PROGRAM_DATE = '14.1.2023  15:36 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-56'
+PROGRAM_DATE = '14.1.2023  15:44 (UTC+5)'
 
 """ Стили """
 
@@ -1355,10 +1355,10 @@ class LastVersionW(tk.Toplevel):
                                 bg=ST_BTN[st], fg=ST_FG_TEXT[st],
                                 activebackground=ST_BTN_SELECT[st], highlightbackground=ST_BORDER[st])
 
-        self.lbl_msg.grid(     row=1, columnspan=2, padx=6, pady=(4, 0))
-        self.entry_url.grid(   row=2, columnspan=2, padx=6, pady=(0, 4))
+        self.lbl_msg.grid(   row=1, columnspan=2, padx=6, pady=(4, 0))
+        self.entry_url.grid( row=2, columnspan=2, padx=6, pady=(0, 4))
         self.btn_update.grid(row=3, column=0,     padx=6, pady=4)
-        self.btn_close.grid(   row=3, column=1,     padx=6, pady=4)
+        self.btn_close.grid( row=3, column=1,     padx=6, pady=4)
 
     # Скачать и установить обновление
     def download_and_install(self):
@@ -3541,6 +3541,21 @@ class MainW(tk.Tk):
 
         self.lbl_footer.configure(bg=ST_BG[st], fg=ST_FG_FOOTER[st])
 
+        if window_last_version:
+            window_last_version.configure(bg=ST_BG[st])
+            window_last_version.lbl_msg.configure(bg=ST_BG[st], fg=ST_FG_TEXT[st])
+            window_last_version.entry_url.configure(bg=ST_BG_FIELDS[st], fg=ST_FG_TEXT[st],
+                                                    highlightbackground=ST_BORDER[st],
+                                                    highlightcolor=ST_HIGHLIGHT[st],
+                                                    selectbackground=ST_SELECT[st],
+                                                    readonlybackground=ST_BG_FIELDS[st])
+            window_last_version.btn_update.configure(bg=ST_BTN[st], fg=ST_FG_TEXT[st],
+                                                     activebackground=ST_BTN_SELECT[st],
+                                                     highlightbackground=ST_BORDER[st])
+            window_last_version.btn_close.configure(bg=ST_BTN[st], fg=ST_FG_TEXT[st],
+                                                    activebackground=ST_BTN_SELECT[st],
+                                                    highlightbackground=ST_BORDER[st])
+
     # Сохранить изменения
     def save(self):
         global has_changes
@@ -3591,6 +3606,7 @@ has_changes = False
 # Загружаем словарь и его настройки (локальные настройки)
 min_good_score_perc, form_parameters = read_dct(root, dct, dct_savename)
 
+window_last_version = None
 print('\nПроверка обновлений:', end=' ')
 try:
     data = urllib2.urlopen(URL_LAST_VERSION)
@@ -3600,7 +3616,7 @@ try:
     else:
         print(f'Доступна новая версия: {last_version}')
         if show_updates:
-            LastVersionW(root)
+            window_last_version = LastVersionW(root)
 except:
     print('Ошибка, возможно отсутствует соединение')
 
@@ -3615,5 +3631,3 @@ root.mainloop()
 # принимать несколько ответов при угадывании слова
 # если ответ немного отличается от правильного, то ...
 # enter
-
-# обновлять стиль NewVersionW
