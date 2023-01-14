@@ -15,8 +15,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-61'
-PROGRAM_DATE = '14.1.2023  20:36 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-62'
+PROGRAM_DATE = '14.1.2023  22:26 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -1482,7 +1482,7 @@ class ChooseNoteW(tk.Toplevel):
 
 
 # Окно для ввода названия словаря
-class EnterSaveNameW(tk.Toplevel):
+class EnterDctNameW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
@@ -1492,7 +1492,7 @@ class EnterSaveNameW(tk.Toplevel):
 
         self.var_name = tk.StringVar()
 
-        self.lbl_msg = tk.Label(self, text='Введите название файла со словарём', bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.lbl_msg = tk.Label(self, text='Введите название словаря', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.entry_name = tk.Entry(self, textvariable=self.var_name, width=30, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                    highlightbackground=ST_BORDER[th], selectbackground=ST_SELECT[th],
                                    highlightcolor=ST_HIGHLIGHT[th])
@@ -3285,7 +3285,7 @@ class SettingsW(tk.Toplevel):
     def dct_create(self):
         global dct, dct_savename, min_good_score_perc, form_parameters, has_changes
 
-        window = EnterSaveNameW(self)
+        window = EnterDctNameW(self)
         filename_is_correct, savename = window.open()
         if not filename_is_correct:
             return
@@ -3322,7 +3322,7 @@ class SettingsW(tk.Toplevel):
         if closed or old_savename == '':
             return
 
-        window_rename = EnterSaveNameW(self)
+        window_rename = EnterDctNameW(self)
         new_name_is_correct, new_savename = window_rename.open()
         if not new_name_is_correct:
             return
