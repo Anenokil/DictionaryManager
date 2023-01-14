@@ -15,8 +15,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-57'
-PROGRAM_DATE = '14.1.2023  16:14 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-58'
+PROGRAM_DATE = '14.1.2023  19:38 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -57,26 +57,25 @@ STYLES = ('light', 'dark', 'infernal')
 # Кнопки: activebackground
 # Entry: selectbackground, highlightcolor
 
-ST_BG          = {'light': '#EEEEEE', 'dark': '#222222', 'infernal': '#DD1515'}  # Цвет фона окна
-ST_BG_FIELDS   = {'light': '#FFFFFF', 'dark': '#171717', 'infernal': '#CCCCCC'}  # Цвет фона полей ввода
-#ST_BG_ERR      = {'light': '#EE6666', 'dark': '#773333', 'infernal': '#FF0000'}  # Цвет фона полей ввода - ошибка
+ST_BG          = {STYLES[0]: '#EEEEEE', STYLES[1]: '#222222', STYLES[2]: '#DD1515'}  # Цвет фона окна
+ST_BG_FIELDS   = {STYLES[0]: '#FFFFFF', STYLES[1]: '#171717', STYLES[2]: '#FFAAAA'}  # Цвет фона полей ввода
 
-ST_BORDER      = {'light': '#222222', 'dark': '#111111', 'infernal': '#330000'}  # Цвет рамок
-ST_RELIEF      = {'light': 'groove',  'dark': 'solid',   'infernal': 'groove' }  # Стиль рамок
+ST_BORDER      = {STYLES[0]: '#222222', STYLES[1]: '#111111', STYLES[2]: '#330000'}  # Цвет рамок
+ST_RELIEF      = {STYLES[0]: 'groove',  STYLES[1]: 'solid',   STYLES[2]: 'groove' }  # Стиль рамок
 
-ST_SELECT      = {'light': '#AABBBB', 'dark': '#444444', 'infernal': '#FF5500'}  #
-ST_HIGHLIGHT   = {'light': '#00DD00', 'dark': '#007700', 'infernal': '#EEEEEE'}  #
+ST_SELECT      = {STYLES[0]: '#AABBBB', STYLES[1]: '#444444', STYLES[2]: '#FF5500'}  # Цвет выделения текста
+ST_HIGHLIGHT   = {STYLES[0]: '#00DD00', STYLES[1]: '#007700', STYLES[2]: '#EEEEEE'}  #
 
-ST_BTN         = {'light': '#D0D0D0', 'dark': '#202020', 'infernal': '#DD2020'}  # Цвет фона обычных кнопок
-ST_BTN_SELECT  = {'light': '#BABABA', 'dark': '#272727', 'infernal': '#DD5020'}  # Цвет фона обычных кнопок при нажатии
-ST_BTNY        = {'light': '#88DD88', 'dark': '#446F44', 'infernal': '#CC6633'}  # Цвет фона да-кнопок
-ST_BTNY_SELECT = {'light': '#77CC77', 'dark': '#558055', 'infernal': '#CC9633'}  # Цвет фона да-кнопок при нажатии
-ST_BTNN        = {'light': '#FF6666', 'dark': '#803333', 'infernal': '#CD0000'}  # Цвет фона нет-кнопок
-ST_BTNN_SELECT = {'light': '#EE5555', 'dark': '#904444', 'infernal': '#CD3000'}  # Цвет фона нет-кнопок при нажатии
+ST_BTN         = {STYLES[0]: '#D0D0D0', STYLES[1]: '#202020', STYLES[2]: '#DD2020'}  # Цвет фона обычных кнопок
+ST_BTN_SELECT  = {STYLES[0]: '#BABABA', STYLES[1]: '#272727', STYLES[2]: '#DD5020'}  # Цвет фона обычных кнопок при нажатии
+ST_BTNY        = {STYLES[0]: '#88DD88', STYLES[1]: '#446F44', STYLES[2]: '#CC6633'}  # Цвет фона да-кнопок
+ST_BTNY_SELECT = {STYLES[0]: '#77CC77', STYLES[1]: '#558055', STYLES[2]: '#CC9633'}  # Цвет фона да-кнопок при нажатии
+ST_BTNN        = {STYLES[0]: '#FF6666', STYLES[1]: '#803333', STYLES[2]: '#CD0000'}  # Цвет фона нет-кнопок
+ST_BTNN_SELECT = {STYLES[0]: '#EE5555', STYLES[1]: '#904444', STYLES[2]: '#CD3000'}  # Цвет фона нет-кнопок при нажатии
 
-ST_FG_TEXT     = {'light': '#222222', 'dark': '#979797', 'infernal': '#000000'}  # Цвет обычного текста
-ST_FG_LOGO     = {'light': '#FF7200', 'dark': '#803600', 'infernal': '#FF7200'}  # Цвет текста логотипа
-ST_FG_FOOTER   = {'light': '#666666', 'dark': '#666666', 'infernal': '#222222'}  # Цвет текста нижнего колонтитула
+ST_FG_TEXT     = {STYLES[0]: '#222222', STYLES[1]: '#979797', STYLES[2]: '#000000'}  # Цвет обычного текста
+ST_FG_LOGO     = {STYLES[0]: '#FF7200', STYLES[1]: '#803600', STYLES[2]: '#FF7200'}  # Цвет текста логотипа
+ST_FG_FOOTER   = {STYLES[0]: '#666666', STYLES[1]: '#666666', STYLES[2]: '#222222'}  # Цвет текста нижнего колонтитула
 
 """ Другое """
 
@@ -3595,6 +3594,8 @@ with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as settings_file:
     except (ValueError, TypeError):
         show_updates = 1
     st = settings_file.readline().strip()
+    if st not in STYLES:
+        st = STYLES[0]
 
 
 # Получить название файла с открытым словарём
@@ -3635,3 +3636,7 @@ root.mainloop()
 # принимать несколько ответов при угадывании слова
 # если ответ немного отличается от правильного, то ...
 # enter
+
+# стиль solar
+# стили в отдельный файл
+# поддержка разных символов
