@@ -15,8 +15,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-60'
-PROGRAM_DATE = '14.1.2023  20:14 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-61'
+PROGRAM_DATE = '14.1.2023  20:36 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -2168,10 +2168,7 @@ class SearchW(tk.Toplevel):
         self.text_wrd['state'] = 'normal'
         self.text_wrd.delete(1.0, tk.END)
 
-        outp(self.text_wrd, 'Частичное совпадение:')
-        dct.print_words_with_str(self.text_wrd, search_wrd)
-
-        outp(self.text_wrd, '\nПолное совпадение:')
+        outp(self.text_wrd, 'Полное совпадение:')
         if wrd_to_key(search_wrd, 0) not in dct.d.keys():
             outp(self.text_wrd, f'Слово "{deu_encode(search_wrd)}" отсутствует в словаре', _end='')
         else:
@@ -2182,6 +2179,9 @@ class SearchW(tk.Toplevel):
                 outp(self.text_wrd)
                 dct.d[key].print_all(self.text_wrd)
 
+        outp(self.text_wrd, '\nЧастичное совпадение:')
+        dct.print_words_with_str(self.text_wrd, search_wrd)
+
         self.text_wrd['state'] = 'disabled'
 
         # Поиск по переводу
@@ -2190,10 +2190,7 @@ class SearchW(tk.Toplevel):
         self.text_tr['state'] = 'normal'
         self.text_tr.delete(1.0, tk.END)
 
-        outp(self.text_tr, 'Частичное совпадение:')
-        dct.print_translations_with_str(self.text_tr, search_tr)
-
-        outp(self.text_tr, '\nПолное совпадение:')
+        outp(self.text_tr, 'Полное совпадение:')
         is_found = False
         for entry in dct.d.values():
             if search_tr in entry.tr:
@@ -2202,6 +2199,9 @@ class SearchW(tk.Toplevel):
                 entry.print_all(self.text_tr)
         if not is_found:
             outp(self.text_tr, f'Слово с переводом "{deu_encode(search_tr)}" отсутствует в словаре', _end='')
+
+        outp(self.text_tr, '\nЧастичное совпадение:')
+        dct.print_translations_with_str(self.text_tr, search_tr)
 
         self.text_tr['state'] = 'disabled'
 
@@ -3640,3 +3640,4 @@ root.mainloop()
 # тема solar
 # темы в отдельный файл
 # поддержка разных символов
+# сделать кнопку сохранения настроек
