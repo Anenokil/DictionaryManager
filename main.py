@@ -16,8 +16,8 @@ import re  # Несколько разделителей в split
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-78'
-PROGRAM_DATE = '15.1.2023  18:07 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-79'
+PROGRAM_DATE = '16.1.2023   3:11 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -2927,7 +2927,7 @@ class LearnW(tk.Toplevel):
             self.used_words.add(self.current_key)
         else:
             entry.incorrect()
-            self.outp(f'Неверно. Правильный ответ: "{entry.wrd}"\n')
+            self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.wrd)}"\n')
             if not entry.fav:
                 window = PopupDialogueW(self, 'Неверно.\nХотите добавить слово в избранное?', 'Да', 'Нет')
                 answer = window.open()
@@ -2951,7 +2951,7 @@ class LearnW(tk.Toplevel):
             self.used_words.add((self.current_key, self.current_form))
         else:
             entry.incorrect()
-            self.outp(f'Неверно. Правильный ответ: "{entry.forms[self.current_form]}"\n')
+            self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.forms[self.current_form])}"\n')
             if not entry.fav:
                 window = PopupDialogueW(self, 'Неверно.\nХотите добавить слово в избранное?', 'Да', 'Нет')
                 answer = window.open()
@@ -2975,7 +2975,7 @@ class LearnW(tk.Toplevel):
             self.used_words.add(self.current_key)
         else:
             entry.incorrect()
-            self.outp(f'Неверно. Правильный ответ: "{entry.tr}"\n')
+            self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.tr)}"\n')
             if not entry.fav:
                 window = PopupDialogueW(self, 'Неверно.\nХотите добавить слово в избранное?', 'Да', 'Нет')
                 answer = window.open()
