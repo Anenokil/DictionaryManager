@@ -15,8 +15,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-70'
-PROGRAM_DATE = '15.1.2023  10:18 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-71'
+PROGRAM_DATE = '15.1.2023  10:21 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -1710,6 +1710,7 @@ class CreateFormTemplateW(tk.Toplevel):
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
 
+        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
         self.parameters = list(form_parameters.keys())  # Список параметров словоформ
         self.template = []  # Шаблон словоформы
         for _ in range(len(self.parameters)):
@@ -1777,11 +1778,15 @@ class CreateFormTemplateW(tk.Toplevel):
         if tuple(self.template) in dct.d[self.key].forms.keys():
             PopupMsgW(self, f'У слова "{key_to_wrd(self.key)}" уже есть форма с таким шаблоном', title='Warning').open()
             return
+        self.closed = False
         self.destroy()
 
     def open(self):
         self.grab_set()
         self.wait_window()
+
+        if self.closed:
+            return None
         if self.template == self.void_template:
             return None
         if tuple(self.template) in dct.d[self.key].forms.keys():
