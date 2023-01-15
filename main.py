@@ -15,8 +15,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-68'
-PROGRAM_DATE = '15.1.2023 9:55 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-69'
+PROGRAM_DATE = '15.1.2023 9:58 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -3302,7 +3302,7 @@ class SettingsW(tk.Toplevel):
     def set_show_updates(self):
         global show_updates
 
-        show_updates = self.var_show_updates.get()
+        show_updates = int(self.var_show_updates.get())  # 0 или 1
 
     # Открыть словарь
     def dct_open(self):
