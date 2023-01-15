@@ -16,8 +16,8 @@ import re  # Несколько разделителей в split
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-76'
-PROGRAM_DATE = '15.1.2023  17:39 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-77'
+PROGRAM_DATE = '15.1.2023  17:57 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -53,6 +53,7 @@ if CUSTOM_THEMES_DIR not in os.listdir(RESOURCES_DIR):
 
 """ Стандартные темы """
 
+LASTH_THEME_VERSION = 1
 THEMES = ['light', 'dark']  # Названия тем
 
 # Все: bg
@@ -84,7 +85,7 @@ ST_FG_LOGO     = {THEMES[0]: '#FF7200', THEMES[1]: '#803600'}  # Цвет тек
 ST_FG_FOOTER   = {THEMES[0]: '#666666', THEMES[1]: '#666666'}  # Цвет текста нижнего колонтитула
 ST_FG_WARN     = {THEMES[0]: '#DD2222', THEMES[1]: '#AA0000'}  # Цвет текста предупреждения
 
-# Элементы стилей
+# Названия стилизуемых элементов
 STYLE_ELEMENTS = ['BG', 'BG_FIELDS', 'BORDER', 'RELIEF', 'SELECT', 'HIGHLIGHT',
                   'BTN', 'BTN_SELECT', 'BTNY', 'BTNY_SELECT', 'BTNN', 'BTNN_SELECT',
                   'FG_TEXT', 'FG_LOGO', 'FG_FOOTER', 'FG_WARN']
@@ -3709,14 +3710,20 @@ for file_name in os.listdir(CUSTOM_THEMES_PATH):
     file_path = os.path.join(CUSTOM_THEMES_PATH, file_name)
     try:
         with open(file_path, 'r', encoding='utf-8') as theme_file:
+            line = theme_file.readline().strip()
+            theme_version = int(re.split(' |//', line)[0])  # После // идут комментарии
+            if theme_version != LASTH_THEME_VERSION:  # Проверка версии темы
+                print(f'Не удалось загрузить тему "{theme}", т. к. она устарела!')
+                continue
             theme = base_name  # Добавляем название новой темы
             THEMES += [theme]
-            for style_elem in STYLE_ELEMENTS:  # Проходимся по элементам стилям
+            for style_elem in STYLE_ELEMENTS:  # Проходимся по стилизуемым элементам
                 line = theme_file.readline().strip()
                 style = re.split(' |//', line)[0]  # После // идут комментарии
-                STYLES[style_elem][theme] = style  # Добавляем новый стиль для элемента, соответствующий теме theme
+                element = STYLES[style_elem]
+                element[theme] = style  # Добавляем новый стиль для элемента, соответствующий теме theme
     except:
-        print(f'Не удалось загрузить тему "{theme}"!')
+        print(f'Не удалось загрузить тему "{theme}" из-за ошибки!')
     else:
         print(f'Тема "{theme}" успешно загружена')
 
@@ -3756,5 +3763,5 @@ root.mainloop()
 # enter
 # разные комбинации символов
 # доработать стили
-# открывать программу после обновления
 # при смене табов, менять размеры
+# открывать программу после обновления
