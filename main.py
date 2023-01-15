@@ -11,12 +11,12 @@ else:
 import urllib.request as urllib2  # Для проверки наличия обновлений
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
-from themes import *  # Мой модуль с темами
+from anenothemes import *  # Мой модуль с темами
 
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-72'
+PROGRAM_VERSION = 'v7.0.0_PRE-73'
 PROGRAM_DATE = '15.1.2023  10:34 (UTC+5)'
 
 """ Папки и файлы """

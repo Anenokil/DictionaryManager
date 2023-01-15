@@ -1,4 +1,4 @@
-""" Темы """
+""" Стандартные темы """
 
 THEMES = ('light', 'dark', 'infernal', 'solar')
 
@@ -22,7 +22,7 @@ ST_RELIEF      = {THEMES[0]: 'groove',  THEMES[1]: 'solid',
 ST_SELECT      = {THEMES[0]: '#AABBBB', THEMES[1]: '#444444',
                   THEMES[2]: '#FF5500', THEMES[3]: '#CCCCAA'}  # Цвет выделения текста
 ST_HIGHLIGHT   = {THEMES[0]: '#00DD00', THEMES[1]: '#007700',
-                  THEMES[2]: '#0000FF', THEMES[3]: '#22DD00'}  #
+                  THEMES[2]: '#0000FF', THEMES[3]: '#22DD00'}  # Цвет подсветки виджета при фокусе
 
 ST_BTN         = {THEMES[0]: '#D0D0D0', THEMES[1]: '#202020',
                   THEMES[2]: '#DD2020', THEMES[3]: '#E0E0C0'}  # Цвет фона обычных кнопок
