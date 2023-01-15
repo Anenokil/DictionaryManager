@@ -15,8 +15,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-65'
-PROGRAM_DATE = '15.1.2023 9:32 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-66'
+PROGRAM_DATE = '15.1.2023 9:36 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -3313,8 +3313,9 @@ class SettingsW(tk.Toplevel):
         for file_name in os.listdir(SAVES_PATH):
             base_name, ext = os.path.splitext(file_name)
             if ext == '.txt':
-                saves_list += [base_name]
-                saves_count += 1
+                if base_name != dct_savename:
+                    saves_list += [base_name]
+                    saves_count += 1
         if saves_count == 0:  # Если нет сохранённых словарей
             PopupMsgW(self, 'Нет других сохранённых словарей', title='Warning').open()
             return
@@ -3402,8 +3403,9 @@ class SettingsW(tk.Toplevel):
         for filename in os.listdir(SAVES_PATH):
             base_name, ext = os.path.splitext(filename)
             if ext == '.txt':
-                saves_list += [base_name]
-                saves_count += 1
+                if base_name != dct_savename:
+                    saves_list += [base_name]
+                    saves_count += 1
         if saves_count == 0:  # Если нет сохранённых словарей
             PopupMsgW(self, 'Нет других сохранённых словарей', title='Warning').open()
             return
@@ -3688,4 +3690,3 @@ root.mainloop()
 # доработать стили
 # при переименовании значение по умолчанию
 # открывать программу после обновления
-# при удалении не показывать текущий словарь
