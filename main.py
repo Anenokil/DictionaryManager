@@ -15,8 +15,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-66'
-PROGRAM_DATE = '15.1.2023 9:36 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-67'
+PROGRAM_DATE = '15.1.2023 9:43 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -3454,9 +3454,9 @@ class SettingsW(tk.Toplevel):
 
     # Были ли изменения
     def has_changes(self):
-        return self.var_mgsp.get() == min_good_score_perc and\
-               self.var_show_updates.get() == show_updates and\
-               self.var_theme.get() == th
+        return int(self.var_mgsp.get()) != min_good_score_perc or\
+               self.var_show_updates.get() != bool(show_updates) or\
+               self.var_theme.get() != th
 
     # Сохранить настройки
     def save(self):
