@@ -15,8 +15,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-64'
-PROGRAM_DATE = '14.1.2023  23:20 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-65'
+PROGRAM_DATE = '15.1.2023 9:32 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -76,6 +76,7 @@ ST_BTNN_SELECT = {THEMES[0]: '#EE5555', THEMES[1]: '#904444', THEMES[2]: '#CD300
 ST_FG_TEXT     = {THEMES[0]: '#222222', THEMES[1]: '#979797', THEMES[2]: '#000000', THEMES[3]: '#444422'}  # Цвет обычного текста
 ST_FG_LOGO     = {THEMES[0]: '#FF7200', THEMES[1]: '#803600', THEMES[2]: '#FF7200', THEMES[3]: '#FF8800'}  # Цвет текста логотипа
 ST_FG_FOOTER   = {THEMES[0]: '#666666', THEMES[1]: '#666666', THEMES[2]: '#222222', THEMES[3]: '#666644'}  # Цвет текста нижнего колонтитула
+ST_FG_WARN     = {THEMES[0]: '#DD2222', THEMES[1]: '#AA0000', THEMES[2]: '#FF9999', THEMES[3]: '#EE4400'}  # Цвет текста нижнего колонтитула
 
 """ Другое """
 
@@ -1017,73 +1018,82 @@ class Dictionary(object):
             return 3
 
 
-# Загрузить локальные настройки (настройки словаря) из файла
+dct_savename='words'  # Просто чтобы работала функция
+
+
+# Получить название файла со словарём
+def dct_filename(savename=dct_savename):
+    return f'{savename}.txt'
+
+
+# Загрузить локальные настройки (настройки словаря)
 def read_local_settings(_filename):
-    _local_settings_fn = os.path.join(LOCAL_SETTINGS_PATH, _filename)
+    _local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, _filename)
     _form_parameters = {}
     try:
-        with open(_local_settings_fn, 'r', encoding='utf-8') as _loc_set_file:
-            _min_good_score_perc = int(_loc_set_file.readline().strip())
-            while True:
-                _key = _loc_set_file.readline().strip()
-                if not _key:
-                    break
-                _value = _loc_set_file.readline().strip().split(FORMS_SEPARATOR)
-                _form_parameters[_key] = _value
-    # Если файл отсутствует или повреждён, то создаётся файл по умолчанию
-    except (FileNotFoundError, ValueError, TypeError):
-        with open(_local_settings_fn, 'w', encoding='utf-8') as _loc_set_file:
-            _loc_set_file.write('67\n'
-                                'Число\n'
-                                f'ед.ч.{FORMS_SEPARATOR}мн.ч.\n'
-                                'Род\n'
-                                f'м.р.{FORMS_SEPARATOR}ж.р.{FORMS_SEPARATOR}ср.р.\n'
-                                'Падеж\n'
-                                f'им.п.{FORMS_SEPARATOR}род.п.{FORMS_SEPARATOR}дат.п.{FORMS_SEPARATOR}вин.п.\n'
-                                'Лицо\n'
-                                f'1 л.{FORMS_SEPARATOR}2 л.{FORMS_SEPARATOR}3 л.\n'
-                                'Время\n'
-                                f'пр.вр.{FORMS_SEPARATOR}н.вр.{FORMS_SEPARATOR}буд.вр.')
-        with open(_local_settings_fn, 'r', encoding='utf-8') as _loc_set_file:
-            _min_good_score_perc = int(_loc_set_file.readline().strip())
-            while True:
-                _key = _loc_set_file.readline().strip()
-                if not _key:
-                    break
-                _value = _loc_set_file.readline().strip().split(FORMS_SEPARATOR)
-                _form_parameters[_key] = _value
+        open(_local_settings_path, 'r', encoding='utf-8')
+    except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
+        with open(_local_settings_path, 'w', encoding='utf-8') as _loc_settings_file:
+            _loc_settings_file.write('67\n'
+                                     'Число\n'
+                                     f'ед.ч.{FORMS_SEPARATOR}мн.ч.\n'
+                                     'Род\n'
+                                     f'м.р.{FORMS_SEPARATOR}ж.р.{FORMS_SEPARATOR}ср.р.\n'
+                                     'Падеж\n'
+                                     f'им.п.{FORMS_SEPARATOR}род.п.{FORMS_SEPARATOR}дат.п.{FORMS_SEPARATOR}вин.п.\n'
+                                     'Лицо\n'
+                                     f'1 л.{FORMS_SEPARATOR}2 л.{FORMS_SEPARATOR}3 л.\n'
+                                     'Время\n'
+                                     f'пр.вр.{FORMS_SEPARATOR}н.вр.{FORMS_SEPARATOR}буд.вр.')
+    with open(_local_settings_path, 'r', encoding='utf-8') as _loc_settings_file:
+        try:
+            _min_good_score_perc = int(_loc_settings_file.readline().strip())
+        except (ValueError, TypeError):
+            _min_good_score_perc = 67
+        while True:
+            _key = _loc_settings_file.readline().strip()
+            if not _key:
+                break
+            _value = _loc_settings_file.readline().strip().split(FORMS_SEPARATOR)
+            _form_parameters[_key] = _value
     return _min_good_score_perc, _form_parameters
 
 
-# Сохранить локальные настройки (настройки словаря) словаря
-def save_local_settings(_min_good_score_perc, _form_parameters, _filename):
-    _local_settings_fn = os.path.join(LOCAL_SETTINGS_PATH, _filename)
-    with open(_local_settings_fn, 'w', encoding='utf-8') as _loc_set_file:
-        _loc_set_file.write(f'{_min_good_score_perc}\n')
-        for _key in _form_parameters.keys():
-            _loc_set_file.write(f'{_key}\n')
-            _loc_set_file.write(_form_parameters[_key][0])
-            for _i in range(1, len(_form_parameters[_key])):
-                _loc_set_file.write(f'{FORMS_SEPARATOR}{_form_parameters[_key][_i]}')
-            _loc_set_file.write('\n')
+# Загрузить глобальные настройки (настройки программы)
+def read_global_settings():
+    try:  # Открываем файл с названием словаря
+        open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8')
+    except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
+        with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
+            settings_file.write('words\n'
+                                '1\n'
+                                f'{THEMES[0]}')
+    with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as settings_file:
+        _dct_savename = settings_file.readline().strip()
+        try:
+            _show_updates = int(settings_file.readline().strip())
+        except (ValueError, TypeError):
+            _show_updates = 1
+        _th = settings_file.readline().strip()
+        if _th not in THEMES:
+            _th = THEMES[0]
+    return _dct_savename, _show_updates, _th
 
 
-# Загрузить словарь и его настройки (локальные настройки) из файлов
+# Загрузить словарь (с обработкой исключений)
 def read_dct(_window, _dct, _savename):
     global dct_savename
 
-    _filename = f'{_savename}.txt'
+    _filename = dct_filename(_savename)
     _filepath = os.path.join(SAVES_PATH, _filename)
     _res_code = _dct.read(_filepath)
     if _res_code == 0:  # Если чтение прошло успешно, то выводится соответствующее сообщение
         print(f'\nСловарь "{_savename}" успешно открыт')
-        return read_local_settings(_filename)
     elif _res_code == 1:  # Если файл отсутствует, то создаётся пустой словарь
         print(f'\nСловарь "{_savename}" не найден!')
         open(_filepath, 'w', encoding='utf-8')
         _dct.read(_filepath)
         print('Создан и загружен пустой словарь')
-        return read_local_settings(_filename)
     else:  # Если файл повреждён, то предлагается открыть другой файл
         print(f'\nФайл со словарём "{_savename}" повреждён или некорректен!')
         while True:
@@ -1100,19 +1110,16 @@ def read_dct(_window, _dct, _savename):
                 if dct_savename == '':
                     PopupMsgW(_window, 'Название словаря должно содержать хотя бы один символ', title='Warning').open()
                     continue
-                with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
-                    _settings_file.write(f'{dct_savename}\n'
-                                         f'{show_updates}\n'
-                                         f'{th}')
+                save_dct_name()
                 _dct = Dictionary()
-                return read_dct(_window, _dct, dct_savename)
+                read_dct(_window, _dct, dct_savename)
             else:
                 exit()
 
 
 # Создать и загрузить пустой словарь
 def create_dct(_dct, _savename):
-    _filename = f'{_savename}.txt'
+    _filename = dct_filename(_savename)
     _filepath = os.path.join(SAVES_PATH, _filename)
     open(_filepath, 'w', encoding='utf-8')
     _dct.read(_filepath)
@@ -1120,26 +1127,83 @@ def create_dct(_dct, _savename):
     return read_local_settings(_filename)
 
 
-# Сохранить словарь и его настройки (локальные настройки)
-def save_all(_dct, _min_good_score_perc, _form_parameters, _filename):
-    _filepath = os.path.join(SAVES_PATH, _filename)
-    _dct.save(_filepath)
-    save_local_settings(_min_good_score_perc, _form_parameters, _filename)
+# Сохранить локальные настройки (настройки словаря)
+def save_local_settings(_min_good_score_perc, _form_parameters, _filename):
+    _local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, _filename)
+    with open(_local_settings_path, 'w', encoding='utf-8') as _loc_settings_file:
+        _loc_settings_file.write(f'{_min_good_score_perc}\n')
+        for _key in _form_parameters.keys():
+            _loc_settings_file.write(f'{_key}\n')
+            _loc_settings_file.write(_form_parameters[_key][0])
+            for _i in range(1, len(_form_parameters[_key])):
+                _loc_settings_file.write(f'{FORMS_SEPARATOR}{_form_parameters[_key][_i]}')
+            _loc_settings_file.write('\n')
+
+
+# Сохранить словоформы
+def save_forms(_form_parameters, _filename):
+    _local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, _filename)
+    try:
+        with open(_local_settings_path, 'r', encoding='utf-8') as _loc_settings_file:
+            _tmp_min_good_score_perc = int(_loc_settings_file.readline().strip())
+    # Если файл отсутствует или повреждён, то создаётся файл по умолчанию
+    except (FileNotFoundError, ValueError, TypeError):
+        _tmp_min_good_score_perc = 67
+
+    with open(_local_settings_path, 'w', encoding='utf-8') as _loc_settings_file:
+        _loc_settings_file.write(f'{_tmp_min_good_score_perc}\n')
+        for _key in _form_parameters.keys():
+            _loc_settings_file.write(f'{_key}\n')
+            _loc_settings_file.write(_form_parameters[_key][0])
+            for _i in range(1, len(_form_parameters[_key])):
+                _loc_settings_file.write(f'{FORMS_SEPARATOR}{_form_parameters[_key][_i]}')
+            _loc_settings_file.write('\n')
+
+
+# Сохранить глобальные настройки (настройки программы)
+def save_global_settings():
     with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
         _settings_file.write(f'{dct_savename}\n'
                              f'{show_updates}\n'
                              f'{th}')
 
 
-# Предложить сохранение, если были изменения
-def save_if_has_changes(_window, _dct, _min_good_score_perc, _form_parameters, _filename):
-    if has_changes:
-        _window_dia = PopupDialogueW(_window, 'Хотите сохранить изменения и свой прогресс?', 'Да', 'Нет')
+# Сохранить название открытого словаря
+def save_dct_name():
+    _, _tmp_show_updates, _tmp_th = read_global_settings()
+
+    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
+        _settings_file.write(f'{dct_savename}\n'
+                             f'{_tmp_show_updates}\n'
+                             f'{_tmp_th}')
+
+
+# Сохранить словарь
+def save_dct(_dct, _filename):
+    _filepath = os.path.join(SAVES_PATH, _filename)
+    _dct.save(_filepath)
+
+
+# Предложить сохранение словаря, если есть прогресс
+def save_dct_if_has_progress(_window, _dct, _filename):
+    if has_progress:
+        _window_dia = PopupDialogueW(_window, 'Хотите сохранить свой прогресс?', 'Да', 'Нет')
         _answer = _window_dia.open()
         if _answer:
-            save_all(_dct, _min_good_score_perc, _form_parameters, _filename)
-            PopupMsgW(_window, 'Изменения и прогресс успешно сохранены').open()
-            print('\nИзменения и прогресс успешно сохранены')
+            save_dct(_dct, _filename)
+            PopupMsgW(_window, 'Прогресс успешно сохранён').open()
+            print('\nПрогресс успешно сохранён')
+
+
+# Предложить сохранение настроек, если есть прогресс
+def save_settings_if_has_changes(_window):
+    _window_dia = PopupDialogueW(_window, 'Хотите сохранить изменения настроек?', 'Да', 'Нет')
+    _answer = _window_dia.open()
+    if _answer:
+        save_global_settings()
+        save_local_settings(min_good_score_perc, form_parameters, dct_filename())
+        PopupMsgW(_window, 'Настройки успешно сохранены').open()
+        print('\nНастройки успешно сохранены')
 
 
 # Ввод только целых чисел от 0 до max_val
@@ -1352,11 +1416,11 @@ class LastVersionW(tk.Toplevel):
                                   highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                   selectbackground=ST_SELECT[th], readonlybackground=ST_BG_FIELDS[th])
         self.btn_update = tk.Button(self, text='Обновить', command=self.download_and_install, overrelief='groove',
-                                      bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                      activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                    bg=ST_BTN[th], fg=ST_FG_TEXT[th],
+                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
         self.btn_close = tk.Button(self, text='Закрыть', command=self.destroy, overrelief='groove',
-                                bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                   bg=ST_BTN[th], fg=ST_FG_TEXT[th],
+                                   activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
 
         self.lbl_msg.grid(   row=1, columnspan=2, padx=6, pady=(4, 0))
         self.entry_url.grid( row=2, columnspan=2, padx=6, pady=(0, 4))
@@ -1510,7 +1574,7 @@ class EnterDctNameW(tk.Toplevel):
         if savename == '':
             PopupMsgW(self, 'Недопустимое название', title='Warning').open()
             return
-        if f'{savename}.txt' in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
+        if dct_filename(savename) in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
             PopupMsgW(self, 'Файл с таким названием уже существует', title='Warning').open()
             return
         self.name_is_correct = True
@@ -1871,6 +1935,8 @@ class FormsSettingsW(tk.Toplevel):
     def open(self):
         self.grab_set()
         self.wait_window()
+
+        save_forms(form_parameters, dct_filename())
 
 
 # Окно настроек параметра словоформ
@@ -2436,7 +2502,7 @@ class EditW(tk.Toplevel):
 
     # Изменить слово
     def wrd_edt(self):
-        global has_changes
+        global has_progress
 
         window = PopupEntryW(self, 'Введите новое слово')
         closed, new_wrd = window.open()
@@ -2453,12 +2519,12 @@ class EditW(tk.Toplevel):
         if not self.key:
             return
 
-        has_changes = True
+        has_progress = True
         self.refresh()
 
     # Добавить перевод
     def tr_add(self):
-        global has_changes
+        global has_progress
 
         window = PopupEntryW(self, 'Введите новый перевод')
         closed, tr = window.open()
@@ -2473,21 +2539,21 @@ class EditW(tk.Toplevel):
 
         dct.add_tr(self.key, tr, self)
 
-        has_changes = True
+        has_progress = True
         self.refresh()
 
     # Удалить перевод
     def tr_del(self):
-        global has_changes
+        global has_progress
 
         dct.delete_tr_with_choose(self, self.key)
 
-        has_changes = True
+        has_progress = True
         self.refresh()
 
     # Добавить сноску
     def notes_add(self):
-        global has_changes
+        global has_progress
 
         window = PopupEntryW(self, 'Введите сноску')
         closed, note = window.open()
@@ -2502,21 +2568,21 @@ class EditW(tk.Toplevel):
 
         dct.add_note(self.key, note)
 
-        has_changes = True
+        has_progress = True
         self.refresh()
 
     # Удалить сноску
     def notes_del(self):
-        global has_changes
+        global has_progress
 
         dct.delete_note_with_choose(self, self.key)
 
-        has_changes = True
+        has_progress = True
         self.refresh()
 
     # Добавить словоформу
     def frm_add(self):
-        global has_changes
+        global has_progress
 
         if not form_parameters:
             PopupMsgW(self, 'Отсутствуют параметры форм!\n'
@@ -2535,25 +2601,25 @@ class EditW(tk.Toplevel):
 
         dct.add_frm(self.key, frm_key, frm, self)
 
-        has_changes = True
+        has_progress = True
         self.refresh()
 
     # Удалить словоформу
     def frm_del(self):
-        global has_changes
+        global has_progress
 
         dct.delete_frm_with_choose(self, self.key)
 
-        has_changes = True
+        has_progress = True
         self.refresh()
 
     # Изменить словоформу
     def frm_edt(self):
-        global has_changes
+        global has_progress
 
         dct.edit_frm_with_choose(self, self.key)
 
-        has_changes = True
+        has_progress = True
         self.refresh()
 
     # Добавить в избранное/убрать из избранного
@@ -2566,13 +2632,13 @@ class EditW(tk.Toplevel):
 
     # Удалить статью
     def delete(self):
-        global has_changes
+        global has_progress
 
         window = PopupDialogueW(self, 'Вы уверены, что хотите удалить эту статью?')
         answer = window.open()
         if answer:
             dct.delete_entry(self.key)
-            has_changes = True
+            has_progress = True
             self.destroy()
 
     def open(self):
@@ -2623,7 +2689,7 @@ class AddW(tk.Toplevel):
 
     # Добавление статьи
     def add(self):
-        global has_changes
+        global has_progress
 
         if self.var_wrd.get() == '':
             PopupMsgW(self, 'Слово должно содержать хотя бы один символ', title='Warning').open()
@@ -2637,7 +2703,7 @@ class AddW(tk.Toplevel):
             return
         dct.d[self.key].fav = self.var_fav.get()
 
-        has_changes = True
+        has_progress = True
         self.destroy()
 
     def open(self):
@@ -2710,7 +2776,7 @@ class LearnW(tk.Toplevel):
 
     # Начать учить слова
     def start(self):
-        global has_changes
+        global has_progress
 
         order = self.conf[0]
         forms = self.conf[1]
@@ -2719,29 +2785,29 @@ class LearnW(tk.Toplevel):
         if order == VALUES_ORDER[0]:
             if forms:
                 if words == VALUES_WORDS[0]:
-                    has_changes = self.choose_f(dct) or has_changes
+                    has_progress = self.choose_f(dct) or has_progress
                 elif words == VALUES_WORDS[1]:
-                    has_changes = self.choose_f_hard(dct, min_good_score_perc) or has_changes
+                    has_progress = self.choose_f_hard(dct, min_good_score_perc) or has_progress
                 else:
-                    has_changes = self.choose_f_fav(dct) or has_changes
+                    has_progress = self.choose_f_fav(dct) or has_progress
             else:
                 if words == VALUES_WORDS[0]:
-                    has_changes = self.choose(dct) or has_changes
+                    has_progress = self.choose(dct) or has_progress
                 elif words == VALUES_WORDS[1]:
-                    has_changes = self.choose_hard(dct, min_good_score_perc) or has_changes
+                    has_progress = self.choose_hard(dct, min_good_score_perc) or has_progress
                 else:
-                    has_changes = self.choose_fav(dct) or has_changes
+                    has_progress = self.choose_fav(dct) or has_progress
         else:
             if words == VALUES_WORDS[0]:
-                has_changes = self.choose_t(dct) or has_changes
+                has_progress = self.choose_t(dct) or has_progress
             elif words == VALUES_WORDS[1]:
-                has_changes = self.choose_t_hard(dct, min_good_score_perc) or has_changes
+                has_progress = self.choose_t_hard(dct, min_good_score_perc) or has_progress
             else:
-                has_changes = self.choose_t_fav(dct) or has_changes
+                has_progress = self.choose_t_fav(dct) or has_progress
 
     # Ввод ответа
     def input(self):
-        global has_changes
+        global has_progress
 
         order = self.conf[0]
         forms = self.conf[1]
@@ -2757,25 +2823,25 @@ class LearnW(tk.Toplevel):
         if order == VALUES_ORDER[0]:
             if forms:
                 if words == VALUES_WORDS[0]:
-                    has_changes = self.choose_f(dct) or has_changes
+                    has_progress = self.choose_f(dct) or has_progress
                 elif words == VALUES_WORDS[1]:
-                    has_changes = self.choose_f_hard(dct, min_good_score_perc) or has_changes
+                    has_progress = self.choose_f_hard(dct, min_good_score_perc) or has_progress
                 else:
-                    has_changes = self.choose_f_fav(dct) or has_changes
+                    has_progress = self.choose_f_fav(dct) or has_progress
             else:
                 if words == VALUES_WORDS[0]:
-                    has_changes = self.choose(dct) or has_changes
+                    has_progress = self.choose(dct) or has_progress
                 elif words == VALUES_WORDS[1]:
-                    has_changes = self.choose_hard(dct, min_good_score_perc) or has_changes
+                    has_progress = self.choose_hard(dct, min_good_score_perc) or has_progress
                 else:
-                    has_changes = self.choose_fav(dct) or has_changes
+                    has_progress = self.choose_fav(dct) or has_progress
         else:
             if words == VALUES_WORDS[0]:
-                has_changes = self.choose_t(dct) or has_changes
+                has_progress = self.choose_t(dct) or has_progress
             elif words == VALUES_WORDS[1]:
-                has_changes = self.choose_t_hard(dct, min_good_score_perc) or has_changes
+                has_progress = self.choose_t_hard(dct, min_good_score_perc) or has_progress
             else:
-                has_changes = self.choose_t_fav(dct) or has_changes
+                has_progress = self.choose_t_fav(dct) or has_progress
 
         self.btn_notes['state'] = 'normal'
         self.entry_input.delete(0, tk.END)
@@ -3078,9 +3144,9 @@ class SettingsW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.var_MGSP = tk.StringVar(value=str(min_good_score_perc))
+        self.var_mgsp = tk.StringVar(value=str(min_good_score_perc))
         self.var_show_updates = tk.BooleanVar(value=bool(show_updates))
-        self.var_style = tk.StringVar(value=th)
+        self.var_theme = tk.StringVar(value=th)
 
         # Только целые числа от 0 до 100
         self.vcmd = (self.register(validate_percent), '%P')
@@ -3111,13 +3177,10 @@ class SettingsW(tk.Toplevel):
         # { {
         self.lbl_MGSP = tk.Label(self.frame_MGSP, text='Минимальный приемлемый процент угадываний слова:',
                                  bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.entry_MGSP = tk.Entry(self.frame_MGSP, textvariable=self.var_MGSP, width=5, relief='solid',
+        self.entry_MGSP = tk.Entry(self.frame_MGSP, textvariable=self.var_mgsp, width=5, relief='solid',
                                    validate='key', vcmd=self.vcmd, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                    highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                    selectbackground=ST_SELECT[th])
-        self.btn_MGSP = tk.Button(self.frame_MGSP, text='Принять', command=self.set_MGSP, overrelief='groove',
-                                  bg=ST_BTNY[th], fg=ST_FG_TEXT[th], activebackground=ST_BTNY_SELECT[th],
-                                  highlightbackground=ST_BORDER[th])
         self.lbl_MGSP_2 = tk.Label(self.frame_MGSP, text='Статьи, у которых процент угадывания ниже этого значения,'
                                                          'будут считаться более сложными',
                                    bg=ST_BG[th], fg=ST_FG_TEXT[th])
@@ -3125,6 +3188,8 @@ class SettingsW(tk.Toplevel):
         self.btn_forms = tk.Button(self.tab_local, text='Настройки словоформ', command=self.forms,
                                    overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+        self.lbl_forms_warn = tk.Label(self.tab_local, text='Настройки словоформ сохраняются сразу!',
+                                       bg=ST_BG[th], fg=ST_FG_WARN[th])
         # }
         self.tab_global = tk.Frame(self.tabs, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                    relief=ST_RELIEF[th])
@@ -3136,7 +3201,7 @@ class SettingsW(tk.Toplevel):
         self.lbl_show_updates = tk.Label(self.frame_show_updates, text='Сообщать о выходе новых версий:',
                                          bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.check_show_updates = ttk.Checkbutton(self.frame_show_updates, variable=self.var_show_updates,
-                                                  style='.TCheckbutton', command=self.set_show_updates)
+                                                  style='.TCheckbutton')
         # } }
         self.frame_dcts = tk.LabelFrame(self.tab_global, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                         relief=ST_RELIEF[th])
@@ -3162,18 +3227,20 @@ class SettingsW(tk.Toplevel):
                                         overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                         activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
         # } } }
+        self.lbl_dcts_warn = tk.Label(self.frame_dcts, text='Настройки словарей сохраняются сразу!',
+                                      bg=ST_BG[th], fg=ST_FG_WARN[th])
         # } }
         self.frame_themes = tk.LabelFrame(self.tab_global, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                           relief=ST_RELIEF[th])
         # { {
         self.lbl_themes = tk.Label(self.frame_themes, text='Тема:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_style, values=THEMES,
+        self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
                                          state='readonly', style='.TCombobox')
-        self.btn_set_theme = tk.Button(self.frame_themes, text='Принять', command=self.set_theme, overrelief='groove',
-                                       bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
-                                       activebackground=ST_BTNY_SELECT[th], highlightbackground=ST_BORDER[th])
         # } }
         # }
+        self.btn_save = tk.Button(self, text='Сохранить изменения', command=self.save, overrelief='groove',
+                                  bg=ST_BTNY[th], fg=ST_FG_TEXT[th], activebackground=ST_BTNY_SELECT[th],
+                                  highlightbackground=ST_BORDER[th])
 
         self.lbl_dct_name.grid(row=0, padx=6, pady=(6, 0))
         self.tabs.grid(        row=1, padx=6, pady=(0, 6))
@@ -3182,10 +3249,10 @@ class SettingsW(tk.Toplevel):
         # {
         self.lbl_MGSP.grid(  row=0, column=0,     padx=(6, 1), pady=6,      sticky='E')
         self.entry_MGSP.grid(row=0, column=1,     padx=(0, 1), pady=6,      sticky='W')
-        self.btn_MGSP.grid(  row=0, column=2,     padx=(0, 6), pady=6,      sticky='W')
-        self.lbl_MGSP_2.grid(row=1, columnspan=3, padx=6,      pady=(0, 6))
+        self.lbl_MGSP_2.grid(row=1, columnspan=2, padx=6,      pady=(0, 6))
         # }
-        self.btn_forms.grid(row=1, padx=6, pady=(0, 6))
+        self.btn_forms.grid(     row=1, padx=6, pady=(0, 3))
+        self.lbl_forms_warn.grid(row=2, padx=6, pady=(0, 6))
         #
         self.frame_show_updates.grid(row=0, padx=6, pady=6)
         # {
@@ -3195,59 +3262,51 @@ class SettingsW(tk.Toplevel):
         self.frame_dcts.grid(row=1, padx=6, pady=6)
         # {
         self.lbl_dcts.grid(         row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
-        self.text_dcts.grid(        row=1,            column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(        row=1,            column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.frame_dct_buttons.grid(row=0, rowspan=2, column=2,               padx=6,      pady=6)
+        self.text_dcts.grid(        row=1, rowspan=2, column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(        row=1, rowspan=2, column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.frame_dct_buttons.grid(row=1,            column=2,               padx=6,      pady=6)
         # { {
         self.btn_dct_open.grid(  row=0, column=0, padx=6, pady=6)
         self.btn_dct_create.grid(row=0, column=1, padx=6, pady=6)
         self.btn_dct_rename.grid(row=1, column=0, padx=6, pady=6)
         self.btn_dct_delete.grid(row=1, column=1, padx=6, pady=6)
         # } }
+        self.lbl_dcts_warn.grid(row=2, column=2, padx=6, pady=6, sticky='N')
         # }
         self.frame_themes.grid(row=2, padx=6, pady=6)
         # {
-        self.lbl_themes.grid(   row=0, column=0, padx=(6, 1), pady=6)
-        self.combo_themes.grid( row=0, column=1, padx=(0, 6), pady=6)
-        self.btn_set_theme.grid(row=0, column=2, padx=(0, 6), pady=6)
+        self.lbl_themes.grid(  row=0, column=0, padx=(6, 1), pady=6)
+        self.combo_themes.grid(row=0, column=1, padx=(0, 6), pady=6)
         # }
+        self.btn_save.grid(row=3, padx=6, pady=6)
 
         self.scrollbar.config(command=self.text_dcts.yview)
 
         self.print_dct_list()
 
     # Изменить значение MGSP
-    def set_MGSP(self):
-        global has_changes, min_good_score_perc
+    def set_mgsp(self):
+        global min_good_score_perc
 
-        val = self.var_MGSP.get()
+        val = self.var_mgsp.get()
         if val == '':
             min_good_score_perc = 0
         else:
             min_good_score_perc = int(val)
-        has_changes = True
 
     # Настройки словоформ
     def forms(self):
-        global has_changes
-
         FormsSettingsW(self).open()
-        has_changes = True
 
     # Разрешить/запретить сообщать о новых версиях
     def set_show_updates(self):
-        global show_updates, has_changes
+        global show_updates
 
-        if show_updates == 0:
-            show_updates = 1
-        else:
-            show_updates = 0
-
-        has_changes = True
+        show_updates = self.var_show_updates.get()
 
     # Открыть словарь
     def dct_open(self):
-        global dct, dct_savename, min_good_score_perc, form_parameters, has_changes
+        global dct, dct_savename, min_good_score_perc, form_parameters
 
         saves_count = 0
         saves_list = []
@@ -3266,42 +3325,39 @@ class SettingsW(tk.Toplevel):
         if closed or savename == '':
             return
 
-        save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename())
+        if self.has_changes():
+            save_settings_if_has_changes(self)
+        save_dct_if_has_progress(self, dct, dct_filename())
 
-        dct_savename = savename
-        with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
-            settings_file.write(f'{savename}\n'
-                                f'{show_updates}\n'
-                                f'{th}')
         dct = Dictionary()
-        min_good_score_perc, form_parameters = read_dct(self, dct, savename)
+        read_dct(self, dct, savename)
+        min_good_score_perc, form_parameters = read_local_settings(dct_filename(savename))
+        dct_savename = savename
+        save_dct_name()
 
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
-        has_changes = False
 
         self.print_dct_list()
 
     # Создать словарь
     def dct_create(self):
-        global dct, dct_savename, min_good_score_perc, form_parameters, has_changes
+        global dct, dct_savename, min_good_score_perc, form_parameters
 
         window = EnterDctNameW(self)
         filename_is_correct, savename = window.open()
         if not filename_is_correct:
             return
 
-        save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename())
+        if self.has_changes():
+            save_settings_if_has_changes(self)
+        save_dct_if_has_progress(self, dct, dct_filename())
 
         dct_savename = savename
-        with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
-            settings_file.write(f'{savename}\n'
-                                f'{show_updates}\n'
-                                f'{th}')
+        save_dct_name()
         dct = Dictionary()
         min_good_score_perc, form_parameters = create_dct(dct, savename)
 
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
-        has_changes = False
 
         self.print_dct_list()
 
@@ -3327,16 +3383,13 @@ class SettingsW(tk.Toplevel):
         if not new_name_is_correct:
             return
 
-        old_filename = f'{old_savename}.txt'
-        new_filename = f'{new_savename}.txt'
+        old_filename = dct_filename(old_savename)
+        new_filename = dct_filename(new_savename)
         os.rename(os.path.join(SAVES_PATH, old_filename), os.path.join(SAVES_PATH, new_filename))
         os.rename(os.path.join(LOCAL_SETTINGS_PATH, old_filename), os.path.join(LOCAL_SETTINGS_PATH, new_filename))
         if dct_savename == old_savename:
             dct_savename = new_savename
-            with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
-                settings_file.write(f'{new_savename}\n'
-                                    f'{show_updates}\n'
-                                    f'{th}')
+            save_dct_name()
             self.lbl_dct_name['text'] = f'Открыт словарь "{new_savename}"'
         print(f'Словарь "{old_savename}" успешно переименован в "{new_savename}"')
 
@@ -3370,7 +3423,7 @@ class SettingsW(tk.Toplevel):
         if not answer:
             return
 
-        filename = f'{savename}.txt'
+        filename = dct_filename(savename)
         os.remove(os.path.join(SAVES_PATH, filename))
         os.remove(os.path.join(LOCAL_SETTINGS_PATH, filename))
         PopupMsgW(self, f'Словарь "{savename}" успешно удалён').open()
@@ -3384,7 +3437,7 @@ class SettingsW(tk.Toplevel):
         for filename in os.listdir(SAVES_PATH):
             base_name, ext = os.path.splitext(filename)
             if ext == '.txt':
-                if filename == dct_filename():
+                if base_name == dct_savename:
                     self.text_dcts.insert(tk.END, f'"{base_name}" (ОТКРЫТ)\n')
                 else:
                     self.text_dcts.insert(tk.END, f'"{base_name}"\n')
@@ -3394,8 +3447,22 @@ class SettingsW(tk.Toplevel):
     def set_theme(self):
         global th
 
-        th = self.var_style.get()
+        th = self.var_theme.get()
         self.destroy()
+
+    # Были ли изменения
+    def has_changes(self):
+        return self.var_mgsp.get() == min_good_score_perc and\
+               self.var_show_updates.get() == show_updates and\
+               self.var_theme.get() == th
+
+    # Сохранить настройки
+    def save(self):
+        self.set_mgsp()
+        self.set_show_updates()
+        self.set_theme()
+        save_local_settings(min_good_score_perc, form_parameters, dct_filename())
+        save_global_settings()
 
     def open(self):
         self.grab_set()
@@ -3444,7 +3511,7 @@ class MainW(tk.Tk):
         self.btn_settings = tk.Button(self, text='Настройки', font='StdFont 12', command=self.settings,
                                       overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                       activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
-        self.btn_save = tk.Button(self, text='Сохранить изменения и прогресс', font='StdFont 12', command=self.save,
+        self.btn_save = tk.Button(self, text='Сохранить прогресс', font='StdFont 12', command=self.save,
                                   overrelief='groove', bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
                                   activebackground=ST_BTNY_SELECT[th], highlightbackground=ST_BORDER[th])
         self.btn_close = tk.Button(self, text='Закрыть программу', font='StdFont 12', command=self.close,
@@ -3544,7 +3611,7 @@ class MainW(tk.Tk):
 
         self.lbl_footer.configure(bg=ST_BG[th], fg=ST_FG_FOOTER[th])
 
-        if window_last_version:
+        try:
             window_last_version.configure(bg=ST_BG[th])
             window_last_version.lbl_msg.configure(bg=ST_BG[th], fg=ST_FG_TEXT[th])
             window_last_version.entry_url.configure(bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
@@ -3558,20 +3625,22 @@ class MainW(tk.Tk):
             window_last_version.btn_close.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                                     activebackground=ST_BTN_SELECT[th],
                                                     highlightbackground=ST_BORDER[th])
+        except:
+            return
 
-    # Сохранить изменения
+    # Сохранить прогресс
     def save(self):
-        global has_changes
+        global has_progress
 
-        save_all(dct, min_good_score_perc, form_parameters, dct_filename())
-        PopupMsgW(self, 'Изменения и прогресс успешно сохранены').open()
-        print('\nИзменения и прогресс успешно сохранены')
+        save_dct(dct, dct_filename())
+        PopupMsgW(self, 'Прогресс успешно сохранён').open()
+        print('\nПрогресс успешно сохранён')
 
-        has_changes = False
+        has_progress = False
 
     # Закрытие программы
     def close(self):
-        save_if_has_changes(self, dct, min_good_score_perc, form_parameters, dct_filename())
+        save_dct_if_has_progress(self, dct, dct_filename())
         self.quit()
 
 
@@ -3579,37 +3648,16 @@ class MainW(tk.Tk):
 print( '======================================================================================\n')
 print( '                            Anenokil development  presents')
 print(f'                               {PROGRAM_NAME} {PROGRAM_VERSION}')
-print(f'                               {PROGRAM_DATE}\n')
+print(f'                                {PROGRAM_DATE}\n')
 print( '======================================================================================')
 
-try:  # Открываем файл с названием словаря
-    open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8')
-except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
-        settings_file.write('words\n1\nlight')
-with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as settings_file:
-    dct_savename = settings_file.readline().strip()
-    try:
-        show_updates = int(settings_file.readline().strip())
-    except (ValueError, TypeError):
-        show_updates = 1
-    th = settings_file.readline().strip()
-    if th not in THEMES:
-        th = THEMES[0]
-
-
-# Получить название файла с открытым словарём
-def dct_filename():
-    return f'{dct_savename}.txt'
-
-
-root = MainW()  # Главное окно
-
 dct = Dictionary()
-has_changes = False
+has_progress = False
 
-# Загружаем словарь и его настройки (локальные настройки)
-min_good_score_perc, form_parameters = read_dct(root, dct, dct_savename)
+dct_savename, show_updates, th = read_global_settings()  # Загружаем глобальные настройки
+root = MainW()  # Создаём графический интерфейс
+read_dct(root, dct, dct_savename)  # Загружаем словарь
+min_good_score_perc, form_parameters = read_local_settings(dct_filename())  # Загружаем локальные настройки
 
 window_last_version = None
 print('\nПроверка обновлений:', end=' ')
@@ -3629,7 +3677,6 @@ print('\nМожете использовать эти комбинации дл�
 
 root.mainloop()
 
-# доработать стили
 # попробовать tk.ScrolledText
 # добавить warn()
 # добавить изменение статьи по переводу
@@ -3637,5 +3684,8 @@ root.mainloop()
 # если ответ немного отличается от правильного, то ...
 
 # enter
-# поддержка разных символов
-# сделать кнопку сохранения настроек
+# разные комбинации символов
+# доработать стили
+# при переименовании значение по умолчанию
+# открывать программу после обновления
+# при удалении не показывать текущий словарь
