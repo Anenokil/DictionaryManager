@@ -16,8 +16,8 @@ import re  # Несколько разделителей в split
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-74'
-PROGRAM_DATE = '15.1.2023  12:30 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-75'
+PROGRAM_DATE = '15.1.2023  12:47 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -98,7 +98,7 @@ ST_FG_LOGO     = {THEMES[0]: '#FF7200', THEMES[1]: '#803600',
 ST_FG_FOOTER   = {THEMES[0]: '#666666', THEMES[1]: '#666666',
                   THEMES[2]: '#222222', THEMES[3]: '#666644'}  # Цвет текста нижнего колонтитула
 ST_FG_WARN     = {THEMES[0]: '#DD2222', THEMES[1]: '#AA0000',
-                  THEMES[2]: '#FF9999', THEMES[3]: '#EE4400'}  # Цвет текста нижнего колонтитула
+                  THEMES[2]: '#FF9999', THEMES[3]: '#EE4400'}  # Цвет текста предупреждения
 
 # Элементы стилей
 STYLE_ELEMENTS = ['BG', 'BG_FIELDS', 'BORDER', 'RELIEF', 'SELECT', 'HIGHLIGHT',
