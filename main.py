@@ -11,13 +11,13 @@ else:
 import urllib.request as urllib2  # Для проверки наличия обновлений
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
-from anenothemes import *  # Мой модуль с темами
+import re  # Несколько разделителей в split
 
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-73'
-PROGRAM_DATE = '15.1.2023  10:34 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-74'
+PROGRAM_DATE = '15.1.2023  12:30 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -38,6 +38,8 @@ LOCAL_SETTINGS_DIR = 'local_settings'  # Папка с локальными на
 LOCAL_SETTINGS_PATH = os.path.join(RESOURCES_DIR, LOCAL_SETTINGS_DIR)
 GLOBAL_SETTINGS_FN = 'settings.txt'  # Файл с глобальными настройками (настройки программы)
 GLOBAL_SETTINGS_PATH = os.path.join(RESOURCES_DIR, GLOBAL_SETTINGS_FN)
+CUSTOM_THEMES_DIR = 'themes'  # Папка с пользовательскими темами
+CUSTOM_THEMES_PATH = os.path.join(RESOURCES_DIR, CUSTOM_THEMES_DIR)
 
 # Если папки отсутствуют, то они создаются
 if RESOURCES_DIR not in os.listdir(os.curdir):
@@ -46,6 +48,80 @@ if SAVES_DIR not in os.listdir(RESOURCES_DIR):
     os.mkdir(SAVES_PATH)
 if LOCAL_SETTINGS_DIR not in os.listdir(RESOURCES_DIR):
     os.mkdir(LOCAL_SETTINGS_PATH)
+if CUSTOM_THEMES_DIR not in os.listdir(RESOURCES_DIR):
+    os.mkdir(CUSTOM_THEMES_PATH)
+
+""" Стандартные темы """
+
+THEMES = ['light', 'dark', 'infernal', 'solar']  # Названия тем
+
+# Все: bg
+# Все, кроме frame: fg
+# Все, кроме текста: border
+# Frame: relief
+# Кнопки: activebackground
+# Entry: selectbackground, highlightcolor
+
+# Стили для каждой темы
+ST_BG          = {THEMES[0]: '#EEEEEE', THEMES[1]: '#222222',
+                  THEMES[2]: '#DD1515', THEMES[3]: '#FFFFDD'}  # Цвет фона окна
+ST_BG_FIELDS   = {THEMES[0]: '#FFFFFF', THEMES[1]: '#171717',
+                  THEMES[2]: '#FFAAAA', THEMES[3]: '#EEEECC'}  # Цвет фона полей ввода
+
+ST_BORDER      = {THEMES[0]: '#222222', THEMES[1]: '#111111',
+                  THEMES[2]: '#330000', THEMES[3]: '#444422'}  # Цвет рамок
+ST_RELIEF      = {THEMES[0]: 'groove',  THEMES[1]: 'solid',
+                  THEMES[2]: 'groove',  THEMES[3]: 'groove' }  # Стиль рамок
+
+ST_SELECT      = {THEMES[0]: '#AABBBB', THEMES[1]: '#444444',
+                  THEMES[2]: '#FF5500', THEMES[3]: '#CCCCAA'}  # Цвет выделения текста
+ST_HIGHLIGHT   = {THEMES[0]: '#00DD00', THEMES[1]: '#007700',
+                  THEMES[2]: '#0000FF', THEMES[3]: '#22DD00'}  # Цвет подсветки виджета при фокусе
+
+ST_BTN         = {THEMES[0]: '#D0D0D0', THEMES[1]: '#202020',
+                  THEMES[2]: '#DD2020', THEMES[3]: '#E0E0C0'}  # Цвет фона обычных кнопок
+ST_BTN_SELECT  = {THEMES[0]: '#BABABA', THEMES[1]: '#272727',
+                  THEMES[2]: '#DD5020', THEMES[3]: '#CBCBA9'}  # Цвет фона обычных кнопок при нажатии
+ST_BTNY        = {THEMES[0]: '#88DD88', THEMES[1]: '#446F44',
+                  THEMES[2]: '#CC6633', THEMES[3]: '#AAEE88'}  # Цвет фона да-кнопок
+ST_BTNY_SELECT = {THEMES[0]: '#77CC77', THEMES[1]: '#558055',
+                  THEMES[2]: '#CC9633', THEMES[3]: '#99DD77'}  # Цвет фона да-кнопок при нажатии
+ST_BTNN        = {THEMES[0]: '#FF6666', THEMES[1]: '#803333',
+                  THEMES[2]: '#CD0000', THEMES[3]: '#FF6644'}  # Цвет фона нет-кнопок
+ST_BTNN_SELECT = {THEMES[0]: '#EE5555', THEMES[1]: '#904444',
+                  THEMES[2]: '#CD3000', THEMES[3]: '#EE5533'}  # Цвет фона нет-кнопок при нажатии
+
+ST_FG_TEXT     = {THEMES[0]: '#222222', THEMES[1]: '#979797',
+                  THEMES[2]: '#000000', THEMES[3]: '#444422'}  # Цвет обычного текста
+ST_FG_LOGO     = {THEMES[0]: '#FF7200', THEMES[1]: '#803600',
+                  THEMES[2]: '#FF7200', THEMES[3]: '#FF8800'}  # Цвет текста логотипа
+ST_FG_FOOTER   = {THEMES[0]: '#666666', THEMES[1]: '#666666',
+                  THEMES[2]: '#222222', THEMES[3]: '#666644'}  # Цвет текста нижнего колонтитула
+ST_FG_WARN     = {THEMES[0]: '#DD2222', THEMES[1]: '#AA0000',
+                  THEMES[2]: '#FF9999', THEMES[3]: '#EE4400'}  # Цвет текста нижнего колонтитула
+
+# Элементы стилей
+STYLE_ELEMENTS = ['BG', 'BG_FIELDS', 'BORDER', 'RELIEF', 'SELECT', 'HIGHLIGHT',
+                  'BTN', 'BTN_SELECT', 'BTNY', 'BTNY_SELECT', 'BTNN', 'BTNN_SELECT',
+                  'FG_TEXT', 'FG_LOGO', 'FG_FOOTER', 'FG_WARN']
+
+# Стили для каждого элемента
+STYLES = {STYLE_ELEMENTS[0]:  ST_BG,
+          STYLE_ELEMENTS[1]:  ST_BG_FIELDS,
+          STYLE_ELEMENTS[2]:  ST_BORDER,
+          STYLE_ELEMENTS[3]:  ST_RELIEF,
+          STYLE_ELEMENTS[4]:  ST_SELECT,
+          STYLE_ELEMENTS[5]:  ST_HIGHLIGHT,
+          STYLE_ELEMENTS[6]:  ST_BTN,
+          STYLE_ELEMENTS[7]:  ST_BTN_SELECT,
+          STYLE_ELEMENTS[8]:  ST_BTNY,
+          STYLE_ELEMENTS[9]:  ST_BTNY_SELECT,
+          STYLE_ELEMENTS[10]: ST_BTNN,
+          STYLE_ELEMENTS[11]: ST_BTNN_SELECT,
+          STYLE_ELEMENTS[12]: ST_FG_TEXT,
+          STYLE_ELEMENTS[13]: ST_FG_LOGO,
+          STYLE_ELEMENTS[14]: ST_FG_FOOTER,
+          STYLE_ELEMENTS[15]: ST_FG_WARN}
 
 """ Другое """
 
@@ -999,6 +1075,27 @@ def dct_filename(savename=dct_savename):
     return f'{savename}.txt'
 
 
+# Загрузить глобальные настройки (настройки программы)
+def read_global_settings():
+    try:  # Открываем файл с названием словаря
+        open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8')
+    except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
+        with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
+            settings_file.write('words\n'
+                                '1\n'
+                                f'{THEMES[0]}')
+    with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as settings_file:
+        _dct_savename = settings_file.readline().strip()
+        try:
+            _show_updates = int(settings_file.readline().strip())
+        except (ValueError, TypeError):
+            _show_updates = 1
+        _th = settings_file.readline().strip()
+        if _th not in THEMES:
+            _th = THEMES[0]
+    return _dct_savename, _show_updates, _th
+
+
 # Загрузить локальные настройки (настройки словаря)
 def read_local_settings(_filename):
     _local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, _filename)
@@ -1030,27 +1127,6 @@ def read_local_settings(_filename):
             _value = _loc_settings_file.readline().strip().split(FORMS_SEPARATOR)
             _form_parameters[_key] = _value
     return _min_good_score_perc, _form_parameters
-
-
-# Загрузить глобальные настройки (настройки программы)
-def read_global_settings():
-    try:  # Открываем файл с названием словаря
-        open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8')
-    except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-        with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as settings_file:
-            settings_file.write('words\n'
-                                '1\n'
-                                f'{THEMES[0]}')
-    with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as settings_file:
-        _dct_savename = settings_file.readline().strip()
-        try:
-            _show_updates = int(settings_file.readline().strip())
-        except (ValueError, TypeError):
-            _show_updates = 1
-        _th = settings_file.readline().strip()
-        if _th not in THEMES:
-            _th = THEMES[0]
-    return _dct_savename, _show_updates, _th
 
 
 # Загрузить словарь (с обработкой исключений)
@@ -1100,6 +1176,24 @@ def create_dct(_dct, _savename):
     return read_local_settings(_filename)
 
 
+# Сохранить глобальные настройки (настройки программы)
+def save_global_settings():
+    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
+        _settings_file.write(f'{dct_savename}\n'
+                             f'{show_updates}\n'
+                             f'{th}')
+
+
+# Сохранить название открытого словаря
+def save_dct_name():
+    _, _tmp_show_updates, _tmp_th = read_global_settings()
+
+    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
+        _settings_file.write(f'{dct_savename}\n'
+                             f'{_tmp_show_updates}\n'
+                             f'{_tmp_th}')
+
+
 # Сохранить локальные настройки (настройки словаря)
 def save_local_settings(_min_good_score_perc, _form_parameters, _filename):
     _local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, _filename)
@@ -1133,22 +1227,15 @@ def save_forms(_form_parameters, _filename):
             _loc_settings_file.write('\n')
 
 
-# Сохранить глобальные настройки (настройки программы)
-def save_global_settings():
-    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
-        _settings_file.write(f'{dct_savename}\n'
-                             f'{show_updates}\n'
-                             f'{th}')
-
-
-# Сохранить название открытого словаря
-def save_dct_name():
-    _, _tmp_show_updates, _tmp_th = read_global_settings()
-
-    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
-        _settings_file.write(f'{dct_savename}\n'
-                             f'{_tmp_show_updates}\n'
-                             f'{_tmp_th}')
+# Предложить сохранение настроек, если есть прогресс
+def save_settings_if_has_changes(_window):
+    _window_dia = PopupDialogueW(_window, 'Хотите сохранить изменения настроек?', 'Да', 'Нет')
+    _answer = _window_dia.open()
+    if _answer:
+        save_global_settings()
+        save_local_settings(min_good_score_perc, form_parameters, dct_filename())
+        PopupMsgW(_window, 'Настройки успешно сохранены').open()
+        print('\nНастройки успешно сохранены')
 
 
 # Сохранить словарь
@@ -1166,17 +1253,6 @@ def save_dct_if_has_progress(_window, _dct, _filename):
             save_dct(_dct, _filename)
             PopupMsgW(_window, 'Прогресс успешно сохранён').open()
             print('\nПрогресс успешно сохранён')
-
-
-# Предложить сохранение настроек, если есть прогресс
-def save_settings_if_has_changes(_window):
-    _window_dia = PopupDialogueW(_window, 'Хотите сохранить изменения настроек?', 'Да', 'Нет')
-    _answer = _window_dia.open()
-    if _answer:
-        save_global_settings()
-        save_local_settings(min_good_score_perc, form_parameters, dct_filename())
-        PopupMsgW(_window, 'Настройки успешно сохранены').open()
-        print('\nНастройки успешно сохранены')
 
 
 # Ввод только целых чисел от 0 до max_val
@@ -3641,6 +3717,25 @@ print(f'                               {PROGRAM_NAME} {PROGRAM_VERSION}')
 print(f'                               {PROGRAM_DATE}\n')
 print( '======================================================================================')
 
+# Загрузка пользовательских тем
+if os.listdir(CUSTOM_THEMES_PATH):
+    print('\nЗагрузка тем...')
+for file_name in os.listdir(CUSTOM_THEMES_PATH):
+    base_name, ext = os.path.splitext(file_name)
+    file_path = os.path.join(CUSTOM_THEMES_PATH, file_name)
+    try:
+        with open(file_path, 'r', encoding='utf-8') as theme_file:
+            theme = base_name  # Добавляем название новой темы
+            THEMES += [theme]
+            for style_elem in STYLE_ELEMENTS:  # Проходимся по элементам стилям
+                line = theme_file.readline().strip()
+                style = re.split(' |//', line)[0]  # После // идут комментарии
+                STYLES[style_elem][theme] = style  # Добавляем новый стиль для элемента, соответствующий теме theme
+    except:
+        print(f'Не удалось загрузить тему "{theme}"!')
+    else:
+        print(f'Тема "{theme}" успешно загружена')
+
 dct = Dictionary()
 has_progress = False
 
@@ -3649,8 +3744,9 @@ root = MainW()  # Создаём графический интерфейс
 read_dct(root, dct, dct_savename)  # Загружаем словарь
 min_good_score_perc, form_parameters = read_local_settings(dct_filename())  # Загружаем локальные настройки
 
+# Проверка обновлений программы
+print('\nПроверка обновлений...')
 window_last_version = None
-print('\nПроверка обновлений:', end=' ')
 try:
     data = urllib2.urlopen(URL_LAST_VERSION)
     last_version = str(data.read().decode('utf-8')).strip()
@@ -3677,3 +3773,4 @@ root.mainloop()
 # разные комбинации символов
 # доработать стили
 # открывать программу после обновления
+# при смене табов, менять размеры
