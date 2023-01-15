@@ -16,8 +16,8 @@ import re  # Несколько разделителей в split
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-77'
-PROGRAM_DATE = '15.1.2023  17:57 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-78'
+PROGRAM_DATE = '15.1.2023  18:07 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -53,7 +53,7 @@ if CUSTOM_THEMES_DIR not in os.listdir(RESOURCES_DIR):
 
 """ Стандартные темы """
 
-LASTH_THEME_VERSION = 1
+LAST_THEME_VERSION = 1
 THEMES = ['light', 'dark']  # Названия тем
 
 # Все: bg
@@ -3707,16 +3707,16 @@ if os.listdir(CUSTOM_THEMES_PATH):
     print('\nЗагрузка тем...')
 for file_name in os.listdir(CUSTOM_THEMES_PATH):
     base_name, ext = os.path.splitext(file_name)
+    theme = base_name
     file_path = os.path.join(CUSTOM_THEMES_PATH, file_name)
     try:
         with open(file_path, 'r', encoding='utf-8') as theme_file:
             line = theme_file.readline().strip()
             theme_version = int(re.split(' |//', line)[0])  # После // идут комментарии
-            if theme_version != LASTH_THEME_VERSION:  # Проверка версии темы
+            if theme_version != LAST_THEME_VERSION:  # Проверка версии темы
                 print(f'Не удалось загрузить тему "{theme}", т. к. она устарела!')
                 continue
-            theme = base_name  # Добавляем название новой темы
-            THEMES += [theme]
+            THEMES += [theme]  # Добавляем название новой темы
             for style_elem in STYLE_ELEMENTS:  # Проходимся по стилизуемым элементам
                 line = theme_file.readline().strip()
                 style = re.split(' |//', line)[0]  # После // идут комментарии
@@ -3764,4 +3764,5 @@ root.mainloop()
 # разные комбинации символов
 # доработать стили
 # при смене табов, менять размеры
+# проверять темы на корректность
 # открывать программу после обновления
