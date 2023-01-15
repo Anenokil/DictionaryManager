@@ -15,8 +15,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-67'
-PROGRAM_DATE = '15.1.2023 9:43 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-68'
+PROGRAM_DATE = '15.1.2023 9:55 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -3326,7 +3326,7 @@ class SettingsW(tk.Toplevel):
         if closed or savename == '':
             return
 
-        if self.has_changes():
+        if self.has_local_changes():
             save_settings_if_has_changes(self)
         save_dct_if_has_progress(self, dct, dct_filename())
 
@@ -3338,7 +3338,7 @@ class SettingsW(tk.Toplevel):
 
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
 
-        self.print_dct_list()
+        self.refresh()
 
     # Создать словарь
     def dct_create(self):
@@ -3349,7 +3349,7 @@ class SettingsW(tk.Toplevel):
         if not filename_is_correct:
             return
 
-        if self.has_changes():
+        if self.has_local_changes():
             save_settings_if_has_changes(self)
         save_dct_if_has_progress(self, dct, dct_filename())
 
@@ -3360,7 +3360,7 @@ class SettingsW(tk.Toplevel):
 
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
 
-        self.print_dct_list()
+        self.refresh()
 
     # Переименовать словарь
     def dct_rename(self):
@@ -3432,6 +3432,17 @@ class SettingsW(tk.Toplevel):
 
         self.print_dct_list()
 
+    # Установить выбранную тему
+    def set_theme(self):
+        global th
+
+        th = self.var_theme.get()
+        self.destroy()
+
+    # Были ли изменения
+    def has_local_changes(self):
+        return int(self.var_mgsp.get()) != min_good_score_perc
+
     # Вывод существующих словарей
     def print_dct_list(self):
         self.text_dcts['state'] = 'normal'
@@ -3445,18 +3456,10 @@ class SettingsW(tk.Toplevel):
                     self.text_dcts.insert(tk.END, f'"{base_name}"\n')
         self.text_dcts['state'] = 'disabled'
 
-    # Установить выбранную тему
-    def set_theme(self):
-        global th
-
-        th = self.var_theme.get()
-        self.destroy()
-
-    # Были ли изменения
-    def has_changes(self):
-        return int(self.var_mgsp.get()) != min_good_score_perc or\
-               self.var_show_updates.get() != bool(show_updates) or\
-               self.var_theme.get() != th
+    # Обновить значения настроек
+    def refresh(self):
+        self.var_mgsp.set(str(min_good_score_perc))
+        self.print_dct_list()
 
     # Сохранить настройки
     def save(self):
