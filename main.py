@@ -16,8 +16,8 @@ import re  # Несколько разделителей в split
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-80'
-PROGRAM_DATE = '16.1.2023  13:53 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-81'
+PROGRAM_DATE = '16.1.2023  14:15 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -225,49 +225,50 @@ def encode_tpl(_str):
 
 
 # Добавить значение параметра форм
-def add_frm_param_val(_window, _values, _text='Введите новое значение параметра'):
+def add_frm_param_val(window_parent, values, text='Введите новое значение параметра'):
     while True:
-        _window_entry = PopupEntryW(_window, _text)  # Ввод нового значения
-        _closed, _new_val = _window_entry.open()
-        if _closed:
+        window_entry = PopupEntryW(window_parent, text)  # Ввод нового значения
+        closed, new_val = window_entry.open()
+        if closed:
             return None
-        if _new_val == '':
-            PopupMsgW(_window, 'Значение параметра должно содержать хотя бы один символ', title='Warning').open()
+        if new_val == '':
+            PopupMsgW(window_parent, 'Значение параметра должно содержать хотя бы один символ', title='Warning').open()
             continue
-        if _new_val in _values:
-            PopupMsgW(_window, f'Значение "{_new_val}" уже существует', title='Warning').open()
+        if new_val in values:
+            PopupMsgW(window_parent, f'Значение "{new_val}" уже существует', title='Warning').open()
             continue
-        if FORMS_SEPARATOR in _new_val:
-            PopupMsgW(_window, f'Недопустимый символ: {FORMS_SEPARATOR}', title='Warning').open()
+        if FORMS_SEPARATOR in new_val:
+            PopupMsgW(window_parent, f'Недопустимый символ: {FORMS_SEPARATOR}', title='Warning').open()
             continue
         break
-    return _new_val
+    return new_val
 
 
 # Переименовать значение параметра форм
-def rename_frm_param_val(_window, _values, _pos, _dct):
-    _window_choose = PopupChooseW(_window, _values, default_value=_values[0],
-                                  combo_width=width(_values, 5, 100))  # Выбор значения, которое нужно переименовать
-    _closed, _old_val = _window_choose.open()
-    if _closed or _old_val == '':
+def rename_frm_param_val(window_parent, values, pos, _dct):
+    window_choose = PopupChooseW(window_parent, values, default_value=values[0],
+                                 combo_width=width(values, 5, 100))  # Выбор значения, которое нужно переименовать
+    closed, old_val = window_choose.open()
+    if closed or old_val == '':
         return
     while True:
-        _window_entry = PopupEntryW(_window, 'Введите новое название для значения параметра')  # Ввод нового значения
-        _closed, _new_val = _window_entry.open()
-        if _closed:
+        window_entry = PopupEntryW(window_parent,
+                                   'Введите новое название для значения параметра')  # Ввод нового значения
+        closed, new_val = window_entry.open()
+        if closed:
             return
-        if _new_val == '':
-            PopupMsgW(_window, 'Значение параметра должно содержать хотя бы один символ', title='Warning').open()
+        if new_val == '':
+            PopupMsgW(window_parent, 'Значение параметра должно содержать хотя бы один символ', title='Warning').open()
             continue
-        if _new_val in _values:
-            PopupMsgW(_window, f'Значение "{_new_val}" уже существует', title='Warning').open()
+        if new_val in values:
+            PopupMsgW(window_parent, f'Значение "{new_val}" уже существует', title='Warning').open()
             continue
-        if FORMS_SEPARATOR in _new_val:
-            PopupMsgW(_window, f'Недопустимый символ: {FORMS_SEPARATOR}', title='Warning').open()
+        if FORMS_SEPARATOR in new_val:
+            PopupMsgW(window_parent, f'Недопустимый символ: {FORMS_SEPARATOR}', title='Warning').open()
         break
-    _dct.rename_forms_with_val(_pos, _old_val, _new_val)  # Переименовать значение во всех словоформах, его содержащих
-    _index = _values.index(_old_val)
-    _values[_index] = _new_val
+    _dct.rename_forms_with_val(pos, old_val, new_val)  # Переименовать значение во всех словоформах, его содержащих
+    index = values.index(old_val)
+    values[index] = new_val
 
 
 # Удалить значение параметра форм
@@ -1052,11 +1053,11 @@ class Dictionary(object):
             return 3
 
 
-dct_savename = 'words'  # Просто чтобы работала функция
+_0_global_dct_savename = 'words'  # Просто чтобы работала функция
 
 
 # Получить название файла со словарём
-def dct_filename(savename=dct_savename):
+def dct_filename(savename=_0_global_dct_savename):
     return f'{savename}.txt'
 
 
@@ -1088,9 +1089,9 @@ def upload_themes(themes):
 
 
 # Проверка обновлений программы
-def check_updates(window, show_updates):
+def check_updates(window, _0_global_show_updates):
     print('\nПроверка обновлений...')
-    window_last_version = None
+    _0_global_window_last_version = None
     try:
         data = urllib2.urlopen(URL_LAST_VERSION)
         last_version = str(data.read().decode('utf-8')).strip()
@@ -1098,11 +1099,11 @@ def check_updates(window, show_updates):
             print('Установлена последняя доступная версия')
         else:
             print(f'Доступна новая версия: {last_version}')
-            if show_updates:
-                window_last_version = LastVersionW(window, last_version)
+            if _0_global_show_updates:
+                _0_global_window_last_version = LastVersionW(window, last_version)
     except:
         print('Ошибка, возможно отсутствует соединение')
-    return window_last_version
+    return _0_global_window_last_version
 
 
 # Загрузить глобальные настройки (настройки программы)
@@ -1160,18 +1161,18 @@ def upload_local_settings(_filename):
 
 
 # Загрузить словарь (с обработкой исключений)
-def upload_dct(_window, _dct, _savename):
-    global dct_savename
+def upload_dct(_window, dct, _savename):
+    global _0_global_dct_savename
 
     _filename = dct_filename(_savename)
     _filepath = os.path.join(SAVES_PATH, _filename)
-    _res_code = _dct.read(_filepath)
+    _res_code = dct.read(_filepath)
     if _res_code == 0:  # Если чтение прошло успешно, то выводится соответствующее сообщение
         print(f'\nСловарь "{_savename}" успешно открыт')
     elif _res_code == 1:  # Если файл отсутствует, то создаётся пустой словарь
         print(f'\nСловарь "{_savename}" не найден!')
         open(_filepath, 'w', encoding='utf-8')
-        _dct.read(_filepath)
+        dct.read(_filepath)
         print('Создан и загружен пустой словарь')
     else:  # Если файл повреждён, то предлагается открыть другой файл
         print(f'\nФайл со словарём "{_savename}" повреждён или некорректен!')
@@ -1183,78 +1184,78 @@ def upload_dct(_window, _dct, _savename):
             if _answer:
                 _window_entry = PopupEntryW(_window, 'Введите название словаря\n'
                                                      '(если он ещё не существует, то будет создан пустой словарь)')
-                _closed, dct_savename = _window_entry.open()
+                _closed, _0_global_dct_savename = _window_entry.open()
                 if _closed:
                     continue
-                if dct_savename == '':
+                if _0_global_dct_savename == '':
                     PopupMsgW(_window, 'Название словаря должно содержать хотя бы один символ', title='Warning').open()
                     continue
                 save_dct_name()
-                _dct = Dictionary()
-                upload_dct(_window, _dct, dct_savename)
+                dct = Dictionary()
+                upload_dct(_window, dct, _0_global_dct_savename)
             else:
                 exit()
 
 
 # Создать и загрузить пустой словарь
-def create_dct(_dct, _savename):
-    _filename = dct_filename(_savename)
-    _filepath = os.path.join(SAVES_PATH, _filename)
-    open(_filepath, 'w', encoding='utf-8')
-    _dct.read(_filepath)
-    print(f'\nСловарь "{_savename}" успешно создан и открыт')
-    return upload_local_settings(_filename)
+def create_dct(dct, savename):
+    filename = dct_filename(savename)
+    filepath = os.path.join(SAVES_PATH, filename)
+    open(filepath, 'w', encoding='utf-8')
+    dct.read(filepath)
+    print(f'\nСловарь "{savename}" успешно создан и открыт')
+    return upload_local_settings(filename)
 
 
 # Сохранить глобальные настройки (настройки программы)
 def save_global_settings():
-    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
-        _settings_file.write(f'{dct_savename}\n'
-                             f'{show_updates}\n'
+    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
+        global_settings_file.write(f'{_0_global_dct_savename}\n'
+                             f'{_0_global_show_updates}\n'
                              f'{th}')
 
 
 # Сохранить название открытого словаря
 def save_dct_name():
-    _, _tmp_show_updates, _tmp_th = upload_global_settings()
+    _, tmp_show_updates, tmp_th = upload_global_settings()
 
-    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
-        _settings_file.write(f'{dct_savename}\n'
-                             f'{_tmp_show_updates}\n'
-                             f'{_tmp_th}')
+    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
+        global_settings_file.write(f'{_0_global_dct_savename}\n'
+                             f'{tmp_show_updates}\n'
+                             f'{tmp_th}')
 
 
 # Сохранить локальные настройки (настройки словаря)
-def save_local_settings(_min_good_score_perc, _form_parameters, _filename):
-    _local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, _filename)
-    with open(_local_settings_path, 'w', encoding='utf-8') as _local_settings_file:
-        _local_settings_file.write(f'{_min_good_score_perc}\n')
-        for _key in _form_parameters.keys():
-            _local_settings_file.write(f'{_key}\n')
-            _local_settings_file.write(_form_parameters[_key][0])
-            for _i in range(1, len(_form_parameters[_key])):
-                _local_settings_file.write(f'{FORMS_SEPARATOR}{_form_parameters[_key][_i]}')
-            _local_settings_file.write('\n')
+def save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters, filename):
+    local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
+    with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
+        local_settings_file.write(f'{_0_global_min_good_score_perc}\n')
+        for key in _0_global_form_parameters.keys():
+            local_settings_file.write(f'{key}\n')
+            local_settings_file.write(_0_global_form_parameters[key][0])
+            for i in range(1, len(_0_global_form_parameters[key])):
+                local_settings_file.write(f'{FORMS_SEPARATOR}{_0_global_form_parameters[key][i]}')
+            local_settings_file.write('\n')
 
 
 # Сохранить словоформы
-def save_forms(_form_parameters, _filename):
-    _local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, _filename)
+def save_forms(_0_global_form_parameters, filename):
+    local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
     try:
-        with open(_local_settings_path, 'r', encoding='utf-8') as _local_settings_file:
-            _tmp_min_good_score_perc = int(_local_settings_file.readline().strip())
+        with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
+            tmp_min_good_score_perc = int(local_settings_file.readline().strip())
     # Если файл отсутствует или повреждён, то создаётся файл по умолчанию
     except (FileNotFoundError, ValueError, TypeError):
-        _tmp_min_good_score_perc = 67
+        tmp_min_good_score_perc = 67
 
-    with open(_local_settings_path, 'w', encoding='utf-8') as _local_settings_file:
-        _local_settings_file.write(f'{_tmp_min_good_score_perc}\n')
-        for _key in _form_parameters.keys():
-            _local_settings_file.write(f'{_key}\n')
-            _local_settings_file.write(_form_parameters[_key][0])
-            for _i in range(1, len(_form_parameters[_key])):
-                _local_settings_file.write(f'{FORMS_SEPARATOR}{_form_parameters[_key][_i]}')
-            _local_settings_file.write('\n')
+    with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
+        local_settings_file.write(f'{tmp_min_good_score_perc}\n')
+        for key in _0_global_form_parameters.keys():
+            local_settings_file.write(f'{key}\n')
+            local_settings_file.write(_0_global_form_parameters[key][0])
+            for i in range(1, len(_0_global_form_parameters[key])):
+                local_settings_file.write(f'{FORMS_SEPARATOR}{_0_global_form_parameters[key][i]}')
+            local_settings_file.write('\n')
 
 
 # Предложить сохранение настроек, если есть прогресс
@@ -1263,7 +1264,7 @@ def save_settings_if_has_changes(_window):
     _answer = _window_dia.open()
     if _answer:
         save_global_settings()
-        save_local_settings(min_good_score_perc, form_parameters, dct_filename())
+        save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters, dct_filename())
         PopupMsgW(_window, 'Настройки успешно сохранены').open()
         print('\nНастройки успешно сохранены')
 
@@ -1276,7 +1277,7 @@ def save_dct(_dct, _filename):
 
 # Предложить сохранение словаря, если есть прогресс
 def save_dct_if_has_progress(_window, _dct, _filename):
-    if has_progress:
+    if _0_global_has_progress:
         _window_dia = PopupDialogueW(_window, 'Хотите сохранить свой прогресс?', 'Да', 'Нет')
         _answer = _window_dia.open()
         if _answer:
@@ -1611,11 +1612,11 @@ class ChooseNoteW(tk.Toplevel):
         self.vals_count = MAX_SAME_WORDS - 1
         for _i in range(MAX_SAME_WORDS):
             _key = wrd_to_key(self.wrd, _i)
-            if _key not in dct.d.keys():
+            if _key not in _0_global_dct.d.keys():
                 self.vals_count = _i - 1
                 break
             outp(self.text_words, f'\n({_i})')
-            dct.d[_key].print_all(self.text_words)
+            _0_global_dct.d[_key].print_all(self.text_words)
         self.text_words['state'] = 'disabled'
 
     # Выбор одной статьи из нескольких
@@ -1795,7 +1796,7 @@ class CreateFormTemplateW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
 
         self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
-        self.parameters = list(form_parameters.keys())  # Список параметров словоформ
+        self.parameters = list(_0_global_form_parameters.keys())  # Список параметров словоформ
         self.template = []  # Шаблон словоформы
         for _ in range(len(self.parameters)):
             self.template += ['']
@@ -1838,7 +1839,7 @@ class CreateFormTemplateW(tk.Toplevel):
             return
         index = self.parameters.index(par)
 
-        window = ChooseFormParValW(self, par, form_parameters[par], combo_width=width(form_parameters[par], 5, 100))
+        window = ChooseFormParValW(self, par, _0_global_form_parameters[par], combo_width=width(_0_global_form_parameters[par], 5, 100))
         closed, val = window.open()
         if closed:
             return
@@ -1859,7 +1860,7 @@ class CreateFormTemplateW(tk.Toplevel):
 
     # Закончить с шаблоном
     def done(self):
-        if tuple(self.template) in dct.d[self.key].forms.keys():
+        if tuple(self.template) in _0_global_dct.d[self.key].forms.keys():
             PopupMsgW(self, f'У слова "{key_to_wrd(self.key)}" уже есть форма с таким шаблоном', title='Warning').open()
             return
         self.closed = False
@@ -1873,7 +1874,7 @@ class CreateFormTemplateW(tk.Toplevel):
             return None
         if self.template == self.void_template:
             return None
-        if tuple(self.template) in dct.d[self.key].forms.keys():
+        if tuple(self.template) in _0_global_dct.d[self.key].forms.keys():
             return None
         return tuple(self.template)
 
@@ -1920,14 +1921,14 @@ class ParticularMatchesW(tk.Toplevel):
         search_wrd = self.var_wrd.get()
         self.text_wrd['state'] = 'normal'
         self.text_wrd.delete(1.0, tk.END)
-        dct.print_words_with_str(self.text_wrd, search_wrd)
+        _0_global_dct.print_words_with_str(self.text_wrd, search_wrd)
         self.text_wrd['state'] = 'disabled'
 
         # Поиск по переводу
         search_tr = self.var_wrd.get()
         self.text_tr['state'] = 'normal'
         self.text_tr.delete(1.0, tk.END)
-        dct.print_translations_with_str(self.text_tr, search_tr)
+        _0_global_dct.print_translations_with_str(self.text_tr, search_tr)
         self.text_tr['state'] = 'disabled'
 
     def open(self):
@@ -1989,22 +1990,22 @@ class FormsSettingsW(tk.Toplevel):
 
     # Добавить параметр
     def add(self):
-        add_frm_param(self, form_parameters, dct)
+        add_frm_param(self, _0_global_form_parameters, _0_global_dct)
         self.refresh()
 
     # Удалить параметр
     def delete(self):
-        delete_frm_param(self, form_parameters, dct)
+        delete_frm_param(self, _0_global_form_parameters, _0_global_dct)
         self.refresh()
 
     # Переименовать параметр
     def rename(self):
-        rename_frm_param(self, form_parameters, dct)
+        rename_frm_param(self, _0_global_form_parameters, _0_global_dct)
         self.refresh()
 
     # Перейти к настройкам значения параметра
     def values(self):
-        keys = [_key for _key in form_parameters.keys()]
+        keys = [_key for _key in _0_global_form_parameters.keys()]
         window = PopupChooseW(self, keys, 'Какой параметр форм вы хотите изменить?',
                               default_value=keys[0], combo_width=width(keys, 5, 100))
         closed, key = window.open()
@@ -2016,14 +2017,14 @@ class FormsSettingsW(tk.Toplevel):
     def print_form_par_list(self):
         self.text_form_par['state'] = 'normal'
         self.text_form_par.delete(1.0, tk.END)
-        for key in form_parameters.keys():
+        for key in _0_global_form_parameters.keys():
             self.text_form_par.insert(tk.END, f'{key}\n')
         self.text_form_par['state'] = 'disabled'
 
     # Обновить отображаемую информацию
     def refresh(self):
         self.print_form_par_list()
-        if form_parameters:
+        if _0_global_form_parameters:
             self.btn_delete['state'] = 'normal'
             self.btn_rename['state'] = 'normal'
             self.btn_values['state'] = 'normal'
@@ -2036,7 +2037,7 @@ class FormsSettingsW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        save_forms(form_parameters, dct_filename())
+        save_forms(_0_global_form_parameters, dct_filename())
 
 
 # Окно настроек параметра словоформ
@@ -2047,7 +2048,7 @@ class FormsParameterSettingsW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
 
         self.parameter = parameter  # Название изменяемого параметра
-        self.par_vals = form_parameters[self.parameter]  # Значения изменяемого параметра
+        self.par_vals = _0_global_form_parameters[self.parameter]  # Значения изменяемого параметра
 
         self.var_par = tk.StringVar()
 
@@ -2101,13 +2102,13 @@ class FormsParameterSettingsW(tk.Toplevel):
 
     # Удалить значение параметра
     def delete(self):
-        delete_frm_param_val(self, self.par_vals, dct)
+        delete_frm_param_val(self, self.par_vals, _0_global_dct)
         self.refresh()
 
     # Переименовать значение параметра
     def rename(self):
-        index = tuple(form_parameters).index(self.parameter)
-        rename_frm_param_val(self, self.par_vals, index, dct)
+        index = tuple(_0_global_form_parameters).index(self.parameter)
+        rename_frm_param_val(self, self.par_vals, index, _0_global_dct)
         self.refresh()
 
     # Напечатать существующие параметры форм
@@ -2219,7 +2220,7 @@ class PrintW(tk.Toplevel):
         self.st_check.configure(style='.TCheckbutton', background=ST_BG[th])
         self.st_check.map('.TCheckbutton', background=[('active', ST_SELECT[th])])
 
-        self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{dct_savename}"', bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{_0_global_dct_savename}"', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.frame_main = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
         # {
         self.lbl_fav     = tk.Label(self.frame_main, text='Только избранные:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
@@ -2259,16 +2260,16 @@ class PrintW(tk.Toplevel):
         self.text_dct.delete(1.0, tk.END)
         if self.var_fav.get():
             if self.var_forms.get():
-                w, t, f = dct.print_fav_with_forms(self.text_dct)
+                w, t, f = _0_global_dct.print_fav_with_forms(self.text_dct)
             else:
-                w, t, f = dct.print_fav(self.text_dct)
-            self.var_info.set(dct.dct_info_fav(w, t, f))
+                w, t, f = _0_global_dct.print_fav(self.text_dct)
+            self.var_info.set(_0_global_dct.dct_info_fav(w, t, f))
         else:
             if self.var_forms.get():
-                dct.print_with_forms(self.text_dct)
+                _0_global_dct.print_with_forms(self.text_dct)
             else:
-                dct.print(self.text_dct)
-            self.var_info.set(dct.dct_info())
+                _0_global_dct.print(self.text_dct)
+            self.var_info.set(_0_global_dct.dct_info())
         self.text_dct.yview_moveto(1.0)
         self.text_dct['state'] = 'disabled'
 
@@ -2335,18 +2336,18 @@ class SearchW(tk.Toplevel):
         self.text_wrd.delete(1.0, tk.END)
 
         outp(self.text_wrd, 'Полное совпадение:')
-        if wrd_to_key(search_wrd, 0) not in dct.d.keys():
+        if wrd_to_key(search_wrd, 0) not in _0_global_dct.d.keys():
             outp(self.text_wrd, f'Слово "{deu_encode(search_wrd)}" отсутствует в словаре', _end='')
         else:
             for i in range(MAX_SAME_WORDS):
                 key = wrd_to_key(search_wrd, i)
-                if key not in dct.d.keys():
+                if key not in _0_global_dct.d.keys():
                     break
                 outp(self.text_wrd)
-                dct.d[key].print_all(self.text_wrd)
+                _0_global_dct.d[key].print_all(self.text_wrd)
 
         outp(self.text_wrd, '\nЧастичное совпадение:')
-        dct.print_words_with_str(self.text_wrd, search_wrd)
+        _0_global_dct.print_words_with_str(self.text_wrd, search_wrd)
 
         self.text_wrd['state'] = 'disabled'
 
@@ -2358,7 +2359,7 @@ class SearchW(tk.Toplevel):
 
         outp(self.text_tr, 'Полное совпадение:')
         is_found = False
-        for entry in dct.d.values():
+        for entry in _0_global_dct.d.values():
             if search_tr in entry.tr:
                 is_found = True
                 outp(self.text_tr)
@@ -2367,7 +2368,7 @@ class SearchW(tk.Toplevel):
             outp(self.text_tr, f'Слово с переводом "{deu_encode(search_tr)}" отсутствует в словаре', _end='')
 
         outp(self.text_tr, '\nЧастичное совпадение:')
-        dct.print_translations_with_str(self.text_tr, search_tr)
+        _0_global_dct.print_translations_with_str(self.text_tr, search_tr)
 
         self.text_tr['state'] = 'disabled'
 
@@ -2387,13 +2388,13 @@ class EditW(tk.Toplevel):
         self.key = key
         self.line_width = 35
         self.max_height = 5
-        self.height_w = max(min(height(dct.d[key].wrd,            self.line_width), self.max_height), 1)
-        self.height_t =     min(height(dct.d[key].tr_to_str(),    self.line_width), self.max_height)
-        self.height_n =     min(height(dct.d[key].notes_to_str(), self.line_width), self.max_height)
-        self.height_f =     min(height(dct.d[key].frm_to_str(),   self.line_width), self.max_height)
+        self.height_w = max(min(height(_0_global_dct.d[key].wrd,            self.line_width), self.max_height), 1)
+        self.height_t =     min(height(_0_global_dct.d[key].tr_to_str(),    self.line_width), self.max_height)
+        self.height_n =     min(height(_0_global_dct.d[key].notes_to_str(), self.line_width), self.max_height)
+        self.height_f =     min(height(_0_global_dct.d[key].frm_to_str(),   self.line_width), self.max_height)
 
-        self.var_wrd = tk.StringVar(value=dct.d[key].wrd)
-        self.var_fav = tk.BooleanVar(value=dct.d[key].fav)
+        self.var_wrd = tk.StringVar(value=_0_global_dct.d[key].wrd)
+        self.var_fav = tk.BooleanVar(value=_0_global_dct.d[key].fav)
 
         # Стиль для checkbutton
         self.st_check = ttk.Style()
@@ -2408,7 +2409,7 @@ class EditW(tk.Toplevel):
                                yscrollcommand=self.scrollbar_wrd.set, relief='solid', bg=ST_BG_FIELDS[th],
                                fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                selectbackground=ST_SELECT[th])
-        self.txt_wrd.insert(tk.END, dct.d[key].wrd)
+        self.txt_wrd.insert(tk.END, _0_global_dct.d[key].wrd)
         self.txt_wrd['state'] = 'disabled'
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
         self.btn_wrd_edt = tk.Button(self.frame_main, text='изм.', command=self.wrd_edt, overrelief='groove',
@@ -2421,7 +2422,7 @@ class EditW(tk.Toplevel):
                               yscrollcommand=self.scrollbar_tr.set, relief='solid', bg=ST_BG_FIELDS[th],
                               fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                               selectbackground=ST_SELECT[th])
-        self.txt_tr.insert(tk.END, dct.d[key].tr_to_str())
+        self.txt_tr.insert(tk.END, _0_global_dct.d[key].tr_to_str())
         self.txt_tr['state'] = 'disabled'
         self.scrollbar_tr.config(command=self.txt_tr.yview)
         self.frame_btns_tr = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
@@ -2440,7 +2441,7 @@ class EditW(tk.Toplevel):
                                  yscrollcommand=self.scrollbar_notes.set, relief='solid', bg=ST_BG_FIELDS[th],
                                  fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                  selectbackground=ST_SELECT[th])
-        self.txt_notes.insert(tk.END, dct.d[key].notes_to_str())
+        self.txt_notes.insert(tk.END, _0_global_dct.d[key].notes_to_str())
         self.txt_notes['state'] = 'disabled'
         self.scrollbar_notes.config(command=self.txt_notes.yview)
         self.frame_btns_notes = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
@@ -2459,7 +2460,7 @@ class EditW(tk.Toplevel):
                                yscrollcommand=self.scrollbar_frm.set, relief='solid', bg=ST_BG_FIELDS[th],
                                fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                selectbackground=ST_SELECT[th])
-        self.txt_frm.insert(tk.END, dct.d[key].frm_to_str())
+        self.txt_frm.insert(tk.END, _0_global_dct.d[key].frm_to_str())
         self.txt_frm['state'] = 'disabled'
         self.scrollbar_frm.config(command=self.txt_frm.yview)
         self.frame_btns_frm = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
@@ -2525,11 +2526,11 @@ class EditW(tk.Toplevel):
         self.btn_back.grid(  row=1, column=0, padx=(0, 1), pady=(0, 6))
         self.btn_delete.grid(row=1, column=1, padx=(0, 6), pady=(0, 6))
 
-        if dct.d[key].count_t < 2:
+        if _0_global_dct.d[key].count_t < 2:
             self.btn_tr_del.grid_remove()
-        if dct.d[key].count_n < 1:
+        if _0_global_dct.d[key].count_n < 1:
             self.btn_notes_del.grid_remove()
-        if dct.d[key].count_f < 1:
+        if _0_global_dct.d[key].count_f < 1:
             self.btn_frm_del.grid_remove()
             self.btn_frm_edt.grid_remove()
 
@@ -2544,10 +2545,10 @@ class EditW(tk.Toplevel):
 
     # Обновить поля
     def refresh(self):
-        self.height_w = max(min(height(dct.d[self.key].wrd,            self.line_width), self.max_height), 1)
-        self.height_t =     min(height(dct.d[self.key].tr_to_str(),    self.line_width), self.max_height)
-        self.height_n =     min(height(dct.d[self.key].notes_to_str(), self.line_width), self.max_height)
-        self.height_f =     min(height(dct.d[self.key].frm_to_str(),   self.line_width), self.max_height)
+        self.height_w = max(min(height(_0_global_dct.d[self.key].wrd,            self.line_width), self.max_height), 1)
+        self.height_t =     min(height(_0_global_dct.d[self.key].tr_to_str(),    self.line_width), self.max_height)
+        self.height_n =     min(height(_0_global_dct.d[self.key].notes_to_str(), self.line_width), self.max_height)
+        self.height_f =     min(height(_0_global_dct.d[self.key].frm_to_str(),   self.line_width), self.max_height)
 
         self.txt_wrd  ['height'] = self.height_w
         self.txt_tr   ['height'] = self.height_t
@@ -2556,22 +2557,22 @@ class EditW(tk.Toplevel):
 
         self.txt_wrd['state'] = 'normal'
         self.txt_wrd.delete(1.0, tk.END)
-        self.txt_wrd.insert(tk.END, dct.d[self.key].wrd)
+        self.txt_wrd.insert(tk.END, _0_global_dct.d[self.key].wrd)
         self.txt_wrd['state'] = 'disabled'
 
         self.txt_tr['state'] = 'normal'
         self.txt_tr.delete(1.0, tk.END)
-        self.txt_tr.insert(tk.END, dct.d[self.key].tr_to_str())
+        self.txt_tr.insert(tk.END, _0_global_dct.d[self.key].tr_to_str())
         self.txt_tr['state'] = 'disabled'
 
         self.txt_notes['state'] = 'normal'
         self.txt_notes.delete(1.0, tk.END)
-        self.txt_notes.insert(tk.END, dct.d[self.key].notes_to_str())
+        self.txt_notes.insert(tk.END, _0_global_dct.d[self.key].notes_to_str())
         self.txt_notes['state'] = 'disabled'
 
         self.txt_frm['state'] = 'normal'
         self.txt_frm.delete(1.0, tk.END)
-        self.txt_frm.insert(tk.END, dct.d[self.key].frm_to_str())
+        self.txt_frm.insert(tk.END, _0_global_dct.d[self.key].frm_to_str())
         self.txt_frm['state'] = 'disabled'
 
         self.btn_tr_del.grid(     row=0, column=1, padx=(1, 0), pady=0)
@@ -2583,11 +2584,11 @@ class EditW(tk.Toplevel):
         self.scrollbar_notes.grid(row=2, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
         self.scrollbar_frm.grid(  row=3, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
 
-        if dct.d[self.key].count_t < 2:
+        if _0_global_dct.d[self.key].count_t < 2:
             self.btn_tr_del.grid_remove()
-        if dct.d[self.key].count_n < 1:
+        if _0_global_dct.d[self.key].count_n < 1:
             self.btn_notes_del.grid_remove()
-        if dct.d[self.key].count_f < 1:
+        if _0_global_dct.d[self.key].count_f < 1:
             self.btn_frm_del.grid_remove()
             self.btn_frm_edt.grid_remove()
 
@@ -2602,7 +2603,7 @@ class EditW(tk.Toplevel):
 
     # Изменить слово
     def wrd_edt(self):
-        global has_progress
+        global _0_global_has_progress
 
         window = PopupEntryW(self, 'Введите новое слово')
         closed, new_wrd = window.open()
@@ -2615,16 +2616,16 @@ class EditW(tk.Toplevel):
             PopupMsgW(self, 'Это то же самое слово', title='Warning').open()
             return
 
-        self.key = dct.edit_wrd(self, self.key, new_wrd)
+        self.key = _0_global_dct.edit_wrd(self, self.key, new_wrd)
         if not self.key:
             return
 
-        has_progress = True
+        _0_global_has_progress = True
         self.refresh()
 
     # Добавить перевод
     def tr_add(self):
-        global has_progress
+        global _0_global_has_progress
 
         window = PopupEntryW(self, 'Введите новый перевод')
         closed, tr = window.open()
@@ -2633,27 +2634,27 @@ class EditW(tk.Toplevel):
         if tr == '':
             PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning').open()
             return
-        if tr in dct.d[self.key].tr:
-            PopupMsgW(self, f'У слова "{dct.d[self.key].wrd}" уже есть такой перевод', title='Warning').open()
+        if tr in _0_global_dct.d[self.key].tr:
+            PopupMsgW(self, f'У слова "{_0_global_dct.d[self.key].wrd}" уже есть такой перевод', title='Warning').open()
             return
 
-        dct.add_tr(self.key, tr, self)
+        _0_global_dct.add_tr(self.key, tr, self)
 
-        has_progress = True
+        _0_global_has_progress = True
         self.refresh()
 
     # Удалить перевод
     def tr_del(self):
-        global has_progress
+        global _0_global_has_progress
 
-        dct.delete_tr_with_choose(self, self.key)
+        _0_global_dct.delete_tr_with_choose(self, self.key)
 
-        has_progress = True
+        _0_global_has_progress = True
         self.refresh()
 
     # Добавить сноску
     def notes_add(self):
-        global has_progress
+        global _0_global_has_progress
 
         window = PopupEntryW(self, 'Введите сноску')
         closed, note = window.open()
@@ -2662,35 +2663,35 @@ class EditW(tk.Toplevel):
         if note == '':
             PopupMsgW(self, 'Сноска должна содержать хотя бы один символ', title='Warning').open()
             return
-        if note in dct.d[self.key].notes:
-            PopupMsgW(self, f'У слова "{dct.d[self.key].wrd}" уже есть такая сноска', title='Warning').open()
+        if note in _0_global_dct.d[self.key].notes:
+            PopupMsgW(self, f'У слова "{_0_global_dct.d[self.key].wrd}" уже есть такая сноска', title='Warning').open()
             return
 
-        dct.add_note(self.key, note)
+        _0_global_dct.add_note(self.key, note)
 
-        has_progress = True
+        _0_global_has_progress = True
         self.refresh()
 
     # Удалить сноску
     def notes_del(self):
-        global has_progress
+        global _0_global_has_progress
 
-        dct.delete_note_with_choose(self, self.key)
+        _0_global_dct.delete_note_with_choose(self, self.key)
 
-        has_progress = True
+        _0_global_has_progress = True
         self.refresh()
 
     # Добавить словоформу
     def frm_add(self):
-        global has_progress
+        global _0_global_has_progress
 
-        if not form_parameters:
+        if not _0_global_form_parameters:
             PopupMsgW(self, 'Отсутствуют параметры форм!\n'
                             'Чтобы их добавить, перейдите в\n'
                             'Настройки/Настройки словаря/Настройки словоформ', title='Warning').open()
             return
 
-        window_template = CreateFormTemplateW(self, self.key, combo_width=width(form_parameters, 5, 100))  # Создание шаблона словоформы
+        window_template = CreateFormTemplateW(self, self.key, combo_width=width(_0_global_form_parameters, 5, 100))  # Создание шаблона словоформы
         frm_key = window_template.open()
         if not frm_key:
             return
@@ -2699,32 +2700,32 @@ class EditW(tk.Toplevel):
         if closed:
             return
 
-        dct.add_frm(self.key, frm_key, frm, self)
+        _0_global_dct.add_frm(self.key, frm_key, frm, self)
 
-        has_progress = True
+        _0_global_has_progress = True
         self.refresh()
 
     # Удалить словоформу
     def frm_del(self):
-        global has_progress
+        global _0_global_has_progress
 
-        dct.delete_frm_with_choose(self, self.key)
+        _0_global_dct.delete_frm_with_choose(self, self.key)
 
-        has_progress = True
+        _0_global_has_progress = True
         self.refresh()
 
     # Изменить словоформу
     def frm_edt(self):
-        global has_progress
+        global _0_global_has_progress
 
-        dct.edit_frm_with_choose(self, self.key)
+        _0_global_dct.edit_frm_with_choose(self, self.key)
 
-        has_progress = True
+        _0_global_has_progress = True
         self.refresh()
 
     # Добавить в избранное/убрать из избранного
     def set_fav(self):
-        dct.d[self.key].fav = self.var_fav.get()
+        _0_global_dct.d[self.key].fav = self.var_fav.get()
 
     # Закрыть настройки
     def back(self):
@@ -2732,13 +2733,13 @@ class EditW(tk.Toplevel):
 
     # Удалить статью
     def delete(self):
-        global has_progress
+        global _0_global_has_progress
 
         window = PopupDialogueW(self, 'Вы уверены, что хотите удалить эту статью?')
         answer = window.open()
         if answer:
-            dct.delete_entry(self.key)
-            has_progress = True
+            _0_global_dct.delete_entry(self.key)
+            _0_global_has_progress = True
             self.destroy()
 
     def open(self):
@@ -2789,7 +2790,7 @@ class AddW(tk.Toplevel):
 
     # Добавление статьи
     def add(self):
-        global has_progress
+        global _0_global_has_progress
 
         if self.var_wrd.get() == '':
             PopupMsgW(self, 'Слово должно содержать хотя бы один символ', title='Warning').open()
@@ -2798,12 +2799,12 @@ class AddW(tk.Toplevel):
             PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning').open()
             return
 
-        self.key = dct.add_entry(self, self.var_wrd.get(), self.var_tr.get())
+        self.key = _0_global_dct.add_entry(self, self.var_wrd.get(), self.var_tr.get())
         if not self.key:
             return
-        dct.d[self.key].fav = self.var_fav.get()
+        _0_global_dct.d[self.key].fav = self.var_fav.get()
 
-        has_progress = True
+        _0_global_has_progress = True
         self.destroy()
 
     def open(self):
@@ -2831,7 +2832,7 @@ class LearnW(tk.Toplevel):
         self.var_input = tk.StringVar()
 
         self.lbl_global_rating = tk.Label(self,
-                                          text=f'Ваш общий рейтинг по словарю: {round(dct.count_rating() * 100)}%',
+                                          text=f'Ваш общий рейтинг по словарю: {round(_0_global_dct.count_rating() * 100)}%',
                                           bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar = tk.Scrollbar(self, bg=ST_BG[th])
         self.text_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
@@ -2876,7 +2877,7 @@ class LearnW(tk.Toplevel):
 
     # Начать учить слова
     def start(self):
-        global has_progress
+        global _0_global_has_progress
 
         order = self.conf[0]
         forms = self.conf[1]
@@ -2885,29 +2886,29 @@ class LearnW(tk.Toplevel):
         if order == VALUES_ORDER[0]:
             if forms:
                 if words == VALUES_WORDS[0]:
-                    has_progress = self.choose_f(dct) or has_progress
+                    _0_global_has_progress = self.choose_f(_0_global_dct) or _0_global_has_progress
                 elif words == VALUES_WORDS[1]:
-                    has_progress = self.choose_f_hard(dct, min_good_score_perc) or has_progress
+                    _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
                 else:
-                    has_progress = self.choose_f_fav(dct) or has_progress
+                    _0_global_has_progress = self.choose_f_fav(_0_global_dct) or _0_global_has_progress
             else:
                 if words == VALUES_WORDS[0]:
-                    has_progress = self.choose(dct) or has_progress
+                    _0_global_has_progress = self.choose(_0_global_dct) or _0_global_has_progress
                 elif words == VALUES_WORDS[1]:
-                    has_progress = self.choose_hard(dct, min_good_score_perc) or has_progress
+                    _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
                 else:
-                    has_progress = self.choose_fav(dct) or has_progress
+                    _0_global_has_progress = self.choose_fav(_0_global_dct) or _0_global_has_progress
         else:
             if words == VALUES_WORDS[0]:
-                has_progress = self.choose_t(dct) or has_progress
+                _0_global_has_progress = self.choose_t(_0_global_dct) or _0_global_has_progress
             elif words == VALUES_WORDS[1]:
-                has_progress = self.choose_t_hard(dct, min_good_score_perc) or has_progress
+                _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
             else:
-                has_progress = self.choose_t_fav(dct) or has_progress
+                _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
 
     # Ввод ответа
     def input(self):
-        global has_progress
+        global _0_global_has_progress
 
         order = self.conf[0]
         forms = self.conf[1]
@@ -2923,34 +2924,34 @@ class LearnW(tk.Toplevel):
         if order == VALUES_ORDER[0]:
             if forms:
                 if words == VALUES_WORDS[0]:
-                    has_progress = self.choose_f(dct) or has_progress
+                    _0_global_has_progress = self.choose_f(_0_global_dct) or _0_global_has_progress
                 elif words == VALUES_WORDS[1]:
-                    has_progress = self.choose_f_hard(dct, min_good_score_perc) or has_progress
+                    _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
                 else:
-                    has_progress = self.choose_f_fav(dct) or has_progress
+                    _0_global_has_progress = self.choose_f_fav(_0_global_dct) or _0_global_has_progress
             else:
                 if words == VALUES_WORDS[0]:
-                    has_progress = self.choose(dct) or has_progress
+                    _0_global_has_progress = self.choose(_0_global_dct) or _0_global_has_progress
                 elif words == VALUES_WORDS[1]:
-                    has_progress = self.choose_hard(dct, min_good_score_perc) or has_progress
+                    _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
                 else:
-                    has_progress = self.choose_fav(dct) or has_progress
+                    _0_global_has_progress = self.choose_fav(_0_global_dct) or _0_global_has_progress
         else:
             if words == VALUES_WORDS[0]:
-                has_progress = self.choose_t(dct) or has_progress
+                _0_global_has_progress = self.choose_t(_0_global_dct) or _0_global_has_progress
             elif words == VALUES_WORDS[1]:
-                has_progress = self.choose_t_hard(dct, min_good_score_perc) or has_progress
+                _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
             else:
-                has_progress = self.choose_t_fav(dct) or has_progress
+                _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
 
         self.btn_notes['state'] = 'normal'
         self.entry_input.delete(0, tk.END)
-        self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {round(dct.count_rating() * 100)}%'
+        self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {round(_0_global_dct.count_rating() * 100)}%'
 
     # Просмотр сносок
     def show_notes(self):
         self.text_dct['state'] = 'normal'
-        entry = dct.d[self.current_key]
+        entry = _0_global_dct.d[self.current_key]
         entry.notes_print(self.text_dct)
         self.text_dct.yview_moveto(1.0)
         self.text_dct['state'] = 'disabled'
@@ -2961,13 +2962,13 @@ class LearnW(tk.Toplevel):
         self.frame_main.grid_remove()
         self.btn_stop.grid_remove()
 
-        if len(self.used_words) == dct.count_w:
+        if len(self.used_words) == _0_global_dct.count_w:
             PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
         self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}')
 
     # Проверка введённого слова
     def check_wrd(self):
-        entry = dct.d[self.current_key]
+        entry = _0_global_dct.d[self.current_key]
         if self.entry_input.get() == entry.wrd:
             entry.correct()
             self.outp('Верно\n')
@@ -2991,7 +2992,7 @@ class LearnW(tk.Toplevel):
 
     # Проверка введённой словоформы
     def check_form(self):
-        entry = dct.d[self.current_key]
+        entry = _0_global_dct.d[self.current_key]
         if self.entry_input.get() == entry.forms[self.current_form]:
             entry.correct()
             self.outp('Верно\n')
@@ -3015,7 +3016,7 @@ class LearnW(tk.Toplevel):
 
     # Проверка введённого перевода
     def check_tr(self):
-        entry = dct.d[self.current_key]
+        entry = _0_global_dct.d[self.current_key]
         if self.entry_input.get() in entry.tr:
             entry.correct()
             self.outp('Верно\n')
@@ -3244,8 +3245,8 @@ class SettingsW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.var_mgsp = tk.StringVar(value=str(min_good_score_perc))
-        self.var_show_updates = tk.BooleanVar(value=bool(show_updates))
+        self.var_mgsp = tk.StringVar(value=str(_0_global_min_good_score_perc))
+        self.var_show_updates = tk.BooleanVar(value=bool(_0_global_show_updates))
         self.var_theme = tk.StringVar(value=th)
 
         # Только целые числа от 0 до 100
@@ -3269,7 +3270,7 @@ class SettingsW(tk.Toplevel):
         self.tabs = ttk.Notebook(self, style='.TNotebook')
         self.tab_local = tk.Frame(self.tabs, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                   relief=ST_RELIEF[th])
-        self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{dct_savename}"', bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{_0_global_dct_savename}"', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.tabs.add(self.tab_local, text='Настройки словаря')
         # {
         self.frame_mgsp = tk.LabelFrame(self.tab_local, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
@@ -3386,13 +3387,13 @@ class SettingsW(tk.Toplevel):
 
     # Изменить значение MGSP
     def set_mgsp(self):
-        global min_good_score_perc
+        global _0_global_min_good_score_perc
 
         val = self.var_mgsp.get()
         if val == '':
-            min_good_score_perc = 0
+            _0_global_min_good_score_perc = 0
         else:
-            min_good_score_perc = int(val)
+            _0_global_min_good_score_perc = int(val)
 
     # Настройки словоформ
     def forms(self):
@@ -3400,20 +3401,20 @@ class SettingsW(tk.Toplevel):
 
     # Разрешить/запретить сообщать о новых версиях
     def set_show_updates(self):
-        global show_updates
+        global _0_global_show_updates
 
-        show_updates = int(self.var_show_updates.get())  # 0 или 1
+        _0_global_show_updates = int(self.var_show_updates.get())  # 0 или 1
 
     # Открыть словарь
     def dct_open(self):
-        global dct, dct_savename, min_good_score_perc, form_parameters
+        global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_form_parameters
 
         saves_count = 0
         saves_list = []
         for file_name in os.listdir(SAVES_PATH):
             base_name, ext = os.path.splitext(file_name)
             if ext == '.txt':
-                if base_name != dct_savename:
+                if base_name != _0_global_dct_savename:
                     saves_list += [base_name]
                     saves_count += 1
         if saves_count == 0:  # Если нет сохранённых словарей
@@ -3428,12 +3429,12 @@ class SettingsW(tk.Toplevel):
 
         if self.has_local_changes():
             save_settings_if_has_changes(self)
-        save_dct_if_has_progress(self, dct, dct_filename())
+        save_dct_if_has_progress(self, _0_global_dct, dct_filename())
 
-        dct = Dictionary()
-        upload_dct(self, dct, savename)
-        min_good_score_perc, form_parameters = upload_local_settings(dct_filename(savename))
-        dct_savename = savename
+        _0_global_dct = Dictionary()
+        upload_dct(self, _0_global_dct, savename)
+        _0_global_min_good_score_perc, _0_global_form_parameters = upload_local_settings(dct_filename(savename))
+        _0_global_dct_savename = savename
         save_dct_name()
 
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
@@ -3442,7 +3443,7 @@ class SettingsW(tk.Toplevel):
 
     # Создать словарь
     def dct_create(self):
-        global dct, dct_savename, min_good_score_perc, form_parameters
+        global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_form_parameters
 
         window = EnterDctNameW(self)
         filename_is_correct, savename = window.open()
@@ -3451,12 +3452,12 @@ class SettingsW(tk.Toplevel):
 
         if self.has_local_changes():
             save_settings_if_has_changes(self)
-        save_dct_if_has_progress(self, dct, dct_filename())
+        save_dct_if_has_progress(self, _0_global_dct, dct_filename())
 
-        dct_savename = savename
+        _0_global_dct_savename = savename
         save_dct_name()
-        dct = Dictionary()
-        min_good_score_perc, form_parameters = create_dct(dct, savename)
+        _0_global_dct = Dictionary()
+        _0_global_min_good_score_perc, _0_global_form_parameters = create_dct(_0_global_dct, savename)
 
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
 
@@ -3464,7 +3465,7 @@ class SettingsW(tk.Toplevel):
 
     # Переименовать словарь
     def dct_rename(self):
-        global dct_savename
+        global _0_global_dct_savename
 
         saves_count = 0
         saves_list = []
@@ -3488,8 +3489,8 @@ class SettingsW(tk.Toplevel):
         new_filename = dct_filename(new_savename)
         os.rename(os.path.join(SAVES_PATH, old_filename), os.path.join(SAVES_PATH, new_filename))
         os.rename(os.path.join(LOCAL_SETTINGS_PATH, old_filename), os.path.join(LOCAL_SETTINGS_PATH, new_filename))
-        if dct_savename == old_savename:
-            dct_savename = new_savename
+        if _0_global_dct_savename == old_savename:
+            _0_global_dct_savename = new_savename
             save_dct_name()
             self.lbl_dct_name['text'] = f'Открыт словарь "{new_savename}"'
         print(f'Словарь "{old_savename}" успешно переименован в "{new_savename}"')
@@ -3503,7 +3504,7 @@ class SettingsW(tk.Toplevel):
         for filename in os.listdir(SAVES_PATH):
             base_name, ext = os.path.splitext(filename)
             if ext == '.txt':
-                if base_name != dct_savename:
+                if base_name != _0_global_dct_savename:
                     saves_list += [base_name]
                     saves_count += 1
         if saves_count == 0:  # Если нет сохранённых словарей
@@ -3515,7 +3516,7 @@ class SettingsW(tk.Toplevel):
         closed, savename = window_choose.open()
         if closed or savename == '':
             return
-        if savename == dct_savename:
+        if savename == _0_global_dct_savename:
             PopupMsgW(self, 'Нельзя удалить словарь, который сейчас открыт', title='Warning').open()
             return
 
@@ -3541,7 +3542,7 @@ class SettingsW(tk.Toplevel):
 
     # Были ли изменения
     def has_local_changes(self):
-        return int(self.var_mgsp.get()) != min_good_score_perc
+        return int(self.var_mgsp.get()) != _0_global_min_good_score_perc
 
     # Вывод существующих словарей
     def print_dct_list(self):
@@ -3550,7 +3551,7 @@ class SettingsW(tk.Toplevel):
         for filename in os.listdir(SAVES_PATH):
             base_name, ext = os.path.splitext(filename)
             if ext == '.txt':
-                if base_name == dct_savename:
+                if base_name == _0_global_dct_savename:
                     self.text_dcts.insert(tk.END, f'"{base_name}" (ОТКРЫТ)\n')
                 else:
                     self.text_dcts.insert(tk.END, f'"{base_name}"\n')
@@ -3558,7 +3559,7 @@ class SettingsW(tk.Toplevel):
 
     # Обновить значения настроек
     def refresh(self):
-        self.var_mgsp.set(str(min_good_score_perc))
+        self.var_mgsp.set(str(_0_global_min_good_score_perc))
         self.print_dct_list()
 
     # Сохранить настройки
@@ -3566,7 +3567,7 @@ class SettingsW(tk.Toplevel):
         self.set_mgsp()
         self.set_show_updates()
         self.set_theme()
-        save_local_settings(min_good_score_perc, form_parameters, dct_filename())
+        save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters, dct_filename())
         save_global_settings()
 
     def open(self):
@@ -3658,10 +3659,10 @@ class MainW(tk.Tk):
     # Изменение статьи
     def edit(self):
         wrd = self.var_word.get()
-        if wrd_to_key(wrd, 0) not in dct.d.keys():  # Если такого слова нет, то выводятся частично совпадающие слова
+        if wrd_to_key(wrd, 0) not in _0_global_dct.d.keys():  # Если такого слова нет, то выводятся частично совпадающие слова
             ParticularMatchesW(self, wrd).open()
             return
-        key = dct.choose_one_of_similar_entries(self, wrd)
+        key = _0_global_dct.choose_one_of_similar_entries(self, wrd)
         if not key:
             return None
         EditW(self, key).open()
@@ -3717,17 +3718,17 @@ class MainW(tk.Tk):
         self.lbl_footer.configure(bg=ST_BG[th], fg=ST_FG_FOOTER[th])
 
         try:
-            window_last_version.configure(bg=ST_BG[th])
-            window_last_version.lbl_msg.configure(bg=ST_BG[th], fg=ST_FG_TEXT[th])
-            window_last_version.entry_url.configure(bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
+            _0_global_window_last_version.configure(bg=ST_BG[th])
+            _0_global_window_last_version.lbl_msg.configure(bg=ST_BG[th], fg=ST_FG_TEXT[th])
+            _0_global_window_last_version.entry_url.configure(bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                                     highlightbackground=ST_BORDER[th],
                                                     highlightcolor=ST_HIGHLIGHT[th],
                                                     selectbackground=ST_SELECT[th],
                                                     readonlybackground=ST_BG_FIELDS[th])
-            window_last_version.btn_update.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
+            _0_global_window_last_version.btn_update.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                                      activebackground=ST_BTN_SELECT[th],
                                                      highlightbackground=ST_BORDER[th])
-            window_last_version.btn_close.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
+            _0_global_window_last_version.btn_close.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                                     activebackground=ST_BTN_SELECT[th],
                                                     highlightbackground=ST_BORDER[th])
         except:  # Если окно обновления не открыто
@@ -3735,17 +3736,17 @@ class MainW(tk.Tk):
 
     # Сохранить прогресс
     def save(self):
-        global has_progress
+        global _0_global_has_progress
 
-        save_dct(dct, dct_filename())
+        save_dct(_0_global_dct, dct_filename())
         PopupMsgW(self, 'Прогресс успешно сохранён').open()
         print('\nПрогресс успешно сохранён')
 
-        has_progress = False
+        _0_global_has_progress = False
 
     # Закрытие программы
     def close(self):
-        save_dct_if_has_progress(self, dct, dct_filename())
+        save_dct_if_has_progress(self, _0_global_dct, dct_filename())
         self.quit()
 
 
@@ -3756,15 +3757,15 @@ print(f'                               {PROGRAM_NAME} {PROGRAM_VERSION}')
 print(f'                               {PROGRAM_DATE}\n')
 print( '======================================================================================')
 
-dct = Dictionary()
-has_progress = False
+_0_global_dct = Dictionary()
+_0_global_has_progress = False
 
 upload_themes(THEMES)  # Загружаем темы
-dct_savename, show_updates, th = upload_global_settings()  # Загружаем глобальные настройки
+_0_global_dct_savename, _0_global_show_updates, th = upload_global_settings()  # Загружаем глобальные настройки
 root = MainW()  # Создаём графический интерфейс
-upload_dct(root, dct, dct_savename)  # Загружаем словарь
-min_good_score_perc, form_parameters = upload_local_settings(dct_filename())  # Загружаем локальные настройки
-window_last_version = check_updates(root, show_updates)  # Проверяем наличие обновлений
+upload_dct(root, _0_global_dct, _0_global_dct_savename)  # Загружаем словарь
+_0_global_min_good_score_perc, _0_global_form_parameters = upload_local_settings(dct_filename())  # Загружаем локальные настройки
+_0_global_window_last_version = check_updates(root, _0_global_show_updates)  # Проверяем наличие обновлений
 
 print('\nМожете использовать эти комбинации для немецких букв: #a -> ä, #o -> ö, #u -> ü, #s -> ß (и ## -> #)')
 
