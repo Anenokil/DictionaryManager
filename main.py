@@ -16,8 +16,8 @@ import re  # Несколько разделителей в split
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-79'
-PROGRAM_DATE = '16.1.2023   3:11 (UTC+5)'
+PROGRAM_VERSION = 'v7.0.0_PRE-80'
+PROGRAM_DATE = '16.1.2023  13:53 (UTC+5)'
 
 """ Папки и файлы """
 
@@ -1052,7 +1052,7 @@ class Dictionary(object):
             return 3
 
 
-dct_savename='words'  # Просто чтобы работала функция
+dct_savename = 'words'  # Просто чтобы работала функция
 
 
 # Получить название файла со словарём
@@ -1060,8 +1060,53 @@ def dct_filename(savename=dct_savename):
     return f'{savename}.txt'
 
 
+# Загрузка пользовательских тем
+def upload_themes(themes):
+    if os.listdir(CUSTOM_THEMES_PATH):
+        print('\nЗагрузка тем...')
+    for file_name in os.listdir(CUSTOM_THEMES_PATH):
+        base_name, ext = os.path.splitext(file_name)
+        theme = base_name
+        file_path = os.path.join(CUSTOM_THEMES_PATH, file_name)
+        try:
+            with open(file_path, 'r', encoding='utf-8') as theme_file:
+                line = theme_file.readline().strip()
+                theme_version = int(re.split(' |//', line)[0])  # После // идут комментарии
+                if theme_version != LAST_THEME_VERSION:  # Проверка версии темы
+                    print(f'Не удалось загрузить тему "{theme}", т. к. она устарела!')
+                    continue
+                themes += [theme]  # Добавляем название новой темы
+                for style_elem in STYLE_ELEMENTS:  # Проходимся по стилизуемым элементам
+                    line = theme_file.readline().strip()
+                    style = re.split(' |//', line)[0]  # После // идут комментарии
+                    element = STYLES[style_elem]
+                    element[theme] = style  # Добавляем новый стиль для элемента, соответствующий теме theme
+        except:
+            print(f'Не удалось загрузить тему "{theme}" из-за ошибки!')
+        else:
+            print(f'Тема "{theme}" успешно загружена')
+
+
+# Проверка обновлений программы
+def check_updates(window, show_updates):
+    print('\nПроверка обновлений...')
+    window_last_version = None
+    try:
+        data = urllib2.urlopen(URL_LAST_VERSION)
+        last_version = str(data.read().decode('utf-8')).strip()
+        if PROGRAM_VERSION == last_version:
+            print('Установлена последняя доступная версия')
+        else:
+            print(f'Доступна новая версия: {last_version}')
+            if show_updates:
+                window_last_version = LastVersionW(window, last_version)
+    except:
+        print('Ошибка, возможно отсутствует соединение')
+    return window_last_version
+
+
 # Загрузить глобальные настройки (настройки программы)
-def read_global_settings():
+def upload_global_settings():
     try:  # Открываем файл с названием словаря
         open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8')
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
@@ -1082,40 +1127,40 @@ def read_global_settings():
 
 
 # Загрузить локальные настройки (настройки словаря)
-def read_local_settings(_filename):
+def upload_local_settings(_filename):
     _local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, _filename)
     _form_parameters = {}
     try:
         open(_local_settings_path, 'r', encoding='utf-8')
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-        with open(_local_settings_path, 'w', encoding='utf-8') as _loc_settings_file:
-            _loc_settings_file.write('67\n'
-                                     'Число\n'
-                                     f'ед.ч.{FORMS_SEPARATOR}мн.ч.\n'
-                                     'Род\n'
-                                     f'м.р.{FORMS_SEPARATOR}ж.р.{FORMS_SEPARATOR}ср.р.\n'
-                                     'Падеж\n'
-                                     f'им.п.{FORMS_SEPARATOR}род.п.{FORMS_SEPARATOR}дат.п.{FORMS_SEPARATOR}вин.п.\n'
-                                     'Лицо\n'
-                                     f'1 л.{FORMS_SEPARATOR}2 л.{FORMS_SEPARATOR}3 л.\n'
-                                     'Время\n'
-                                     f'пр.вр.{FORMS_SEPARATOR}н.вр.{FORMS_SEPARATOR}буд.вр.')
-    with open(_local_settings_path, 'r', encoding='utf-8') as _loc_settings_file:
+        with open(_local_settings_path, 'w', encoding='utf-8') as _local_settings_file:
+            _local_settings_file.write('67\n'
+                                       'Число\n'
+                                      f'ед.ч.{FORMS_SEPARATOR}мн.ч.\n'
+                                       'Род\n'
+                                      f'м.р.{FORMS_SEPARATOR}ж.р.{FORMS_SEPARATOR}ср.р.\n'
+                                       'Падеж\n'
+                                      f'им.п.{FORMS_SEPARATOR}род.п.{FORMS_SEPARATOR}дат.п.{FORMS_SEPARATOR}вин.п.\n'
+                                       'Лицо\n'
+                                      f'1 л.{FORMS_SEPARATOR}2 л.{FORMS_SEPARATOR}3 л.\n'
+                                       'Время\n'
+                                      f'пр.вр.{FORMS_SEPARATOR}н.вр.{FORMS_SEPARATOR}буд.вр.')
+    with open(_local_settings_path, 'r', encoding='utf-8') as _local_settings_file:
         try:
-            _min_good_score_perc = int(_loc_settings_file.readline().strip())
+            _min_good_score_perc = int(_local_settings_file.readline().strip())
         except (ValueError, TypeError):
             _min_good_score_perc = 67
         while True:
-            _key = _loc_settings_file.readline().strip()
+            _key = _local_settings_file.readline().strip()
             if not _key:
                 break
-            _value = _loc_settings_file.readline().strip().split(FORMS_SEPARATOR)
+            _value = _local_settings_file.readline().strip().split(FORMS_SEPARATOR)
             _form_parameters[_key] = _value
     return _min_good_score_perc, _form_parameters
 
 
 # Загрузить словарь (с обработкой исключений)
-def read_dct(_window, _dct, _savename):
+def upload_dct(_window, _dct, _savename):
     global dct_savename
 
     _filename = dct_filename(_savename)
@@ -1146,7 +1191,7 @@ def read_dct(_window, _dct, _savename):
                     continue
                 save_dct_name()
                 _dct = Dictionary()
-                read_dct(_window, _dct, dct_savename)
+                upload_dct(_window, _dct, dct_savename)
             else:
                 exit()
 
@@ -1158,7 +1203,7 @@ def create_dct(_dct, _savename):
     open(_filepath, 'w', encoding='utf-8')
     _dct.read(_filepath)
     print(f'\nСловарь "{_savename}" успешно создан и открыт')
-    return read_local_settings(_filename)
+    return upload_local_settings(_filename)
 
 
 # Сохранить глобальные настройки (настройки программы)
@@ -1171,7 +1216,7 @@ def save_global_settings():
 
 # Сохранить название открытого словаря
 def save_dct_name():
-    _, _tmp_show_updates, _tmp_th = read_global_settings()
+    _, _tmp_show_updates, _tmp_th = upload_global_settings()
 
     with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as _settings_file:
         _settings_file.write(f'{dct_savename}\n'
@@ -1182,34 +1227,34 @@ def save_dct_name():
 # Сохранить локальные настройки (настройки словаря)
 def save_local_settings(_min_good_score_perc, _form_parameters, _filename):
     _local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, _filename)
-    with open(_local_settings_path, 'w', encoding='utf-8') as _loc_settings_file:
-        _loc_settings_file.write(f'{_min_good_score_perc}\n')
+    with open(_local_settings_path, 'w', encoding='utf-8') as _local_settings_file:
+        _local_settings_file.write(f'{_min_good_score_perc}\n')
         for _key in _form_parameters.keys():
-            _loc_settings_file.write(f'{_key}\n')
-            _loc_settings_file.write(_form_parameters[_key][0])
+            _local_settings_file.write(f'{_key}\n')
+            _local_settings_file.write(_form_parameters[_key][0])
             for _i in range(1, len(_form_parameters[_key])):
-                _loc_settings_file.write(f'{FORMS_SEPARATOR}{_form_parameters[_key][_i]}')
-            _loc_settings_file.write('\n')
+                _local_settings_file.write(f'{FORMS_SEPARATOR}{_form_parameters[_key][_i]}')
+            _local_settings_file.write('\n')
 
 
 # Сохранить словоформы
 def save_forms(_form_parameters, _filename):
     _local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, _filename)
     try:
-        with open(_local_settings_path, 'r', encoding='utf-8') as _loc_settings_file:
-            _tmp_min_good_score_perc = int(_loc_settings_file.readline().strip())
+        with open(_local_settings_path, 'r', encoding='utf-8') as _local_settings_file:
+            _tmp_min_good_score_perc = int(_local_settings_file.readline().strip())
     # Если файл отсутствует или повреждён, то создаётся файл по умолчанию
     except (FileNotFoundError, ValueError, TypeError):
         _tmp_min_good_score_perc = 67
 
-    with open(_local_settings_path, 'w', encoding='utf-8') as _loc_settings_file:
-        _loc_settings_file.write(f'{_tmp_min_good_score_perc}\n')
+    with open(_local_settings_path, 'w', encoding='utf-8') as _local_settings_file:
+        _local_settings_file.write(f'{_tmp_min_good_score_perc}\n')
         for _key in _form_parameters.keys():
-            _loc_settings_file.write(f'{_key}\n')
-            _loc_settings_file.write(_form_parameters[_key][0])
+            _local_settings_file.write(f'{_key}\n')
+            _local_settings_file.write(_form_parameters[_key][0])
             for _i in range(1, len(_form_parameters[_key])):
-                _loc_settings_file.write(f'{FORMS_SEPARATOR}{_form_parameters[_key][_i]}')
-            _loc_settings_file.write('\n')
+                _local_settings_file.write(f'{FORMS_SEPARATOR}{_form_parameters[_key][_i]}')
+            _local_settings_file.write('\n')
 
 
 # Предложить сохранение настроек, если есть прогресс
@@ -1283,6 +1328,9 @@ class PopupMsgW(tk.Toplevel):
         self.destroy()
 
     def open(self):
+        #self.focus_set()
+        #self.btn_ok.focus_set()
+        #self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
         self.grab_set()
         self.wait_window()
         return self.closed
@@ -1351,6 +1399,9 @@ class PopupDialogueW(tk.Toplevel):
         self.destroy()
 
     def open(self):
+        #self.focus_set()
+        #self.btn_left.focus_set()
+        #self.bind('<Return>', lambda event=None: self.btn_left.invoke())
         self.grab_set()
         self.wait_window()
         return self.answer
@@ -1428,6 +1479,9 @@ class PopupEntryW(tk.Toplevel):
         self.destroy()
 
     def open(self):
+        #self.focus_set()
+        #self.entry_inp.focus_set()
+        #self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
         self.grab_set()
         self.wait_window()
         return self.closed, self.var_text.get()
@@ -1435,7 +1489,7 @@ class PopupEntryW(tk.Toplevel):
 
 # Окно уведомления о выходе новой версии
 class LastVersionW(tk.Toplevel):
-    def __init__(self, parent):
+    def __init__(self, parent, last_version):
         super().__init__(parent)
         self.title('New version available')
         self.configure(bg=ST_BG[th])
@@ -3377,8 +3431,8 @@ class SettingsW(tk.Toplevel):
         save_dct_if_has_progress(self, dct, dct_filename())
 
         dct = Dictionary()
-        read_dct(self, dct, savename)
-        min_good_score_perc, form_parameters = read_local_settings(dct_filename(savename))
+        upload_dct(self, dct, savename)
+        min_good_score_perc, form_parameters = upload_local_settings(dct_filename(savename))
         dct_savename = savename
         save_dct_name()
 
@@ -3676,7 +3730,7 @@ class MainW(tk.Tk):
             window_last_version.btn_close.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                                     activebackground=ST_BTN_SELECT[th],
                                                     highlightbackground=ST_BORDER[th])
-        except:
+        except:  # Если окно обновления не открыто
             return
 
     # Сохранить прогресс
@@ -3702,53 +3756,15 @@ print(f'                               {PROGRAM_NAME} {PROGRAM_VERSION}')
 print(f'                               {PROGRAM_DATE}\n')
 print( '======================================================================================')
 
-# Загрузка пользовательских тем
-if os.listdir(CUSTOM_THEMES_PATH):
-    print('\nЗагрузка тем...')
-for file_name in os.listdir(CUSTOM_THEMES_PATH):
-    base_name, ext = os.path.splitext(file_name)
-    theme = base_name
-    file_path = os.path.join(CUSTOM_THEMES_PATH, file_name)
-    try:
-        with open(file_path, 'r', encoding='utf-8') as theme_file:
-            line = theme_file.readline().strip()
-            theme_version = int(re.split(' |//', line)[0])  # После // идут комментарии
-            if theme_version != LAST_THEME_VERSION:  # Проверка версии темы
-                print(f'Не удалось загрузить тему "{theme}", т. к. она устарела!')
-                continue
-            THEMES += [theme]  # Добавляем название новой темы
-            for style_elem in STYLE_ELEMENTS:  # Проходимся по стилизуемым элементам
-                line = theme_file.readline().strip()
-                style = re.split(' |//', line)[0]  # После // идут комментарии
-                element = STYLES[style_elem]
-                element[theme] = style  # Добавляем новый стиль для элемента, соответствующий теме theme
-    except:
-        print(f'Не удалось загрузить тему "{theme}" из-за ошибки!')
-    else:
-        print(f'Тема "{theme}" успешно загружена')
-
 dct = Dictionary()
 has_progress = False
 
-dct_savename, show_updates, th = read_global_settings()  # Загружаем глобальные настройки
+upload_themes(THEMES)  # Загружаем темы
+dct_savename, show_updates, th = upload_global_settings()  # Загружаем глобальные настройки
 root = MainW()  # Создаём графический интерфейс
-read_dct(root, dct, dct_savename)  # Загружаем словарь
-min_good_score_perc, form_parameters = read_local_settings(dct_filename())  # Загружаем локальные настройки
-
-# Проверка обновлений программы
-print('\nПроверка обновлений...')
-window_last_version = None
-try:
-    data = urllib2.urlopen(URL_LAST_VERSION)
-    last_version = str(data.read().decode('utf-8')).strip()
-    if PROGRAM_VERSION == last_version:
-        print('Установлена последняя доступная версия')
-    else:
-        print(f'Доступна новая версия: {last_version}')
-        if show_updates:
-            window_last_version = LastVersionW(root)
-except:
-    print('Ошибка, возможно отсутствует соединение')
+upload_dct(root, dct, dct_savename)  # Загружаем словарь
+min_good_score_perc, form_parameters = upload_local_settings(dct_filename())  # Загружаем локальные настройки
+window_last_version = check_updates(root, show_updates)  # Проверяем наличие обновлений
 
 print('\nМожете использовать эти комбинации для немецких букв: #a -> ä, #o -> ö, #u -> ü, #s -> ß (и ## -> #)')
 
