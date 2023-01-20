@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-84'
-PROGRAM_DATE = '20.1.2023  14:37 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-85'
+PROGRAM_DATE = '20.1.2023  15:31 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -134,6 +134,8 @@ MAX_SAME_WORDS = 100  # Максимальное количество стате
     'им. падеж' и   'тв. падеж' - ЗНАЧЕНИЯ ПАРАМЕТРА 'падеж'
 """
 
+""" Основные функции """
+
 
 # Количество строк, необходимых для записи текста, при данной длине строки
 def height(text, len_str):
@@ -150,6 +152,11 @@ def width(values, min_width, max_width):
 # Вывод текста на виджет
 def outp(output_widget, text='', end='\n', mode=tk.END):
     output_widget.insert(mode, f'{text}{end}')
+
+
+# Вывод сообщения с предупреждением
+def warning(window_parent, msg):
+    PopupMsgW(window_parent, msg, title='Warning').open()
 
 
 # Добавить немецкие буквы
@@ -232,13 +239,13 @@ def add_frm_param_val(window_parent, values, text='Введите новое з�
         if closed:
             return None
         if new_val == '':
-            PopupMsgW(window_parent, 'Значение параметра должно содержать хотя бы один символ', title='Warning').open()
+            warning(window_parent, 'Значение параметра должно содержать хотя бы один символ!')
             continue
         if new_val in values:
-            PopupMsgW(window_parent, f'Значение "{new_val}" уже существует', title='Warning').open()
+            warning(window_parent, f'Значение "{new_val}" уже существует!')
             continue
         if FORMS_SEPARATOR in new_val:
-            PopupMsgW(window_parent, f'Недопустимый символ: {FORMS_SEPARATOR}', title='Warning').open()
+            warning(window_parent, f'Недопустимый символ: {FORMS_SEPARATOR}!')
             continue
         break
     return new_val
@@ -258,13 +265,13 @@ def rename_frm_param_val(window_parent, values, pos, dct):
         if closed:
             return
         if new_val == '':
-            PopupMsgW(window_parent, 'Значение параметра должно содержать хотя бы один символ', title='Warning').open()
+            warning(window_parent, 'Значение параметра должно содержать хотя бы один символ!')
             continue
         if new_val in values:
-            PopupMsgW(window_parent, f'Значение "{new_val}" уже существует', title='Warning').open()
+            warning(window_parent, f'Значение "{new_val}" уже существует!')
             continue
         if FORMS_SEPARATOR in new_val:
-            PopupMsgW(window_parent, f'Недопустимый символ: {FORMS_SEPARATOR}', title='Warning').open()
+            warning(window_parent, f'Недопустимый символ: {FORMS_SEPARATOR}!')
         break
     dct.rename_forms_with_val(pos, old_val, new_val)  # Переименовать значение во всех словоформах, его содержащих
     index = values.index(old_val)
@@ -317,10 +324,10 @@ def rename_frm_param(window_parent, parameters, dct):
         if closed:
             return
         if new_name == '':
-            PopupMsgW(window_parent, 'Название параметра должно содержать хотя бы один символ', title='Warning').open()
+            warning(window_parent, 'Название параметра должно содержать хотя бы один символ!')
             continue
         if new_name in parameters:
-            PopupMsgW(window_parent, f'Параметр "{new_name}" уже существует', title='Warning').open()
+            warning(window_parent, f'Параметр "{new_name}" уже существует!')
             continue
         break
     # dct.rename_forms_param(index)
@@ -522,7 +529,7 @@ class Entry(object):
             self.tr += [new_tr]
             self.count_t += 1
         elif window_parent:
-            PopupMsgW(window_parent, 'У этого слова уже есть такой перевод', title='Warning').open()
+            warning(window_parent, 'У этого слова уже есть такой перевод!')
 
     # Добавить сноску
     def add_note(self, new_note):
@@ -532,14 +539,12 @@ class Entry(object):
     # Добавить словоформу
     def add_frm(self, frm_key, new_frm, window_parent=None):
         if new_frm == '':
-            PopupMsgW(window_parent, 'Форма должна содержать хотя бы один символ', title='Warning').open()
+            warning(window_parent, 'Форма должна содержать хотя бы один символ!')
         elif frm_key not in self.forms.keys():
             self.forms[frm_key] = new_frm
             self.count_f += 1
         elif window_parent:
-            PopupMsgW(window_parent,
-                      f'Слово уже имеет форму с такими параметрами {tpl(frm_key)}: {self.forms[frm_key]}',
-                      title='Warning').open()
+            warning(window_parent, f'Слово уже имеет форму с такими параметрами {tpl(frm_key)}: {self.forms[frm_key]}!')
 
     # Удалить словоформу
     def delete_frm_with_choose(self, window_parent):
@@ -574,7 +579,7 @@ class Entry(object):
         if closed:
             return
         if new_frm == '':
-            PopupMsgW(window_parent, 'Форма должна содержать хотя бы один символ', title='Warning').open()
+            warning(window_parent, 'Форма должна содержать хотя бы один символ!')
             return
         self.forms[key] = new_frm
 
@@ -862,7 +867,7 @@ class Dictionary(object):
                         self.d.pop(_key)
                         return _new_key
                     _i += 1
-                PopupMsgW(_window, 'Слишком много статей с одинаковым словом', title='Warning').open()
+                warning(_window, 'Слишком много статей с одинаковым словом!')
             else:
                 return None
         else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
@@ -929,7 +934,7 @@ class Dictionary(object):
                             self.count_t += 1
                             return _key
                         _i += 1
-                    PopupMsgW(_window, 'Слишком много статей с одинаковым словом', title='Warning').open()
+                    warning(_window, 'Слишком много статей с одинаковым словом!')
                 else:
                     return None
         else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
@@ -1189,8 +1194,7 @@ def upload_dct(window_parent, dct, savename):
                 if closed:
                     continue
                 if _0_global_dct_savename == '':
-                    PopupMsgW(window_parent, 'Название словаря должно содержать хотя бы один символ',
-                              title='Warning').open()
+                    warning(window_parent, 'Название словаря должно содержать хотя бы один символ!')
                     continue
                 save_dct_name()
                 dct = Dictionary()
@@ -1286,6 +1290,9 @@ def save_dct_if_has_progress(window_parent, dct, filename, has_progress):
             save_dct(dct, filename)
             PopupMsgW(window_parent, 'Прогресс успешно сохранён').open()
             print('\nПрогресс успешно сохранён')
+
+
+""" Графический интерфейс """
 
 
 # Ввод только целых чисел от 0 до max_val
@@ -1524,7 +1531,7 @@ class LastVersionW(tk.Toplevel):
             print('download zip')
             wget.download(URL_DOWNLOAD_ZIP, out=os.path.dirname(__file__))  # Скачиваем архив с обновлением
         except:
-            PopupMsgW(self, 'Не удалось загрузить обновление!', title='Warning').open()
+            warning(self, 'Не удалось загрузить обновление!')
             self.destroy()
         try:  # Установка
             # Распаковываем архив во временную папку
@@ -1549,11 +1556,12 @@ class LastVersionW(tk.Toplevel):
             # Удаляем временную папку
             print('delete tmp dir')
             os.rmdir(NEW_VERSION_DIR)
-            PopupMsgW(self, 'Обновление успешно установлено\nПрограмма закроется').open()
         except:
-            PopupMsgW(self, 'Не удалось установить обновление!', title='Warning').open()
+            warning(self, 'Не удалось установить обновление!')
             self.destroy()
         else:
+            PopupMsgW(self, 'Обновление успешно установлено\n'
+                            'Программа закроется').open()
             exit(777)
 
     def open(self):
@@ -1663,10 +1671,10 @@ class EnterDctNameW(tk.Toplevel):
     def check_and_return(self):
         savename = self.var_name.get()
         if savename == '':
-            PopupMsgW(self, 'Недопустимое название', title='Warning').open()
+            warning(self, 'Название должно содержать хотя бы один символ!')
             return
         if dct_filename(savename) in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
-            PopupMsgW(self, 'Файл с таким названием уже существует', title='Warning').open()
+            warning(self, 'Файл с таким названием уже существует!')
             return
         self.name_is_correct = True
         self.destroy()
@@ -1706,10 +1714,10 @@ class EnterFormParameterNameW(tk.Toplevel):
     def check_and_return(self):
         par_name = self.var_name.get()
         if par_name == '':
-            PopupMsgW(self, 'Недопустимое название параметра', title='Warning').open()
+            warning(self, 'Название параметра должно содержать хотя бы один символ!')
             return
         if par_name in self.parameters:  # Если уже есть параметр с таким названием
-            PopupMsgW(self, f'Параметр "{par_name}" уже существует', title='Warning').open()
+            warning(self, f'Параметр "{par_name}" уже существует!')
             return
         self.name_is_correct = True
         self.destroy()
@@ -1863,7 +1871,7 @@ class CreateFormTemplateW(tk.Toplevel):
     # Закончить с шаблоном
     def done(self):
         if tuple(self.template) in _0_global_dct.d[self.key].forms.keys():
-            PopupMsgW(self, f'У слова "{key_to_wrd(self.key)}" уже есть форма с таким шаблоном', title='Warning').open()
+            warning(self, f'У слова "{key_to_wrd(self.key)}" уже есть форма с таким шаблоном!')
             return
         self.closed = False
         self.destroy()
@@ -2616,10 +2624,10 @@ class EditW(tk.Toplevel):
         if closed:
             return
         if new_wrd == '':
-            PopupMsgW(self, 'Слово должно содержать хотя бы один символ', title='Warning').open()
+            warning(self, 'Слово должно содержать хотя бы один символ!')
             return
         if new_wrd == key_to_wrd(self.key):
-            PopupMsgW(self, 'Это то же самое слово', title='Warning').open()
+            warning(self, 'Это то же самое слово!')
             return
 
         self.key = _0_global_dct.edit_wrd(self, self.key, new_wrd)
@@ -2638,10 +2646,10 @@ class EditW(tk.Toplevel):
         if closed:
             return
         if tr == '':
-            PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning').open()
+            warning(self, 'Перевод должен содержать хотя бы один символ!')
             return
         if tr in _0_global_dct.d[self.key].tr:
-            PopupMsgW(self, f'У слова "{_0_global_dct.d[self.key].wrd}" уже есть такой перевод', title='Warning').open()
+            warning(self, f'У слова "{_0_global_dct.d[self.key].wrd}" уже есть такой перевод!')
             return
 
         _0_global_dct.add_tr(self.key, tr, self)
@@ -2667,10 +2675,10 @@ class EditW(tk.Toplevel):
         if closed:
             return
         if note == '':
-            PopupMsgW(self, 'Сноска должна содержать хотя бы один символ', title='Warning').open()
+            warning(self, 'Сноска должна содержать хотя бы один символ!')
             return
         if note in _0_global_dct.d[self.key].notes:
-            PopupMsgW(self, f'У слова "{_0_global_dct.d[self.key].wrd}" уже есть такая сноска', title='Warning').open()
+            warning(self, f'У слова "{_0_global_dct.d[self.key].wrd}" уже есть такая сноска!')
             return
 
         _0_global_dct.add_note(self.key, note)
@@ -2692,9 +2700,9 @@ class EditW(tk.Toplevel):
         global _0_global_has_progress
 
         if not _0_global_form_parameters:
-            PopupMsgW(self, 'Отсутствуют параметры форм!\n'
-                            'Чтобы их добавить, перейдите в\n'
-                            'Настройки/Настройки словаря/Настройки словоформ', title='Warning').open()
+            warning(self, 'Отсутствуют параметры форм!\n'
+                          'Чтобы их добавить, перейдите в\n'
+                          'Настройки/Настройки словаря/Настройки словоформ')
             return
 
         window_template = CreateFormTemplateW(self, self.key, combo_width=width(_0_global_form_parameters, 5, 100))  # Создание шаблона словоформы
@@ -2799,10 +2807,10 @@ class AddW(tk.Toplevel):
         global _0_global_has_progress
 
         if self.var_wrd.get() == '':
-            PopupMsgW(self, 'Слово должно содержать хотя бы один символ', title='Warning').open()
+            warning(self, 'Слово должно содержать хотя бы один символ!')
             return
         if self.var_tr.get() == '':
-            PopupMsgW(self, 'Перевод должен содержать хотя бы один символ', title='Warning').open()
+            warning(self, 'Перевод должен содержать хотя бы один символ!')
             return
 
         self.key = _0_global_dct.add_entry(self, self.var_wrd.get(), self.var_tr.get())
@@ -3276,7 +3284,8 @@ class SettingsW(tk.Toplevel):
         self.tabs = ttk.Notebook(self, style='.TNotebook')
         self.tab_local = tk.Frame(self.tabs, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                   relief=ST_RELIEF[th])
-        self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{_0_global_dct_savename}"', bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{_0_global_dct_savename}"',
+                                     bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.tabs.add(self.tab_local, text='Настройки словаря')
         # {
         self.frame_mgsp = tk.LabelFrame(self.tab_local, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
@@ -3424,7 +3433,7 @@ class SettingsW(tk.Toplevel):
                     saves_list += [base_name]
                     saves_count += 1
         if saves_count == 0:  # Если нет сохранённых словарей
-            PopupMsgW(self, 'Нет других сохранённых словарей', title='Warning').open()
+            warning(self, 'Нет других сохранённых словарей!')
             return
 
         window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите открыть',
@@ -3514,7 +3523,7 @@ class SettingsW(tk.Toplevel):
                     saves_list += [base_name]
                     saves_count += 1
         if saves_count == 0:  # Если нет сохранённых словарей
-            PopupMsgW(self, 'Нет других сохранённых словарей', title='Warning').open()
+            warning(self, 'Нет других сохранённых словарей!')
             return
 
         window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите удалить',
@@ -3523,7 +3532,7 @@ class SettingsW(tk.Toplevel):
         if closed or savename == '':
             return
         if savename == _0_global_dct_savename:
-            PopupMsgW(self, 'Нельзя удалить словарь, который сейчас открыт', title='Warning').open()
+            warning(self, 'Нельзя удалить словарь, который сейчас открыт!')
             return
 
         window_confirm = PopupDialogueW(self, f'Словарь "{savename}" будет безвозвратно удалён!\n'
@@ -3778,14 +3787,13 @@ print('\nМожете использовать эти комбинации дл�
 root.mainloop()
 
 # попробовать tk.ScrolledText
-# добавить warn()
 # добавить изменение статьи по переводу
 # принимать несколько ответов при угадывании слова
 # если ответ немного отличается от правильного, то ...
+# открывать программу после обновления
+# при наведении на Text (PrintW) выводить подсказку
+# при смене табов, менять размеры
 
 # enter
 # разные комбинации символов
-# доработать стили
-# при смене табов, менять размеры
 # проверять темы на корректность
-# открывать программу после обновления
