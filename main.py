@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-92'
-PROGRAM_DATE = '20.1.2023  22:08 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-93'
+PROGRAM_DATE = '20.1.2023  22:09 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -1119,7 +1119,7 @@ def check_updates(window_parent, show_updates):
         else:
             print(f'Доступна новая версия: {last_version}')
             if show_updates:
-                window_last_version = LastVersionW(window_parent, last_version)
+                window_last_version = CheckUpdatesW(window_parent, last_version)
     except:
         print('Ошибка, возможно отсутствует соединение')
     return window_last_version
@@ -1594,7 +1594,7 @@ class EntrySpecialCombinationW(tk.Toplevel):
 
 
 # Окно уведомления о выходе новой версии
-class LastVersionW(tk.Toplevel):
+class CheckUpdatesW(tk.Toplevel):
     def __init__(self, parent, last_version):
         super().__init__(parent)
         self.title('New version available')
