@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-83'
-PROGRAM_DATE = '20.1.2023  13:53 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-84'
+PROGRAM_DATE = '20.1.2023  14:37 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -2233,10 +2233,12 @@ class PrintW(tk.Toplevel):
                                      bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                      highlightbackground=ST_BORDER[th], activebackground=ST_BTN_SELECT[th])
         # }
-        self.scrollbar = tk.Scrollbar(self, bg=ST_BG[th])
-        self.text_dct  = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
-                                 bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                 relief=ST_RELIEF[th])
+        self.scrollbar_x = tk.Scrollbar(self, bg=ST_BG[th])
+        self.scrollbar_y = tk.Scrollbar(self, bg=ST_BG[th])
+        self.text_dct    = tk.Text(self, width=70, height=30, state='disabled', wrap='none',
+                                   xscrollcommand=self.scrollbar_x.set, yscrollcommand=self.scrollbar_y.set,
+                                   bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
+                                   relief=ST_RELIEF[th])
         self.lbl_info  = tk.Label(self, textvariable=self.var_info, bg=ST_BG[th], fg=ST_FG_TEXT[th])
 
         self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
@@ -2248,11 +2250,13 @@ class PrintW(tk.Toplevel):
         self.check_forms.grid(row=0, column=3, padx=(0, 6), pady=6, sticky='W')
         self.btn_print.grid(  row=0, column=4, padx=6,      pady=6)
         # }
-        self.text_dct.grid( row=2, column=0,     padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(row=2, column=1,     padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.lbl_info.grid( row=3, columnspan=2, padx=6,      pady=(0, 6))
+        self.text_dct.grid(   row=2, column=0,     padx=(6, 0), pady=0,      sticky='NSEW')
+        self.scrollbar_x.grid(row=3, column=0,     padx=(6, 0), pady=0,      sticky='NWE')
+        self.scrollbar_y.grid(row=2, column=1,     padx=(0, 6), pady=0,      sticky='NSW')
+        self.lbl_info.grid(   row=4, columnspan=2, padx=6,      pady=(0, 6))
 
-        self.scrollbar.config(command=self.text_dct.yview)
+        self.scrollbar_x.config(command=self.text_dct.xview, orient='horizontal')
+        self.scrollbar_y.config(command=self.text_dct.yview, orient='vertical')
 
         self.print()
 
