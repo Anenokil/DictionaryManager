@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-94'
-PROGRAM_DATE = '20.1.2023  22:12 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-95'
+PROGRAM_DATE = '20.1.2023  22:22 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -179,7 +179,7 @@ def deu_encode(text):
 
 
 # Заменить немецкие буквы английскими (для find_and_highlight)
-def deu_to_eng(text):
+def deu_to_eng(text):  # deu_to_eng только для немецкого
     text = text.replace('##', '1ä')
     text = text.replace('ss', '2ä')
     text = text.replace('sS', '2ä')
@@ -3144,13 +3144,17 @@ class LearnW(tk.Toplevel):
             else:
                 _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
 
-    # Ввод ответа
+    # Ввод ответа и переход к следующему слову
     def input(self):
         global _0_global_has_progress
 
         order = self.conf[0]
         forms = self.conf[1]
         words = self.conf[2]
+
+        answer = deu_encode(self.entry_input.get())  # Вывод пользовательского ответа
+        if answer != '':
+            self.outp(answer)
 
         if order == VALUES_ORDER[1]:
             self.check_tr()
@@ -3301,7 +3305,6 @@ class LearnW(tk.Toplevel):
         self.text_dct['state'] = 'normal'
         _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
         self.text_dct['state'] = 'disabled'
-        self.outp('Введите слово')
 
         return True
 
@@ -3321,7 +3324,6 @@ class LearnW(tk.Toplevel):
         self.text_dct['state'] = 'normal'
         _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
         self.text_dct['state'] = 'disabled'
-        self.outp('Введите слово')
 
         return True
 
@@ -3338,7 +3340,6 @@ class LearnW(tk.Toplevel):
         self.text_dct['state'] = 'normal'
         _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
         self.text_dct['state'] = 'disabled'
-        self.outp('Введите слово')
 
         return True
 
@@ -3356,7 +3357,6 @@ class LearnW(tk.Toplevel):
                     self.text_dct['state'] = 'normal'
                     _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
                     self.text_dct['state'] = 'disabled'
-                    self.outp('Введите слово')
                     break
             else:
                 self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
@@ -3364,7 +3364,6 @@ class LearnW(tk.Toplevel):
                     self.text_dct['state'] = 'normal'
                     _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form)
                     self.text_dct['state'] = 'disabled'
-                    self.outp('Введите слово в данной форме')
                     break
 
         return True
@@ -3388,7 +3387,6 @@ class LearnW(tk.Toplevel):
                     self.text_dct['state'] = 'normal'
                     _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
                     self.text_dct['state'] = 'disabled'
-                    self.outp('Введите слово')
                     break
             else:
                 self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
@@ -3396,7 +3394,6 @@ class LearnW(tk.Toplevel):
                     self.text_dct['state'] = 'normal'
                     _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form)
                     self.text_dct['state'] = 'disabled'
-                    self.outp('Введите слово в данной форме')
                     break
 
         return True
@@ -3415,7 +3412,6 @@ class LearnW(tk.Toplevel):
                     self.text_dct['state'] = 'normal'
                     _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
                     self.text_dct['state'] = 'disabled'
-                    self.outp('Введите слово')
                     break
             else:
                 self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
@@ -3423,7 +3419,6 @@ class LearnW(tk.Toplevel):
                     self.text_dct['state'] = 'normal'
                     _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form)
                     self.text_dct['state'] = 'disabled'
-                    self.outp('Введите слово в данной форме')
                     break
 
         return True
@@ -3441,7 +3436,6 @@ class LearnW(tk.Toplevel):
         self.text_dct['state'] = 'normal'
         _dct.d[self.current_key].print_wrd_with_stat(self.text_dct)
         self.text_dct['state'] = 'disabled'
-        self.outp('Введите перевод')
 
         return True
 
@@ -3461,7 +3455,6 @@ class LearnW(tk.Toplevel):
         self.text_dct['state'] = 'normal'
         _dct.d[self.current_key].print_wrd_with_stat(self.text_dct)
         self.text_dct['state'] = 'disabled'
-        self.outp('Введите перевод')
 
         return True
 
@@ -3478,7 +3471,6 @@ class LearnW(tk.Toplevel):
         self.text_dct['state'] = 'normal'
         _dct.d[self.current_key].print_wrd_with_stat(self.text_dct)
         self.text_dct['state'] = 'disabled'
-        self.outp('Введите перевод')
 
         return True
 
@@ -4037,7 +4029,7 @@ print( '========================================================================
 _0_global_special_combinations = {'a': 'ä',
                                   'A': 'Ä',
                                   'o': 'ö',
-                                  'O': 'Ö',  # deu_to_eng только для немецкого
+                                  'O': 'Ö',
                                   'u': 'ü',
                                   'U': 'Ü',
                                   's': 'ß',
