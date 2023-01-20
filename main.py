@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-88'
-PROGRAM_DATE = '20.1.2023  18:05 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-89'
+PROGRAM_DATE = '20.1.2023  18:10 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -690,14 +690,14 @@ def key_to_wrd(key):
 
 # Выбрать окончание слова в зависимости от количественного числительного
 def set_postfix(n, wrd_forms):
-    if 5 <= n % 100 <= 20:
-        return wrd_forms[2]  # Пример: яблок
+    if 5 <= (n % 100) <= 20:
+        return wrd_forms[2]  # Пример: 5 яблок
     elif n % 10 == 1:
-        return wrd_forms[0]  # Пример: яблоко
+        return wrd_forms[0]  # Пример: 1 яблоко
     elif 1 < n % 10 < 5:
-        return wrd_forms[1]  # Пример: яблока
+        return wrd_forms[1]  # Пример: 2 яблока
     else:
-        return wrd_forms[2]  # Пример: яблок
+        return wrd_forms[2]  # Пример: 0 яблок
 
 
 class Dictionary(object):
@@ -731,7 +731,7 @@ class Dictionary(object):
     # Вывести информацию о количестве избранных статей в словаре
     def dct_info_fav(self, count_w, count_t, count_f):
         w = set_postfix(count_w, ('слово', 'слова', 'слов'))
-        f = set_postfix(count_w + self.count_f, ('словоформа', 'словоформы', 'словоформ'))
+        f = set_postfix(count_w + count_f, ('словоформа', 'словоформы', 'словоформ'))
         t = set_postfix(count_t, ('перевод', 'перевода', 'переводов'))
         return f'< {count_w}/{self.count_w} {w} | ' \
                f'{count_w + count_f}/{self.count_w + self.count_f} {f} | ' \
