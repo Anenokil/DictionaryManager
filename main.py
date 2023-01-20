@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-87'
-PROGRAM_DATE = '20.1.2023  16:41 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-88'
+PROGRAM_DATE = '20.1.2023  18:05 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -286,7 +286,8 @@ def delete_frm_param_val(window_parent, values, dct):
     if closed or val == '':
         return
     window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие это значение параметра, будут удалены!\n'
-                                               'Хотите продолжить?')
+                                               'Хотите продолжить?',
+                                set_focus_on_btn='right')
     answer = window_dia.open()
     if answer:
         index = values.index(val)
@@ -344,7 +345,8 @@ def delete_frm_param(window_parent, parameters, dct):
     if closed or selected_par_name == '':
         return
     window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие этот параметр, будут удалены!\n'
-                                               'Хотите продолжить?')
+                                               'Хотите продолжить?',
+                                set_focus_on_btn='right')
     answer = window_dia.open()
     if answer:
         pos = par_names.index(selected_par_name)
@@ -829,7 +831,8 @@ class Dictionary(object):
             window = PopupDialogueW(_window, 'Статья с таким словом уже есть в словаре\n'
                                              'Что вы хотите сделать?',
                                     'Добавить к существующей статье', 'Создать новую статью',
-                                    st_left='std', st_right='std', val_left='l', val_right='r', val_on_close='c')
+                                    set_focus_on_btn='none', st_left='std', st_right='std',
+                                    val_left='l', val_right='r', val_on_close='c')
             _answer = window.open()
             if _answer == 'l':  # Добавить к существующей статье
                 _new_key = self.choose_one_of_similar_entries(_window, _new_wrd)
@@ -918,7 +921,8 @@ class Dictionary(object):
                 window = PopupDialogueW(_window, 'Статья с таким словом уже есть в словаре\n'
                                                  'Что вы хотите сделать?',
                                         'Добавить к существующей статье', 'Создать новую статью',
-                                        st_left='std', st_right='std', val_left='l', val_right='r', val_on_close='c')
+                                        set_focus_on_btn='none', st_left='std', st_right='std',
+                                        val_left='l', val_right='r', val_on_close='c')
                 _answer = window.open()
                 if _answer == 'l':  # Добавить к существующей статье
                     _key = self.choose_one_of_similar_entries(_window, _wrd)
@@ -1194,7 +1198,7 @@ def upload_dct(window_parent, dct, savename):
         while True:
             window_dia = PopupDialogueW(window_parent, f'Файл со словарём "{savename}" повреждён или некорректен!\n'
                                                        f'Хотите открыть другой словарь?',
-                                        'Да', 'Завершить работу', title='Warning')
+                                        'Да', 'Завершить работу', set_focus_on_btn='none', title='Warning')
             answer = window_dia.open()
             if answer:
                 window_entry = PopupEntryW(window_parent, 'Введите название словаря\n'
@@ -1347,9 +1351,10 @@ class PopupMsgW(tk.Toplevel):
         self.destroy()
 
     def open(self):
-        #self.focus_set()
-        #self.btn_ok.focus_set()
-        #self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.focus_set()
+        self.btn_ok.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+
         self.grab_set()
         self.wait_window()
         return self.closed
@@ -1362,17 +1367,21 @@ class PopupDialogueW(tk.Toplevel):
                  val_left: object = True,  # Значение, возвращаемое при нажатии на левую кнопку
                  val_right: object = False,  # Значение, возвращаемое при нажатии на правую кнопку
                  val_on_close: object = False,  # Значение, возвращаемое при закрытии окна крестиком
+                 set_focus_on_btn='left',  # Какая кнопка срабатывает при нажатии кнопки enter
                  title=PROGRAM_NAME):
         ALLOWED_ST_VALUES = ['std', 'yes', 'no']  # Проверка корректности параметров
         assert st_left  in ALLOWED_ST_VALUES, f'Bad value: st_left\nAllowed values: {ALLOWED_ST_VALUES}'
         assert st_right in ALLOWED_ST_VALUES, f'Bad value: st_right\nAllowed values: {ALLOWED_ST_VALUES}'
+        ALLOWED_FOCUS_VALUES = ['left', 'right', 'none']  # Проверка корректности параметров
+        assert set_focus_on_btn in ALLOWED_FOCUS_VALUES, f'Bad value: set_focus_on_btn\nAllowed values: {ALLOWED_FOCUS_VALUES}'
 
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
 
+        self.set_focus_on_btn = set_focus_on_btn
         self.answer = val_on_close  # Значение, возвращаемое методом self.open
-        self.val_left  = val_left
+        self.val_left = val_left
         self.val_right = val_right
 
         if st_left == 'std':
@@ -1418,9 +1427,14 @@ class PopupDialogueW(tk.Toplevel):
         self.destroy()
 
     def open(self):
-        #self.focus_set()
-        #self.btn_left.focus_set()
-        #self.bind('<Return>', lambda event=None: self.btn_left.invoke())
+        self.focus_set()
+        if self.set_focus_on_btn == 'left':
+            self.btn_left.focus_set()
+            self.bind('<Return>', lambda event=None: self.btn_left.invoke())
+        elif self.set_focus_on_btn == 'right':
+            self.btn_right.focus_set()
+            self.bind('<Return>', lambda event=None: self.btn_right.invoke())
+
         self.grab_set()
         self.wait_window()
         return self.answer
@@ -1464,6 +1478,10 @@ class PopupChooseW(tk.Toplevel):
         self.destroy()
 
     def open(self):
+        self.focus_set()
+        self.btn_ok.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+
         self.grab_set()
         self.wait_window()
         return self.closed, self.var_answer.get()
@@ -1498,9 +1516,10 @@ class PopupEntryW(tk.Toplevel):
         self.destroy()
 
     def open(self):
-        #self.focus_set()
-        #self.entry_inp.focus_set()
-        #self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.focus_set()
+        self.entry_inp.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+
         self.grab_set()
         self.wait_window()
         return self.closed, self.var_text.get()
@@ -1648,6 +1667,10 @@ class ChooseNoteW(tk.Toplevel):
         self.destroy()
 
     def open(self):
+        self.focus_set()
+        self.entry_input.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
+
         self.grab_set()
         self.wait_window()
         return self.closed, self.answer
@@ -1689,6 +1712,10 @@ class EnterDctNameW(tk.Toplevel):
         self.destroy()
 
     def open(self):
+        self.focus_set()
+        self.entry_name.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+
         self.grab_set()
         self.wait_window()
         return self.name_is_correct, self.var_name.get()
@@ -1732,6 +1759,10 @@ class EnterFormParameterNameW(tk.Toplevel):
         self.destroy()
 
     def open(self):
+        self.focus_set()
+        self.entry_name.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+
         self.grab_set()
         self.wait_window()
         return self.name_is_correct, self.var_name.get()
@@ -1802,6 +1833,10 @@ class ChooseFormParValW(tk.Toplevel):
         self.combo['values'] = self.vals
 
     def open(self):
+        self.focus_set()
+        self.btn_choose.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
+
         self.grab_set()
         self.wait_window()
         return self.closed, self.res
@@ -1886,6 +1921,10 @@ class CreateFormTemplateW(tk.Toplevel):
         self.destroy()
 
     def open(self):
+        self.focus_set()
+        self.btn_choose.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
+
         self.grab_set()
         self.wait_window()
 
@@ -2217,6 +2256,10 @@ class ChooseLearnModeW(tk.Toplevel):
         self.destroy()
 
     def open(self):
+        self.focus_set()
+        self.btn_start.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_start.invoke())
+
         self.grab_set()
         self.wait_window()
         return self.res
@@ -2297,6 +2340,9 @@ class PrintW(tk.Toplevel):
         self.text_dct['state'] = 'disabled'
 
     def open(self):
+        self.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_print.invoke())
+
         self.grab_set()
         self.wait_window()
 
@@ -2396,6 +2442,10 @@ class SearchW(tk.Toplevel):
         self.text_tr['state'] = 'disabled'
 
     def open(self):
+        self.focus_set()
+        self.entry_input.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_search.invoke())
+
         self.grab_set()
         self.wait_window()
 
@@ -2758,7 +2808,7 @@ class EditW(tk.Toplevel):
     def delete(self):
         global _0_global_has_progress
 
-        window = PopupDialogueW(self, 'Вы уверены, что хотите удалить эту статью?')
+        window = PopupDialogueW(self, 'Вы уверены, что хотите удалить эту статью?', set_focus_on_btn='right')
         answer = window.open()
         if answer:
             _0_global_dct.delete_entry(self.key)
@@ -2766,6 +2816,9 @@ class EditW(tk.Toplevel):
             self.destroy()
 
     def open(self):
+        self.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_back.invoke())
+
         self.grab_set()
         self.wait_window()
 
@@ -2831,6 +2884,10 @@ class AddW(tk.Toplevel):
         self.destroy()
 
     def open(self):
+        self.focus_set()
+        self.entry_wrd.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_add.invoke())
+
         self.grab_set()
         self.wait_window()
         return self.key
@@ -2996,7 +3053,9 @@ class LearnW(tk.Toplevel):
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
-                window = PopupDialogueW(self, 'Верно.\nОставить слово в избранном?', 'Да', 'Нет', val_on_close=True)
+                window = PopupDialogueW(self, 'Верно.\n'
+                                              'Оставить слово в избранном?',
+                                        'Да', 'Нет', val_on_close=True)
                 answer = window.open()
                 if not answer:
                     entry.fav = False
@@ -3007,7 +3066,9 @@ class LearnW(tk.Toplevel):
             entry.incorrect()
             self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.wrd)}"\n')
             if not entry.fav:
-                window = PopupDialogueW(self, 'Неверно.\nХотите добавить слово в избранное?', 'Да', 'Нет')
+                window = PopupDialogueW(self, 'Неверно.\n'
+                                              'Хотите добавить слово в избранное?',
+                                        'Да', 'Нет')
                 answer = window.open()
                 if answer:
                     entry.fav = True
@@ -3020,7 +3081,9 @@ class LearnW(tk.Toplevel):
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
-                window = PopupDialogueW(self, 'Верно.\nОставить слово в избранном?', 'Да', 'Нет', val_on_close=True)
+                window = PopupDialogueW(self, 'Верно.\n'
+                                              'Оставить слово в избранном?',
+                                        'Да', 'Нет', val_on_close=True)
                 answer = window.open()
                 if not answer:
                     entry.fav = False
@@ -3031,7 +3094,9 @@ class LearnW(tk.Toplevel):
             entry.incorrect()
             self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.forms[self.current_form])}"\n')
             if not entry.fav:
-                window = PopupDialogueW(self, 'Неверно.\nХотите добавить слово в избранное?', 'Да', 'Нет')
+                window = PopupDialogueW(self, 'Неверно.\n'
+                                              'Хотите добавить слово в избранное?',
+                                        'Да', 'Нет')
                 answer = window.open()
                 if answer:
                     entry.fav = True
@@ -3044,7 +3109,9 @@ class LearnW(tk.Toplevel):
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
-                window = PopupDialogueW(self, 'Верно.\nОставить слово в избранном?', 'Да', 'Нет', val_on_close=True)
+                window = PopupDialogueW(self, 'Верно.\n'
+                                              'Оставить слово в избранном?',
+                                        'Да', 'Нет', val_on_close=True)
                 answer = window.open()
                 if not answer:
                     entry.fav = False
@@ -3055,7 +3122,9 @@ class LearnW(tk.Toplevel):
             entry.incorrect()
             self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.tr)}"\n')
             if not entry.fav:
-                window = PopupDialogueW(self, 'Неверно.\nХотите добавить слово в избранное?', 'Да', 'Нет')
+                window = PopupDialogueW(self, 'Неверно.\n'
+                                              'Хотите добавить слово в избранное?',
+                                        'Да', 'Нет')
                 answer = window.open()
                 if answer:
                     entry.fav = True
@@ -3256,6 +3325,10 @@ class LearnW(tk.Toplevel):
         return True
 
     def open(self):
+        self.focus_set()
+        self.entry_input.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_input.invoke())
+
         self.grab_set()
         self.wait_window()
 
@@ -3545,7 +3618,8 @@ class SettingsW(tk.Toplevel):
             return
 
         window_confirm = PopupDialogueW(self, f'Словарь "{savename}" будет безвозвратно удалён!\n'
-                                              f'Хотите продолжить?')
+                                              f'Хотите продолжить?',
+                                        set_focus_on_btn='none')
         answer = window_confirm.open()
         if not answer:
             return
@@ -3670,6 +3744,10 @@ class MainW(tk.Tk):
         self.btn_close.grid(   row=6, pady=5)
 
         self.lbl_footer.grid(row=7, padx=7, pady=(0, 3), sticky='S')
+
+        self.focus_set()
+        self.entry_word.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_search.invoke())
 
     # Печать словаря
     def print(self):
@@ -3803,5 +3881,5 @@ root.mainloop()
 # при наведении на Text (PrintW) выводить подсказку
 # при смене табов, менять размеры
 
-# enter
 # разные комбинации символов
+# проблема с сохранением изменений в настройках словоформ
