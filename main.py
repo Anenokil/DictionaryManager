@@ -70,7 +70,7 @@ ST_BG_FIELDS   = {THEMES[0]: '#FFFFFF', THEMES[1]: '#171717'}  # Цвет фон
 ST_BORDER      = {THEMES[0]: '#222222', THEMES[1]: '#111111'}  # Цвет рамок
 ST_RELIEF      = {THEMES[0]: 'groove',  THEMES[1]: 'solid'  }  # Стиль рамок
 
-ST_SELECT      = {THEMES[0]: '#AABBBB', THEMES[1]: '#444444'}  # Цвет выделения текста
+ST_SELECT      = {THEMES[0]: '#BBBBBB', THEMES[1]: '#444444'}  # Цвет выделения текста
 ST_HIGHLIGHT   = {THEMES[0]: '#00DD00', THEMES[1]: '#007700'}  # Цвет подсветки виджета при фокусе
 
 ST_BTN         = {THEMES[0]: '#D0D0D0', THEMES[1]: '#202020'}  # Цвет фона обычных кнопок
@@ -1629,7 +1629,7 @@ class ChooseNoteW(tk.Toplevel):
         self.scrollbar = tk.Scrollbar(self, bg=ST_BG[th])
         self.text_words = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
                                   bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                  relief=ST_RELIEF[th])
+                                  selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
 
         self.frame_main.grid(row=0, columnspan=2, padx=6, pady=6)
         # {
@@ -1953,12 +1953,12 @@ class ParticularMatchesW(tk.Toplevel):
         self.scrollbar_wrd = tk.Scrollbar(self, bg=ST_BG[th])
         self.text_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
                                 bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                relief=ST_RELIEF[th])
+                                selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
         self.lbl_tr = tk.Label(self, text=f'Переводы, содержащие "{wrd}"', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar_tr = tk.Scrollbar(self, bg=ST_BG[th])
         self.text_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
                                bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                               relief=ST_RELIEF[th])
+                               selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
 
         self.lbl_header.grid(   row=0, column=0, columnspan=4, padx=6,      pady=(6, 3))
         self.lbl_wrd.grid(      row=1, column=0, columnspan=2, padx=(6, 3), pady=(0, 3))
@@ -2014,7 +2014,7 @@ class FormsSettingsW(tk.Toplevel):
         self.scrollbar = tk.Scrollbar(self, bg=ST_BG[th])
         self.text_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
                                      bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                     relief=ST_RELIEF[th])
+                                     selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
         self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
         # {
         self.btn_add = tk.Button(self.frame_buttons, text='Добавить параметр форм', command=self.add,
@@ -2122,7 +2122,7 @@ class FormsParameterSettingsW(tk.Toplevel):
         self.scrollbar = tk.Scrollbar(self, bg=ST_BG[th])
         self.text_par_val = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
                                     bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                    relief=ST_RELIEF[th])
+                                    selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
         self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
         # {
         self.btn_add = tk.Button(self.frame_buttons, text='Добавить значение параметра', command=self.add,
@@ -2298,7 +2298,7 @@ class PrintW(tk.Toplevel):
         self.text_dct    = tk.Text(self, width=70, height=30, state='disabled', wrap='none',
                                    xscrollcommand=self.scrollbar_x.set, yscrollcommand=self.scrollbar_y.set,
                                    bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                   relief=ST_RELIEF[th])
+                                   selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
         self.lbl_info  = tk.Label(self, textvariable=self.var_info, bg=ST_BG[th], fg=ST_FG_TEXT[th])
 
         self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
@@ -2371,12 +2371,12 @@ class SearchW(tk.Toplevel):
         self.scrollbar_wrd = tk.Scrollbar(self, bg=ST_BG[th])
         self.text_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
                                 bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                relief=ST_RELIEF[th])
+                                selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
         self.lbl_tr = tk.Label(self, text='Поиск по переводу', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar_tr = tk.Scrollbar(self, bg=ST_BG[th])
         self.text_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
                                bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                               relief=ST_RELIEF[th])
+                               selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
 
         self.frame_main.grid(row=0, columnspan=4, padx=6, pady=(6, 4))
         # {
@@ -2917,7 +2917,7 @@ class LearnW(tk.Toplevel):
         self.scrollbar = tk.Scrollbar(self, bg=ST_BG[th])
         self.text_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
                                 bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                relief=ST_RELIEF[th])
+                                selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
         self.scrollbar.config(command=self.text_dct.yview)
         self.frame_main = tk.Frame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
         # { {
@@ -3406,9 +3406,9 @@ class SettingsW(tk.Toplevel):
         # { {
         self.lbl_dcts = tk.Label(self.frame_dcts, text='Существующие словари:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar = tk.Scrollbar(self.frame_dcts, bg=ST_BG[th])
-        self.text_dcts = tk.Text(self.frame_dcts, width=20, height=10, state='disabled',
+        self.text_dcts = tk.Text(self.frame_dcts, width=20, height=10, state='disabled', relief=ST_RELIEF[th],
                                  yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
-                                 highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+                                 selectbackground=ST_SELECT[th], highlightbackground=ST_BORDER[th])
         self.frame_dct_buttons = tk.LabelFrame(self.frame_dcts, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                                relief=ST_RELIEF[th])
         # { { {
