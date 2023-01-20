@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-90'
-PROGRAM_DATE = '20.1.2023  18:44 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-92'
+PROGRAM_DATE = '20.1.2023  22:08 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -159,21 +159,21 @@ def warning(window_parent, msg):
     PopupMsgW(window_parent, msg, title='Warning').open()
 
 
+# Напечатать специальную комбинацию
+def special_combination(key):
+    val = _0_global_special_combinations[key]
+    return f'#{key} -> {val}\n'
+
+
 # Добавить немецкие буквы
 def deu_encode(text):
-    text = text.replace('##', '1ä')
-    text = text.replace('#a', '2ä')
+    text = text.replace('##', '#@')
 
-    text = text.replace('#A', 'Ä')
-    text = text.replace('#o', 'ö')
-    text = text.replace('#O', 'Ö')
-    text = text.replace('#u', 'ü')
-    text = text.replace('#U', 'Ü')
-    text = text.replace('#s', 'ß')
-    text = text.replace('#S', 'ẞ')
+    for key in _0_global_special_combinations:
+        val = _0_global_special_combinations[key]
+        text = text.replace(f'#{key}', val)
 
-    text = text.replace('1ä', '#')
-    text = text.replace('2ä', 'ä')
+    text = text.replace('#@', '#')
 
     return text
 
@@ -1318,6 +1318,16 @@ def validate_percent(value):
     return validate_int_max(value, 100)
 
 
+# Валидация ключа специальной комбинации
+def validate_special_combination_key(value):
+    return len(value) <= 1 and value not in ('#', '@')
+
+
+# Валидация значения специальной комбинации
+def validate_special_combination_val(value):
+    return len(value) <= 1 and value not in ('#', '@')
+
+
 # При выборе второго метода учёбы нельзя добавить словоформы
 def validate_order_and_forms(value, check_forms):
     print(value)
@@ -1523,6 +1533,64 @@ class PopupEntryW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
         return self.closed, self.var_text.get()
+
+
+# Окно ввода специальной комбинации
+class EntrySpecialCombinationW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[th])
+
+        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+
+        self.var_key = tk.StringVar()
+        self.var_val = tk.StringVar()
+
+        self.vcmd_key = (self.register(validate_special_combination_key), '%P')
+        self.vcmd_val = (self.register(validate_special_combination_val), '%P')
+
+        self.lbl_msg = tk.Label(self, text='Задайте комбинацию', bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.frame_main = tk.Frame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        # {
+        self.lbl_1 = tk.Label(self.frame_main, text='#', bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.entry_key = tk.Entry(self.frame_main, textvariable=self.var_key, width=2, justify='right',
+                                  validate='key', vcmd=self.vcmd_key, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
+                                  highlightbackground=ST_BORDER[th], selectbackground=ST_SELECT[th],
+                                  highlightcolor=ST_HIGHLIGHT[th])
+        self.lbl_2 = tk.Label(self.frame_main, text='->', bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.entry_val = tk.Entry(self.frame_main, textvariable=self.var_val, width=2,
+                                  validate='key', vcmd=self.vcmd_val, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
+                                  highlightbackground=ST_BORDER[th], selectbackground=ST_SELECT[th],
+                                  highlightcolor=ST_HIGHLIGHT[th])
+        # }
+        self.btn_ok = tk.Button(self, text='Подтвердить', command=self.ok, overrelief='groove',
+                                bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
+                                activebackground=ST_BTNY_SELECT[th], highlightbackground=ST_BORDER[th])
+
+        self.lbl_msg.grid(   row=0, padx=6, pady=(6, 3))
+        self.frame_main.grid(row=1, padx=6, pady=0)
+        # {
+        self.lbl_1.grid(    row=0, column=0, padx=0, pady=0)
+        self.entry_key.grid(row=0, column=1, padx=0, pady=0)
+        self.lbl_2.grid(    row=0, column=2, padx=2, pady=0)
+        self.entry_val.grid(row=0, column=3, padx=0, pady=0)
+        # }
+        self.btn_ok.grid(row=2, padx=6, pady=6)
+
+    # Нажатие на кнопку
+    def ok(self):
+        self.closed = False
+        self.destroy()
+
+    def open(self):
+        self.focus_set()
+        self.entry_key.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+
+        self.grab_set()
+        self.wait_window()
+        return self.closed, self.var_key.get(), self.var_val.get()
 
 
 # Окно уведомления о выходе новой версии
@@ -2188,6 +2256,96 @@ class FormsParameterSettingsW(tk.Toplevel):
     def open(self):
         self.grab_set()
         self.wait_window()
+
+
+# Окно настроек специальных комбинаций
+class SpecialCombinationsSettingsW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[th])
+
+        self.var_par = tk.StringVar()
+
+        # Стиль для combobox
+        self.st_combo = ttk.Style()
+        self.st_combo.configure(style='.TCombobox', background=ST_BG[th], foreground=ST_FG_TEXT[th],
+                                highlightbackground=ST_BORDER[th])
+        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[th])],
+                          foreground=[('readonly', ST_FG_TEXT[th])], highlightbackground=[('readonly', ST_BORDER[th])])
+
+        self.lbl_form_par  = tk.Label(self, text='Существующие комбинации:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.scrollbar = tk.Scrollbar(self, bg=ST_BG[th])
+        self.text_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
+                                     bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
+                                     selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
+        self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        # {
+        self.btn_add = tk.Button(self.frame_buttons, text='Добавить комбинацию', command=self.add,
+                                 overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
+                                 activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+        self.btn_delete = tk.Button(self.frame_buttons, text='Удалить комбинацию', command=self.delete,
+                                    overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
+                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+        # }
+
+        self.lbl_form_par.grid( row=0,            column=0, padx=(6, 0), pady=(6, 0))
+        self.text_form_par.grid(row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(    row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.frame_buttons.grid(row=0, rowspan=2, column=2, padx=6,      pady=6)
+        # {
+        self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
+        self.btn_delete.grid(row=1, padx=6, pady=(3, 6))
+        # }
+
+        self.scrollbar.config(command=self.text_form_par.yview)
+
+        self.refresh()
+
+    # Добавить комбинацию
+    def add(self):
+        window = EntrySpecialCombinationW(self)
+        closed, key, val = window.open()
+        if closed or key == '' or val == '':
+            return
+        if key in _0_global_special_combinations.keys():
+            warning(self, f'Комбинация #{key} уже существует!')
+            return
+        _0_global_special_combinations[key] = val
+        self.refresh()
+
+    # Удалить комбинацию
+    def delete(self):
+        variants = [special_combination(key) for key in _0_global_special_combinations]
+        window = PopupChooseW(self, variants, 'Выберите комбинацию, которую хотите удалить', default_value=variants[0])
+        closed, choose = window.open()
+        if closed:
+            return
+        chosen_key = choose[1]
+        _0_global_special_combinations.pop(chosen_key)
+        self.refresh()
+
+    # Напечатать существующие комбинации
+    def print_combinations(self):
+        self.text_form_par['state'] = 'normal'
+        self.text_form_par.delete(1.0, tk.END)
+        for key in _0_global_special_combinations.keys():
+            self.text_form_par.insert(tk.END, special_combination(key))
+        self.text_form_par['state'] = 'disabled'
+
+    # Обновить отображаемую информацию
+    def refresh(self):
+        self.print_combinations()
+        if _0_global_special_combinations:
+            self.btn_delete['state'] = 'normal'
+        else:
+            self.btn_delete['state'] = 'disabled'
+
+    def open(self):
+        self.grab_set()
+        self.wait_window()
+
+        #save_forms(_0_global_form_parameters, dct_filename())
 
 
 # Окно выбора режима перед изучением слов
@@ -3388,6 +3546,13 @@ class SettingsW(tk.Toplevel):
                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
         self.lbl_forms_warn = tk.Label(self.tab_local, text='Настройки словоформ сохраняются сразу!',
                                        bg=ST_BG[th], fg=ST_FG_WARN[th])
+        #
+        self.btn_special_combinations = tk.Button(self.tab_local, text='Специальные комбинации',
+                                                  command=self.special_combinations, overrelief='groove',
+                                                  bg=ST_BTN[th], fg=ST_FG_TEXT[th],
+                                                  activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+        self.lbl_special_combinations_warn = tk.Label(self.tab_local, text='Специальные комбинации сохраняются сразу!',
+                                                      bg=ST_BG[th], fg=ST_FG_WARN[th])
         # }
         self.tab_global = tk.Frame(self.tabs, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                    relief=ST_RELIEF[th])
@@ -3452,6 +3617,9 @@ class SettingsW(tk.Toplevel):
         self.btn_forms.grid(     row=1, padx=6, pady=(0, 3))
         self.lbl_forms_warn.grid(row=2, padx=6, pady=(0, 6))
         #
+        self.btn_special_combinations.grid(     row=3, padx=6, pady=(0, 3))
+        self.lbl_special_combinations_warn.grid(row=4, padx=6, pady=(0, 6))
+        #
         self.frame_show_updates.grid(row=0, padx=6, pady=6)
         # {
         self.lbl_show_updates.grid(  row=0, column=0, padx=(6, 0), pady=6)
@@ -3495,6 +3663,10 @@ class SettingsW(tk.Toplevel):
     # Настройки словоформ
     def forms(self):
         FormsSettingsW(self).open()
+
+    # Настройки специальных комбинаций
+    def special_combinations(self):
+        SpecialCombinationsSettingsW(self).open()
 
     # Разрешить/запретить сообщать о новых версиях
     def set_show_updates(self):
@@ -3859,6 +4031,15 @@ print(f'                               {PROGRAM_NAME} {PROGRAM_VERSION}')
 print(f'                               {PROGRAM_DATE}\n')
 print( '======================================================================================')
 
+_0_global_special_combinations = {'a': 'ä',
+                                  'A': 'Ä',
+                                  'o': 'ö',
+                                  'O': 'Ö',  # deu_to_eng только для немецкого
+                                  'u': 'ü',
+                                  'U': 'Ü',
+                                  's': 'ß',
+                                  'S': 'ẞ'}
+
 _0_global_dct = Dictionary()
 _0_global_has_progress = False
 
@@ -3868,9 +4049,6 @@ root = MainW()  # Создаём графический интерфейс
 upload_dct(root, _0_global_dct, _0_global_dct_savename)  # Загружаем словарь
 _0_global_min_good_score_perc, _0_global_form_parameters = upload_local_settings(dct_filename())  # Загружаем локальные настройки
 _0_global_window_last_version = check_updates(root, _0_global_show_updates)  # Проверяем наличие обновлений
-
-print('\nМожете использовать эти комбинации для немецких букв: #a -> ä, #o -> ö, #u -> ü, #s -> ß (и ## -> #)')
-
 root.mainloop()
 
 # попробовать tk.ScrolledText
@@ -3880,6 +4058,8 @@ root.mainloop()
 # открывать программу после обновления
 # при наведении на Text (PrintW) выводить подсказку
 # при смене табов, менять размеры
-
-# разные комбинации символов
 # проблема с сохранением изменений в настройках словоформ
+# перенести все стили '.TWidget' в MainW
+
+# доделать специальные комбинации
+# при закрытии окна возвращать фокус
