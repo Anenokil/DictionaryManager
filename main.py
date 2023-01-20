@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-93'
-PROGRAM_DATE = '20.1.2023  22:09 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-94'
+PROGRAM_DATE = '20.1.2023  22:12 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -3547,7 +3547,7 @@ class SettingsW(tk.Toplevel):
         self.lbl_forms_warn = tk.Label(self.tab_local, text='Настройки словоформ сохраняются сразу!',
                                        bg=ST_BG[th], fg=ST_FG_WARN[th])
         #
-        self.btn_special_combinations = tk.Button(self.tab_local, text='Специальные комбинации',
+        self.btn_special_combinations = tk.Button(self.tab_local, text='Специальные комбинации', state='disabled',
                                                   command=self.special_combinations, overrelief='groove',
                                                   bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                                   activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
@@ -3841,6 +3841,9 @@ class SettingsW(tk.Toplevel):
         save_global_settings()
 
     def open(self):
+        self.focus_set()
+        self.entry_mgsp.focus_set()
+
         self.grab_set()
         self.wait_window()
 
@@ -4062,4 +4065,4 @@ root.mainloop()
 # перенести все стили '.TWidget' в MainW
 
 # доделать специальные комбинации
-# при закрытии окна возвращать фокус
+# при закрытии окна возвращать фокус предыдущему окну
