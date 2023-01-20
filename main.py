@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-86'
-PROGRAM_DATE = '20.1.2023  15:48 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-87'
+PROGRAM_DATE = '20.1.2023  16:41 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -1077,6 +1077,7 @@ def upload_themes(themes):
         theme = base_name
         file_path = os.path.join(CUSTOM_THEMES_PATH, file_name)
         try:
+            is_correct = True
             with open(file_path, 'r', encoding='utf-8') as theme_file:
                 line = theme_file.readline().strip()
                 theme_version = int(re.split(' |//', line)[0])  # После // идут комментарии
@@ -1089,6 +1090,13 @@ def upload_themes(themes):
                     style = re.split(' |//', line)[0]  # После // идут комментарии
                     element = STYLES[style_elem]
                     element[theme] = style  # Добавляем новый стиль для элемента, соответствующий теме theme
+                    if not style:
+                        print(f'Не удалось загрузить тему "{theme}" из-за ошибки!')
+                        themes.remove(theme)
+                        is_correct = False
+                        break
+            if not is_correct:
+                continue
         except:
             print(f'Не удалось загрузить тему "{theme}" из-за ошибки!')
         else:
@@ -3797,4 +3805,3 @@ root.mainloop()
 
 # enter
 # разные комбинации символов
-# проверять темы на корректность
