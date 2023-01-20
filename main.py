@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-89'
-PROGRAM_DATE = '20.1.2023  18:10 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-90'
+PROGRAM_DATE = '20.1.2023  18:44 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -287,7 +287,7 @@ def delete_frm_param_val(window_parent, values, dct):
         return
     window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие это значение параметра, будут удалены!\n'
                                                'Хотите продолжить?',
-                                set_focus_on_btn='right')
+                                set_focus_on_btn='none')
     answer = window_dia.open()
     if answer:
         index = values.index(val)
@@ -346,7 +346,7 @@ def delete_frm_param(window_parent, parameters, dct):
         return
     window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие этот параметр, будут удалены!\n'
                                                'Хотите продолжить?',
-                                set_focus_on_btn='right')
+                                set_focus_on_btn='none')
     answer = window_dia.open()
     if answer:
         pos = par_names.index(selected_par_name)
@@ -2808,7 +2808,7 @@ class EditW(tk.Toplevel):
     def delete(self):
         global _0_global_has_progress
 
-        window = PopupDialogueW(self, 'Вы уверены, что хотите удалить эту статью?', set_focus_on_btn='right')
+        window = PopupDialogueW(self, 'Вы уверены, что хотите удалить эту статью?', set_focus_on_btn='none')
         answer = window.open()
         if answer:
             _0_global_dct.delete_entry(self.key)
