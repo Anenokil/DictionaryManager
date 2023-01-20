@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-85'
-PROGRAM_DATE = '20.1.2023  15:31 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-86'
+PROGRAM_DATE = '20.1.2023  15:48 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -768,10 +768,13 @@ class Dictionary(object):
             wrd = key_to_wrd(key)
             res = find_and_highlight(wrd, search_wrd)
             if res != '':
-                is_found = True
-                outp(output_widget, res)
+                if is_found:
+                    outp(output_widget)  # Вывод новой строки после найденной статьи (кроме первой)
+                else:
+                    is_found = True
+                outp(output_widget, res, end='')
         if not is_found:
-            outp(output_widget, 'Частичных совпадений не найдено')
+            outp(output_widget, 'Частичных совпадений не найдено', end='')
 
     # Напечатать статьи, в которых переводы содержат данную строку
     def print_translations_with_str(self, output_widget, search_tr):
@@ -792,9 +795,7 @@ class Dictionary(object):
                     is_found = True
                     outp(output_widget, res, end='')  # Вывод перевода
         if not is_found:
-            outp(output_widget, 'Частичных совпадений не найдено')
-        else:
-            outp(output_widget)
+            outp(output_widget, 'Частичных совпадений не найдено', end='')
 
     # Выбрать одну статью из нескольких с одинаковыми словами
     def choose_one_of_similar_entries(self, _window, _wrd):
@@ -2360,7 +2361,7 @@ class SearchW(tk.Toplevel):
                 outp(self.text_wrd)
                 _0_global_dct.d[key].print_all(self.text_wrd)
 
-        outp(self.text_wrd, '\nЧастичное совпадение:')
+        outp(self.text_wrd, '\n\nЧастичное совпадение:')
         _0_global_dct.print_words_with_str(self.text_wrd, search_wrd)
 
         self.text_wrd['state'] = 'disabled'
@@ -2381,7 +2382,7 @@ class SearchW(tk.Toplevel):
         if not is_found:
             outp(self.text_tr, f'Слово с переводом "{deu_encode(search_tr)}" отсутствует в словаре', end='')
 
-        outp(self.text_tr, '\nЧастичное совпадение:')
+        outp(self.text_tr, '\n\nЧастичное совпадение:')
         _0_global_dct.print_translations_with_str(self.text_tr, search_tr)
 
         self.text_tr['state'] = 'disabled'
