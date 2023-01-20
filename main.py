@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-96'
-PROGRAM_DATE = '20.1.2023  23:31 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-97'
+PROGRAM_DATE = '20.1.2023  23:47 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -1131,9 +1131,9 @@ def upload_global_settings():
         open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8')
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
         with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
-            global_settings_file.write('words\n'
-                                '1\n'
-                                f'{THEMES[0]}')
+            global_settings_file.write(f'words\n'
+                                       f'1\n'
+                                       f'{THEMES[0]}')
     with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
         dct_savename = global_settings_file.readline().strip()
         try:
@@ -1227,21 +1227,17 @@ def create_dct(dct, savename):
 
 
 # Сохранить глобальные настройки (настройки программы)
-def save_global_settings():
+def save_global_settings(dct_savename, show_updates, themes):
     with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
-        global_settings_file.write(f'{_0_global_dct_savename}\n'
-                                   f'{_0_global_show_updates}\n'
-                                   f'{th}')
+        global_settings_file.write(f'{dct_savename}\n'
+                                   f'{show_updates}\n'
+                                   f'{themes}')
 
 
 # Сохранить название открытого словаря
 def save_dct_name():
     _, tmp_show_updates, tmp_th = upload_global_settings()
-
-    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
-        global_settings_file.write(f'{_0_global_dct_savename}\n'
-                                   f'{tmp_show_updates}\n'
-                                   f'{tmp_th}')
+    save_global_settings(_0_global_dct_savename, tmp_show_updates, tmp_th)
 
 
 # Сохранить локальные настройки (настройки словаря)
@@ -1282,7 +1278,7 @@ def save_settings_if_has_changes(window_parent):
     window_dia = PopupDialogueW(window_parent, 'Хотите сохранить изменения настроек?', 'Да', 'Нет')
     answer = window_dia.open()
     if answer:
-        save_global_settings()
+        save_global_settings(_0_global_dct_savename, _0_global_show_updates, th)
         save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters, dct_filename())
         PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
         print('\nНастройки успешно сохранены')
@@ -3802,7 +3798,7 @@ class SettingsW(tk.Toplevel):
         self.set_show_updates()
         self.set_theme()
         save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters, dct_filename())
-        save_global_settings()
+        save_global_settings(_0_global_dct_savename, _0_global_show_updates, th)
 
     def open(self):
         self.focus_set()
