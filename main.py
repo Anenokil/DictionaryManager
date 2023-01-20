@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-95'
-PROGRAM_DATE = '20.1.2023  22:22 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-96'
+PROGRAM_DATE = '20.1.2023  23:31 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -2619,10 +2619,6 @@ class EditW(tk.Toplevel):
         self.key = key
         self.line_width = 35
         self.max_height = 5
-        self.height_w = max(min(height(_0_global_dct.d[key].wrd,            self.line_width), self.max_height), 1)
-        self.height_t =     min(height(_0_global_dct.d[key].tr_to_str(),    self.line_width), self.max_height)
-        self.height_n =     min(height(_0_global_dct.d[key].notes_to_str(), self.line_width), self.max_height)
-        self.height_f =     min(height(_0_global_dct.d[key].frm_to_str(),   self.line_width), self.max_height)
 
         self.var_wrd = tk.StringVar(value=_0_global_dct.d[key].wrd)
         self.var_fav = tk.BooleanVar(value=_0_global_dct.d[key].fav)
@@ -2636,12 +2632,10 @@ class EditW(tk.Toplevel):
         # {
         self.lbl_wrd = tk.Label(self.frame_main, text='Слово:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar_wrd = tk.Scrollbar(self.frame_main, bg=ST_BG[th])
-        self.txt_wrd = tk.Text(self.frame_main, width=self.line_width, height=self.height_w,
-                               yscrollcommand=self.scrollbar_wrd.set, relief='solid', bg=ST_BG_FIELDS[th],
-                               fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
+        self.txt_wrd = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_wrd.set,
+                               relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
+                               highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                selectbackground=ST_SELECT[th])
-        self.txt_wrd.insert(tk.END, _0_global_dct.d[key].wrd)
-        self.txt_wrd['state'] = 'disabled'
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
         self.btn_wrd_edt = tk.Button(self.frame_main, text='изм.', command=self.wrd_edt, overrelief='groove',
                                      bg=ST_BTN[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
@@ -2649,12 +2643,10 @@ class EditW(tk.Toplevel):
         #
         self.lbl_tr = tk.Label(self.frame_main, text='Перевод:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar_tr = tk.Scrollbar(self.frame_main, bg=ST_BG[th])
-        self.txt_tr = tk.Text(self.frame_main, width=self.line_width, height=self.height_t,
-                              yscrollcommand=self.scrollbar_tr.set, relief='solid', bg=ST_BG_FIELDS[th],
-                              fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
+        self.txt_tr = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_tr.set,
+                              relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
+                              highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                               selectbackground=ST_SELECT[th])
-        self.txt_tr.insert(tk.END, _0_global_dct.d[key].tr_to_str())
-        self.txt_tr['state'] = 'disabled'
         self.scrollbar_tr.config(command=self.txt_tr.yview)
         self.frame_btns_tr = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                       relief=ST_RELIEF[th])
@@ -2668,12 +2660,10 @@ class EditW(tk.Toplevel):
         # } }
         self.lbl_notes = tk.Label(self.frame_main, text='Сноски:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar_notes = tk.Scrollbar(self.frame_main, bg=ST_BG[th])
-        self.txt_notes = tk.Text(self.frame_main, width=self.line_width, height=self.height_n,
-                                 yscrollcommand=self.scrollbar_notes.set, relief='solid', bg=ST_BG_FIELDS[th],
-                                 fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
+        self.txt_notes = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_notes.set,
+                                 relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
+                                 highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                  selectbackground=ST_SELECT[th])
-        self.txt_notes.insert(tk.END, _0_global_dct.d[key].notes_to_str())
-        self.txt_notes['state'] = 'disabled'
         self.scrollbar_notes.config(command=self.txt_notes.yview)
         self.frame_btns_notes = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                          relief=ST_RELIEF[th])
@@ -2687,12 +2677,10 @@ class EditW(tk.Toplevel):
         # } }
         self.lbl_frm = tk.Label(self.frame_main, text='Формы слова:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar_frm = tk.Scrollbar(self.frame_main, bg=ST_BG[th])
-        self.txt_frm = tk.Text(self.frame_main, width=self.line_width, height=self.height_f,
-                               yscrollcommand=self.scrollbar_frm.set, relief='solid', bg=ST_BG_FIELDS[th],
-                               fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
+        self.txt_frm = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_frm.set,
+                               relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
+                               highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                selectbackground=ST_SELECT[th])
-        self.txt_frm.insert(tk.END, _0_global_dct.d[key].frm_to_str())
-        self.txt_frm['state'] = 'disabled'
         self.scrollbar_frm.config(command=self.txt_frm.yview)
         self.frame_btns_frm = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                        relief=ST_RELIEF[th])
@@ -2707,7 +2695,6 @@ class EditW(tk.Toplevel):
                                      bg=ST_BTN[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
                                      activebackground=ST_BTN_SELECT[th])
         # } }
-
         self.lbl_fav = tk.Label(self.frame_main, text='Избранное:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=self.set_fav,
                                          style='.TCheckbutton')
@@ -2718,7 +2705,7 @@ class EditW(tk.Toplevel):
         self.btn_delete = tk.Button(self, text='Удалить статью', command=self.delete, overrelief='groove',
                                     bg=ST_BTNN[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
                                     activebackground=ST_BTNN_SELECT[th])
-
+        #
         self.frame_main.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
         # {
         self.lbl_wrd.grid(      row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
@@ -2757,38 +2744,23 @@ class EditW(tk.Toplevel):
         self.btn_back.grid(  row=1, column=0, padx=(0, 1), pady=(0, 6))
         self.btn_delete.grid(row=1, column=1, padx=(0, 6), pady=(0, 6))
 
-        if _0_global_dct.d[key].count_t < 2:
-            self.btn_tr_del.grid_remove()
-        if _0_global_dct.d[key].count_n < 1:
-            self.btn_notes_del.grid_remove()
-        if _0_global_dct.d[key].count_f < 1:
-            self.btn_frm_del.grid_remove()
-            self.btn_frm_edt.grid_remove()
-
-        if self.height_w < self.max_height:
-            self.scrollbar_wrd.grid_remove()
-        if self.height_t < self.max_height:
-            self.scrollbar_tr.grid_remove()
-        if self.height_n < self.max_height:
-            self.scrollbar_notes.grid_remove()
-        if self.height_f < self.max_height:
-            self.scrollbar_frm.grid_remove()
+        self.refresh()
 
     # Обновить поля
     def refresh(self):
-        self.height_w = max(min(height(_0_global_dct.d[self.key].wrd,            self.line_width), self.max_height), 1)
-        self.height_t =     min(height(_0_global_dct.d[self.key].tr_to_str(),    self.line_width), self.max_height)
-        self.height_n =     min(height(_0_global_dct.d[self.key].notes_to_str(), self.line_width), self.max_height)
-        self.height_f =     min(height(_0_global_dct.d[self.key].frm_to_str(),   self.line_width), self.max_height)
+        height_w = max(min(height(_0_global_dct.d[self.key].wrd,            self.line_width), self.max_height), 1)
+        height_t =     min(height(_0_global_dct.d[self.key].tr_to_str(),    self.line_width), self.max_height)
+        height_n =     min(height(_0_global_dct.d[self.key].notes_to_str(), self.line_width), self.max_height)
+        height_f =     min(height(_0_global_dct.d[self.key].frm_to_str(),   self.line_width), self.max_height)
 
-        self.txt_wrd  ['height'] = self.height_w
-        self.txt_tr   ['height'] = self.height_t
-        self.txt_notes['height'] = self.height_n
-        self.txt_frm  ['height'] = self.height_f
+        self.txt_wrd  ['height'] = height_w
+        self.txt_tr   ['height'] = height_t
+        self.txt_notes['height'] = height_n
+        self.txt_frm  ['height'] = height_f
 
         self.txt_wrd['state'] = 'normal'
         self.txt_wrd.delete(1.0, tk.END)
-        self.txt_wrd.insert(tk.END, _0_global_dct.d[self.key].wrd)
+        self.txt_wrd.insert(tk.END, deu_encode(_0_global_dct.d[self.key].wrd))
         self.txt_wrd['state'] = 'disabled'
 
         self.txt_tr['state'] = 'normal'
@@ -2823,13 +2795,13 @@ class EditW(tk.Toplevel):
             self.btn_frm_del.grid_remove()
             self.btn_frm_edt.grid_remove()
 
-        if self.height_w < self.max_height:
+        if height_w < self.max_height:
             self.scrollbar_wrd.grid_remove()
-        if self.height_t < self.max_height:
+        if height_t < self.max_height:
             self.scrollbar_tr.grid_remove()
-        if self.height_n < self.max_height:
+        if height_n < self.max_height:
             self.scrollbar_notes.grid_remove()
-        if self.height_f < self.max_height:
+        if height_f < self.max_height:
             self.scrollbar_frm.grid_remove()
 
     # Изменить слово
