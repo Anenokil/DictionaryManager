@@ -16,10 +16,10 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-82'
-PROGRAM_DATE = '20.1.2023   4:39 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-83'
+PROGRAM_DATE = '20.1.2023  13:53 (UTC+3)'
 
-""" Папки и файлы """
+""" Пути и файлы """
 
 # Ссылка на страницу программы на GitHub
 URL_GITHUB = f'https://github.com/Anenokil/{PROGRAM_NAME}'
@@ -83,7 +83,7 @@ ST_BTNN_SELECT = {THEMES[0]: '#EE5555', THEMES[1]: '#904444'}  # Цвет фон
 ST_FG_TEXT     = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет обычного текста
 ST_FG_LOGO     = {THEMES[0]: '#FF7200', THEMES[1]: '#803600'}  # Цвет текста логотипа
 ST_FG_FOOTER   = {THEMES[0]: '#666666', THEMES[1]: '#666666'}  # Цвет текста нижнего колонтитула
-ST_FG_WARN     = {THEMES[0]: '#DD2222', THEMES[1]: '#AA0000'}  # Цвет текста предупреждения
+ST_FG_WARN     = {THEMES[0]: '#DD2222', THEMES[1]: '#DD2222'}  # Цвет текста предупреждения
 
 # Названия стилизуемых элементов
 STYLE_ELEMENTS = ('BG', 'BG_FIELDS', 'BORDER', 'RELIEF', 'SELECT', 'HIGHLIGHT',
