@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-112'
-PROGRAM_DATE = '21.1.2023'
-PROGRAM_TIME = '22:04 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-113'
+PROGRAM_DATE = '22.1.2023'
+PROGRAM_TIME = '0:29 (UTC+3)'
 
 """ Пути и файлы """
 MAIN_PATH = os.path.dirname(__file__)
@@ -41,9 +41,11 @@ NEW_VERSION_PATH = os.path.join(MAIN_PATH, NEW_VERSION_DIR)  # Временна�
 NEW_VERSION_ZIP = f'{NEW_VERSION_DIR}.zip'
 NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с обновлением
 
-# Ссылка на страницу программы на GitHub
+# Ссылка на репозиторий программы на GitHub
 URL_GITHUB = f'https://github.com/Anenokil/{PROGRAM_NAME}'
-# Ссылка на файл с названием последней версией
+# Ссылка на релизы программы
+URL_RELEASES = f'https://github.com/Anenokil/{PROGRAM_NAME}/releases'
+# Ссылка на файл с названием последней версии
 URL_LAST_VERSION = f'https://raw.githubusercontent.com/Anenokil/{PROGRAM_NAME}/master/ver'
 # Ссылка для установки последней версии
 URL_DOWNLOAD_ZIP = f'https://github.com/Anenokil/{PROGRAM_NAME}/archive/refs/heads/master.zip'
@@ -1104,7 +1106,8 @@ def upload_themes(themes):
                 line = theme_file.readline().strip()
                 theme_version = int(re.split(' |//', line)[0])  # После // идут комментарии
                 if theme_version != REQUIRED_THEME_VERSION:  # Проверка версии темы
-                    print(f'Не удалось загрузить тему "{theme}", т. к. она устарела!')
+                    print(f'Не удалось загрузить тему "{theme}", т. к. она устарела!\n'
+                          f'Актуальные темы можно загрузить здесь: {URL_RELEASES}')
                     continue
                 themes += [theme]  # Добавляем название новой темы
                 for style_elem in STYLE_ELEMENTS:  # Проходимся по стилизуемым элементам
@@ -1500,13 +1503,6 @@ class PopupChooseW(tk.Toplevel):
 
         self.var_answer = tk.StringVar(value=default_value)
 
-        # Стиль для combobox
-        self.st_combo = ttk.Style()
-        self.st_combo.configure(style='.TCombobox', background=ST_BG[th], foreground=ST_FG_TEXT[th],
-                                highlightbackground=ST_BORDER[th])
-        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[th])],
-                          foreground=[('readonly', ST_FG_TEXT[th])], highlightbackground=[('readonly', ST_BORDER[th])])
-
         self.lbl_msg = tk.Label(self, text=msg, bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values, width=combo_width,
                                        font='TkFixedFont', state='readonly', style='.TCombobox')
@@ -1761,7 +1757,7 @@ class ChooseNoteW(tk.Toplevel):
                                     bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                     highlightbackground=ST_BORDER[th], activebackground=ST_BTN_SELECT[th])
         # }
-        self.scrollbar = tk.Scrollbar(self, bg=ST_BG[th])
+        self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_words = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
                                   bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
                                   selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
@@ -1915,13 +1911,6 @@ class ChooseFormParValW(tk.Toplevel):
         self.vals = par_vals
         self.var_par = tk.StringVar(value=self.vals[0])
 
-        # Стиль для combobox
-        self.st_combo = ttk.Style()
-        self.st_combo.configure(style='.TCombobox', background=ST_BG[th], foreground=ST_FG_TEXT[th],
-                                highlightbackground=ST_BORDER[th])
-        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[th])],
-                          foreground=[('readonly', ST_FG_TEXT[th])], highlightbackground=[('readonly', ST_BORDER[th])])
-
         self.lbl_choose = tk.Label(self, text=f'Задайте значение параметра "{par_name}"',
                                    bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.combo = ttk.Combobox(self, textvariable=self.var_par, values=self.vals, width=combo_width,
@@ -1994,13 +1983,6 @@ class CreateFormTemplateW(tk.Toplevel):
 
         self.var_template = tk.StringVar(value='Текущий шаблон формы: ""')
         self.var_par = tk.StringVar(value=self.parameters[0])
-
-        # Стиль для combobox
-        self.st_combo = ttk.Style()
-        self.st_combo.configure(style='.TCombobox', background=ST_BG[th], foreground=ST_FG_TEXT[th],
-                                highlightbackground=ST_BORDER[th])
-        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[th])],
-                          foreground=[('readonly', ST_FG_TEXT[th])], highlightbackground=[('readonly', ST_BORDER[th])])
 
         self.lbl_template = tk.Label(self, textvariable=self.var_template, bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.lbl_choose = tk.Label(self, text='Выберите параметр', bg=ST_BG[th], fg=ST_FG_TEXT[th])
@@ -2085,12 +2067,12 @@ class ParticularMatchesW(tk.Toplevel):
         self.lbl_header = tk.Label(self, text=f'Слово "{wrd}" отсутствует в словаре\n'
                                               f'Возможно вы искали:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.lbl_wrd = tk.Label(self, text=f'Слова, содержащие "{wrd}"', bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.scrollbar_wrd = tk.Scrollbar(self, bg=ST_BG[th])
+        self.scrollbar_wrd = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
                                 bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
                                 selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
         self.lbl_tr = tk.Label(self, text=f'Переводы, содержащие "{wrd}"', bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.scrollbar_tr = tk.Scrollbar(self, bg=ST_BG[th])
+        self.scrollbar_tr = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
                                bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
                                selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
@@ -2140,15 +2122,8 @@ class FormsSettingsW(tk.Toplevel):
 
         self.var_par = tk.StringVar()
 
-        # Стиль для combobox
-        self.st_combo = ttk.Style()
-        self.st_combo.configure(style='.TCombobox', background=ST_BG[th], foreground=ST_FG_TEXT[th],
-                                highlightbackground=ST_BORDER[th])
-        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[th])],
-                          foreground=[('readonly', ST_FG_TEXT[th])], highlightbackground=[('readonly', ST_BORDER[th])])
-
         self.lbl_form_par = tk.Label(self, text='Существующие параметры форм:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.scrollbar = tk.Scrollbar(self, bg=ST_BG[th])
+        self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
                                      bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
                                      selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
@@ -2248,16 +2223,9 @@ class FormsParameterSettingsW(tk.Toplevel):
 
         self.var_par = tk.StringVar()
 
-        # Стиль для combobox
-        self.st_combo = ttk.Style()
-        self.st_combo.configure(style='.TCombobox', background=ST_BG[th], foreground=ST_FG_TEXT[th],
-                                highlightbackground=ST_BORDER[th])
-        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[th])],
-                          foreground=[('readonly', ST_FG_TEXT[th])], highlightbackground=[('readonly', ST_BORDER[th])])
-
         self.lbl_par_val = tk.Label(self, text=f'Существующие значения параметра\n"{parameter}":',
                                     bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.scrollbar = tk.Scrollbar(self, bg=ST_BG[th])
+        self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_par_val = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
                                     bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
                                     selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
@@ -2341,15 +2309,8 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
 
         self.var_par = tk.StringVar()
 
-        # Стиль для combobox
-        self.st_combo = ttk.Style()
-        self.st_combo.configure(style='.TCombobox', background=ST_BG[th], foreground=ST_FG_TEXT[th],
-                                highlightbackground=ST_BORDER[th])
-        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[th])],
-                          foreground=[('readonly', ST_FG_TEXT[th])], highlightbackground=[('readonly', ST_BORDER[th])])
-
         self.lbl_form_par  = tk.Label(self, text='Существующие комбинации:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.scrollbar = tk.Scrollbar(self, bg=ST_BG[th])
+        self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
                                      bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
                                      selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
@@ -2437,17 +2398,6 @@ class ChooseLearnModeW(tk.Toplevel):
         self.var_forms = tk.BooleanVar(value=True)  # Со всеми ли словоформами
         self.var_words = tk.StringVar(value=VALUES_WORDS[0])  # Способ подбора слов
 
-        # Стиль для combobox
-        self.st_combo = ttk.Style()
-        self.st_combo.configure(style='.TCombobox', background=ST_BG[th], foreground=ST_FG_TEXT[th],
-                                highlightbackground=ST_BORDER[th])
-        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[th])],
-                          foreground=[('readonly', ST_FG_TEXT[th])], highlightbackground=[('readonly', ST_BORDER[th])])
-        # Стиль для checkbutton
-        self.st_check = ttk.Style()
-        self.st_check.configure(style='.TCheckbutton', background=ST_BG[th])
-        self.st_check.map('.TCheckbutton', background=[('active', ST_SELECT[th])])
-
         self.lbl_header = tk.Label(self, text='Выберите способ учёбы', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.frame_main = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
         # {
@@ -2510,11 +2460,6 @@ class PrintW(tk.Toplevel):
         self.var_forms = tk.BooleanVar(value=True)
         self.var_info  = tk.StringVar()
 
-        # Стиль для checkbutton
-        self.st_check = ttk.Style()
-        self.st_check.configure(style='.TCheckbutton', background=ST_BG[th])
-        self.st_check.map('.TCheckbutton', background=[('active', ST_SELECT[th])])
-
         self.lbl_dct_name = tk.Label(self, text=f'Открыт словарь "{_0_global_dct_savename}"', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.frame_main = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
         # {
@@ -2526,8 +2471,8 @@ class PrintW(tk.Toplevel):
                                      bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                      highlightbackground=ST_BORDER[th], activebackground=ST_BTN_SELECT[th])
         # }
-        self.scrollbar_x = tk.Scrollbar(self, bg=ST_BG[th])
-        self.scrollbar_y = tk.Scrollbar(self, bg=ST_BG[th])
+        self.scrollbar_x = ttk.Scrollbar(self, style='Horizontal.TScrollbar')
+        self.scrollbar_y = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_dct    = tk.Text(self, width=70, height=30, state='disabled', wrap='none',
                                    xscrollcommand=self.scrollbar_x.set, yscrollcommand=self.scrollbar_y.set,
                                    bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
@@ -2601,12 +2546,12 @@ class SearchW(tk.Toplevel):
                                     activebackground=ST_BTN_SELECT[th])
         # }
         self.lbl_wrd = tk.Label(self, text='Поиск по слову', bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.scrollbar_wrd = tk.Scrollbar(self, bg=ST_BG[th])
+        self.scrollbar_wrd = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
                                 bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
                                 selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
         self.lbl_tr = tk.Label(self, text='Поиск по переводу', bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.scrollbar_tr = tk.Scrollbar(self, bg=ST_BG[th])
+        self.scrollbar_tr = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
                                bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
                                selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
@@ -2698,15 +2643,10 @@ class EditW(tk.Toplevel):
         self.var_wrd = tk.StringVar(value=_0_global_dct.d[key].wrd)
         self.var_fav = tk.BooleanVar(value=_0_global_dct.d[key].fav)
 
-        # Стиль для checkbutton
-        self.st_check = ttk.Style()
-        self.st_check.configure(style='.TCheckbutton', background=ST_BG[th])
-        self.st_check.map('.TCheckbutton', background=[('active', ST_SELECT[th])])
-
         self.frame_main = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
         # {
         self.lbl_wrd = tk.Label(self.frame_main, text='Слово:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.scrollbar_wrd = tk.Scrollbar(self.frame_main, bg=ST_BG[th])
+        self.scrollbar_wrd = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_wrd = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_wrd.set,
                                relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
@@ -2717,7 +2657,7 @@ class EditW(tk.Toplevel):
                                      activebackground=ST_BTN_SELECT[th])
         #
         self.lbl_tr = tk.Label(self.frame_main, text='Перевод:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.scrollbar_tr = tk.Scrollbar(self.frame_main, bg=ST_BG[th])
+        self.scrollbar_tr = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_tr = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_tr.set,
                               relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                               highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
@@ -2734,7 +2674,7 @@ class EditW(tk.Toplevel):
                                     activebackground=ST_BTN_SELECT[th])
         # } }
         self.lbl_notes = tk.Label(self.frame_main, text='Сноски:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.scrollbar_notes = tk.Scrollbar(self.frame_main, bg=ST_BG[th])
+        self.scrollbar_notes = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_notes = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_notes.set,
                                  relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                  highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
@@ -2751,7 +2691,7 @@ class EditW(tk.Toplevel):
                                        activebackground=ST_BTN_SELECT[th])
         # } }
         self.lbl_frm = tk.Label(self.frame_main, text='Формы слова:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.scrollbar_frm = tk.Scrollbar(self.frame_main, bg=ST_BG[th])
+        self.scrollbar_frm = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_frm = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_frm.set,
                                relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
@@ -3042,11 +2982,6 @@ class AddW(tk.Toplevel):
         self.var_tr  = tk.StringVar()
         self.var_fav = tk.BooleanVar(value=False)
 
-        # Стиль для checkbutton
-        self.st_check = ttk.Style()
-        self.st_check.configure(style='.TCheckbutton', background=ST_BG[th])
-        self.st_check.map('.TCheckbutton', background=[('active', ST_SELECT[th])])
-
         self.lbl_wrd   = tk.Label( self, text='Введите слово:',   bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.entry_wrd = tk.Entry( self, textvariable=self.var_wrd, width=60, relief='solid', bg=ST_BG_FIELDS[th],
                                    fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
@@ -3119,7 +3054,7 @@ class LearnW(tk.Toplevel):
         self.lbl_global_rating = tk.Label(self,
                                           text=f'Ваш общий рейтинг по словарю: {round(_0_global_dct.count_rating() * 100)}%',
                                           bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.scrollbar = tk.Scrollbar(self, bg=ST_BG[th])
+        self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
                                 bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
                                 selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
@@ -3550,21 +3485,6 @@ class SettingsW(tk.Toplevel):
         # Только целые числа от 0 до 100
         self.vcmd = (self.register(validate_percent), '%P')
 
-        # Стиль для checkbutton
-        self.st_check = ttk.Style()
-        self.st_check.configure(style='.TCheckbutton', background=ST_BG[th])
-        self.st_check.map('.TCheckbutton', background=[('active', ST_SELECT[th])])
-        # Стиль для combobox
-        self.st_combo = ttk.Style()
-        self.st_combo.configure(style='.TCombobox', background=ST_BG[th], foreground=ST_FG_TEXT[th],
-                                highlightbackground=ST_BORDER[th])
-        self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[th])],
-                          foreground=[('readonly', ST_FG_TEXT[th])], highlightbackground=[('readonly', ST_BORDER[th])])
-        # Стиль для notebook
-        self.st_note = ttk.Style()
-        self.st_note.configure(style='.TNotebook', background=ST_BG[th], foreground=ST_FG_TEXT[th],
-                               highlightbackground=ST_BORDER[th])
-
         self.tabs = ttk.Notebook(self, style='.TNotebook')
         self.tab_local = tk.Frame(self.tabs, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                   relief=ST_RELIEF[th])
@@ -3613,7 +3533,7 @@ class SettingsW(tk.Toplevel):
                                         relief=ST_RELIEF[th])
         # { {
         self.lbl_dcts = tk.Label(self.frame_dcts, text='Существующие словари:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.scrollbar = tk.Scrollbar(self.frame_dcts, bg=ST_BG[th])
+        self.scrollbar = ttk.Scrollbar(self.frame_dcts, style='Vertical.TScrollbar')
         self.text_dcts = tk.Text(self.frame_dcts, width=27, height=10, state='disabled', relief=ST_RELIEF[th],
                                  yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                  selectbackground=ST_SELECT[th], highlightbackground=ST_BORDER[th])
@@ -3642,6 +3562,9 @@ class SettingsW(tk.Toplevel):
         self.lbl_themes = tk.Label(self.frame_themes, text='Тема:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
                                          state='readonly', style='.TCombobox')
+        self.lbl_themes_note = tk.Label(self.frame_themes, text=f'Актуальные темы можно скачать здесь:\n'
+                                                                f'{URL_RELEASES}',
+                                        bg=ST_BG[th], fg=ST_FG_TEXT[th])
         # } }
         # }
         self.btn_save = tk.Button(self, text='Сохранить изменения', command=self.save, overrelief='groove',
@@ -3685,8 +3608,9 @@ class SettingsW(tk.Toplevel):
         # }
         self.frame_themes.grid(row=2, padx=6, pady=6)
         # {
-        self.lbl_themes.grid(  row=0, column=0, padx=(6, 1), pady=6)
-        self.combo_themes.grid(row=0, column=1, padx=(0, 6), pady=6)
+        self.lbl_themes.grid(     row=0, column=0, padx=(6, 1), pady=6)
+        self.combo_themes.grid(   row=0, column=1, padx=0,      pady=6)
+        self.lbl_themes_note.grid(row=0, column=2, padx=6,      pady=6)
         # }
         #
         self.btn_save.grid( row=4, column=0, padx=(6, 3), pady=(0, 6))
@@ -3958,6 +3882,8 @@ class MainW(tk.Tk):
 
         self.var_word = tk.StringVar(value='')
 
+        self.set_styles()
+
         self.frame_head = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
         # {
         self.lbl_header1 = tk.Label(self.frame_head, text='Anenokil development presents', font='StdFont 15',
@@ -3989,7 +3915,7 @@ class MainW(tk.Tk):
         self.btn_settings = tk.Button(self, text='Настройки', font='StdFont 12', command=self.settings,
                                       overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                       activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
-        self.btn_save = tk.Button(self, text='Сохранить прогресс', font='StdFont 12', command=self.save,
+        self.btn_save = tk.Button(self, text='Сохранить словарь', font='StdFont 12', command=self.save,
                                   overrelief='groove', bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
                                   activebackground=ST_BTNY_SELECT[th], highlightbackground=ST_BORDER[th])
         self.btn_close = tk.Button(self, text='Закрыть программу', font='StdFont 12', command=self.close,
@@ -4109,6 +4035,11 @@ class MainW(tk.Tk):
                                                               highlightcolor=ST_HIGHLIGHT[th],
                                                               selectbackground=ST_SELECT[th],
                                                               readonlybackground=ST_BG_FIELDS[th])
+            _0_global_window_last_version.frame_url.configure(bg=ST_BG[th], highlightbackground=ST_BORDER[th],
+                                                              relief=ST_RELIEF[th])
+            _0_global_window_last_version.btn_open.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
+                                                             activebackground=ST_BTN_SELECT[th],
+                                                             highlightbackground=ST_BORDER[th])
             _0_global_window_last_version.btn_update.configure(bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
                                                                activebackground=ST_BTNY_SELECT[th],
                                                                highlightbackground=ST_BORDER[th])
@@ -4118,7 +4049,81 @@ class MainW(tk.Tk):
         except:  # Если окно обновления не открыто
             pass
 
-    # Сохранить прогресс
+        self.set_styles()
+
+    # Установка ttk-стилей
+    def set_styles(self):
+        # Стиль для checkbutton
+        self.st_check = ttk.Style()
+        self.st_check.theme_use('alt')
+        self.st_check.configure(style='.TCheckbutton',
+                                background=ST_BG[th])
+        self.st_check.map('.TCheckbutton',
+                          background=[('active', ST_SELECT[th])])
+
+        # Стиль для combobox
+        self.st_combo = ttk.Style()
+        self.st_combo.theme_use('alt')
+        self.st_combo.configure(style='.TCombobox',
+                                background=ST_BTN[th],
+                                fieldbackground=ST_BG_FIELDS[th],
+                                selectbackground=ST_BG_FIELDS[th],
+                                highlightbackground=ST_HIGHLIGHT[th],
+                                foreground=ST_FG_TEXT[th],
+                                selectforeground=ST_FG_TEXT[th])
+        self.st_combo.map('.TCombobox',
+                          background=[('readonly', ST_BTN[th])],
+                          fieldbackground=[('readonly', ST_BG_FIELDS[th])],
+                          selectbackground=[('readonly', ST_BG_FIELDS[th])],
+                          highlightbackground=[('readonly', ST_HIGHLIGHT[th])],
+                          foreground=[('readonly', ST_FG_TEXT[th])],
+                          selectforeground=[('readonly', ST_FG_TEXT[th])])
+        # Стиль всплывающего списка для combobox
+        self.option_add('*TCombobox*Listbox*Background', ST_BG_FIELDS[th])
+        self.option_add('*TCombobox*Listbox*Foreground', ST_FG_TEXT[th])
+
+        # Стиль для vertical scrollbar
+        self.st_vscroll = ttk.Style()
+        self.st_vscroll.theme_use('alt')
+        self.st_vscroll.configure(style='Vertical.TScrollbar',
+                                  troughcolor=ST_BG[th],
+                                  background=ST_BTN[th])
+        self.st_vscroll.map('Vertical.TScrollbar',
+                            troughcolor=[('active', ST_BG[th])],
+                            background=[('active', ST_BTN_SELECT[th])])
+
+        # Стиль для horizontal scrollbar
+        self.st_hscroll = ttk.Style()
+        self.st_hscroll.theme_use('alt')
+        self.st_hscroll.configure(style='Horizontal.TScrollbar',
+                                  troughcolor=ST_BG[th],
+                                  background=ST_BTN[th])
+        self.st_hscroll.map('Horizontal.TScrollbar',
+                            troughcolor=[('active', ST_BG[th])],
+                            background=[('active', ST_BTN_SELECT[th])])
+
+        # Стиль для notebook
+        self.st_note = ttk.Style()
+        self.st_note.theme_use('alt')
+        self.st_note.configure(style='.TNotebook',
+                               troughcolor=ST_BG[th],
+                               background=ST_BG[th],
+                               highlightbackground=ST_BORDER[th],
+                               foreground=ST_FG_TEXT[th])
+        self.st_hscroll.map('.TNotebook',
+                            troughcolor=[('active', ST_BG[th])],
+                            background=[('selected', ST_BTN_SELECT[th])],
+                            highlightbackground=[('active', ST_BTN_SELECT[th])],
+                            foreground=[('active', ST_BTN_SELECT[th])])
+        # Стиль для вкладок notebook
+        self.st_note.configure('TNotebook.Tab',
+                               background=ST_BTN[th],
+                               foreground=ST_FG_TEXT[th])
+        self.st_note.map('TNotebook.Tab',
+                         background=[('selected', ST_BTN_SELECT[th])],
+                         foreground=[('selected', ST_FG_TEXT[th])])
+
+    # Сохранить словарь
     def save(self):
         global _0_global_has_progress
 
@@ -4139,7 +4144,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development  presents\n'
       f'                              {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
+      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'======================================================================================')
 
@@ -4162,7 +4167,7 @@ root.mainloop()
 # открывать программу после обновления
 # при наведении на Text (PrintW) выводить подсказку
 # при смене табов, менять размеры
-# проблема с сохранением изменений в настройках словоформ
-# перенести все стили '.TWidget' в MainW
-
 # при закрытии окна возвращать фокус предыдущему окну (проблема: при закрытии всплывающих окон, MainW получает фокус)
+
+# баг: при открытии другого словаря он пуст
+# добавить больше цветов (scroll, tabs, frame_bg)
