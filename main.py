@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-113'
+PROGRAM_VERSION = 'v7.0.0_PRE-114'
 PROGRAM_DATE = '22.1.2023'
-PROGRAM_TIME = '0:29 (UTC+3)'
+PROGRAM_TIME = '0:37 (UTC+3)'
 
 """ Пути и файлы """
 MAIN_PATH = os.path.dirname(__file__)
@@ -3686,6 +3686,9 @@ class SettingsW(tk.Toplevel):
         _0_global_dct_savename = savename
         save_dct_name()
 
+        self.backup_dct = copy.deepcopy(_0_global_dct)
+        self.backup_fp = copy.deepcopy(_0_global_form_parameters)
+
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
 
         self.has_forms_changes = False
@@ -3712,6 +3715,9 @@ class SettingsW(tk.Toplevel):
         _0_global_dct = Dictionary()
         _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
             create_dct(_0_global_dct, savename)
+
+        self.backup_dct = copy.deepcopy(_0_global_dct)
+        self.backup_fp = copy.deepcopy(_0_global_form_parameters)
 
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
 
@@ -4169,5 +4175,4 @@ root.mainloop()
 # при смене табов, менять размеры
 # при закрытии окна возвращать фокус предыдущему окну (проблема: при закрытии всплывающих окон, MainW получает фокус)
 
-# баг: при открытии другого словаря он пуст
 # добавить больше цветов (scroll, tabs, frame_bg)
