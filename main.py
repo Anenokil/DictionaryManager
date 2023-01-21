@@ -17,8 +17,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-104'
-PROGRAM_DATE = '21.1.2023  14:00 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-105'
+PROGRAM_DATE = '21.1.2023  14:25 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -1294,26 +1294,6 @@ def save_local_settings(min_good_score_perc, form_parameters, filename):
             local_settings_file.write('\n')
 
 
-# Сохранить словоформы
-def save_forms(form_parameters, filename):
-    local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
-    try:
-        with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
-            tmp_min_good_score_perc = int(local_settings_file.readline().strip())
-    # Если файл отсутствует или повреждён, то создаётся файл по умолчанию
-    except (FileNotFoundError, ValueError, TypeError):
-        tmp_min_good_score_perc = 67
-
-    with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
-        local_settings_file.write(f'{tmp_min_good_score_perc}\n')
-        for key in form_parameters.keys():
-            local_settings_file.write(f'{key}\n')
-            local_settings_file.write(form_parameters[key][0])
-            for i in range(1, len(form_parameters[key])):
-                local_settings_file.write(f'{FORMS_SEPARATOR}{form_parameters[key][i]}')
-            local_settings_file.write('\n')
-
-
 # Предложить сохранение настроек, если есть прогресс
 def save_settings_if_has_changes(window_parent):
     window_dia = PopupDialogueW(window_parent, 'Хотите сохранить изменения настроек?', 'Да', 'Нет')
@@ -1662,7 +1642,7 @@ class CheckUpdatesW(tk.Toplevel):
     # Скачать и установить обновление
     def download_and_install(self):
         try:  # Загрузка
-            print('Download zip...', end='')
+            print('\nDownload zip...', end='')
             wget.download(URL_DOWNLOAD_ZIP, out=os.path.dirname(__file__))  # Скачиваем архив с обновлением
         except Exception as exc:
             warning(self, f'Не удалось загрузить обновление!\n'
@@ -2204,8 +2184,6 @@ class FormsSettingsW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        save_forms(_0_global_form_parameters, dct_filename(_0_global_dct_savename))
-
 
 # Окно настроек параметра словоформ
 class FormsParameterSettingsW(tk.Toplevel):
@@ -2385,8 +2363,6 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
     def open(self):
         self.grab_set()
         self.wait_window()
-
-        #save_forms(_0_global_form_parameters, dct_filename(_0_global_dct_savename))
 
 
 # Окно выбора режима перед изучением слов
@@ -3549,15 +3525,11 @@ class SettingsW(tk.Toplevel):
         self.btn_forms = tk.Button(self.tab_local, text='Настройки словоформ', command=self.forms,
                                    overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
-        self.lbl_forms_warn = tk.Label(self.tab_local, text='Настройки словоформ сохраняются сразу!',
-                                       bg=ST_BG[th], fg=ST_FG_WARN[th])
         #
-        self.btn_special_combinations = tk.Button(self.tab_local, text='Специальные комбинации', state='disabled',
+        self.btn_special_combinations = tk.Button(self.tab_local, text='Специальные комбинации',
                                                   command=self.special_combinations, overrelief='groove',
                                                   bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                                   activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
-        self.lbl_special_combinations_warn = tk.Label(self.tab_local, text='Специальные комбинации сохраняются сразу!',
-                                                      bg=ST_BG[th], fg=ST_FG_WARN[th])
         # }
         self.tab_global = tk.Frame(self.tabs, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                    relief=ST_RELIEF[th])
@@ -3619,11 +3591,8 @@ class SettingsW(tk.Toplevel):
         self.entry_mgsp.grid(row=0, column=1,     padx=(0, 1), pady=6,      sticky='W')
         self.lbl_mgsp_2.grid(row=1, columnspan=2, padx=6,      pady=(0, 6))
         # }
-        self.btn_forms.grid(     row=1, padx=6, pady=(0, 3))
-        self.lbl_forms_warn.grid(row=2, padx=6, pady=(0, 6))
-        #
-        self.btn_special_combinations.grid(     row=3, padx=6, pady=(0, 3))
-        self.lbl_special_combinations_warn.grid(row=4, padx=6, pady=(0, 6))
+        self.btn_forms.grid(               row=1, padx=6, pady=(0, 6))
+        self.btn_special_combinations.grid(row=2, padx=6, pady=(0, 6))
         #
         self.frame_show_updates.grid(row=0, padx=6, pady=6)
         # {
@@ -3971,6 +3940,9 @@ class MainW(tk.Tk):
 
     # Открыть настройки
     def settings(self):
+        global _0_global_dct_savename, _0_global_show_updates, th,\
+            _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations
+
         SettingsW(self).open()
 
         # Обновление тем
@@ -4021,6 +3993,10 @@ class MainW(tk.Tk):
         except:  # Если окно обновления не открыто
             pass
 
+        _0_global_dct_savename, _0_global_show_updates, th = upload_global_settings()  # Обновляем глобальные настройки
+        _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations = \
+            upload_local_settings(_0_global_dct_savename)  # Обновляем локальные настройки
+
     # Сохранить прогресс
     def save(self):
         global _0_global_has_progress
@@ -4066,5 +4042,4 @@ root.mainloop()
 # проблема с сохранением изменений в настройках словоформ
 # перенести все стили '.TWidget' в MainW
 
-# при закрытии окна возвращать фокус предыдущему окну
-# доделать специальные комбинации
+# при закрытии окна возвращать фокус предыдущему окну (при закрытии всплывающих окон, MainW получает фокус)
