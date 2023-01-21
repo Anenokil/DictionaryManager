@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-99'
-PROGRAM_DATE = '21.1.2023  13:14 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-100'
+PROGRAM_DATE = '21.1.2023  13:21 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -1117,8 +1117,9 @@ def check_updates(window_parent, show_updates):
             print(f'Доступна новая версия: {last_version}')
             if show_updates:
                 window_last_version = CheckUpdatesW(window_parent, last_version)
-    except:
-        print('Ошибка, возможно отсутствует соединение')
+    except Exception as exc:
+        print(f'Ошибка, возможно отсутствует соединение:\n'
+              f'{exc}')
     return window_last_version
 
 
@@ -1660,8 +1661,9 @@ class CheckUpdatesW(tk.Toplevel):
         try:  # Загрузка
             print('download zip')
             wget.download(URL_DOWNLOAD_ZIP, out=os.path.dirname(__file__))  # Скачиваем архив с обновлением
-        except:
-            warning(self, 'Не удалось загрузить обновление!')
+        except Exception as exc:
+            warning(self, f'Не удалось загрузить обновление!\n'
+                          f'{exc}')
             self.destroy()
         try:  # Установка
             # Распаковываем архив во временную папку
@@ -1686,8 +1688,9 @@ class CheckUpdatesW(tk.Toplevel):
             # Удаляем временную папку
             print('delete tmp dir')
             os.rmdir(NEW_VERSION_DIR)
-        except:
-            warning(self, 'Не удалось установить обновление!')
+        except Exception as exc:
+            warning(self, f'Не удалось установить обновление!\n'
+                          f'{exc}')
             self.destroy()
         else:
             PopupMsgW(self, 'Обновление успешно установлено\n'
@@ -4033,7 +4036,7 @@ class MainW(tk.Tk):
 # Вывод информации о программе
 print( '======================================================================================\n')
 print( '                            Anenokil development  presents')
-print(f'                               {PROGRAM_NAME} {PROGRAM_VERSION}')
+print(f'                              {PROGRAM_NAME}  {PROGRAM_VERSION}')
 print(f'                               {PROGRAM_DATE}\n')
 print( '======================================================================================')
 
