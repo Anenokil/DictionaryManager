@@ -10,6 +10,7 @@ else:
     import Tkinter as tk
     import Tkinter.ttk as ttk
 import re  # Несколько разделителей в split
+import webbrowser  # Для открытия веб-страницы
 import urllib.request as urllib2  # Для проверки наличия обновлений
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
@@ -17,8 +18,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-108'
-PROGRAM_DATE = '21.1.2023  16:49 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-109'
+PROGRAM_DATE = '21.1.2023  17:09 (UTC+3)'
 
 """ Пути и файлы """
 MAIN_PATH = os.path.dirname(__file__)
@@ -1632,21 +1633,41 @@ class CheckUpdatesW(tk.Toplevel):
         self.lbl_msg = tk.Label(self, text=f'Доступна новая версия программы\n'
                                            f'{last_version}',
                                 bg=ST_BG[th], fg=ST_FG_TEXT[th])
-        self.entry_url = tk.Entry(self, textvariable=self.var_url, state='readonly', width=40, justify='center',
-                                  relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
+        self.frame_url = tk.Frame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        # {
+        self.entry_url = tk.Entry(self.frame_url, textvariable=self.var_url, state='readonly', width=40,
+                                  relief='solid', justify='center', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                   highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                   selectbackground=ST_SELECT[th], readonlybackground=ST_BG_FIELDS[th])
+        self.btn_open = tk.Button(self.frame_url, text='Открыть ссылку', command=self.open_github, overrelief='groove',
+                                  bg=ST_BTN[th], fg=ST_FG_TEXT[th],
+                                  activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+        # }
         self.btn_update = tk.Button(self, text='Обновить', command=self.download_and_install, overrelief='groove',
-                                    bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                    bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
+                                    activebackground=ST_BTNY_SELECT[th], highlightbackground=ST_BORDER[th])
         self.btn_close = tk.Button(self, text='Закрыть', command=self.destroy, overrelief='groove',
-                                   bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                   activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                   bg=ST_BTNN[th], fg=ST_FG_TEXT[th],
+                                   activebackground=ST_BTNN_SELECT[th], highlightbackground=ST_BORDER[th])
 
-        self.lbl_msg.grid(   row=1, columnspan=2, padx=6, pady=(4, 0))
-        self.entry_url.grid( row=2, columnspan=2, padx=6, pady=(0, 4))
-        self.btn_update.grid(row=3, column=0,     padx=6, pady=4)
-        self.btn_close.grid( row=3, column=1,     padx=6, pady=4)
+        self.lbl_msg.grid(  row=1, columnspan=2, padx=6, pady=(4, 0))
+        self.frame_url.grid(row=2, columnspan=2, padx=6, pady=(0, 4))
+        # {
+        self.entry_url.grid(row=0, column=0, padx=(0, 3), pady=0)
+        self.btn_open.grid( row=0, column=1, padx=0,      pady=0)
+        # }
+        self.btn_update.grid(row=3, column=0, padx=6, pady=4)
+        self.btn_close.grid( row=3, column=1, padx=6, pady=4)
+
+    # Открыть репозиторий проекта на GitHub
+    def open_github(self):
+        try:
+            webbrowser.open(URL_GITHUB)
+        except Exception as exc:
+            print(f'Не удалось открыть страницу!\n'
+                  f'{exc}')
+            warning(self, f'Не удалось открыть страницу!\n'
+                          f'{exc}')
 
     # Скачать и установить обновление
     def download_and_install(self):
