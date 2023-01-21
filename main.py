@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-111'
+PROGRAM_VERSION = 'v7.0.0_PRE-112'
 PROGRAM_DATE = '21.1.2023'
-PROGRAM_TIME = '20:49 (UTC+3)'
+PROGRAM_TIME = '22:04 (UTC+3)'
 
 """ Пути и файлы """
 MAIN_PATH = os.path.dirname(__file__)
@@ -250,7 +250,7 @@ def add_frm_param_val(window_parent, values, text='Введите новое з�
         window_entry = PopupEntryW(window_parent, text)  # Ввод нового значения
         closed, new_val = window_entry.open()
         if closed:
-            return None
+            return False, None
         if new_val == '':
             warning(window_parent, 'Значение параметра должно содержать хотя бы один символ!')
             continue
@@ -261,7 +261,7 @@ def add_frm_param_val(window_parent, values, text='Введите новое з�
             warning(window_parent, f'Недопустимый символ: {FORMS_SEPARATOR}!')
             continue
         break
-    return new_val
+    return True, new_val
 
 
 # Переименовать значение параметра форм
@@ -270,13 +270,13 @@ def rename_frm_param_val(window_parent, values, pos, dct):
                                  combo_width=width(values, 5, 100))  # Выбор значения, которое нужно переименовать
     closed, old_val = window_choose.open()
     if closed or old_val == '':
-        return
+        return False
     while True:
         window_entry = PopupEntryW(window_parent,
                                    'Введите новое название для значения параметра')  # Ввод нового значения
         closed, new_val = window_entry.open()
         if closed:
-            return
+            return False
         if new_val == '':
             warning(window_parent, 'Значение параметра должно содержать хотя бы один символ!')
             continue
@@ -289,6 +289,7 @@ def rename_frm_param_val(window_parent, values, pos, dct):
     dct.rename_forms_with_val(pos, old_val, new_val)  # Переименовать значение во всех словоформах, его содержащих
     index = values.index(old_val)
     values[index] = new_val
+    return True
 
 
 # Удалить значение параметра форм
@@ -297,7 +298,7 @@ def delete_frm_param_val(window_parent, values, dct):
                                  combo_width=width(values, 5, 100))  # Выбор значения, которое нужно удалить
     closed, val = window_choose.open()
     if closed or val == '':
-        return
+        return False
     window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие это значение параметра, будут удалены!\n'
                                                'Хотите продолжить?',
                                 set_focus_on_btn='none')
@@ -306,6 +307,8 @@ def delete_frm_param_val(window_parent, values, dct):
         index = values.index(val)
         values.pop(index)
         dct.delete_forms_with_val(index, val)  # Удалить все словоформы, содержащие это значение параметра
+        return True
+    return False
 
 
 # Добавить параметр словоформ
@@ -313,15 +316,16 @@ def add_frm_param(window_parent, parameters, dct):
     window_entry = EnterFormParameterNameW(window_parent, parameters.keys())
     name_is_correct, new_par = window_entry.open()
     if not name_is_correct:
-        return
+        return False
 
     new_val = add_frm_param_val(window_parent, (), 'Необходимо добавить хотя бы одно значение для параметра')
     if not new_val:
-        return
+        return False
 
     dct.add_forms_param()
     parameters[new_par] = []
     parameters[new_par] += [new_val]
+    return True
 
 
 # Переименовать параметр словоформ
@@ -331,12 +335,12 @@ def rename_frm_param(window_parent, parameters, dct):
                                  combo_width=width(par_names, 5, 100))
     closed, old_name = window_choose.open()
     if closed or old_name == '':
-        return
+        return False
     while True:
         window_entry = PopupEntryW(window_parent, 'Введите новое название параметра')
         closed, new_name = window_entry.open()
         if closed:
-            return
+            return False
         if new_name == '':
             warning(window_parent, 'Название параметра должно содержать хотя бы один символ!')
             continue
@@ -347,6 +351,7 @@ def rename_frm_param(window_parent, parameters, dct):
     # dct.rename_forms_param(index)
     parameters[new_name] = parameters[old_name]
     parameters.pop(old_name)
+    return True
 
 
 # Удалить параметр словоформ
@@ -356,7 +361,7 @@ def delete_frm_param(window_parent, parameters, dct):
                                  combo_width=width(par_names, 5, 100))
     closed, selected_par_name = window_choose.open()
     if closed or selected_par_name == '':
-        return
+        return False
     window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие этот параметр, будут удалены!\n'
                                                'Хотите продолжить?',
                                 set_focus_on_btn='none')
@@ -365,6 +370,8 @@ def delete_frm_param(window_parent, parameters, dct):
         pos = par_names.index(selected_par_name)
         parameters.pop(selected_par_name)
         dct.delete_forms_param(pos)
+        return True
+    return False
 
 
 # Найти в строке подстроку и выделить её
@@ -2129,6 +2136,8 @@ class FormsSettingsW(tk.Toplevel):
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
 
+        self.has_changes = False
+
         self.var_par = tk.StringVar()
 
         # Стиль для combobox
@@ -2176,17 +2185,17 @@ class FormsSettingsW(tk.Toplevel):
 
     # Добавить параметр
     def add(self):
-        add_frm_param(self, _0_global_form_parameters, _0_global_dct)
+        self.has_changes = self.has_changes or add_frm_param(self, _0_global_form_parameters, _0_global_dct)
         self.refresh()
 
     # Удалить параметр
     def delete(self):
-        delete_frm_param(self, _0_global_form_parameters, _0_global_dct)
+        self.has_changes = self.has_changes or delete_frm_param(self, _0_global_form_parameters, _0_global_dct)
         self.refresh()
 
     # Переименовать параметр
     def rename(self):
-        rename_frm_param(self, _0_global_form_parameters, _0_global_dct)
+        self.has_changes = self.has_changes or rename_frm_param(self, _0_global_form_parameters, _0_global_dct)
         self.refresh()
 
     # Перейти к настройкам значения параметра
@@ -2197,7 +2206,7 @@ class FormsSettingsW(tk.Toplevel):
         closed, key = window.open()
         if closed or key == '':
             return
-        FormsParameterSettingsW(self, key).open()
+        self.has_changes = self.has_changes or FormsParameterSettingsW(self, key).open()
 
     # Напечатать существующие параметры форм
     def print_form_par_list(self):
@@ -2222,6 +2231,7 @@ class FormsSettingsW(tk.Toplevel):
     def open(self):
         self.grab_set()
         self.wait_window()
+        return self.has_changes
 
 
 # Окно настроек параметра словоформ
@@ -2233,6 +2243,8 @@ class FormsParameterSettingsW(tk.Toplevel):
 
         self.parameter = parameter  # Название изменяемого параметра
         self.par_vals = _0_global_form_parameters[self.parameter]  # Значения изменяемого параметра
+
+        self.has_changes = False
 
         self.var_par = tk.StringVar()
 
@@ -2278,7 +2290,8 @@ class FormsParameterSettingsW(tk.Toplevel):
 
     # Добавить значение параметра
     def add(self):
-        new_val = add_frm_param_val(self, self.par_vals)
+        has_changes, new_val = add_frm_param_val(self, self.par_vals)
+        self.has_changes = self.has_changes or has_changes
         if not new_val:
             return
         self.par_vals += [new_val]
@@ -2286,13 +2299,13 @@ class FormsParameterSettingsW(tk.Toplevel):
 
     # Удалить значение параметра
     def delete(self):
-        delete_frm_param_val(self, self.par_vals, _0_global_dct)
+        self.has_changes = self.has_changes or delete_frm_param_val(self, self.par_vals, _0_global_dct)
         self.refresh()
 
     # Переименовать значение параметра
     def rename(self):
         index = tuple(_0_global_form_parameters).index(self.parameter)
-        rename_frm_param_val(self, self.par_vals, index, _0_global_dct)
+        self.has_changes = self.has_changes or rename_frm_param_val(self, self.par_vals, index, _0_global_dct)
         self.refresh()
 
     # Напечатать существующие параметры форм
@@ -2314,6 +2327,7 @@ class FormsParameterSettingsW(tk.Toplevel):
     def open(self):
         self.grab_set()
         self.wait_window()
+        return self.has_changes
 
 
 # Окно настроек специальных комбинаций
@@ -2322,6 +2336,8 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
+
+        self.has_changes = False
 
         self.var_par = tk.StringVar()
 
@@ -2371,6 +2387,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
             return
         _0_global_special_combinations[key] = val
         self.refresh()
+        self.has_changes = True
 
     # Удалить комбинацию
     def delete(self):
@@ -2382,6 +2399,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         chosen_key = choose[1]
         _0_global_special_combinations.pop(chosen_key)
         self.refresh()
+        self.has_changes = True
 
     # Напечатать существующие комбинации
     def print_combinations(self):
@@ -2402,6 +2420,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
     def open(self):
         self.grab_set()
         self.wait_window()
+        return self.has_changes
 
 
 # Окно выбора режима перед изучением слов
@@ -3519,6 +3538,8 @@ class SettingsW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
+        self.has_forms_changes = False
+        self.has_spec_comb_changes = False
         self.backup_dct = copy.deepcopy(_0_global_dct)
         self.backup_fp = copy.deepcopy(_0_global_form_parameters)
 
@@ -3572,6 +3593,9 @@ class SettingsW(tk.Toplevel):
                                                   command=self.special_combinations, overrelief='groove',
                                                   bg=ST_BTN[th], fg=ST_FG_TEXT[th],
                                                   activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+        self.lbl_save_warn = tk.Label(self.tab_local,
+                                      text='При сохранении настроек словаря, сохраняется и сам словарь!',
+                                      bg=ST_BG[th], fg=ST_FG_WARN[th])
         # }
         self.tab_global = tk.Frame(self.tabs, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                    relief=ST_RELIEF[th])
@@ -3620,14 +3644,15 @@ class SettingsW(tk.Toplevel):
                                          state='readonly', style='.TCombobox')
         # } }
         # }
-        self.lbl_save_warn = tk.Label(self, text='При сохранении настроек, сохраняется и словарь!',
-                                      bg=ST_BG[th], fg=ST_FG_WARN[th])
         self.btn_save = tk.Button(self, text='Сохранить изменения', command=self.save, overrelief='groove',
                                   bg=ST_BTNY[th], fg=ST_FG_TEXT[th], activebackground=ST_BTNY_SELECT[th],
                                   highlightbackground=ST_BORDER[th])
+        self.btn_close = tk.Button(self, text='Закрыть настройки', command=self.close, overrelief='groove',
+                                   bg=ST_BTNN[th], fg=ST_FG_TEXT[th], activebackground=ST_BTNN_SELECT[th],
+                                   highlightbackground=ST_BORDER[th])
 
-        self.lbl_dct_name.grid(row=0, padx=6, pady=(6, 0))
-        self.tabs.grid(        row=1, padx=6, pady=(0, 6))
+        self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 0))
+        self.tabs.grid(        row=1, columnspan=2, padx=6, pady=(0, 6))
         #
         self.frame_mgsp.grid(row=0, padx=6, pady=6, sticky='E')
         # {
@@ -3635,8 +3660,9 @@ class SettingsW(tk.Toplevel):
         self.entry_mgsp.grid(row=0, column=1,     padx=(0, 1), pady=6,      sticky='W')
         self.lbl_mgsp_2.grid(row=1, columnspan=2, padx=6,      pady=(0, 6))
         # }
-        self.btn_forms.grid(               row=1, padx=6, pady=(0, 6))
-        self.btn_special_combinations.grid(row=2, padx=6, pady=(0, 6))
+        self.btn_forms.grid(               row=1, padx=6, pady=(0,   6))
+        self.btn_special_combinations.grid(row=2, padx=6, pady=(0,   6))
+        self.lbl_save_warn.grid(           row=3, padx=6, pady=(140, 6), sticky='S')
         #
         self.frame_show_updates.grid(row=0, padx=6, pady=6)
         # {
@@ -3662,8 +3688,9 @@ class SettingsW(tk.Toplevel):
         self.lbl_themes.grid(  row=0, column=0, padx=(6, 1), pady=6)
         self.combo_themes.grid(row=0, column=1, padx=(0, 6), pady=6)
         # }
-        self.lbl_save_warn.grid(row=3, padx=6, pady=(0, 3))
-        self.btn_save.grid(     row=4, padx=6, pady=(0, 6))
+        #
+        self.btn_save.grid( row=4, column=0, padx=(6, 3), pady=(0, 6))
+        self.btn_close.grid(row=4, column=1, padx=(0, 6), pady=(0, 6))
 
         self.scrollbar.config(command=self.text_dcts.yview)
 
@@ -3681,17 +3708,25 @@ class SettingsW(tk.Toplevel):
 
     # Настройки словоформ
     def forms(self):
-        FormsSettingsW(self).open()
+        self.has_forms_changes = self.has_forms_changes or FormsSettingsW(self).open()
 
     # Настройки специальных комбинаций
     def special_combinations(self):
-        SpecialCombinationsSettingsW(self).open()
+        self.has_spec_comb_changes = self.has_spec_comb_changes or SpecialCombinationsSettingsW(self).open()
 
     # Разрешить/запретить сообщать о новых версиях
     def set_show_updates(self):
         global _0_global_show_updates
 
         _0_global_show_updates = int(self.var_show_updates.get())  # 0 или 1
+
+    # Установить выбранную тему
+    def set_theme(self):
+        global th
+
+        if self.has_theme_changes():
+            th = self.var_theme.get()
+            self.destroy()
 
     # Открыть словарь
     def dct_open(self):
@@ -3729,6 +3764,9 @@ class SettingsW(tk.Toplevel):
 
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
 
+        self.has_forms_changes = False
+        self.has_spec_comb_changes = False
+
         self.refresh()
 
     # Создать словарь
@@ -3752,6 +3790,9 @@ class SettingsW(tk.Toplevel):
             create_dct(_0_global_dct, savename)
 
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
+
+        self.has_forms_changes = False
+        self.has_spec_comb_changes = False
 
         self.refresh()
 
@@ -3826,16 +3867,21 @@ class SettingsW(tk.Toplevel):
 
         self.print_dct_list()
 
-    # Установить выбранную тему
-    def set_theme(self):
-        global th
-
-        th = self.var_theme.get()
-        self.destroy()
-
-    # Были ли изменения
+    # Были ли изменения локальных настроек
     def has_local_changes(self):
-        return int(self.var_mgsp.get()) != _0_global_min_good_score_perc
+        return self.has_forms_changes or\
+            self.has_spec_comb_changes or\
+            int(self.var_mgsp.get()) != _0_global_min_good_score_perc
+
+    # Были ли изменения локальных настроек
+    def has_theme_changes(self):
+        return self.var_theme.get() != th
+
+    # Были ли изменения настроек
+    def has_changes(self):
+        return self.has_local_changes() or\
+            int(self.var_show_updates.get()) != _0_global_show_updates or\
+            self.var_theme.get() != th
 
     # Вывод существующих словарей
     def print_dct_list(self):
@@ -3850,13 +3896,15 @@ class SettingsW(tk.Toplevel):
                     self.text_dcts.insert(tk.END, f'"{base_name}"\n')
         self.text_dcts['state'] = 'disabled'
 
-    # Обновить значения настроек
+    # Обновить список словарей
     def refresh(self):
         self.var_mgsp.set(str(_0_global_min_good_score_perc))
         self.print_dct_list()
 
     # Сохранить настройки
     def save(self):
+        global _0_global_has_progress
+
         self.set_mgsp()
         self.set_show_updates()
         self.set_theme()
@@ -3867,7 +3915,24 @@ class SettingsW(tk.Toplevel):
         save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters,
                             dct_filename(_0_global_dct_savename))
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, th)
-        save_dct(_0_global_dct, dct_filename(_0_global_dct_savename))
+
+        if self.has_local_changes():
+            save_dct(_0_global_dct, dct_filename(_0_global_dct_savename))
+
+        self.has_forms_changes = False
+        self.has_spec_comb_changes = False
+
+        _0_global_has_progress = False
+
+    # Закрыть настройки без сохранения
+    def close(self):
+        if self.has_changes():
+            window = PopupDialogueW(self, 'У вас есть несохранённые изменения?\n'
+                                          'Всё равно закрыть?')
+            answer = window.open()
+            if not answer:
+                return
+        self.destroy()
 
     def open(self):
         global _0_global_dct, _0_global_form_parameters
