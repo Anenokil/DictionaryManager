@@ -17,8 +17,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-106'
-PROGRAM_DATE = '21.1.2023  15:05 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-107'
+PROGRAM_DATE = '21.1.2023  16:12 (UTC+3)'
 
 """ Пути и файлы """
 MAIN_PATH = os.path.dirname(__file__)
@@ -75,7 +75,7 @@ ST_BORDER      = {THEMES[0]: '#222222', THEMES[1]: '#111111'}  # Цвет рам
 ST_RELIEF      = {THEMES[0]: 'groove',  THEMES[1]: 'solid'  }  # Стиль рамок
 
 ST_SELECT      = {THEMES[0]: '#BBBBBB', THEMES[1]: '#444444'}  # Цвет выделения текста
-ST_HIGHLIGHT   = {THEMES[0]: '#00DD00', THEMES[1]: '#007700'}  # Цвет подсветки виджета при фокусе
+ST_HIGHLIGHT   = {THEMES[0]: '#00DD00', THEMES[1]: '#005500'}  # Цвет подсветки виджета при фокусе
 
 ST_BTN         = {THEMES[0]: '#D0D0D0', THEMES[1]: '#202020'}  # Цвет фона обычных кнопок
 ST_BTN_SELECT  = {THEMES[0]: '#BABABA', THEMES[1]: '#272727'}  # Цвет фона обычных кнопок при нажатии
@@ -1122,8 +1122,11 @@ def check_updates(window_parent, show_updates):
             if show_updates:
                 window_last_version = CheckUpdatesW(window_parent, last_version)
     except Exception as exc:
-        print(f'Ошибка, возможно отсутствует соединение:\n'
+        print(f'Ошибка: невозможно проверить наличие обновлений!\n'
               f'{exc}')
+        if show_updates:
+            warning(window_parent, f'Ошибка: невозможно проверить наличие обновлений!\n'
+                                   f'{exc}')
     return window_last_version
 
 
@@ -1349,7 +1352,6 @@ def validate_special_combination_val(value):
 
 # При выборе второго метода учёбы нельзя добавить словоформы
 def validate_order_and_forms(value, check_forms):
-    print(value)
     if value == VALUES_ORDER[1]:
         check_forms['state'] = 'disabled'
     else:
@@ -1646,9 +1648,12 @@ class CheckUpdatesW(tk.Toplevel):
             print('\nDownload zip...', end='')
             wget.download(URL_DOWNLOAD_ZIP, out=os.path.dirname(__file__))  # Скачиваем архив с обновлением
         except Exception as exc:
+            print(f'Не удалось загрузить обновление!\n'
+                  f'{exc}')
             warning(self, f'Не удалось загрузить обновление!\n'
                           f'{exc}')
             self.destroy()
+            return
         try:  # Установка
             # Распаковываем архив во временную папку
             print('\nExtracting...')
@@ -1673,9 +1678,12 @@ class CheckUpdatesW(tk.Toplevel):
             print('Delete tmp dir...')
             shutil.rmtree(NEW_VERSION_PATH)
         except Exception as exc:
+            print(f'Не удалось установить обновление!\n'
+                  f'{exc}')
             warning(self, f'Не удалось установить обновление!\n'
                           f'{exc}')
             self.destroy()
+            return
         else:
             print('Done!')
             PopupMsgW(self, 'Обновление успешно установлено\n'
