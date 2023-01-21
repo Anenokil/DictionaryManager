@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-98'
-PROGRAM_DATE = '21.1.2023  12:28 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-99'
+PROGRAM_DATE = '21.1.2023  13:14 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -1276,7 +1276,12 @@ def save_dct_name():
 def save_local_settings(min_good_score_perc, form_parameters, filename):
     local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
-        local_settings_file.write(f'{min_good_score_perc}\n')
+        local_settings_file.write(f'v1\n'
+                                  f'{min_good_score_perc}\n')
+        for key in _0_global_special_combinations:
+            val = _0_global_special_combinations[key]
+            local_settings_file.write(f'{key}{val}')
+        local_settings_file.write('\n')
         for key in form_parameters.keys():
             local_settings_file.write(f'{key}\n')
             local_settings_file.write(form_parameters[key][0])
