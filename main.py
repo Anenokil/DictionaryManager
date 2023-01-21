@@ -17,21 +17,10 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-105'
-PROGRAM_DATE = '21.1.2023  14:25 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-106'
+PROGRAM_DATE = '21.1.2023  15:05 (UTC+3)'
 
 """ Пути и файлы """
-
-# Ссылка на страницу программы на GitHub
-URL_GITHUB = f'https://github.com/Anenokil/{PROGRAM_NAME}'
-# Ссылка на файл с названием последней версией
-URL_LAST_VERSION = f'https://raw.githubusercontent.com/Anenokil/{PROGRAM_NAME}/master/ver'
-# Ссылка для установки последней версии
-URL_DOWNLOAD_ZIP = f'https://github.com/Anenokil/{PROGRAM_NAME}/archive/refs/heads/master.zip'
-
-NEW_VERSION_DIR = f'{PROGRAM_NAME}-master'  # Временная папка с обновлением
-NEW_VERSION_ZIP = f'{NEW_VERSION_DIR}.zip'  # Архив с обновлением
-
 MAIN_PATH = os.path.dirname(__file__)
 RESOURCES_DIR = 'resources'  # Папка с ресурсами
 RESOURCES_PATH = os.path.join(MAIN_PATH, RESOURCES_DIR)
@@ -43,6 +32,18 @@ GLOBAL_SETTINGS_FN = 'settings.txt'  # Файл с глобальными нас
 GLOBAL_SETTINGS_PATH = os.path.join(RESOURCES_PATH, GLOBAL_SETTINGS_FN)
 CUSTOM_THEMES_DIR = 'themes'  # Папка с пользовательскими темами
 CUSTOM_THEMES_PATH = os.path.join(RESOURCES_PATH, CUSTOM_THEMES_DIR)
+
+NEW_VERSION_DIR = f'{PROGRAM_NAME}-master'
+NEW_VERSION_PATH = os.path.join(MAIN_PATH, NEW_VERSION_DIR)  # Временная папка с обновлением
+NEW_VERSION_ZIP = f'{NEW_VERSION_DIR}.zip'
+NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с обновлением
+
+# Ссылка на страницу программы на GitHub
+URL_GITHUB = f'https://github.com/Anenokil/{PROGRAM_NAME}'
+# Ссылка на файл с названием последней версией
+URL_LAST_VERSION = f'https://raw.githubusercontent.com/Anenokil/{PROGRAM_NAME}/master/ver'
+# Ссылка для установки последней версии
+URL_DOWNLOAD_ZIP = f'https://github.com/Anenokil/{PROGRAM_NAME}/archive/refs/heads/master.zip'
 
 # Если папки отсутствуют, то они создаются
 if RESOURCES_DIR not in os.listdir(MAIN_PATH):
@@ -1651,26 +1652,26 @@ class CheckUpdatesW(tk.Toplevel):
         try:  # Установка
             # Распаковываем архив во временную папку
             print('\nExtracting...')
-            with zipfile.ZipFile(NEW_VERSION_ZIP, 'r') as zip_file:
+            with zipfile.ZipFile(NEW_VERSION_ZIP_PATH, 'r') as zip_file:
                 zip_file.extractall(os.path.dirname(__file__))
             # Удаляем архив
             print('Delete zip...')
-            os.remove(NEW_VERSION_ZIP)
+            os.remove(NEW_VERSION_ZIP_PATH)
             # Удаляем файлы текущей версии
             print('Delete old files...')
-            os.remove('ver')
-            os.remove('README.txt')
-            os.remove('README.md')
-            os.remove('main.py')
+            os.remove(os.path.join(MAIN_PATH, 'ver'))
+            os.remove(os.path.join(MAIN_PATH, 'README.txt'))
+            os.remove(os.path.join(MAIN_PATH, 'README.md'))
+            os.remove(os.path.join(MAIN_PATH, 'main.py'))
             # Из временной папки достаём файлы новой версии
             print('Set new files...')
-            os.replace(os.path.join(NEW_VERSION_DIR, 'ver'), 'ver')
-            os.replace(os.path.join(NEW_VERSION_DIR, 'README.txt'), 'README.txt')
-            os.replace(os.path.join(NEW_VERSION_DIR, 'README.md'), 'README.md')
-            os.replace(os.path.join(NEW_VERSION_DIR, 'main.py'), 'main.py')
+            os.replace(os.path.join(NEW_VERSION_PATH, 'ver'),        os.path.join(MAIN_PATH, 'ver'))
+            os.replace(os.path.join(NEW_VERSION_PATH, 'README.txt'), os.path.join(MAIN_PATH, 'README.txt'))
+            os.replace(os.path.join(NEW_VERSION_PATH, 'README.md'),  os.path.join(MAIN_PATH, 'README.md'))
+            os.replace(os.path.join(NEW_VERSION_PATH, 'main.py'),    os.path.join(MAIN_PATH, 'main.py'))
             # Удаляем временную папку
             print('Delete tmp dir...')
-            shutil.rmtree(NEW_VERSION_DIR)
+            shutil.rmtree(NEW_VERSION_PATH)
         except Exception as exc:
             warning(self, f'Не удалось установить обновление!\n'
                           f'{exc}')
@@ -3815,6 +3816,7 @@ class SettingsW(tk.Toplevel):
         self.set_mgsp()
         self.set_show_updates()
         self.set_theme()
+
         save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters,
                             dct_filename(_0_global_dct_savename))
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, th)
@@ -3945,6 +3947,10 @@ class MainW(tk.Tk):
 
         SettingsW(self).open()
 
+        _0_global_dct_savename, _0_global_show_updates, th = upload_global_settings()  # Обновляем глобальные настройки
+        _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations = \
+            upload_local_settings(_0_global_dct_savename)  # Обновляем локальные настройки
+
         # Обновление тем
         self.configure(bg=ST_BG[th])
         self.frame_head.configure(bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
@@ -3993,10 +3999,6 @@ class MainW(tk.Tk):
         except:  # Если окно обновления не открыто
             pass
 
-        _0_global_dct_savename, _0_global_show_updates, th = upload_global_settings()  # Обновляем глобальные настройки
-        _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations = \
-            upload_local_settings(_0_global_dct_savename)  # Обновляем локальные настройки
-
     # Сохранить прогресс
     def save(self):
         global _0_global_has_progress
@@ -4042,4 +4044,5 @@ root.mainloop()
 # проблема с сохранением изменений в настройках словоформ
 # перенести все стили '.TWidget' в MainW
 
-# при закрытии окна возвращать фокус предыдущему окну (при закрытии всплывающих окон, MainW получает фокус)
+# при закрытии окна возвращать фокус предыдущему окну (проблема: при закрытии всплывающих окон, MainW получает фокус)
+# проблема: добавление и удаление параметров происходит без сохранения (а также удаление и переименовывание значений)
