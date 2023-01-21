@@ -1,3 +1,4 @@
+import copy
 import os
 import shutil
 import random
@@ -18,8 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-110'
-PROGRAM_DATE = '21.1.2023  19:29 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-111'
+PROGRAM_DATE = '21.1.2023'
+PROGRAM_TIME = '20:49 (UTC+3)'
 
 """ Пути и файлы """
 MAIN_PATH = os.path.dirname(__file__)
@@ -3517,6 +3519,9 @@ class SettingsW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
+        self.backup_dct = copy.deepcopy(_0_global_dct)
+        self.backup_fp = copy.deepcopy(_0_global_form_parameters)
+
         self.var_mgsp = tk.StringVar(value=str(_0_global_min_good_score_perc))
         self.var_show_updates = tk.BooleanVar(value=bool(_0_global_show_updates))
         self.var_theme = tk.StringVar(value=th)
@@ -3585,7 +3590,7 @@ class SettingsW(tk.Toplevel):
         # { {
         self.lbl_dcts = tk.Label(self.frame_dcts, text='Существующие словари:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar = tk.Scrollbar(self.frame_dcts, bg=ST_BG[th])
-        self.text_dcts = tk.Text(self.frame_dcts, width=20, height=10, state='disabled', relief=ST_RELIEF[th],
+        self.text_dcts = tk.Text(self.frame_dcts, width=27, height=10, state='disabled', relief=ST_RELIEF[th],
                                  yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                  selectbackground=ST_SELECT[th], highlightbackground=ST_BORDER[th])
         self.frame_dct_buttons = tk.LabelFrame(self.frame_dcts, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
@@ -3615,6 +3620,8 @@ class SettingsW(tk.Toplevel):
                                          state='readonly', style='.TCombobox')
         # } }
         # }
+        self.lbl_save_warn = tk.Label(self, text='При сохранении настроек, сохраняется и словарь!',
+                                      bg=ST_BG[th], fg=ST_FG_WARN[th])
         self.btn_save = tk.Button(self, text='Сохранить изменения', command=self.save, overrelief='groove',
                                   bg=ST_BTNY[th], fg=ST_FG_TEXT[th], activebackground=ST_BTNY_SELECT[th],
                                   highlightbackground=ST_BORDER[th])
@@ -3655,7 +3662,8 @@ class SettingsW(tk.Toplevel):
         self.lbl_themes.grid(  row=0, column=0, padx=(6, 1), pady=6)
         self.combo_themes.grid(row=0, column=1, padx=(0, 6), pady=6)
         # }
-        self.btn_save.grid(row=3, padx=6, pady=6)
+        self.lbl_save_warn.grid(row=3, padx=6, pady=(0, 3))
+        self.btn_save.grid(     row=4, padx=6, pady=(0, 6))
 
         self.scrollbar.config(command=self.text_dcts.yview)
 
@@ -3853,16 +3861,25 @@ class SettingsW(tk.Toplevel):
         self.set_show_updates()
         self.set_theme()
 
+        self.backup_dct = copy.deepcopy(_0_global_dct)
+        self.backup_fp = copy.deepcopy(_0_global_form_parameters)
+
         save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters,
                             dct_filename(_0_global_dct_savename))
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, th)
+        save_dct(_0_global_dct, dct_filename(_0_global_dct_savename))
 
     def open(self):
+        global _0_global_dct, _0_global_form_parameters
+
         self.focus_set()
         self.entry_mgsp.focus_set()
 
         self.grab_set()
         self.wait_window()
+
+        _0_global_dct = copy.deepcopy(self.backup_dct)
+        _0_global_form_parameters = copy.deepcopy(self.backup_fp)
 
 
 # Главное окно
@@ -3914,8 +3931,9 @@ class MainW(tk.Tk):
                                    overrelief='groove', bg=ST_BTNN[th], fg=ST_FG_TEXT[th],
                                    activebackground=ST_BTNN_SELECT[th], highlightbackground=ST_BORDER[th])
 
-        self.lbl_footer = tk.Label(self, text=f'{PROGRAM_VERSION} - {PROGRAM_DATE}', font='StdFont 8',
-                                   bg=ST_BG[th], fg=ST_FG_FOOTER[th])
+        self.lbl_footer = tk.Label(self, text=f'{PROGRAM_VERSION}\n'
+                                              f'{PROGRAM_DATE}  -  {PROGRAM_TIME}',
+                                   font='StdFont 8', bg=ST_BG[th], fg=ST_FG_FOOTER[th])
 
         self.frame_head.grid(row=0, padx=6, pady=4)
         # {
@@ -4052,11 +4070,13 @@ class MainW(tk.Tk):
 
 
 # Вывод информации о программе
-print( '======================================================================================\n')
-print( '                            Anenokil development  presents')
-print(f'                              {PROGRAM_NAME}  {PROGRAM_VERSION}')
-print(f'                               {PROGRAM_DATE}\n')
-print( '======================================================================================')
+print(f'======================================================================================\n'
+      f'\n'
+      f'                            Anenokil development  presents\n'
+      f'                              {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
+      f'\n'
+      f'======================================================================================')
 
 _0_global_dct = Dictionary()
 _0_global_has_progress = False
@@ -4081,5 +4101,3 @@ root.mainloop()
 # перенести все стили '.TWidget' в MainW
 
 # при закрытии окна возвращать фокус предыдущему окну (проблема: при закрытии всплывающих окон, MainW получает фокус)
-# проблема: добавление и удаление параметров происходит без сохранения (а также удаление и переименовывание значений)
-# wdtn ryjgjr new version available
