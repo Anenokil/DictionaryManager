@@ -1,4 +1,5 @@
 import os
+import shutil
 import random
 import math
 import sys
@@ -16,8 +17,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-102'
-PROGRAM_DATE = '21.1.2023  13:53 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-103'
+PROGRAM_DATE = '21.1.2023  13:56 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -1689,7 +1690,7 @@ class CheckUpdatesW(tk.Toplevel):
             os.replace(os.path.join(NEW_VERSION_DIR, 'main.py'), 'main.py')
             # Удаляем временную папку
             print('Delete tmp dir...')
-            os.rmdir(NEW_VERSION_DIR)
+            shutil.rmtree(NEW_VERSION_DIR)
         except Exception as exc:
             warning(self, f'Не удалось установить обновление!\n'
                           f'{exc}')
