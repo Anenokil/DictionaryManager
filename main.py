@@ -18,8 +18,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-109'
-PROGRAM_DATE = '21.1.2023  17:09 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-110'
+PROGRAM_DATE = '21.1.2023  19:29 (UTC+3)'
 
 """ Пути и файлы """
 MAIN_PATH = os.path.dirname(__file__)
@@ -684,7 +684,8 @@ class Entry(object):
         for note in self.notes:
             file.write(f'd{note}\n')
         for frm_template in self.forms.keys():
-            file.write(f'f{decode_tpl(frm_template)}\n{self.forms[frm_template]}\n')
+            file.write(f'f{decode_tpl(frm_template)}\n'
+                       f'{self.forms[frm_template]}\n')
         if self.fav:
             file.write('*\n')
 
@@ -1274,11 +1275,11 @@ def create_dct(dct, savename):
 
 
 # Сохранить глобальные настройки (настройки программы)
-def save_global_settings(dct_savename, show_updates, themes):
+def save_global_settings(dct_savename, show_updates, theme):
     with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
         global_settings_file.write(f'{dct_savename}\n'
                                    f'{show_updates}\n'
-                                   f'{themes}')
+                                   f'{theme}')
 
 
 # Сохранить название открытого словаря
@@ -2135,7 +2136,7 @@ class FormsSettingsW(tk.Toplevel):
         self.st_combo.map('.TCombobox', background=[('readonly', ST_BG[th])],
                           foreground=[('readonly', ST_FG_TEXT[th])], highlightbackground=[('readonly', ST_BORDER[th])])
 
-        self.lbl_form_par  = tk.Label(self, text='Существующие параметры форм:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.lbl_form_par = tk.Label(self, text='Существующие параметры форм:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar = tk.Scrollbar(self, bg=ST_BG[th])
         self.text_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
                                      bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
@@ -4025,11 +4026,11 @@ class MainW(tk.Tk):
                                                               highlightcolor=ST_HIGHLIGHT[th],
                                                               selectbackground=ST_SELECT[th],
                                                               readonlybackground=ST_BG_FIELDS[th])
-            _0_global_window_last_version.btn_update.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                                               activebackground=ST_BTN_SELECT[th],
+            _0_global_window_last_version.btn_update.configure(bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
+                                                               activebackground=ST_BTNY_SELECT[th],
                                                                highlightbackground=ST_BORDER[th])
-            _0_global_window_last_version.btn_close.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                                              activebackground=ST_BTN_SELECT[th],
+            _0_global_window_last_version.btn_close.configure(bg=ST_BTNN[th], fg=ST_FG_TEXT[th],
+                                                              activebackground=ST_BTNN_SELECT[th],
                                                               highlightbackground=ST_BORDER[th])
         except:  # Если окно обновления не открыто
             pass
@@ -4081,3 +4082,4 @@ root.mainloop()
 
 # при закрытии окна возвращать фокус предыдущему окну (проблема: при закрытии всплывающих окон, MainW получает фокус)
 # проблема: добавление и удаление параметров происходит без сохранения (а также удаление и переименовывание значений)
+# wdtn ryjgjr new version available
