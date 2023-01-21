@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-101'
-PROGRAM_DATE = '21.1.2023  13:40 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-102'
+PROGRAM_DATE = '21.1.2023  13:53 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -1661,7 +1661,7 @@ class CheckUpdatesW(tk.Toplevel):
     # Скачать и установить обновление
     def download_and_install(self):
         try:  # Загрузка
-            print('download zip')
+            print('Download zip...', end='')
             wget.download(URL_DOWNLOAD_ZIP, out=os.path.dirname(__file__))  # Скачиваем архив с обновлением
         except Exception as exc:
             warning(self, f'Не удалось загрузить обновление!\n'
@@ -1669,32 +1669,33 @@ class CheckUpdatesW(tk.Toplevel):
             self.destroy()
         try:  # Установка
             # Распаковываем архив во временную папку
-            print('\nextracting')
+            print('\nExtracting...')
             with zipfile.ZipFile(NEW_VERSION_ZIP, 'r') as zip_file:
                 zip_file.extractall(os.path.dirname(__file__))
             # Удаляем архив
-            print('delete zip')
+            print('Delete zip...')
             os.remove(NEW_VERSION_ZIP)
             # Удаляем файлы текущей версии
-            print('delete old files')
+            print('Delete old files...')
             os.remove('ver')
             os.remove('README.txt')
             os.remove('README.md')
             os.remove('main.py')
             # Из временной папки достаём файлы новой версии
-            print('set new files')
+            print('Set new files...')
             os.replace(os.path.join(NEW_VERSION_DIR, 'ver'), 'ver')
             os.replace(os.path.join(NEW_VERSION_DIR, 'README.txt'), 'README.txt')
             os.replace(os.path.join(NEW_VERSION_DIR, 'README.md'), 'README.md')
             os.replace(os.path.join(NEW_VERSION_DIR, 'main.py'), 'main.py')
             # Удаляем временную папку
-            print('delete tmp dir')
+            print('Delete tmp dir...')
             os.rmdir(NEW_VERSION_DIR)
         except Exception as exc:
             warning(self, f'Не удалось установить обновление!\n'
                           f'{exc}')
             self.destroy()
         else:
+            print('Done!')
             PopupMsgW(self, 'Обновление успешно установлено\n'
                             'Программа закроется').open()
             exit(777)
