@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-100'
-PROGRAM_DATE = '21.1.2023  13:21 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-101'
+PROGRAM_DATE = '21.1.2023  13:40 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -31,24 +31,26 @@ URL_DOWNLOAD_ZIP = f'https://github.com/Anenokil/{PROGRAM_NAME}/archive/refs/hea
 NEW_VERSION_DIR = f'{PROGRAM_NAME}-master'  # Временная папка с обновлением
 NEW_VERSION_ZIP = f'{NEW_VERSION_DIR}.zip'  # Архив с обновлением
 
+MAIN_PATH = os.path.dirname(__file__)
 RESOURCES_DIR = 'resources'  # Папка с ресурсами
+RESOURCES_PATH = os.path.join(MAIN_PATH, RESOURCES_DIR)
 SAVES_DIR = 'saves'  # Папка с сохранениями
-SAVES_PATH = os.path.join(RESOURCES_DIR, SAVES_DIR)
+SAVES_PATH = os.path.join(RESOURCES_PATH, SAVES_DIR)
 LOCAL_SETTINGS_DIR = 'local_settings'  # Папка с локальными настройками (настройки словаря)
-LOCAL_SETTINGS_PATH = os.path.join(RESOURCES_DIR, LOCAL_SETTINGS_DIR)
+LOCAL_SETTINGS_PATH = os.path.join(RESOURCES_PATH, LOCAL_SETTINGS_DIR)
 GLOBAL_SETTINGS_FN = 'settings.txt'  # Файл с глобальными настройками (настройки программы)
-GLOBAL_SETTINGS_PATH = os.path.join(RESOURCES_DIR, GLOBAL_SETTINGS_FN)
+GLOBAL_SETTINGS_PATH = os.path.join(RESOURCES_PATH, GLOBAL_SETTINGS_FN)
 CUSTOM_THEMES_DIR = 'themes'  # Папка с пользовательскими темами
-CUSTOM_THEMES_PATH = os.path.join(RESOURCES_DIR, CUSTOM_THEMES_DIR)
+CUSTOM_THEMES_PATH = os.path.join(RESOURCES_PATH, CUSTOM_THEMES_DIR)
 
 # Если папки отсутствуют, то они создаются
-if RESOURCES_DIR not in os.listdir(os.curdir):
-    os.mkdir(RESOURCES_DIR)
-if SAVES_DIR not in os.listdir(RESOURCES_DIR):
+if RESOURCES_DIR not in os.listdir(MAIN_PATH):
+    os.mkdir(RESOURCES_PATH)
+if SAVES_DIR not in os.listdir(RESOURCES_PATH):
     os.mkdir(SAVES_PATH)
-if LOCAL_SETTINGS_DIR not in os.listdir(RESOURCES_DIR):
+if LOCAL_SETTINGS_DIR not in os.listdir(RESOURCES_PATH):
     os.mkdir(LOCAL_SETTINGS_PATH)
-if CUSTOM_THEMES_DIR not in os.listdir(RESOURCES_DIR):
+if CUSTOM_THEMES_DIR not in os.listdir(RESOURCES_PATH):
     os.mkdir(CUSTOM_THEMES_PATH)
 
 """ Стандартные темы """
