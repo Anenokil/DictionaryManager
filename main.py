@@ -17,8 +17,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-107'
-PROGRAM_DATE = '21.1.2023  16:12 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-108'
+PROGRAM_DATE = '21.1.2023  16:49 (UTC+3)'
 
 """ Пути и файлы """
 MAIN_PATH = os.path.dirname(__file__)
@@ -233,6 +233,12 @@ def decode_tpl(input_tuple):
 # Перевести строку в кортеж (для чтения из файла)
 def encode_tpl(line):
     return tuple(line.split(FORMS_SEPARATOR))
+
+
+# Перевести переводы в строку
+def tr_to_str(tr):
+    encoded_tr = tuple(deu_encode(t) for t in tr)
+    return tpl(encoded_tr)
 
 
 # Добавить значение параметра форм
@@ -3280,7 +3286,7 @@ class LearnW(tk.Toplevel):
             self.used_words.add(self.current_key)
         else:
             entry.incorrect()
-            self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.tr)}"\n')
+            self.outp(f'Неверно. Правильный ответ: "{tr_to_str(entry.tr)}"\n')
             if not entry.fav:
                 window = PopupDialogueW(self, 'Неверно.\n'
                                               'Хотите добавить слово в избранное?',
