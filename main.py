@@ -16,8 +16,8 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-97'
-PROGRAM_DATE = '20.1.2023  23:47 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-98'
+PROGRAM_DATE = '21.1.2023  12:28 (UTC+3)'
 
 """ Пути и файлы """
 
@@ -1064,11 +1064,8 @@ class Dictionary(object):
             return 3
 
 
-_0_global_dct_savename = 'words'  # Просто чтобы работала функция
-
-
 # Получить название файла со словарём
-def dct_filename(savename=_0_global_dct_savename):
+def dct_filename(savename):
     return f'{savename}.txt'
 
 
@@ -1146,37 +1143,72 @@ def upload_global_settings():
     return dct_savename, show_updates, theme
 
 
+# Обновить локальные настройки с 0 до 1 версии
+def upgrade_local_settings_0_to_1(local_settings_path):
+    with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
+        lines = local_settings_file.readlines()
+    with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
+        local_settings_file.write('v1\n')
+        local_settings_file.write(lines[0])
+        local_settings_file.write('\n')
+        for i in range(1, len(lines)):
+            local_settings_file.write(lines[i])
+
+
+# Обновить локальные настройки старых версий до актуальной версии
+def upgrade_local_settings(local_settings_path):
+    with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
+        first_line = local_settings_file.readline()
+        if first_line[0] != 'v':  # Версия 0
+            upgrade_local_settings_0_to_1(local_settings_path)
+
+
 # Загрузить локальные настройки (настройки словаря)
-def upload_local_settings(filename):
+def upload_local_settings(savename):
+    filename = dct_filename(savename)
     local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
     form_parameters = {}
+    special_combinations = {}
     try:
         open(local_settings_path, 'r', encoding='utf-8')
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
         with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
-            local_settings_file.write('67\n'
-                                      'Число\n'
-                                     f'ед.ч.{FORMS_SEPARATOR}мн.ч.\n'
-                                      'Род\n'
-                                     f'м.р.{FORMS_SEPARATOR}ж.р.{FORMS_SEPARATOR}ср.р.\n'
-                                      'Падеж\n'
-                                     f'им.п.{FORMS_SEPARATOR}род.п.{FORMS_SEPARATOR}дат.п.{FORMS_SEPARATOR}вин.п.\n'
-                                      'Лицо\n'
-                                     f'1 л.{FORMS_SEPARATOR}2 л.{FORMS_SEPARATOR}3 л.\n'
-                                      'Время\n'
-                                     f'пр.вр.{FORMS_SEPARATOR}н.вр.{FORMS_SEPARATOR}буд.вр.')
+            local_settings_file.write(f'v1\n'  # Версия локальных настроек
+                                      f'67\n'  # МППУ
+                                      f'aäAÄeёEЁoöOÖuüUÜsßSẞ\n'  # Спец. комбинации
+                                      f'Число\n'
+                                      f'ед.ч.{FORMS_SEPARATOR}мн.ч.\n'
+                                      f'Род\n'
+                                      f'м.р.{FORMS_SEPARATOR}ж.р.{FORMS_SEPARATOR}ср.р.\n'
+                                      f'Падеж\n'
+                                      f'им.п.{FORMS_SEPARATOR}род.п.{FORMS_SEPARATOR}дат.п.{FORMS_SEPARATOR}вин.п.\n'
+                                      f'Лицо\n'
+                                      f'1 л.{FORMS_SEPARATOR}2 л.{FORMS_SEPARATOR}3 л.\n'
+                                      f'Время\n'
+                                      f'пр.вр.{FORMS_SEPARATOR}н.вр.{FORMS_SEPARATOR}буд.вр.')
+    else:
+        upgrade_local_settings(local_settings_path)
+
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
+        # Версия
+        local_settings_file.readline()
+        # МППУ
         try:
             min_good_score_perc = int(local_settings_file.readline().strip())
         except (ValueError, TypeError):
             min_good_score_perc = 67
+        # Спец. комбинации
+        line_special_combinations = local_settings_file.readline()
+        for i in range(len(line_special_combinations) // 2):
+            special_combinations[line_special_combinations[2 * i]] = line_special_combinations[2 * i + 1]
+        # Словоформы
         while True:
             key = local_settings_file.readline().strip()
             if not key:
                 break
             value = local_settings_file.readline().strip().split(FORMS_SEPARATOR)
             form_parameters[key] = value
-    return min_good_score_perc, form_parameters
+    return min_good_score_perc, form_parameters, special_combinations
 
 
 # Загрузить словарь (с обработкой исключений)
@@ -1223,7 +1255,7 @@ def create_dct(dct, savename):
     open(filepath, 'w', encoding='utf-8')
     dct.read(filepath)
     print(f'\nСловарь "{savename}" успешно создан и открыт')
-    return upload_local_settings(filename)
+    return upload_local_settings(savename)
 
 
 # Сохранить глобальные настройки (настройки программы)
@@ -1279,7 +1311,8 @@ def save_settings_if_has_changes(window_parent):
     answer = window_dia.open()
     if answer:
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, th)
-        save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters, dct_filename())
+        save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters,
+                            dct_filename(_0_global_dct_savename))
         PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
         print('\nНастройки успешно сохранены')
 
@@ -2159,7 +2192,7 @@ class FormsSettingsW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        save_forms(_0_global_form_parameters, dct_filename())
+        save_forms(_0_global_form_parameters, dct_filename(_0_global_dct_savename))
 
 
 # Окно настроек параметра словоформ
@@ -2341,7 +2374,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        #save_forms(_0_global_form_parameters, dct_filename())
+        #save_forms(_0_global_form_parameters, dct_filename(_0_global_dct_savename))
 
 
 # Окно выбора режима перед изучением слов
@@ -3636,7 +3669,8 @@ class SettingsW(tk.Toplevel):
 
     # Открыть словарь
     def dct_open(self):
-        global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_form_parameters
+        global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc,\
+            _0_global_form_parameters, _0_global_special_combinations
 
         saves_count = 0
         saves_list = []
@@ -3658,11 +3692,12 @@ class SettingsW(tk.Toplevel):
 
         if self.has_local_changes():
             save_settings_if_has_changes(self)
-        save_dct_if_has_progress(self, _0_global_dct, dct_filename(), _0_global_has_progress)
+        save_dct_if_has_progress(self, _0_global_dct, dct_filename(_0_global_dct_savename), _0_global_has_progress)
 
         _0_global_dct = Dictionary()
         upload_dct(self, _0_global_dct, savename)
-        _0_global_min_good_score_perc, _0_global_form_parameters = upload_local_settings(dct_filename(savename))
+        _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
+            upload_local_settings(savename)
         _0_global_dct_savename = savename
         save_dct_name()
 
@@ -3672,7 +3707,8 @@ class SettingsW(tk.Toplevel):
 
     # Создать словарь
     def dct_create(self):
-        global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_form_parameters
+        global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc,\
+            _0_global_form_parameters, _0_global_special_combinations
 
         window = EnterDctNameW(self)
         filename_is_correct, savename = window.open()
@@ -3681,12 +3717,13 @@ class SettingsW(tk.Toplevel):
 
         if self.has_local_changes():
             save_settings_if_has_changes(self)
-        save_dct_if_has_progress(self, _0_global_dct, dct_filename(), _0_global_has_progress)
+        save_dct_if_has_progress(self, _0_global_dct, dct_filename(_0_global_dct_savename), _0_global_has_progress)
 
         _0_global_dct_savename = savename
         save_dct_name()
         _0_global_dct = Dictionary()
-        _0_global_min_good_score_perc, _0_global_form_parameters = create_dct(_0_global_dct, savename)
+        _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
+            create_dct(_0_global_dct, savename)
 
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
 
@@ -3797,7 +3834,8 @@ class SettingsW(tk.Toplevel):
         self.set_mgsp()
         self.set_show_updates()
         self.set_theme()
-        save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters, dct_filename())
+        save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters,
+                            dct_filename(_0_global_dct_savename))
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, th)
 
     def open(self):
@@ -3975,7 +4013,7 @@ class MainW(tk.Tk):
     def save(self):
         global _0_global_has_progress
 
-        save_dct(_0_global_dct, dct_filename())
+        save_dct(_0_global_dct, dct_filename(_0_global_dct_savename))
         PopupMsgW(self, 'Прогресс успешно сохранён').open()
         print('\nПрогресс успешно сохранён')
 
@@ -3983,7 +4021,7 @@ class MainW(tk.Tk):
 
     # Закрытие программы
     def close(self):
-        save_dct_if_has_progress(self, _0_global_dct, dct_filename(), _0_global_has_progress)
+        save_dct_if_has_progress(self, _0_global_dct, dct_filename(_0_global_dct_savename), _0_global_has_progress)
         self.quit()
 
 
@@ -3994,15 +4032,6 @@ print(f'                               {PROGRAM_NAME} {PROGRAM_VERSION}')
 print(f'                               {PROGRAM_DATE}\n')
 print( '======================================================================================')
 
-_0_global_special_combinations = {'a': 'ä',
-                                  'A': 'Ä',
-                                  'o': 'ö',
-                                  'O': 'Ö',
-                                  'u': 'ü',
-                                  'U': 'Ü',
-                                  's': 'ß',
-                                  'S': 'ẞ'}
-
 _0_global_dct = Dictionary()
 _0_global_has_progress = False
 
@@ -4010,7 +4039,8 @@ upload_themes(THEMES)  # Загружаем темы
 _0_global_dct_savename, _0_global_show_updates, th = upload_global_settings()  # Загружаем глобальные настройки
 root = MainW()  # Создаём графический интерфейс
 upload_dct(root, _0_global_dct, _0_global_dct_savename)  # Загружаем словарь
-_0_global_min_good_score_perc, _0_global_form_parameters = upload_local_settings(dct_filename())  # Загружаем локальные настройки
+_0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
+    upload_local_settings(_0_global_dct_savename)  # Загружаем локальные настройки
 _0_global_window_last_version = check_updates(root, _0_global_show_updates)  # Проверяем наличие обновлений
 root.mainloop()
 
