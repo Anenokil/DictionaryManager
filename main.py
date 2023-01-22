@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-116'
+PROGRAM_VERSION = 'v7.0.0_PRE-117'
 PROGRAM_DATE = '23.1.2023'
-PROGRAM_TIME = '0:53 (UTC+3)'
+PROGRAM_TIME = '0:59 (UTC+3)'
 
 """ Пути и файлы """
 MAIN_PATH = os.path.dirname(__file__)
@@ -3859,7 +3859,7 @@ class SettingsW(tk.Toplevel):
     def has_local_changes(self):
         return self.has_forms_changes or\
             self.has_spec_comb_changes or\
-            int(self.var_mgsp.get()) != _0_global_min_good_score_perc
+            int('0' + self.var_mgsp.get()) != _0_global_min_good_score_perc  # Если self.var_mgsp.get() == '', то 0
 
     # Были ли изменения локальных настроек
     def has_theme_changes(self):
