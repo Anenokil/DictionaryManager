@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-115'
+PROGRAM_VERSION = 'v7.0.0_PRE-116'
 PROGRAM_DATE = '23.1.2023'
-PROGRAM_TIME = '0:32 (UTC+3)'
+PROGRAM_TIME = '0:53 (UTC+3)'
 
 """ Пути и файлы """
 MAIN_PATH = os.path.dirname(__file__)
@@ -3615,10 +3615,14 @@ class SettingsW(tk.Toplevel):
         self.lbl_themes = tk.Label(self.frame_themes, text='Тема:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
                                          state='readonly', style='.TCombobox')
-        self.lbl_themes_note = tk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
-                                                                f'Актуальные темы можно скачать здесь:\n'
-                                                                f'{URL_RELEASES}',
-                                        justify='left', bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.text_themes_note = tk.Text(self.frame_themes, height=3, width=40, borderwidth=0,
+                                        font='StdFont 10', bg=ST_BG[th], fg=ST_FG_TEXT[th],
+                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                        highlightbackground=ST_BORDER[th])
+        self.text_themes_note.insert(tk.END, f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
+                                             f'Актуальные темы можно скачать здесь:\n'
+                                             f'{URL_RELEASES}')
+        self.text_themes_note['state'] = 'disabled'
         # } }
         # }
         self.btn_save = tk.Button(self, text='Сохранить изменения', command=self.save, overrelief='groove',
@@ -3664,7 +3668,7 @@ class SettingsW(tk.Toplevel):
         # {
         self.lbl_themes.grid(     row=0, column=0, padx=(6, 1), pady=6)
         self.combo_themes.grid(   row=0, column=1, padx=0,      pady=6)
-        self.lbl_themes_note.grid(row=0, column=2, padx=6,      pady=6)
+        self.text_themes_note.grid(row=0, column=2, padx=6,      pady=6)
         # }
         #
         self.btn_save.grid( row=4, column=0, padx=(6, 3), pady=(0, 6))
