@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-117'
+PROGRAM_VERSION = 'v7.0.0_PRE-118'
 PROGRAM_DATE = '23.1.2023'
-PROGRAM_TIME = '0:59 (UTC+3)'
+PROGRAM_TIME = '1:32 (UTC+3)'
 
 """ Пути и файлы """
 MAIN_PATH = os.path.dirname(__file__)
@@ -1439,9 +1439,11 @@ class PopupMsgW(tk.Toplevel):
         self.focus_set()
         self.btn_ok.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
         self.grab_set()
         self.wait_window()
+
         return self.closed
 
 
@@ -1516,12 +1518,15 @@ class PopupDialogueW(tk.Toplevel):
         if self.set_focus_on_btn == 'left':
             self.btn_left.focus_set()
             self.bind('<Return>', lambda event=None: self.btn_left.invoke())
+            self.bind('<Escape>', lambda event=None: self.btn_right.invoke())
         elif self.set_focus_on_btn == 'right':
             self.btn_right.focus_set()
             self.bind('<Return>', lambda event=None: self.btn_right.invoke())
+            self.bind('<Escape>', lambda event=None: self.btn_left.invoke())
 
         self.grab_set()
         self.wait_window()
+
         return self.answer
 
 
@@ -1559,9 +1564,11 @@ class PopupChooseW(tk.Toplevel):
         self.focus_set()
         self.btn_ok.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
         self.grab_set()
         self.wait_window()
+
         return self.closed, self.var_answer.get()
 
 
@@ -1597,9 +1604,11 @@ class PopupEntryW(tk.Toplevel):
         self.focus_set()
         self.entry_inp.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
         self.grab_set()
         self.wait_window()
+
         return self.closed, self.var_text.get()
 
 
@@ -1657,9 +1666,11 @@ class EntrySpecialCombinationW(tk.Toplevel):
         self.focus_set()
         self.entry_key.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
         self.grab_set()
         self.wait_window()
+
         return self.closed, self.var_key.get(), self.var_val.get()
 
 
@@ -1840,9 +1851,11 @@ class ChooseNoteW(tk.Toplevel):
         self.focus_set()
         self.entry_input.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
         self.grab_set()
         self.wait_window()
+
         return self.closed, self.answer
 
 
@@ -1885,9 +1898,11 @@ class EnterDctNameW(tk.Toplevel):
         self.focus_set()
         self.entry_name.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
         self.grab_set()
         self.wait_window()
+
         return self.name_is_correct, self.var_name.get()
 
 
@@ -1932,9 +1947,11 @@ class EnterFormParameterNameW(tk.Toplevel):
         self.focus_set()
         self.entry_name.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
         self.grab_set()
         self.wait_window()
+
         return self.name_is_correct, self.var_name.get()
 
 
@@ -1999,9 +2016,11 @@ class ChooseFormParValW(tk.Toplevel):
         self.focus_set()
         self.btn_choose.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
         self.grab_set()
         self.wait_window()
+
         return self.closed, self.res
 
 
@@ -2080,6 +2099,7 @@ class CreateFormTemplateW(tk.Toplevel):
         self.focus_set()
         self.btn_choose.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
         self.grab_set()
         self.wait_window()
@@ -2148,6 +2168,9 @@ class ParticularMatchesW(tk.Toplevel):
         self.text_tr['state'] = 'disabled'
 
     def open(self):
+        self.focus_set()
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
         self.grab_set()
         self.wait_window()
 
@@ -2246,8 +2269,12 @@ class FormsSettingsW(tk.Toplevel):
             self.btn_values['state'] = 'disabled'
 
     def open(self):
+        self.focus_set()
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
         self.grab_set()
         self.wait_window()
+
         return self.has_changes
 
 
@@ -2336,8 +2363,12 @@ class FormsParameterSettingsW(tk.Toplevel):
             self.btn_delete['state'] = 'normal'
 
     def open(self):
+        self.focus_set()
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
         self.grab_set()
         self.wait_window()
+
         return self.has_changes
 
 
@@ -2423,8 +2454,12 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
             self.btn_delete['state'] = 'disabled'
 
     def open(self):
+        self.focus_set()
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
         self.grab_set()
         self.wait_window()
+
         return self.has_changes
 
 
@@ -2486,9 +2521,11 @@ class ChooseLearnModeW(tk.Toplevel):
         self.focus_set()
         self.btn_start.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_start.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
         self.grab_set()
         self.wait_window()
+
         return self.res
 
 
@@ -2564,7 +2601,9 @@ class PrintW(tk.Toplevel):
 
     def open(self):
         self.focus_set()
+        self.btn_print.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_print.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
         self.grab_set()
         self.wait_window()
@@ -2671,6 +2710,7 @@ class SearchW(tk.Toplevel):
         self.focus_set()
         self.entry_input.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_search.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
         self.grab_set()
         self.wait_window()
@@ -3010,7 +3050,9 @@ class EditW(tk.Toplevel):
 
     def open(self):
         self.focus_set()
+        self.btn_back.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_back.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
         self.grab_set()
         self.wait_window()
@@ -3077,9 +3119,11 @@ class AddW(tk.Toplevel):
         self.focus_set()
         self.entry_wrd.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_add.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
         self.grab_set()
         self.wait_window()
+
         return self.key
 
 
@@ -3927,6 +3971,7 @@ class SettingsW(tk.Toplevel):
 
         self.focus_set()
         self.entry_mgsp.focus_set()
+        self.bind('<Escape>', lambda event=None: self.btn_close.invoke())
 
         self.grab_set()
         self.wait_window()
