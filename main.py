@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-114'
-PROGRAM_DATE = '22.1.2023'
-PROGRAM_TIME = '0:37 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-115'
+PROGRAM_DATE = '23.1.2023'
+PROGRAM_TIME = '0:32 (UTC+3)'
 
 """ Пути и файлы """
 MAIN_PATH = os.path.dirname(__file__)
@@ -62,7 +62,7 @@ if CUSTOM_THEMES_DIR not in os.listdir(RESOURCES_PATH):
 
 """ Стандартные темы """
 
-REQUIRED_THEME_VERSION = 1
+REQUIRED_THEME_VERSION = 2
 THEMES = ['light', 'dark']  # Названия тем
 
 # Все: bg
@@ -73,49 +73,83 @@ THEMES = ['light', 'dark']  # Названия тем
 # Entry: selectbackground, highlightcolor
 
 # Стили для каждой темы
-ST_BG          = {THEMES[0]: '#EEEEEE', THEMES[1]: '#222222'}  # Цвет фона окна
-ST_BG_FIELDS   = {THEMES[0]: '#FFFFFF', THEMES[1]: '#171717'}  # Цвет фона полей ввода
+ST_BG            = {THEMES[0]: '#EEEEEE', THEMES[1]: '#222222'}  # Цвет фона окна
+ST_BG_FIELDS     = {THEMES[0]: '#FFFFFF', THEMES[1]: '#171717'}  # Цвет фона полей ввода
 
-ST_BORDER      = {THEMES[0]: '#222222', THEMES[1]: '#111111'}  # Цвет рамок
-ST_RELIEF      = {THEMES[0]: 'groove',  THEMES[1]: 'solid'  }  # Стиль рамок
+ST_FG_TEXT       = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет обычного текста
+ST_FG_LOGO       = {THEMES[0]: '#FF7200', THEMES[1]: '#803600'}  # Цвет текста логотипа
+ST_FG_FOOTER     = {THEMES[0]: '#666666', THEMES[1]: '#666666'}  # Цвет текста нижнего колонтитула
+ST_FG_WARN       = {THEMES[0]: '#DD2222', THEMES[1]: '#DD2222'}  # Цвет текста предупреждения
 
-ST_SELECT      = {THEMES[0]: '#BBBBBB', THEMES[1]: '#444444'}  # Цвет выделения текста
-ST_HIGHLIGHT   = {THEMES[0]: '#00DD00', THEMES[1]: '#005500'}  # Цвет подсветки виджета при фокусе
+ST_SELECT_BG     = {THEMES[0]: '#BBBBBB', THEMES[1]: '#444444'}  # Цвет выделения фона (selectbackground)
+ST_SELECT_FG     = {THEMES[0]: '#101010', THEMES[1]: '#A0A0A0'}  # Цвет выделения текста (selectforeground)
 
-ST_BTN         = {THEMES[0]: '#D0D0D0', THEMES[1]: '#202020'}  # Цвет фона обычных кнопок
-ST_BTN_SELECT  = {THEMES[0]: '#BABABA', THEMES[1]: '#272727'}  # Цвет фона обычных кнопок при нажатии
-ST_BTNY        = {THEMES[0]: '#88DD88', THEMES[1]: '#446F44'}  # Цвет фона да-кнопок
-ST_BTNY_SELECT = {THEMES[0]: '#77CC77', THEMES[1]: '#558055'}  # Цвет фона да-кнопок при нажатии
-ST_BTNN        = {THEMES[0]: '#FF6666', THEMES[1]: '#803333'}  # Цвет фона нет-кнопок
-ST_BTNN_SELECT = {THEMES[0]: '#EE5555', THEMES[1]: '#904444'}  # Цвет фона нет-кнопок при нажатии
+ST_RELIEF        = {THEMES[0]: 'groove',  THEMES[1]: 'solid'  }  # Стиль рамок
+ST_BORDER        = {THEMES[0]: '#222222', THEMES[1]: '#111111'}  # Цвет обводки полей (highlightbackground)
+ST_HIGHLIGHT     = {THEMES[0]: '#00DD00', THEMES[1]: '#005500'}  # Цвет подсветки виджета при фокусе (highlightcolor)
 
-ST_FG_TEXT     = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет обычного текста
-ST_FG_LOGO     = {THEMES[0]: '#FF7200', THEMES[1]: '#803600'}  # Цвет текста логотипа
-ST_FG_FOOTER   = {THEMES[0]: '#666666', THEMES[1]: '#666666'}  # Цвет текста нижнего колонтитула
-ST_FG_WARN     = {THEMES[0]: '#DD2222', THEMES[1]: '#DD2222'}  # Цвет текста предупреждения
+ST_BTN_BG        = {THEMES[0]: '#D0D0D0', THEMES[1]: '#202020'}  # Цвет фона обычных кнопок
+ST_BTN_BG_SEL    = {THEMES[0]: '#BABABA', THEMES[1]: '#272727'}  # Цвет фона обычных кнопок при нажатии
+#ST_BTN_FG        = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста обычных кнопок
+#ST_BTN_FG_SEL    = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста обычных кнопок при нажатии
+ST_BTNY_BG       = {THEMES[0]: '#88DD88', THEMES[1]: '#446F44'}  # Цвет фона да-кнопок
+ST_BTNY_BG_SEL   = {THEMES[0]: '#77CC77', THEMES[1]: '#558055'}  # Цвет фона да-кнопок при нажатии
+#ST_BTNY_FG       = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста да-кнопок
+#ST_BTNY_FG_SEL   = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста да-кнопок при нажатии
+ST_BTNN_BG       = {THEMES[0]: '#FF6666', THEMES[1]: '#803333'}  # Цвет фона нет-кнопок
+ST_BTNN_BG_SEL   = {THEMES[0]: '#EE5555', THEMES[1]: '#904444'}  # Цвет фона нет-кнопок при нажатии
+#ST_BTNN_FG       = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста нет-кнопок
+#ST_BTNN_FG_SEL   = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста нет-кнопок при нажатии
+
+ST_CHECK_BG_SEL  = {THEMES[0]: '#DDDDDD', THEMES[1]: '#333333'}  # Цвет фона переключателя при нажатии
+
+ST_NOTE_BG       = {THEMES[0]: '#D0D0D0', THEMES[1]: '#1A1A1A'}  # Цвет фона закрытой вкладки
+ST_NOTE_BG_SEL   = {THEMES[0]: '#EEEEEE', THEMES[1]: '#222222'}  # Цвет фона открытой вкладки
+ST_NOTE_FG       = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста закрытой вкладки
+ST_NOTE_FG_SEL   = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста открытой вкладки
+
+ST_SCROLL_BG     = {THEMES[0]: '#E0E0E0', THEMES[1]: '#202020'}  # Цвет фона ползунка
+ST_SCROLL_BG_SEL = {THEMES[0]: '#E0E0E0', THEMES[1]: '#202020'}  # Цвет фона ползунка при нажатии
+ST_SCROLL_FG     = {THEMES[0]: '#CACACA', THEMES[1]: '#292929'}  # Цвет ползунка
+ST_SCROLL_FG_SEL = {THEMES[0]: '#ABABAB', THEMES[1]: '#333333'}  # Цвет ползунка при нажатии
 
 # Названия стилизуемых элементов
-STYLE_ELEMENTS = ('BG', 'BG_FIELDS', 'BORDER', 'RELIEF', 'SELECT', 'HIGHLIGHT',
+STYLE_ELEMENTS = ('BG', 'BG_FIELDS',
+                  'FG_TEXT', 'FG_LOGO', 'FG_FOOTER', 'FG_WARN',
+                  'SELECT_BG', 'SELECT_FG',
+                  'RELIEF', 'BORDER', 'HIGHLIGHT',
                   'BTN', 'BTN_SELECT', 'BTNY', 'BTNY_SELECT', 'BTNN', 'BTNN_SELECT',
-                  'FG_TEXT', 'FG_LOGO', 'FG_FOOTER', 'FG_WARN')
+                  'CHECK_BG_SEL',
+                  'NOTE_BG', 'NOTE_BG_SEL', 'NOTE_FG', 'NOTE_FG_SEL',
+                  'SCROLL_BG', 'SCROLL_BG_SEL', 'SCROLL_FG', 'SCROLL_FG_SEL')
 
 # Стили для каждого элемента
 STYLES = {STYLE_ELEMENTS[0]:  ST_BG,
           STYLE_ELEMENTS[1]:  ST_BG_FIELDS,
-          STYLE_ELEMENTS[2]:  ST_BORDER,
-          STYLE_ELEMENTS[3]:  ST_RELIEF,
-          STYLE_ELEMENTS[4]:  ST_SELECT,
-          STYLE_ELEMENTS[5]:  ST_HIGHLIGHT,
-          STYLE_ELEMENTS[6]:  ST_BTN,
-          STYLE_ELEMENTS[7]:  ST_BTN_SELECT,
-          STYLE_ELEMENTS[8]:  ST_BTNY,
-          STYLE_ELEMENTS[9]:  ST_BTNY_SELECT,
-          STYLE_ELEMENTS[10]: ST_BTNN,
-          STYLE_ELEMENTS[11]: ST_BTNN_SELECT,
-          STYLE_ELEMENTS[12]: ST_FG_TEXT,
-          STYLE_ELEMENTS[13]: ST_FG_LOGO,
-          STYLE_ELEMENTS[14]: ST_FG_FOOTER,
-          STYLE_ELEMENTS[15]: ST_FG_WARN}
+          STYLE_ELEMENTS[2]:  ST_FG_TEXT,
+          STYLE_ELEMENTS[3]:  ST_FG_LOGO,
+          STYLE_ELEMENTS[4]:  ST_FG_FOOTER,
+          STYLE_ELEMENTS[5]:  ST_FG_WARN,
+          STYLE_ELEMENTS[6]:  ST_SELECT_BG,
+          STYLE_ELEMENTS[7]:  ST_SELECT_FG,
+          STYLE_ELEMENTS[8]:  ST_RELIEF,
+          STYLE_ELEMENTS[9]:  ST_BORDER,
+          STYLE_ELEMENTS[10]: ST_HIGHLIGHT,
+          STYLE_ELEMENTS[11]: ST_BTN_BG,
+          STYLE_ELEMENTS[12]: ST_BTN_BG_SEL,
+          STYLE_ELEMENTS[13]: ST_BTNY_BG,
+          STYLE_ELEMENTS[14]: ST_BTNY_BG_SEL,
+          STYLE_ELEMENTS[15]: ST_BTNN_BG,
+          STYLE_ELEMENTS[16]: ST_BTNN_BG_SEL,
+          STYLE_ELEMENTS[17]: ST_CHECK_BG_SEL,
+          STYLE_ELEMENTS[18]: ST_NOTE_BG,
+          STYLE_ELEMENTS[19]: ST_NOTE_BG_SEL,
+          STYLE_ELEMENTS[20]: ST_NOTE_FG,
+          STYLE_ELEMENTS[21]: ST_NOTE_FG_SEL,
+          STYLE_ELEMENTS[22]: ST_SCROLL_BG,
+          STYLE_ELEMENTS[23]: ST_SCROLL_BG_SEL,
+          STYLE_ELEMENTS[24]: ST_SCROLL_FG,
+          STYLE_ELEMENTS[25]: ST_SCROLL_FG_SEL}
 
 """ Другое """
 
@@ -1390,8 +1424,8 @@ class PopupMsgW(tk.Toplevel):
 
         self.lbl_msg = tk.Label(self, text=msg, bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.btn_ok = tk.Button(self, text=btn_text, command=self.ok, overrelief='groove',
-                                bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
 
         self.lbl_msg.grid(row=0, column=0, padx=6, pady=4)
         self.btn_ok.grid( row=1, column=0, padx=6, pady=4)
@@ -1436,24 +1470,24 @@ class PopupDialogueW(tk.Toplevel):
         self.val_right = val_right
 
         if st_left == 'std':
-            self.left_bg = ST_BTN[th]
-            self.left_activebackground = ST_BTN_SELECT[th]
+            self.left_bg = ST_BTN_BG[th]
+            self.left_activebackground = ST_BTN_BG_SEL[th]
         elif st_left == 'yes':
-            self.left_bg = ST_BTNY[th]
-            self.left_activebackground = ST_BTNY_SELECT[th]
+            self.left_bg = ST_BTNY_BG[th]
+            self.left_activebackground = ST_BTNY_BG_SEL[th]
         elif st_left == 'no':
-            self.left_bg = ST_BTNN[th]
-            self.left_activebackground = ST_BTNN_SELECT[th]
+            self.left_bg = ST_BTNN_BG[th]
+            self.left_activebackground = ST_BTNN_BG_SEL[th]
 
         if st_right == 'std':
-            self.right_bg = ST_BTN[th]
-            self.right_activebackground = ST_BTN_SELECT[th]
+            self.right_bg = ST_BTN_BG[th]
+            self.right_activebackground = ST_BTN_BG_SEL[th]
         elif st_right == 'yes':
-            self.right_bg = ST_BTNY[th]
-            self.right_activebackground = ST_BTNY_SELECT[th]
+            self.right_bg = ST_BTNY_BG[th]
+            self.right_activebackground = ST_BTNY_BG_SEL[th]
         elif st_right == 'no':
-            self.right_bg = ST_BTNN[th]
-            self.right_activebackground = ST_BTNN_SELECT[th]
+            self.right_bg = ST_BTNN_BG[th]
+            self.right_activebackground = ST_BTNN_BG_SEL[th]
 
         self.lbl_msg = tk.Label(self, text=msg, bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.btn_left = tk.Button(self, text=btn_left, command=self.left, overrelief='groove',
@@ -1507,8 +1541,8 @@ class PopupChooseW(tk.Toplevel):
         self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values, width=combo_width,
                                        font='TkFixedFont', state='readonly', style='.TCombobox')
         self.btn_ok = tk.Button(self, text=btn_text, command=self.ok, overrelief='groove',
-                                bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
-                                activebackground=ST_BTNY_SELECT[th], highlightbackground=ST_BORDER[th])
+                                bg=ST_BTNY_BG[th], fg=ST_FG_TEXT[th],
+                                activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
 
         self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
         self.combo_vals.grid(row=1, padx=6, pady=1)
@@ -1544,11 +1578,11 @@ class PopupEntryW(tk.Toplevel):
 
         self.lbl_msg = tk.Label(self, text=f'{msg}:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.entry_inp = tk.Entry(self, textvariable=self.var_text, width=30, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
-                                  highlightbackground=ST_BORDER[th], selectbackground=ST_SELECT[th],
-                                  highlightcolor=ST_HIGHLIGHT[th])
+                                  highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
+                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
         self.btn_ok = tk.Button(self, text=btn_text, command=self.ok, overrelief='groove',
-                                bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
-                                activebackground=ST_BTNY_SELECT[th], highlightbackground=ST_BORDER[th])
+                                bg=ST_BTNY_BG[th], fg=ST_FG_TEXT[th],
+                                activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
 
         self.lbl_msg.grid(  row=0, padx=6, pady=(6, 3))
         self.entry_inp.grid(row=1, padx=6, pady=(0, 6))
@@ -1590,17 +1624,19 @@ class EntrySpecialCombinationW(tk.Toplevel):
         self.lbl_1 = tk.Label(self.frame_main, text='#', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.entry_key = tk.Entry(self.frame_main, textvariable=self.var_key, width=2, justify='right',
                                   validate='key', vcmd=self.vcmd_key, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
-                                  highlightbackground=ST_BORDER[th], selectbackground=ST_SELECT[th],
+                                  highlightbackground=ST_BORDER[th], selectbackground=ST_SELECT_BG[th],
+                                  selectforeground=ST_SELECT_FG[th],
                                   highlightcolor=ST_HIGHLIGHT[th])
         self.lbl_2 = tk.Label(self.frame_main, text='->', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.entry_val = tk.Entry(self.frame_main, textvariable=self.var_val, width=2,
                                   validate='key', vcmd=self.vcmd_val, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
-                                  highlightbackground=ST_BORDER[th], selectbackground=ST_SELECT[th],
+                                  highlightbackground=ST_BORDER[th], selectbackground=ST_SELECT_BG[th],
+                                  selectforeground=ST_SELECT_FG[th],
                                   highlightcolor=ST_HIGHLIGHT[th])
         # }
         self.btn_ok = tk.Button(self, text='Подтвердить', command=self.ok, overrelief='groove',
-                                bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
-                                activebackground=ST_BTNY_SELECT[th], highlightbackground=ST_BORDER[th])
+                                bg=ST_BTNY_BG[th], fg=ST_FG_TEXT[th],
+                                activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
 
         self.lbl_msg.grid(   row=0, padx=6, pady=(6, 3))
         self.frame_main.grid(row=1, padx=6, pady=0)
@@ -1644,17 +1680,18 @@ class CheckUpdatesW(tk.Toplevel):
         self.entry_url = tk.Entry(self.frame_url, textvariable=self.var_url, state='readonly', width=40,
                                   relief='solid', justify='center', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                   highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
-                                  selectbackground=ST_SELECT[th], readonlybackground=ST_BG_FIELDS[th])
+                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                  readonlybackground=ST_BG_FIELDS[th])
         self.btn_open = tk.Button(self.frame_url, text='Открыть ссылку', command=self.open_github, overrelief='groove',
-                                  bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                  activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                  bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                  activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         # }
         self.btn_update = tk.Button(self, text='Обновить', command=self.download_and_install, overrelief='groove',
-                                    bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
-                                    activebackground=ST_BTNY_SELECT[th], highlightbackground=ST_BORDER[th])
+                                    bg=ST_BTNY_BG[th], fg=ST_FG_TEXT[th],
+                                    activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_close = tk.Button(self, text='Закрыть', command=self.destroy, overrelief='groove',
-                                   bg=ST_BTNN[th], fg=ST_FG_TEXT[th],
-                                   activebackground=ST_BTNN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                   bg=ST_BTNN_BG[th], fg=ST_FG_TEXT[th],
+                                   activebackground=ST_BTNN_BG_SEL[th], highlightbackground=ST_BORDER[th])
 
         self.lbl_msg.grid(  row=1, columnspan=2, padx=6, pady=(4, 0))
         self.frame_url.grid(row=2, columnspan=2, padx=6, pady=(0, 4))
@@ -1752,15 +1789,17 @@ class ChooseNoteW(tk.Toplevel):
         self.entry_input = tk.Entry(self.frame_main, textvariable=self.var_input, width=5,
                                     validate='key', vcmd=self.vcmd_max, relief='solid',
                                     bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                    highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT[th])
+                                    highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT_BG[th],
+                                    selectforeground=ST_SELECT_FG[th])
         self.btn_choose = tk.Button(self.frame_main, text='Выбор', command=self.choose, overrelief='groove',
-                                    bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                    highlightbackground=ST_BORDER[th], activebackground=ST_BTN_SELECT[th])
+                                    bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                    highlightbackground=ST_BORDER[th], activebackground=ST_BTN_BG_SEL[th])
         # }
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_words = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
                                   bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                  selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
+                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                  relief=ST_RELIEF[th])
 
         self.frame_main.grid(row=0, columnspan=2, padx=6, pady=6)
         # {
@@ -1820,11 +1859,11 @@ class EnterDctNameW(tk.Toplevel):
 
         self.lbl_msg = tk.Label(self, text='Введите название словаря', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.entry_name = tk.Entry(self, textvariable=self.var_name, width=30, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
-                                   highlightbackground=ST_BORDER[th], selectbackground=ST_SELECT[th],
-                                   highlightcolor=ST_HIGHLIGHT[th])
+                                   highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
+                                   selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
         self.btn_ok = tk.Button(self, text='Подтвердить', command=self.check_and_return, overrelief='groove',
-                                bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
-                                activebackground=ST_BTNY_SELECT[th], highlightbackground=ST_BORDER[th])
+                                bg=ST_BTNY_BG[th], fg=ST_FG_TEXT[th],
+                                activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
 
         self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
         self.entry_name.grid(row=1, padx=6, pady=1)
@@ -1867,11 +1906,11 @@ class EnterFormParameterNameW(tk.Toplevel):
         self.lbl_msg = tk.Label(self, text='Введите название нового параметра', width=30,
                                 bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.entry_name = tk.Entry(self, textvariable=self.var_name, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
-                                   highlightbackground=ST_BORDER[th], selectbackground=ST_SELECT[th],
-                                   highlightcolor=ST_HIGHLIGHT[th])
+                                   highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
+                                   selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
         self.btn_ok = tk.Button(self, text='Подтвердить', command=self.check_and_return, overrelief='groove',
-                                bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
-                                activebackground=ST_BTNY_SELECT[th], highlightbackground=ST_BORDER[th])
+                                bg=ST_BTNY_BG[th], fg=ST_FG_TEXT[th],
+                                activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
 
         self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
         self.entry_name.grid(row=1, padx=6, pady=1)
@@ -1916,14 +1955,14 @@ class ChooseFormParValW(tk.Toplevel):
         self.combo = ttk.Combobox(self, textvariable=self.var_par, values=self.vals, width=combo_width,
                                   font='TkFixedFont', state='readonly', style='.TCombobox')
         self.btn_choose = tk.Button(self, text='Задать', command=self.choose, overrelief='groove',
-                                    bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                    bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                    activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_none = tk.Button(self, text='Не указывать/неприменимо', command=self.set_none, overrelief='groove',
-                                  bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                  activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                  bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                  activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_new = tk.Button(self, text='Добавить вариант', command=self.new_val, overrelief='groove',
-                                 bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                 activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                 bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                 activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
 
         self.lbl_choose.grid(row=0, column=0,     padx=(6, 1), pady=(6, 3))
         self.combo.grid(     row=0, column=1,     padx=(0, 3), pady=(6, 3))
@@ -1989,11 +2028,11 @@ class CreateFormTemplateW(tk.Toplevel):
         self.combo = ttk.Combobox(self, textvariable=self.var_par, values=self.parameters, width=combo_width,
                                   font='TkFixedFont', state='readonly', style='.TCombobox')
         self.btn_choose = tk.Button(self, text='Задать значение', command=self.choose, overrelief='groove',
-                                    bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                    bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                    activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_done = tk.Button(self, text='Закончить с шаблоном и ввести форму слова', command=self.done,
-                                  state='disabled', overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                  activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                  state='disabled', overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                  activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
 
         self.lbl_template.grid(row=0, columnspan=3, padx=6,      pady=(6, 1))
         self.lbl_choose.grid(  row=1, column=0,     padx=(6, 1), pady=(6, 1))
@@ -2070,12 +2109,14 @@ class ParticularMatchesW(tk.Toplevel):
         self.scrollbar_wrd = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
                                 bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
+                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                relief=ST_RELIEF[th])
         self.lbl_tr = tk.Label(self, text=f'Переводы, содержащие "{wrd}"', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar_tr = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
                                bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                               selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
+                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                               relief=ST_RELIEF[th])
 
         self.lbl_header.grid(   row=0, column=0, columnspan=4, padx=6,      pady=(6, 3))
         self.lbl_wrd.grid(      row=1, column=0, columnspan=2, padx=(6, 3), pady=(0, 3))
@@ -2126,21 +2167,22 @@ class FormsSettingsW(tk.Toplevel):
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
                                      bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                     selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
+                                     selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                     relief=ST_RELIEF[th])
         self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
         # {
         self.btn_add = tk.Button(self.frame_buttons, text='Добавить параметр форм', command=self.add,
-                                 overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                 activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                 overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                 activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_rename = tk.Button(self.frame_buttons, text='Переименовать параметр форм', command=self.rename,
-                                    overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                    overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                    activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_delete = tk.Button(self.frame_buttons, text='Удалить параметр форм', command=self.delete,
-                                    overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                    overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                    activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_values = tk.Button(self.frame_buttons, text='Изменить значения параметра форм', command=self.values,
-                                    overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                    overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                    activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         # }
 
         self.lbl_form_par.grid( row=0,            column=0, padx=(6, 0), pady=(6, 0))
@@ -2228,18 +2270,19 @@ class FormsParameterSettingsW(tk.Toplevel):
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_par_val = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
                                     bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                    selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
+                                    selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                    relief=ST_RELIEF[th])
         self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
         # {
         self.btn_add = tk.Button(self.frame_buttons, text='Добавить значение параметра', command=self.add,
-                                 overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                 activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                 overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                 activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_rename = tk.Button(self.frame_buttons, text='Переименовать значение параметра', command=self.rename,
-                                    overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                    overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                    activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_delete = tk.Button(self.frame_buttons, text='Удалить значение параметра', command=self.delete,
-                                    overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                    overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                    activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         # }
 
         self.lbl_par_val.grid(  row=0,            column=0, padx=(6, 0), pady=(6, 0))
@@ -2313,15 +2356,16 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
                                      bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                     selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
+                                     selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                     relief=ST_RELIEF[th])
         self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
         # {
         self.btn_add = tk.Button(self.frame_buttons, text='Добавить комбинацию', command=self.add,
-                                 overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                 activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                 overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                 activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_delete = tk.Button(self.frame_buttons, text='Удалить комбинацию', command=self.delete,
-                                    overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                    overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                    activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         # }
 
         self.lbl_form_par.grid( row=0,            column=0, padx=(6, 0), pady=(6, 0))
@@ -2411,8 +2455,8 @@ class ChooseLearnModeW(tk.Toplevel):
                                         width=30, state='readonly', style='.TCombobox')
         # }
         self.btn_start = tk.Button(self, text='Учить', command=self.start, overrelief='groove',
-                                   bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                   highlightbackground=ST_BORDER[th], activebackground=ST_BTN_SELECT[th])
+                                   bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                   highlightbackground=ST_BORDER[th], activebackground=ST_BTN_BG_SEL[th])
 
         self.lbl_header.grid(row=0, column=0, padx=6, pady=(6, 3))
         self.frame_main.grid(row=1, column=0, padx=6, pady=(0, 3))
@@ -2468,15 +2512,16 @@ class PrintW(tk.Toplevel):
         self.check_fav   = ttk.Checkbutton(self.frame_main, variable=self.var_fav,   style='.TCheckbutton')
         self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='.TCheckbutton')
         self.btn_print   = tk.Button(self.frame_main, text='Печать', command=self.print, overrelief='groove',
-                                     bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                     highlightbackground=ST_BORDER[th], activebackground=ST_BTN_SELECT[th])
+                                     bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                     highlightbackground=ST_BORDER[th], activebackground=ST_BTN_BG_SEL[th])
         # }
         self.scrollbar_x = ttk.Scrollbar(self, style='Horizontal.TScrollbar')
         self.scrollbar_y = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_dct    = tk.Text(self, width=70, height=30, state='disabled', wrap='none',
                                    xscrollcommand=self.scrollbar_x.set, yscrollcommand=self.scrollbar_y.set,
                                    bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                   selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
+                                   selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                   relief=ST_RELIEF[th])
         self.lbl_info  = tk.Label(self, textvariable=self.var_info, bg=ST_BG[th], fg=ST_FG_TEXT[th])
 
         self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
@@ -2540,21 +2585,24 @@ class SearchW(tk.Toplevel):
         self.lbl_input = tk.Label(self.frame_main, text='Введите запрос:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.entry_input = tk.Entry(self.frame_main, textvariable=self.var_wrd, width=60, relief='solid',
                                     bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                    highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT[th])
+                                    highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT_BG[th],
+                                    selectforeground=ST_SELECT_FG[th])
         self.btn_search = tk.Button(self.frame_main, text='Поиск', command=self.search, overrelief='groove',
-                                    bg=ST_BTN[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                    activebackground=ST_BTN_SELECT[th])
+                                    bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
+                                    activebackground=ST_BTN_BG_SEL[th])
         # }
         self.lbl_wrd = tk.Label(self, text='Поиск по слову', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar_wrd = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
                                 bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
+                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                relief=ST_RELIEF[th])
         self.lbl_tr = tk.Label(self, text='Поиск по переводу', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar_tr = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
                                bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                               selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
+                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                               relief=ST_RELIEF[th])
 
         self.frame_main.grid(row=0, columnspan=4, padx=6, pady=(6, 4))
         # {
@@ -2650,76 +2698,76 @@ class EditW(tk.Toplevel):
         self.txt_wrd = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_wrd.set,
                                relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
-                               selectbackground=ST_SELECT[th])
+                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
         self.btn_wrd_edt = tk.Button(self.frame_main, text='изм.', command=self.wrd_edt, overrelief='groove',
-                                     bg=ST_BTN[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                     activebackground=ST_BTN_SELECT[th])
+                                     bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
+                                     activebackground=ST_BTN_BG_SEL[th])
         #
         self.lbl_tr = tk.Label(self.frame_main, text='Перевод:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar_tr = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_tr = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_tr.set,
                               relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                               highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
-                              selectbackground=ST_SELECT[th])
+                              selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
         self.scrollbar_tr.config(command=self.txt_tr.yview)
         self.frame_btns_tr = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                       relief=ST_RELIEF[th])
         # { {
         self.btn_tr_add = tk.Button(self.frame_btns_tr, text='+', command=self.tr_add, overrelief='groove',
-                                    bg=ST_BTN[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                    activebackground=ST_BTN_SELECT[th])
+                                    bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
+                                    activebackground=ST_BTN_BG_SEL[th])
         self.btn_tr_del = tk.Button(self.frame_btns_tr, text='-', command=self.tr_del, overrelief='groove',
-                                    bg=ST_BTN[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                    activebackground=ST_BTN_SELECT[th])
+                                    bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
+                                    activebackground=ST_BTN_BG_SEL[th])
         # } }
         self.lbl_notes = tk.Label(self.frame_main, text='Сноски:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar_notes = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_notes = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_notes.set,
                                  relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                  highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
-                                 selectbackground=ST_SELECT[th])
+                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
         self.scrollbar_notes.config(command=self.txt_notes.yview)
         self.frame_btns_notes = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                          relief=ST_RELIEF[th])
         # { {
         self.btn_notes_add = tk.Button(self.frame_btns_notes, text='+', command=self.notes_add, overrelief='groove',
-                                       bg=ST_BTN[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                       activebackground=ST_BTN_SELECT[th])
+                                       bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
+                                       activebackground=ST_BTN_BG_SEL[th])
         self.btn_notes_del = tk.Button(self.frame_btns_notes, text='-', command=self.notes_del, overrelief='groove',
-                                       bg=ST_BTN[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                       activebackground=ST_BTN_SELECT[th])
+                                       bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
+                                       activebackground=ST_BTN_BG_SEL[th])
         # } }
         self.lbl_frm = tk.Label(self.frame_main, text='Формы слова:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.scrollbar_frm = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_frm = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_frm.set,
                                relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
-                               selectbackground=ST_SELECT[th])
+                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
         self.scrollbar_frm.config(command=self.txt_frm.yview)
         self.frame_btns_frm = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                        relief=ST_RELIEF[th])
         # { {
         self.btn_frm_add = tk.Button(self.frame_btns_frm, text='+', command=self.frm_add, overrelief='groove',
-                                     bg=ST_BTN[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                     activebackground=ST_BTN_SELECT[th])
+                                     bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
+                                     activebackground=ST_BTN_BG_SEL[th])
         self.btn_frm_del = tk.Button(self.frame_btns_frm, text='-', command=self.frm_del, overrelief='groove',
-                                     bg=ST_BTN[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                     activebackground=ST_BTN_SELECT[th])
+                                     bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
+                                     activebackground=ST_BTN_BG_SEL[th])
         self.btn_frm_edt = tk.Button(self.frame_btns_frm, text='изм.', command=self.frm_edt, overrelief='groove',
-                                     bg=ST_BTN[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                     activebackground=ST_BTN_SELECT[th])
+                                     bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
+                                     activebackground=ST_BTN_BG_SEL[th])
         # } }
         self.lbl_fav = tk.Label(self.frame_main, text='Избранное:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=self.set_fav,
                                          style='.TCheckbutton')
         # }
-        self.btn_back = tk.Button(self, text='Закончить', command=self.back, overrelief='groove', bg=ST_BTN[th],
+        self.btn_back = tk.Button(self, text='Закончить', command=self.back, overrelief='groove', bg=ST_BTN_BG[th],
                                   fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                  activebackground=ST_BTN_SELECT[th])
+                                  activebackground=ST_BTN_BG_SEL[th])
         self.btn_delete = tk.Button(self, text='Удалить статью', command=self.delete, overrelief='groove',
-                                    bg=ST_BTNN[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                    activebackground=ST_BTNN_SELECT[th])
+                                    bg=ST_BTNN_BG[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
+                                    activebackground=ST_BTNN_BG_SEL[th])
         #
         self.frame_main.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
         # {
@@ -2985,16 +3033,18 @@ class AddW(tk.Toplevel):
         self.lbl_wrd   = tk.Label( self, text='Введите слово:',   bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.entry_wrd = tk.Entry( self, textvariable=self.var_wrd, width=60, relief='solid', bg=ST_BG_FIELDS[th],
                                    fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                   highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT[th])
+                                   highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT_BG[th],
+                                   selectforeground=ST_SELECT_FG[th])
         self.lbl_tr    = tk.Label( self, text='Введите перевод:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.entry_tr  = tk.Entry( self, textvariable=self.var_tr,  width=60, relief='solid', bg=ST_BG_FIELDS[th],
                                    fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                   highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT[th])
+                                   highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT_BG[th],
+                                   selectforeground=ST_SELECT_FG[th])
         self.lbl_fav   = tk.Label( self, text='Избранное:',       bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.check_fav = ttk.Checkbutton(self, variable=self.var_fav, style='.TCheckbutton')
-        self.btn_add   = tk.Button(self, text='Добавить', command=self.add, overrelief='groove', bg=ST_BTN[th],
+        self.btn_add   = tk.Button(self, text='Добавить', command=self.add, overrelief='groove', bg=ST_BTN_BG[th],
                                    fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                   activebackground=ST_BTN_SELECT[th])
+                                   activebackground=ST_BTN_BG_SEL[th])
 
         self.lbl_wrd.grid(  row=0, column=0,     padx=(6, 1), pady=(6, 3), sticky='E')
         self.entry_wrd.grid(row=0, column=1,     padx=(0, 6), pady=(6, 3), sticky='W')
@@ -3057,23 +3107,25 @@ class LearnW(tk.Toplevel):
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
                                 bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                selectbackground=ST_SELECT[th], relief=ST_RELIEF[th])
+                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                relief=ST_RELIEF[th])
         self.scrollbar.config(command=self.text_dct.yview)
         self.frame_main = tk.Frame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
         # { {
         self.btn_input = tk.Button(self.frame_main, text='Ввод', command=self.input, overrelief='groove',
-                                   bg=ST_BTN[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                   activebackground=ST_BTN_SELECT[th])
+                                   bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
+                                   activebackground=ST_BTN_BG_SEL[th])
         self.entry_input = tk.Entry(self.frame_main, textvariable=self.var_input, width=50, relief='solid',
                                     bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                    highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT[th])
+                                    highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT_BG[th],
+                                    selectforeground=ST_SELECT_FG[th])
         self.btn_notes = tk.Button(self.frame_main, text='Посмотреть сноски', command=self.show_notes,
-                                   overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                   highlightbackground=ST_BORDER[th], activebackground=ST_BTN_SELECT[th])
+                                   overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                   highlightbackground=ST_BORDER[th], activebackground=ST_BTN_BG_SEL[th])
         # } }
         self.btn_stop = tk.Button(self, text='Закончить', command=self.stop, overrelief='groove',
-                                  bg=ST_BTNN[th], fg=ST_FG_TEXT[th],
-                                  highlightbackground=ST_BORDER[th], activebackground=ST_BTNN_SELECT[th])
+                                  bg=ST_BTNN_BG[th], fg=ST_FG_TEXT[th],
+                                  highlightbackground=ST_BORDER[th], activebackground=ST_BTNN_BG_SEL[th])
 
         self.lbl_global_rating.grid(row=0, columnspan=2, padx=6,      pady=6)
         self.text_dct.grid(         row=1, column=0,     padx=(6, 0), pady=6, sticky='NSEW')
@@ -3500,19 +3552,19 @@ class SettingsW(tk.Toplevel):
         self.entry_mgsp = tk.Entry(self.frame_mgsp, textvariable=self.var_mgsp, width=5, relief='solid',
                                    validate='key', vcmd=self.vcmd, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                    highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
-                                   selectbackground=ST_SELECT[th])
+                                   selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
         self.lbl_mgsp_2 = tk.Label(self.frame_mgsp, text='Статьи, у которых процент угадывания ниже этого значения,'
                                                          'будут считаться более сложными',
                                    bg=ST_BG[th], fg=ST_FG_TEXT[th])
         # } }
         self.btn_forms = tk.Button(self.tab_local, text='Настройки словоформ', command=self.forms,
-                                   overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                   activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                   overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                   activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         #
         self.btn_special_combinations = tk.Button(self.tab_local, text='Специальные комбинации',
                                                   command=self.special_combinations, overrelief='groove',
-                                                  bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                                  activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                                  bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                                  activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.lbl_save_warn = tk.Label(self.tab_local,
                                       text='При сохранении настроек словаря, сохраняется и сам словарь!',
                                       bg=ST_BG[th], fg=ST_FG_WARN[th])
@@ -3536,22 +3588,23 @@ class SettingsW(tk.Toplevel):
         self.scrollbar = ttk.Scrollbar(self.frame_dcts, style='Vertical.TScrollbar')
         self.text_dcts = tk.Text(self.frame_dcts, width=27, height=10, state='disabled', relief=ST_RELIEF[th],
                                  yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
-                                 selectbackground=ST_SELECT[th], highlightbackground=ST_BORDER[th])
+                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                 highlightbackground=ST_BORDER[th])
         self.frame_dct_buttons = tk.LabelFrame(self.frame_dcts, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                                relief=ST_RELIEF[th])
         # { { {
         self.btn_dct_open = tk.Button(self.frame_dct_buttons, text='Открыть словарь', command=self.dct_open,
-                                      overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                      activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                      overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                      activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_dct_create = tk.Button(self.frame_dct_buttons, text='Создать словарь', command=self.dct_create,
-                                        overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                        activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                        overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                        activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_dct_rename = tk.Button(self.frame_dct_buttons, text='Переименовать словарь', command=self.dct_rename,
-                                        overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                        activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                        overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                        activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_dct_delete = tk.Button(self.frame_dct_buttons, text='Удалить словарь', command=self.dct_delete,
-                                        overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                        activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                        overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                        activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         # } } }
         self.lbl_dcts_warn = tk.Label(self.frame_dcts, text='Настройки словарей сохраняются сразу!',
                                       bg=ST_BG[th], fg=ST_FG_WARN[th])
@@ -3562,16 +3615,17 @@ class SettingsW(tk.Toplevel):
         self.lbl_themes = tk.Label(self.frame_themes, text='Тема:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
                                          state='readonly', style='.TCombobox')
-        self.lbl_themes_note = tk.Label(self.frame_themes, text=f'Актуальные темы можно скачать здесь:\n'
+        self.lbl_themes_note = tk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
+                                                                f'Актуальные темы можно скачать здесь:\n'
                                                                 f'{URL_RELEASES}',
-                                        bg=ST_BG[th], fg=ST_FG_TEXT[th])
+                                        justify='left', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         # } }
         # }
         self.btn_save = tk.Button(self, text='Сохранить изменения', command=self.save, overrelief='groove',
-                                  bg=ST_BTNY[th], fg=ST_FG_TEXT[th], activebackground=ST_BTNY_SELECT[th],
+                                  bg=ST_BTNY_BG[th], fg=ST_FG_TEXT[th], activebackground=ST_BTNY_BG_SEL[th],
                                   highlightbackground=ST_BORDER[th])
         self.btn_close = tk.Button(self, text='Закрыть настройки', command=self.close, overrelief='groove',
-                                   bg=ST_BTNN[th], fg=ST_FG_TEXT[th], activebackground=ST_BTNN_SELECT[th],
+                                   bg=ST_BTNN_BG[th], fg=ST_FG_TEXT[th], activebackground=ST_BTNN_BG_SEL[th],
                                    highlightbackground=ST_BORDER[th])
 
         self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 0))
@@ -3898,35 +3952,36 @@ class MainW(tk.Tk):
                                     bg=ST_BG[th], fg=ST_FG_LOGO[th])
         # }
         self.btn_print = tk.Button(self, text='Напечатать словарь', font='StdFont 12', command=self.print,
-                                   overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                   activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                   overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                   activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_learn = tk.Button(self, text='Учить слова', font='StdFont 12', command=self.learn,
-                                   overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                   activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                   overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                   activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.frame_word = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
         # {
         self.entry_word = tk.Entry(self.frame_word, textvariable=self.var_word, width=30, relief='solid',
                                    bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                   highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT[th])
-        self.btn_search = tk.Button(self.frame_word, text='Найти статью', font='StdFont 12', command=self.search,
-                                    overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
-        self.btn_edit = tk.Button(self.frame_word, text='Изменить статью', font='StdFont 12', command=self.edit,
-                                  overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                  activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                   highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT_BG[th],
+                                   selectforeground=ST_SELECT_FG[th])
+        self.btn_search = tk.Button(self.frame_word, text='Найти статью', command=self.search, font='StdFont 12',
+                                    overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                    activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+        self.btn_edit = tk.Button(self.frame_word, text='Изменить статью', command=self.edit, font='StdFont 12',
+                                  overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                  activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_add = tk.Button(self.frame_word, text='Добавить статью', font='StdFont 12', command=self.add,
-                                 overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                 activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                 overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                 activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         # }
         self.btn_settings = tk.Button(self, text='Настройки', font='StdFont 12', command=self.settings,
-                                      overrelief='groove', bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                      activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                      overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                      activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_save = tk.Button(self, text='Сохранить словарь', font='StdFont 12', command=self.save,
-                                  overrelief='groove', bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
-                                  activebackground=ST_BTNY_SELECT[th], highlightbackground=ST_BORDER[th])
+                                  overrelief='groove', bg=ST_BTNY_BG[th], fg=ST_FG_TEXT[th],
+                                  activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.btn_close = tk.Button(self, text='Закрыть программу', font='StdFont 12', command=self.close,
-                                   overrelief='groove', bg=ST_BTNN[th], fg=ST_FG_TEXT[th],
-                                   activebackground=ST_BTNN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                   overrelief='groove', bg=ST_BTNN_BG[th], fg=ST_FG_TEXT[th],
+                                   activebackground=ST_BTNN_BG_SEL[th], highlightbackground=ST_BORDER[th])
 
         self.lbl_footer = tk.Label(self, text=f'{PROGRAM_VERSION}\n'
                                               f'{PROGRAM_DATE}  -  {PROGRAM_TIME}',
@@ -4009,27 +4064,28 @@ class MainW(tk.Tk):
         self.lbl_header1.configure(bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.lbl_header2.configure(bg=ST_BG[th], fg=ST_FG_LOGO[th])
         # }
-        self.btn_print.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                 activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
-        self.btn_learn.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                 activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+        self.btn_print.configure(bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                 activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+        self.btn_learn.configure(bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                 activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.frame_word.configure(bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
         # {
         self.entry_word.configure(bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th], highlightbackground=ST_BORDER[th],
-                                  highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT[th])
-        self.btn_search.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                  activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
-        self.btn_edit.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
-        self.btn_add.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                               activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
+                                  highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT_BG[th],
+                                  selectforeground=ST_SELECT_FG[th])
+        self.btn_search.configure(bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                  activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+        self.btn_edit.configure(bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+        self.btn_add.configure(bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                               activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         # }
-        self.btn_settings.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                    activebackground=ST_BTN_SELECT[th], highlightbackground=ST_BORDER[th])
-        self.btn_save.configure(bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
-                                activebackground=ST_BTNY_SELECT[th], highlightbackground=ST_BORDER[th])
-        self.btn_close.configure(bg=ST_BTNN[th], fg=ST_FG_TEXT[th],
-                                 activebackground=ST_BTNN_SELECT[th], highlightbackground=ST_BORDER[th])
+        self.btn_settings.configure(bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                    activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+        self.btn_save.configure(bg=ST_BTNY_BG[th], fg=ST_FG_TEXT[th],
+                                activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
+        self.btn_close.configure(bg=ST_BTNN_BG[th], fg=ST_FG_TEXT[th],
+                                 activebackground=ST_BTNN_BG_SEL[th], highlightbackground=ST_BORDER[th])
 
         self.lbl_footer.configure(bg=ST_BG[th], fg=ST_FG_FOOTER[th])
 
@@ -4039,18 +4095,19 @@ class MainW(tk.Tk):
             _0_global_window_last_version.entry_url.configure(bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                                               highlightbackground=ST_BORDER[th],
                                                               highlightcolor=ST_HIGHLIGHT[th],
-                                                              selectbackground=ST_SELECT[th],
+                                                              selectbackground=ST_SELECT_BG[th],
+                                                              selectforeground=ST_SELECT_FG[th],
                                                               readonlybackground=ST_BG_FIELDS[th])
             _0_global_window_last_version.frame_url.configure(bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                                               relief=ST_RELIEF[th])
-            _0_global_window_last_version.btn_open.configure(bg=ST_BTN[th], fg=ST_FG_TEXT[th],
-                                                             activebackground=ST_BTN_SELECT[th],
+            _0_global_window_last_version.btn_open.configure(bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                                             activebackground=ST_BTN_BG_SEL[th],
                                                              highlightbackground=ST_BORDER[th])
-            _0_global_window_last_version.btn_update.configure(bg=ST_BTNY[th], fg=ST_FG_TEXT[th],
-                                                               activebackground=ST_BTNY_SELECT[th],
+            _0_global_window_last_version.btn_update.configure(bg=ST_BTNY_BG[th], fg=ST_FG_TEXT[th],
+                                                               activebackground=ST_BTNY_BG_SEL[th],
                                                                highlightbackground=ST_BORDER[th])
-            _0_global_window_last_version.btn_close.configure(bg=ST_BTNN[th], fg=ST_FG_TEXT[th],
-                                                              activebackground=ST_BTNN_SELECT[th],
+            _0_global_window_last_version.btn_close.configure(bg=ST_BTNN_BG[th], fg=ST_FG_TEXT[th],
+                                                              activebackground=ST_BTNN_BG_SEL[th],
                                                               highlightbackground=ST_BORDER[th])
         except:  # Если окно обновления не открыто
             pass
@@ -4059,31 +4116,53 @@ class MainW(tk.Tk):
 
     # Установка ttk-стилей
     def set_styles(self):
+        """# Стиль для обычной button
+        self.st_btn = ttk.Style()
+        self.st_btn.theme_use('alt')
+        self.st_btn.configure('Default.TButton',
+                              font=('StdFont', 12),
+                              relief='groove',
+                              background=ST_BTN_BG[th],
+                              foreground=ST_FG_TEXT[th],
+                              highlightbackground=ST_BG[th])
+        self.st_btn.map('Default.TButton',
+                        relief=[('pressed', 'sunken'),
+                                ('!active', 'raised')],
+                        background=[('pressed', ST_BTN_BG_SEL[th]),
+                                    ('active', '!focus', ST_BTN_BG[th])],
+                        foreground=[('pressed', ST_BTN_FG_SEL[th]),
+                                    ('active', ST_BTN_FG[th])],
+                        highlightcolor=[('pressed', 'green'),
+                                        ('active', 'red')],
+                        highlightbackground=[('pressed', ST_BORDER[th]),
+                                             ('active', ST_BORDER[th])])"""
+
         # Стиль для checkbutton
         self.st_check = ttk.Style()
         self.st_check.theme_use('alt')
-        self.st_check.configure(style='.TCheckbutton',
+        self.st_check.configure('.TCheckbutton',
                                 background=ST_BG[th])
         self.st_check.map('.TCheckbutton',
-                          background=[('active', ST_SELECT[th])])
+                          background=[('active', ST_CHECK_BG_SEL[th])])
 
         # Стиль для combobox
         self.st_combo = ttk.Style()
         self.st_combo.theme_use('alt')
-        self.st_combo.configure(style='.TCombobox',
-                                background=ST_BTN[th],
+        self.st_combo.configure('.TCombobox',
+                                background=ST_BTN_BG[th],
                                 fieldbackground=ST_BG_FIELDS[th],
                                 selectbackground=ST_BG_FIELDS[th],
-                                highlightbackground=ST_HIGHLIGHT[th],
+                                highlightbackground=ST_BORDER[th],
                                 foreground=ST_FG_TEXT[th],
                                 selectforeground=ST_FG_TEXT[th])
         self.st_combo.map('.TCombobox',
-                          background=[('readonly', ST_BTN[th])],
+                          background=[('readonly', ST_BTN_BG[th])],
                           fieldbackground=[('readonly', ST_BG_FIELDS[th])],
                           selectbackground=[('readonly', ST_BG_FIELDS[th])],
-                          highlightbackground=[('readonly', ST_HIGHLIGHT[th])],
+                          highlightbackground=[('readonly', ST_BORDER[th])],
                           foreground=[('readonly', ST_FG_TEXT[th])],
                           selectforeground=[('readonly', ST_FG_TEXT[th])])
+
         # Стиль всплывающего списка для combobox
         self.option_add('*TCombobox*Listbox*Background', ST_BG_FIELDS[th])
         self.option_add('*TCombobox*Listbox*Foreground', ST_FG_TEXT[th])
@@ -4091,43 +4170,48 @@ class MainW(tk.Tk):
         # Стиль для vertical scrollbar
         self.st_vscroll = ttk.Style()
         self.st_vscroll.theme_use('alt')
-        self.st_vscroll.configure(style='Vertical.TScrollbar',
-                                  troughcolor=ST_BG[th],
-                                  background=ST_BTN[th])
+        self.st_vscroll.configure('Vertical.TScrollbar',
+                                  troughcolor=ST_SCROLL_BG[th],
+                                  background=ST_SCROLL_FG[th])
         self.st_vscroll.map('Vertical.TScrollbar',
-                            troughcolor=[('active', ST_BG[th])],
-                            background=[('active', ST_BTN_SELECT[th])])
+                            troughcolor=[('disabled', ST_BG[th]),
+                                         ('pressed', ST_SCROLL_BG_SEL[th])],
+                            background=[('disabled', ST_BG[th]),
+                                        ('pressed', ST_SCROLL_FG_SEL[th])])
 
         # Стиль для horizontal scrollbar
         self.st_hscroll = ttk.Style()
         self.st_hscroll.theme_use('alt')
-        self.st_hscroll.configure(style='Horizontal.TScrollbar',
-                                  troughcolor=ST_BG[th],
-                                  background=ST_BTN[th])
+        self.st_hscroll.configure('Horizontal.TScrollbar',
+                                  troughcolor=ST_SCROLL_BG[th],
+                                  background=ST_SCROLL_FG[th])
         self.st_hscroll.map('Horizontal.TScrollbar',
-                            troughcolor=[('active', ST_BG[th])],
-                            background=[('active', ST_BTN_SELECT[th])])
+                            troughcolor=[('disabled', ST_BG[th]),
+                                         ('pressed', ST_SCROLL_BG_SEL[th])],
+                            background=[('disabled', ST_BG[th]),
+                                        ('pressed', ST_SCROLL_FG_SEL[th])])
 
         # Стиль для notebook
         self.st_note = ttk.Style()
         self.st_note.theme_use('alt')
-        self.st_note.configure(style='.TNotebook',
+        self.st_note.configure('.TNotebook',
                                troughcolor=ST_BG[th],
-                               background=ST_BG[th],
-                               highlightbackground=ST_BORDER[th],
-                               foreground=ST_FG_TEXT[th])
-        self.st_hscroll.map('.TNotebook',
-                            troughcolor=[('active', ST_BG[th])],
-                            background=[('selected', ST_BTN_SELECT[th])],
-                            highlightbackground=[('active', ST_BTN_SELECT[th])],
-                            foreground=[('active', ST_BTN_SELECT[th])])
+                               background=ST_BG[th])#,
+                               #highlightbackground=ST_BORDER[th],
+                               #foreground=ST_FG_TEXT[th])
+        self.st_note.map('.TNotebook',
+                         troughcolor=[('active', ST_BG[th])],
+                         background=[('selected', ST_BTN_BG_SEL[th])])#,
+                         #highlightbackground=[('active', ST_BTN_BG_SEL[th])],
+                         #foreground=[('active', ST_BTN_BG_SEL[th])])
+
         # Стиль для вкладок notebook
         self.st_note.configure('TNotebook.Tab',
-                               background=ST_BTN[th],
-                               foreground=ST_FG_TEXT[th])
+                               background=ST_NOTE_BG[th],
+                               foreground=ST_NOTE_FG[th])
         self.st_note.map('TNotebook.Tab',
-                         background=[('selected', ST_BTN_SELECT[th])],
-                         foreground=[('selected', ST_FG_TEXT[th])])
+                         background=[('selected', ST_NOTE_BG_SEL[th])],
+                         foreground=[('selected', ST_NOTE_FG_SEL[th])])
 
     # Сохранить словарь
     def save(self):
@@ -4175,4 +4259,4 @@ root.mainloop()
 # при смене табов, менять размеры
 # при закрытии окна возвращать фокус предыдущему окну (проблема: при закрытии всплывающих окон, MainW получает фокус)
 
-# добавить больше цветов (scroll, tabs, frame_bg)
+# может быть добавить кнопку 'опечатка'
