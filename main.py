@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-124'
+PROGRAM_VERSION = 'v7.0.0_PRE-125'
 PROGRAM_DATE = '23.1.2023'
-PROGRAM_TIME = '18:21 (UTC+3)'
+PROGRAM_TIME = '18:34 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -3446,6 +3446,7 @@ class LearnW(tk.Toplevel):
     def stop(self):
         self.frame_main.grid_remove()
         self.btn_stop.grid_remove()
+        self.btn_input['state'] = 'disabled'
 
         if len(self.used_words) == _0_global_dct.count_w:
             PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
@@ -4529,5 +4530,3 @@ root.mainloop()
 # при наведении на Text (PrintW) выводить подсказку
 # при смене табов, менять размеры
 # при закрытии окна возвращать фокус предыдущему окну (проблема: при закрытии всплывающих окон, MainW получает фокус)
-
-# баг: когда кнопка пропадает с окна, она всё равно нажимается энтером
