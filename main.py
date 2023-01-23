@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-120'
+PROGRAM_VERSION = 'v7.0.0_PRE-121'
 PROGRAM_DATE = '23.1.2023'
-PROGRAM_TIME = '14:37 (UTC+3)'
+PROGRAM_TIME = '14:48 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -206,10 +206,10 @@ def warning(window_parent, msg):
     PopupMsgW(window_parent, msg, title='Warning').open()
 
 
-# Напечатать специальную комбинацию
+# Вывести специальную комбинацию
 def special_combination(key):
     val = _0_global_special_combinations[key]
-    return f'#{key} -> {val}\n'
+    return f'#{key} -> {val}'
 
 
 # Добавить немецкие буквы
@@ -2541,8 +2541,13 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
     def print_combinations(self):
         self.text_form_par['state'] = 'normal'
         self.text_form_par.delete(1.0, tk.END)
-        for key in _0_global_special_combinations.keys():
-            self.text_form_par.insert(tk.END, special_combination(key))
+
+        combinations = [special_combination(key) for key in _0_global_special_combinations]
+        if combinations:
+            self.text_form_par.insert(tk.END, f'{combinations[0]}')
+        for i in range(1, len(combinations)):
+            self.text_form_par.insert(tk.END, f'\n{combinations[i]}')
+
         self.text_form_par['state'] = 'disabled'
 
     # Обновить отображаемую информацию
