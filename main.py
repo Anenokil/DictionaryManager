@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-128'
-PROGRAM_DATE = '23.1.2023'
-PROGRAM_TIME = '23:31 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-129'
+PROGRAM_DATE = '24.1.2023'
+PROGRAM_TIME = '0:59 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -4483,6 +4483,7 @@ class MainW(tk.Tk):
         # Стиль всплывающего списка для combobox
         self.option_add('*TCombobox*Listbox*Background', ST_BG_FIELDS[th])
         self.option_add('*TCombobox*Listbox*Foreground', ST_FG[th])
+        self.option_add('*TCombobox*Listbox*Font', ('StdFont', 10))
 
         # Стиль для vertical scrollbar
         self.st_vscroll = ttk.Style()
@@ -4551,7 +4552,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development  presents\n'
       f'                              {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
+      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'======================================================================================')
 
