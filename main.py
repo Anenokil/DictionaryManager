@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-127'
+PROGRAM_VERSION = 'v7.0.0_PRE-128'
 PROGRAM_DATE = '23.1.2023'
-PROGRAM_TIME = '21:46 (UTC+3)'
+PROGRAM_TIME = '23:31 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -1923,7 +1923,7 @@ class CheckUpdatesW(tk.Toplevel):
     # Скачать и установить обновление
     def download_and_install(self):
         try:  # Загрузка
-            print('\nDownload zip...', end='')
+            print('\nDownload an archive...', end='')
             wget.download(URL_DOWNLOAD_ZIP, out=os.path.dirname(__file__))  # Скачиваем архив с обновлением
         except Exception as exc:
             print(f'Не удалось загрузить обновление!\n'
@@ -1934,31 +1934,34 @@ class CheckUpdatesW(tk.Toplevel):
             return
         try:  # Установка
             # Распаковываем архив во временную папку
-            print('\nExtracting...')
+            print('\nExtracting the archive...')
             with zipfile.ZipFile(NEW_VERSION_ZIP_PATH, 'r') as zip_file:
                 zip_file.extractall(os.path.dirname(__file__))
             # Удаляем архив
-            print('Delete zip...')
+            print('Delete the archive...')
             os.remove(NEW_VERSION_ZIP_PATH)
             # Удаляем файлы текущей версии
             print('Delete old files...')
             for filename in os.listdir(IMAGES_PATH):
-                os.remove(os.path.join(IMAGES_PATH, filename))
-            os.remove(os.path.join(MAIN_PATH, 'ver'))
-            os.remove(os.path.join(MAIN_PATH, 'README.txt'))
-            os.remove(os.path.join(MAIN_PATH, 'README.md'))
-            os.remove(os.path.join(MAIN_PATH, 'main.py'))
+                try:
+                    os.remove(os.path.join(IMAGES_PATH, filename))
+                except FileNotFoundError:
+                    print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
+            for filename in ['ver', 'README.txt', 'README.md', 'main.py']:
+                try:
+                    os.remove(os.path.join(MAIN_PATH, filename))
+                except FileNotFoundError:
+                    print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
             # Из временной папки достаём файлы новой версии
             print('Set new files...')
             for filename in os.listdir(os.path.join(NEW_VERSION_PATH, 'images')):
-                os.replace(os.path.join(NEW_VERSION_PATH, 'images', filename),
+                os.replace(os.path.join(NEW_VERSION_PATH, RESOURCES_DIR, IMAGES_DIR, filename),
                            os.path.join(IMAGES_PATH, filename))
-            os.replace(os.path.join(NEW_VERSION_PATH, 'ver'),        os.path.join(MAIN_PATH, 'ver'))
-            os.replace(os.path.join(NEW_VERSION_PATH, 'README.txt'), os.path.join(MAIN_PATH, 'README.txt'))
-            os.replace(os.path.join(NEW_VERSION_PATH, 'README.md'),  os.path.join(MAIN_PATH, 'README.md'))
-            os.replace(os.path.join(NEW_VERSION_PATH, 'main.py'),    os.path.join(MAIN_PATH, 'main.py'))
+            for filename in ['ver', 'README.txt', 'README.md', 'main.py']:
+                os.replace(os.path.join(NEW_VERSION_PATH, filename),
+                           os.path.join(MAIN_PATH, filename))
             # Удаляем временную папку
-            print('Delete tmp dir...')
+            print('Delete tmp folder...')
             shutil.rmtree(NEW_VERSION_PATH)
         except Exception as exc:
             print(f'Не удалось установить обновление!\n'
