@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-123'
+PROGRAM_VERSION = 'v7.0.0_PRE-124'
 PROGRAM_DATE = '23.1.2023'
-PROGRAM_TIME = '17:39 (UTC+3)'
+PROGRAM_TIME = '18:21 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -1900,12 +1900,17 @@ class CheckUpdatesW(tk.Toplevel):
             os.remove(NEW_VERSION_ZIP_PATH)
             # Удаляем файлы текущей версии
             print('Delete old files...')
+            for filename in os.listdir(IMAGES_PATH):
+                os.remove(os.path.join(IMAGES_PATH, filename))
             os.remove(os.path.join(MAIN_PATH, 'ver'))
             os.remove(os.path.join(MAIN_PATH, 'README.txt'))
             os.remove(os.path.join(MAIN_PATH, 'README.md'))
             os.remove(os.path.join(MAIN_PATH, 'main.py'))
             # Из временной папки достаём файлы новой версии
             print('Set new files...')
+            for filename in os.listdir(os.path.join(NEW_VERSION_PATH, 'images')):
+                os.replace(os.path.join(NEW_VERSION_PATH, 'images', filename),
+                           os.path.join(IMAGES_PATH, filename))
             os.replace(os.path.join(NEW_VERSION_PATH, 'ver'),        os.path.join(MAIN_PATH, 'ver'))
             os.replace(os.path.join(NEW_VERSION_PATH, 'README.txt'), os.path.join(MAIN_PATH, 'README.txt'))
             os.replace(os.path.join(NEW_VERSION_PATH, 'README.md'),  os.path.join(MAIN_PATH, 'README.md'))
