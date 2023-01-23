@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-129'
+PROGRAM_VERSION = 'v7.0.0_PRE-130'
 PROGRAM_DATE = '24.1.2023'
-PROGRAM_TIME = '0:59 (UTC+3)'
+PROGRAM_TIME = '1:08 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -1617,6 +1617,46 @@ class PopupDialogueW(tk.Toplevel):
         return self.answer
 
 
+# Всплывающее окно с полем ввода и кнопкой
+class PopupEntryW(tk.Toplevel):
+    def __init__(self, parent, msg='Введите строку', btn_text='Подтвердить', title=PROGRAM_NAME):
+        super().__init__(parent)
+        self.title(title)
+        self.configure(bg=ST_BG[th])
+
+        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+
+        self.var_text = tk.StringVar()
+
+        self.lbl_msg = tk.Label(self, text=f'{msg}:', bg=ST_BG[th], fg=ST_FG[th])
+        self.entry_inp = tk.Entry(self, textvariable=self.var_text, width=30, bg=ST_BG_FIELDS[th], fg=ST_FG_ENTRY[th],
+                                  highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
+                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
+        self.btn_ok = tk.Button(self, text=btn_text, command=self.ok, overrelief='groove',
+                                bg=ST_BTNY_BG[th], fg=ST_FG[th],
+                                activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
+
+        self.lbl_msg.grid(  row=0, padx=6, pady=(6, 3))
+        self.entry_inp.grid(row=1, padx=6, pady=(0, 6))
+        self.btn_ok.grid(   row=2, padx=6, pady=(0, 6))
+
+    # Нажатие на кнопку
+    def ok(self):
+        self.closed = False
+        self.destroy()
+
+    def open(self):
+        self.focus_set()
+        self.entry_inp.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.closed, self.var_text.get()
+
+
 # Всплывающее окно с полем Combobox
 class PopupChooseW(tk.Toplevel):
     def __init__(self, parent, values, msg='Выберите один из вариантов', btn_text='Подтвердить',
@@ -1657,46 +1697,6 @@ class PopupChooseW(tk.Toplevel):
         self.wait_window()
 
         return self.closed, self.var_answer.get()
-
-
-# Всплывающее окно с полем ввода и кнопкой
-class PopupEntryW(tk.Toplevel):
-    def __init__(self, parent, msg='Введите строку', btn_text='Подтвердить', title=PROGRAM_NAME):
-        super().__init__(parent)
-        self.title(title)
-        self.configure(bg=ST_BG[th])
-
-        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
-
-        self.var_text = tk.StringVar()
-
-        self.lbl_msg = tk.Label(self, text=f'{msg}:', bg=ST_BG[th], fg=ST_FG[th])
-        self.entry_inp = tk.Entry(self, textvariable=self.var_text, width=30, bg=ST_BG_FIELDS[th], fg=ST_FG_ENTRY[th],
-                                  highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
-                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
-        self.btn_ok = tk.Button(self, text=btn_text, command=self.ok, overrelief='groove',
-                                bg=ST_BTNY_BG[th], fg=ST_FG[th],
-                                activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
-
-        self.lbl_msg.grid(  row=0, padx=6, pady=(6, 3))
-        self.entry_inp.grid(row=1, padx=6, pady=(0, 6))
-        self.btn_ok.grid(   row=2, padx=6, pady=(0, 6))
-
-    # Нажатие на кнопку
-    def ok(self):
-        self.closed = False
-        self.destroy()
-
-    def open(self):
-        self.focus_set()
-        self.entry_inp.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-        self.grab_set()
-        self.wait_window()
-
-        return self.closed, self.var_text.get()
 
 
 # Всплывающее окно с изображением
@@ -1750,8 +1750,104 @@ class PopupImgW(tk.Toplevel):
         return self.closed
 
 
+# Окно для ввода названия словаря
+class EnterDctNameW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[th])
+
+        self.name_is_correct = False
+
+        self.var_name = tk.StringVar()
+
+        self.lbl_msg = tk.Label(self, text='Введите название словаря', bg=ST_BG[th], fg=ST_FG[th])
+        self.entry_name = tk.Entry(self, textvariable=self.var_name, width=30, bg=ST_BG_FIELDS[th], fg=ST_FG_ENTRY[th],
+                                   highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
+                                   selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
+        self.btn_ok = tk.Button(self, text='Подтвердить', command=self.check_and_return, overrelief='groove',
+                                bg=ST_BTNY_BG[th], fg=ST_FG[th],
+                                activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
+
+        self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
+        self.entry_name.grid(row=1, padx=6, pady=1)
+        self.btn_ok.grid(    row=2, padx=6, pady=4)
+
+    # Проверить название и вернуть, если оно корректно
+    def check_and_return(self):
+        savename = self.var_name.get()
+        if savename == '':
+            warning(self, 'Название должно содержать хотя бы один символ!')
+            return
+        if dct_filename(savename) in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
+            warning(self, 'Файл с таким названием уже существует!')
+            return
+        self.name_is_correct = True
+        self.destroy()
+
+    def open(self):
+        self.focus_set()
+        self.entry_name.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.name_is_correct, self.var_name.get()
+
+
+# Окно для ввода названия параметра словоформ
+class EnterFormParameterNameW(tk.Toplevel):
+    def __init__(self, parent, parameters):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[th])
+
+        self.name_is_correct = False
+        self.parameters = parameters
+
+        self.var_name = tk.StringVar()
+
+        self.lbl_msg = tk.Label(self, text='Введите название нового параметра', width=30,
+                                bg=ST_BG[th], fg=ST_FG[th])
+        self.entry_name = tk.Entry(self, textvariable=self.var_name, bg=ST_BG_FIELDS[th], fg=ST_FG_ENTRY[th],
+                                   highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
+                                   selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
+        self.btn_ok = tk.Button(self, text='Подтвердить', command=self.check_and_return, overrelief='groove',
+                                bg=ST_BTNY_BG[th], fg=ST_FG[th],
+                                activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
+
+        self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
+        self.entry_name.grid(row=1, padx=6, pady=1)
+        self.btn_ok.grid(    row=2, padx=6, pady=4)
+
+    # Проверить название и вернуть, если оно корректно
+    def check_and_return(self):
+        par_name = self.var_name.get()
+        if par_name == '':
+            warning(self, 'Название параметра должно содержать хотя бы один символ!')
+            return
+        if par_name in self.parameters:  # Если уже есть параметр с таким названием
+            warning(self, f'Параметр "{par_name}" уже существует!')
+            return
+        self.name_is_correct = True
+        self.destroy()
+
+    def open(self):
+        self.focus_set()
+        self.entry_name.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.name_is_correct, self.var_name.get()
+
+
 # Окно ввода специальной комбинации
-class EntrySpecialCombinationW(tk.Toplevel):
+class EnterSpecialCombinationW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
@@ -1810,6 +1906,158 @@ class EntrySpecialCombinationW(tk.Toplevel):
         self.wait_window()
 
         return self.closed, self.var_key.get(), self.var_val.get()
+
+
+# Окно выбора значения параметра словоформы
+class ChooseFormParValW(tk.Toplevel):
+    def __init__(self, parent, par_name, par_vals, combo_width=20):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[th])
+
+        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+        self.res = ''
+        self.vals = par_vals
+        self.var_par = tk.StringVar(value=self.vals[0])
+
+        self.lbl_choose = tk.Label(self, text=f'Задайте значение параметра "{par_name}"',
+                                   bg=ST_BG[th], fg=ST_FG[th])
+        self.combo = ttk.Combobox(self, textvariable=self.var_par, values=self.vals, width=combo_width,
+                                  font='TkFixedFont', state='readonly', style='.TCombobox')
+        self.btn_choose = tk.Button(self, text='Задать', command=self.choose, overrelief='groove',
+                                    bg=ST_BTN_BG[th], fg=ST_FG[th],
+                                    activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+        self.btn_none = tk.Button(self, text='Не указывать/неприменимо', command=self.set_none, overrelief='groove',
+                                  bg=ST_BTN_BG[th], fg=ST_FG[th],
+                                  activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+        self.btn_new = tk.Button(self, text='Добавить вариант', command=self.new_val, overrelief='groove',
+                                 bg=ST_BTN_BG[th], fg=ST_FG[th],
+                                 activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+
+        self.lbl_choose.grid(row=0, column=0,     padx=(6, 1), pady=(6, 3))
+        self.combo.grid(     row=0, column=1,     padx=(0, 3), pady=(6, 3))
+        self.btn_choose.grid(row=0, column=2,     padx=(0, 6), pady=(6, 3))
+        self.btn_none.grid(  row=1, columnspan=3, padx=6,      pady=3)
+        self.btn_new.grid(   row=2, columnspan=3, padx=6,      pady=(3, 6))
+
+        self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
+
+    # Выбрать параметр и задать ему значение
+    def choose(self):
+        val = self.var_par.get()
+        if val == '':
+            return
+        self.res = val
+        self.closed = False
+        self.destroy()
+
+    # Сбросить значение параметра
+    def set_none(self):
+        self.res = ''
+        self.closed = False
+        self.destroy()
+
+    # Добавить новое значение параметра
+    def new_val(self):
+        new_value = add_frm_param_val(self, self.vals)
+        if not new_value:
+            return
+        self.vals += [new_value]
+        self.combo['values'] = self.vals
+
+    def open(self):
+        self.focus_set()
+        self.btn_choose.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.closed, self.res
+
+
+# Окно выбора одной статьи из нескольких с одинаковыми словами
+class ChooseNoteW(tk.Toplevel):
+    def __init__(self, parent, wrd):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME}')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[th])
+
+        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+        self.vals_count = -1  # Количество вариантов для выбора (вычисляется в self.print_variants)
+        self.wrd = wrd
+        self.answer = None
+
+        self.var_input = tk.StringVar()
+
+        # Ввод номеров ограниченных количеством вариантов
+        self.vcmd_max = (self.register(lambda value: validate_int_max(value, self.vals_count)), '%P')
+
+        self.frame_main = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        # {
+        self.lbl_input = tk.Label(self.frame_main, text='Выберите одну из статей:', bg=ST_BG[th], fg=ST_FG[th])
+        self.entry_input = tk.Entry(self.frame_main, textvariable=self.var_input, width=5,
+                                    validate='key', vcmd=self.vcmd_max, relief='solid',
+                                    bg=ST_BG_FIELDS[th], fg=ST_FG_ENTRY[th], highlightbackground=ST_BORDER[th],
+                                    highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT_BG[th],
+                                    selectforeground=ST_SELECT_FG[th])
+        self.btn_choose = tk.Button(self.frame_main, text='Выбор', command=self.choose, overrelief='groove',
+                                    bg=ST_BTN_BG[th], fg=ST_FG[th],
+                                    highlightbackground=ST_BORDER[th], activebackground=ST_BTN_BG_SEL[th])
+        # }
+        self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
+        self.text_words = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
+                                  bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                  relief=ST_RELIEF[th])
+
+        self.frame_main.grid(row=0, columnspan=2, padx=6, pady=6)
+        # {
+        self.lbl_input.grid(  row=0, column=0, padx=(6, 1), pady=6, sticky='E')
+        self.entry_input.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
+        self.btn_choose.grid( row=0, column=2, padx=6,      pady=6)
+        # }
+        self.text_words.grid(row=1, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid( row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+
+        self.scrollbar.config(command=self.text_words.yview)
+
+        self.print_variants()
+
+    # Вывод вариантов статей
+    def print_variants(self):
+        self.text_words['state'] = 'normal'
+        self.vals_count = MAX_SAME_WORDS - 1
+        for _i in range(MAX_SAME_WORDS):
+            _key = wrd_to_key(self.wrd, _i)
+            if _key not in _0_global_dct.d.keys():
+                self.vals_count = _i - 1
+                break
+            outp(self.text_words, f'\n({_i})')
+            _0_global_dct.d[_key].print_all(self.text_words)
+        self.text_words['state'] = 'disabled'
+
+    # Выбор одной статьи из нескольких
+    def choose(self):
+        _input = self.var_input.get()
+        if _input != "":
+            _index = int(_input)
+            self.answer = wrd_to_key(self.wrd, _index)
+        self.closed = False
+        self.destroy()
+
+    def open(self):
+        self.focus_set()
+        self.entry_input.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.closed, self.answer
 
 
 # Окно с сообщением о неверном ответе
@@ -1979,254 +2227,6 @@ class CheckUpdatesW(tk.Toplevel):
     def open(self):
         self.grab_set()
         self.wait_window()
-
-
-# Окно выбора одной статьи из нескольких с одинаковыми словами
-class ChooseNoteW(tk.Toplevel):
-    def __init__(self, parent, wrd):
-        super().__init__(parent)
-        self.title(f'{PROGRAM_NAME}')
-        self.resizable(width=False, height=False)
-        self.configure(bg=ST_BG[th])
-
-        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
-        self.vals_count = -1  # Количество вариантов для выбора (вычисляется в self.print_variants)
-        self.wrd = wrd
-        self.answer = None
-
-        self.var_input = tk.StringVar()
-
-        # Ввод номеров ограниченных количеством вариантов
-        self.vcmd_max = (self.register(lambda value: validate_int_max(value, self.vals_count)), '%P')
-
-        self.frame_main = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
-        # {
-        self.lbl_input = tk.Label(self.frame_main, text='Выберите одну из статей:', bg=ST_BG[th], fg=ST_FG[th])
-        self.entry_input = tk.Entry(self.frame_main, textvariable=self.var_input, width=5,
-                                    validate='key', vcmd=self.vcmd_max, relief='solid',
-                                    bg=ST_BG_FIELDS[th], fg=ST_FG_ENTRY[th], highlightbackground=ST_BORDER[th],
-                                    highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT_BG[th],
-                                    selectforeground=ST_SELECT_FG[th])
-        self.btn_choose = tk.Button(self.frame_main, text='Выбор', command=self.choose, overrelief='groove',
-                                    bg=ST_BTN_BG[th], fg=ST_FG[th],
-                                    highlightbackground=ST_BORDER[th], activebackground=ST_BTN_BG_SEL[th])
-        # }
-        self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.text_words = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
-                                  bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
-                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                  relief=ST_RELIEF[th])
-
-        self.frame_main.grid(row=0, columnspan=2, padx=6, pady=6)
-        # {
-        self.lbl_input.grid(  row=0, column=0, padx=(6, 1), pady=6, sticky='E')
-        self.entry_input.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
-        self.btn_choose.grid( row=0, column=2, padx=6,      pady=6)
-        # }
-        self.text_words.grid(row=1, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid( row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
-
-        self.scrollbar.config(command=self.text_words.yview)
-
-        self.print_variants()
-
-    # Вывод вариантов статей
-    def print_variants(self):
-        self.text_words['state'] = 'normal'
-        self.vals_count = MAX_SAME_WORDS - 1
-        for _i in range(MAX_SAME_WORDS):
-            _key = wrd_to_key(self.wrd, _i)
-            if _key not in _0_global_dct.d.keys():
-                self.vals_count = _i - 1
-                break
-            outp(self.text_words, f'\n({_i})')
-            _0_global_dct.d[_key].print_all(self.text_words)
-        self.text_words['state'] = 'disabled'
-
-    # Выбор одной статьи из нескольких
-    def choose(self):
-        _input = self.var_input.get()
-        if _input != "":
-            _index = int(_input)
-            self.answer = wrd_to_key(self.wrd, _index)
-        self.closed = False
-        self.destroy()
-
-    def open(self):
-        self.focus_set()
-        self.entry_input.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-        self.grab_set()
-        self.wait_window()
-
-        return self.closed, self.answer
-
-
-# Окно для ввода названия словаря
-class EnterDctNameW(tk.Toplevel):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.configure(bg=ST_BG[th])
-
-        self.name_is_correct = False
-
-        self.var_name = tk.StringVar()
-
-        self.lbl_msg = tk.Label(self, text='Введите название словаря', bg=ST_BG[th], fg=ST_FG[th])
-        self.entry_name = tk.Entry(self, textvariable=self.var_name, width=30, bg=ST_BG_FIELDS[th], fg=ST_FG_ENTRY[th],
-                                   highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
-                                   selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
-        self.btn_ok = tk.Button(self, text='Подтвердить', command=self.check_and_return, overrelief='groove',
-                                bg=ST_BTNY_BG[th], fg=ST_FG[th],
-                                activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
-
-        self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
-        self.entry_name.grid(row=1, padx=6, pady=1)
-        self.btn_ok.grid(    row=2, padx=6, pady=4)
-
-    # Проверить название и вернуть, если оно корректно
-    def check_and_return(self):
-        savename = self.var_name.get()
-        if savename == '':
-            warning(self, 'Название должно содержать хотя бы один символ!')
-            return
-        if dct_filename(savename) in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
-            warning(self, 'Файл с таким названием уже существует!')
-            return
-        self.name_is_correct = True
-        self.destroy()
-
-    def open(self):
-        self.focus_set()
-        self.entry_name.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-        self.grab_set()
-        self.wait_window()
-
-        return self.name_is_correct, self.var_name.get()
-
-
-# Окно для ввода названия параметра словоформ
-class EnterFormParameterNameW(tk.Toplevel):
-    def __init__(self, parent, parameters):
-        super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.configure(bg=ST_BG[th])
-
-        self.name_is_correct = False
-        self.parameters = parameters
-
-        self.var_name = tk.StringVar()
-
-        self.lbl_msg = tk.Label(self, text='Введите название нового параметра', width=30,
-                                bg=ST_BG[th], fg=ST_FG[th])
-        self.entry_name = tk.Entry(self, textvariable=self.var_name, bg=ST_BG_FIELDS[th], fg=ST_FG_ENTRY[th],
-                                   highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
-                                   selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
-        self.btn_ok = tk.Button(self, text='Подтвердить', command=self.check_and_return, overrelief='groove',
-                                bg=ST_BTNY_BG[th], fg=ST_FG[th],
-                                activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
-
-        self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
-        self.entry_name.grid(row=1, padx=6, pady=1)
-        self.btn_ok.grid(    row=2, padx=6, pady=4)
-
-    # Проверить название и вернуть, если оно корректно
-    def check_and_return(self):
-        par_name = self.var_name.get()
-        if par_name == '':
-            warning(self, 'Название параметра должно содержать хотя бы один символ!')
-            return
-        if par_name in self.parameters:  # Если уже есть параметр с таким названием
-            warning(self, f'Параметр "{par_name}" уже существует!')
-            return
-        self.name_is_correct = True
-        self.destroy()
-
-    def open(self):
-        self.focus_set()
-        self.entry_name.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-        self.grab_set()
-        self.wait_window()
-
-        return self.name_is_correct, self.var_name.get()
-
-
-# Окно выбора значения параметра словоформы
-class ChooseFormParValW(tk.Toplevel):
-    def __init__(self, parent, par_name, par_vals, combo_width=20):
-        super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.configure(bg=ST_BG[th])
-
-        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
-        self.res = ''
-        self.vals = par_vals
-        self.var_par = tk.StringVar(value=self.vals[0])
-
-        self.lbl_choose = tk.Label(self, text=f'Задайте значение параметра "{par_name}"',
-                                   bg=ST_BG[th], fg=ST_FG[th])
-        self.combo = ttk.Combobox(self, textvariable=self.var_par, values=self.vals, width=combo_width,
-                                  font='TkFixedFont', state='readonly', style='.TCombobox')
-        self.btn_choose = tk.Button(self, text='Задать', command=self.choose, overrelief='groove',
-                                    bg=ST_BTN_BG[th], fg=ST_FG[th],
-                                    activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
-        self.btn_none = tk.Button(self, text='Не указывать/неприменимо', command=self.set_none, overrelief='groove',
-                                  bg=ST_BTN_BG[th], fg=ST_FG[th],
-                                  activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
-        self.btn_new = tk.Button(self, text='Добавить вариант', command=self.new_val, overrelief='groove',
-                                 bg=ST_BTN_BG[th], fg=ST_FG[th],
-                                 activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
-
-        self.lbl_choose.grid(row=0, column=0,     padx=(6, 1), pady=(6, 3))
-        self.combo.grid(     row=0, column=1,     padx=(0, 3), pady=(6, 3))
-        self.btn_choose.grid(row=0, column=2,     padx=(0, 6), pady=(6, 3))
-        self.btn_none.grid(  row=1, columnspan=3, padx=6,      pady=3)
-        self.btn_new.grid(   row=2, columnspan=3, padx=6,      pady=(3, 6))
-
-        self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
-
-    # Выбрать параметр и задать ему значение
-    def choose(self):
-        val = self.var_par.get()
-        if val == '':
-            return
-        self.res = val
-        self.closed = False
-        self.destroy()
-
-    # Сбросить значение параметра
-    def set_none(self):
-        self.res = ''
-        self.closed = False
-        self.destroy()
-
-    # Добавить новое значение параметра
-    def new_val(self):
-        new_value = add_frm_param_val(self, self.vals)
-        if not new_value:
-            return
-        self.vals += [new_value]
-        self.combo['values'] = self.vals
-
-    def open(self):
-        self.focus_set()
-        self.btn_choose.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-        self.grab_set()
-        self.wait_window()
-
-        return self.closed, self.res
 
 
 # Окно создания шаблона словоформы
@@ -2619,7 +2619,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
 
     # Добавить комбинацию
     def add(self):
-        window = EntrySpecialCombinationW(self)
+        window = EnterSpecialCombinationW(self)
         closed, key, val = window.open()
         if closed or key == '' or val == '':
             return
@@ -2671,72 +2671,6 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.wait_window()
 
         return self.has_changes
-
-
-# Окно выбора режима перед изучением слов
-class ChooseLearnModeW(tk.Toplevel):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Learn')
-        self.resizable(width=False, height=False)
-        self.configure(bg=ST_BG[th])
-
-        self.res = None
-
-        self.var_order = tk.StringVar(value=VALUES_ORDER[0])  # Метод учёбы
-        self.var_forms = tk.BooleanVar(value=True)  # Со всеми ли словоформами
-        self.var_words = tk.StringVar(value=VALUES_WORDS[0])  # Способ подбора слов
-
-        self.lbl_header = tk.Label(self, text='Выберите способ учёбы', bg=ST_BG[th], fg=ST_FG[th])
-        self.frame_main = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
-        # {
-        self.lbl_order = tk.Label(self.frame_main, text='Метод:', bg=ST_BG[th], fg=ST_FG[th])
-        self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=VALUES_ORDER,
-                                        validate='focusin', width=30, state='readonly', style='.TCombobox')
-        self.lbl_forms = tk.Label(self.frame_main, text='Все словоформы:', bg=ST_BG[th], fg=ST_FG[th])
-        self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='.TCheckbutton')
-        self.lbl_words = tk.Label(self.frame_main, text='Подбор слов:', bg=ST_BG[th], fg=ST_FG[th])
-        self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=VALUES_WORDS,
-                                        width=30, state='readonly', style='.TCombobox')
-        # }
-        self.btn_start = tk.Button(self, text='Учить', command=self.start, overrelief='groove',
-                                   bg=ST_BTN_BG[th], fg=ST_FG[th],
-                                   highlightbackground=ST_BORDER[th], activebackground=ST_BTN_BG_SEL[th])
-
-        self.lbl_header.grid(row=0, column=0, padx=6, pady=(6, 3))
-        self.frame_main.grid(row=1, column=0, padx=6, pady=(0, 3))
-        # {
-        self.lbl_order.grid(  row=1, column=0, padx=(3, 1), pady=(3, 3), sticky='E')
-        self.combo_order.grid(row=1, column=1, padx=(0, 3), pady=(0, 3), sticky='W')
-        self.lbl_forms.grid(  row=2, column=0, padx=(3, 1), pady=(0, 3), sticky='E')
-        self.check_forms.grid(row=2, column=1, padx=(0, 3), pady=(0, 3), sticky='W')
-        self.lbl_words.grid(  row=3, column=0, padx=(3, 1), pady=(0, 3), sticky='E')
-        self.combo_words.grid(row=3, column=1, padx=(0, 3), pady=(0, 3), sticky='W')
-        # }
-        self.btn_start.grid(row=2, column=0, padx=6, pady=(0, 6))
-
-        # При выборе второго метода учёбы нельзя добавить словоформы
-        self.vcmd_order = (self.register(lambda value: validate_order_and_forms(value, self.check_forms)), '%P')
-        self.combo_order['validatecommand'] = self.vcmd_order
-
-    # Учить слова
-    def start(self):
-        order = self.var_order.get()
-        forms = self.var_forms.get()
-        words = self.var_words.get()
-        self.res = (order, forms, words)
-        self.destroy()
-
-    def open(self):
-        self.focus_set()
-        self.btn_start.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_start.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-        self.grab_set()
-        self.wait_window()
-
-        return self.res
 
 
 # Окно печати словаря
@@ -2814,6 +2748,507 @@ class PrintW(tk.Toplevel):
         self.btn_print.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_print.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+        self.grab_set()
+        self.wait_window()
+
+
+# Окно выбора режима перед изучением слов
+class ChooseLearnModeW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Learn')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[th])
+
+        self.res = None
+
+        self.var_order = tk.StringVar(value=VALUES_ORDER[0])  # Метод учёбы
+        self.var_forms = tk.BooleanVar(value=True)  # Со всеми ли словоформами
+        self.var_words = tk.StringVar(value=VALUES_WORDS[0])  # Способ подбора слов
+
+        self.lbl_header = tk.Label(self, text='Выберите способ учёбы', bg=ST_BG[th], fg=ST_FG[th])
+        self.frame_main = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        # {
+        self.lbl_order = tk.Label(self.frame_main, text='Метод:', bg=ST_BG[th], fg=ST_FG[th])
+        self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=VALUES_ORDER,
+                                        validate='focusin', width=30, state='readonly', style='.TCombobox')
+        self.lbl_forms = tk.Label(self.frame_main, text='Все словоформы:', bg=ST_BG[th], fg=ST_FG[th])
+        self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='.TCheckbutton')
+        self.lbl_words = tk.Label(self.frame_main, text='Подбор слов:', bg=ST_BG[th], fg=ST_FG[th])
+        self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=VALUES_WORDS,
+                                        width=30, state='readonly', style='.TCombobox')
+        # }
+        self.btn_start = tk.Button(self, text='Учить', command=self.start, overrelief='groove',
+                                   bg=ST_BTN_BG[th], fg=ST_FG[th],
+                                   highlightbackground=ST_BORDER[th], activebackground=ST_BTN_BG_SEL[th])
+
+        self.lbl_header.grid(row=0, column=0, padx=6, pady=(6, 3))
+        self.frame_main.grid(row=1, column=0, padx=6, pady=(0, 3))
+        # {
+        self.lbl_order.grid(  row=1, column=0, padx=(3, 1), pady=(3, 3), sticky='E')
+        self.combo_order.grid(row=1, column=1, padx=(0, 3), pady=(0, 3), sticky='W')
+        self.lbl_forms.grid(  row=2, column=0, padx=(3, 1), pady=(0, 3), sticky='E')
+        self.check_forms.grid(row=2, column=1, padx=(0, 3), pady=(0, 3), sticky='W')
+        self.lbl_words.grid(  row=3, column=0, padx=(3, 1), pady=(0, 3), sticky='E')
+        self.combo_words.grid(row=3, column=1, padx=(0, 3), pady=(0, 3), sticky='W')
+        # }
+        self.btn_start.grid(row=2, column=0, padx=6, pady=(0, 6))
+
+        # При выборе второго метода учёбы нельзя добавить словоформы
+        self.vcmd_order = (self.register(lambda value: validate_order_and_forms(value, self.check_forms)), '%P')
+        self.combo_order['validatecommand'] = self.vcmd_order
+
+    # Учить слова
+    def start(self):
+        order = self.var_order.get()
+        forms = self.var_forms.get()
+        words = self.var_words.get()
+        self.res = (order, forms, words)
+        self.destroy()
+
+    def open(self):
+        self.focus_set()
+        self.btn_start.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_start.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.res
+
+
+# Окно изучения слов
+class LearnW(tk.Toplevel):
+    def __init__(self, parent, conf):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Learn')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[th])
+
+        self.current_key = None
+        self.current_form = None
+        self.rnd_f = None  # Вспомогательная переменная для выбора случайного слова
+        self.count_all = 0
+        self.count_correct = 0
+        self.used_words = set()  # Слова (формы), которые уже были угаданы
+        self.conf = conf  # Режим изучения слов
+
+        self.var_input = tk.StringVar()
+
+        self.lbl_global_rating = tk.Label(self,
+                                          text=f'Ваш общий рейтинг по словарю: {round(_0_global_dct.count_rating() * 100)}%',
+                                          bg=ST_BG[th], fg=ST_FG[th])
+        self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
+        self.text_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
+                                bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                relief=ST_RELIEF[th])
+        self.scrollbar.config(command=self.text_dct.yview)
+        self.frame_main = tk.Frame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        # { {
+        self.btn_input = tk.Button(self.frame_main, text='Ввод', command=self.input, overrelief='groove',
+                                   bg=ST_BTN_BG[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                                   activebackground=ST_BTN_BG_SEL[th])
+        self.entry_input = tk.Entry(self.frame_main, textvariable=self.var_input, width=50, relief='solid',
+                                    bg=ST_BG_FIELDS[th], fg=ST_FG_ENTRY[th], highlightbackground=ST_BORDER[th],
+                                    highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT_BG[th],
+                                    selectforeground=ST_SELECT_FG[th])
+        self.btn_notes = tk.Button(self.frame_main, text='Посмотреть сноски', command=self.show_notes,
+                                   overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG[th],
+                                   highlightbackground=ST_BORDER[th], activebackground=ST_BTN_BG_SEL[th])
+        # } }
+        self.btn_stop = tk.Button(self, text='Закончить', command=self.stop, overrelief='groove',
+                                  bg=ST_BTNN_BG[th], fg=ST_FG[th],
+                                  highlightbackground=ST_BORDER[th], activebackground=ST_BTNN_BG_SEL[th])
+
+        self.lbl_global_rating.grid(row=0, columnspan=2, padx=6,      pady=6)
+        self.text_dct.grid(         row=1, column=0,     padx=(6, 0), pady=6, sticky='NSEW')
+        self.scrollbar.grid(        row=1, column=1,     padx=(0, 6), pady=6, sticky='NSW')
+        self.frame_main.grid(       row=2, columnspan=2, padx=6,      pady=6)
+        # { {
+        self.btn_input.grid(  row=0, column=0, padx=(0, 3), pady=0, sticky='E')
+        self.entry_input.grid(row=0, column=1, padx=(0, 3), pady=0, sticky='W')
+        self.btn_notes.grid(  row=0, column=2, padx=0,      pady=0, sticky='W')
+        # } }
+        self.btn_stop.grid(row=3, columnspan=2, padx=6, pady=6)
+
+        self.start()
+
+    # Печать в текстовое поле
+    def outp(self, msg='', end='\n'):
+        self.text_dct['state'] = 'normal'
+        self.text_dct.insert(tk.END, msg + end)
+        self.text_dct.yview_moveto(1.0)
+        self.text_dct['state'] = 'disabled'
+
+    # Начать учить слова
+    def start(self):
+        global _0_global_has_progress
+
+        order = self.conf[0]
+        forms = self.conf[1]
+        words = self.conf[2]
+
+        if order == VALUES_ORDER[0]:
+            if forms:
+                if words == VALUES_WORDS[0]:
+                    _0_global_has_progress = self.choose_f(_0_global_dct) or _0_global_has_progress
+                elif words == VALUES_WORDS[1]:
+                    _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
+                else:
+                    _0_global_has_progress = self.choose_f_fav(_0_global_dct) or _0_global_has_progress
+            else:
+                if words == VALUES_WORDS[0]:
+                    _0_global_has_progress = self.choose(_0_global_dct) or _0_global_has_progress
+                elif words == VALUES_WORDS[1]:
+                    _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
+                else:
+                    _0_global_has_progress = self.choose_fav(_0_global_dct) or _0_global_has_progress
+        else:
+            if words == VALUES_WORDS[0]:
+                _0_global_has_progress = self.choose_t(_0_global_dct) or _0_global_has_progress
+            elif words == VALUES_WORDS[1]:
+                _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
+            else:
+                _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
+
+    # Ввод ответа и переход к следующему слову
+    def input(self):
+        global _0_global_has_progress
+
+        order = self.conf[0]
+        forms = self.conf[1]
+        words = self.conf[2]
+
+        answer = deu_encode(self.entry_input.get())  # Вывод пользовательского ответа
+        if answer != '':
+            self.outp(answer)
+
+        if order == VALUES_ORDER[1]:
+            self.check_tr()
+        elif forms and self.rnd_f != -1:
+            self.check_form()
+        else:
+            self.check_wrd()
+
+        if order == VALUES_ORDER[0]:
+            if forms:
+                if words == VALUES_WORDS[0]:
+                    _0_global_has_progress = self.choose_f(_0_global_dct) or _0_global_has_progress
+                elif words == VALUES_WORDS[1]:
+                    _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
+                else:
+                    _0_global_has_progress = self.choose_f_fav(_0_global_dct) or _0_global_has_progress
+            else:
+                if words == VALUES_WORDS[0]:
+                    _0_global_has_progress = self.choose(_0_global_dct) or _0_global_has_progress
+                elif words == VALUES_WORDS[1]:
+                    _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
+                else:
+                    _0_global_has_progress = self.choose_fav(_0_global_dct) or _0_global_has_progress
+        else:
+            if words == VALUES_WORDS[0]:
+                _0_global_has_progress = self.choose_t(_0_global_dct) or _0_global_has_progress
+            elif words == VALUES_WORDS[1]:
+                _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
+            else:
+                _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
+
+        self.btn_notes['state'] = 'normal'
+        self.entry_input.delete(0, tk.END)
+        self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {round(_0_global_dct.count_rating() * 100)}%'
+
+    # Просмотр сносок
+    def show_notes(self):
+        self.text_dct['state'] = 'normal'
+        entry = _0_global_dct.d[self.current_key]
+        entry.notes_print(self.text_dct)
+        self.text_dct.yview_moveto(1.0)
+        self.text_dct['state'] = 'disabled'
+        self.btn_notes['state'] = 'disabled'
+
+    # Завершение учёбы
+    def stop(self):
+        self.frame_main.grid_remove()
+        self.btn_stop.grid_remove()
+        self.btn_input['state'] = 'disabled'
+
+        if len(self.used_words) == _0_global_dct.count_w:
+            PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
+        self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}')
+
+    # Проверка введённого слова
+    def check_wrd(self):
+        entry = _0_global_dct.d[self.current_key]
+        if deu_encode(self.entry_input.get()) == deu_encode(entry.wrd):
+            entry.correct()
+            self.outp('Верно\n')
+            if entry.fav:
+                window = PopupDialogueW(self, 'Верно.\n'
+                                              'Оставить слово в избранном?',
+                                        'Да', 'Нет', val_on_close=True)
+                answer = window.open()
+                if not answer:
+                    entry.fav = False
+            self.count_all += 1
+            self.count_correct += 1
+            self.used_words.add(self.current_key)
+        else:
+            self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.wrd)}"\n')
+            if not entry.fav:
+                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()),
+                                          deu_encode(entry.wrd), _0_global_typo)
+                answer = window.open()
+                if answer != 'typo':
+                    entry.incorrect()
+                if answer == 'yes':
+                    entry.fav = True
+            self.count_all += 1
+
+    # Проверка введённой словоформы
+    def check_form(self):
+        entry = _0_global_dct.d[self.current_key]
+        if deu_encode(self.entry_input.get()) == deu_encode(entry.forms[self.current_form]):
+            entry.correct()
+            self.outp('Верно\n')
+            if entry.fav:
+                window = PopupDialogueW(self, 'Верно.\n'
+                                              'Оставить слово в избранном?',
+                                        'Да', 'Нет', val_on_close=True)
+                answer = window.open()
+                if not answer:
+                    entry.fav = False
+            self.count_all += 1
+            self.count_correct += 1
+            self.used_words.add((self.current_key, self.current_form))
+        else:
+            self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.forms[self.current_form])}"\n')
+            if not entry.fav:
+                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()),
+                                          deu_encode(entry.forms[self.current_form]), _0_global_typo)
+                answer = window.open()
+                if answer != 'typo':
+                    entry.incorrect()
+                if answer == 'yes':
+                    entry.fav = True
+            self.count_all += 1
+
+    # Проверка введённого перевода
+    def check_tr(self):
+        entry = _0_global_dct.d[self.current_key]
+        encoded_tr = [deu_encode(tr) for tr in entry.tr]
+        if deu_encode(self.entry_input.get()) in encoded_tr:
+            entry.correct()
+            self.outp('Верно\n')
+            if entry.fav:
+                window = PopupDialogueW(self, 'Верно.\n'
+                                              'Оставить слово в избранном?',
+                                        'Да', 'Нет', val_on_close=True)
+                answer = window.open()
+                if not answer:
+                    entry.fav = False
+            self.count_all += 1
+            self.count_correct += 1
+            self.used_words.add(self.current_key)
+        else:
+            self.outp(f'Неверно. Правильный ответ: "{tr_to_str(entry.tr)}"\n')
+            if not entry.fav:
+                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()), tr_to_str(entry.tr), _0_global_typo)
+                answer = window.open()
+                if answer != 'typo':
+                    entry.incorrect()
+                if answer == 'yes':
+                    entry.fav = True
+            self.count_all += 1
+
+    # Выбор слова - все
+    def choose(self, _dct):
+        if len(self.used_words) == _dct.count_w:
+            self.stop()
+            return
+        while True:
+            self.current_key = random.choice(list(_dct.d.keys()))
+            if self.current_key not in self.used_words:
+                break
+
+        self.text_dct['state'] = 'normal'
+        _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
+        self.text_dct['state'] = 'disabled'
+
+        return True
+
+    # Выбор слова - избранные
+    def choose_fav(self, _dct):
+        while True:
+            if len(self.used_words) == _dct.count_w:
+                self.stop()
+                return
+            self.current_key = random.choice(list(_dct.d.keys()))
+            if not _dct.d[self.current_key].fav:
+                self.used_words.add(self.current_key)
+                continue
+            if self.current_key not in self.used_words:
+                break
+
+        self.text_dct['state'] = 'normal'
+        _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
+        self.text_dct['state'] = 'disabled'
+
+        return True
+
+    # Выбор слова - все, сначала сложные
+    def choose_hard(self, _dct, _min_good_score_perc):
+        if len(self.used_words) == _dct.count_w:
+            self.stop()
+            return
+        while True:
+            self.current_key = _dct.random_hard(_min_good_score_perc)
+            if self.current_key not in self.used_words:
+                break
+
+        self.text_dct['state'] = 'normal'
+        _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
+        self.text_dct['state'] = 'disabled'
+
+        return True
+
+    # Выбор словоформы - все
+    def choose_f(self, _dct):
+        if len(self.used_words) == _dct.count_w + _dct.count_f:
+            self.stop()
+            return
+        while True:
+            self.current_key = random.choice(list(_dct.d.keys()))
+            self.rnd_f = random.randint(-1, _dct.d[self.current_key].count_f - 1)
+            if self.rnd_f == -1:
+                self.current_form = self.current_key
+                if self.current_key not in self.used_words:
+                    self.text_dct['state'] = 'normal'
+                    _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
+                    self.text_dct['state'] = 'disabled'
+                    break
+            else:
+                self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
+                if (self.current_key, self.current_form) not in self.used_words:
+                    self.text_dct['state'] = 'normal'
+                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form)
+                    self.text_dct['state'] = 'disabled'
+                    break
+
+        return True
+
+    # Выбор словоформы - избранные
+    def choose_f_fav(self, _dct):
+        while True:
+            if len(self.used_words) == _dct.count_w + _dct.count_f:
+                self.stop()
+                return
+            self.current_key = random.choice(list(_dct.d.keys()))
+            if not _dct.d[self.current_key].fav:
+                self.used_words.add(self.current_key)
+                for frm in _dct.d[self.current_key].forms.keys():
+                    self.used_words.add((self.current_key, frm))
+                continue
+            self.rnd_f = random.randint(-1, _dct.d[self.current_key].count_f - 1)
+            if self.rnd_f == -1:
+                self.current_form = self.current_key
+                if self.current_key not in self.used_words:
+                    self.text_dct['state'] = 'normal'
+                    _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
+                    self.text_dct['state'] = 'disabled'
+                    break
+            else:
+                self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
+                if (self.current_key, self.current_form) not in self.used_words:
+                    self.text_dct['state'] = 'normal'
+                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form)
+                    self.text_dct['state'] = 'disabled'
+                    break
+
+        return True
+
+    # Выбор словоформы - все, сначала сложные
+    def choose_f_hard(self, _dct, _min_good_score_perc):
+        if len(self.used_words) == _dct.count_w + _dct.count_f:
+            self.stop()
+            return
+        while True:
+            self.current_key = _dct.random_hard(_min_good_score_perc)
+            self.rnd_f = random.randint(-1, _dct.d[self.current_key].count_f - 1)
+            if self.rnd_f == -1:
+                self.current_form = self.current_key
+                if self.current_key not in self.used_words:
+                    self.text_dct['state'] = 'normal'
+                    _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
+                    self.text_dct['state'] = 'disabled'
+                    break
+            else:
+                self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
+                if (self.current_key, self.current_form) not in self.used_words:
+                    self.text_dct['state'] = 'normal'
+                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form)
+                    self.text_dct['state'] = 'disabled'
+                    break
+
+        return True
+
+    # Выбор перевода - все
+    def choose_t(self, _dct):
+        if len(self.used_words) == _dct.count_w:
+            self.stop()
+            return
+        while True:
+            self.current_key = random.choice(list(_dct.d.keys()))
+            if self.current_key not in self.used_words:
+                break
+
+        self.text_dct['state'] = 'normal'
+        _dct.d[self.current_key].print_wrd_with_stat(self.text_dct)
+        self.text_dct['state'] = 'disabled'
+
+        return True
+
+    # Выбор перевода - избранные
+    def choose_t_fav(self, _dct):
+        while True:
+            if len(self.used_words) == _dct.count_w:
+                self.stop()
+                return
+            self.current_key = random.choice(list(_dct.d.keys()))
+            if not _dct.d[self.current_key].fav:
+                self.used_words.add(self.current_key)
+                continue
+            if self.current_key not in self.used_words:
+                break
+
+        self.text_dct['state'] = 'normal'
+        _dct.d[self.current_key].print_wrd_with_stat(self.text_dct)
+        self.text_dct['state'] = 'disabled'
+
+        return True
+
+    # Выбор перевода - все, сначала сложные
+    def choose_t_hard(self, _dct, _min_good_score_perc):
+        if len(self.used_words) == _dct.count_w:
+            self.stop()
+            return
+        while True:
+            self.current_key = _dct.random_hard(_min_good_score_perc)
+            if self.current_key not in self.used_words:
+                break
+
+        self.text_dct['state'] = 'normal'
+        _dct.d[self.current_key].print_wrd_with_stat(self.text_dct)
+        self.text_dct['state'] = 'disabled'
+
+        return True
+
+    def open(self):
+        self.focus_set()
+        self.entry_input.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_input.invoke())
 
         self.grab_set()
         self.wait_window()
@@ -3335,441 +3770,6 @@ class AddW(tk.Toplevel):
         self.wait_window()
 
         return self.key
-
-
-# Окно изучения слов
-class LearnW(tk.Toplevel):
-    def __init__(self, parent, conf):
-        super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Learn')
-        self.resizable(width=False, height=False)
-        self.configure(bg=ST_BG[th])
-
-        self.current_key = None
-        self.current_form = None
-        self.rnd_f = None  # Вспомогательная переменная для выбора случайного слова
-        self.count_all = 0
-        self.count_correct = 0
-        self.used_words = set()  # Слова (формы), которые уже были угаданы
-        self.conf = conf  # Режим изучения слов
-
-        self.var_input = tk.StringVar()
-
-        self.lbl_global_rating = tk.Label(self,
-                                          text=f'Ваш общий рейтинг по словарю: {round(_0_global_dct.count_rating() * 100)}%',
-                                          bg=ST_BG[th], fg=ST_FG[th])
-        self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.text_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
-                                bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
-                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                relief=ST_RELIEF[th])
-        self.scrollbar.config(command=self.text_dct.yview)
-        self.frame_main = tk.Frame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
-        # { {
-        self.btn_input = tk.Button(self.frame_main, text='Ввод', command=self.input, overrelief='groove',
-                                   bg=ST_BTN_BG[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
-                                   activebackground=ST_BTN_BG_SEL[th])
-        self.entry_input = tk.Entry(self.frame_main, textvariable=self.var_input, width=50, relief='solid',
-                                    bg=ST_BG_FIELDS[th], fg=ST_FG_ENTRY[th], highlightbackground=ST_BORDER[th],
-                                    highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT_BG[th],
-                                    selectforeground=ST_SELECT_FG[th])
-        self.btn_notes = tk.Button(self.frame_main, text='Посмотреть сноски', command=self.show_notes,
-                                   overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG[th],
-                                   highlightbackground=ST_BORDER[th], activebackground=ST_BTN_BG_SEL[th])
-        # } }
-        self.btn_stop = tk.Button(self, text='Закончить', command=self.stop, overrelief='groove',
-                                  bg=ST_BTNN_BG[th], fg=ST_FG[th],
-                                  highlightbackground=ST_BORDER[th], activebackground=ST_BTNN_BG_SEL[th])
-
-        self.lbl_global_rating.grid(row=0, columnspan=2, padx=6,      pady=6)
-        self.text_dct.grid(         row=1, column=0,     padx=(6, 0), pady=6, sticky='NSEW')
-        self.scrollbar.grid(        row=1, column=1,     padx=(0, 6), pady=6, sticky='NSW')
-        self.frame_main.grid(       row=2, columnspan=2, padx=6,      pady=6)
-        # { {
-        self.btn_input.grid(  row=0, column=0, padx=(0, 3), pady=0, sticky='E')
-        self.entry_input.grid(row=0, column=1, padx=(0, 3), pady=0, sticky='W')
-        self.btn_notes.grid(  row=0, column=2, padx=0,      pady=0, sticky='W')
-        # } }
-        self.btn_stop.grid(row=3, columnspan=2, padx=6, pady=6)
-
-        self.start()
-
-    # Печать в текстовое поле
-    def outp(self, msg='', end='\n'):
-        self.text_dct['state'] = 'normal'
-        self.text_dct.insert(tk.END, msg + end)
-        self.text_dct.yview_moveto(1.0)
-        self.text_dct['state'] = 'disabled'
-
-    # Начать учить слова
-    def start(self):
-        global _0_global_has_progress
-
-        order = self.conf[0]
-        forms = self.conf[1]
-        words = self.conf[2]
-
-        if order == VALUES_ORDER[0]:
-            if forms:
-                if words == VALUES_WORDS[0]:
-                    _0_global_has_progress = self.choose_f(_0_global_dct) or _0_global_has_progress
-                elif words == VALUES_WORDS[1]:
-                    _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
-                else:
-                    _0_global_has_progress = self.choose_f_fav(_0_global_dct) or _0_global_has_progress
-            else:
-                if words == VALUES_WORDS[0]:
-                    _0_global_has_progress = self.choose(_0_global_dct) or _0_global_has_progress
-                elif words == VALUES_WORDS[1]:
-                    _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
-                else:
-                    _0_global_has_progress = self.choose_fav(_0_global_dct) or _0_global_has_progress
-        else:
-            if words == VALUES_WORDS[0]:
-                _0_global_has_progress = self.choose_t(_0_global_dct) or _0_global_has_progress
-            elif words == VALUES_WORDS[1]:
-                _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
-            else:
-                _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
-
-    # Ввод ответа и переход к следующему слову
-    def input(self):
-        global _0_global_has_progress
-
-        order = self.conf[0]
-        forms = self.conf[1]
-        words = self.conf[2]
-
-        answer = deu_encode(self.entry_input.get())  # Вывод пользовательского ответа
-        if answer != '':
-            self.outp(answer)
-
-        if order == VALUES_ORDER[1]:
-            self.check_tr()
-        elif forms and self.rnd_f != -1:
-            self.check_form()
-        else:
-            self.check_wrd()
-
-        if order == VALUES_ORDER[0]:
-            if forms:
-                if words == VALUES_WORDS[0]:
-                    _0_global_has_progress = self.choose_f(_0_global_dct) or _0_global_has_progress
-                elif words == VALUES_WORDS[1]:
-                    _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
-                else:
-                    _0_global_has_progress = self.choose_f_fav(_0_global_dct) or _0_global_has_progress
-            else:
-                if words == VALUES_WORDS[0]:
-                    _0_global_has_progress = self.choose(_0_global_dct) or _0_global_has_progress
-                elif words == VALUES_WORDS[1]:
-                    _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
-                else:
-                    _0_global_has_progress = self.choose_fav(_0_global_dct) or _0_global_has_progress
-        else:
-            if words == VALUES_WORDS[0]:
-                _0_global_has_progress = self.choose_t(_0_global_dct) or _0_global_has_progress
-            elif words == VALUES_WORDS[1]:
-                _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
-            else:
-                _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
-
-        self.btn_notes['state'] = 'normal'
-        self.entry_input.delete(0, tk.END)
-        self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {round(_0_global_dct.count_rating() * 100)}%'
-
-    # Просмотр сносок
-    def show_notes(self):
-        self.text_dct['state'] = 'normal'
-        entry = _0_global_dct.d[self.current_key]
-        entry.notes_print(self.text_dct)
-        self.text_dct.yview_moveto(1.0)
-        self.text_dct['state'] = 'disabled'
-        self.btn_notes['state'] = 'disabled'
-
-    # Завершение учёбы
-    def stop(self):
-        self.frame_main.grid_remove()
-        self.btn_stop.grid_remove()
-        self.btn_input['state'] = 'disabled'
-
-        if len(self.used_words) == _0_global_dct.count_w:
-            PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
-        self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}')
-
-    # Проверка введённого слова
-    def check_wrd(self):
-        entry = _0_global_dct.d[self.current_key]
-        if deu_encode(self.entry_input.get()) == deu_encode(entry.wrd):
-            entry.correct()
-            self.outp('Верно\n')
-            if entry.fav:
-                window = PopupDialogueW(self, 'Верно.\n'
-                                              'Оставить слово в избранном?',
-                                        'Да', 'Нет', val_on_close=True)
-                answer = window.open()
-                if not answer:
-                    entry.fav = False
-            self.count_all += 1
-            self.count_correct += 1
-            self.used_words.add(self.current_key)
-        else:
-            self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.wrd)}"\n')
-            if not entry.fav:
-                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()),
-                                          deu_encode(entry.wrd), _0_global_typo)
-                answer = window.open()
-                if answer != 'typo':
-                    entry.incorrect()
-                if answer == 'yes':
-                    entry.fav = True
-            self.count_all += 1
-
-    # Проверка введённой словоформы
-    def check_form(self):
-        entry = _0_global_dct.d[self.current_key]
-        if deu_encode(self.entry_input.get()) == deu_encode(entry.forms[self.current_form]):
-            entry.correct()
-            self.outp('Верно\n')
-            if entry.fav:
-                window = PopupDialogueW(self, 'Верно.\n'
-                                              'Оставить слово в избранном?',
-                                        'Да', 'Нет', val_on_close=True)
-                answer = window.open()
-                if not answer:
-                    entry.fav = False
-            self.count_all += 1
-            self.count_correct += 1
-            self.used_words.add((self.current_key, self.current_form))
-        else:
-            self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.forms[self.current_form])}"\n')
-            if not entry.fav:
-                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()),
-                                          deu_encode(entry.forms[self.current_form]), _0_global_typo)
-                answer = window.open()
-                if answer != 'typo':
-                    entry.incorrect()
-                if answer == 'yes':
-                    entry.fav = True
-            self.count_all += 1
-
-    # Проверка введённого перевода
-    def check_tr(self):
-        entry = _0_global_dct.d[self.current_key]
-        encoded_tr = [deu_encode(tr) for tr in entry.tr]
-        if deu_encode(self.entry_input.get()) in encoded_tr:
-            entry.correct()
-            self.outp('Верно\n')
-            if entry.fav:
-                window = PopupDialogueW(self, 'Верно.\n'
-                                              'Оставить слово в избранном?',
-                                        'Да', 'Нет', val_on_close=True)
-                answer = window.open()
-                if not answer:
-                    entry.fav = False
-            self.count_all += 1
-            self.count_correct += 1
-            self.used_words.add(self.current_key)
-        else:
-            self.outp(f'Неверно. Правильный ответ: "{tr_to_str(entry.tr)}"\n')
-            if not entry.fav:
-                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()), tr_to_str(entry.tr), _0_global_typo)
-                answer = window.open()
-                if answer != 'typo':
-                    entry.incorrect()
-                if answer == 'yes':
-                    entry.fav = True
-            self.count_all += 1
-
-    # Выбор слова - все
-    def choose(self, _dct):
-        if len(self.used_words) == _dct.count_w:
-            self.stop()
-            return
-        while True:
-            self.current_key = random.choice(list(_dct.d.keys()))
-            if self.current_key not in self.used_words:
-                break
-
-        self.text_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
-        self.text_dct['state'] = 'disabled'
-
-        return True
-
-    # Выбор слова - избранные
-    def choose_fav(self, _dct):
-        while True:
-            if len(self.used_words) == _dct.count_w:
-                self.stop()
-                return
-            self.current_key = random.choice(list(_dct.d.keys()))
-            if not _dct.d[self.current_key].fav:
-                self.used_words.add(self.current_key)
-                continue
-            if self.current_key not in self.used_words:
-                break
-
-        self.text_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
-        self.text_dct['state'] = 'disabled'
-
-        return True
-
-    # Выбор слова - все, сначала сложные
-    def choose_hard(self, _dct, _min_good_score_perc):
-        if len(self.used_words) == _dct.count_w:
-            self.stop()
-            return
-        while True:
-            self.current_key = _dct.random_hard(_min_good_score_perc)
-            if self.current_key not in self.used_words:
-                break
-
-        self.text_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
-        self.text_dct['state'] = 'disabled'
-
-        return True
-
-    # Выбор словоформы - все
-    def choose_f(self, _dct):
-        if len(self.used_words) == _dct.count_w + _dct.count_f:
-            self.stop()
-            return
-        while True:
-            self.current_key = random.choice(list(_dct.d.keys()))
-            self.rnd_f = random.randint(-1, _dct.d[self.current_key].count_f - 1)
-            if self.rnd_f == -1:
-                self.current_form = self.current_key
-                if self.current_key not in self.used_words:
-                    self.text_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
-                    self.text_dct['state'] = 'disabled'
-                    break
-            else:
-                self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
-                if (self.current_key, self.current_form) not in self.used_words:
-                    self.text_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form)
-                    self.text_dct['state'] = 'disabled'
-                    break
-
-        return True
-
-    # Выбор словоформы - избранные
-    def choose_f_fav(self, _dct):
-        while True:
-            if len(self.used_words) == _dct.count_w + _dct.count_f:
-                self.stop()
-                return
-            self.current_key = random.choice(list(_dct.d.keys()))
-            if not _dct.d[self.current_key].fav:
-                self.used_words.add(self.current_key)
-                for frm in _dct.d[self.current_key].forms.keys():
-                    self.used_words.add((self.current_key, frm))
-                continue
-            self.rnd_f = random.randint(-1, _dct.d[self.current_key].count_f - 1)
-            if self.rnd_f == -1:
-                self.current_form = self.current_key
-                if self.current_key not in self.used_words:
-                    self.text_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
-                    self.text_dct['state'] = 'disabled'
-                    break
-            else:
-                self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
-                if (self.current_key, self.current_form) not in self.used_words:
-                    self.text_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form)
-                    self.text_dct['state'] = 'disabled'
-                    break
-
-        return True
-
-    # Выбор словоформы - все, сначала сложные
-    def choose_f_hard(self, _dct, _min_good_score_perc):
-        if len(self.used_words) == _dct.count_w + _dct.count_f:
-            self.stop()
-            return
-        while True:
-            self.current_key = _dct.random_hard(_min_good_score_perc)
-            self.rnd_f = random.randint(-1, _dct.d[self.current_key].count_f - 1)
-            if self.rnd_f == -1:
-                self.current_form = self.current_key
-                if self.current_key not in self.used_words:
-                    self.text_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
-                    self.text_dct['state'] = 'disabled'
-                    break
-            else:
-                self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
-                if (self.current_key, self.current_form) not in self.used_words:
-                    self.text_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form)
-                    self.text_dct['state'] = 'disabled'
-                    break
-
-        return True
-
-    # Выбор перевода - все
-    def choose_t(self, _dct):
-        if len(self.used_words) == _dct.count_w:
-            self.stop()
-            return
-        while True:
-            self.current_key = random.choice(list(_dct.d.keys()))
-            if self.current_key not in self.used_words:
-                break
-
-        self.text_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_wrd_with_stat(self.text_dct)
-        self.text_dct['state'] = 'disabled'
-
-        return True
-
-    # Выбор перевода - избранные
-    def choose_t_fav(self, _dct):
-        while True:
-            if len(self.used_words) == _dct.count_w:
-                self.stop()
-                return
-            self.current_key = random.choice(list(_dct.d.keys()))
-            if not _dct.d[self.current_key].fav:
-                self.used_words.add(self.current_key)
-                continue
-            if self.current_key not in self.used_words:
-                break
-
-        self.text_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_wrd_with_stat(self.text_dct)
-        self.text_dct['state'] = 'disabled'
-
-        return True
-
-    # Выбор перевода - все, сначала сложные
-    def choose_t_hard(self, _dct, _min_good_score_perc):
-        if len(self.used_words) == _dct.count_w:
-            self.stop()
-            return
-        while True:
-            self.current_key = _dct.random_hard(_min_good_score_perc)
-            if self.current_key not in self.used_words:
-                break
-
-        self.text_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_wrd_with_stat(self.text_dct)
-        self.text_dct['state'] = 'disabled'
-
-        return True
-
-    def open(self):
-        self.focus_set()
-        self.entry_input.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_input.invoke())
-
-        self.grab_set()
-        self.wait_window()
 
 
 # Окно настроек
