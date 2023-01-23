@@ -19,11 +19,15 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-119'
+PROGRAM_VERSION = 'v7.0.0_PRE-120'
 PROGRAM_DATE = '23.1.2023'
-PROGRAM_TIME = '14:00 (UTC+3)'
+PROGRAM_TIME = '14:37 (UTC+3)'
+
+LOCAL_SETTINGS_VERSION = 1
+GLOBAL_SETTINGS_VERSION = 1
 
 """ Пути и файлы """
+
 MAIN_PATH = os.path.dirname(__file__)
 RESOURCES_DIR = 'resources'  # Папка с ресурсами
 RESOURCES_PATH = os.path.join(MAIN_PATH, RESOURCES_DIR)
@@ -1184,25 +1188,60 @@ def check_updates(window_parent, show_updates):
     return window_last_version
 
 
+# Обновить глобальные настройки с 0 до 1 версии
+def upgrade_global_settings_0_to_1():
+    with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
+        lines = global_settings_file.readlines()
+    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
+        global_settings_file.write(f'v{GLOBAL_SETTINGS_VERSION}\n')
+        global_settings_file.write(lines[0])  # Название текущего словаря
+        global_settings_file.write(lines[1])  # Уведомлять ли о выходе новых версий
+        global_settings_file.write('0\n')  # Добавлять ли кнопку "Опечатка" при неверном ответе в учёбе
+        global_settings_file.write(lines[2])  # Установленная тема
+
+
+# Обновить глобальные настройки старых версий до актуальной версии
+def upgrade_global_settings():
+    with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
+        lines = global_settings_file.readlines()
+    if len(lines) == 3:  # Версия 0
+        upgrade_global_settings_0_to_1()
+
+
 # Загрузить глобальные настройки (настройки программы)
 def upload_global_settings():
-    try:  # Открываем файл с названием словаря
+    try:  # Открываем файл с настройками программы
         open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8')
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
         with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
-            global_settings_file.write(f'words\n'
+            global_settings_file.write(f'v{GLOBAL_SETTINGS_VERSION}\n'
+                                       f'words\n'
                                        f'1\n'
+                                       f'0\n'
                                        f'{THEMES[0]}')
+    else:
+        upgrade_global_settings()
+
     with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
+        # Версия глобальных настроек
+        global_settings_file.readline()
+        # Название текущего словаря
         dct_savename = global_settings_file.readline().strip()
+        # Уведомлять ли о выходе новых версий
         try:
             show_updates = int(global_settings_file.readline().strip())
         except (ValueError, TypeError):
             show_updates = 1
+        # Добавлять ли кнопку "Опечатка" при неверном ответе в учёбе
+        try:
+            typo = int(global_settings_file.readline().strip())
+        except (ValueError, TypeError):
+            typo = 0
+        # Установленная тема
         theme = global_settings_file.readline().strip()
         if theme not in THEMES:
             theme = THEMES[0]
-    return dct_savename, show_updates, theme
+    return dct_savename, show_updates, typo, theme
 
 
 # Обновить локальные настройки с 0 до 1 версии
@@ -1210,7 +1249,7 @@ def upgrade_local_settings_0_to_1(local_settings_path):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         lines = local_settings_file.readlines()
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
-        local_settings_file.write('v1\n')
+        local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n')
         local_settings_file.write(lines[0])
         local_settings_file.write('\n')
         for i in range(1, len(lines)):
@@ -1235,7 +1274,7 @@ def upload_local_settings(savename):
         open(local_settings_path, 'r', encoding='utf-8')
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
         with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
-            local_settings_file.write(f'v1\n'  # Версия локальных настроек
+            local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n'  # Версия локальных настроек
                                       f'67\n'  # МППУ
                                       f'aäAÄeёEЁoöOÖuüUÜsßSẞ\n'  # Спец. комбинации
                                       f'Число\n'
@@ -1321,24 +1360,26 @@ def create_dct(dct, savename):
 
 
 # Сохранить глобальные настройки (настройки программы)
-def save_global_settings(dct_savename, show_updates, theme):
+def save_global_settings(dct_savename, show_updates, typo, theme):
     with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
-        global_settings_file.write(f'{dct_savename}\n'
+        global_settings_file.write(f'v{GLOBAL_SETTINGS_VERSION}\n'
+                                   f'{dct_savename}\n'
                                    f'{show_updates}\n'
+                                   f'{typo}\n'
                                    f'{theme}')
 
 
 # Сохранить название открытого словаря
 def save_dct_name():
-    _, tmp_show_updates, tmp_th = upload_global_settings()
-    save_global_settings(_0_global_dct_savename, tmp_show_updates, tmp_th)
+    _, tmp_show_updates, tmp_typo, tmp_th = upload_global_settings()
+    save_global_settings(_0_global_dct_savename, tmp_show_updates, tmp_typo, tmp_th)
 
 
 # Сохранить локальные настройки (настройки словаря)
 def save_local_settings(min_good_score_perc, form_parameters, filename):
     local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
-        local_settings_file.write(f'v1\n'
+        local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n'
                                   f'{min_good_score_perc}\n')
         for key in _0_global_special_combinations:
             val = _0_global_special_combinations[key]
@@ -1357,7 +1398,7 @@ def save_settings_if_has_changes(window_parent):
     window_dia = PopupDialogueW(window_parent, 'Хотите сохранить изменения настроек?', 'Да', 'Нет')
     answer = window_dia.open()
     if answer:
-        save_global_settings(_0_global_dct_savename, _0_global_show_updates, th)
+        save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_typo, th)
         save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters,
                             dct_filename(_0_global_dct_savename))
         PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
@@ -3365,7 +3406,8 @@ class LearnW(tk.Toplevel):
             entry.incorrect()
             self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.wrd)}"\n')
             if not entry.fav:
-                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()), deu_encode(entry.wrd), True)
+                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()),
+                                          deu_encode(entry.wrd), _0_global_typo)
                 answer = window.open()
                 if answer:
                     entry.fav = True
@@ -3392,7 +3434,7 @@ class LearnW(tk.Toplevel):
             self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.forms[self.current_form])}"\n')
             if not entry.fav:
                 window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()),
-                                          deu_encode(entry.forms[self.current_form]), True)
+                                          deu_encode(entry.forms[self.current_form]), _0_global_typo)
                 answer = window.open()
                 if answer:
                     entry.fav = True
@@ -3419,7 +3461,7 @@ class LearnW(tk.Toplevel):
             entry.incorrect()
             self.outp(f'Неверно. Правильный ответ: "{tr_to_str(entry.tr)}"\n')
             if not entry.fav:
-                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()), tr_to_str(entry.tr), True)
+                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()), tr_to_str(entry.tr), _0_global_typo)
                 answer = window.open()
                 if answer:
                     entry.fav = True
@@ -3631,6 +3673,7 @@ class SettingsW(tk.Toplevel):
 
         self.var_mgsp = tk.StringVar(value=str(_0_global_min_good_score_perc))
         self.var_show_updates = tk.BooleanVar(value=bool(_0_global_show_updates))
+        self.var_show_typo_button = tk.BooleanVar(value=bool(_0_global_typo))
         self.var_theme = tk.StringVar(value=th)
 
         # Только целые числа от 0 до 100
@@ -3679,6 +3722,14 @@ class SettingsW(tk.Toplevel):
                                          bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.check_show_updates = ttk.Checkbutton(self.frame_show_updates, variable=self.var_show_updates,
                                                   style='.TCheckbutton')
+        # } }
+        self.frame_show_typo_button = tk.LabelFrame(self.tab_global, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
+                                                    relief=ST_RELIEF[th])
+        # { {
+        self.lbl_show_typo_button = tk.Label(self.frame_show_typo_button, text='Показывать кнопку "Опечатка":',
+                                             bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.check_show_typo_button = ttk.Checkbutton(self.frame_show_typo_button, variable=self.var_show_typo_button,
+                                                      style='.TCheckbutton')
         # } }
         self.frame_dcts = tk.LabelFrame(self.tab_global, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                         relief=ST_RELIEF[th])
@@ -3749,7 +3800,12 @@ class SettingsW(tk.Toplevel):
         self.lbl_show_updates.grid(  row=0, column=0, padx=(6, 0), pady=6)
         self.check_show_updates.grid(row=0, column=1, padx=(0, 6), pady=6)
         # }
-        self.frame_dcts.grid(row=1, padx=6, pady=6)
+        self.frame_show_typo_button.grid(row=1, padx=6, pady=6)
+        # {
+        self.lbl_show_typo_button.grid(  row=0, column=0, padx=(6, 0), pady=6)
+        self.check_show_typo_button.grid(row=0, column=1, padx=(0, 6), pady=6)
+        # }
+        self.frame_dcts.grid(row=2, padx=6, pady=6)
         # {
         self.lbl_dcts.grid(         row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
         self.text_dcts.grid(        row=1, rowspan=2, column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
@@ -3763,7 +3819,7 @@ class SettingsW(tk.Toplevel):
         # } }
         self.lbl_dcts_warn.grid(row=2, column=2, padx=6, pady=6, sticky='N')
         # }
-        self.frame_themes.grid(row=2, padx=6, pady=6)
+        self.frame_themes.grid(row=3, padx=6, pady=6)
         # {
         self.lbl_themes.grid(     row=0, column=0, padx=(6, 1), pady=6)
         self.combo_themes.grid(   row=0, column=1, padx=0,      pady=6)
@@ -3800,6 +3856,12 @@ class SettingsW(tk.Toplevel):
         global _0_global_show_updates
 
         _0_global_show_updates = int(self.var_show_updates.get())  # 0 или 1
+
+    # Показывать/скрывать кнопку "Опечатка" при неверном ответе в учёбе
+    def set_show_typo_button(self):
+        global _0_global_typo
+
+        _0_global_typo = int(self.var_show_typo_button.get())  # 0 или 1
 
     # Установить выбранную тему
     def set_theme(self):
@@ -3960,7 +4022,7 @@ class SettingsW(tk.Toplevel):
             self.has_spec_comb_changes or\
             int('0' + self.var_mgsp.get()) != _0_global_min_good_score_perc  # Если self.var_mgsp.get() == '', то 0
 
-    # Были ли изменения локальных настроек
+    # Были ли изменения тем
     def has_theme_changes(self):
         return self.var_theme.get() != th
 
@@ -3968,6 +4030,7 @@ class SettingsW(tk.Toplevel):
     def has_changes(self):
         return self.has_local_changes() or\
             int(self.var_show_updates.get()) != _0_global_show_updates or\
+            int(self.var_show_typo_button.get()) != _0_global_typo or\
             self.var_theme.get() != th
 
     # Вывод существующих словарей
@@ -3994,6 +4057,7 @@ class SettingsW(tk.Toplevel):
 
         self.set_mgsp()
         self.set_show_updates()
+        self.set_show_typo_button()
         self.set_theme()
 
         self.backup_dct = copy.deepcopy(_0_global_dct)
@@ -4001,7 +4065,7 @@ class SettingsW(tk.Toplevel):
 
         save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters,
                             dct_filename(_0_global_dct_savename))
-        save_global_settings(_0_global_dct_savename, _0_global_show_updates, th)
+        save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_typo, th)
 
         if self.has_local_changes():
             save_dct(_0_global_dct, dct_filename(_0_global_dct_savename))
@@ -4152,12 +4216,12 @@ class MainW(tk.Tk):
 
     # Открыть настройки
     def settings(self):
-        global _0_global_dct_savename, _0_global_show_updates, th,\
+        global _0_global_dct_savename, _0_global_show_updates, _0_global_typo, th,\
             _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations
 
         SettingsW(self).open()
 
-        _0_global_dct_savename, _0_global_show_updates, th = upload_global_settings()  # Обновляем глобальные настройки
+        _0_global_dct_savename, _0_global_show_updates, _0_global_typo, th = upload_global_settings()  # Обновляем глобальные настройки
         _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations = \
             upload_local_settings(_0_global_dct_savename)  # Обновляем локальные настройки
 
@@ -4346,7 +4410,8 @@ _0_global_dct = Dictionary()
 _0_global_has_progress = False
 
 upload_themes(THEMES)  # Загружаем темы
-_0_global_dct_savename, _0_global_show_updates, th = upload_global_settings()  # Загружаем глобальные настройки
+_0_global_dct_savename, _0_global_show_updates, _0_global_typo, th =\
+    upload_global_settings()  # Загружаем глобальные настройки
 root = MainW()  # Создаём графический интерфейс
 upload_dct(root, _0_global_dct, _0_global_dct_savename)  # Загружаем словарь
 _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
