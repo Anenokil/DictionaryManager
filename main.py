@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-132'
+PROGRAM_VERSION = 'v7.0.0_PRE-133'
 PROGRAM_DATE = '24.1.2023'
-PROGRAM_TIME = '2:18 (UTC+3)'
+PROGRAM_TIME = '2:46 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -2202,7 +2202,7 @@ class CheckUpdatesW(tk.Toplevel):
                     print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
             # Из временной папки достаём файлы новой версии
             print('Set new files...')
-            for filename in os.listdir(os.path.join(NEW_VERSION_PATH, 'images')):
+            for filename in os.listdir(os.path.join(NEW_VERSION_PATH, RESOURCES_DIR, IMAGES_DIR)):
                 os.replace(os.path.join(NEW_VERSION_PATH, RESOURCES_DIR, IMAGES_DIR, filename),
                            os.path.join(IMAGES_PATH, filename))
             for filename in ['ver', 'README.txt', 'README.md', 'main.py']:
@@ -4599,4 +4599,5 @@ root.mainloop()
 # добавить изменение статьи по переводу
 # при наведении на Text (PrintW) выводить подсказку
 
+# сделать ttk стили для всех элементов
 # при закрытии окна возвращать фокус предыдущему окну (проблема: при закрытии всплывающих окон, MainW получает фокус)
