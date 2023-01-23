@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-118'
+PROGRAM_VERSION = 'v7.0.0_PRE-119'
 PROGRAM_DATE = '23.1.2023'
-PROGRAM_TIME = '1:32 (UTC+3)'
+PROGRAM_TIME = '14:00 (UTC+3)'
 
 """ Пути и файлы """
 MAIN_PATH = os.path.dirname(__file__)
@@ -1674,6 +1674,65 @@ class EntrySpecialCombinationW(tk.Toplevel):
         return self.closed, self.var_key.get(), self.var_val.get()
 
 
+# Окно с сообщением о неверном ответе
+class IncorrectAnswerW(tk.Toplevel):
+    def __init__(self, parent, user_answer, correct_answer, with_typo):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Incorrect answer')
+        self.configure(bg=ST_BG[th])
+
+        self.answer = 'no'  # Значение, возвращаемое методом self.open
+
+        self.lbl_msg = tk.Label(self, text=f'Неверно.\n'
+                                           f'Ваш ответ: {user_answer}\n'
+                                           f'Правильный ответ: {correct_answer}\n'
+                                           f'Хотите добавить слово в избранное?', bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.btn_yes = tk.Button(self, text='Да', command=self.yes, overrelief='groove',
+                                 bg=ST_BTNY_BG[th], fg=ST_FG_TEXT[th],
+                                 activebackground=ST_BTNY_BG_SEL[th], highlightbackground=ST_BORDER[th])
+        self.btn_no = tk.Button(self, text='Нет', command=self.no, overrelief='groove',
+                                bg=ST_BTNN_BG[th], fg=ST_FG_TEXT[th],
+                                activebackground=ST_BTNN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+        self.btn_typo = tk.Button(self, text='Просто опечатка', command=self.typo, overrelief='groove',
+                                  bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                  activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+
+        self.lbl_msg.grid(row=0, column=0, padx=6, pady=4)
+        self.btn_yes.grid(row=1, column=0, padx=6, pady=4, sticky='E')
+        self.btn_no.grid( row=1, column=1, padx=6, pady=4, sticky='W')
+        if with_typo:
+            self.btn_typo.grid(row=1, column=2, padx=6, pady=4, sticky='W')
+            self.lbl_msg.grid(columnspan=3)
+        else:
+            self.lbl_msg.grid(columnspan=2)
+
+    # Нажатие на кнопку "Да"
+    def yes(self):
+        self.answer = 'yes'
+        self.destroy()
+
+    # Нажатие на кнопку "Нет"
+    def no(self):
+        self.answer = 'no'
+        self.destroy()
+
+    # Нажатие на кнопку "Опечатка"
+    def typo(self):
+        self.answer = 'typo'
+        self.destroy()
+
+    def open(self):
+        self.focus_set()
+        self.btn_yes.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_yes.invoke())
+        self.bind('<Escape>', lambda event=None: self.btn_no.invoke())
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.answer
+
+
 # Окно уведомления о выходе новой версии
 class CheckUpdatesW(tk.Toplevel):
     def __init__(self, parent, last_version):
@@ -3289,7 +3348,7 @@ class LearnW(tk.Toplevel):
     # Проверка введённого слова
     def check_wrd(self):
         entry = _0_global_dct.d[self.current_key]
-        if self.entry_input.get() == entry.wrd:
+        if deu_encode(self.entry_input.get()) == deu_encode(entry.wrd):
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
@@ -3306,9 +3365,7 @@ class LearnW(tk.Toplevel):
             entry.incorrect()
             self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.wrd)}"\n')
             if not entry.fav:
-                window = PopupDialogueW(self, 'Неверно.\n'
-                                              'Хотите добавить слово в избранное?',
-                                        'Да', 'Нет')
+                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()), deu_encode(entry.wrd), True)
                 answer = window.open()
                 if answer:
                     entry.fav = True
@@ -3317,7 +3374,7 @@ class LearnW(tk.Toplevel):
     # Проверка введённой словоформы
     def check_form(self):
         entry = _0_global_dct.d[self.current_key]
-        if self.entry_input.get() == entry.forms[self.current_form]:
+        if deu_encode(self.entry_input.get()) == deu_encode(entry.forms[self.current_form]):
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
@@ -3334,9 +3391,8 @@ class LearnW(tk.Toplevel):
             entry.incorrect()
             self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.forms[self.current_form])}"\n')
             if not entry.fav:
-                window = PopupDialogueW(self, 'Неверно.\n'
-                                              'Хотите добавить слово в избранное?',
-                                        'Да', 'Нет')
+                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()),
+                                          deu_encode(entry.forms[self.current_form]), True)
                 answer = window.open()
                 if answer:
                     entry.fav = True
@@ -3345,7 +3401,8 @@ class LearnW(tk.Toplevel):
     # Проверка введённого перевода
     def check_tr(self):
         entry = _0_global_dct.d[self.current_key]
-        if self.entry_input.get() in entry.tr:
+        encoded_tr = [deu_encode(tr) for tr in entry.tr]
+        if deu_encode(self.entry_input.get()) in encoded_tr:
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
@@ -3362,9 +3419,7 @@ class LearnW(tk.Toplevel):
             entry.incorrect()
             self.outp(f'Неверно. Правильный ответ: "{tr_to_str(entry.tr)}"\n')
             if not entry.fav:
-                window = PopupDialogueW(self, 'Неверно.\n'
-                                              'Хотите добавить слово в избранное?',
-                                        'Да', 'Нет')
+                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()), tr_to_str(entry.tr), True)
                 answer = window.open()
                 if answer:
                     entry.fav = True
@@ -4283,7 +4338,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development  presents\n'
       f'                              {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'======================================================================================')
 
@@ -4307,5 +4362,3 @@ root.mainloop()
 # при наведении на Text (PrintW) выводить подсказку
 # при смене табов, менять размеры
 # при закрытии окна возвращать фокус предыдущему окну (проблема: при закрытии всплывающих окон, MainW получает фокус)
-
-# может быть добавить кнопку 'опечатка'
