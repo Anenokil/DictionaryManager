@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-121'
+PROGRAM_VERSION = 'v7.0.0_PRE-122'
 PROGRAM_DATE = '23.1.2023'
-PROGRAM_TIME = '14:48 (UTC+3)'
+PROGRAM_TIME = '17:33 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -39,6 +39,20 @@ GLOBAL_SETTINGS_FN = 'settings.txt'  # Файл с глобальными нас
 GLOBAL_SETTINGS_PATH = os.path.join(RESOURCES_PATH, GLOBAL_SETTINGS_FN)
 CUSTOM_THEMES_DIR = 'themes'  # Папка с пользовательскими темами
 CUSTOM_THEMES_PATH = os.path.join(RESOURCES_PATH, CUSTOM_THEMES_DIR)
+IMAGES_DIR = 'images'  # Папка с изображениями
+IMAGES_PATH = os.path.join(RESOURCES_PATH, IMAGES_DIR)
+
+# Если папки отсутствуют, то они создаются
+if RESOURCES_DIR not in os.listdir(MAIN_PATH):
+    os.mkdir(RESOURCES_PATH)
+if SAVES_DIR not in os.listdir(RESOURCES_PATH):
+    os.mkdir(SAVES_PATH)
+if LOCAL_SETTINGS_DIR not in os.listdir(RESOURCES_PATH):
+    os.mkdir(LOCAL_SETTINGS_PATH)
+if CUSTOM_THEMES_DIR not in os.listdir(RESOURCES_PATH):
+    os.mkdir(CUSTOM_THEMES_PATH)
+if IMAGES_DIR not in os.listdir(RESOURCES_PATH):
+    os.mkdir(IMAGES_PATH)
 
 NEW_VERSION_DIR = f'{PROGRAM_NAME}-master'
 NEW_VERSION_PATH = os.path.join(MAIN_PATH, NEW_VERSION_DIR)  # Временная папка с обновлением
@@ -54,16 +68,6 @@ URL_LAST_VERSION = f'https://raw.githubusercontent.com/Anenokil/{PROGRAM_NAME}/m
 # Ссылка для установки последней версии
 URL_DOWNLOAD_ZIP = f'https://github.com/Anenokil/{PROGRAM_NAME}/archive/refs/heads/master.zip'
 
-# Если папки отсутствуют, то они создаются
-if RESOURCES_DIR not in os.listdir(MAIN_PATH):
-    os.mkdir(RESOURCES_PATH)
-if SAVES_DIR not in os.listdir(RESOURCES_PATH):
-    os.mkdir(SAVES_PATH)
-if LOCAL_SETTINGS_DIR not in os.listdir(RESOURCES_PATH):
-    os.mkdir(LOCAL_SETTINGS_PATH)
-if CUSTOM_THEMES_DIR not in os.listdir(RESOURCES_PATH):
-    os.mkdir(CUSTOM_THEMES_PATH)
-
 """ Стандартные темы """
 
 REQUIRED_THEME_VERSION = 2
@@ -77,7 +81,7 @@ THEMES = ['light', 'dark']  # Названия тем
 # Entry: selectbackground, highlightcolor
 
 # Стили для каждой темы
-ST_BG            = {THEMES[0]: '#EEEEEE', THEMES[1]: '#222222'}  # Цвет фона окна
+ST_BG            = {THEMES[0]: '#EAEAEA', THEMES[1]: '#222222'}  # Цвет фона окна
 ST_BG_FIELDS     = {THEMES[0]: '#FFFFFF', THEMES[1]: '#171717'}  # Цвет фона полей ввода
 
 ST_FG_TEXT       = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет обычного текста
@@ -1651,6 +1655,57 @@ class PopupEntryW(tk.Toplevel):
         self.wait_window()
 
         return self.closed, self.var_text.get()
+
+
+# Всплывающее окно с изображением
+class PopupImgW(tk.Toplevel):
+    def __init__(self, parent, img, msg, btn_text='Ясно', title=PROGRAM_NAME):
+        super().__init__(parent)
+        self.title(title)
+        self.configure(bg=ST_BG[th])
+
+        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+
+        try:
+            self.img = tk.PhotoImage(file=os.path.join(IMAGES_PATH, img))
+        except:
+            self.lbl_img = tk.Label(self, text='[!!!] Изображение не найдено [!!!]\n'
+                                               'Недостающие изображения можно скачать здесь:',
+                                    bg=ST_BG[th], fg=ST_FG_TEXT[th])
+
+            self.text_img_not_found = tk.Text(self, height=1, width=40, borderwidth=0,
+                                              font='StdFont 10', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
+                                              selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                              highlightbackground=ST_BORDER[th])
+            self.text_img_not_found.insert(tk.END, f'{URL_RELEASES}')
+            self.text_img_not_found['state'] = 'disabled'
+            self.text_img_not_found.grid(row=1, column=0, padx=6, pady=(0, 16))
+        else:
+            self.lbl_img = tk.Label(self, image=self.img, bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.lbl_msg = tk.Label(self, text=msg, bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.btn_ok = tk.Button(self, text=btn_text, command=self.ok, overrelief='groove',
+                                bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+
+        self.lbl_img.grid(row=0, column=0, padx=6, pady=(4, 0))
+        self.lbl_msg.grid(row=2, column=0, padx=6, pady=0)
+        self.btn_ok.grid( row=3, column=0, padx=6, pady=4)
+
+    # Нажатие на кнопку
+    def ok(self):
+        self.closed = False
+        self.destroy()
+
+    def open(self):
+        self.focus_set()
+        self.btn_ok.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.closed
 
 
 # Окно ввода специальной комбинации
@@ -3694,15 +3749,22 @@ class SettingsW(tk.Toplevel):
         self.frame_mgsp = tk.LabelFrame(self.tab_local, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                         relief=ST_RELIEF[th])
         # { {
+        try:
+            self.img_about_mgsp = tk.PhotoImage(file=os.path.join(IMAGES_PATH, 'about.png'))
+        except:
+            self.btn_about_mgsp = tk.Button(self.frame_mgsp, text='?', command=self.about_mgsp,
+                                            overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                            activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+        else:
+            self.btn_about_mgsp = tk.Button(self.frame_mgsp, image=self.img_about_mgsp, command=self.about_mgsp,
+                                            relief='flat', borderwidth=0, bg=ST_BG[th],
+                                            activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.lbl_mgsp = tk.Label(self.frame_mgsp, text='Минимальный приемлемый процент угадываний слова:',
                                  bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.entry_mgsp = tk.Entry(self.frame_mgsp, textvariable=self.var_mgsp, width=5, relief='solid',
                                    validate='key', vcmd=self.vcmd, bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                    highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                    selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
-        self.lbl_mgsp_2 = tk.Label(self.frame_mgsp, text='Статьи, у которых процент угадывания ниже этого значения,'
-                                                         'будут считаться более сложными',
-                                   bg=ST_BG[th], fg=ST_FG_TEXT[th])
         # } }
         self.btn_forms = tk.Button(self.tab_local, text='Настройки словоформ', command=self.forms,
                                    overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
@@ -3731,6 +3793,16 @@ class SettingsW(tk.Toplevel):
         self.frame_show_typo_button = tk.LabelFrame(self.tab_global, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
                                                     relief=ST_RELIEF[th])
         # { {
+        try:
+            self.img_about_typo = tk.PhotoImage(file=os.path.join(IMAGES_PATH, 'about.png'))
+        except:
+            self.btn_about_typo = tk.Button(self.frame_show_typo_button, text='?', command=self.about_typo,
+                                            overrelief='groove', bg=ST_BTN_BG[th], fg=ST_FG_TEXT[th],
+                                            activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+        else:
+            self.btn_about_typo = tk.Button(self.frame_show_typo_button, image=self.img_about_typo, command=self.about_typo,
+                                            relief='flat', borderwidth=0, bg=ST_BG[th],
+                                            activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
         self.lbl_show_typo_button = tk.Label(self.frame_show_typo_button, text='Показывать кнопку "Опечатка":',
                                              bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.check_show_typo_button = ttk.Checkbutton(self.frame_show_typo_button, variable=self.var_show_typo_button,
@@ -3770,13 +3842,14 @@ class SettingsW(tk.Toplevel):
         self.lbl_themes = tk.Label(self.frame_themes, text='Тема:', bg=ST_BG[th], fg=ST_FG_TEXT[th])
         self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
                                          state='readonly', style='.TCombobox')
-        self.text_themes_note = tk.Text(self.frame_themes, height=3, width=40, borderwidth=0,
-                                        font='StdFont 10', bg=ST_BG[th], fg=ST_FG_TEXT[th],
+        self.lbl_themes_note = tk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
+                                                                f'Актуальные темы можно скачать здесь:',
+                                        justify='left', bg=ST_BG[th], fg=ST_FG_TEXT[th])
+        self.text_themes_note = tk.Text(self.frame_themes, height=1, width=40, borderwidth=0,
+                                        font='StdFont 10', bg=ST_BG_FIELDS[th], fg=ST_FG_TEXT[th],
                                         selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                         highlightbackground=ST_BORDER[th])
-        self.text_themes_note.insert(tk.END, f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
-                                             f'Актуальные темы можно скачать здесь:\n'
-                                             f'{URL_RELEASES}')
+        self.text_themes_note.insert(tk.END, f'{URL_RELEASES}')
         self.text_themes_note['state'] = 'disabled'
         # } }
         # }
@@ -3790,15 +3863,15 @@ class SettingsW(tk.Toplevel):
         self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 0))
         self.tabs.grid(        row=1, columnspan=2, padx=6, pady=(0, 6))
         #
-        self.frame_mgsp.grid(row=0, padx=6, pady=6, sticky='E')
+        self.frame_mgsp.grid(row=0, padx=75, pady=6)
         # {
-        self.lbl_mgsp.grid(  row=0, column=0,     padx=(6, 1), pady=6,      sticky='E')
-        self.entry_mgsp.grid(row=0, column=1,     padx=(0, 1), pady=6,      sticky='W')
-        self.lbl_mgsp_2.grid(row=1, columnspan=2, padx=6,      pady=(0, 6))
+        self.btn_about_mgsp.grid(row=0, column=0, padx=(6, 0), pady=6, sticky='E')
+        self.lbl_mgsp.grid(      row=0, column=1, padx=(3, 3), pady=6, sticky='E')
+        self.entry_mgsp.grid(    row=0, column=2, padx=(0, 6), pady=6, sticky='W')
         # }
         self.btn_forms.grid(               row=1, padx=6, pady=(0,   6))
         self.btn_special_combinations.grid(row=2, padx=6, pady=(0,   6))
-        self.lbl_save_warn.grid(           row=3, padx=6, pady=(140, 6), sticky='S')
+        self.lbl_save_warn.grid(           row=3, padx=6, pady=(240, 6), sticky='S')
         #
         self.frame_show_updates.grid(row=0, padx=6, pady=6)
         # {
@@ -3807,8 +3880,9 @@ class SettingsW(tk.Toplevel):
         # }
         self.frame_show_typo_button.grid(row=1, padx=6, pady=6)
         # {
-        self.lbl_show_typo_button.grid(  row=0, column=0, padx=(6, 0), pady=6)
-        self.check_show_typo_button.grid(row=0, column=1, padx=(0, 6), pady=6)
+        self.btn_about_typo.grid(        row=0, column=0, padx=(6, 0), pady=6)
+        self.lbl_show_typo_button.grid(  row=0, column=1, padx=(3, 3), pady=6)
+        self.check_show_typo_button.grid(row=0, column=2, padx=(0, 6), pady=6)
         # }
         self.frame_dcts.grid(row=2, padx=6, pady=6)
         # {
@@ -3826,9 +3900,10 @@ class SettingsW(tk.Toplevel):
         # }
         self.frame_themes.grid(row=3, padx=6, pady=6)
         # {
-        self.lbl_themes.grid(     row=0, column=0, padx=(6, 1), pady=6)
-        self.combo_themes.grid(   row=0, column=1, padx=0,      pady=6)
-        self.text_themes_note.grid(row=0, column=2, padx=6,      pady=6)
+        self.lbl_themes.grid(      row=0, rowspan=2, column=0, padx=(6, 1), pady=6)
+        self.combo_themes.grid(    row=0, rowspan=2, column=1, padx=0,      pady=6)
+        self.lbl_themes_note.grid( row=0,            column=2, padx=6,      pady=(6, 0), sticky='W')
+        self.text_themes_note.grid(row=1,            column=2, padx=6,      pady=(0, 6), sticky='W')
         # }
         #
         self.btn_save.grid( row=4, column=0, padx=(6, 3), pady=(0, 6))
@@ -4050,6 +4125,20 @@ class SettingsW(tk.Toplevel):
                 else:
                     self.text_dcts.insert(tk.END, f'"{base_name}"\n')
         self.text_dcts['state'] = 'disabled'
+
+    # Справка о МППУ
+    def about_mgsp(self):
+        PopupImgW(self, 'about_mgsp.png', 'Статьи, у которых процент угадывания ниже этого значения,\n'
+                                          'будут считаться более сложными.\n'
+                                          'При выборе режима учёбы "Чаще сложные"\n'
+                                          'такие слова будут чаще попадаться.').open()
+
+    # Справка о кнопке "Опечатка"
+    def about_typo(self):
+        PopupImgW(self, 'about_typo.png', 'Если функция включена, то\n'
+                                          'когда вы неверно отвечаете при учёбе,\n'
+                                          'появляется кнопка "Просто опечатка".\n'
+                                          'При её нажатии, ошибка не засчитывается.').open()
 
     # Обновить список словарей
     def refresh(self):
@@ -4432,3 +4521,5 @@ root.mainloop()
 # при наведении на Text (PrintW) выводить подсказку
 # при смене табов, менять размеры
 # при закрытии окна возвращать фокус предыдущему окну (проблема: при закрытии всплывающих окон, MainW получает фокус)
+
+# баг: когда кнопка пропадает с окна, она всё равно нажимается энтером
