@@ -19,16 +19,16 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-126'
+PROGRAM_VERSION = 'v7.0.0_PRE-127'
 PROGRAM_DATE = '23.1.2023'
-PROGRAM_TIME = '21:43 (UTC+3)'
+PROGRAM_TIME = '21:46 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
+REQUIRED_THEME_VERSION = 3
 
 """ Стандартные темы """
 
-REQUIRED_THEME_VERSION = 3
 THEMES = ['light', 'dark']  # Названия тем
 
 # Все: bg
@@ -1155,16 +1155,21 @@ def upload_themes(themes):
         path = os.path.join(CUSTOM_THEMES_PATH, dirname)
         if not os.path.isdir(path):
             continue
+        styles_filename = 'styles.txt'
+        if styles_filename not in os.listdir(path):
+            continue
         theme = dirname
         try:
             is_correct = True
-            with open(os.path.join(path, 'styles.txt'), 'r', encoding='utf-8') as theme_file:
+            styles_path = os.path.join(path, styles_filename)
+            with open(styles_path, 'r', encoding='utf-8') as theme_file:
                 line = theme_file.readline().strip()
                 theme_version = int(re.split(' |//', line)[0])  # После // идут комментарии
                 if theme_version != REQUIRED_THEME_VERSION:  # Проверка версии темы
                     print(f'Не удалось загрузить тему "{theme}",\n'
                           f'  т. к. её версия не соответствует требуемой!\n'
-                          f'  Актуальные темы можно загрузить здесь: {URL_RELEASES}')
+                          f'  Актуальные темы можно загрузить здесь:\n'
+                          f'  {URL_RELEASES}')
                     continue
                 themes += [theme]  # Добавляем название новой темы
                 for style_elem in STYLE_ELEMENTS:  # Проходимся по стилизуемым элементам
