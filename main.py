@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-122'
+PROGRAM_VERSION = 'v7.0.0_PRE-123'
 PROGRAM_DATE = '23.1.2023'
-PROGRAM_TIME = '17:33 (UTC+3)'
+PROGRAM_TIME = '17:39 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -3463,13 +3463,14 @@ class LearnW(tk.Toplevel):
             self.count_correct += 1
             self.used_words.add(self.current_key)
         else:
-            entry.incorrect()
             self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.wrd)}"\n')
             if not entry.fav:
                 window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()),
                                           deu_encode(entry.wrd), _0_global_typo)
                 answer = window.open()
-                if answer:
+                if answer != 'typo':
+                    entry.incorrect()
+                if answer == 'yes':
                     entry.fav = True
             self.count_all += 1
 
@@ -3490,13 +3491,14 @@ class LearnW(tk.Toplevel):
             self.count_correct += 1
             self.used_words.add((self.current_key, self.current_form))
         else:
-            entry.incorrect()
             self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.forms[self.current_form])}"\n')
             if not entry.fav:
                 window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()),
                                           deu_encode(entry.forms[self.current_form]), _0_global_typo)
                 answer = window.open()
-                if answer:
+                if answer != 'typo':
+                    entry.incorrect()
+                if answer == 'yes':
                     entry.fav = True
             self.count_all += 1
 
@@ -3518,12 +3520,13 @@ class LearnW(tk.Toplevel):
             self.count_correct += 1
             self.used_words.add(self.current_key)
         else:
-            entry.incorrect()
             self.outp(f'Неверно. Правильный ответ: "{tr_to_str(entry.tr)}"\n')
             if not entry.fav:
                 window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()), tr_to_str(entry.tr), _0_global_typo)
                 answer = window.open()
-                if answer:
+                if answer != 'typo':
+                    entry.incorrect()
+                if answer == 'yes':
                     entry.fav = True
             self.count_all += 1
 
