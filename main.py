@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-131'
+PROGRAM_VERSION = 'v7.0.0_PRE-132'
 PROGRAM_DATE = '24.1.2023'
-PROGRAM_TIME = '1:17 (UTC+3)'
+PROGRAM_TIME = '2:18 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -3780,6 +3780,7 @@ class SettingsW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
+        self.current_tab = 1  # Текущая вкладка (1 или 2)
         self.has_forms_changes = False
         self.has_spec_comb_changes = False
         self.backup_dct = copy.deepcopy(_0_global_dct)
@@ -3917,15 +3918,15 @@ class SettingsW(tk.Toplevel):
         self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 0))
         self.tabs.grid(        row=1, columnspan=2, padx=6, pady=(0, 6))
         #
-        self.frame_mgsp.grid(row=0, padx=75, pady=6)
+        self.frame_mgsp.grid(row=0, padx=6, pady=6)
         # {
         self.btn_about_mgsp.grid(row=0, column=0, padx=(6, 0), pady=6, sticky='E')
         self.lbl_mgsp.grid(      row=0, column=1, padx=(3, 3), pady=6, sticky='E')
         self.entry_mgsp.grid(    row=0, column=2, padx=(0, 6), pady=6, sticky='W')
         # }
-        self.btn_forms.grid(               row=1, padx=6, pady=(0,   6))
-        self.btn_special_combinations.grid(row=2, padx=6, pady=(0,   6))
-        self.lbl_save_warn.grid(           row=3, padx=6, pady=(240, 6), sticky='S')
+        self.btn_forms.grid(               row=1, padx=6, pady=(0, 6))
+        self.btn_special_combinations.grid(row=2, padx=6, pady=(0, 6))
+        self.lbl_save_warn.grid(           row=3, padx=6, pady=(0, 6), sticky='S')
         #
         self.frame_show_updates.grid(row=0, padx=6, pady=6)
         # {
@@ -4195,6 +4196,26 @@ class SettingsW(tk.Toplevel):
                                         'появляется кнопка "Просто опечатка".\n'
                                         'При её нажатии, ошибка не засчитывается.').open()
 
+    # Изменить размер окна в зависимости от открытой вкладки
+    def resize_tabs(self):
+        if self.current_tab == 1:
+            self.frame_show_updates.grid(    row=0, padx=0, pady=0)
+            self.frame_show_typo_button.grid(row=0, padx=0, pady=0)
+            self.frame_dcts.grid(            row=0, padx=0, pady=0)
+            self.frame_themes.grid(          row=0, padx=0, pady=0)
+
+            self.frame_dcts.grid_remove()
+            self.frame_themes.grid_remove()
+
+            self.current_tab = 2
+        else:
+            self.frame_show_updates.grid(    row=0, padx=6, pady=6)
+            self.frame_show_typo_button.grid(row=1, padx=6, pady=6)
+            self.frame_dcts.grid(            row=2, padx=6, pady=6)
+            self.frame_themes.grid(          row=3, padx=6, pady=6)
+
+            self.current_tab = 1
+
     # Обновить список словарей
     def refresh(self):
         self.var_mgsp.set(str(_0_global_min_good_score_perc))
@@ -4240,6 +4261,7 @@ class SettingsW(tk.Toplevel):
         self.focus_set()
         self.entry_mgsp.focus_set()
         self.bind('<Escape>', lambda event=None: self.btn_close.invoke())
+        self.tabs.bind('<<NotebookTabChanged>>', lambda event=None: self.resize_tabs())
 
         self.grab_set()
         self.wait_window()
@@ -4571,10 +4593,10 @@ _0_global_window_last_version = check_updates(root, _0_global_show_updates)  # �
 root.mainloop()
 
 # попробовать tk.ScrolledText
-# добавить изменение статьи по переводу
-# принимать несколько ответов при угадывании слова
-# если ответ немного отличается от правильного, то ...
 # открывать программу после обновления
+# если ответ немного отличается от правильного, то ...
+# принимать несколько ответов при угадывании слова
+# добавить изменение статьи по переводу
 # при наведении на Text (PrintW) выводить подсказку
-# при смене табов, менять размеры
+
 # при закрытии окна возвращать фокус предыдущему окну (проблема: при закрытии всплывающих окон, MainW получает фокус)
