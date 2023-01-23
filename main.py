@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-133'
+PROGRAM_VERSION = 'v7.0.0_PRE-134'
 PROGRAM_DATE = '24.1.2023'
-PROGRAM_TIME = '2:46 (UTC+3)'
+PROGRAM_TIME = '2:47 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -3868,7 +3868,7 @@ class SettingsW(tk.Toplevel):
         # { {
         self.lbl_dcts = tk.Label(self.frame_dcts, text='Существующие словари:', bg=ST_BG[th], fg=ST_FG[th])
         self.scrollbar = ttk.Scrollbar(self.frame_dcts, style='Vertical.TScrollbar')
-        self.text_dcts = tk.Text(self.frame_dcts, width=27, height=10, state='disabled', relief=ST_RELIEF[th],
+        self.text_dcts = tk.Text(self.frame_dcts, width=27, height=6, state='disabled', relief=ST_RELIEF[th],
                                  yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                  highlightbackground=ST_BORDER[th])
