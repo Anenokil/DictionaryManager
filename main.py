@@ -19,9 +19,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-130'
+PROGRAM_VERSION = 'v7.0.0_PRE-131'
 PROGRAM_DATE = '24.1.2023'
-PROGRAM_TIME = '1:08 (UTC+3)'
+PROGRAM_TIME = '1:17 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -128,7 +128,7 @@ SAVES_DIR = 'saves'  # Папка с сохранениями
 SAVES_PATH = os.path.join(RESOURCES_PATH, SAVES_DIR)
 LOCAL_SETTINGS_DIR = 'local_settings'  # Папка с локальными настройками (настройки словаря)
 LOCAL_SETTINGS_PATH = os.path.join(RESOURCES_PATH, LOCAL_SETTINGS_DIR)
-GLOBAL_SETTINGS_FN = 'settings.txt'  # Файл с глобальными настройками (настройки программы)
+GLOBAL_SETTINGS_FN = 'global_settings.txt'  # Файл с глобальными настройками (настройки программы)
 GLOBAL_SETTINGS_PATH = os.path.join(RESOURCES_PATH, GLOBAL_SETTINGS_FN)
 CUSTOM_THEMES_DIR = 'themes'  # Папка с пользовательскими темами
 CUSTOM_THEMES_PATH = os.path.join(RESOURCES_PATH, CUSTOM_THEMES_DIR)
