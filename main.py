@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-140'
+PROGRAM_VERSION = 'v7.0.0_PRE-141'
 PROGRAM_DATE = '24.1.2023'
-PROGRAM_TIME = '19:55 (UTC+3)'
+PROGRAM_TIME = '20:33 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -1871,7 +1871,7 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.vcmd_val = (self.register(validate_special_combination_val), '%P')
 
         self.lbl_msg = ttk.Label(self, text='Задайте комбинацию', style='Default.TLabel')
-        self.frame_main = tk.Frame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        self.frame_main = ttk.Frame(self, style='.TFrame')
         # {
         self.lbl_1 = ttk.Label(self.frame_main, text='#', style='Default.TLabel')
         self.entry_key = ttk.Entry(self.frame_main, textvariable=self.var_key, width=2, justify='right',
@@ -2009,7 +2009,7 @@ class ChooseNoteW(tk.Toplevel):
         # Ввод номеров ограниченных количеством вариантов
         self.vcmd_max = (self.register(lambda value: validate_int_max(value, self.vals_count)), '%P')
 
-        self.frame_main = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        self.frame_main = ttk.Frame(self, style='.TFrame')
         # {
         self.lbl_input = ttk.Label(self.frame_main, text='Выберите одну из статей:', style='Default.TLabel')
         self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=5,
@@ -2151,7 +2151,7 @@ class CheckUpdatesW(tk.Toplevel):
         self.lbl_msg = ttk.Label(self, text=f'Доступна новая версия программы\n'
                                             f'{last_version}',
                                  justify='center', style='Default.TLabel')
-        self.frame_url = tk.Frame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        self.frame_url = ttk.Frame(self, style='.TFrame')
         # {
         self.entry_url = ttk.Entry(self.frame_url, textvariable=self.var_url, state='readonly', width=40,
                                    justify='center', style='.TEntry')
@@ -2428,7 +2428,7 @@ class FormsSettingsW(tk.Toplevel):
                                      bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
                                      selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                      relief=ST_RELIEF[th])
-        self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        self.frame_buttons = ttk.Frame(self, style='.TFrame')
         # {
         self.btn_add = ttk.Button(self.frame_buttons, text='Добавить параметр форм', command=self.add,
                                   takefocus=False, style='Default.TButton')
@@ -2540,7 +2540,7 @@ class FormsParameterSettingsW(tk.Toplevel):
                                     bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
                                     selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                     relief=ST_RELIEF[th])
-        self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        self.frame_buttons = ttk.Frame(self, style='.TFrame')
         # {
         self.btn_add = ttk.Button(self.frame_buttons, text='Добавить значение параметра', command=self.add,
                                   takefocus=False, style='Default.TButton')
@@ -2635,7 +2635,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
                                      bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
                                      selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                      relief=ST_RELIEF[th])
-        self.frame_buttons = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        self.frame_buttons = ttk.Frame(self, style='.TFrame')
         # {
         self.btn_add = ttk.Button(self.frame_buttons, text='Добавить комбинацию', command=self.add,
                                   takefocus=False, style='Default.TButton')
@@ -2734,7 +2734,7 @@ class PrintW(tk.Toplevel):
         self.var_info = tk.StringVar()
 
         self.lbl_dct_name = ttk.Label(self, text=f'Открыт словарь "{_0_global_dct_savename}"', style='Default.TLabel')
-        self.frame_main = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        self.frame_main = ttk.Frame(self, style='.TFrame')
         # {
         self.lbl_fav = ttk.Label(self.frame_main, text='Только избранные:', style='Default.TLabel')
         self.lbl_forms = ttk.Label(self.frame_main, text='Все формы:', style='Default.TLabel')
@@ -2829,7 +2829,7 @@ class ChooseLearnModeW(tk.Toplevel):
         self.var_words = tk.StringVar(value=VALUES_WORDS[0])  # Способ подбора слов
 
         self.lbl_header = ttk.Label(self, text='Выберите способ учёбы', style='Default.TLabel')
-        self.frame_main = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        self.frame_main = ttk.Frame(self, style='.TFrame')
         # {
         self.lbl_order = ttk.Label(self.frame_main, text='Метод:', style='Default.TLabel')
         self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=VALUES_ORDER,
@@ -2913,7 +2913,7 @@ class LearnW(tk.Toplevel):
                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                 relief=ST_RELIEF[th])
         self.scrollbar.config(command=self.text_dct.yview)
-        self.frame_main = tk.Frame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        self.frame_main = ttk.Frame(self, style='.TFrame')
         # { {
         self.btn_input = ttk.Button(self.frame_main, text='Ввод', command=self.input,
                                     takefocus=False, style='Default.TButton')
@@ -3339,7 +3339,7 @@ class SearchW(tk.Toplevel):
 
         self.var_wrd = tk.StringVar(value=wrd)
 
-        self.frame_main = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        self.frame_main = ttk.Frame(self, style='.TFrame')
         # {
         self.lbl_input = ttk.Label(self.frame_main, text='Введите запрос:', style='Default.TLabel')
         self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_wrd, width=60, style='.TEntry')
@@ -3455,7 +3455,7 @@ class EditW(tk.Toplevel):
         self.var_wrd = tk.StringVar(value=_0_global_dct.d[key].wrd)
         self.var_fav = tk.BooleanVar(value=_0_global_dct.d[key].fav)
 
-        self.frame_main = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        self.frame_main = ttk.Frame(self, style='.TFrame')
         # {
         self.lbl_wrd = ttk.Label(self.frame_main, text='Слово:', style='Default.TLabel')
         self.scrollbar_wrd = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
@@ -3474,8 +3474,7 @@ class EditW(tk.Toplevel):
                               highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
         self.scrollbar_tr.config(command=self.txt_tr.yview)
-        self.frame_btns_tr = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
-                                      relief=ST_RELIEF[th])
+        self.frame_btns_tr = ttk.Frame(self.frame_main, style='.TFrame')
         # { {
         self.btn_tr_add = ttk.Button(self.frame_btns_tr, text='+', command=self.tr_add,
                                      takefocus=False, style='Default.TButton')
@@ -3489,8 +3488,7 @@ class EditW(tk.Toplevel):
                                  highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
         self.scrollbar_notes.config(command=self.txt_notes.yview)
-        self.frame_btns_notes = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
-                                         relief=ST_RELIEF[th])
+        self.frame_btns_notes = ttk.Frame(self.frame_main, style='.TFrame')
         # { {
         self.btn_notes_add = ttk.Button(self.frame_btns_notes, text='+', command=self.notes_add,
                                         takefocus=False, style='Default.TButton')
@@ -3504,8 +3502,7 @@ class EditW(tk.Toplevel):
                                highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
         self.scrollbar_frm.config(command=self.txt_frm.yview)
-        self.frame_btns_frm = tk.Frame(self.frame_main, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
-                                       relief=ST_RELIEF[th])
+        self.frame_btns_frm = ttk.Frame(self.frame_main, style='.TFrame')
         # { {
         self.btn_frm_add = ttk.Button(self.frame_btns_frm, text='+', command=self.frm_add,
                                       takefocus=False, style='Default.TButton')
@@ -3872,13 +3869,11 @@ class SettingsW(tk.Toplevel):
         self.vcmd = (self.register(validate_percent), '%P')
 
         self.tabs = ttk.Notebook(self, style='.TNotebook')
-        self.tab_local = tk.Frame(self.tabs, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
-                                  relief=ST_RELIEF[th])
+        self.tab_local = ttk.Frame(self.tabs, style='.TFrame')
         self.lbl_dct_name = ttk.Label(self, text=f'Открыт словарь "{_0_global_dct_savename}"', style='Default.TLabel')
         self.tabs.add(self.tab_local, text='Настройки словаря')
         # {
-        self.frame_mgsp = tk.LabelFrame(self.tab_local, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
-                                        relief=ST_RELIEF[th])
+        self.frame_mgsp = ttk.Frame(self.tab_local, style='.TFrame')
         # { {
         try:
             self.img_about_mgsp = tk.PhotoImage(file=img_about)
@@ -3904,20 +3899,17 @@ class SettingsW(tk.Toplevel):
                                        text='При сохранении настроек словаря, сохраняется и сам словарь!',
                                        style='Warn.TLabel')
         # }
-        self.tab_global = tk.Frame(self.tabs, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
-                                   relief=ST_RELIEF[th])
+        self.tab_global = ttk.Frame(self.tabs, style='.TFrame')
         self.tabs.add(self.tab_global, text='Настройки программы')
         # {
-        self.frame_show_updates = tk.LabelFrame(self.tab_global, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
-                                                relief=ST_RELIEF[th])
+        self.frame_show_updates = ttk.Frame(self.tab_global, style='.TFrame')
         # { {
         self.lbl_show_updates = ttk.Label(self.frame_show_updates, text='Сообщать о выходе новых версий:',
                                           style='Default.TLabel')
         self.check_show_updates = ttk.Checkbutton(self.frame_show_updates, variable=self.var_show_updates,
                                                   style='.TCheckbutton')
         # } }
-        self.frame_show_typo_button = tk.LabelFrame(self.tab_global, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
-                                                    relief=ST_RELIEF[th])
+        self.frame_show_typo_button = ttk.Frame(self.tab_global, style='.TFrame')
         # { {
         try:
             self.img_about_typo = tk.PhotoImage(file=img_about)
@@ -3933,8 +3925,7 @@ class SettingsW(tk.Toplevel):
         self.check_show_typo_button = ttk.Checkbutton(self.frame_show_typo_button, variable=self.var_show_typo_button,
                                                       style='.TCheckbutton')
         # } }
-        self.frame_dcts = tk.LabelFrame(self.tab_global, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
-                                        relief=ST_RELIEF[th])
+        self.frame_dcts = ttk.Frame(self.tab_global, style='.TFrame')
         # { {
         self.lbl_dcts = ttk.Label(self.frame_dcts, text='Существующие словари:', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self.frame_dcts, style='Vertical.TScrollbar')
@@ -3942,8 +3933,7 @@ class SettingsW(tk.Toplevel):
                                  yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                  highlightbackground=ST_BORDER[th])
-        self.frame_dct_buttons = tk.LabelFrame(self.frame_dcts, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
-                                               relief=ST_RELIEF[th])
+        self.frame_dct_buttons = ttk.Frame(self.frame_dcts, style='.TFrame')
         # { { {
         self.btn_dct_open = ttk.Button(self.frame_dct_buttons, text='Открыть словарь', command=self.dct_open,
                                        takefocus=False, style='Default.TButton')
@@ -3957,8 +3947,7 @@ class SettingsW(tk.Toplevel):
         self.lbl_dcts_warn = ttk.Label(self.frame_dcts, text='Настройки словарей сохраняются сразу!',
                                        style='Warn.TLabel')
         # } }
-        self.frame_themes = tk.LabelFrame(self.tab_global, bg=ST_BG[th], highlightbackground=ST_BORDER[th],
-                                          relief=ST_RELIEF[th])
+        self.frame_themes = ttk.Frame(self.tab_global, style='.TFrame')
         # { {
         self.lbl_themes = ttk.Label(self.frame_themes, text='Тема:', style='Default.TLabel')
         self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
@@ -4353,7 +4342,7 @@ class MainW(tk.Tk):
 
         self.set_styles()
 
-        self.frame_head = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        self.frame_head = ttk.Frame(self, style='.TFrame')
         # {
         self.lbl_header = ttk.Label(self.frame_head, text='Anenokil development presents', style='Header.TLabel')
         self.lbl_logo = ttk.Label(self.frame_head, text=PROGRAM_NAME, style='Logo.TLabel')
@@ -4362,7 +4351,7 @@ class MainW(tk.Tk):
                                     takefocus=False, style='Default.TButton')
         self.btn_learn = ttk.Button(self, text='Учить слова', command=self.learn,
                                     takefocus=False, style='Default.TButton')
-        self.frame_word = tk.LabelFrame(self, bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
+        self.frame_word = ttk.Frame(self, style='.TFrame')
         # {
         self.entry_word = ttk.Entry(self.frame_word, textvariable=self.var_word, width=30, style='.TEntry')
         self.btn_search = ttk.Button(self.frame_word, text='Найти статью', command=self.search,
@@ -4457,24 +4446,9 @@ class MainW(tk.Tk):
 
         # Обновление тем
         self.configure(bg=ST_BG[th])
-        self.frame_head.configure(bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
-        self.frame_word.configure(bg=ST_BG[th], highlightbackground=ST_BORDER[th], relief=ST_RELIEF[th])
-        # {
-        self.entry_word.configure(bg=ST_BG_FIELDS[th], fg=ST_FG_ENTRY[th], highlightbackground=ST_BORDER[th],
-                                  highlightcolor=ST_HIGHLIGHT[th], selectbackground=ST_SELECT_BG[th],
-                                  selectforeground=ST_SELECT_FG[th])
-        # }
 
         try:
             _0_global_window_last_version.configure(bg=ST_BG[th])
-            _0_global_window_last_version.entry_url.configure(bg=ST_BG_FIELDS[th], fg=ST_FG_ENTRY[th],
-                                                              highlightbackground=ST_BORDER[th],
-                                                              highlightcolor=ST_HIGHLIGHT[th],
-                                                              selectbackground=ST_SELECT_BG[th],
-                                                              selectforeground=ST_SELECT_FG[th],
-                                                              readonlybackground=ST_BG_FIELDS[th])
-            _0_global_window_last_version.frame_url.configure(bg=ST_BG[th], highlightbackground=ST_BORDER[th],
-                                                              relief=ST_RELIEF[th])
         except:  # Если окно обновления не открыто
             pass
 
@@ -4680,6 +4654,14 @@ class MainW(tk.Tk):
         self.st_note.map('TNotebook.Tab',
                          background=[('selected', ST_NOTE_BG_SEL[th])],
                          foreground=[('selected', ST_NOTE_FG_SEL[th])])
+
+        # Стиль
+        # highlightbackground=ST_BORDER[th]
+        self.st_frame = ttk.Style()
+        self.st_frame.theme_use('alt')
+        self.st_frame.configure('.TFrame',
+                                relief=ST_RELIEF[th],
+                                background=ST_BG[th])
 
     # Установить фокус
     def set_focus(self):
