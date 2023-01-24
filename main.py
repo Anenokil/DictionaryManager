@@ -3,13 +3,9 @@ import os
 import shutil
 import random
 import math
-import sys
-if sys.version_info[0] == 3:
-    import tkinter as tk
-    import tkinter.ttk as ttk
-else:
-    import Tkinter as tk
-    import Tkinter.ttk as ttk
+import tkinter as tk
+import tkinter.ttk as ttk
+import idlelib.tooltip as ttip  # Всплывающие подсказки
 import re  # Несколько разделителей в split
 import webbrowser  # Для открытия веб-страницы
 import urllib.request as urllib2  # Для проверки наличия обновлений
@@ -19,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-134'
+PROGRAM_VERSION = 'v7.0.0_PRE-135'
 PROGRAM_DATE = '24.1.2023'
-PROGRAM_TIME = '2:47 (UTC+3)'
+PROGRAM_TIME = '3:30 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -2722,6 +2718,12 @@ class PrintW(tk.Toplevel):
         self.scrollbar_x.config(command=self.text_dct.xview, orient='horizontal')
         self.scrollbar_y.config(command=self.text_dct.yview, orient='vertical')
 
+        self.tip_text = ttip.Hovertip(self.text_dct, '(*) [1;  60%] word: слово\n'
+                                                     '|    (*) - избранное\n'
+                                                     '|    1 - количество ответов после\n'
+                                                     '|         последнего верного ответа\n'
+                                                     '|    60% - доля верных ответов')
+
         self.print()
 
     # Напечатать словарь
@@ -2833,12 +2835,12 @@ class LearnW(tk.Toplevel):
         self.count_all = 0
         self.count_correct = 0
         self.used_words = set()  # Слова (формы), которые уже были угаданы
-        self.conf = conf  # Режим изучения слов
+        self.conf = conf  # Режим изучения слов: [метод, все формы, подбор слов]
 
         self.var_input = tk.StringVar()
 
-        self.lbl_global_rating = tk.Label(self,
-                                          text=f'Ваш общий рейтинг по словарю: {round(_0_global_dct.count_rating() * 100)}%',
+        self.lbl_global_rating = tk.Label(self, text=f'Ваш общий рейтинг по словарю: '
+                                                     f'{round(_0_global_dct.count_rating() * 100)}%',
                                           bg=ST_BG[th], fg=ST_FG[th])
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
@@ -2873,6 +2875,12 @@ class LearnW(tk.Toplevel):
         self.btn_notes.grid(  row=0, column=2, padx=0,      pady=0, sticky='W')
         # } }
         self.btn_stop.grid(row=3, columnspan=2, padx=6, pady=6)
+
+        self.tip_btn_notes = ttip.Hovertip(self.btn_notes, 'Если сносок нет, то ничего не выведется', hover_delay=700)
+        if conf[0] == VALUES_ORDER[0]:
+            self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
+        else:
+            self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
 
         self.start()
 
@@ -3814,6 +3822,7 @@ class SettingsW(tk.Toplevel):
             self.btn_about_mgsp = tk.Button(self.frame_mgsp, image=self.img_about_mgsp, command=self.about_mgsp,
                                             relief='flat', borderwidth=0, bg=ST_BG[th],
                                             activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+            self.tip_btn_about_mgsp = ttip.Hovertip(self.btn_about_mgsp, 'Это кнопка', hover_delay=400)
         self.lbl_mgsp = tk.Label(self.frame_mgsp, text='Минимальный приемлемый процент угадываний слова:',
                                  bg=ST_BG[th], fg=ST_FG[th])
         self.entry_mgsp = tk.Entry(self.frame_mgsp, textvariable=self.var_mgsp, width=5, relief='solid',
@@ -3858,6 +3867,7 @@ class SettingsW(tk.Toplevel):
             self.btn_about_typo = tk.Button(self.frame_show_typo_button, image=self.img_about_typo, command=self.about_typo,
                                             relief='flat', borderwidth=0, bg=ST_BG[th],
                                             activebackground=ST_BTN_BG_SEL[th], highlightbackground=ST_BORDER[th])
+            self.tip_btn_about_typo = ttip.Hovertip(self.btn_about_typo, 'Это кнопка', hover_delay=400)
         self.lbl_show_typo_button = tk.Label(self.frame_show_typo_button, text='Показывать кнопку "Опечатка":',
                                              bg=ST_BG[th], fg=ST_FG[th])
         self.check_show_typo_button = ttk.Checkbutton(self.frame_show_typo_button, variable=self.var_show_typo_button,
@@ -4346,6 +4356,10 @@ class MainW(tk.Tk):
 
         self.lbl_footer.grid(row=7, padx=7, pady=(0, 3), sticky='S')
 
+        self.tip_entry = ttip.Hovertip(self.entry_word, 'Введите слово, которое хотите\n'
+                                                        'найти/изменить/добавить.',
+                                       hover_delay=500)
+
         self.focus_set()
         self.entry_word.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_search.invoke())
@@ -4597,7 +4611,6 @@ root.mainloop()
 # если ответ немного отличается от правильного, то ...
 # принимать несколько ответов при угадывании слова
 # добавить изменение статьи по переводу
-# при наведении на Text (PrintW) выводить подсказку
 
 # сделать ttk стили для всех элементов
 # при закрытии окна возвращать фокус предыдущему окну (проблема: при закрытии всплывающих окон, MainW получает фокус)
