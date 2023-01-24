@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-143'
+PROGRAM_VERSION = 'v7.0.0_PRE-144'
 PROGRAM_DATE = '24.1.2023'
-PROGRAM_TIME = '21:38 (UTC+3)'
+PROGRAM_TIME = '22:50 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -3872,7 +3872,7 @@ class SettingsW(tk.Toplevel):
         self.vcmd = (self.register(validate_percent), '%P')
 
         self.tabs = ttk.Notebook(self, style='.TNotebook')
-        self.tab_local = ttk.Frame(self.tabs, style='Default.TFrame')
+        self.tab_local = ttk.Frame(self.tabs, style='Invis.TFrame')
         self.lbl_dct_name = ttk.Label(self, text=f'Открыт словарь "{_0_global_dct_savename}"', style='Default.TLabel')
         self.tabs.add(self.tab_local, text='Настройки словаря')
         # {
@@ -3902,7 +3902,7 @@ class SettingsW(tk.Toplevel):
                                        text='При сохранении настроек словаря, сохраняется и сам словарь!',
                                        style='Warn.TLabel')
         # }
-        self.tab_global = ttk.Frame(self.tabs, style='Default.TFrame')
+        self.tab_global = ttk.Frame(self.tabs, style='Invis.TFrame')
         self.tabs.add(self.tab_global, text='Настройки программы')
         # {
         self.frame_show_updates = ttk.Frame(self.tab_global, style='Default.TFrame')
@@ -4350,12 +4350,14 @@ class MainW(tk.Tk):
         self.lbl_header = ttk.Label(self.frame_head, text='Anenokil development presents', style='Header.TLabel')
         self.lbl_logo = ttk.Label(self.frame_head, text=PROGRAM_NAME, style='Logo.TLabel')
         # }
-        self.btn_print = ttk.Button(self, text='Напечатать словарь', command=self.print,
-                                    takefocus=False, style='Default.TButton')
-        self.btn_learn = ttk.Button(self, text='Учить слова', command=self.learn,
-                                    takefocus=False, style='Default.TButton')
-        self.frame_word = ttk.Frame(self, style='Default.TFrame')
+        self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
+        self.btn_print = ttk.Button(self.frame_buttons, text='Напечатать словарь', command=self.print,
+                                    takefocus=False, style='Default.TButton')
+        self.btn_learn = ttk.Button(self.frame_buttons, text='Учить слова', command=self.learn,
+                                    takefocus=False, style='Default.TButton')
+        self.frame_word = ttk.Frame(self.frame_buttons, style='Default.TFrame')
+        # { {
         self.entry_word = ttk.Entry(self.frame_word, textvariable=self.var_word, width=30, style='.TEntry')
         self.btn_search = ttk.Button(self.frame_word, text='Найти статью', command=self.search,
                                      takefocus=False, style='Default.TButton')
@@ -4363,40 +4365,42 @@ class MainW(tk.Tk):
                                    takefocus=False, style='Default.TButton')
         self.btn_add = ttk.Button(self.frame_word, text='Добавить статью', command=self.add,
                                   takefocus=False, style='Default.TButton')
-        # }
-        self.btn_settings = ttk.Button(self, text='Настройки', command=self.settings,
+        # } }
+        self.btn_settings = ttk.Button(self.frame_buttons, text='Настройки', command=self.settings,
                                        takefocus=False, style='Default.TButton')
-        self.btn_check_updates = ttk.Button(self, text='Проверить обновления', command=self.check_updates,
+        self.btn_check_updates = ttk.Button(self.frame_buttons, text='Проверить обновления', command=self.check_updates,
                                             takefocus=False, style='Default.TButton')
-        self.btn_save = ttk.Button(self, text='Сохранить словарь', command=self.save,
+        self.btn_save = ttk.Button(self.frame_buttons, text='Сохранить словарь', command=self.save,
                                    takefocus=False, style='Yes.TButton')
-        self.btn_close = ttk.Button(self, text='Закрыть программу', command=self.close,
+        self.btn_close = ttk.Button(self.frame_buttons, text='Закрыть программу', command=self.close,
                                     takefocus=False, style='No.TButton')
-
+        # }
         self.lbl_footer = ttk.Label(self, text=f'{PROGRAM_VERSION}\n'
                                                f'{PROGRAM_DATE}  -  {PROGRAM_TIME}',
                                     justify='center', style='Footer.TLabel')
 
-        self.frame_head.grid(row=0, padx=6, pady=4)
+        self.frame_head.grid(row=0, padx=12, pady=12)
         # {
-        self.lbl_header.grid(row=0, padx=7, pady=(7, 0))
-        self.lbl_logo.grid(  row=1, padx=7, pady=(0, 7))
+        self.lbl_header.grid(row=0, padx=0, pady=0)
+        self.lbl_logo.grid(  row=1, padx=0, pady=0)
         # }
-        self.btn_print.grid( row=1, pady=5)
-        self.btn_learn.grid( row=2, pady=5)
-        self.frame_word.grid(row=3, padx=6, pady=5)
+        self.frame_buttons.grid(row=1, padx=6, pady=6)
         # {
-        self.entry_word.grid(row=0, padx=3, pady=(5, 0))
-        self.btn_search.grid(row=1, padx=3, pady=(5, 0))
-        self.btn_edit.grid(  row=2, padx=3, pady=(5, 0))
-        self.btn_add.grid(   row=3, padx=3, pady=5)
+        self.btn_print.grid( row=0, padx=0, pady=(0, 3))
+        self.btn_learn.grid( row=1, padx=0, pady=(3, 3))
+        self.frame_word.grid(row=2, padx=0, pady=(3, 3))
+        # { {
+        self.entry_word.grid(row=0, padx=6, pady=(6, 3))
+        self.btn_search.grid(row=1, padx=6, pady=(3, 3))
+        self.btn_edit.grid(  row=2, padx=6, pady=(3, 3))
+        self.btn_add.grid(   row=3, padx=6, pady=(3, 6))
+        # } }
+        self.btn_settings.grid(     row=3, padx=0, pady=(3, 3))
+        self.btn_check_updates.grid(row=4, padx=0, pady=(3, 3))
+        self.btn_save.grid(         row=5, padx=0, pady=(3, 3))
+        self.btn_close.grid(        row=6, padx=0, pady=(3, 0))
         # }
-        self.btn_settings.grid(     row=4, pady=5)
-        self.btn_check_updates.grid(row=5, pady=5)
-        self.btn_save.grid(         row=6, pady=5)
-        self.btn_close.grid(        row=7, pady=5)
-
-        self.lbl_footer.grid(row=8, padx=7, pady=(0, 3), sticky='S')
+        self.lbl_footer.grid(row=2, padx=6, pady=3)
 
         self.tip_entry = ttip.Hovertip(self.entry_word, 'Введите слово, которое хотите\n'
                                                         'найти/изменить/добавить.',
