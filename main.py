@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-145'
+PROGRAM_VERSION = 'v7.0.0_PRE-146'
 PROGRAM_DATE = '24.1.2023'
-PROGRAM_TIME = '23:30 (UTC+3)'
+PROGRAM_TIME = '23:39 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -3987,10 +3987,17 @@ class SettingsW(tk.Toplevel):
     def set_theme(self):
         global th
 
-        if self.has_theme_changes():
-            th = self.var_theme.get()
-            upload_themes_img(th)  # Загружаем изображения тем
-            self.destroy()
+        th = self.var_theme.get()
+        self.configure(bg=ST_BG[th])
+        self.text_dcts.configure(relief=ST_RELIEF[th], bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                 highlightbackground=ST_BORDER[th])
+        self.text_themes_note.configure(font='StdFont 10', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                        highlightbackground=ST_BORDER[th])
+        self.parent.configure(bg=ST_BG[th])
+        upload_themes_img(th)  # Загружаем изображения тем
+        self.parent.set_styles()  # Устанавливаем ttk-стили
 
     # Открыть словарь
     def dct_open(self):
@@ -4142,10 +4149,6 @@ class SettingsW(tk.Toplevel):
         return self.has_forms_changes or\
             self.has_spec_comb_changes or\
             int('0' + self.var_mgsp.get()) != _0_global_min_good_score_perc  # Если self.var_mgsp.get() == '', то 0
-
-    # Были ли изменения тем
-    def has_theme_changes(self):
-        return self.var_theme.get() != th
 
     # Были ли изменения настроек
     def has_changes(self):
@@ -4675,3 +4678,5 @@ root.mainloop()
 # если ответ немного отличается от правильного, то ...
 # принимать несколько ответов при угадывании слова
 # добавить изменение статьи по переводу
+
+# Баг: wait_window
