@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-135'
+PROGRAM_VERSION = 'v7.0.0_PRE-136'
 PROGRAM_DATE = '24.1.2023'
-PROGRAM_TIME = '3:30 (UTC+3)'
+PROGRAM_TIME = '16:14 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -1518,11 +1518,15 @@ class PopupMsgW(tk.Toplevel):
         self.closed = False
         self.destroy()
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.btn_ok.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -1596,7 +1600,8 @@ class PopupDialogueW(tk.Toplevel):
         self.answer = self.val_right
         self.destroy()
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         if self.set_focus_on_btn == 'left':
             self.btn_left.focus_set()
@@ -1606,6 +1611,9 @@ class PopupDialogueW(tk.Toplevel):
             self.btn_right.focus_set()
             self.bind('<Return>', lambda event=None: self.btn_right.invoke())
             self.bind('<Escape>', lambda event=None: self.btn_left.invoke())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -1641,11 +1649,15 @@ class PopupEntryW(tk.Toplevel):
         self.closed = False
         self.destroy()
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.entry_inp.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -1683,11 +1695,15 @@ class PopupChooseW(tk.Toplevel):
         self.closed = False
         self.destroy()
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.btn_ok.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -1734,11 +1750,15 @@ class PopupImgW(tk.Toplevel):
         self.closed = False
         self.destroy()
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.btn_ok.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -1781,11 +1801,15 @@ class EnterDctNameW(tk.Toplevel):
         self.name_is_correct = True
         self.destroy()
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.entry_name.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -1830,11 +1854,15 @@ class EnterFormParameterNameW(tk.Toplevel):
         self.name_is_correct = True
         self.destroy()
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.entry_name.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -1892,11 +1920,15 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.closed = False
         self.destroy()
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.entry_key.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -1961,11 +1993,15 @@ class ChooseFormParValW(tk.Toplevel):
         self.vals += [new_value]
         self.combo['values'] = self.vals
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.btn_choose.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -2044,11 +2080,15 @@ class ChooseNoteW(tk.Toplevel):
         self.closed = False
         self.destroy()
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.entry_input.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -2103,11 +2143,15 @@ class IncorrectAnswerW(tk.Toplevel):
         self.answer = 'typo'
         self.destroy()
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.btn_yes.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_yes.invoke())
         self.bind('<Escape>', lambda event=None: self.btn_no.invoke())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -2296,11 +2340,15 @@ class CreateFormTemplateW(tk.Toplevel):
         self.closed = False
         self.destroy()
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.btn_choose.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -2368,9 +2416,13 @@ class ParticularMatchesW(tk.Toplevel):
         _0_global_dct.print_translations_with_str(self.text_tr, search_tr)
         self.text_tr['state'] = 'disabled'
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -2469,9 +2521,13 @@ class FormsSettingsW(tk.Toplevel):
             self.btn_rename['state'] = 'disabled'
             self.btn_values['state'] = 'disabled'
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -2563,9 +2619,13 @@ class FormsParameterSettingsW(tk.Toplevel):
         else:
             self.btn_delete['state'] = 'normal'
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -2659,9 +2719,13 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         else:
             self.btn_delete['state'] = 'disabled'
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -2745,11 +2809,15 @@ class PrintW(tk.Toplevel):
         self.text_dct.yview_moveto(1.0)
         self.text_dct['state'] = 'disabled'
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.btn_print.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_print.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -2809,11 +2877,15 @@ class ChooseLearnModeW(tk.Toplevel):
         self.res = (order, forms, words)
         self.destroy()
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.btn_start.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_start.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -3253,10 +3325,14 @@ class LearnW(tk.Toplevel):
 
         return True
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.entry_input.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_input.invoke())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -3359,11 +3435,15 @@ class SearchW(tk.Toplevel):
 
         self.text_tr['state'] = 'disabled'
 
-    def open(self):
+    # Установить фокус
+    def set_focus(self):
         self.focus_set()
         self.entry_input.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_search.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -3686,6 +3766,13 @@ class EditW(tk.Toplevel):
     def set_fav(self):
         _0_global_dct.d[self.key].fav = self.var_fav.get()
 
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.btn_back.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_back.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
     # Закрыть настройки
     def back(self):
         self.destroy()
@@ -3702,10 +3789,7 @@ class EditW(tk.Toplevel):
             self.destroy()
 
     def open(self):
-        self.focus_set()
-        self.btn_back.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_back.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -3749,6 +3833,13 @@ class AddW(tk.Toplevel):
         self.check_fav.grid(row=2, column=1,     padx=(0, 6), pady=(0, 3), sticky='W')
         self.btn_add.grid(  row=3, columnspan=2, padx=6,      pady=(0, 6))
 
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.entry_wrd.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_add.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
     # Добавление статьи
     def add(self):
         global _0_global_has_progress
@@ -3769,10 +3860,7 @@ class AddW(tk.Toplevel):
         self.destroy()
 
     def open(self):
-        self.focus_set()
-        self.entry_wrd.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_add.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -4231,6 +4319,13 @@ class SettingsW(tk.Toplevel):
         self.var_mgsp.set(str(_0_global_min_good_score_perc))
         self.print_dct_list()
 
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.entry_mgsp.focus_set()
+        self.bind('<Escape>', lambda event=None: self.btn_close.invoke())
+        self.tabs.bind('<<NotebookTabChanged>>', lambda event=None: self.resize_tabs())
+
     # Сохранить настройки
     def save(self):
         global _0_global_has_progress
@@ -4268,10 +4363,7 @@ class SettingsW(tk.Toplevel):
     def open(self):
         global _0_global_dct, _0_global_form_parameters
 
-        self.focus_set()
-        self.entry_mgsp.focus_set()
-        self.bind('<Escape>', lambda event=None: self.btn_close.invoke())
-        self.tabs.bind('<<NotebookTabChanged>>', lambda event=None: self.resize_tabs())
+        self.set_focus()
 
         self.grab_set()
         self.wait_window()
@@ -4360,9 +4452,7 @@ class MainW(tk.Tk):
                                                         'найти/изменить/добавить.',
                                        hover_delay=500)
 
-        self.focus_set()
-        self.entry_word.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_search.invoke())
+        self.set_focus()
 
     # Печать словаря
     def print(self):
@@ -4567,6 +4657,12 @@ class MainW(tk.Tk):
                          background=[('selected', ST_NOTE_BG_SEL[th])],
                          foreground=[('selected', ST_NOTE_FG_SEL[th])])
 
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.entry_word.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_search.invoke())
+
     # Сохранить словарь
     def save(self):
         global _0_global_has_progress
@@ -4588,7 +4684,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development  presents\n'
       f'                              {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'======================================================================================')
 
