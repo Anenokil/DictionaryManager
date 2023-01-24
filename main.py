@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-144'
+PROGRAM_VERSION = 'v7.0.0_PRE-145'
 PROGRAM_DATE = '24.1.2023'
-PROGRAM_TIME = '22:50 (UTC+3)'
+PROGRAM_TIME = '23:30 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -1211,8 +1211,7 @@ def check_updates(window_parent, show_updates, show_if_no_updates):
         if PROGRAM_VERSION == last_version:
             print('Установлена последняя доступная версия')
             if show_updates and show_if_no_updates:
-                window_last_version = PopupMsgW(window_parent, 'Установлена последняя доступная версия',
-                                                close_prev_window=False)
+                window_last_version = PopupMsgW(window_parent, 'Установлена последняя доступная версия')
         else:
             print(f'Доступна новая версия: {last_version}')
             if show_updates:
@@ -1494,14 +1493,11 @@ def validate_order_and_forms(value, check_forms):
 
 # Всплывающее окно с сообщением
 class PopupMsgW(tk.Toplevel):
-    def __init__(self, parent, msg, btn_text='Ясно', close_prev_window=True, title=PROGRAM_NAME):
+    def __init__(self, parent, msg, btn_text='Ясно', title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
-        if close_prev_window:
-            parent.withdraw()
 
-        self.close_prev_window = close_prev_window
         self.parent = parent
         self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
 
@@ -1529,9 +1525,6 @@ class PopupMsgW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        if self.close_prev_window:
-            self.parent.deiconify()
-
         return self.closed
 
 
@@ -1553,7 +1546,6 @@ class PopupDialogueW(tk.Toplevel):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.set_focus_on_btn = set_focus_on_btn
@@ -1600,8 +1592,6 @@ class PopupDialogueW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         return self.answer
 
 
@@ -1611,7 +1601,6 @@ class PopupEntryW(tk.Toplevel):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
@@ -1644,8 +1633,6 @@ class PopupEntryW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         return self.closed, self.var_text.get()
 
 
@@ -1656,7 +1643,6 @@ class PopupChooseW(tk.Toplevel):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
@@ -1692,8 +1678,6 @@ class PopupChooseW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         return self.closed, self.var_answer.get()
 
 
@@ -1703,7 +1687,6 @@ class PopupImgW(tk.Toplevel):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
@@ -1749,8 +1732,6 @@ class PopupImgW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         return self.closed
 
 
@@ -1760,7 +1741,6 @@ class EnterDctNameW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.name_is_correct = False
@@ -1801,8 +1781,6 @@ class EnterDctNameW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         return self.name_is_correct, self.var_name.get()
 
 
@@ -1812,7 +1790,6 @@ class EnterFormParameterNameW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.name_is_correct = False
@@ -1854,8 +1831,6 @@ class EnterFormParameterNameW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         return self.name_is_correct, self.var_name.get()
 
 
@@ -1865,7 +1840,6 @@ class EnterSpecialCombinationW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
@@ -1916,8 +1890,6 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         return self.closed, self.var_key.get(), self.var_val.get()
 
 
@@ -1927,7 +1899,6 @@ class ChooseFormParValW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
@@ -1990,8 +1961,6 @@ class ChooseFormParValW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         return self.closed, self.res
 
 
@@ -2002,7 +1971,6 @@ class ChooseNoteW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME}')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
@@ -2077,8 +2045,6 @@ class ChooseNoteW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         return self.closed, self.answer
 
 
@@ -2088,7 +2054,6 @@ class IncorrectAnswerW(tk.Toplevel):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Incorrect answer')
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.answer = 'no'  # Значение, возвращаемое методом self.open
@@ -2139,8 +2104,6 @@ class IncorrectAnswerW(tk.Toplevel):
 
         self.grab_set()
         self.wait_window()
-
-        self.parent.deiconify()
 
         return self.answer
 
@@ -2251,7 +2214,6 @@ class CreateFormTemplateW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
@@ -2329,8 +2291,6 @@ class CreateFormTemplateW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         if self.closed:
             return None
         if self.template == self.void_template:
@@ -2347,7 +2307,6 @@ class ParticularMatchesW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Similar')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
 
@@ -2409,8 +2368,6 @@ class ParticularMatchesW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
 
 # Окно настроек словоформ
 class FormsSettingsW(tk.Toplevel):
@@ -2418,7 +2375,6 @@ class FormsSettingsW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.has_changes = False
@@ -2514,8 +2470,6 @@ class FormsSettingsW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         return self.has_changes
 
 
@@ -2525,7 +2479,6 @@ class FormsParameterSettingsW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.parameter = parameter  # Название изменяемого параметра
@@ -2614,8 +2567,6 @@ class FormsParameterSettingsW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         return self.has_changes
 
 
@@ -2625,7 +2576,6 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.has_changes = False
@@ -2716,8 +2666,6 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         return self.has_changes
 
 
@@ -2728,7 +2676,6 @@ class PrintW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Print')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
 
@@ -2812,8 +2759,6 @@ class PrintW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
 
 # Окно выбора режима перед изучением слов
 class ChooseLearnModeW(tk.Toplevel):
@@ -2822,7 +2767,6 @@ class ChooseLearnModeW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Learn')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.res = None
@@ -2882,8 +2826,6 @@ class ChooseLearnModeW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         return self.res
 
 
@@ -2894,7 +2836,6 @@ class LearnW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Learn')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.current_key = None
@@ -3326,8 +3267,6 @@ class LearnW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
 
 # Окно поиска статей
 class SearchW(tk.Toplevel):
@@ -3336,7 +3275,6 @@ class SearchW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Search')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
 
@@ -3438,8 +3376,6 @@ class SearchW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
 
 # Окно изменения статьи
 class EditW(tk.Toplevel):
@@ -3448,7 +3384,6 @@ class EditW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Edit an entry')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.key = key
@@ -3775,8 +3710,6 @@ class EditW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
 
 # Окно добавления статьи
 class AddW(tk.Toplevel):
@@ -3785,7 +3718,6 @@ class AddW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Add an entry')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.key = None
@@ -3842,8 +3774,6 @@ class AddW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
-
         return self.key
 
 
@@ -3854,7 +3784,6 @@ class SettingsW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Settings')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
 
         self.parent = parent
         self.current_tab = 1  # Текущая вкладка (1 или 2)
@@ -4325,8 +4254,6 @@ class SettingsW(tk.Toplevel):
 
         self.grab_set()
         self.wait_window()
-
-        self.parent.deiconify()
 
         _0_global_dct = copy.deepcopy(self.backup_dct)
         _0_global_form_parameters = copy.deepcopy(self.backup_fp)
