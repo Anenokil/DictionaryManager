@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-141'
+PROGRAM_VERSION = 'v7.0.0_PRE-142'
 PROGRAM_DATE = '24.1.2023'
-PROGRAM_TIME = '20:33 (UTC+3)'
+PROGRAM_TIME = '21:18 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -1202,7 +1202,7 @@ def upload_themes_img(theme):
 
 
 # Проверка наличия обновлений программы
-def check_updates(window_parent, show_updates):
+def check_updates(window_parent, show_updates, show_if_no_updates):
     print('\nПроверка наличия обновлений...')
     window_last_version = None
     try:
@@ -1210,6 +1210,9 @@ def check_updates(window_parent, show_updates):
         last_version = str(data.read().decode('utf-8')).strip()
         if PROGRAM_VERSION == last_version:
             print('Установлена последняя доступная версия')
+            if show_updates and show_if_no_updates:
+                window_last_version = PopupMsgW(window_parent, 'Установлена последняя доступная версия',
+                                                close_prev_window=False)
         else:
             print(f'Доступна новая версия: {last_version}')
             if show_updates:
@@ -1491,12 +1494,14 @@ def validate_order_and_forms(value, check_forms):
 
 # Всплывающее окно с сообщением
 class PopupMsgW(tk.Toplevel):
-    def __init__(self, parent, msg, btn_text='Ясно', title=PROGRAM_NAME):
+    def __init__(self, parent, msg, btn_text='Ясно', close_prev_window=True, title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
-        parent.withdraw()
+        if close_prev_window:
+            parent.withdraw()
 
+        self.close_prev_window = close_prev_window
         self.parent = parent
         self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
 
@@ -1524,7 +1529,8 @@ class PopupMsgW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.parent.deiconify()
+        if self.close_prev_window:
+            self.parent.deiconify()
 
         return self.closed
 
@@ -2144,6 +2150,7 @@ class CheckUpdatesW(tk.Toplevel):
     def __init__(self, parent, last_version):
         super().__init__(parent)
         self.title('New version available')
+        self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
         self.var_url = tk.StringVar(value=URL_GITHUB)  # Ссылка, для загрузки новой версии
@@ -2236,10 +2243,6 @@ class CheckUpdatesW(tk.Toplevel):
             PopupMsgW(self, 'Обновление успешно установлено\n'
                             'Программа закроется').open()
             exit(777)
-
-    def open(self):
-        self.grab_set()
-        self.wait_window()
 
 
 # Окно создания шаблона словоформы
@@ -4363,6 +4366,8 @@ class MainW(tk.Tk):
         # }
         self.btn_settings = ttk.Button(self, text='Настройки', command=self.settings,
                                        takefocus=False, style='Default.TButton')
+        self.btn_check_updates = ttk.Button(self, text='Проверить обновления', command=self.check_updates,
+                                            takefocus=False, style='Default.TButton')
         self.btn_save = ttk.Button(self, text='Сохранить словарь', command=self.save,
                                    takefocus=False, style='Yes.TButton')
         self.btn_close = ttk.Button(self, text='Закрыть программу', command=self.close,
@@ -4386,11 +4391,12 @@ class MainW(tk.Tk):
         self.btn_edit.grid(  row=2, padx=3, pady=(5, 0))
         self.btn_add.grid(   row=3, padx=3, pady=5)
         # }
-        self.btn_settings.grid(row=4, pady=5)
-        self.btn_save.grid(    row=5, pady=5)
-        self.btn_close.grid(   row=6, pady=5)
+        self.btn_settings.grid(     row=4, pady=5)
+        self.btn_check_updates.grid(row=5, pady=5)
+        self.btn_save.grid(         row=6, pady=5)
+        self.btn_close.grid(        row=7, pady=5)
 
-        self.lbl_footer.grid(row=7, padx=7, pady=(0, 3), sticky='S')
+        self.lbl_footer.grid(row=8, padx=7, pady=(0, 3), sticky='S')
 
         self.tip_entry = ttip.Hovertip(self.entry_word, 'Введите слово, которое хотите\n'
                                                         'найти/изменить/добавить.',
@@ -4398,16 +4404,23 @@ class MainW(tk.Tk):
 
         self.set_focus()
 
-    # Печать словаря
+    # Нажатие на кнопку "Печатать словарь"
     def print(self):
         PrintW(self).open()
 
-    # Поиск статьи
+    # Нажатие на кнопку "Учить слова"
+    def learn(self):
+        res = ChooseLearnModeW(self).open()
+        if not res:
+            return
+        LearnW(self, res).open()
+
+    # Нажатие на кнопку "Найти статью"
     def search(self):
         wrd = self.var_word.get()
         SearchW(self, wrd).open()
 
-    # Изменение статьи
+    # Нажатие на кнопку "Изменить статью"
     def edit(self):
         wrd = self.var_word.get()
         if wrd_to_key(wrd, 0) not in _0_global_dct.d.keys():  # Если такого слова нет, то выводятся частично совпадающие слова
@@ -4418,7 +4431,7 @@ class MainW(tk.Tk):
             return None
         EditW(self, key).open()
 
-    # Добавление статьи
+    # Нажатие на кнопку "Добавить статью"
     def add(self):
         wrd = self.var_word.get()
         key = AddW(self, wrd).open()
@@ -4426,14 +4439,7 @@ class MainW(tk.Tk):
             return
         EditW(self, key).open()
 
-    # Учить слова
-    def learn(self):
-        res = ChooseLearnModeW(self).open()
-        if not res:
-            return
-        LearnW(self, res).open()
-
-    # Открыть настройки
+    # Нажатие на кнопку "Открыть настройки"
     def settings(self):
         global _0_global_dct_savename, _0_global_show_updates, _0_global_typo, th,\
             _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations
@@ -4454,7 +4460,19 @@ class MainW(tk.Tk):
 
         self.set_styles()
 
-    # Установка ttk-стилей
+    # Нажатие на кнопку "Проверить обновления"
+    def check_updates(self):
+        global _0_global_window_last_version
+
+        # Если уведомление об обновлении уже открыто, то закрываем его
+        try:
+            _0_global_window_last_version.destroy()
+        except:
+            pass
+        # Открываем новое уведомление об обновлении
+        _0_global_window_last_version = check_updates(root, _0_global_show_updates, True)
+
+    # Установить ttk-стили
     def set_styles(self):
         # Стиль label "default"
         self.st_lbl_default = ttk.Style()
@@ -4502,11 +4520,16 @@ class MainW(tk.Tk):
         self.st_entry.theme_use('alt')
         self.st_entry.configure('.TEntry',
                                 font=('StdFont', 10),
-                                relief='solid',
-                                fieldbackground=ST_BG_FIELDS[th],
-                                foreground=ST_FG_ENTRY[th],
-                                selectbackground=ST_SELECT_BG[th],
-                                selectforeground=ST_SELECT_FG[th])
+                                relief='solid')
+        self.st_entry.map('.TEntry',
+                          fieldbackground=[('readonly', ST_BG_FIELDS[th]),
+                                           ('!readonly', ST_BG_FIELDS[th])],
+                          foreground=[('readonly', ST_FG_ENTRY[th]),
+                                      ('!readonly', ST_FG_ENTRY[th])],
+                          selectbackground=[('readonly', ST_SELECT_BG[th]),
+                                            ('!readonly', ST_SELECT_BG[th])],
+                          selectforeground=[('readonly', ST_SELECT_FG[th]),
+                                            ('!readonly', ST_SELECT_FG[th])])
 
         # Стиль button "default"
         self.st_btn_default = ttk.Style()
@@ -4705,13 +4728,10 @@ root = MainW()  # Создаём графический интерфейс
 upload_dct(root, _0_global_dct, _0_global_dct_savename)  # Загружаем словарь
 _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
     upload_local_settings(_0_global_dct_savename)  # Загружаем локальные настройки
-_0_global_window_last_version = check_updates(root, _0_global_show_updates)  # Проверяем наличие обновлений
+_0_global_window_last_version = check_updates(root, _0_global_show_updates, False)  # Проверяем наличие обновлений
 root.mainloop()
 
-# попробовать tk.ScrolledText
 # открывать программу после обновления
 # если ответ немного отличается от правильного, то ...
 # принимать несколько ответов при угадывании слова
 # добавить изменение статьи по переводу
-
-# добавить кнопку "проверить обновления"
