@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-146'
-PROGRAM_DATE = '24.1.2023'
-PROGRAM_TIME = '23:39 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-147'
+PROGRAM_DATE = '25.1.2023'
+PROGRAM_TIME = '1:00 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -142,6 +142,9 @@ if THEMES[1] not in os.listdir(CUSTOM_THEMES_PATH):
     os.mkdir(os.path.join(CUSTOM_THEMES_PATH, THEMES[1]))
 
 # Изображения
+img_add = os.path.join(IMAGES_PATH, 'add.png')
+img_delete = os.path.join(IMAGES_PATH, 'delete.png')
+img_edit = os.path.join(IMAGES_PATH, 'edit.png')
 img_about = os.path.join(IMAGES_PATH, 'about.png')
 img_about_mgsp = os.path.join(IMAGES_PATH, 'about_mgsp.png')
 img_about_typo = os.path.join(IMAGES_PATH, 'about_typo.png')
@@ -2236,11 +2239,11 @@ class CreateFormTemplateW(tk.Toplevel):
         self.btn_done = ttk.Button(self, text='Закончить с шаблоном и ввести форму слова', command=self.done,
                                   state='disabled', takefocus=False, style='Default.TButton')
 
-        self.lbl_template.grid(row=0, columnspan=3, padx=6,      pady=(6, 1))
-        self.lbl_choose.grid(  row=1, column=0,     padx=(6, 1), pady=(6, 1))
+        self.lbl_template.grid(row=0, columnspan=3, padx=6,      pady=6)
+        self.lbl_choose.grid(  row=1, column=0,     padx=(6, 1), pady=1)
         self.combo.grid(       row=1, column=1,     padx=(0, 3), pady=1)
         self.btn_choose.grid(  row=1, column=2,     padx=(0, 6), pady=1)
-        self.btn_done.grid(    row=2, columnspan=3, padx=(0, 6), pady=6)
+        self.btn_done.grid(    row=2, columnspan=3, padx=6,      pady=6)
 
         self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
 
@@ -3402,8 +3405,13 @@ class EditW(tk.Toplevel):
                                highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
-        self.btn_wrd_edt = ttk.Button(self.frame_main, text='изм.', command=self.wrd_edt,
-                                      takefocus=False, style='Default.TButton')
+        try:
+            self.img_edit = tk.PhotoImage(file=img_edit)
+            self.btn_wrd_edt = ttk.Button(self.frame_main, image=self.img_edit, command=self.wrd_edt,
+                                          takefocus=False, style='Image.TButton')
+        except:
+            self.btn_wrd_edt = ttk.Button(self.frame_main, text='изм.', command=self.wrd_edt, width=4,
+                                          takefocus=False, style='Default.TButton')
         #
         self.lbl_tr = ttk.Label(self.frame_main, text='Перевод:', style='Default.TLabel')
         self.scrollbar_tr = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
@@ -3414,10 +3422,20 @@ class EditW(tk.Toplevel):
         self.scrollbar_tr.config(command=self.txt_tr.yview)
         self.frame_btns_tr = ttk.Frame(self.frame_main, style='Invis.TFrame')
         # { {
-        self.btn_tr_add = ttk.Button(self.frame_btns_tr, text='+', command=self.tr_add,
-                                     takefocus=False, style='Default.TButton')
-        self.btn_tr_del = ttk.Button(self.frame_btns_tr, text='-', command=self.tr_del,
-                                     takefocus=False, style='Default.TButton')
+        try:
+            self.img_add = tk.PhotoImage(file=img_add)
+            self.btn_tr_add = ttk.Button(self.frame_btns_tr, image=self.img_add, command=self.tr_add,
+                                         takefocus=False, style='Image.TButton')
+        except:
+            self.btn_tr_add = ttk.Button(self.frame_btns_tr, text='+', command=self.tr_add, width=2,
+                                         takefocus=False, style='Default.TButton')
+        try:
+            self.img_delete = tk.PhotoImage(file=img_delete)
+            self.btn_tr_del = ttk.Button(self.frame_btns_tr, image=self.img_delete, command=self.tr_del,
+                                         takefocus=False, style='Image.TButton')
+        except:
+            self.btn_tr_del = ttk.Button(self.frame_btns_tr, text='-', command=self.tr_del, width=2,
+                                         takefocus=False, style='Default.TButton')
         # } }
         self.lbl_notes = ttk.Label(self.frame_main, text='Сноски:', style='Default.TLabel')
         self.scrollbar_notes = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
@@ -3428,10 +3446,18 @@ class EditW(tk.Toplevel):
         self.scrollbar_notes.config(command=self.txt_notes.yview)
         self.frame_btns_notes = ttk.Frame(self.frame_main, style='Invis.TFrame')
         # { {
-        self.btn_notes_add = ttk.Button(self.frame_btns_notes, text='+', command=self.notes_add,
-                                        takefocus=False, style='Default.TButton')
-        self.btn_notes_del = ttk.Button(self.frame_btns_notes, text='-', command=self.notes_del,
-                                        takefocus=False, style='Default.TButton')
+        try:
+            self.btn_notes_add = ttk.Button(self.frame_btns_notes, image=self.img_add, command=self.notes_add,
+                                            takefocus=False, style='Image.TButton')
+        except:
+            self.btn_notes_add = ttk.Button(self.frame_btns_notes, text='+', command=self.notes_add, width=2,
+                                            takefocus=False, style='Default.TButton')
+        try:
+            self.btn_notes_del = ttk.Button(self.frame_btns_notes, image=self.img_delete, command=self.notes_del,
+                                            takefocus=False, style='Image.TButton')
+        except:
+            self.btn_notes_del = ttk.Button(self.frame_btns_notes, text='-', command=self.notes_del, width=2,
+                                            takefocus=False, style='Default.TButton')
         # } }
         self.lbl_frm = ttk.Label(self.frame_main, text='Формы слова:', style='Default.TLabel')
         self.scrollbar_frm = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
@@ -3442,12 +3468,24 @@ class EditW(tk.Toplevel):
         self.scrollbar_frm.config(command=self.txt_frm.yview)
         self.frame_btns_frm = ttk.Frame(self.frame_main, style='Invis.TFrame')
         # { {
-        self.btn_frm_add = ttk.Button(self.frame_btns_frm, text='+', command=self.frm_add,
-                                      takefocus=False, style='Default.TButton')
-        self.btn_frm_del = ttk.Button(self.frame_btns_frm, text='-', command=self.frm_del,
-                                      takefocus=False, style='Default.TButton')
-        self.btn_frm_edt = ttk.Button(self.frame_btns_frm, text='изм.', command=self.frm_edt,
-                                      takefocus=False, style='Default.TButton')
+        try:
+            self.btn_frm_add = ttk.Button(self.frame_btns_frm, image=self.img_add, command=self.frm_add,
+                                          takefocus=False, style='Image.TButton')
+        except:
+            self.btn_frm_add = ttk.Button(self.frame_btns_frm, text='+', command=self.frm_add, width=2,
+                                          takefocus=False, style='Default.TButton')
+        try:
+            self.btn_frm_del = ttk.Button(self.frame_btns_frm, image=self.img_delete, command=self.frm_del,
+                                          takefocus=False, style='Image.TButton')
+        except:
+            self.btn_frm_del = ttk.Button(self.frame_btns_frm, text='-', command=self.frm_del, width=2,
+                                          takefocus=False, style='Default.TButton')
+        try:
+            self.btn_frm_edt = ttk.Button(self.frame_btns_frm, image=self.img_edit, command=self.frm_edt,
+                                          takefocus=False, style='Image.TButton')
+        except:
+            self.btn_frm_edt = ttk.Button(self.frame_btns_frm, text='изм.', command=self.frm_edt, width=4,
+                                          takefocus=False, style='Default.TButton')
         # } }
         self.lbl_fav = ttk.Label(self.frame_main, text='Избранное:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=self.set_fav,
@@ -3811,7 +3849,7 @@ class SettingsW(tk.Toplevel):
             self.img_about_mgsp = tk.PhotoImage(file=img_about)
         except:
             self.btn_about_mgsp = ttk.Button(self.frame_mgsp, text='?', command=self.about_mgsp,
-                                             takefocus=False, style='Default.TButton')
+                                             width=2, takefocus=False, style='Default.TButton')
         else:
             self.btn_about_mgsp = ttk.Button(self.frame_mgsp, image=self.img_about_mgsp, command=self.about_mgsp,
                                              takefocus=False, style='Image.TButton')
@@ -3847,7 +3885,7 @@ class SettingsW(tk.Toplevel):
             self.img_about_typo = tk.PhotoImage(file=img_about)
         except:
             self.btn_about_typo = ttk.Button(self.frame_show_typo_button, text='?', command=self.about_typo,
-                                             takefocus=False, style='Default.TButton')
+                                             width=2, takefocus=False, style='Default.TButton')
         else:
             self.btn_about_typo = ttk.Button(self.frame_show_typo_button, image=self.img_about_typo,
                                              command=self.about_typo, takefocus=False, style='Image.TButton')
@@ -4309,7 +4347,7 @@ class MainW(tk.Tk):
                                                f'{PROGRAM_DATE}  -  {PROGRAM_TIME}',
                                     justify='center', style='Footer.TLabel')
 
-        self.frame_head.grid(row=0, padx=12, pady=12)
+        self.frame_head.grid(row=0, padx=16, pady=16)
         # {
         self.lbl_header.grid(row=0, padx=0, pady=0)
         self.lbl_logo.grid(  row=1, padx=0, pady=0)
@@ -4656,7 +4694,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development  presents\n'
       f'                              {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
+      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'======================================================================================')
 
