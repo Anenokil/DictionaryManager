@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-158'
+PROGRAM_VERSION = 'v7.0.0_PRE-159'
 PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '20:50 (UTC+3)'
+PROGRAM_TIME = '20:54 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -4702,7 +4702,8 @@ class MainW(tk.Tk):
         self.st_frame_default.theme_use('alt')
         self.st_frame_default.configure('Default.TFrame',
                                         relief=ST_RELIEF[th],
-                                        background=ST_BG[th])
+                                        background=ST_BG[th],
+                                        bordercolor=ST_BORDER[th])
 
         # Стиль frame "invis"
         # highlightbackground=ST_BORDER[th]
