@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-148'
+PROGRAM_VERSION = 'v7.0.0_PRE-149'
 PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '14:24 (UTC+3)'
+PROGRAM_TIME = '15:05 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -44,25 +44,25 @@ ST_RELIEF        = {THEMES[0]: 'groove',  THEMES[1]: 'solid'  }  # Стиль р
 ST_BORDER        = {THEMES[0]: '#222222', THEMES[1]: '#111111'}  # Цвет обводки полей (highlightbackground)
 ST_HIGHLIGHT     = {THEMES[0]: '#00DD00', THEMES[1]: '#005500'}  # Цвет подсветки виджета при фокусе (highlightcolor)
 
-ST_BTN_BG        = {THEMES[0]: '#D0D0D0', THEMES[1]: '#202020'}  # Цвет фона обычных кнопок
-ST_BTN_BG_SEL    = {THEMES[0]: '#BABABA', THEMES[1]: '#272727'}  # Цвет фона обычных кнопок при нажатии
+ST_BTN_BG        = {THEMES[0]: '#D0D0D0', THEMES[1]: '#1D1D1D'}  # Цвет фона обычных кнопок
+ST_BTN_BG_SEL    = {THEMES[0]: '#BABABA', THEMES[1]: '#191919'}  # Цвет фона обычных кнопок при нажатии
 #ST_BTN_FG        = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста обычных кнопок
 #ST_BTN_FG_SEL    = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста обычных кнопок при нажатии
-ST_BTNY_BG       = {THEMES[0]: '#88DD88', THEMES[1]: '#446F44'}  # Цвет фона да-кнопок
-ST_BTNY_BG_SEL   = {THEMES[0]: '#77CC77', THEMES[1]: '#558055'}  # Цвет фона да-кнопок при нажатии
-#ST_BTNY_FG       = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста да-кнопок
-#ST_BTNY_FG_SEL   = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста да-кнопок при нажатии
-ST_BTNN_BG       = {THEMES[0]: '#FF6666', THEMES[1]: '#803333'}  # Цвет фона нет-кнопок
-ST_BTNN_BG_SEL   = {THEMES[0]: '#EE5555', THEMES[1]: '#904444'}  # Цвет фона нет-кнопок при нажатии
-#ST_BTNN_FG       = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста нет-кнопок
-#ST_BTNN_FG_SEL   = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста нет-кнопок при нажатии
+ST_BTN_Y_BG      = {THEMES[0]: '#88DD88', THEMES[1]: '#446F44'}  # Цвет фона да-кнопок
+ST_BTN_Y_BG_SEL  = {THEMES[0]: '#77CC77', THEMES[1]: '#558055'}  # Цвет фона да-кнопок при нажатии
+#ST_BTN_Y_FG      = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста да-кнопок
+#ST_BTN_Y_FG_SEL  = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста да-кнопок при нажатии
+ST_BTN_N_BG      = {THEMES[0]: '#FF6666', THEMES[1]: '#803333'}  # Цвет фона нет-кнопок
+ST_BTN_N_BG_SEL  = {THEMES[0]: '#EE5555', THEMES[1]: '#904444'}  # Цвет фона нет-кнопок при нажатии
+#ST_BTN_N_FG      = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста нет-кнопок
+#ST_BTN_N_FG_SEL  = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста нет-кнопок при нажатии
 
 ST_CHECK_BG_SEL  = {THEMES[0]: '#DDDDDD', THEMES[1]: '#333333'}  # Цвет фона переключателя при наведении на него
 
-ST_NOTE_BG       = {THEMES[0]: '#D0D0D0', THEMES[1]: '#1A1A1A'}  # Цвет фона закрытой вкладки
-ST_NOTE_BG_SEL   = {THEMES[0]: '#EEEEEE', THEMES[1]: '#222222'}  # Цвет фона открытой вкладки
-ST_NOTE_FG       = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста закрытой вкладки
-ST_NOTE_FG_SEL   = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста открытой вкладки
+ST_TAB_BG        = {THEMES[0]: '#D0D0D0', THEMES[1]: '#1A1A1A'}  # Цвет фона закрытой вкладки
+ST_TAB_BG_SEL    = {THEMES[0]: '#EEEEEE', THEMES[1]: '#222222'}  # Цвет фона открытой вкладки
+ST_TAB_FG        = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста закрытой вкладки
+ST_TAB_FG_SEL    = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста открытой вкладки
 
 ST_SCROLL_BG     = {THEMES[0]: '#E0E0E0', THEMES[1]: '#202020'}  # Цвет фона ползунка
 ST_SCROLL_BG_SEL = {THEMES[0]: '#E0E0E0', THEMES[1]: '#202020'}  # Цвет фона ползунка при нажатии
@@ -71,12 +71,12 @@ ST_SCROLL_FG_SEL = {THEMES[0]: '#ABABAB', THEMES[1]: '#333333'}  # Цвет по
 
 # Названия стилизуемых элементов
 STYLE_ELEMENTS = ('BG', 'BG_FIELDS',
-                  'FG_TEXT', 'FG_LOGO', 'FG_FOOTER', 'FG_WARN', 'FG_ENTRY',
+                  'FG', 'FG_LOGO', 'FG_FOOTER', 'FG_WARN', 'FG_ENTRY',
                   'SELECT_BG', 'SELECT_FG',
                   'RELIEF', 'BORDER', 'HIGHLIGHT',
-                  'BTN', 'BTN_SELECT', 'BTNY', 'BTNY_SELECT', 'BTNN', 'BTNN_SELECT',
+                  'BTN_BG', 'BTN_BG_SEL', 'BTN_Y_BG', 'BTN_Y_BG_SEL', 'BTN_N_BG', 'BTN_N_BG_SEL',
                   'CHECK_BG_SEL',
-                  'NOTE_BG', 'NOTE_BG_SEL', 'NOTE_FG', 'NOTE_FG_SEL',
+                  'TAB_BG', 'TAB_BG_SEL', 'TAB_FG', 'TAB_FG_SEL',
                   'SCROLL_BG', 'SCROLL_BG_SEL', 'SCROLL_FG', 'SCROLL_FG_SEL')
 
 # Стили для каждого элемента
@@ -94,15 +94,15 @@ STYLES = {STYLE_ELEMENTS[0]:  ST_BG,
           STYLE_ELEMENTS[11]: ST_HIGHLIGHT,
           STYLE_ELEMENTS[12]: ST_BTN_BG,
           STYLE_ELEMENTS[13]: ST_BTN_BG_SEL,
-          STYLE_ELEMENTS[14]: ST_BTNY_BG,
-          STYLE_ELEMENTS[15]: ST_BTNY_BG_SEL,
-          STYLE_ELEMENTS[16]: ST_BTNN_BG,
-          STYLE_ELEMENTS[17]: ST_BTNN_BG_SEL,
+          STYLE_ELEMENTS[14]: ST_BTN_Y_BG,
+          STYLE_ELEMENTS[15]: ST_BTN_Y_BG_SEL,
+          STYLE_ELEMENTS[16]: ST_BTN_N_BG,
+          STYLE_ELEMENTS[17]: ST_BTN_N_BG_SEL,
           STYLE_ELEMENTS[18]: ST_CHECK_BG_SEL,
-          STYLE_ELEMENTS[19]: ST_NOTE_BG,
-          STYLE_ELEMENTS[20]: ST_NOTE_BG_SEL,
-          STYLE_ELEMENTS[21]: ST_NOTE_FG,
-          STYLE_ELEMENTS[22]: ST_NOTE_FG_SEL,
+          STYLE_ELEMENTS[19]: ST_TAB_BG,
+          STYLE_ELEMENTS[20]: ST_TAB_BG_SEL,
+          STYLE_ELEMENTS[21]: ST_TAB_FG,
+          STYLE_ELEMENTS[22]: ST_TAB_FG_SEL,
           STYLE_ELEMENTS[23]: ST_SCROLL_BG,
           STYLE_ELEMENTS[24]: ST_SCROLL_BG_SEL,
           STYLE_ELEMENTS[25]: ST_SCROLL_FG,
@@ -1699,10 +1699,10 @@ class PopupImgW(tk.Toplevel):
         except:
             self.lbl_img = ttk.Label(self, text='[!!!] Изображение не найдено [!!!]\n'
                                                 'Недостающие изображения можно скачать здесь:',
-                                     style='Default.TLabel')
+                                     justify='center', style='Default.TLabel')
 
-            self.text_img_not_found = tk.Text(self, height=1, width=40, borderwidth=0,
-                                              font='StdFont 10', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+            self.text_img_not_found = tk.Text(self, height=1, width=40, relief='sunken', borderwidth=1,
+                                              font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
                                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                               highlightbackground=ST_BORDER[th])
             self.text_img_not_found.insert(tk.END, f'{URL_RELEASES}')
@@ -1710,7 +1710,7 @@ class PopupImgW(tk.Toplevel):
             self.text_img_not_found.grid(row=1, column=0, padx=6, pady=(0, 16))
         else:
             self.lbl_img = ttk.Label(self, image=self.img, style='Default.TLabel')
-        self.lbl_msg = ttk.Label(self, text=msg, style='Default.TLabel')
+        self.lbl_msg = ttk.Label(self, text=msg, justify='center', style='Default.TLabel')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Default.TButton')
 
         self.lbl_img.grid(row=0, column=0, padx=6, pady=(4, 0))
@@ -3924,8 +3924,8 @@ class SettingsW(tk.Toplevel):
         self.lbl_themes_note = ttk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
                                                                  f'Актуальные темы можно скачать здесь:',
                                          justify='left', style='Default.TLabel')
-        self.text_themes_note = tk.Text(self.frame_themes, height=1, width=40, borderwidth=0,
-                                        font='StdFont 10', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+        self.text_themes_note = tk.Text(self.frame_themes, height=1, width=40, relief='sunken', borderwidth=1,
+                                        font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
                                         selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                         highlightbackground=ST_BORDER[th])
         self.text_themes_note.insert(tk.END, f'{URL_RELEASES}')
@@ -4548,9 +4548,9 @@ class MainW(tk.Tk):
                             relief=[('pressed', 'sunken'),
                                     ('active', 'flat'),
                                     ('!active', 'raised')],
-                            background=[('pressed', ST_BTNY_BG_SEL[th]),
-                                        ('active', ST_BTNY_BG[th]),
-                                        ('!active', ST_BTNY_BG[th])],
+                            background=[('pressed', ST_BTN_Y_BG_SEL[th]),
+                                        ('active', ST_BTN_Y_BG[th]),
+                                        ('!active', ST_BTN_Y_BG[th])],
                             foreground=[('pressed', ST_FG[th]),
                                         ('active', ST_FG[th]),
                                         ('!active', ST_FG[th])])
@@ -4564,9 +4564,9 @@ class MainW(tk.Tk):
                            relief=[('pressed', 'sunken'),
                                    ('active', 'flat'),
                                    ('!active', 'raised')],
-                           background=[('pressed', ST_BTNN_BG_SEL[th]),
-                                       ('active', ST_BTNN_BG[th]),
-                                       ('!active', ST_BTNN_BG[th])],
+                           background=[('pressed', ST_BTN_N_BG_SEL[th]),
+                                       ('active', ST_BTN_N_BG[th]),
+                                       ('!active', ST_BTN_N_BG[th])],
                            foreground=[('pressed', ST_FG[th]),
                                        ('active', ST_FG[th]),
                                        ('!active', ST_FG[th])])
@@ -4661,11 +4661,11 @@ class MainW(tk.Tk):
 
         # Стиль вкладок notebook
         self.st_note.configure('TNotebook.Tab',
-                               background=ST_NOTE_BG[th],
-                               foreground=ST_NOTE_FG[th])
+                               background=ST_TAB_BG[th],
+                               foreground=ST_TAB_FG[th])
         self.st_note.map('TNotebook.Tab',
-                         background=[('selected', ST_NOTE_BG_SEL[th])],
-                         foreground=[('selected', ST_NOTE_FG_SEL[th])])
+                         background=[('selected', ST_TAB_BG_SEL[th])],
+                         foreground=[('selected', ST_TAB_FG_SEL[th])])
 
         # Стиль frame "default"
         # highlightbackground=ST_BORDER[th]
@@ -4711,7 +4711,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development  presents\n'
       f'                              {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'======================================================================================')
 
@@ -4738,3 +4738,5 @@ root.mainloop()
 # Если ответ немного отличается от правильного, то ...
 # Принимать несколько ответов при угадывании слова
 # Добавить изменение статьи по переводу
+
+# Сделать установщик отдельной программой
