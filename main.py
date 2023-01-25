@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-150'
+PROGRAM_VERSION = 'v7.0.0_PRE-151'
 PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '15:17 (UTC+3)'
+PROGRAM_TIME = '16:05 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -3849,7 +3849,7 @@ class SettingsW(tk.Toplevel):
                                              width=2, takefocus=False, style='Default.TButton')
         else:
             self.btn_about_mgsp = ttk.Button(self.frame_mgsp, image=self.img_about, command=self.about_mgsp,
-                                             takefocus=False, style='Image.TButton')
+                                             width=2, takefocus=False, style='Image.TButton')
             self.tip_btn_about_mgsp = ttip.Hovertip(self.btn_about_mgsp, 'Это кнопка', hover_delay=500)
         self.lbl_mgsp = ttk.Label(self.frame_mgsp, text='Минимальный приемлемый процент угадываний слова:',
                                   style='Default.TLabel')
@@ -3880,7 +3880,7 @@ class SettingsW(tk.Toplevel):
         # { {
         try:
             self.btn_about_typo = ttk.Button(self.frame_show_typo_button, image=self.img_about,
-                                             command=self.about_typo, takefocus=False, style='Image.TButton')
+                                             width=2, command=self.about_typo, takefocus=False, style='Image.TButton')
         except:
             self.btn_about_typo = ttk.Button(self.frame_show_typo_button, text='?', command=self.about_typo,
                                              width=2, takefocus=False, style='Default.TButton')
@@ -4030,11 +4030,11 @@ class SettingsW(tk.Toplevel):
         try:
             self.img_about = tk.PhotoImage(file=img_about)
         except:
-            self.btn_about_mgsp.configure(text='?', image='', style='Default.TButton')
-            self.btn_about_typo.configure(text='?', image='', style='Default.TButton')
+            self.btn_about_mgsp.configure(text='?', compound='text', style='Default.TButton')
+            self.btn_about_typo.configure(text='?', compound='text', style='Default.TButton')
         else:
-            self.btn_about_mgsp.configure(image=self.img_about, style='Image.TButton')
-            self.btn_about_typo.configure(image=self.img_about, style='Image.TButton')
+            self.btn_about_mgsp.configure(image=self.img_about, compound='image', style='Image.TButton')
+            self.btn_about_typo.configure(image=self.img_about, compound='image', style='Image.TButton')
 
         # Установка некоторых стилей для окна настроек
         self.configure(bg=ST_BG[th])
@@ -4729,7 +4729,6 @@ root.mainloop()
 # Нерешаемые баги:
 # wait_window
 # Combobox.Listbox
-# Убрать картинку с кнопки
 
 # Открывать программу после обновления
 # Если ответ немного отличается от правильного, то ...
@@ -4737,3 +4736,4 @@ root.mainloop()
 # Добавить изменение статьи по переводу
 
 # Сделать установщик отдельной программой
+# Изменить вид выключенной кнопки (ввод шаблона)
