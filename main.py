@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-159'
+PROGRAM_VERSION = 'v7.0.0_PRE-160'
 PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '20:54 (UTC+3)'
+PROGRAM_TIME = '22:15 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -4082,17 +4082,12 @@ class SettingsW(tk.Toplevel):
         global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc,\
             _0_global_form_parameters, _0_global_special_combinations
 
-        saves_count = 0
         saves_list = []
         for file_name in os.listdir(SAVES_PATH):
             base_name, ext = os.path.splitext(file_name)
             if ext == '.txt':
                 if base_name != _0_global_dct_savename:
                     saves_list += [base_name]
-                    saves_count += 1
-        if saves_count == 0:  # Если нет сохранённых словарей
-            warning(self, 'Нет других сохранённых словарей!')
-            return
 
         window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите открыть',
                               default_value=saves_list[0], combo_width=width(saves_list, 5, 100))
@@ -4187,25 +4182,17 @@ class SettingsW(tk.Toplevel):
 
     # Удалить словарь
     def dct_delete(self):
-        saves_count = 0
         saves_list = []
         for filename in os.listdir(SAVES_PATH):
             base_name, ext = os.path.splitext(filename)
             if ext == '.txt':
                 if base_name != _0_global_dct_savename:
                     saves_list += [base_name]
-                    saves_count += 1
-        if saves_count == 0:  # Если нет сохранённых словарей
-            warning(self, 'Нет других сохранённых словарей!')
-            return
 
         window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите удалить',
                                      default_value=saves_list[0], combo_width=width(saves_list, 5, 100))
         closed, savename = window_choose.open()
         if closed or savename == '':
-            return
-        if savename == _0_global_dct_savename:
-            warning(self, 'Нельзя удалить словарь, который сейчас открыт!')
             return
 
         window_confirm = PopupDialogueW(self, f'Словарь "{savename}" будет безвозвратно удалён!\n'
@@ -4239,6 +4226,8 @@ class SettingsW(tk.Toplevel):
     def print_dct_list(self):
         self.txt_dcts['state'] = 'normal'
         self.txt_dcts.delete(1.0, tk.END)
+
+        has_only_one_dct = True
         for filename in os.listdir(SAVES_PATH):
             base_name, ext = os.path.splitext(filename)
             if ext == '.txt':
@@ -4246,7 +4235,15 @@ class SettingsW(tk.Toplevel):
                     self.txt_dcts.insert(tk.END, f'"{base_name}" (ОТКРЫТ)\n')
                 else:
                     self.txt_dcts.insert(tk.END, f'"{base_name}"\n')
+                    has_only_one_dct = False
         self.txt_dcts['state'] = 'disabled'
+
+        if has_only_one_dct:
+            btn_disable(self.btn_dct_open)
+            btn_disable(self.btn_dct_delete)
+        else:
+            btn_enable(self.btn_dct_open, self.dct_open)
+            btn_enable(self.btn_dct_delete, self.dct_delete)
 
     # Справка о МППУ
     def about_mgsp(self):
