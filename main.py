@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-153'
+PROGRAM_VERSION = 'v7.0.0_PRE-154'
 PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '18:42 (UTC+3)'
+PROGRAM_TIME = '19:04 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -2431,17 +2431,17 @@ class FormsSettingsW(tk.Toplevel):
 
     # Добавить параметр
     def add(self):
-        self.has_changes = self.has_changes or add_frm_param(self, _0_global_form_parameters, _0_global_dct)
+        self.has_changes = add_frm_param(self, _0_global_form_parameters, _0_global_dct) or self.has_changes
         self.refresh()
 
     # Удалить параметр
     def delete(self):
-        self.has_changes = self.has_changes or delete_frm_param(self, _0_global_form_parameters, _0_global_dct)
+        self.has_changes = delete_frm_param(self, _0_global_form_parameters, _0_global_dct) or self.has_changes
         self.refresh()
 
     # Переименовать параметр
     def rename(self):
-        self.has_changes = self.has_changes or rename_frm_param(self, _0_global_form_parameters, _0_global_dct)
+        self.has_changes = rename_frm_param(self, _0_global_form_parameters, _0_global_dct) or self.has_changes
         self.refresh()
 
     # Перейти к настройкам значения параметра
@@ -2452,7 +2452,7 @@ class FormsSettingsW(tk.Toplevel):
         closed, key = window.open()
         if closed or key == '':
             return
-        self.has_changes = self.has_changes or FormsParameterSettingsW(self, key).open()
+        self.has_changes = FormsParameterSettingsW(self, key).open() or self.has_changes
 
     # Напечатать существующие параметры форм
     def print_form_par_list(self):
@@ -2547,12 +2547,12 @@ class FormsParameterSettingsW(tk.Toplevel):
     # Переименовать значение параметра
     def rename(self):
         index = tuple(_0_global_form_parameters).index(self.parameter)
-        self.has_changes = self.has_changes or rename_frm_param_val(self, self.par_vals, index, _0_global_dct)
+        self.has_changes = rename_frm_param_val(self, self.par_vals, index, _0_global_dct) or self.has_changes
         self.refresh()
 
     # Удалить значение параметра
     def delete(self):
-        self.has_changes = self.has_changes or delete_frm_param_val(self, self.par_vals, _0_global_dct)
+        self.has_changes = delete_frm_param_val(self, self.par_vals, _0_global_dct) or self.has_changes
         self.refresh()
 
     # Напечатать существующие параметры форм
@@ -2921,21 +2921,24 @@ class LearnW(tk.Toplevel):
                 if words == VALUES_WORDS[0]:
                     _0_global_has_progress = self.choose_f(_0_global_dct) or _0_global_has_progress
                 elif words == VALUES_WORDS[1]:
-                    _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
+                    _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or\
+                                             _0_global_has_progress
                 else:
                     _0_global_has_progress = self.choose_f_fav(_0_global_dct) or _0_global_has_progress
             else:
                 if words == VALUES_WORDS[0]:
                     _0_global_has_progress = self.choose(_0_global_dct) or _0_global_has_progress
                 elif words == VALUES_WORDS[1]:
-                    _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
+                    _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or\
+                                             _0_global_has_progress
                 else:
                     _0_global_has_progress = self.choose_fav(_0_global_dct) or _0_global_has_progress
         else:
             if words == VALUES_WORDS[0]:
                 _0_global_has_progress = self.choose_t(_0_global_dct) or _0_global_has_progress
             elif words == VALUES_WORDS[1]:
-                _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
+                _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or\
+                                         _0_global_has_progress
             else:
                 _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
 
@@ -2963,21 +2966,24 @@ class LearnW(tk.Toplevel):
                 if words == VALUES_WORDS[0]:
                     _0_global_has_progress = self.choose_f(_0_global_dct) or _0_global_has_progress
                 elif words == VALUES_WORDS[1]:
-                    _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
+                    _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or\
+                                             _0_global_has_progress
                 else:
                     _0_global_has_progress = self.choose_f_fav(_0_global_dct) or _0_global_has_progress
             else:
                 if words == VALUES_WORDS[0]:
                     _0_global_has_progress = self.choose(_0_global_dct) or _0_global_has_progress
                 elif words == VALUES_WORDS[1]:
-                    _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
+                    _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or\
+                                             _0_global_has_progress
                 else:
                     _0_global_has_progress = self.choose_fav(_0_global_dct) or _0_global_has_progress
         else:
             if words == VALUES_WORDS[0]:
                 _0_global_has_progress = self.choose_t(_0_global_dct) or _0_global_has_progress
             elif words == VALUES_WORDS[1]:
-                _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or _0_global_has_progress
+                _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or\
+                                         _0_global_has_progress
             else:
                 _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
 
@@ -4014,11 +4020,11 @@ class SettingsW(tk.Toplevel):
 
     # Настройки словоформ
     def forms(self):
-        self.has_forms_changes = self.has_forms_changes or FormsSettingsW(self).open()
+        self.has_forms_changes = FormsSettingsW(self).open() or self.has_forms_changes
 
     # Настройки специальных комбинаций
     def special_combinations(self):
-        self.has_spec_comb_changes = self.has_spec_comb_changes or SpecialCombinationsSettingsW(self).open()
+        self.has_spec_comb_changes = SpecialCombinationsSettingsW(self).open() or self.has_spec_comb_changes
 
     # Разрешить/запретить сообщать о новых версиях
     def set_show_updates(self):
@@ -4765,4 +4771,3 @@ root.mainloop()
 
 # Сделать установщик отдельной программой
 # text -> txt
-# непонятный баг - кнопка срабатывает тока 1 раз
