@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-149'
+PROGRAM_VERSION = 'v7.0.0_PRE-150'
 PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '15:05 (UTC+3)'
+PROGRAM_TIME = '15:17 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -1184,24 +1184,21 @@ def upload_themes(themes):
 
 # Загрузка изображений темы
 def upload_themes_img(theme):
-    global img_about, img_about_mgsp, img_about_typo
+    global img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo
 
     theme_dir = os.path.join(CUSTOM_THEMES_PATH, theme)
 
-    if 'about.png' in os.listdir(theme_dir):
-        img_about = os.path.join(theme_dir, 'about.png')
-    else:
-        img_about = os.path.join(IMAGES_PATH, 'about.png')
+    images = [img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo]
+    image_names = ['add', 'delete', 'edit', 'about', 'about_mgsp', 'about_typo']
 
-    if 'about_mgsp.png' in os.listdir(theme_dir):
-        img_about_mgsp = os.path.join(theme_dir, 'about_mgsp.png')
-    else:
-        img_about_mgsp = os.path.join(IMAGES_PATH, 'about_mgsp.png')
+    for i in range(len(images)):
+        file_name = f'{image_names[i]}.png'
+        if file_name in os.listdir(theme_dir):
+            images[i] = os.path.join(theme_dir, file_name)
+        else:
+            images[i] = os.path.join(IMAGES_PATH, file_name)
 
-    if 'about_typo.png' in os.listdir(theme_dir):
-        img_about_typo = os.path.join(theme_dir, 'about_typo.png')
-    else:
-        img_about_typo = os.path.join(IMAGES_PATH, 'about_typo.png')
+    img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo = images
 
 
 # Проверка наличия обновлений программы
