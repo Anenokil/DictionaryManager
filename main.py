@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-156'
+PROGRAM_VERSION = 'v7.0.0_PRE-157'
 PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '20:16 (UTC+3)'
+PROGRAM_TIME = '20:37 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -3005,8 +3005,7 @@ class LearnW(tk.Toplevel):
         self.btn_stop.grid_remove()
         btn_disable(self.btn_input)
 
-        if len(self.used_words) == _0_global_dct.count_w:
-            PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
+        PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
         self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}')
 
     # Проверка введённого слова
