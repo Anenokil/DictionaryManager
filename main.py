@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-160'
+PROGRAM_VERSION = 'v7.0.0_PRE-161'
 PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '22:15 (UTC+3)'
+PROGRAM_TIME = '22:22 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -3407,7 +3407,10 @@ class EditW(tk.Toplevel):
         self.parent = parent
         self.key = key
         self.line_width = 35
-        self.max_height = 5
+        self.max_height_w = 3
+        self.max_height_t = 6
+        self.max_height_n = 6
+        self.max_height_f = 8
 
         self.var_wrd = tk.StringVar(value=_0_global_dct.d[key].wrd)
         self.var_fav = tk.BooleanVar(value=_0_global_dct.d[key].fav)
@@ -3554,10 +3557,10 @@ class EditW(tk.Toplevel):
 
     # Обновить поля
     def refresh(self):
-        height_w = max(min(height(_0_global_dct.d[self.key].wrd,            self.line_width), self.max_height), 1)
-        height_t =     min(height(_0_global_dct.d[self.key].tr_to_str(),    self.line_width), self.max_height)
-        height_n =     min(height(_0_global_dct.d[self.key].notes_to_str(), self.line_width), self.max_height)
-        height_f =     min(height(_0_global_dct.d[self.key].frm_to_str(),   self.line_width), self.max_height)
+        height_w = max(min(height(_0_global_dct.d[self.key].wrd,            self.line_width), self.max_height_w), 1)
+        height_t = max(min(height(_0_global_dct.d[self.key].tr_to_str(),    self.line_width), self.max_height_t), 1)
+        height_n = max(min(height(_0_global_dct.d[self.key].notes_to_str(), self.line_width), self.max_height_n), 1)
+        height_f = max(min(height(_0_global_dct.d[self.key].frm_to_str(),   self.line_width), self.max_height_f), 1)
 
         self.txt_wrd  ['height'] = height_w
         self.txt_tr   ['height'] = height_t
@@ -3601,13 +3604,13 @@ class EditW(tk.Toplevel):
             self.btn_frm_del.grid_remove()
             self.btn_frm_edt.grid_remove()
 
-        if height_w < self.max_height:
+        if height_w < self.max_height_w:
             self.scrollbar_wrd.grid_remove()
-        if height_t < self.max_height:
+        if height_t < self.max_height_t:
             self.scrollbar_tr.grid_remove()
-        if height_n < self.max_height:
+        if height_n < self.max_height_n:
             self.scrollbar_notes.grid_remove()
-        if height_f < self.max_height:
+        if height_f < self.max_height_f:
             self.scrollbar_frm.grid_remove()
 
     # Изменить слово
