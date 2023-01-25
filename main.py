@@ -15,7 +15,7 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-157'
+PROGRAM_VERSION = 'v7.0.0_PRE-158'
 PROGRAM_DATE = '25.1.2023'
 PROGRAM_TIME = '20:37 (UTC+3)'
 
@@ -4060,7 +4060,7 @@ class SettingsW(tk.Toplevel):
         self.txt_dcts.configure(relief=ST_RELIEF[th], bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                 highlightbackground=ST_BORDER[th])
-        self.txt_themes_note.configure(font='StdFont 10', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+        self.txt_themes_note.configure(font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                        highlightbackground=ST_BORDER[th])
         #self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
