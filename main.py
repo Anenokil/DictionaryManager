@@ -15,10 +15,11 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-161'
+PROGRAM_VERSION = 'v7.0.0_PRE-162'
 PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '22:22 (UTC+3)'
+PROGRAM_TIME = '23:00 (UTC+3)'
 
+SAVES_VERSION = 1
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
 REQUIRED_THEME_VERSION = 4
@@ -123,6 +124,8 @@ CUSTOM_THEMES_DIR = 'themes'  # Папка с пользовательскими
 CUSTOM_THEMES_PATH = os.path.join(RESOURCES_PATH, CUSTOM_THEMES_DIR)
 IMAGES_DIR = 'images'  # Папка с изображениями
 IMAGES_PATH = os.path.join(RESOURCES_PATH, IMAGES_DIR)
+TMP_FN = 'tmp.txt'  # Временный файл
+TMP_PATH = os.path.join(RESOURCES_PATH, TMP_FN)
 
 # Если папки отсутствуют, то они создаются
 if RESOURCES_DIR not in os.listdir(MAIN_PATH):
@@ -135,6 +138,10 @@ if CUSTOM_THEMES_DIR not in os.listdir(RESOURCES_PATH):
     os.mkdir(CUSTOM_THEMES_PATH)
 if IMAGES_DIR not in os.listdir(RESOURCES_PATH):
     os.mkdir(IMAGES_PATH)
+
+# Если временный файл не удалёнб то он удаляется
+if TMP_FN in os.listdir(RESOURCES_PATH):
+    os.remove(TMP_PATH)
 
 if THEMES[0] not in os.listdir(CUSTOM_THEMES_PATH):
     os.mkdir(os.path.join(CUSTOM_THEMES_PATH, THEMES[0]))
@@ -1089,6 +1096,7 @@ class Dictionary(object):
     # Сохранить словарь в файл
     def save(self, filename):
         with open(filename, 'w', encoding='utf-8') as file:
+            file.write(f'v{SAVES_VERSION}\n')
             for entry in self.d.values():
                 entry.save(file)
 
@@ -1096,6 +1104,7 @@ class Dictionary(object):
     def read(self, filename):
         try:
             with open(filename, 'r', encoding='utf-8') as file:
+                version = file.readline().strip()  # Версия сохранения словаря
                 while True:
                     line = file.readline().strip()
                     if not line:
@@ -1226,7 +1235,7 @@ def upgrade_global_settings_0_to_1():
         global_settings_file.write(lines[2])  # Установленная тема
 
 
-# Обновить глобальные настройки старых версий до актуальной версии
+# Обновить глобальные настройки старой версии до актуальной версии
 def upgrade_global_settings():
     with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
         lines = global_settings_file.readlines()
@@ -1282,7 +1291,7 @@ def upgrade_local_settings_0_to_1(local_settings_path):
             local_settings_file.write(lines[i])
 
 
-# Обновить локальные настройки старых версий до актуальной версии
+# Обновить локальные настройки старой версии до актуальной версии
 def upgrade_local_settings(local_settings_path):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         first_line = local_settings_file.readline()
@@ -1338,12 +1347,44 @@ def upload_local_settings(savename):
     return min_good_score_perc, form_parameters, special_combinations
 
 
+# Обновить сохранение словаря с 0 до 1 версии
+def upgrade_dct_save_0_to_1(path):
+    with open(path, 'r', encoding='utf-8') as dct_save:
+        with open(TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+            while True:
+                line = dct_save.readline()
+                if not line:
+                    break
+                dct_save_tmp.write(line)
+    with open(TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
+        with open(path, 'w', encoding='utf-8') as dct_save:
+            dct_save.write(f'v{SAVES_VERSION}\n')
+            while True:
+                line = dct_save_tmp.readline()
+                if not line:
+                    break
+                dct_save.write(line)
+    if TMP_FN in os.listdir(RESOURCES_PATH):
+        os.remove(TMP_PATH)
+
+
+# Обновить сохранение словаря старой версии до актуальной версии
+def upgrade_dct_save(path):
+    with open(path, 'r', encoding='utf-8') as dct_save:
+        first_line = dct_save.readline()
+    if first_line == '':  # Если сохранение пустое
+        return
+    if first_line[0] == 'w':  # Версия 0
+        upgrade_dct_save_0_to_1(path)
+
+
 # Загрузить словарь (с обработкой исключений)
 def upload_dct(window_parent, dct, savename):
     global _0_global_dct_savename
 
     filename = dct_filename(savename)
     filepath = os.path.join(SAVES_PATH, filename)
+    upgrade_dct_save(filepath)
     res_code = dct.read(filepath)
     if res_code == 0:  # Если чтение прошло успешно, то выводится соответствующее сообщение
         print(f'\nСловарь "{savename}" успешно открыт')
@@ -1379,7 +1420,7 @@ def upload_dct(window_parent, dct, savename):
 def create_dct(dct, savename):
     filename = dct_filename(savename)
     filepath = os.path.join(SAVES_PATH, filename)
-    open(filepath, 'w', encoding='utf-8')
+    open(filepath, 'w', encoding='utf-8').write(f'v{SAVES_VERSION}\n')
     dct.read(filepath)
     print(f'\nСловарь "{savename}" успешно создан и открыт')
     return upload_local_settings(savename)
