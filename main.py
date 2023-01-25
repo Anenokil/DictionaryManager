@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-152'
+PROGRAM_VERSION = 'v7.0.0_PRE-153'
 PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '18:29 (UTC+3)'
+PROGRAM_TIME = '18:42 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -1511,7 +1511,7 @@ class PopupMsgW(tk.Toplevel):
         self.parent = parent
         self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
 
-        self.lbl_msg = ttk.Label(self, text=msg, style='Default.TLabel')
+        self.lbl_msg = ttk.Label(self, text=msg, justify='center', style='Default.TLabel')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Default.TButton')
 
         self.lbl_msg.grid(row=0, column=0, padx=6, pady=4)
@@ -1566,7 +1566,7 @@ class PopupDialogueW(tk.Toplevel):
         self.st_left = f'{st_left}.TButton'
         self.st_right = f'{st_right}.TButton'
 
-        self.lbl_msg = ttk.Label(self, text=msg, style='Default.TLabel')
+        self.lbl_msg = ttk.Label(self, text=msg, justify='center', style='Default.TLabel')
         self.btn_left = ttk.Button(self, text=btn_left, command=self.left, takefocus=False, style=self.st_left)
         self.btn_right = ttk.Button(self, text=btn_right, command=self.right, takefocus=False, style=self.st_right)
 
@@ -1617,7 +1617,7 @@ class PopupEntryW(tk.Toplevel):
 
         self.var_text = tk.StringVar()
 
-        self.lbl_msg = ttk.Label(self, text=f'{msg}:', style='Default.TLabel')
+        self.lbl_msg = ttk.Label(self, text=f'{msg}:', justify='center', style='Default.TLabel')
         self.entry_inp = ttk.Entry(self, textvariable=self.var_text, width=30, style='.TEntry')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
 
@@ -1659,7 +1659,7 @@ class PopupChooseW(tk.Toplevel):
 
         self.var_answer = tk.StringVar(value=default_value)
 
-        self.lbl_msg = ttk.Label(self, text=msg, style='Default.TLabel')
+        self.lbl_msg = ttk.Label(self, text=msg, justify='center', style='Default.TLabel')
         self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values, width=combo_width,
                                        font='TkFixedFont', state='readonly', style='.TCombobox')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
@@ -1757,7 +1757,7 @@ class EnterDctNameW(tk.Toplevel):
 
         self.var_name = tk.StringVar()
 
-        self.lbl_msg = ttk.Label(self, text='Введите название словаря', style='Default.TLabel')
+        self.lbl_msg = ttk.Label(self, text='Введите название словаря', justify='center', style='Default.TLabel')
         self.entry_name = ttk.Entry(self, textvariable=self.var_name, width=30, style='.TEntry')
         self.btn_ok = ttk.Button(self, text='Подтвердить', command=self.check_and_return,
                                  takefocus=False, style='Yes.TButton')
@@ -1807,7 +1807,8 @@ class EnterFormParameterNameW(tk.Toplevel):
 
         self.var_name = tk.StringVar()
 
-        self.lbl_msg = ttk.Label(self, text='Введите название нового параметра', width=30, style='Default.TLabel')
+        self.lbl_msg = ttk.Label(self, text='Введите название нового параметра',
+                                 justify='center', width=30, style='Default.TLabel')
         self.entry_name = ttk.Entry(self, textvariable=self.var_name, style='.TEntry')
         self.btn_ok = ttk.Button(self, text='Подтвердить', command=self.check_and_return,
                                  takefocus=False, style='Yes.TButton')
@@ -1860,13 +1861,13 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.vcmd_key = (self.register(validate_special_combination_key), '%P')
         self.vcmd_val = (self.register(validate_special_combination_val), '%P')
 
-        self.lbl_msg = ttk.Label(self, text='Задайте комбинацию', style='Default.TLabel')
+        self.lbl_msg = ttk.Label(self, text='Задайте комбинацию', justify='center', style='Default.TLabel')
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.lbl_1 = ttk.Label(self.frame_main, text='#', style='Default.TLabel')
+        self.lbl_1 = ttk.Label(self.frame_main, text='#', justify='right', style='Default.TLabel')
         self.entry_key = ttk.Entry(self.frame_main, textvariable=self.var_key, width=2, justify='right',
                                    validate='key', validatecommand=self.vcmd_key, style='.TEntry')
-        self.lbl_2 = ttk.Label(self.frame_main, text='->', style='Default.TLabel')
+        self.lbl_2 = ttk.Label(self.frame_main, text='->', justify='center', style='Default.TLabel')
         self.entry_val = ttk.Entry(self.frame_main, textvariable=self.var_val, width=2,
                                    validate='key', validatecommand=self.vcmd_val, style='.TEntry')
         # }
@@ -1916,7 +1917,7 @@ class ChooseFormParValW(tk.Toplevel):
         self.vals = par_vals
         self.var_par = tk.StringVar(value=self.vals[0])
 
-        self.lbl_choose = ttk.Label(self, text=f'Задайте значение параметра "{par_name}"',
+        self.lbl_choose = ttk.Label(self, text=f'Задайте значение параметра "{par_name}"', justify='center',
                                     style='Default.TLabel')
         self.combo = ttk.Combobox(self, textvariable=self.var_par, values=self.vals, width=combo_width,
                                   font='TkFixedFont', state='readonly', style='.TCombobox')
@@ -1995,7 +1996,8 @@ class ChooseNoteW(tk.Toplevel):
 
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.lbl_input = ttk.Label(self.frame_main, text='Выберите одну из статей:', style='Default.TLabel')
+        self.lbl_input = ttk.Label(self.frame_main, text='Выберите одну из статей:',
+                                   justify='center', style='Default.TLabel')
         self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=5,
                                      validate='key', validatecommand=self.vcmd_max, style='.TEntry')
         self.btn_choose = ttk.Button(self.frame_main, text='Выбор', command=self.choose,
@@ -2072,7 +2074,7 @@ class IncorrectAnswerW(tk.Toplevel):
                                             f'Ваш ответ: {user_answer}\n'
                                             f'Правильный ответ: {correct_answer}\n'
                                             f'Хотите добавить слово в избранное?',
-                                 style='Default.TLabel')
+                                 justify='center', style='Default.TLabel')
         self.btn_yes = ttk.Button(self, text='Да', command=self.yes, takefocus=False, style='Yes.TButton')
         self.btn_no = ttk.Button(self, text='Нет', command=self.no, takefocus=False, style='No.TButton')
         self.btn_typo = ttk.Button(self, text='Просто опечатка', command=self.typo,
@@ -2237,8 +2239,8 @@ class CreateFormTemplateW(tk.Toplevel):
         self.var_template = tk.StringVar(value='Текущий шаблон формы: ""')
         self.var_par = tk.StringVar(value=self.parameters[0])
 
-        self.lbl_template = ttk.Label(self, textvariable=self.var_template, style='Default.TLabel')
-        self.lbl_choose = ttk.Label(self, text='Выберите параметр', style='Default.TLabel')
+        self.lbl_template = ttk.Label(self, textvariable=self.var_template, justify='center', style='Default.TLabel')
+        self.lbl_choose = ttk.Label(self, text='Выберите параметр', justify='center', style='Default.TLabel')
         self.combo = ttk.Combobox(self, textvariable=self.var_par, values=self.parameters, width=combo_width,
                                   font='TkFixedFont', state='readonly', style='.TCombobox')
         self.btn_choose = ttk.Button(self, text='Задать значение', command=self.choose,
@@ -2326,14 +2328,14 @@ class ParticularMatchesW(tk.Toplevel):
 
         self.lbl_header = ttk.Label(self, text=f'Слово "{wrd}" отсутствует в словаре\n'
                                                f'Возможно вы искали:',
-                                    style='Default.TLabel')
-        self.lbl_wrd = ttk.Label(self, text=f'Слова, содержащие "{wrd}"', style='Default.TLabel')
+                                    justify='center', style='Default.TLabel')
+        self.lbl_wrd = ttk.Label(self, text=f'Слова, содержащие "{wrd}"', justify='center', style='Default.TLabel')
         self.scrollbar_wrd = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
                                 bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                 relief=ST_RELIEF[th])
-        self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{wrd}"', style='Default.TLabel')
+        self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{wrd}"', justify='center', style='Default.TLabel')
         self.scrollbar_tr = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
                                bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
@@ -2393,7 +2395,8 @@ class FormsSettingsW(tk.Toplevel):
 
         self.var_par = tk.StringVar()
 
-        self.lbl_form_par = ttk.Label(self, text='Существующие параметры форм:', style='Default.TLabel')
+        self.lbl_form_par = ttk.Label(self, text='Существующие параметры форм:',
+                                      justify='center', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
                                      bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
@@ -2463,12 +2466,12 @@ class FormsSettingsW(tk.Toplevel):
     def refresh(self):
         self.print_form_par_list()
         if _0_global_form_parameters:
-            btn_enable(self.btn_delete, self.delete)
             btn_enable(self.btn_rename, self.rename)
+            btn_enable(self.btn_delete, self.delete)
             btn_enable(self.btn_values, self.values)
         else:
-            btn_disable(self.btn_delete)
             btn_disable(self.btn_rename)
+            btn_disable(self.btn_delete)
             btn_disable(self.btn_values)
 
     # Установить фокус
@@ -2502,7 +2505,7 @@ class FormsParameterSettingsW(tk.Toplevel):
 
         self.lbl_par_val = ttk.Label(self, text=f'Существующие значения параметра\n'
                                                 f'"{parameter}":',
-                                     style='Default.TLabel')
+                                     justify='center', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_par_val = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
                                     bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
@@ -2541,15 +2544,15 @@ class FormsParameterSettingsW(tk.Toplevel):
         self.par_vals += [new_val]
         self.refresh()
 
-    # Удалить значение параметра
-    def delete(self):
-        self.has_changes = self.has_changes or delete_frm_param_val(self, self.par_vals, _0_global_dct)
-        self.refresh()
-
     # Переименовать значение параметра
     def rename(self):
         index = tuple(_0_global_form_parameters).index(self.parameter)
         self.has_changes = self.has_changes or rename_frm_param_val(self, self.par_vals, index, _0_global_dct)
+        self.refresh()
+
+    # Удалить значение параметра
+    def delete(self):
+        self.has_changes = self.has_changes or delete_frm_param_val(self, self.par_vals, _0_global_dct)
         self.refresh()
 
     # Напечатать существующие параметры форм
@@ -2594,7 +2597,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
 
         self.var_par = tk.StringVar()
 
-        self.lbl_form_par = ttk.Label(self, text='Существующие комбинации:', style='Default.TLabel')
+        self.lbl_form_par = ttk.Label(self, text='Существующие комбинации:', justify='center', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.text_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
                                      bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
@@ -4035,7 +4038,7 @@ class SettingsW(tk.Toplevel):
 
         th = self.var_theme.get()
 
-        self.parent.set_styles()  # Установка ttk-стилей
+        self.parent.set_ttk_styles()  # Установка ttk-стилей
         upload_themes_img(th)  # Загрузка изображений тем
 
         # Установка изображений
@@ -4344,7 +4347,7 @@ class MainW(tk.Tk):
 
         self.var_word = tk.StringVar(value='')
 
-        self.set_styles()
+        self.set_ttk_styles()
 
         self.frame_head = ttk.Frame(self, style='Invis.TFrame')
         # {
@@ -4469,7 +4472,7 @@ class MainW(tk.Tk):
         _0_global_window_last_version = check_updates(self, _0_global_show_updates, True)
 
     # Установить ttk-стили
-    def set_styles(self):
+    def set_ttk_styles(self):
         # Стиль label "default"
         self.st_lbl_default = ttk.Style()
         self.st_lbl_default.theme_use('alt')
@@ -4759,11 +4762,7 @@ root.mainloop()
 # Если ответ немного отличается от правильного, то ...
 # Принимать несколько ответов при угадывании слова
 # Добавить изменение статьи по переводу
+
 # Сделать установщик отдельной программой
-
 # text -> txt
-# ttk-styles
-# popup - центрировать текст
-# rename перед delete
-
 # непонятный баг - кнопка срабатывает тока 1 раз
