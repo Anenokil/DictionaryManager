@@ -15,13 +15,13 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-151'
+PROGRAM_VERSION = 'v7.0.0_PRE-152'
 PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '16:05 (UTC+3)'
+PROGRAM_TIME = '18:29 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
-REQUIRED_THEME_VERSION = 3
+REQUIRED_THEME_VERSION = 4
 
 """ Стандартные темы """
 
@@ -46,16 +46,13 @@ ST_HIGHLIGHT     = {THEMES[0]: '#00DD00', THEMES[1]: '#005500'}  # Цвет по
 
 ST_BTN_BG        = {THEMES[0]: '#D0D0D0', THEMES[1]: '#1D1D1D'}  # Цвет фона обычных кнопок
 ST_BTN_BG_SEL    = {THEMES[0]: '#BABABA', THEMES[1]: '#191919'}  # Цвет фона обычных кнопок при нажатии
-#ST_BTN_FG        = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста обычных кнопок
-#ST_BTN_FG_SEL    = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста обычных кнопок при нажатии
 ST_BTN_Y_BG      = {THEMES[0]: '#88DD88', THEMES[1]: '#446F44'}  # Цвет фона да-кнопок
 ST_BTN_Y_BG_SEL  = {THEMES[0]: '#77CC77', THEMES[1]: '#558055'}  # Цвет фона да-кнопок при нажатии
-#ST_BTN_Y_FG      = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста да-кнопок
-#ST_BTN_Y_FG_SEL  = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста да-кнопок при нажатии
 ST_BTN_N_BG      = {THEMES[0]: '#FF6666', THEMES[1]: '#803333'}  # Цвет фона нет-кнопок
 ST_BTN_N_BG_SEL  = {THEMES[0]: '#EE5555', THEMES[1]: '#904444'}  # Цвет фона нет-кнопок при нажатии
-#ST_BTN_N_FG      = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста нет-кнопок
-#ST_BTN_N_FG_SEL  = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста нет-кнопок при нажатии
+
+ST_BTN_BG_DISABL = {THEMES[0]: '#D9D9D9', THEMES[1]: '#151515'}  # Цвет фона выключенных кнопок
+ST_BTN_FG_DISABL = {THEMES[0]: '#B0B0B0', THEMES[1]: '#454545'}  # Цвет текста выключенных кнопок
 
 ST_CHECK_BG_SEL  = {THEMES[0]: '#DDDDDD', THEMES[1]: '#333333'}  # Цвет фона переключателя при наведении на него
 
@@ -75,6 +72,7 @@ STYLE_ELEMENTS = ('BG', 'BG_FIELDS',
                   'SELECT_BG', 'SELECT_FG',
                   'RELIEF', 'BORDER', 'HIGHLIGHT',
                   'BTN_BG', 'BTN_BG_SEL', 'BTN_Y_BG', 'BTN_Y_BG_SEL', 'BTN_N_BG', 'BTN_N_BG_SEL',
+                  'BTN_BG_DISABL', 'BTN_FG_DISABL',
                   'CHECK_BG_SEL',
                   'TAB_BG', 'TAB_BG_SEL', 'TAB_FG', 'TAB_FG_SEL',
                   'SCROLL_BG', 'SCROLL_BG_SEL', 'SCROLL_FG', 'SCROLL_FG_SEL')
@@ -98,15 +96,17 @@ STYLES = {STYLE_ELEMENTS[0]:  ST_BG,
           STYLE_ELEMENTS[15]: ST_BTN_Y_BG_SEL,
           STYLE_ELEMENTS[16]: ST_BTN_N_BG,
           STYLE_ELEMENTS[17]: ST_BTN_N_BG_SEL,
-          STYLE_ELEMENTS[18]: ST_CHECK_BG_SEL,
-          STYLE_ELEMENTS[19]: ST_TAB_BG,
-          STYLE_ELEMENTS[20]: ST_TAB_BG_SEL,
-          STYLE_ELEMENTS[21]: ST_TAB_FG,
-          STYLE_ELEMENTS[22]: ST_TAB_FG_SEL,
-          STYLE_ELEMENTS[23]: ST_SCROLL_BG,
-          STYLE_ELEMENTS[24]: ST_SCROLL_BG_SEL,
-          STYLE_ELEMENTS[25]: ST_SCROLL_FG,
-          STYLE_ELEMENTS[26]: ST_SCROLL_FG_SEL}
+          STYLE_ELEMENTS[18]: ST_BTN_BG_DISABL,
+          STYLE_ELEMENTS[19]: ST_BTN_FG_DISABL,
+          STYLE_ELEMENTS[20]: ST_CHECK_BG_SEL,
+          STYLE_ELEMENTS[21]: ST_TAB_BG,
+          STYLE_ELEMENTS[22]: ST_TAB_BG_SEL,
+          STYLE_ELEMENTS[23]: ST_TAB_FG,
+          STYLE_ELEMENTS[24]: ST_TAB_FG_SEL,
+          STYLE_ELEMENTS[25]: ST_SCROLL_BG,
+          STYLE_ELEMENTS[26]: ST_SCROLL_BG_SEL,
+          STYLE_ELEMENTS[27]: ST_SCROLL_FG,
+          STYLE_ELEMENTS[28]: ST_SCROLL_FG_SEL}
 
 """ Пути и файлы """
 
@@ -203,16 +203,6 @@ def height(text, len_str):
 def width(values, min_width, max_width):
     max_of_vals = max(len(val) for val in values)
     return min(max(max_of_vals, min_width), max_width)
-
-
-# Вывод текста на виджет
-def outp(output_widget, text='', end='\n', mode=tk.END):
-    output_widget.insert(mode, f'{text}{end}')
-
-
-# Вывод сообщения с предупреждением
-def warning(window_parent, msg):
-    PopupMsgW(window_parent, msg, title='Warning').open()
 
 
 # Вывести специальную комбинацию
@@ -1462,6 +1452,26 @@ def save_dct_if_has_progress(window_parent, dct, filename, has_progress):
 """ Графический интерфейс """
 
 
+# Вывод текста на виджет
+def outp(output_widget, text='', end='\n', mode=tk.END):
+    output_widget.insert(mode, f'{text}{end}')
+
+
+# Вывод сообщения с предупреждением
+def warning(window_parent, msg):
+    PopupMsgW(window_parent, msg, title='Warning').open()
+
+
+# Выключение кнопки (т. к. в ttk нельзя убрать уродливую тень текста на выключенных кнопках, пришлось делать по-своему)
+def btn_disable(btn: ttk.Button):
+    btn.configure(command='', style='Disabled.TButton')
+
+
+# Включение кнопки (т. к. в ttk нельзя убрать уродливую тень текста на выключенных кнопках, пришлось делать по-своему)
+def btn_enable(btn: ttk.Button, command):
+    btn.configure(command=command, style='Default.TButton')
+
+
 # Ввод только целых чисел от 0 до max_val
 def validate_int_max(value, max_val):
     return value == '' or value.isnumeric() and int(value) <= max_val
@@ -2234,7 +2244,7 @@ class CreateFormTemplateW(tk.Toplevel):
         self.btn_choose = ttk.Button(self, text='Задать значение', command=self.choose,
                                      takefocus=False, style='Default.TButton')
         self.btn_done = ttk.Button(self, text='Закончить с шаблоном и ввести форму слова', command=self.done,
-                                  state='disabled', takefocus=False, style='Default.TButton')
+                                   takefocus=False, style='Default.TButton')
 
         self.lbl_template.grid(row=0, columnspan=3, padx=6,      pady=6)
         self.lbl_choose.grid(  row=1, column=0,     padx=(6, 1), pady=1)
@@ -2243,6 +2253,8 @@ class CreateFormTemplateW(tk.Toplevel):
         self.btn_done.grid(    row=2, columnspan=3, padx=6,      pady=6)
 
         self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
+
+        btn_disable(self.btn_done)
 
     # Выбрать параметр и задать ему значение
     def choose(self):
@@ -2260,9 +2272,9 @@ class CreateFormTemplateW(tk.Toplevel):
         self.var_template.set(f'Текущий шаблон формы: "{tpl(self.template)}"')
 
         if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
-            self.btn_done['state'] = 'disabled'
+            btn_disable(self.btn_done)
         else:
-            self.btn_done['state'] = 'normal'
+            btn_enable(self.btn_done, self.done)
 
         # В combobox значением по умолчанию становится первый ещё не заданный параметр
         for i in range(len(self.template)):
@@ -2451,13 +2463,13 @@ class FormsSettingsW(tk.Toplevel):
     def refresh(self):
         self.print_form_par_list()
         if _0_global_form_parameters:
-            self.btn_delete['state'] = 'normal'
-            self.btn_rename['state'] = 'normal'
-            self.btn_values['state'] = 'normal'
+            btn_enable(self.btn_delete, self.delete)
+            btn_enable(self.btn_rename, self.rename)
+            btn_enable(self.btn_values, self.values)
         else:
-            self.btn_delete['state'] = 'disabled'
-            self.btn_rename['state'] = 'disabled'
-            self.btn_values['state'] = 'disabled'
+            btn_disable(self.btn_delete)
+            btn_disable(self.btn_rename)
+            btn_disable(self.btn_values)
 
     # Установить фокус
     def set_focus(self):
@@ -2552,9 +2564,9 @@ class FormsParameterSettingsW(tk.Toplevel):
     def refresh(self):
         self.print_par_val_list()
         if len(self.par_vals) == 1:
-            self.btn_delete['state'] = 'disabled'
+            btn_disable(self.btn_delete)
         else:
-            self.btn_delete['state'] = 'normal'
+            btn_enable(self.btn_delete, self.delete)
 
     # Установить фокус
     def set_focus(self):
@@ -2651,9 +2663,9 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
     def refresh(self):
         self.print_combinations()
         if _0_global_special_combinations:
-            self.btn_delete['state'] = 'normal'
+            btn_enable(self.btn_delete, self.delete)
         else:
-            self.btn_delete['state'] = 'disabled'
+            btn_disable(self.btn_delete)
 
     # Установить фокус
     def set_focus(self):
@@ -2966,7 +2978,7 @@ class LearnW(tk.Toplevel):
             else:
                 _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
 
-        self.btn_notes['state'] = 'normal'
+        btn_enable(self.btn_notes, self.show_notes)
         self.entry_input.delete(0, tk.END)
         self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {round(_0_global_dct.count_rating() * 100)}%'
 
@@ -2977,13 +2989,13 @@ class LearnW(tk.Toplevel):
         entry.notes_print(self.text_dct)
         self.text_dct.yview_moveto(1.0)
         self.text_dct['state'] = 'disabled'
-        self.btn_notes['state'] = 'disabled'
+        btn_disable(self.btn_notes)
 
     # Завершение учёбы
     def stop(self):
         self.frame_main.grid_remove()
         self.btn_stop.grid_remove()
-        self.btn_input['state'] = 'disabled'
+        btn_disable(self.btn_input)
 
         if len(self.used_words) == _0_global_dct.count_w:
             PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
@@ -4536,6 +4548,19 @@ class MainW(tk.Tk):
                                 #highlightbackground=[('pressed', ST_BORDER[th]),
                                 #                     ('active', ST_BORDER[th])])
 
+        # Стиль button "disabled" (для выключенных "default")
+        self.st_btn_disabled = ttk.Style()
+        self.st_btn_disabled.theme_use('alt')
+        self.st_btn_disabled.configure('Disabled.TButton',
+                                       font=('StdFont', 12))
+        self.st_btn_disabled.map('Disabled.TButton',
+                                 relief=[('active', 'raised'),
+                                         ('!active', 'raised')],
+                                 background=[('active', ST_BTN_BG_DISABL[th]),
+                                             ('!active', ST_BTN_BG_DISABL[th])],
+                                 foreground=[('active', ST_BTN_FG_DISABL[th]),
+                                             ('!active', ST_BTN_FG_DISABL[th])])
+
         # Стиль button "yes"
         self.st_btn_yes = ttk.Style()
         self.st_btn_yes.theme_use('alt')
@@ -4734,6 +4759,11 @@ root.mainloop()
 # Если ответ немного отличается от правильного, то ...
 # Принимать несколько ответов при угадывании слова
 # Добавить изменение статьи по переводу
-
 # Сделать установщик отдельной программой
-# Изменить вид выключенной кнопки (ввод шаблона)
+
+# text -> txt
+# ttk-styles
+# popup - центрировать текст
+# rename перед delete
+
+# непонятный баг - кнопка срабатывает тока 1 раз
