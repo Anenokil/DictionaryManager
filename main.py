@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-155'
+PROGRAM_VERSION = 'v7.0.0_PRE-156'
 PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '19:17 (UTC+3)'
+PROGRAM_TIME = '20:16 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -339,8 +339,7 @@ def delete_frm_param_val(window_parent, values, dct):
     if closed or val == '':
         return False
     window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие это значение параметра, будут удалены!\n'
-                                               'Хотите продолжить?',
-                                set_focus_on_btn='none')
+                                               'Хотите продолжить?')
     answer = window_dia.open()
     if answer:
         index = values.index(val)
@@ -357,7 +356,8 @@ def add_frm_param(window_parent, parameters, dct):
     if not name_is_correct:
         return False
 
-    new_val = add_frm_param_val(window_parent, (), 'Необходимо добавить хотя бы одно значение для параметра')
+    has_changes, new_val = add_frm_param_val(window_parent, (),
+                                             'Необходимо добавить хотя бы одно значение для параметра')
     if not new_val:
         return False
 
@@ -402,8 +402,7 @@ def delete_frm_param(window_parent, parameters, dct):
     if closed or selected_par_name == '':
         return False
     window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие этот параметр, будут удалены!\n'
-                                               'Хотите продолжить?',
-                                set_focus_on_btn='none')
+                                               'Хотите продолжить?')
     answer = window_dia.open()
     if answer:
         pos = par_names.index(selected_par_name)
@@ -1953,7 +1952,7 @@ class ChooseFormParValW(tk.Toplevel):
 
     # Добавить новое значение параметра
     def new_val(self):
-        new_value = add_frm_param_val(self, self.vals)
+        _, new_value = add_frm_param_val(self, self.vals)
         if not new_value:
             return
         self.vals += [new_value]
@@ -4760,7 +4759,7 @@ _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_comb
 _0_global_window_last_version = check_updates(root, _0_global_show_updates, False)  # Проверяем наличие обновлений
 root.mainloop()
 
-# Нерешаемые проблемы:
+# Неразрешимые проблемы:
 # wait_window
 # Combobox.Listbox
 
@@ -4768,5 +4767,6 @@ root.mainloop()
 # Если ответ немного отличается от правильного, то ...
 # Принимать несколько ответов при угадывании слова
 # Добавить изменение статьи по переводу
-
 # Сделать установщик отдельной программой
+
+# EditW -> добавить форму -> PopupEntryW: не устанавливается фокус
