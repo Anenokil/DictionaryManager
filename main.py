@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-154'
+PROGRAM_VERSION = 'v7.0.0_PRE-155'
 PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '19:04 (UTC+3)'
+PROGRAM_TIME = '19:17 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -1708,13 +1708,13 @@ class PopupImgW(tk.Toplevel):
                                                 'Недостающие изображения можно скачать здесь:',
                                      justify='center', style='Default.TLabel')
 
-            self.text_img_not_found = tk.Text(self, height=1, width=40, relief='sunken', borderwidth=1,
-                                              font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
-                                              selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                              highlightbackground=ST_BORDER[th])
-            self.text_img_not_found.insert(tk.END, f'{URL_RELEASES}')
-            self.text_img_not_found['state'] = 'disabled'
-            self.text_img_not_found.grid(row=1, column=0, padx=6, pady=(0, 16))
+            self.txt_img_not_found = tk.Text(self, height=1, width=40, relief='sunken', borderwidth=1,
+                                             font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
+                                             selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                             highlightbackground=ST_BORDER[th])
+            self.txt_img_not_found.insert(tk.END, f'{URL_RELEASES}')
+            self.txt_img_not_found['state'] = 'disabled'
+            self.txt_img_not_found.grid(row=1, column=0, padx=6, pady=(0, 16))
         else:
             self.lbl_img = ttk.Label(self, image=self.img, style='Default.TLabel')
         self.lbl_msg = ttk.Label(self, text=msg, justify='center', style='Default.TLabel')
@@ -2004,10 +2004,10 @@ class ChooseNoteW(tk.Toplevel):
                                      takefocus=False, style='Default.TButton')
         # }
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.text_words = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
-                                  bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
-                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                  relief=ST_RELIEF[th])
+        self.txt_words = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
+                                 bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                 relief=ST_RELIEF[th])
 
         self.frame_main.grid(row=0, columnspan=2, padx=6, pady=6)
         # {
@@ -2015,25 +2015,25 @@ class ChooseNoteW(tk.Toplevel):
         self.entry_input.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
         self.btn_choose.grid( row=0, column=2, padx=6,      pady=6)
         # }
-        self.text_words.grid(row=1, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid( row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.txt_words.grid(row=1, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
 
-        self.scrollbar.config(command=self.text_words.yview)
+        self.scrollbar.config(command=self.txt_words.yview)
 
         self.print_variants()
 
     # Вывод вариантов статей
     def print_variants(self):
-        self.text_words['state'] = 'normal'
+        self.txt_words['state'] = 'normal'
         self.vals_count = MAX_SAME_WORDS - 1
         for _i in range(MAX_SAME_WORDS):
             _key = wrd_to_key(self.wrd, _i)
             if _key not in _0_global_dct.d.keys():
                 self.vals_count = _i - 1
                 break
-            outp(self.text_words, f'\n({_i})')
-            _0_global_dct.d[_key].print_all(self.text_words)
-        self.text_words['state'] = 'disabled'
+            outp(self.txt_words, f'\n({_i})')
+            _0_global_dct.d[_key].print_all(self.txt_words)
+        self.txt_words['state'] = 'disabled'
 
     # Выбор одной статьи из нескольких
     def choose(self):
@@ -2331,27 +2331,27 @@ class ParticularMatchesW(tk.Toplevel):
                                     justify='center', style='Default.TLabel')
         self.lbl_wrd = ttk.Label(self, text=f'Слова, содержащие "{wrd}"', justify='center', style='Default.TLabel')
         self.scrollbar_wrd = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.text_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
-                                bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
-                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                relief=ST_RELIEF[th])
-        self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{wrd}"', justify='center', style='Default.TLabel')
-        self.scrollbar_tr = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.text_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
+        self.txt_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
                                bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                relief=ST_RELIEF[th])
+        self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{wrd}"', justify='center', style='Default.TLabel')
+        self.scrollbar_tr = ttk.Scrollbar(self, style='Vertical.TScrollbar')
+        self.txt_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
+                              bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                              selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                              relief=ST_RELIEF[th])
 
         self.lbl_header.grid(   row=0, column=0, columnspan=4, padx=6,      pady=(6, 3))
         self.lbl_wrd.grid(      row=1, column=0, columnspan=2, padx=(6, 3), pady=(0, 3))
         self.lbl_tr.grid(       row=1, column=2, columnspan=2, padx=(3, 6), pady=(0, 3))
-        self.text_wrd.grid(     row=2, column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.txt_wrd.grid(      row=2, column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
         self.scrollbar_wrd.grid(row=2, column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.text_tr.grid(      row=2, column=2,               padx=(0, 0), pady=(0, 6), sticky='NSEW')
+        self.txt_tr.grid(       row=2, column=2,               padx=(0, 0), pady=(0, 6), sticky='NSEW')
         self.scrollbar_tr.grid( row=2, column=3,               padx=(0, 6), pady=(0, 6), sticky='NSW')
 
-        self.scrollbar_wrd.config(command=self.text_wrd.yview)
-        self.scrollbar_tr.config( command=self.text_tr.yview)
+        self.scrollbar_wrd.config(command=self.txt_wrd.yview)
+        self.scrollbar_tr.config( command=self.txt_tr.yview)
 
         self.search()
 
@@ -2359,17 +2359,17 @@ class ParticularMatchesW(tk.Toplevel):
     def search(self):
         # Поиск по слову
         search_wrd = self.var_wrd.get()
-        self.text_wrd['state'] = 'normal'
-        self.text_wrd.delete(1.0, tk.END)
-        _0_global_dct.print_words_with_str(self.text_wrd, search_wrd)
-        self.text_wrd['state'] = 'disabled'
+        self.txt_wrd['state'] = 'normal'
+        self.txt_wrd.delete(1.0, tk.END)
+        _0_global_dct.print_words_with_str(self.txt_wrd, search_wrd)
+        self.txt_wrd['state'] = 'disabled'
 
         # Поиск по переводу
         search_tr = self.var_wrd.get()
-        self.text_tr['state'] = 'normal'
-        self.text_tr.delete(1.0, tk.END)
-        _0_global_dct.print_translations_with_str(self.text_tr, search_tr)
-        self.text_tr['state'] = 'disabled'
+        self.txt_tr['state'] = 'normal'
+        self.txt_tr.delete(1.0, tk.END)
+        _0_global_dct.print_translations_with_str(self.txt_tr, search_tr)
+        self.txt_tr['state'] = 'disabled'
 
     # Установить фокус
     def set_focus(self):
@@ -2398,10 +2398,10 @@ class FormsSettingsW(tk.Toplevel):
         self.lbl_form_par = ttk.Label(self, text='Существующие параметры форм:',
                                       justify='center', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.text_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                     bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
-                                     selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                     relief=ST_RELIEF[th])
+        self.txt_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
+                                    bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                                    selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                    relief=ST_RELIEF[th])
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.btn_add = ttk.Button(self.frame_buttons, text='Добавить параметр форм', command=self.add,
@@ -2415,7 +2415,7 @@ class FormsSettingsW(tk.Toplevel):
         # }
 
         self.lbl_form_par.grid( row=0,            column=0, padx=(6, 0), pady=(6, 0))
-        self.text_form_par.grid(row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.txt_form_par.grid( row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
         self.scrollbar.grid(    row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
         self.frame_buttons.grid(row=0, rowspan=2, column=2, padx=6,      pady=6)
         # {
@@ -2425,7 +2425,7 @@ class FormsSettingsW(tk.Toplevel):
         self.btn_values.grid(row=3, padx=6, pady=(3, 6))
         # }
 
-        self.scrollbar.config(command=self.text_form_par.yview)
+        self.scrollbar.config(command=self.txt_form_par.yview)
 
         self.refresh()
 
@@ -2456,11 +2456,11 @@ class FormsSettingsW(tk.Toplevel):
 
     # Напечатать существующие параметры форм
     def print_form_par_list(self):
-        self.text_form_par['state'] = 'normal'
-        self.text_form_par.delete(1.0, tk.END)
+        self.txt_form_par['state'] = 'normal'
+        self.txt_form_par.delete(1.0, tk.END)
         for key in _0_global_form_parameters.keys():
-            self.text_form_par.insert(tk.END, f'{key}\n')
-        self.text_form_par['state'] = 'disabled'
+            self.txt_form_par.insert(tk.END, f'{key}\n')
+        self.txt_form_par['state'] = 'disabled'
 
     # Обновить отображаемую информацию
     def refresh(self):
@@ -2507,10 +2507,10 @@ class FormsParameterSettingsW(tk.Toplevel):
                                                 f'"{parameter}":',
                                      justify='center', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.text_par_val = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                    bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
-                                    selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                    relief=ST_RELIEF[th])
+        self.txt_par_val = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
+                                   bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                                   selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                   relief=ST_RELIEF[th])
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.btn_add = ttk.Button(self.frame_buttons, text='Добавить значение параметра', command=self.add,
@@ -2522,7 +2522,7 @@ class FormsParameterSettingsW(tk.Toplevel):
         # }
 
         self.lbl_par_val.grid(  row=0,            column=0, padx=(6, 0), pady=(6, 0))
-        self.text_par_val.grid( row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.txt_par_val.grid(  row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
         self.scrollbar.grid(    row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
         self.frame_buttons.grid(row=0, rowspan=2, column=2, padx=6,      pady=6)
         # {
@@ -2531,7 +2531,7 @@ class FormsParameterSettingsW(tk.Toplevel):
         self.btn_delete.grid(row=2, padx=6, pady=3)
         # }
 
-        self.scrollbar.config(command=self.text_par_val.yview)
+        self.scrollbar.config(command=self.txt_par_val.yview)
 
         self.refresh()
 
@@ -2557,11 +2557,11 @@ class FormsParameterSettingsW(tk.Toplevel):
 
     # Напечатать существующие параметры форм
     def print_par_val_list(self):
-        self.text_par_val['state'] = 'normal'
-        self.text_par_val.delete(1.0, tk.END)
+        self.txt_par_val['state'] = 'normal'
+        self.txt_par_val.delete(1.0, tk.END)
         for key in self.par_vals:
-            self.text_par_val.insert(tk.END, f'{key}\n')
-        self.text_par_val['state'] = 'disabled'
+            self.txt_par_val.insert(tk.END, f'{key}\n')
+        self.txt_par_val['state'] = 'disabled'
 
     # Обновить отображаемую информацию
     def refresh(self):
@@ -2599,10 +2599,10 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
 
         self.lbl_form_par = ttk.Label(self, text='Существующие комбинации:', justify='center', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.text_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                     bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
-                                     selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                     relief=ST_RELIEF[th])
+        self.txt_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
+                                    bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                                    selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                    relief=ST_RELIEF[th])
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.btn_add = ttk.Button(self.frame_buttons, text='Добавить комбинацию', command=self.add,
@@ -2612,7 +2612,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         # }
 
         self.lbl_form_par.grid( row=0,            column=0, padx=(6, 0), pady=(6, 0))
-        self.text_form_par.grid(row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.txt_form_par.grid( row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
         self.scrollbar.grid(    row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
         self.frame_buttons.grid(row=0, rowspan=2, column=2, padx=6,      pady=6)
         # {
@@ -2620,7 +2620,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.btn_delete.grid(row=1, padx=6, pady=(3, 6))
         # }
 
-        self.scrollbar.config(command=self.text_form_par.yview)
+        self.scrollbar.config(command=self.txt_form_par.yview)
 
         self.refresh()
 
@@ -2651,16 +2651,16 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
 
     # Напечатать существующие комбинации
     def print_combinations(self):
-        self.text_form_par['state'] = 'normal'
-        self.text_form_par.delete(1.0, tk.END)
+        self.txt_form_par['state'] = 'normal'
+        self.txt_form_par.delete(1.0, tk.END)
 
         combinations = [special_combination(key) for key in _0_global_special_combinations]
         if combinations:
-            self.text_form_par.insert(tk.END, f'{combinations[0]}')
+            self.txt_form_par.insert(tk.END, f'{combinations[0]}')
         for i in range(1, len(combinations)):
-            self.text_form_par.insert(tk.END, f'\n{combinations[i]}')
+            self.txt_form_par.insert(tk.END, f'\n{combinations[i]}')
 
-        self.text_form_par['state'] = 'disabled'
+        self.txt_form_par['state'] = 'disabled'
 
     # Обновить отображаемую информацию
     def refresh(self):
@@ -2710,11 +2710,11 @@ class PrintW(tk.Toplevel):
         # }
         self.scrollbar_x = ttk.Scrollbar(self, style='Horizontal.TScrollbar')
         self.scrollbar_y = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.text_dct = tk.Text(self, width=70, height=30, state='disabled', wrap='none',
-                                xscrollcommand=self.scrollbar_x.set, yscrollcommand=self.scrollbar_y.set,
-                                bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
-                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                relief=ST_RELIEF[th])
+        self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', wrap='none',
+                               xscrollcommand=self.scrollbar_x.set, yscrollcommand=self.scrollbar_y.set,
+                               bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                               relief=ST_RELIEF[th])
         self.lbl_info = ttk.Label(self, textvariable=self.var_info, style='Default.TLabel')
 
         self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
@@ -2726,15 +2726,15 @@ class PrintW(tk.Toplevel):
         self.check_forms.grid(row=0, column=3, padx=(0, 6), pady=6, sticky='W')
         self.btn_print.grid(  row=0, column=4, padx=6,      pady=6)
         # }
-        self.text_dct.grid(   row=2, column=0,     padx=(6, 0), pady=0,      sticky='NSEW')
+        self.txt_dct.grid(    row=2, column=0,     padx=(6, 0), pady=0,      sticky='NSEW')
         self.scrollbar_x.grid(row=3, column=0,     padx=(6, 0), pady=0,      sticky='NWE')
         self.scrollbar_y.grid(row=2, column=1,     padx=(0, 6), pady=0,      sticky='NSW')
         self.lbl_info.grid(   row=4, columnspan=2, padx=6,      pady=(0, 6))
 
-        self.scrollbar_x.config(command=self.text_dct.xview, orient='horizontal')
-        self.scrollbar_y.config(command=self.text_dct.yview, orient='vertical')
+        self.scrollbar_x.config(command=self.txt_dct.xview, orient='horizontal')
+        self.scrollbar_y.config(command=self.txt_dct.yview, orient='vertical')
 
-        self.tip_text = ttip.Hovertip(self.text_dct, '(*) [1;  60%] word: слово\n'
+        self.tip_text = ttip.Hovertip(self.txt_dct, '(*) [1;  60%] word: слово\n'
                                                      '|    (*) - избранное\n'
                                                      '|    1 - количество ответов после\n'
                                                      '|         последнего верного ответа\n'
@@ -2744,22 +2744,22 @@ class PrintW(tk.Toplevel):
 
     # Напечатать словарь
     def print(self):
-        self.text_dct['state'] = 'normal'
-        self.text_dct.delete(1.0, tk.END)
+        self.txt_dct['state'] = 'normal'
+        self.txt_dct.delete(1.0, tk.END)
         if self.var_fav.get():
             if self.var_forms.get():
-                w, t, f = _0_global_dct.print_fav_with_forms(self.text_dct)
+                w, t, f = _0_global_dct.print_fav_with_forms(self.txt_dct)
             else:
-                w, t, f = _0_global_dct.print_fav(self.text_dct)
+                w, t, f = _0_global_dct.print_fav(self.txt_dct)
             self.var_info.set(_0_global_dct.dct_info_fav(w, t, f))
         else:
             if self.var_forms.get():
-                _0_global_dct.print_with_forms(self.text_dct)
+                _0_global_dct.print_with_forms(self.txt_dct)
             else:
-                _0_global_dct.print(self.text_dct)
+                _0_global_dct.print(self.txt_dct)
             self.var_info.set(_0_global_dct.dct_info())
-        self.text_dct.yview_moveto(1.0)
-        self.text_dct['state'] = 'disabled'
+        self.txt_dct.yview_moveto(1.0)
+        self.txt_dct['state'] = 'disabled'
 
     # Установить фокус
     def set_focus(self):
@@ -2867,11 +2867,11 @@ class LearnW(tk.Toplevel):
                                                      f'{round(_0_global_dct.count_rating() * 100)}%',
                                            style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.text_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
-                                bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
-                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                relief=ST_RELIEF[th])
-        self.scrollbar.config(command=self.text_dct.yview)
+        self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
+                               bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                               relief=ST_RELIEF[th])
+        self.scrollbar.config(command=self.txt_dct.yview)
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # { {
         self.btn_input = ttk.Button(self.frame_main, text='Ввод', command=self.input,
@@ -2883,7 +2883,7 @@ class LearnW(tk.Toplevel):
         self.btn_stop = ttk.Button(self, text='Закончить', command=self.stop, takefocus=False, style='No.TButton')
 
         self.lbl_global_rating.grid(row=0, columnspan=2, padx=6,      pady=6)
-        self.text_dct.grid(         row=1, column=0,     padx=(6, 0), pady=6, sticky='NSEW')
+        self.txt_dct.grid(          row=1, column=0,     padx=(6, 0), pady=6, sticky='NSEW')
         self.scrollbar.grid(        row=1, column=1,     padx=(0, 6), pady=6, sticky='NSW')
         self.frame_main.grid(       row=2, columnspan=2, padx=6,      pady=6)
         # { {
@@ -2903,10 +2903,10 @@ class LearnW(tk.Toplevel):
 
     # Печать в текстовое поле
     def outp(self, msg='', end='\n'):
-        self.text_dct['state'] = 'normal'
-        self.text_dct.insert(tk.END, msg + end)
-        self.text_dct.yview_moveto(1.0)
-        self.text_dct['state'] = 'disabled'
+        self.txt_dct['state'] = 'normal'
+        self.txt_dct.insert(tk.END, msg + end)
+        self.txt_dct.yview_moveto(1.0)
+        self.txt_dct['state'] = 'disabled'
 
     # Начать учить слова
     def start(self):
@@ -2993,11 +2993,11 @@ class LearnW(tk.Toplevel):
 
     # Просмотр сносок
     def show_notes(self):
-        self.text_dct['state'] = 'normal'
+        self.txt_dct['state'] = 'normal'
         entry = _0_global_dct.d[self.current_key]
-        entry.notes_print(self.text_dct)
-        self.text_dct.yview_moveto(1.0)
-        self.text_dct['state'] = 'disabled'
+        entry.notes_print(self.txt_dct)
+        self.txt_dct.yview_moveto(1.0)
+        self.txt_dct['state'] = 'disabled'
         btn_disable(self.btn_notes)
 
     # Завершение учёбы
@@ -3104,9 +3104,9 @@ class LearnW(tk.Toplevel):
             if self.current_key not in self.used_words:
                 break
 
-        self.text_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
-        self.text_dct['state'] = 'disabled'
+        self.txt_dct['state'] = 'normal'
+        _dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+        self.txt_dct['state'] = 'disabled'
 
         return True
 
@@ -3123,9 +3123,9 @@ class LearnW(tk.Toplevel):
             if self.current_key not in self.used_words:
                 break
 
-        self.text_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
-        self.text_dct['state'] = 'disabled'
+        self.txt_dct['state'] = 'normal'
+        _dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+        self.txt_dct['state'] = 'disabled'
 
         return True
 
@@ -3139,9 +3139,9 @@ class LearnW(tk.Toplevel):
             if self.current_key not in self.used_words:
                 break
 
-        self.text_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
-        self.text_dct['state'] = 'disabled'
+        self.txt_dct['state'] = 'normal'
+        _dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+        self.txt_dct['state'] = 'disabled'
 
         return True
 
@@ -3156,16 +3156,16 @@ class LearnW(tk.Toplevel):
             if self.rnd_f == -1:
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
-                    self.text_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
-                    self.text_dct['state'] = 'disabled'
+                    self.txt_dct['state'] = 'normal'
+                    _dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+                    self.txt_dct['state'] = 'disabled'
                     break
             else:
                 self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
-                    self.text_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form)
-                    self.text_dct['state'] = 'disabled'
+                    self.txt_dct['state'] = 'normal'
+                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.txt_dct, self.current_form)
+                    self.txt_dct['state'] = 'disabled'
                     break
 
         return True
@@ -3186,16 +3186,16 @@ class LearnW(tk.Toplevel):
             if self.rnd_f == -1:
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
-                    self.text_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
-                    self.text_dct['state'] = 'disabled'
+                    self.txt_dct['state'] = 'normal'
+                    _dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+                    self.txt_dct['state'] = 'disabled'
                     break
             else:
                 self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
-                    self.text_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form)
-                    self.text_dct['state'] = 'disabled'
+                    self.txt_dct['state'] = 'normal'
+                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.txt_dct, self.current_form)
+                    self.txt_dct['state'] = 'disabled'
                     break
 
         return True
@@ -3211,16 +3211,16 @@ class LearnW(tk.Toplevel):
             if self.rnd_f == -1:
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
-                    self.text_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_with_stat(self.text_dct)
-                    self.text_dct['state'] = 'disabled'
+                    self.txt_dct['state'] = 'normal'
+                    _dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+                    self.txt_dct['state'] = 'disabled'
                     break
             else:
                 self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
-                    self.text_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.text_dct, self.current_form)
-                    self.text_dct['state'] = 'disabled'
+                    self.txt_dct['state'] = 'normal'
+                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.txt_dct, self.current_form)
+                    self.txt_dct['state'] = 'disabled'
                     break
 
         return True
@@ -3235,9 +3235,9 @@ class LearnW(tk.Toplevel):
             if self.current_key not in self.used_words:
                 break
 
-        self.text_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_wrd_with_stat(self.text_dct)
-        self.text_dct['state'] = 'disabled'
+        self.txt_dct['state'] = 'normal'
+        _dct.d[self.current_key].print_wrd_with_stat(self.txt_dct)
+        self.txt_dct['state'] = 'disabled'
 
         return True
 
@@ -3254,9 +3254,9 @@ class LearnW(tk.Toplevel):
             if self.current_key not in self.used_words:
                 break
 
-        self.text_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_wrd_with_stat(self.text_dct)
-        self.text_dct['state'] = 'disabled'
+        self.txt_dct['state'] = 'normal'
+        _dct.d[self.current_key].print_wrd_with_stat(self.txt_dct)
+        self.txt_dct['state'] = 'disabled'
 
         return True
 
@@ -3270,9 +3270,9 @@ class LearnW(tk.Toplevel):
             if self.current_key not in self.used_words:
                 break
 
-        self.text_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_wrd_with_stat(self.text_dct)
-        self.text_dct['state'] = 'disabled'
+        self.txt_dct['state'] = 'normal'
+        _dct.d[self.current_key].print_wrd_with_stat(self.txt_dct)
+        self.txt_dct['state'] = 'disabled'
 
         return True
 
@@ -3310,16 +3310,16 @@ class SearchW(tk.Toplevel):
         # }
         self.lbl_wrd = ttk.Label(self, text='Поиск по слову', style='Default.TLabel')
         self.scrollbar_wrd = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.text_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
-                                bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
-                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                relief=ST_RELIEF[th])
-        self.lbl_tr = ttk.Label(self, text='Поиск по переводу', style='Default.TLabel')
-        self.scrollbar_tr = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.text_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
+        self.txt_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
                                bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                relief=ST_RELIEF[th])
+        self.lbl_tr = ttk.Label(self, text='Поиск по переводу', style='Default.TLabel')
+        self.scrollbar_tr = ttk.Scrollbar(self, style='Vertical.TScrollbar')
+        self.txt_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
+                              bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                              selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                              relief=ST_RELIEF[th])
 
         self.frame_main.grid(row=0, columnspan=4, padx=6, pady=(6, 4))
         # {
@@ -3329,13 +3329,13 @@ class SearchW(tk.Toplevel):
         # }
         self.lbl_wrd.grid(      row=1, column=0, columnspan=2, padx=(6, 3), pady=(0, 3))
         self.lbl_tr.grid(       row=1, column=2, columnspan=2, padx=(3, 6), pady=(0, 3))
-        self.text_wrd.grid(     row=2, column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.txt_wrd.grid(      row=2, column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
         self.scrollbar_wrd.grid(row=2, column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.text_tr.grid(      row=2, column=2,               padx=(0, 0), pady=(0, 6), sticky='NSEW')
+        self.txt_tr.grid(       row=2, column=2,               padx=(0, 0), pady=(0, 6), sticky='NSEW')
         self.scrollbar_tr.grid( row=2, column=3,               padx=(0, 6), pady=(0, 6), sticky='NSW')
 
-        self.scrollbar_wrd.config(command=self.text_wrd.yview)
-        self.scrollbar_tr.config( command=self.text_tr.yview)
+        self.scrollbar_wrd.config(command=self.txt_wrd.yview)
+        self.scrollbar_tr.config( command=self.txt_tr.yview)
 
         self.search()
 
@@ -3344,45 +3344,45 @@ class SearchW(tk.Toplevel):
         # Поиск по слову
         search_wrd = self.var_wrd.get()
 
-        self.text_wrd['state'] = 'normal'
-        self.text_wrd.delete(1.0, tk.END)
+        self.txt_wrd['state'] = 'normal'
+        self.txt_wrd.delete(1.0, tk.END)
 
-        outp(self.text_wrd, 'Полное совпадение:')
+        outp(self.txt_wrd, 'Полное совпадение:')
         if wrd_to_key(search_wrd, 0) not in _0_global_dct.d.keys():
-            outp(self.text_wrd, f'Слово "{deu_encode(search_wrd)}" отсутствует в словаре', end='')
+            outp(self.txt_wrd, f'Слово "{deu_encode(search_wrd)}" отсутствует в словаре', end='')
         else:
             for i in range(MAX_SAME_WORDS):
                 key = wrd_to_key(search_wrd, i)
                 if key not in _0_global_dct.d.keys():
                     break
-                outp(self.text_wrd)
-                _0_global_dct.d[key].print_all(self.text_wrd)
+                outp(self.txt_wrd)
+                _0_global_dct.d[key].print_all(self.txt_wrd)
 
-        outp(self.text_wrd, '\n\nЧастичное совпадение:')
-        _0_global_dct.print_words_with_str(self.text_wrd, search_wrd)
+        outp(self.txt_wrd, '\n\nЧастичное совпадение:')
+        _0_global_dct.print_words_with_str(self.txt_wrd, search_wrd)
 
-        self.text_wrd['state'] = 'disabled'
+        self.txt_wrd['state'] = 'disabled'
 
         # Поиск по переводу
         search_tr = self.var_wrd.get()
 
-        self.text_tr['state'] = 'normal'
-        self.text_tr.delete(1.0, tk.END)
+        self.txt_tr['state'] = 'normal'
+        self.txt_tr.delete(1.0, tk.END)
 
-        outp(self.text_tr, 'Полное совпадение:')
+        outp(self.txt_tr, 'Полное совпадение:')
         is_found = False
         for entry in _0_global_dct.d.values():
             if search_tr in entry.tr:
                 is_found = True
-                outp(self.text_tr)
-                entry.print_all(self.text_tr)
+                outp(self.txt_tr)
+                entry.print_all(self.txt_tr)
         if not is_found:
-            outp(self.text_tr, f'Слово с переводом "{deu_encode(search_tr)}" отсутствует в словаре', end='')
+            outp(self.txt_tr, f'Слово с переводом "{deu_encode(search_tr)}" отсутствует в словаре', end='')
 
-        outp(self.text_tr, '\n\nЧастичное совпадение:')
-        _0_global_dct.print_translations_with_str(self.text_tr, search_tr)
+        outp(self.txt_tr, '\n\nЧастичное совпадение:')
+        _0_global_dct.print_translations_with_str(self.txt_tr, search_tr)
 
-        self.text_tr['state'] = 'disabled'
+        self.txt_tr['state'] = 'disabled'
 
     # Установить фокус
     def set_focus(self):
@@ -3916,10 +3916,10 @@ class SettingsW(tk.Toplevel):
         # { {
         self.lbl_dcts = ttk.Label(self.frame_dcts, text='Существующие словари:', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self.frame_dcts, style='Vertical.TScrollbar')
-        self.text_dcts = tk.Text(self.frame_dcts, width=27, height=6, state='disabled', relief=ST_RELIEF[th],
-                                 yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                 highlightbackground=ST_BORDER[th])
+        self.txt_dcts = tk.Text(self.frame_dcts, width=27, height=6, state='disabled', relief=ST_RELIEF[th],
+                                yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                highlightbackground=ST_BORDER[th])
         self.frame_dct_buttons = ttk.Frame(self.frame_dcts, style='Invis.TFrame')
         # { { {
         self.btn_dct_open = ttk.Button(self.frame_dct_buttons, text='Открыть словарь', command=self.dct_open,
@@ -3942,12 +3942,12 @@ class SettingsW(tk.Toplevel):
         self.lbl_themes_note = ttk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
                                                                  f'Актуальные темы можно скачать здесь:',
                                          justify='left', style='Default.TLabel')
-        self.text_themes_note = tk.Text(self.frame_themes, height=1, width=40, relief='sunken', borderwidth=1,
-                                        font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
-                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                        highlightbackground=ST_BORDER[th])
-        self.text_themes_note.insert(tk.END, f'{URL_RELEASES}')
-        self.text_themes_note['state'] = 'disabled'
+        self.txt_themes_note = tk.Text(self.frame_themes, height=1, width=40, relief='sunken', borderwidth=1,
+                                       font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
+                                       selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                       highlightbackground=ST_BORDER[th])
+        self.txt_themes_note.insert(tk.END, f'{URL_RELEASES}')
+        self.txt_themes_note['state'] = 'disabled'
         # } }
         # }
         self.btn_save = ttk.Button(self, text='Сохранить изменения', command=self.save,
@@ -3982,7 +3982,7 @@ class SettingsW(tk.Toplevel):
         self.frame_dcts.grid(row=2, padx=6, pady=6)
         # {
         self.lbl_dcts.grid(         row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
-        self.text_dcts.grid(        row=1, rowspan=2, column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.txt_dcts.grid(         row=1, rowspan=2, column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
         self.scrollbar.grid(        row=1, rowspan=2, column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
         self.frame_dct_buttons.grid(row=1,            column=2,               padx=6,      pady=6)
         # { {
@@ -3995,16 +3995,16 @@ class SettingsW(tk.Toplevel):
         # }
         self.frame_themes.grid(row=3, padx=6, pady=6)
         # {
-        self.lbl_themes.grid(      row=0, rowspan=2, column=0, padx=(6, 1), pady=6)
-        self.combo_themes.grid(    row=0, rowspan=2, column=1, padx=0,      pady=6)
-        self.lbl_themes_note.grid( row=0,            column=2, padx=6,      pady=(6, 0), sticky='W')
-        self.text_themes_note.grid(row=1,            column=2, padx=6,      pady=(0, 6), sticky='W')
+        self.lbl_themes.grid(     row=0, rowspan=2, column=0, padx=(6, 1), pady=6)
+        self.combo_themes.grid(   row=0, rowspan=2, column=1, padx=0,      pady=6)
+        self.lbl_themes_note.grid(row=0,            column=2, padx=6,      pady=(6, 0), sticky='W')
+        self.txt_themes_note.grid(row=1,            column=2, padx=6,      pady=(0, 6), sticky='W')
         # }
         #
         self.btn_save.grid( row=4, column=0, padx=(6, 3), pady=(0, 6))
         self.btn_close.grid(row=4, column=1, padx=(0, 6), pady=(0, 6))
 
-        self.scrollbar.config(command=self.text_dcts.yview)
+        self.scrollbar.config(command=self.txt_dcts.yview)
 
         self.print_dct_list()
 
@@ -4059,12 +4059,12 @@ class SettingsW(tk.Toplevel):
 
         # Установка некоторых стилей для окна настроек
         self.configure(bg=ST_BG[th])
-        self.text_dcts.configure(relief=ST_RELIEF[th], bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                 highlightbackground=ST_BORDER[th])
-        self.text_themes_note.configure(font='StdFont 10', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                        highlightbackground=ST_BORDER[th])
+        self.txt_dcts.configure(relief=ST_RELIEF[th], bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                highlightbackground=ST_BORDER[th])
+        self.txt_themes_note.configure(font='StdFont 10', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                                       selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                       highlightbackground=ST_BORDER[th])
         #self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
         #                                 state='readonly', style='.TCombobox')
         #self.combo_themes.option_clear()
@@ -4239,16 +4239,16 @@ class SettingsW(tk.Toplevel):
 
     # Вывод существующих словарей
     def print_dct_list(self):
-        self.text_dcts['state'] = 'normal'
-        self.text_dcts.delete(1.0, tk.END)
+        self.txt_dcts['state'] = 'normal'
+        self.txt_dcts.delete(1.0, tk.END)
         for filename in os.listdir(SAVES_PATH):
             base_name, ext = os.path.splitext(filename)
             if ext == '.txt':
                 if base_name == _0_global_dct_savename:
-                    self.text_dcts.insert(tk.END, f'"{base_name}" (ОТКРЫТ)\n')
+                    self.txt_dcts.insert(tk.END, f'"{base_name}" (ОТКРЫТ)\n')
                 else:
-                    self.text_dcts.insert(tk.END, f'"{base_name}"\n')
-        self.text_dcts['state'] = 'disabled'
+                    self.txt_dcts.insert(tk.END, f'"{base_name}"\n')
+        self.txt_dcts['state'] = 'disabled'
 
     # Справка о МППУ
     def about_mgsp(self):
@@ -4760,7 +4760,7 @@ _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_comb
 _0_global_window_last_version = check_updates(root, _0_global_show_updates, False)  # Проверяем наличие обновлений
 root.mainloop()
 
-# Нерешаемые баги:
+# Нерешаемые проблемы:
 # wait_window
 # Combobox.Listbox
 
@@ -4770,4 +4770,3 @@ root.mainloop()
 # Добавить изменение статьи по переводу
 
 # Сделать установщик отдельной программой
-# text -> txt
