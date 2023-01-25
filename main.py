@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-147'
+PROGRAM_VERSION = 'v7.0.0_PRE-148'
 PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '1:00 (UTC+3)'
+PROGRAM_TIME = '14:24 (UTC+3)'
 
 LOCAL_SETTINGS_VERSION = 1
 GLOBAL_SETTINGS_VERSION = 1
@@ -3846,14 +3846,14 @@ class SettingsW(tk.Toplevel):
         self.frame_mgsp = ttk.Frame(self.tab_local, style='Default.TFrame')
         # { {
         try:
-            self.img_about_mgsp = tk.PhotoImage(file=img_about)
+            self.img_about = tk.PhotoImage(file=img_about)
         except:
             self.btn_about_mgsp = ttk.Button(self.frame_mgsp, text='?', command=self.about_mgsp,
                                              width=2, takefocus=False, style='Default.TButton')
         else:
-            self.btn_about_mgsp = ttk.Button(self.frame_mgsp, image=self.img_about_mgsp, command=self.about_mgsp,
+            self.btn_about_mgsp = ttk.Button(self.frame_mgsp, image=self.img_about, command=self.about_mgsp,
                                              takefocus=False, style='Image.TButton')
-            self.tip_btn_about_mgsp = ttip.Hovertip(self.btn_about_mgsp, 'Это кнопка', hover_delay=400)
+            self.tip_btn_about_mgsp = ttip.Hovertip(self.btn_about_mgsp, 'Это кнопка', hover_delay=500)
         self.lbl_mgsp = ttk.Label(self.frame_mgsp, text='Минимальный приемлемый процент угадываний слова:',
                                   style='Default.TLabel')
         self.entry_mgsp = ttk.Entry(self.frame_mgsp, textvariable=self.var_mgsp, width=5,
@@ -3882,14 +3882,13 @@ class SettingsW(tk.Toplevel):
         self.frame_show_typo_button = ttk.Frame(self.tab_global, style='Default.TFrame')
         # { {
         try:
-            self.img_about_typo = tk.PhotoImage(file=img_about)
+            self.btn_about_typo = ttk.Button(self.frame_show_typo_button, image=self.img_about,
+                                             command=self.about_typo, takefocus=False, style='Image.TButton')
         except:
             self.btn_about_typo = ttk.Button(self.frame_show_typo_button, text='?', command=self.about_typo,
                                              width=2, takefocus=False, style='Default.TButton')
         else:
-            self.btn_about_typo = ttk.Button(self.frame_show_typo_button, image=self.img_about_typo,
-                                             command=self.about_typo, takefocus=False, style='Image.TButton')
-            self.tip_btn_about_typo = ttip.Hovertip(self.btn_about_typo, 'Это кнопка', hover_delay=400)
+            self.tip_btn_about_typo = ttip.Hovertip(self.btn_about_typo, 'Это кнопка', hover_delay=500)
         self.lbl_show_typo_button = ttk.Label(self.frame_show_typo_button, text='Показывать кнопку "Опечатка":',
                                               style='Default.TLabel')
         self.check_show_typo_button = ttk.Checkbutton(self.frame_show_typo_button, variable=self.var_show_typo_button,
@@ -4026,6 +4025,21 @@ class SettingsW(tk.Toplevel):
         global th
 
         th = self.var_theme.get()
+
+        self.parent.set_styles()  # Установка ttk-стилей
+        upload_themes_img(th)  # Загрузка изображений тем
+
+        # Установка изображений
+        try:
+            self.img_about = tk.PhotoImage(file=img_about)
+        except:
+            self.btn_about_mgsp.configure(text='?', image='', style='Default.TButton')
+            self.btn_about_typo.configure(text='?', image='', style='Default.TButton')
+        else:
+            self.btn_about_mgsp.configure(image=self.img_about, style='Image.TButton')
+            self.btn_about_typo.configure(image=self.img_about, style='Image.TButton')
+
+        # Установка некоторых стилей для окна настроек
         self.configure(bg=ST_BG[th])
         self.text_dcts.configure(relief=ST_RELIEF[th], bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
@@ -4033,9 +4047,19 @@ class SettingsW(tk.Toplevel):
         self.text_themes_note.configure(font='StdFont 10', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                         selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                         highlightbackground=ST_BORDER[th])
+        #self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
+        #                                 state='readonly', style='.TCombobox')
+        #self.combo_themes.option_clear()
+        #self.combo_themes.option_add('*TCombobox*Listbox*Background', ST_BG_FIELDS[th])
+
+        # Установка фона для главного окна
         self.parent.configure(bg=ST_BG[th])
-        upload_themes_img(th)  # Загружаем изображения тем
-        self.parent.set_styles()  # Устанавливаем ttk-стили
+
+        # Установка фона для окна уведомления об обновлении
+        try:
+            _0_global_window_last_version.configure(bg=ST_BG[th])
+        except:  # Если окно обновления не открыто
+            pass
 
     # Открыть словарь
     def dct_open(self):
@@ -4418,19 +4442,10 @@ class MainW(tk.Tk):
 
         SettingsW(self).open()
 
-        _0_global_dct_savename, _0_global_show_updates, _0_global_typo, th = upload_global_settings()  # Обновляем глобальные настройки
+        _0_global_dct_savename, _0_global_show_updates, _0_global_typo, th =\
+            upload_global_settings()  # Обновляем глобальные настройки
         _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
             upload_local_settings(_0_global_dct_savename)  # Обновляем локальные настройки
-
-        # Обновление тем
-        self.configure(bg=ST_BG[th])
-
-        try:
-            _0_global_window_last_version.configure(bg=ST_BG[th])
-        except:  # Если окно обновления не открыто
-            pass
-
-        self.set_styles()
 
     # Нажатие на кнопку "Проверить обновления"
     def check_updates(self):
@@ -4442,7 +4457,7 @@ class MainW(tk.Tk):
         except:
             pass
         # Открываем новое уведомление об обновлении
-        _0_global_window_last_version = check_updates(root, _0_global_show_updates, True)
+        _0_global_window_last_version = check_updates(self, _0_global_show_updates, True)
 
     # Установить ttk-стили
     def set_styles(self):
@@ -4600,9 +4615,11 @@ class MainW(tk.Tk):
                           selectforeground=[('readonly', ST_FG[th])])
 
         # Стиль всплывающего списка combobox
+        self.option_add('*TCombobox*Listbox*Font', ('StdFont', 10))
         self.option_add('*TCombobox*Listbox*Background', ST_BG_FIELDS[th])
         self.option_add('*TCombobox*Listbox*Foreground', ST_FG[th])
-        self.option_add('*TCombobox*Listbox*Font', ('StdFont', 10))
+        self.option_add('*TCombobox*Listbox*selectBackground', ST_SELECT_BG[th])
+        self.option_add('*TCombobox*Listbox*selectForeground', ST_SELECT_FG[th])
 
         # Стиль scrollbar "vertical"
         self.st_vscroll = ttk.Style()
@@ -4712,9 +4729,12 @@ _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_comb
 _0_global_window_last_version = check_updates(root, _0_global_show_updates, False)  # Проверяем наличие обновлений
 root.mainloop()
 
-# открывать программу после обновления
-# если ответ немного отличается от правильного, то ...
-# принимать несколько ответов при угадывании слова
-# добавить изменение статьи по переводу
+# Нерешаемые баги:
+# wait_window
+# Combobox.Listbox
+# Убрать картинку с кнопки
 
-# Баг: wait_window
+# Открывать программу после обновления
+# Если ответ немного отличается от правильного, то ...
+# Принимать несколько ответов при угадывании слова
+# Добавить изменение статьи по переводу
