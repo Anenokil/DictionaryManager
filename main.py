@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-163'
+PROGRAM_VERSION = 'v7.0.0_PRE-164'
 PROGRAM_DATE = '26.1.2023'
-PROGRAM_TIME = '13:11 (UTC+3)'
+PROGRAM_TIME = '13:47 (UTC+3)'
 
 SAVES_VERSION = 1
 LOCAL_SETTINGS_VERSION = 1
@@ -220,7 +220,7 @@ def special_combination(key):
 
 
 # Преобразование в тексте специальных комбинаций в соответствующие символы
-def deu_encode(text):
+def encode_special_combinations(text):
     encoded_text = ''
 
     is_special_combination_open = False  # Встречен ли открывающий символ специальной комбинации
@@ -245,7 +245,7 @@ def deu_encode(text):
 
 # Замена в тексте немецких букв английскими (для find_and_highlight)
 def deu_to_eng(text):  # deu_to_eng только для немецкого
-    converted_text = deu_encode(text)
+    converted_text = encode_special_combinations(text)
 
     converted_text = converted_text.replace('ä', 'a')
     converted_text = converted_text.replace('Ä', 'A')
@@ -295,7 +295,7 @@ def encode_tpl(line):
 
 # Преобразование переводов в читаемый вид
 def tr_to_str(tr):
-    encoded_tr = tuple(deu_encode(t) for t in tr)
+    encoded_tr = tuple(encode_special_combinations(t) for t in tr)
     return tpl(encoded_tr)
 
 
@@ -434,7 +434,7 @@ def find_and_highlight(target_wrd, search_wrd):
     if target_wrd != search_wrd:  # Полное совпадение не учитывается
         pos = deu_to_eng(target_wrd).lower().find(deu_to_eng(search_wrd).lower())
         if pos != -1:
-            encoded_wrd = deu_encode(target_wrd)
+            encoded_wrd = encode_special_combinations(target_wrd)
             end_pos = pos + length
             if search_wrd == '':
                 res = f'{encoded_wrd}'
@@ -482,18 +482,18 @@ class Entry(object):
     def tr_to_str(self):
         if self.count_t == 0:
             return ''
-        _res = f'> {deu_encode(self.tr[0])}'
+        _res = f'> {encode_special_combinations(self.tr[0])}'
         for _i in range(1, self.count_t):
-            _res += f'\n> {deu_encode(self.tr[_i])}'
+            _res += f'\n> {encode_special_combinations(self.tr[_i])}'
         return _res
 
     # Записать сноски в строку
     def notes_to_str(self):
         if self.count_n == 0:
             return ''
-        _res = f'> {deu_encode(self.notes[0])}'
+        _res = f'> {encode_special_combinations(self.notes[0])}'
         for _i in range(1, self.count_n):
-            _res += f'\n> {deu_encode(self.notes[_i])}'
+            _res += f'\n> {encode_special_combinations(self.notes[_i])}'
         return _res
 
     # Записать формы в строку
@@ -501,28 +501,28 @@ class Entry(object):
         if self.count_f == 0:
             return ''
         _keys = list(self.forms.keys())
-        _res = f'[{tpl(_keys[0])}] {deu_encode(self.forms[_keys[0]])}'
+        _res = f'[{tpl(_keys[0])}] {encode_special_combinations(self.forms[_keys[0]])}'
         for _i in range(1, self.count_f):
-            _res += f'\n[{tpl(_keys[_i])}] {deu_encode(self.forms[_keys[_i]])}'
+            _res += f'\n[{tpl(_keys[_i])}] {encode_special_combinations(self.forms[_keys[_i]])}'
         return _res
 
     # Напечатать перевод
     def tr_print(self, output_widget, end='\n'):
         if self.count_t != 0:
-            outp(output_widget, deu_encode(self.tr[0]), end='')
+            outp(output_widget, encode_special_combinations(self.tr[0]), end='')
             for _i in range(1, self.count_t):
-                outp(output_widget, f', {deu_encode(self.tr[_i])}', end='')
+                outp(output_widget, f', {encode_special_combinations(self.tr[_i])}', end='')
         outp(output_widget, '', end=end)
 
     # Напечатать сноски
     def notes_print(self, output_widget, _tab=0):
         for _i in range(self.count_n):
-            outp(output_widget, ' ' * _tab + f'> {deu_encode(self.notes[_i])}')
+            outp(output_widget, ' ' * _tab + f'> {encode_special_combinations(self.notes[_i])}')
 
     # Напечатать словоформы
     def frm_print(self, output_widget, _tab=0):
         for _key in self.forms.keys():
-            outp(output_widget, ' ' * _tab + f'[{tpl(_key)}] {deu_encode(self.forms[_key])}')
+            outp(output_widget, ' ' * _tab + f'[{tpl(_key)}] {encode_special_combinations(self.forms[_key])}')
 
     # Напечатать статистику
     def stat_print(self, output_widget, end='\n'):
@@ -540,7 +540,7 @@ class Entry(object):
         else:
             outp(output_widget, '   ', end=' ')
         self.stat_print(output_widget, end=' ')
-        outp(output_widget, f'{deu_encode(self.wrd)}: ', end='')
+        outp(output_widget, f'{encode_special_combinations(self.wrd)}: ', end='')
         self.tr_print(output_widget)
 
     # Напечатать статью - кратко
@@ -556,7 +556,7 @@ class Entry(object):
 
     # Напечатать статью - слово со статистикой
     def print_wrd_with_stat(self, output_widget):
-        outp(output_widget, deu_encode(self.wrd), end=' ')
+        outp(output_widget, encode_special_combinations(self.wrd), end=' ')
         self.stat_print(output_widget)
 
     # Напечатать статью - перевод со статистикой
@@ -572,7 +572,7 @@ class Entry(object):
 
     # Напечатать статью - со всей информацией
     def print_all(self, output_widget):
-        outp(output_widget, f'       Слово: {deu_encode(self.wrd)}')
+        outp(output_widget, f'       Слово: {encode_special_combinations(self.wrd)}')
         outp(output_widget, '     Перевод: ', end='')
         self.tr_print(output_widget)
         outp(output_widget, ' Формы слова: ', end='')
@@ -580,16 +580,16 @@ class Entry(object):
             outp(output_widget, '-')
         else:
             keys = [key for key in self.forms.keys()]
-            outp(output_widget, f'[{tpl(keys[0])}] {deu_encode(self.forms[keys[0]])}')
+            outp(output_widget, f'[{tpl(keys[0])}] {encode_special_combinations(self.forms[keys[0]])}')
             for i in range(1, self.count_f):
-                outp(output_widget, f'              [{tpl(keys[i])}] {deu_encode(self.forms[keys[i]])}')
+                outp(output_widget, f'              [{tpl(keys[i])}] {encode_special_combinations(self.forms[keys[i]])}')
         outp(output_widget, '      Сноски: ', end='')
         if self.count_n == 0:
             outp(output_widget, '-')
         else:
-            outp(output_widget, f'> {deu_encode(self.notes[0])}')
+            outp(output_widget, f'> {encode_special_combinations(self.notes[0])}')
             for i in range(1, self.count_n):
-                outp(output_widget, f'              > {deu_encode(self.notes[i])}')
+                outp(output_widget, f'              > {encode_special_combinations(self.notes[i])}')
         outp(output_widget, f'   Избранное: {self.fav}')
         if self.last_att == -1:
             outp(output_widget, '  Статистика: 1) Последних неверных ответов: -')
@@ -625,7 +625,7 @@ class Entry(object):
     # Удалить словоформу
     def delete_frm_with_choose(self, window_parent):
         keys = [key for key in self.forms.keys()]
-        variants = [f'[{tpl(key)}] {deu_encode(self.forms[key])}' for key in keys]
+        variants = [f'[{tpl(key)}] {encode_special_combinations(self.forms[key])}' for key in keys]
 
         window_choose = PopupChooseW(window_parent, variants, 'Выберите форму, которую хотите удалить',
                                      default_value=variants[0], combo_width=width(variants, 5, 100))
@@ -640,7 +640,7 @@ class Entry(object):
     # Изменить словоформу
     def edit_frm_with_choose(self, window_parent):
         keys = [key for key in self.forms.keys()]
-        variants = [f'[{tpl(key)}] {deu_encode(self.forms[key])}' for key in keys]
+        variants = [f'[{tpl(key)}] {encode_special_combinations(self.forms[key])}' for key in keys]
 
         window_choose = PopupChooseW(window_parent, variants, 'Выберите форму, которую хотите изменить',
                                      default_value=variants[0], combo_width=width(variants, 5, 100))
@@ -865,7 +865,7 @@ class Dictionary(object):
                         is_first_in_line = False
                         if is_found:
                             outp(output_widget)  # Вывод новой строки после найденной статьи (кроме первой)
-                        outp(output_widget, deu_encode(entry.wrd), end=': ')  # Вывод слова
+                        outp(output_widget, encode_special_combinations(entry.wrd), end=': ')  # Вывод слова
                     else:
                         # Вывод запятой после найденного перевода (кроме первого в статье перевода)
                         outp(output_widget, ', ', end='')
@@ -2999,7 +2999,7 @@ class LearnW(tk.Toplevel):
         forms = self.conf[1]
         words = self.conf[2]
 
-        answer = deu_encode(self.entry_input.get())  # Вывод пользовательского ответа
+        answer = encode_special_combinations(self.entry_input.get())  # Вывод пользовательского ответа
         if answer != '':
             self.outp(answer)
 
@@ -3061,7 +3061,7 @@ class LearnW(tk.Toplevel):
     # Проверка введённого слова
     def check_wrd(self):
         entry = _0_global_dct.d[self.current_key]
-        if deu_encode(self.entry_input.get()) == deu_encode(entry.wrd):
+        if encode_special_combinations(self.entry_input.get()) == encode_special_combinations(entry.wrd):
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
@@ -3075,10 +3075,10 @@ class LearnW(tk.Toplevel):
             self.count_correct += 1
             self.used_words.add(self.current_key)
         else:
-            self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.wrd)}"\n')
+            self.outp(f'Неверно. Правильный ответ: "{encode_special_combinations(entry.wrd)}"\n')
             if not entry.fav:
-                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()),
-                                          deu_encode(entry.wrd), _0_global_typo)
+                window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
+                                          encode_special_combinations(entry.wrd), _0_global_typo)
                 answer = window.open()
                 if answer != 'typo':
                     entry.incorrect()
@@ -3089,7 +3089,7 @@ class LearnW(tk.Toplevel):
     # Проверка введённой словоформы
     def check_form(self):
         entry = _0_global_dct.d[self.current_key]
-        if deu_encode(self.entry_input.get()) == deu_encode(entry.forms[self.current_form]):
+        if encode_special_combinations(self.entry_input.get()) == encode_special_combinations(entry.forms[self.current_form]):
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
@@ -3103,10 +3103,10 @@ class LearnW(tk.Toplevel):
             self.count_correct += 1
             self.used_words.add((self.current_key, self.current_form))
         else:
-            self.outp(f'Неверно. Правильный ответ: "{deu_encode(entry.forms[self.current_form])}"\n')
+            self.outp(f'Неверно. Правильный ответ: "{encode_special_combinations(entry.forms[self.current_form])}"\n')
             if not entry.fav:
-                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()),
-                                          deu_encode(entry.forms[self.current_form]), _0_global_typo)
+                window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
+                                          encode_special_combinations(entry.forms[self.current_form]), _0_global_typo)
                 answer = window.open()
                 if answer != 'typo':
                     entry.incorrect()
@@ -3117,8 +3117,8 @@ class LearnW(tk.Toplevel):
     # Проверка введённого перевода
     def check_tr(self):
         entry = _0_global_dct.d[self.current_key]
-        encoded_tr = [deu_encode(tr) for tr in entry.tr]
-        if deu_encode(self.entry_input.get()) in encoded_tr:
+        encoded_tr = [encode_special_combinations(tr) for tr in entry.tr]
+        if encode_special_combinations(self.entry_input.get()) in encoded_tr:
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
@@ -3134,7 +3134,7 @@ class LearnW(tk.Toplevel):
         else:
             self.outp(f'Неверно. Правильный ответ: "{tr_to_str(entry.tr)}"\n')
             if not entry.fav:
-                window = IncorrectAnswerW(self, deu_encode(self.entry_input.get()), tr_to_str(entry.tr), _0_global_typo)
+                window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()), tr_to_str(entry.tr), _0_global_typo)
                 answer = window.open()
                 if answer != 'typo':
                     entry.incorrect()
@@ -3397,7 +3397,7 @@ class SearchW(tk.Toplevel):
 
         outp(self.txt_wrd, 'Полное совпадение:')
         if wrd_to_key(search_wrd, 0) not in _0_global_dct.d.keys():
-            outp(self.txt_wrd, f'Слово "{deu_encode(search_wrd)}" отсутствует в словаре', end='')
+            outp(self.txt_wrd, f'Слово "{encode_special_combinations(search_wrd)}" отсутствует в словаре', end='')
         else:
             for i in range(MAX_SAME_WORDS):
                 key = wrd_to_key(search_wrd, i)
@@ -3425,7 +3425,7 @@ class SearchW(tk.Toplevel):
                 outp(self.txt_tr)
                 entry.print_all(self.txt_tr)
         if not is_found:
-            outp(self.txt_tr, f'Слово с переводом "{deu_encode(search_tr)}" отсутствует в словаре', end='')
+            outp(self.txt_tr, f'Слово с переводом "{encode_special_combinations(search_tr)}" отсутствует в словаре', end='')
 
         outp(self.txt_tr, '\n\nЧастичное совпадение:')
         _0_global_dct.print_translations_with_str(self.txt_tr, search_tr)
@@ -3619,7 +3619,7 @@ class EditW(tk.Toplevel):
 
         self.txt_wrd['state'] = 'normal'
         self.txt_wrd.delete(1.0, tk.END)
-        self.txt_wrd.insert(tk.END, deu_encode(_0_global_dct.d[self.key].wrd))
+        self.txt_wrd.insert(tk.END, encode_special_combinations(_0_global_dct.d[self.key].wrd))
         self.txt_wrd['state'] = 'disabled'
 
         self.txt_tr['state'] = 'normal'
