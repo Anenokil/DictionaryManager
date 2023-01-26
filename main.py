@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-168'
+PROGRAM_VERSION = 'v7.0.0_PRE-169'
 PROGRAM_DATE = '26.1.2023'
-PROGRAM_TIME = '19:52 (UTC+3)'
+PROGRAM_TIME = '20:00 (UTC+3)'
 
 SAVES_VERSION = 1  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 1  # Актуальная версия локальных настроек
@@ -409,7 +409,7 @@ def rename_frm_param_val(window_parent, values, pos, dct):
     window_choose = PopupChooseW(window_parent, values, default_value=values[0],
                                  combo_width=width(values, 5, 100))  # Выбор значения, которое нужно переименовать
     closed, old_val = window_choose.open()
-    if closed or old_val == '':
+    if closed:
         return False
 
     # Ввод нового значения
@@ -430,7 +430,7 @@ def delete_frm_param_val(window_parent, values, dct):
     window_choose = PopupChooseW(window_parent, values, default_value=values[0],
                                  combo_width=width(values, 5, 100))  # Выбор значения, которое нужно удалить
     closed, val = window_choose.open()
-    if closed or val == '':
+    if closed:
         return False
     window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие это значение параметра, будут удалены!\n'
                                                'Хотите продолжить?')  # Подтверждение действия
@@ -471,7 +471,7 @@ def rename_frm_param(window_parent, parameters, dct):
     window_choose = PopupChooseW(window_parent, par_names, default_value=par_names[0], btn_text='Переименовать',
                                  combo_width=width(par_names, 5, 100))  # Выбор параметра, который нужно переименовать
     closed, old_name = window_choose.open()
-    if closed or old_name == '':
+    if closed:
         return False
 
     # Ввод нового названия параметра
@@ -494,7 +494,7 @@ def delete_frm_param(window_parent, parameters, dct):
     window_choose = PopupChooseW(window_parent, par_names, default_value=par_names[0], btn_text='Удалить',
                                  combo_width=width(par_names, 5, 100))  # Выбор параметра, который нужно удалить
     closed, selected_par_name = window_choose.open()
-    if closed or selected_par_name == '':
+    if closed:
         return False
     window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие этот параметр, будут удалены!\n'
                                                'Хотите продолжить?')  # Подтверждение действия
@@ -691,7 +691,7 @@ class Entry(object):
         window_choose = PopupChooseW(window_parent, variants, 'Выберите форму, которую хотите удалить',
                                      default_value=variants[0], combo_width=width(variants, 5, 100))
         closed, answer = window_choose.open()
-        if closed or answer == '':
+        if closed:
             return
         index = variants.index(answer)
         key = keys[index]
@@ -706,7 +706,7 @@ class Entry(object):
         window_choose = PopupChooseW(window_parent, variants, 'Выберите форму, которую хотите изменить',
                                      default_value=variants[0], combo_width=width(variants, 5, 100))
         closed, answer = window_choose.open()
-        if closed or answer == '':
+        if closed:
             return
         index = variants.index(answer)
         key = keys[index]
@@ -1026,7 +1026,7 @@ class Dictionary(object):
         _window_choose = PopupChooseW(_window, self.d[_key].tr, 'Выберите, какой перевод хотите удалить',
                                       default_value=self.d[_key].tr[0], combo_width=width(self.d[_key].tr, 5, 100))
         _closed, _tr = _window_choose.open()
-        if _closed or _tr == '':
+        if _closed:
             return
         self.d[_key].tr.remove(_tr)
         self.d[_key].count_t -= 1
@@ -1037,7 +1037,7 @@ class Dictionary(object):
         _window_choose = PopupChooseW(_window, self.d[_key].notes, 'Выберите, какую сноску хотите удалить',
                                       default_value=self.d[_key].notes[0], combo_width=width(self.d[_key].notes, 5, 100))
         _closed, _note = _window_choose.open()
-        if _closed or _note == '':
+        if _closed:
             return
         self.d[_key].notes.remove(_note)
         self.d[_key].count_n -= 1
@@ -2448,14 +2448,14 @@ class FormsSettingsW(tk.Toplevel):
         self.has_changes = add_frm_param(self, _0_global_form_parameters, _0_global_dct) or self.has_changes
         self.refresh()
 
-    # Удалить параметр
-    def delete(self):
-        self.has_changes = delete_frm_param(self, _0_global_form_parameters, _0_global_dct) or self.has_changes
-        self.refresh()
-
     # Переименовать параметр
     def rename(self):
         self.has_changes = rename_frm_param(self, _0_global_form_parameters, _0_global_dct) or self.has_changes
+        self.refresh()
+
+    # Удалить параметр
+    def delete(self):
+        self.has_changes = delete_frm_param(self, _0_global_form_parameters, _0_global_dct) or self.has_changes
         self.refresh()
 
     # Перейти к настройкам значения параметра
@@ -2464,7 +2464,7 @@ class FormsSettingsW(tk.Toplevel):
         window = PopupChooseW(self, keys, 'Какой параметр форм вы хотите изменить?',
                               default_value=keys[0], combo_width=width(keys, 5, 100))
         closed, key = window.open()
-        if closed or key == '':
+        if closed:
             return
         self.has_changes = FormsParameterSettingsW(self, key).open() or self.has_changes
 
@@ -4100,7 +4100,7 @@ class SettingsW(tk.Toplevel):
         window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите открыть',
                               default_value=saves_list[0], combo_width=width(saves_list, 5, 100))
         closed, savename = window.open()
-        if closed or savename == '':
+        if closed:
             return
 
         # Если есть прогресс, то предлагается его сохранить
@@ -4171,7 +4171,7 @@ class SettingsW(tk.Toplevel):
         window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите переименовать',
                                      default_value=saves_list[0], combo_width=width(saves_list, 5, 100))
         closed, old_savename = window_choose.open()
-        if closed or old_savename == '':
+        if closed:
             return
 
         window_rename = PopupEntryW(self, 'Введите название нового словаря', check_answer_function=check_dct_savename)
@@ -4203,7 +4203,7 @@ class SettingsW(tk.Toplevel):
         window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите удалить',
                                      default_value=saves_list[0], combo_width=width(saves_list, 5, 100))
         closed, savename = window_choose.open()
-        if closed or savename == '':
+        if closed:
             return
 
         window_confirm = PopupDialogueW(self, f'Словарь "{savename}" будет безвозвратно удалён!\n'
@@ -4783,4 +4783,3 @@ root.mainloop()
 
 # EditW -> добавить форму -> PopupEntryW: не устанавливается фокус
 # Закончить с ttk styles
-# Добавить validate в PopupChoose
