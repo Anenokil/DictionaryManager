@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-162'
-PROGRAM_DATE = '25.1.2023'
-PROGRAM_TIME = '23:00 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-163'
+PROGRAM_DATE = '26.1.2023'
+PROGRAM_TIME = '13:11 (UTC+3)'
 
 SAVES_VERSION = 1
 LOCAL_SETTINGS_VERSION = 1
@@ -139,7 +139,7 @@ if CUSTOM_THEMES_DIR not in os.listdir(RESOURCES_PATH):
 if IMAGES_DIR not in os.listdir(RESOURCES_PATH):
     os.mkdir(IMAGES_PATH)
 
-# Если временный файл не удалёнб то он удаляется
+# Если временный файл не удалён, то он удаляется
 if TMP_FN in os.listdir(RESOURCES_PATH):
     os.remove(TMP_PATH)
 
@@ -156,7 +156,7 @@ img_about = os.path.join(IMAGES_PATH, 'about.png')
 img_about_mgsp = os.path.join(IMAGES_PATH, 'about_mgsp.png')
 img_about_typo = os.path.join(IMAGES_PATH, 'about_typo.png')
 
-# Установка обновлений
+# Папки и файлы для установки обновлений
 NEW_VERSION_DIR = f'{PROGRAM_NAME}-master'
 NEW_VERSION_PATH = os.path.join(MAIN_PATH, NEW_VERSION_DIR)  # Временная папка с обновлением
 NEW_VERSION_ZIP = f'{NEW_VERSION_DIR}.zip'
@@ -173,10 +173,11 @@ URL_DOWNLOAD_ZIP = f'https://github.com/Anenokil/{PROGRAM_NAME}/archive/refs/hea
 
 """ Другое """
 
-FORMS_SEPARATOR = '@'  # Разделитель для записи форм в файл
+FORMS_SEPARATOR = '@'  # Разделитель для записи форм в файл локальных настроек
+SPECIAL_COMBINATION_OPENING_SYMBOL = '#'  # Открывающий символ специальных комбинаций
 
-VALUES_ORDER = ('Угадывать слово по переводу', 'Угадывать перевод по слову')
-VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только избранные')
+VALUES_ORDER = ('Угадывать слово по переводу', 'Угадывать перевод по слову')  # Варианты метода учёбы
+VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только избранные')  # Варианты подбора слов для учёбы
 
 MAX_SAME_WORDS = 100  # Максимальное количество статей с одинаковым словом
 
@@ -200,62 +201,70 @@ MAX_SAME_WORDS = 100  # Максимальное количество стате
 """ Основные функции """
 
 
-# Количество строк, необходимых для записи текста, при данной длине строки
+# Вычисление количества строк, необходимых для записи данного текста в многострочное поле при данной длине строки
 def height(text, len_str):
-    parts = text.split('\n')
-    return sum(math.ceil(len(part) / len_str) for part in parts)
+    segments = text.split('\n')
+    return sum(math.ceil(len(segment) / len_str) for segment in segments)
 
 
-# Ширина моноширинного поля, в которое должно помещаться каждое из данных значений
+# Вычисление ширины моноширинного поля, в которое должно помещаться каждое из данных значений
 def width(values, min_width, max_width):
-    max_of_vals = max(len(val) for val in values)
-    return min(max(max_of_vals, min_width), max_width)
+    max_len_of_vals = max(len(val) for val in values)
+    return min(max(max_len_of_vals, min_width), max_width)
 
 
-# Вывести специальную комбинацию
+# Преобразование специальной комбинации в читаемый вид (для отображения в настройках)
 def special_combination(key):
     val = _0_global_special_combinations[key]
-    return f'#{key} -> {val}'
+    return f'{SPECIAL_COMBINATION_OPENING_SYMBOL}{key} -> {val}'
 
 
-# Добавить немецкие буквы
+# Преобразование в тексте специальных комбинаций в соответствующие символы
 def deu_encode(text):
-    text = text.replace('##', '#@')
+    encoded_text = ''
 
-    for key in _0_global_special_combinations:
-        val = _0_global_special_combinations[key]
-        text = text.replace(f'#{key}', val)
+    is_special_combination_open = False  # Встречен ли открывающий символ специальной комбинации
+    for symbol in text:
+        if is_special_combination_open:
+            if symbol in _0_global_special_combinations.keys():  # Если есть комбинация с этим символом
+                encoded_text += _0_global_special_combinations[symbol]
+            elif symbol == SPECIAL_COMBINATION_OPENING_SYMBOL:  # Если встречено два открывающих символа подряд
+                encoded_text += SPECIAL_COMBINATION_OPENING_SYMBOL  # (## -> #)
+            else:  # Если нет комбинации с этим символом
+                encoded_text += f'{SPECIAL_COMBINATION_OPENING_SYMBOL}{symbol}'
+            is_special_combination_open = False
+        elif symbol == SPECIAL_COMBINATION_OPENING_SYMBOL:  # Если встречен открывающий символ специальной комбинации
+            is_special_combination_open = True
+        else:  # Если встречен обычный символ
+            encoded_text += symbol
+    if is_special_combination_open:  # Если текст завершается открывающим символом специальной комбинации
+        encoded_text += SPECIAL_COMBINATION_OPENING_SYMBOL
 
-    text = text.replace('#@', '#')
-
-    return text
+    return encoded_text
 
 
-# Заменить немецкие буквы английскими (для find_and_highlight)
+# Замена в тексте немецких букв английскими (для find_and_highlight)
 def deu_to_eng(text):  # deu_to_eng только для немецкого
-    text = text.replace('##', '1ä')
-    text = text.replace('ss', '2ä')
-    text = text.replace('sS', '2ä')
-    text = text.replace('SS', '3ä')
-    text = text.replace('Ss', '3ä')
+    converted_text = deu_encode(text)
 
-    text = text.replace('#a', 'a')
-    text = text.replace('#A', 'A')
-    text = text.replace('#o', 'o')
-    text = text.replace('#O', 'O')
-    text = text.replace('#u', 'u')
-    text = text.replace('#U', 'U')
-    text = text.replace('#s', 's')
-    text = text.replace('#S', 'S')
+    converted_text = converted_text.replace('ä', 'a')
+    converted_text = converted_text.replace('Ä', 'A')
+    converted_text = converted_text.replace('ö', 'o')
+    converted_text = converted_text.replace('Ö', 'O')
+    converted_text = converted_text.replace('ü', 'u')
+    converted_text = converted_text.replace('Ü', 'U')
+    converted_text = converted_text.replace('ß', 's')
+    converted_text = converted_text.replace('ẞ', 'S')
 
-    text = text.replace('1ä', '#')
-    text = text.replace('2ä', 's')
-    text = text.replace('3ä', 'S')
+    converted_text = converted_text.replace('ss', 's')
+    converted_text = converted_text.replace('sS', 's')
+    converted_text = converted_text.replace('SS', 'S')
+    converted_text = converted_text.replace('Ss', 'S')
 
-    return text
+    return converted_text
 
 
-# Перевести кортеж в строку (для вывода на экран)
+# Преобразование кортежа в читаемый вид (для вывода на экран)
 def tpl(input_tuple):
     res = ''
     is_first = True
@@ -269,7 +278,7 @@ def tpl(input_tuple):
     return res
 
 
-# Перевести кортеж в строку (для сохранения в файл)
+# Преобразование кортежа в строку (для сохранения в файл)
 def decode_tpl(input_tuple):
     if not input_tuple:
         return ''
@@ -279,12 +288,12 @@ def decode_tpl(input_tuple):
     return res
 
 
-# Перевести строку в кортеж (для чтения из файла)
+# Преобразование строки в кортеж (для чтения из файла)
 def encode_tpl(line):
     return tuple(line.split(FORMS_SEPARATOR))
 
 
-# Перевести переводы в строку
+# Преобразование переводов в читаемый вид
 def tr_to_str(tr):
     encoded_tr = tuple(deu_encode(t) for t in tr)
     return tpl(encoded_tr)
@@ -1524,12 +1533,12 @@ def validate_percent(value):
 
 # Валидация ключа специальной комбинации
 def validate_special_combination_key(value):
-    return len(value) <= 1 and value not in ('#', '@')
+    return len(value) <= 1 and value != SPECIAL_COMBINATION_OPENING_SYMBOL
 
 
 # Валидация значения специальной комбинации
 def validate_special_combination_val(value):
-    return len(value) <= 1 and value not in ('#', '@')
+    return len(value) <= 1
 
 
 # При выборе второго метода учёбы нельзя добавить словоформы
@@ -1904,7 +1913,8 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.lbl_msg = ttk.Label(self, text='Задайте комбинацию', justify='center', style='Default.TLabel')
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.lbl_1 = ttk.Label(self.frame_main, text='#', justify='right', style='Default.TLabel')
+        self.lbl_1 = ttk.Label(self.frame_main, text=SPECIAL_COMBINATION_OPENING_SYMBOL,
+                               justify='right', style='Default.TLabel')
         self.entry_key = ttk.Entry(self.frame_main, textvariable=self.var_key, width=2, justify='right',
                                    validate='key', validatecommand=self.vcmd_key, style='.TEntry')
         self.lbl_2 = ttk.Label(self.frame_main, text='->', justify='center', style='Default.TLabel')
@@ -2695,10 +2705,9 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.txt_form_par.delete(1.0, tk.END)
 
         combinations = [special_combination(key) for key in _0_global_special_combinations]
-        if combinations:
-            self.txt_form_par.insert(tk.END, f'{combinations[0]}')
-        for i in range(1, len(combinations)):
-            self.txt_form_par.insert(tk.END, f'\n{combinations[i]}')
+        for combination in combinations:
+            self.txt_form_par.insert(tk.END, f'{combination}\n')
+        self.txt_form_par.insert(tk.END, '## -> #')
 
         self.txt_form_par['state'] = 'disabled'
 
@@ -4811,3 +4820,4 @@ root.mainloop()
 # Сделать установщик отдельной программой
 
 # EditW -> добавить форму -> PopupEntryW: не устанавливается фокус
+# underline spec combs
