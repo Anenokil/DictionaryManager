@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-170'
+PROGRAM_VERSION = 'v7.0.0_PRE-171'
 PROGRAM_DATE = '26.1.2023'
-PROGRAM_TIME = '21:58 (UTC+3)'
+PROGRAM_TIME = '23:14 (UTC+3)'
 
 SAVES_VERSION = 1  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 1  # Актуальная версия локальных настроек
@@ -198,6 +198,86 @@ MAX_SAME_WORDS = 100  # Максимальное количество стате
     'им. падеж' и   'тв. падеж' - ЗНАЧЕНИЯ ПАРАМЕТРА 'падеж'
 """
 
+""" Функции проверки """
+
+
+# Проверить корректность названия словаря
+def check_dct_savename(window_parent, savename: str):
+    if savename == '':
+        warning(window_parent, 'Название должно содержать хотя бы один символ!')
+        return False
+    if dct_filename(savename) in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
+        warning(window_parent, 'Файл с таким названием уже существует!')
+        return False
+    return True
+
+
+# Проверить корректность названия параметра словоформ
+def check_frm_parameter(window_parent, parameters, new_parameter):
+    if new_parameter == '':
+        warning(window_parent, 'Название параметра должно содержать хотя бы один символ!')
+        return False
+    if new_parameter in parameters:  # Если уже есть параметр с таким названием
+        warning(window_parent, f'Параметр "{new_parameter}" уже существует!')
+        return False
+    return True
+
+
+# Проверить корректность значения параметра словоформ
+def check_frm_par_val(window_parent, values, new_val):
+    if new_val == '':
+        warning(window_parent, 'Значение параметра должно содержать хотя бы один символ!')
+        return False
+    if new_val in values:
+        warning(window_parent, f'Значение "{new_val}" уже существует!')
+        return False
+    if FORMS_SEPARATOR in new_val:
+        warning(window_parent, f'Недопустимый символ: {FORMS_SEPARATOR}!')
+        return False
+    return True
+
+
+# Проверить строку на непустоту
+def check_not_void(window_parent, value, msg_if_void):
+    if value == '':
+        warning(window_parent, msg_if_void)
+        return False
+    return True
+
+
+# Проверить корректность изменённого слова
+def check_wrd_edit(window_parent, old_wrd, new_wrd):
+    if new_wrd == '':
+        warning(window_parent, 'Слово должно содержать хотя бы один символ!')
+        return False
+    if new_wrd == old_wrd:
+        warning(window_parent, 'Это то же самое слово!')
+        return False
+    return True
+
+
+# Проверить корректность перевода
+def check_tr(window_parent, translations, new_tr, wrd):
+    if new_tr == '':
+        warning(window_parent, 'Перевод должен содержать хотя бы один символ!')
+        return False
+    if new_tr in translations:
+        warning(window_parent, f'У слова "{wrd}" уже есть такой перевод!')
+        return False
+    return True
+
+
+# Проверить корректность сноски
+def check_note(window_parent, notes, new_note, wrd):
+    if new_note == '':
+        warning(window_parent, 'Сноска должна содержать хотя бы один символ!')
+        return False
+    if new_note in notes:
+        warning(window_parent, f'У слова "{wrd}" уже есть такая сноска!')
+        return False
+    return True
+
+
 """ Основные функции """
 
 
@@ -320,83 +400,6 @@ def find_and_highlight(target_wrd: str, search_wrd: str):
                 res = f'{encoded_wrd[:pos]}[{encoded_wrd[pos:end_pos]}]{encoded_wrd[end_pos:]}'
             return res
     return ''
-
-
-# Проверить корректность названия словаря
-def check_dct_savename(window_parent, savename: str):
-    if savename == '':
-        warning(window_parent, 'Название должно содержать хотя бы один символ!')
-        return False
-    if dct_filename(savename) in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
-        warning(window_parent, 'Файл с таким названием уже существует!')
-        return False
-    return True
-
-
-# Проверить корректность названия параметра словоформ
-def check_frm_parameter(window_parent, parameters, new_parameter):
-    if new_parameter == '':
-        warning(window_parent, 'Название параметра должно содержать хотя бы один символ!')
-        return False
-    if new_parameter in parameters:  # Если уже есть параметр с таким названием
-        warning(window_parent, f'Параметр "{new_parameter}" уже существует!')
-        return False
-    return True
-
-
-# Проверить корректность значения параметра словоформ
-def check_frm_par_val(window_parent, values, new_val):
-    if new_val == '':
-        warning(window_parent, 'Значение параметра должно содержать хотя бы один символ!')
-        return False
-    if new_val in values:
-        warning(window_parent, f'Значение "{new_val}" уже существует!')
-        return False
-    if FORMS_SEPARATOR in new_val:
-        warning(window_parent, f'Недопустимый символ: {FORMS_SEPARATOR}!')
-        return False
-    return True
-
-
-# Проверить строку на непустоту
-def check_not_void(window_parent, value, msg_if_void):
-    if value == '':
-        warning(window_parent, msg_if_void)
-        return False
-    return True
-
-
-# Проверить корректность изменённого слова
-def check_wrd_edit(window_parent, old_wrd, new_wrd):
-    if new_wrd == '':
-        warning(window_parent, 'Слово должно содержать хотя бы один символ!')
-        return False
-    if new_wrd == old_wrd:
-        warning(window_parent, 'Это то же самое слово!')
-        return False
-    return True
-
-
-# Проверить корректность перевода
-def check_tr(window_parent, translations, new_tr, wrd):
-    if new_tr == '':
-        warning(window_parent, 'Перевод должен содержать хотя бы один символ!')
-        return False
-    if new_tr in translations:
-        warning(window_parent, f'У слова "{wrd}" уже есть такой перевод!')
-        return False
-    return True
-
-
-# Проверить корректность сноски
-def check_note(window_parent, notes, new_note, wrd):
-    if new_note == '':
-        warning(window_parent, 'Сноска должна содержать хотя бы один символ!')
-        return False
-    if new_note in notes:
-        warning(window_parent, f'У слова "{wrd}" уже есть такая сноска!')
-        return False
-    return True
 
 
 # Добавить значение параметра словоформ
@@ -656,7 +659,8 @@ class Entry(object):
             keys = [key for key in self.forms.keys()]
             outp(output_widget, f'[{tpl(keys[0])}] {encode_special_combinations(self.forms[keys[0]])}')
             for i in range(1, self.count_f):
-                outp(output_widget, f'              [{tpl(keys[i])}] {encode_special_combinations(self.forms[keys[i]])}')
+                outp(output_widget,
+                     f'              [{tpl(keys[i])}] {encode_special_combinations(self.forms[keys[i]])}')
         outp(output_widget, '      Сноски: ', end='')
         if self.count_n == 0:
             outp(output_widget, '-')
@@ -685,12 +689,10 @@ class Entry(object):
         self.count_n += 1
 
     # Добавить словоформу
-    def add_frm(self, frm_key, new_frm, window_parent=None):
+    def add_frm(self, frm_key, new_frm):
         if frm_key not in self.forms.keys():
             self.forms[frm_key] = new_frm
             self.count_f += 1
-        elif window_parent:
-            warning(window_parent, f'Слово уже имеет форму с такими параметрами {tpl(frm_key)}: {self.forms[frm_key]}!')
 
     # Удалить словоформу
     def delete_frm_with_choose(self, window_parent):
@@ -721,7 +723,8 @@ class Entry(object):
         key = keys[index]
 
         window_entry = PopupEntryW(window_parent, 'Введите форму слова',
-                                   check_answer_function=lambda wnd, val: check_not_void(wnd, val, 'Форма должна содержать хотя бы один символ!'))
+                                   check_answer_function=lambda wnd, val:
+                                   check_not_void(wnd, val, 'Форма должна содержать хотя бы один символ!'))
         closed, new_frm = window_entry.open()
         if closed:
             return
@@ -963,9 +966,9 @@ class Dictionary(object):
         self.d[key].add_note(note)
 
     # Добавить словоформу к статье
-    def add_frm(self, key, frm_key, frm, window_parent=None):
+    def add_frm(self, key, frm_key, frm):
         self.count_f -= self.d[key].count_f
-        self.d[key].add_frm(frm_key, frm, window_parent)
+        self.d[key].add_frm(frm_key, frm)
         self.count_f += self.d[key].count_f
 
     # Изменить слово в статье
@@ -1243,8 +1246,9 @@ def upload_themes(themes: list[str]):
                         break
             if not is_correct:
                 continue
-        except:
-            print(f'Не удалось загрузить тему "{theme}" из-за ошибки!')
+        except Exception as exc:
+            print(f'Не удалось загрузить тему "{theme}" из-за ошибки!\n'
+                  f'{exc}')
         else:
             print(f'Тема "{theme}" успешно загружена')
 
@@ -1471,7 +1475,9 @@ def upload_dct(window_parent, dct: Dictionary, savename: str, btn_close_text: st
             if answer:
                 window_entry = PopupEntryW(window_parent, 'Введите название словаря\n'
                                                           '(если он ещё не существует, то будет создан пустой словарь)',
-                                           check_answer_function=lambda wnd, val: check_not_void(wnd, val, 'Название словаря должно содержать хотя бы один символ!'))
+                                           check_answer_function=lambda wnd, val:
+                                           check_not_void(wnd, val,
+                                                          'Название словаря должно содержать хотя бы один символ!'))
                 closed, other_savename = window_entry.open()
                 if closed:
                     continue
@@ -3731,7 +3737,7 @@ class EditW(tk.Toplevel):
         if closed:
             return
 
-        _0_global_dct.add_frm(self.key, frm_key, frm, self)
+        _0_global_dct.add_frm(self.key, frm_key, frm)
 
         _0_global_has_progress = True
         self.refresh()
