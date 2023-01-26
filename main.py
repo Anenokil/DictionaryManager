@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-167'
+PROGRAM_VERSION = 'v7.0.0_PRE-168'
 PROGRAM_DATE = '26.1.2023'
-PROGRAM_TIME = '18:49 (UTC+3)'
+PROGRAM_TIME = '19:52 (UTC+3)'
 
 SAVES_VERSION = 1  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 1  # Актуальная версия локальных настроек
@@ -1170,34 +1170,26 @@ class Dictionary(object):
 
     # Прочитать словарь из файла
     def read(self, filename):
-        try:
-            with open(filename, 'r', encoding='utf-8') as file:
-                version = file.readline().strip()  # Версия сохранения словаря
-                while True:
-                    line = file.readline().strip()
-                    if not line:
-                        break
-                    elif line[0] == 'w':
-                        wrd = line[1:]
-                        all_att, correct_att, last_att = (int(el) for el in file.readline().strip().split('#'))
-                        tr = file.readline().strip()
-                        key = self.load_entry(wrd, tr, all_att, correct_att, last_att)
-                    elif line[0] == 't':
-                        self.add_tr(key, line[1:])
-                    elif line[0] == 'd':
-                        self.add_note(key, line[1:])
-                    elif line[0] == 'f':
-                        frm_key = encode_tpl(line[1:])
-                        self.add_frm(key, frm_key, file.readline().strip())
-                    elif line[0] == '*':
-                        self.d[key].fav = True
-            return 0
-        except FileNotFoundError:
-            return 1
-        except (ValueError, TypeError):
-            return 2
-        except Exception:
-            return 3
+        with open(filename, 'r', encoding='utf-8') as file:
+            version = file.readline().strip()  # Версия сохранения словаря
+            while True:
+                line = file.readline().strip()
+                if not line:
+                    break
+                elif line[0] == 'w':
+                    wrd = line[1:]
+                    all_att, correct_att, last_att = (int(el) for el in file.readline().strip().split('#'))
+                    tr = file.readline().strip()
+                    key = self.load_entry(wrd, tr, all_att, correct_att, last_att)
+                elif line[0] == 't':
+                    self.add_tr(key, line[1:])
+                elif line[0] == 'd':
+                    self.add_note(key, line[1:])
+                elif line[0] == 'f':
+                    frm_key = encode_tpl(line[1:])
+                    self.add_frm(key, frm_key, file.readline().strip())
+                elif line[0] == '*':
+                    self.d[key].fav = True
 
 
 # Получить название файла со словарём по названию словаря
@@ -1447,39 +1439,41 @@ def upgrade_dct_save(path):
 
 
 # Загрузить словарь (с обновлением и обработкой исключений)
-def upload_dct(window_parent, dct, savename):
-    global _0_global_dct_savename
-
+def upload_dct(window_parent, dct, savename, btn_close_text):
     filename = dct_filename(savename)
     filepath = os.path.join(SAVES_PATH, filename)
-    upgrade_dct_save(filepath)
-    res_code = dct.read(filepath)
-    if res_code == 0:  # Если чтение прошло успешно, то выводится соответствующее сообщение
-        print(f'\nСловарь "{savename}" успешно открыт')
-    elif res_code == 1:  # Если файл отсутствует, то создаётся пустой словарь
+    try:
+        upgrade_dct_save(filepath)  # Если требуется, сохранение обновляется
+        dct.read(filepath)  # Загрузка словаря
+    except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
         print(f'\nСловарь "{savename}" не найден!')
-        open(filepath, 'w', encoding='utf-8')
+        open(filepath, 'w', encoding='utf-8').write(f'v{SAVES_VERSION}\n')
         dct.read(filepath)
         print('Создан и загружен пустой словарь')
-    else:  # Если файл повреждён, то предлагается открыть другой файл
-        print(f'\nФайл со словарём "{savename}" повреждён или некорректен!')
+        return savename
+    except Exception as exc:  # Если сохранение повреждено, то предлагается загрузить другое
+        print(f'\nФайл со словарём "{savename}" повреждён или некорректен!'
+              f'\n{exc}')
         while True:
             window_dia = PopupDialogueW(window_parent, f'Файл со словарём "{savename}" повреждён или некорректен!\n'
                                                        f'Хотите открыть другой словарь?',
-                                        'Да', 'Завершить работу', set_focus_on_btn='none', title='Warning')
+                                        'Да', btn_close_text, set_focus_on_btn='none', title='Warning')
             answer = window_dia.open()
             if answer:
                 window_entry = PopupEntryW(window_parent, 'Введите название словаря\n'
                                                           '(если он ещё не существует, то будет создан пустой словарь)',
                                            check_answer_function=lambda wnd, val: check_not_void(wnd, val, 'Название словаря должно содержать хотя бы один символ!'))
-                closed, _0_global_dct_savename = window_entry.open()
+                closed, other_savename = window_entry.open()
                 if closed:
                     continue
                 save_dct_name()
                 dct = Dictionary()
-                upload_dct(window_parent, dct, _0_global_dct_savename)
+                return upload_dct(window_parent, dct, other_savename, btn_close_text)
             else:
-                exit()
+                return None
+    else:  # Если чтение прошло успешно, то выводится соответствующее сообщение
+        print(f'\nСловарь "{savename}" успешно открыт')
+        return savename
 
 
 # Создать и загрузить пустой словарь
@@ -4109,12 +4103,15 @@ class SettingsW(tk.Toplevel):
         if closed or savename == '':
             return
 
+        # Если есть прогресс, то предлагается его сохранить
         if self.has_local_changes():
             save_settings_if_has_changes(self)
         save_dct_if_has_progress(self, _0_global_dct, dct_filename(_0_global_dct_savename), _0_global_has_progress)
 
         _0_global_dct = Dictionary()
-        upload_dct(self, _0_global_dct, savename)
+        savename = upload_dct(self, _0_global_dct, savename, 'Отмена')
+        if not savename:
+            return
         _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
             upload_local_settings(savename)
         _0_global_dct_savename = savename
@@ -4764,7 +4761,10 @@ _0_global_dct_savename, _0_global_show_updates, _0_global_typo, th =\
     upload_global_settings()  # Загружаем глобальные настройки
 upload_themes_img(th)  # Загружаем изображения тем
 root = MainW()  # Создаём графический интерфейс
-upload_dct(root, _0_global_dct, _0_global_dct_savename)  # Загружаем словарь
+_0_global_dct_savename = upload_dct(root, _0_global_dct, _0_global_dct_savename,
+                                    'Завершить работу')  # Загружаем словарь
+if not _0_global_dct_savename:
+    exit(101)
 _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
     upload_local_settings(_0_global_dct_savename)  # Загружаем локальные настройки
 _0_global_window_last_version = check_updates(root, _0_global_show_updates, False)  # Проверяем наличие обновлений
@@ -4783,5 +4783,4 @@ root.mainloop()
 
 # EditW -> добавить форму -> PopupEntryW: не устанавливается фокус
 # Закончить с ttk styles
-# Если сохранение отсутствует то ошибка
 # Добавить validate в PopupChoose
