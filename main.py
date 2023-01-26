@@ -15,14 +15,14 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-164'
+PROGRAM_VERSION = 'v7.0.0_PRE-165'
 PROGRAM_DATE = '26.1.2023'
-PROGRAM_TIME = '13:47 (UTC+3)'
+PROGRAM_TIME = '14:35 (UTC+3)'
 
-SAVES_VERSION = 1
-LOCAL_SETTINGS_VERSION = 1
-GLOBAL_SETTINGS_VERSION = 1
-REQUIRED_THEME_VERSION = 4
+SAVES_VERSION = 1  # Актуальная версия сохранений словарей
+LOCAL_SETTINGS_VERSION = 1  # Актуальная версия локальных настроек
+GLOBAL_SETTINGS_VERSION = 1  # Актуальная версия глобальных настроек
+REQUIRED_THEME_VERSION = 4  # Актуальная версия тем
 
 """ Стандартные темы """
 
@@ -201,25 +201,26 @@ MAX_SAME_WORDS = 100  # Максимальное количество стате
 """ Основные функции """
 
 
-# Вычисление количества строк, необходимых для записи данного текста в многострочное поле при данной длине строки
+# Вычислить количество строк, необходимых для записи данного текста
+# в многострочное текстовое поле при данной длине строки
 def height(text, len_str):
     segments = text.split('\n')
     return sum(math.ceil(len(segment) / len_str) for segment in segments)
 
 
-# Вычисление ширины моноширинного поля, в которое должно помещаться каждое из данных значений
+# Вычислить ширину моноширинного поля, в которое должно помещаться каждое из данных значений
 def width(values, min_width, max_width):
     max_len_of_vals = max(len(val) for val in values)
     return min(max(max_len_of_vals, min_width), max_width)
 
 
-# Преобразование специальной комбинации в читаемый вид (для отображения в настройках)
+# Преобразовать специальную комбинацию в читаемый вид (для отображения в настройках)
 def special_combination(key):
     val = _0_global_special_combinations[key]
     return f'{SPECIAL_COMBINATION_OPENING_SYMBOL}{key} -> {val}'
 
 
-# Преобразование в тексте специальных комбинаций в соответствующие символы
+# Преобразовать в тексте специальные комбинации в соответствующие символы
 def encode_special_combinations(text):
     encoded_text = ''
 
@@ -243,7 +244,7 @@ def encode_special_combinations(text):
     return encoded_text
 
 
-# Замена в тексте немецких букв английскими (для find_and_highlight)
+# Заменить в тексте немецкие буквы соответствующими английскими (для find_and_highlight)
 def deu_to_eng(text):  # deu_to_eng только для немецкого
     converted_text = encode_special_combinations(text)
 
@@ -264,23 +265,23 @@ def deu_to_eng(text):  # deu_to_eng только для немецкого
     return converted_text
 
 
-# Преобразование кортежа в читаемый вид (для вывода на экран)
+# Преобразовать кортеж в читаемый вид (для вывода на экран)
 def tpl(input_tuple):
     res = ''
     is_first = True
     for i in range(len(input_tuple)):
         if input_tuple[i] != '':
-            if is_first:
+            if is_first:  # Перед первым элементом не ставится запятая
                 res += f'{input_tuple[i]}'
                 is_first = False
-            else:
+            else:  # Перед последующими элементами ставится запятая
                 res += f', {input_tuple[i]}'
     return res
 
 
-# Преобразование кортежа в строку (для сохранения в файл)
+# Преобразовать кортеж в строку (для сохранения значений параметров форм в файл локальных настроек)
 def decode_tpl(input_tuple):
-    if not input_tuple:
+    if not input_tuple:  # input_tuple == () или input_tuple == ('')
         return ''
     res = input_tuple[0]
     for i in range(1, len(input_tuple)):
@@ -288,18 +289,34 @@ def decode_tpl(input_tuple):
     return res
 
 
-# Преобразование строки в кортеж (для чтения из файла)
+# Преобразовать строку в кортеж (для чтения значений параметров форм из файла локальных настроек)
 def encode_tpl(line):
     return tuple(line.split(FORMS_SEPARATOR))
 
 
-# Преобразование переводов в читаемый вид
+# Преобразовать кортеж переводов в читаемый вид
 def tr_to_str(tr):
     encoded_tr = tuple(encode_special_combinations(t) for t in tr)
     return tpl(encoded_tr)
 
 
-# Добавить значение параметра форм
+# Найти в строке подстроку и выделить её (только частичные совпадения)
+def find_and_highlight(target_wrd, search_wrd):
+    length = len(search_wrd)
+    if target_wrd != search_wrd:  # Полное совпадение не учитывается
+        pos = deu_to_eng(target_wrd).lower().find(deu_to_eng(search_wrd).lower())
+        if pos != -1:
+            encoded_wrd = encode_special_combinations(target_wrd)
+            end_pos = pos + length
+            if search_wrd == '':  # Если искомая подстрока пустая, то она не выделяется
+                res = f'{encoded_wrd}'
+            else:
+                res = f'{encoded_wrd[:pos]}[{encoded_wrd[pos:end_pos]}]{encoded_wrd[end_pos:]}'
+            return res
+    return ''
+
+
+# Добавить значение параметра словоформ
 def add_frm_param_val(window_parent, values, text='Введите новое значение параметра'):
     while True:
         window_entry = PopupEntryW(window_parent, text)  # Ввод нового значения
@@ -319,7 +336,7 @@ def add_frm_param_val(window_parent, values, text='Введите новое з�
     return True, new_val
 
 
-# Переименовать значение параметра форм
+# Переименовать значение параметра словоформ
 def rename_frm_param_val(window_parent, values, pos, dct):
     window_choose = PopupChooseW(window_parent, values, default_value=values[0],
                                  combo_width=width(values, 5, 100))  # Выбор значения, которое нужно переименовать
@@ -328,7 +345,7 @@ def rename_frm_param_val(window_parent, values, pos, dct):
         return False
     while True:
         window_entry = PopupEntryW(window_parent,
-                                   'Введите новое название для значения параметра')  # Ввод нового значения
+                                   'Введите новое значения параметра')  # Ввод нового значения
         closed, new_val = window_entry.open()
         if closed:
             return False
@@ -341,13 +358,13 @@ def rename_frm_param_val(window_parent, values, pos, dct):
         if FORMS_SEPARATOR in new_val:
             warning(window_parent, f'Недопустимый символ: {FORMS_SEPARATOR}!')
         break
-    dct.rename_forms_with_val(pos, old_val, new_val)  # Переименовать значение во всех словоформах, его содержащих
+    dct.rename_forms_with_val(pos, old_val, new_val)  # Переименовывание значения во всех словоформах, его содержащих
     index = values.index(old_val)
     values[index] = new_val
     return True
 
 
-# Удалить значение параметра форм
+# Удалить значение параметра словоформ
 def delete_frm_param_val(window_parent, values, dct):
     window_choose = PopupChooseW(window_parent, values, default_value=values[0],
                                  combo_width=width(values, 5, 100))  # Выбор значения, которое нужно удалить
@@ -355,28 +372,30 @@ def delete_frm_param_val(window_parent, values, dct):
     if closed or val == '':
         return False
     window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие это значение параметра, будут удалены!\n'
-                                               'Хотите продолжить?')
+                                               'Хотите продолжить?')  # Подтверждение действия
     answer = window_dia.open()
     if answer:
         index = values.index(val)
         values.pop(index)
-        dct.delete_forms_with_val(index, val)  # Удалить все словоформы, содержащие это значение параметра
+        dct.delete_forms_with_val(index, val)  # Удаление всех словоформ, содержащих это значение параметра
         return True
     return False
 
 
 # Добавить параметр словоформ
 def add_frm_param(window_parent, parameters, dct):
-    window_entry = EnterFormParameterNameW(window_parent, parameters.keys())
+    window_entry = EnterFormParameterNameW(window_parent, parameters.keys())  # Ввод нового параметра
     name_is_correct, new_par = window_entry.open()
     if not name_is_correct:
         return False
 
+    # Ввод первого значения параметра
     has_changes, new_val = add_frm_param_val(window_parent, (),
                                              'Необходимо добавить хотя бы одно значение для параметра')
     if not new_val:
         return False
 
+    # Обновление параметров
     dct.add_forms_param()
     parameters[new_par] = []
     parameters[new_par] += [new_val]
@@ -387,12 +406,13 @@ def add_frm_param(window_parent, parameters, dct):
 def rename_frm_param(window_parent, parameters, dct):
     par_names = [par_name for par_name in parameters.keys()]
     window_choose = PopupChooseW(window_parent, par_names, default_value=par_names[0], btn_text='Переименовать',
-                                 combo_width=width(par_names, 5, 100))
+                                 combo_width=width(par_names, 5, 100))  # Выбор параметра, который нужно переименовать
     closed, old_name = window_choose.open()
     if closed or old_name == '':
         return False
+
     while True:
-        window_entry = PopupEntryW(window_parent, 'Введите новое название параметра')
+        window_entry = PopupEntryW(window_parent, 'Введите новое название параметра')  # Ввод нового названия параметра
         closed, new_name = window_entry.open()
         if closed:
             return False
@@ -403,6 +423,8 @@ def rename_frm_param(window_parent, parameters, dct):
             warning(window_parent, f'Параметр "{new_name}" уже существует!')
             continue
         break
+
+    # обновление параметров
     # dct.rename_forms_param(index)
     parameters[new_name] = parameters[old_name]
     parameters.pop(old_name)
@@ -413,12 +435,12 @@ def rename_frm_param(window_parent, parameters, dct):
 def delete_frm_param(window_parent, parameters, dct):
     par_names = [par_name for par_name in parameters.keys()]
     window_choose = PopupChooseW(window_parent, par_names, default_value=par_names[0], btn_text='Удалить',
-                                 combo_width=width(par_names, 5, 100))
+                                 combo_width=width(par_names, 5, 100))  # Выбор параметра, который нужно удалить
     closed, selected_par_name = window_choose.open()
     if closed or selected_par_name == '':
         return False
     window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие этот параметр, будут удалены!\n'
-                                               'Хотите продолжить?')
+                                               'Хотите продолжить?')  # Подтверждение действия
     answer = window_dia.open()
     if answer:
         pos = par_names.index(selected_par_name)
@@ -426,22 +448,6 @@ def delete_frm_param(window_parent, parameters, dct):
         dct.delete_forms_param(pos)
         return True
     return False
-
-
-# Найти в строке подстроку и выделить её
-def find_and_highlight(target_wrd, search_wrd):
-    length = len(search_wrd)
-    if target_wrd != search_wrd:  # Полное совпадение не учитывается
-        pos = deu_to_eng(target_wrd).lower().find(deu_to_eng(search_wrd).lower())
-        if pos != -1:
-            encoded_wrd = encode_special_combinations(target_wrd)
-            end_pos = pos + length
-            if search_wrd == '':
-                res = f'{encoded_wrd}'
-            else:
-                res = f'{encoded_wrd[:pos]}[{encoded_wrd[pos:end_pos]}]{encoded_wrd[end_pos:]}'
-            return res
-    return ''
 
 
 class Entry(object):
@@ -753,13 +759,13 @@ class Entry(object):
             file.write('*\n')
 
 
-# Перевести слово из статьи в ключ для словаря
-def wrd_to_key(wrd, num):
+# Перевести слово в ключ для словаря
+def wrd_to_key(wrd, num):  # При изменении этой функции, не забыть поменять key_to_wrd
     return str(num // 10) + str(num % 10) + wrd
 
 
-# Перевести ключ для словаря в слово из статьи
-def key_to_wrd(key):
+# Перевести ключ для словаря в слово
+def key_to_wrd(key):  # При изменении этой функции, не забыть поменять wrd_to_key
     return key[2:]
 
 
@@ -1141,12 +1147,12 @@ class Dictionary(object):
             return 3
 
 
-# Получить название файла со словарём
+# Получить название файла со словарём по названию словаря
 def dct_filename(savename):
     return f'{savename}.txt'
 
 
-# Загрузка пользовательских тем
+# Загрузить пользовательские темы
 def upload_themes(themes):
     if os.listdir(CUSTOM_THEMES_PATH):
         print('\nЗагрузка тем...')
@@ -1189,7 +1195,7 @@ def upload_themes(themes):
             print(f'Тема "{theme}" успешно загружена')
 
 
-# Загрузка изображений темы
+# Загрузить изображения для темы
 def upload_themes_img(theme):
     global img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo
 
@@ -1208,7 +1214,7 @@ def upload_themes_img(theme):
     img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo = images
 
 
-# Проверка наличия обновлений программы
+# Проверить наличие обновлений программы
 def check_updates(window_parent, show_updates, show_if_no_updates):
     print('\nПроверка наличия обновлений...')
     window_last_version = None
@@ -1387,7 +1393,7 @@ def upgrade_dct_save(path):
         upgrade_dct_save_0_to_1(path)
 
 
-# Загрузить словарь (с обработкой исключений)
+# Загрузить словарь (с обновлением и обработкой исключений)
 def upload_dct(window_parent, dct, savename):
     global _0_global_dct_savename
 
@@ -1469,7 +1475,7 @@ def save_local_settings(min_good_score_perc, form_parameters, filename):
             local_settings_file.write('\n')
 
 
-# Предложить сохранение настроек, если есть прогресс
+# Предложить сохранение настроек, если есть изменения
 def save_settings_if_has_changes(window_parent):
     window_dia = PopupDialogueW(window_parent, 'Хотите сохранить изменения настроек?', 'Да', 'Нет')
     answer = window_dia.open()
@@ -1487,7 +1493,7 @@ def save_dct(dct, filename):
     dct.save(filepath)
 
 
-# Предложить сохранение словаря, если есть прогресс
+# Предложить сохранение словаря, если есть изменения
 def save_dct_if_has_progress(window_parent, dct, filename, has_progress):
     if has_progress:
         window_dia = PopupDialogueW(window_parent, 'Хотите сохранить свой прогресс?', 'Да', 'Нет')
@@ -1501,22 +1507,22 @@ def save_dct_if_has_progress(window_parent, dct, filename, has_progress):
 """ Графический интерфейс """
 
 
-# Вывод текста на виджет
+# Вывести текст на виджет
 def outp(output_widget, text='', end='\n', mode=tk.END):
     output_widget.insert(mode, f'{text}{end}')
 
 
-# Вывод сообщения с предупреждением
+# Вывести сообщение с предупреждением
 def warning(window_parent, msg):
     PopupMsgW(window_parent, msg, title='Warning').open()
 
 
-# Выключение кнопки (т. к. в ttk нельзя убрать уродливую тень текста на выключенных кнопках, пришлось делать по-своему)
+# Выключить кнопку (т. к. в ttk нельзя убрать уродливую тень текста на выключенных кнопках, пришлось делать по-своему)
 def btn_disable(btn: ttk.Button):
     btn.configure(command='', style='Disabled.TButton')
 
 
-# Включение кнопки (т. к. в ttk нельзя убрать уродливую тень текста на выключенных кнопках, пришлось делать по-своему)
+# Включить кнопку (т. к. в ttk нельзя убрать уродливую тень текста на выключенных кнопках, пришлось делать по-своему)
 def btn_enable(btn: ttk.Button, command):
     btn.configure(command=command, style='Default.TButton')
 
@@ -1857,7 +1863,7 @@ class EnterFormParameterNameW(tk.Toplevel):
         self.var_name = tk.StringVar()
 
         self.lbl_msg = ttk.Label(self, text='Введите название нового параметра',
-                                 justify='center', width=30, style='Default.TLabel')
+                                 justify='center', style='Default.TLabel')
         self.entry_name = ttk.Entry(self, textvariable=self.var_name, style='.TEntry')
         self.btn_ok = ttk.Button(self, text='Подтвердить', command=self.check_and_return,
                                  takefocus=False, style='Yes.TButton')
@@ -4820,4 +4826,5 @@ root.mainloop()
 # Сделать установщик отдельной программой
 
 # EditW -> добавить форму -> PopupEntryW: не устанавливается фокус
-# underline spec combs
+# добавить validate в PopupEntry и PopupChoose
+# закончить с ttk styles
