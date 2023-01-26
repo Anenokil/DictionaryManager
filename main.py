@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-166'
+PROGRAM_VERSION = 'v7.0.0_PRE-167'
 PROGRAM_DATE = '26.1.2023'
-PROGRAM_TIME = '18:45 (UTC+3)'
+PROGRAM_TIME = '18:49 (UTC+3)'
 
 SAVES_VERSION = 1  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 1  # Актуальная версия локальных настроек
@@ -1615,7 +1615,7 @@ class PopupMsgW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
-        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+        self.closed = True  # Закрыто ли окно крестиком
 
         self.lbl_msg = ttk.Label(self, text=msg, justify='center', style='Default.TLabel')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Default.TButton')
@@ -1723,7 +1723,7 @@ class PopupEntryW(tk.Toplevel):
         self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
         self.if_correct_function = if_correct_function  # Функция, вызываемая при корректном ответе
         self.if_incorrect_function = if_incorrect_function  # Функция, вызываемая при некорректном ответе
-        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+        self.closed = True  # Закрыто ли окно крестиком
 
         self.var_text = tk.StringVar()
 
@@ -1774,7 +1774,7 @@ class PopupChooseW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
-        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+        self.closed = True  # Закрыто ли окно крестиком
 
         self.var_answer = tk.StringVar(value=default_value)
 
@@ -1818,7 +1818,7 @@ class PopupImgW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
-        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+        self.closed = True  # Закрыто ли окно крестиком
 
         try:
             self.img = tk.PhotoImage(file=img)
@@ -1872,7 +1872,7 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
-        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+        self.closed = True  # Закрыто ли окно крестиком
 
         self.var_key = tk.StringVar()
         self.var_val = tk.StringVar()
@@ -1932,7 +1932,7 @@ class ChooseFormParValW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
-        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+        self.closed = True  # Закрыто ли окно крестиком
         self.res = ''
         self.vals = par_vals
         self.var_par = tk.StringVar(value=self.vals[0])
@@ -2004,7 +2004,7 @@ class ChooseNoteW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
-        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+        self.closed = True  # Закрыто ли окно крестиком
         self.vals_count = -1  # Количество вариантов для выбора (вычисляется в self.print_variants)
         self.wrd = wrd
         self.answer = None
@@ -2248,7 +2248,7 @@ class CreateFormTemplateW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
-        self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
+        self.closed = True  # Закрыто ли окно крестиком
         self.parameters = list(_0_global_form_parameters.keys())  # Список параметров словоформ
         self.template = []  # Шаблон словоформы
         for _ in range(len(self.parameters)):
@@ -4779,10 +4779,9 @@ root.mainloop()
 # Принимать несколько ответов при угадывании слова
 # Добавить изменение статьи по переводу
 # Сделать установщик отдельной программой
+# Поиск статьи по форме
 
 # EditW -> добавить форму -> PopupEntryW: не устанавливается фокус
-# добавить validate в PopupChoose
-# закончить с ttk styles
-# Закрыто ли окно крестиком
+# Закончить с ttk styles
 # Если сохранение отсутствует то ошибка
-# поиск статьи по форме
+# Добавить validate в PopupChoose
