@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-165'
+PROGRAM_VERSION = 'v7.0.0_PRE-166'
 PROGRAM_DATE = '26.1.2023'
-PROGRAM_TIME = '14:35 (UTC+3)'
+PROGRAM_TIME = '18:45 (UTC+3)'
 
 SAVES_VERSION = 1  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 1  # Актуальная версия локальных настроек
@@ -316,23 +316,91 @@ def find_and_highlight(target_wrd, search_wrd):
     return ''
 
 
+# Проверить корректность названия словаря
+def check_dct_savename(window_parent, savename):
+    if savename == '':
+        warning(window_parent, 'Название должно содержать хотя бы один символ!')
+        return False
+    if dct_filename(savename) in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
+        warning(window_parent, 'Файл с таким названием уже существует!')
+        return False
+    return True
+
+
+# Проверить корректность названия параметра словоформ
+def check_frm_parameter(window_parent, parameters, new_parameter):
+    if new_parameter == '':
+        warning(window_parent, 'Название параметра должно содержать хотя бы один символ!')
+        return False
+    if new_parameter in parameters:  # Если уже есть параметр с таким названием
+        warning(window_parent, f'Параметр "{new_parameter}" уже существует!')
+        return False
+    return True
+
+
+# Проверить корректность значения параметра словоформ
+def check_frm_par_val(window_parent, values, new_val):
+    if new_val == '':
+        warning(window_parent, 'Значение параметра должно содержать хотя бы один символ!')
+        return False
+    if new_val in values:
+        warning(window_parent, f'Значение "{new_val}" уже существует!')
+        return False
+    if FORMS_SEPARATOR in new_val:
+        warning(window_parent, f'Недопустимый символ: {FORMS_SEPARATOR}!')
+        return False
+    return True
+
+
+# Проверить строку на непустоту
+def check_not_void(window_parent, value, msg_if_void):
+    if value == '':
+        warning(window_parent, msg_if_void)
+        return False
+    return True
+
+
+# Проверить корректность изменённого слова
+def check_wrd_edit(window_parent, old_wrd, new_wrd):
+    if new_wrd == '':
+        warning(window_parent, 'Слово должно содержать хотя бы один символ!')
+        return False
+    if new_wrd == old_wrd:
+        warning(window_parent, 'Это то же самое слово!')
+        return False
+    return True
+
+
+# Проверить корректность перевода
+def check_tr(window_parent, translations, new_tr, wrd):
+    if new_tr == '':
+        warning(window_parent, 'Перевод должен содержать хотя бы один символ!')
+        return False
+    if new_tr in translations:
+        warning(window_parent, f'У слова "{wrd}" уже есть такой перевод!')
+        return False
+    return True
+
+
+# Проверить корректность сноски
+def check_note(window_parent, notes, new_note, wrd):
+    if new_note == '':
+        warning(window_parent, 'Сноска должна содержать хотя бы один символ!')
+        return False
+    if new_note in notes:
+        warning(window_parent, f'У слова "{wrd}" уже есть такая сноска!')
+        return False
+    return True
+
+
 # Добавить значение параметра словоформ
 def add_frm_param_val(window_parent, values, text='Введите новое значение параметра'):
-    while True:
-        window_entry = PopupEntryW(window_parent, text)  # Ввод нового значения
-        closed, new_val = window_entry.open()
-        if closed:
-            return False, None
-        if new_val == '':
-            warning(window_parent, 'Значение параметра должно содержать хотя бы один символ!')
-            continue
-        if new_val in values:
-            warning(window_parent, f'Значение "{new_val}" уже существует!')
-            continue
-        if FORMS_SEPARATOR in new_val:
-            warning(window_parent, f'Недопустимый символ: {FORMS_SEPARATOR}!')
-            continue
-        break
+    # Ввод нового значения
+    window_entry = PopupEntryW(window_parent, text,
+                               check_answer_function=lambda wnd, val: check_frm_par_val(wnd, values, val))
+    closed, new_val = window_entry.open()
+    if closed:
+        return False, None
     return True, new_val
 
 
@@ -343,21 +411,14 @@ def rename_frm_param_val(window_parent, values, pos, dct):
     closed, old_val = window_choose.open()
     if closed or old_val == '':
         return False
-    while True:
-        window_entry = PopupEntryW(window_parent,
-                                   'Введите новое значения параметра')  # Ввод нового значения
-        closed, new_val = window_entry.open()
-        if closed:
-            return False
-        if new_val == '':
-            warning(window_parent, 'Значение параметра должно содержать хотя бы один символ!')
-            continue
-        if new_val in values:
-            warning(window_parent, f'Значение "{new_val}" уже существует!')
-            continue
-        if FORMS_SEPARATOR in new_val:
-            warning(window_parent, f'Недопустимый символ: {FORMS_SEPARATOR}!')
-        break
+
+    # Ввод нового значения
+    window_entry = PopupEntryW(window_parent, 'Введите новое значения параметра',
+                               check_answer_function=lambda wnd, val: check_frm_par_val(wnd, values, val))
+    closed, new_val = window_entry.open()
+    if closed:
+        return False
+
     dct.rename_forms_with_val(pos, old_val, new_val)  # Переименовывание значения во всех словоформах, его содержащих
     index = values.index(old_val)
     values[index] = new_val
@@ -384,9 +445,11 @@ def delete_frm_param_val(window_parent, values, dct):
 
 # Добавить параметр словоформ
 def add_frm_param(window_parent, parameters, dct):
-    window_entry = EnterFormParameterNameW(window_parent, parameters.keys())  # Ввод нового параметра
-    name_is_correct, new_par = window_entry.open()
-    if not name_is_correct:
+    # Ввод нового параметра
+    window_entry = PopupEntryW(window_parent, 'Введите название нового параметра',
+                               check_answer_function=lambda wnd, val: check_frm_parameter(wnd, parameters.keys(), val))
+    closed, new_par = window_entry.open()
+    if closed:
         return False
 
     # Ввод первого значения параметра
@@ -411,18 +474,12 @@ def rename_frm_param(window_parent, parameters, dct):
     if closed or old_name == '':
         return False
 
-    while True:
-        window_entry = PopupEntryW(window_parent, 'Введите новое название параметра')  # Ввод нового названия параметра
-        closed, new_name = window_entry.open()
-        if closed:
-            return False
-        if new_name == '':
-            warning(window_parent, 'Название параметра должно содержать хотя бы один символ!')
-            continue
-        if new_name in parameters:
-            warning(window_parent, f'Параметр "{new_name}" уже существует!')
-            continue
-        break
+    # Ввод нового названия параметра
+    window_entry = PopupEntryW(window_parent, 'Введите новое название параметра',
+                               check_answer_function=lambda wnd, val: check_frm_parameter(wnd, parameters.keys(), val))
+    closed, new_name = window_entry.open()
+    if closed:
+        return False
 
     # обновление параметров
     # dct.rename_forms_param(index)
@@ -620,9 +677,7 @@ class Entry(object):
 
     # Добавить словоформу
     def add_frm(self, frm_key, new_frm, window_parent=None):
-        if new_frm == '':
-            warning(window_parent, 'Форма должна содержать хотя бы один символ!')
-        elif frm_key not in self.forms.keys():
+        if frm_key not in self.forms.keys():
             self.forms[frm_key] = new_frm
             self.count_f += 1
         elif window_parent:
@@ -656,12 +711,10 @@ class Entry(object):
         index = variants.index(answer)
         key = keys[index]
 
-        window_entry = PopupEntryW(window_parent, 'Введите форму слова')
+        window_entry = PopupEntryW(window_parent, 'Введите форму слова',
+                                   check_answer_function=lambda wnd, val: check_not_void(wnd, val, 'Форма должна содержать хотя бы один символ!'))
         closed, new_frm = window_entry.open()
         if closed:
-            return
-        if new_frm == '':
-            warning(window_parent, 'Форма должна содержать хотя бы один символ!')
             return
         self.forms[key] = new_frm
 
@@ -1417,12 +1470,10 @@ def upload_dct(window_parent, dct, savename):
             answer = window_dia.open()
             if answer:
                 window_entry = PopupEntryW(window_parent, 'Введите название словаря\n'
-                                                          '(если он ещё не существует, то будет создан пустой словарь)')
+                                                          '(если он ещё не существует, то будет создан пустой словарь)',
+                                           check_answer_function=lambda wnd, val: check_not_void(wnd, val, 'Название словаря должно содержать хотя бы один символ!'))
                 closed, _0_global_dct_savename = window_entry.open()
                 if closed:
-                    continue
-                if _0_global_dct_savename == '':
-                    warning(window_parent, 'Название словаря должно содержать хотя бы один символ!')
                     continue
                 save_dct_name()
                 dct = Dictionary()
@@ -1662,18 +1713,22 @@ class PopupDialogueW(tk.Toplevel):
 
 # Всплывающее окно с полем ввода и кнопкой
 class PopupEntryW(tk.Toplevel):
-    def __init__(self, parent, msg='Введите строку', btn_text='Подтвердить', title=PROGRAM_NAME):
+    def __init__(self, parent, msg='Введите строку', btn_text='Подтвердить', entry_width=30,
+                 check_answer_function=None, if_correct_function=None, if_incorrect_function=None, title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
+        self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
+        self.if_correct_function = if_correct_function  # Функция, вызываемая при корректном ответе
+        self.if_incorrect_function = if_incorrect_function  # Функция, вызываемая при некорректном ответе
         self.closed = True  # Если окно закрыто крестиком, метод self.open возвращает True, иначе - False
 
         self.var_text = tk.StringVar()
 
         self.lbl_msg = ttk.Label(self, text=f'{msg}:', justify='center', style='Default.TLabel')
-        self.entry_inp = ttk.Entry(self, textvariable=self.var_text, width=30, style='.TEntry')
+        self.entry_inp = ttk.Entry(self, textvariable=self.var_text, width=entry_width, style='.TEntry')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
 
         self.lbl_msg.grid(  row=0, padx=6, pady=(6, 3))
@@ -1682,6 +1737,15 @@ class PopupEntryW(tk.Toplevel):
 
     # Нажатие на кнопку
     def ok(self):
+        if self.check_answer_function:
+            is_correct = self.check_answer_function(self, self.var_text.get())
+            if is_correct:
+                if self.if_correct_function:
+                    self.if_correct_function()
+            else:
+                if self.if_incorrect_function:
+                    self.if_incorrect_function()
+                return
         self.closed = False
         self.destroy()
 
@@ -1798,106 +1862,6 @@ class PopupImgW(tk.Toplevel):
         self.wait_window()
 
         return self.closed
-
-
-# Окно для ввода названия словаря
-class EnterDctNameW(tk.Toplevel):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.configure(bg=ST_BG[th])
-
-        self.parent = parent
-        self.name_is_correct = False
-
-        self.var_name = tk.StringVar()
-
-        self.lbl_msg = ttk.Label(self, text='Введите название словаря', justify='center', style='Default.TLabel')
-        self.entry_name = ttk.Entry(self, textvariable=self.var_name, width=30, style='.TEntry')
-        self.btn_ok = ttk.Button(self, text='Подтвердить', command=self.check_and_return,
-                                 takefocus=False, style='Yes.TButton')
-
-        self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
-        self.entry_name.grid(row=1, padx=6, pady=1)
-        self.btn_ok.grid(    row=2, padx=6, pady=4)
-
-    # Проверить название и вернуть, если оно корректно
-    def check_and_return(self):
-        savename = self.var_name.get()
-        if savename == '':
-            warning(self, 'Название должно содержать хотя бы один символ!')
-            return
-        if dct_filename(savename) in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
-            warning(self, 'Файл с таким названием уже существует!')
-            return
-        self.name_is_correct = True
-        self.destroy()
-
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.entry_name.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-    def open(self):
-        self.set_focus()
-
-        self.grab_set()
-        self.wait_window()
-
-        return self.name_is_correct, self.var_name.get()
-
-
-# Окно для ввода названия параметра словоформ
-class EnterFormParameterNameW(tk.Toplevel):
-    def __init__(self, parent, parameters):
-        super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.configure(bg=ST_BG[th])
-
-        self.parent = parent
-        self.name_is_correct = False
-        self.parameters = parameters
-
-        self.var_name = tk.StringVar()
-
-        self.lbl_msg = ttk.Label(self, text='Введите название нового параметра',
-                                 justify='center', style='Default.TLabel')
-        self.entry_name = ttk.Entry(self, textvariable=self.var_name, style='.TEntry')
-        self.btn_ok = ttk.Button(self, text='Подтвердить', command=self.check_and_return,
-                                 takefocus=False, style='Yes.TButton')
-
-        self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
-        self.entry_name.grid(row=1, padx=6, pady=1)
-        self.btn_ok.grid(    row=2, padx=6, pady=4)
-
-    # Проверить название и вернуть, если оно корректно
-    def check_and_return(self):
-        par_name = self.var_name.get()
-        if par_name == '':
-            warning(self, 'Название параметра должно содержать хотя бы один символ!')
-            return
-        if par_name in self.parameters:  # Если уже есть параметр с таким названием
-            warning(self, f'Параметр "{par_name}" уже существует!')
-            return
-        self.name_is_correct = True
-        self.destroy()
-
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.entry_name.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-    def open(self):
-        self.set_focus()
-
-        self.grab_set()
-        self.wait_window()
-
-        return self.name_is_correct, self.var_name.get()
 
 
 # Окно ввода специальной комбинации
@@ -3673,15 +3637,10 @@ class EditW(tk.Toplevel):
     def wrd_edt(self):
         global _0_global_has_progress
 
-        window = PopupEntryW(self, 'Введите новое слово')
+        window = PopupEntryW(self, 'Введите новое слово',
+                             check_answer_function=lambda wnd, val: check_wrd_edit(wnd, key_to_wrd(self.key), val))
         closed, new_wrd = window.open()
         if closed:
-            return
-        if new_wrd == '':
-            warning(self, 'Слово должно содержать хотя бы один символ!')
-            return
-        if new_wrd == key_to_wrd(self.key):
-            warning(self, 'Это то же самое слово!')
             return
 
         self.key = _0_global_dct.edit_wrd(self, self.key, new_wrd)
@@ -3695,15 +3654,11 @@ class EditW(tk.Toplevel):
     def tr_add(self):
         global _0_global_has_progress
 
-        window = PopupEntryW(self, 'Введите новый перевод')
+        window = PopupEntryW(self, 'Введите новый перевод',
+                             check_answer_function=lambda wnd, val: check_tr(wnd, _0_global_dct.d[self.key].tr,
+                                                                             val, key_to_wrd(self.key)))
         closed, tr = window.open()
         if closed:
-            return
-        if tr == '':
-            warning(self, 'Перевод должен содержать хотя бы один символ!')
-            return
-        if tr in _0_global_dct.d[self.key].tr:
-            warning(self, f'У слова "{_0_global_dct.d[self.key].wrd}" уже есть такой перевод!')
             return
 
         _0_global_dct.add_tr(self.key, tr, self)
@@ -3724,15 +3679,11 @@ class EditW(tk.Toplevel):
     def notes_add(self):
         global _0_global_has_progress
 
-        window = PopupEntryW(self, 'Введите сноску')
+        window = PopupEntryW(self, 'Введите сноску',
+                             check_answer_function=lambda wnd, val: check_note(wnd, _0_global_dct.d[self.key].notes,
+                                                                               val, key_to_wrd(self.key)))
         closed, note = window.open()
         if closed:
-            return
-        if note == '':
-            warning(self, 'Сноска должна содержать хотя бы один символ!')
-            return
-        if note in _0_global_dct.d[self.key].notes:
-            warning(self, f'У слова "{_0_global_dct.d[self.key].wrd}" уже есть такая сноска!')
             return
 
         _0_global_dct.add_note(self.key, note)
@@ -3759,11 +3710,15 @@ class EditW(tk.Toplevel):
                           'Настройки/Настройки словаря/Настройки словоформ')
             return
 
-        window_template = CreateFormTemplateW(self, self.key, combo_width=width(_0_global_form_parameters, 5, 100))  # Создание шаблона словоформы
+        window_template = CreateFormTemplateW(self, self.key,
+                                              combo_width=width(_0_global_form_parameters,
+                                                                5, 100))  # Создание шаблона словоформы
         frm_key = window_template.open()
         if not frm_key:
             return
-        window_form = PopupEntryW(self, 'Введите форму слова')  # Ввод словоформы
+
+        window_form = PopupEntryW(self, 'Введите форму слова',
+                                  check_answer_function=lambda wnd, val: check_not_void(wnd, val, 'Форма должна содержать хотя бы один символ!'))
         closed, frm = window_form.open()
         if closed:
             return
@@ -4180,9 +4135,9 @@ class SettingsW(tk.Toplevel):
         global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc,\
             _0_global_form_parameters, _0_global_special_combinations
 
-        window = EnterDctNameW(self)
-        filename_is_correct, savename = window.open()
-        if not filename_is_correct:
+        window = PopupEntryW(self, 'Введите название нового словаря', check_answer_function=check_dct_savename)
+        closed, savename = window.open()
+        if closed:
             return
 
         if self.has_local_changes():
@@ -4222,9 +4177,9 @@ class SettingsW(tk.Toplevel):
         if closed or old_savename == '':
             return
 
-        window_rename = EnterDctNameW(self)
-        new_name_is_correct, new_savename = window_rename.open()
-        if not new_name_is_correct:
+        window_rename = PopupEntryW(self, 'Введите название нового словаря', check_answer_function=check_dct_savename)
+        closed, new_savename = window_rename.open()
+        if closed:
             return
 
         old_filename = dct_filename(old_savename)
@@ -4826,5 +4781,8 @@ root.mainloop()
 # Сделать установщик отдельной программой
 
 # EditW -> добавить форму -> PopupEntryW: не устанавливается фокус
-# добавить validate в PopupEntry и PopupChoose
+# добавить validate в PopupChoose
 # закончить с ttk styles
+# Закрыто ли окно крестиком
+# Если сохранение отсутствует то ошибка
+# поиск статьи по форме
