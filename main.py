@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-169'
+PROGRAM_VERSION = 'v7.0.0_PRE-170'
 PROGRAM_DATE = '26.1.2023'
-PROGRAM_TIME = '20:00 (UTC+3)'
+PROGRAM_TIME = '21:58 (UTC+3)'
 
 SAVES_VERSION = 1  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 1  # Актуальная версия локальных настроек
@@ -203,25 +203,31 @@ MAX_SAME_WORDS = 100  # Максимальное количество стате
 
 # Вычислить количество строк, необходимых для записи данного текста
 # в многострочное текстовое поле при данной длине строки
-def height(text, len_str):
+def height(text: str, len_str: int):
+    assert len_str > 0
+
     segments = text.split('\n')
     return sum(math.ceil(len(segment) / len_str) for segment in segments)
 
 
 # Вычислить ширину моноширинного поля, в которое должно помещаться каждое из данных значений
-def width(values, min_width, max_width):
+def width(values: tuple | list, min_width: int, max_width: int):
+    assert min_width >= 0
+    assert max_width >= 0
+    assert max_width >= min_width
+
     max_len_of_vals = max(len(val) for val in values)
     return min(max(max_len_of_vals, min_width), max_width)
 
 
 # Преобразовать специальную комбинацию в читаемый вид (для отображения в настройках)
-def special_combination(key):
+def special_combination(key: str):
     val = _0_global_special_combinations[key]
     return f'{SPECIAL_COMBINATION_OPENING_SYMBOL}{key} -> {val}'
 
 
 # Преобразовать в тексте специальные комбинации в соответствующие символы
-def encode_special_combinations(text):
+def encode_special_combinations(text: str):
     encoded_text = ''
 
     is_special_combination_open = False  # Встречен ли открывающий символ специальной комбинации
@@ -245,7 +251,7 @@ def encode_special_combinations(text):
 
 
 # Заменить в тексте немецкие буквы соответствующими английскими (для find_and_highlight)
-def deu_to_eng(text):  # deu_to_eng только для немецкого
+def deu_to_eng(text: str):  # deu_to_eng только для немецкого
     converted_text = encode_special_combinations(text)
 
     converted_text = converted_text.replace('ä', 'a')
@@ -266,7 +272,7 @@ def deu_to_eng(text):  # deu_to_eng только для немецкого
 
 
 # Преобразовать кортеж в читаемый вид (для вывода на экран)
-def tpl(input_tuple):
+def tpl(input_tuple: tuple | list):
     res = ''
     is_first = True
     for i in range(len(input_tuple)):
@@ -280,7 +286,7 @@ def tpl(input_tuple):
 
 
 # Преобразовать кортеж в строку (для сохранения значений параметров форм в файл локальных настроек)
-def decode_tpl(input_tuple):
+def decode_tpl(input_tuple: tuple | list):
     if not input_tuple:  # input_tuple == () или input_tuple == ('')
         return ''
     res = input_tuple[0]
@@ -290,18 +296,18 @@ def decode_tpl(input_tuple):
 
 
 # Преобразовать строку в кортеж (для чтения значений параметров форм из файла локальных настроек)
-def encode_tpl(line):
+def encode_tpl(line: str):
     return tuple(line.split(FORMS_SEPARATOR))
 
 
 # Преобразовать кортеж переводов в читаемый вид
-def tr_to_str(tr):
+def tr_to_str(tr: tuple | list):
     encoded_tr = tuple(encode_special_combinations(t) for t in tr)
     return tpl(encoded_tr)
 
 
 # Найти в строке подстроку и выделить её (только частичные совпадения)
-def find_and_highlight(target_wrd, search_wrd):
+def find_and_highlight(target_wrd: str, search_wrd: str):
     length = len(search_wrd)
     if target_wrd != search_wrd:  # Полное совпадение не учитывается
         pos = deu_to_eng(target_wrd).lower().find(deu_to_eng(search_wrd).lower())
@@ -317,7 +323,7 @@ def find_and_highlight(target_wrd, search_wrd):
 
 
 # Проверить корректность названия словаря
-def check_dct_savename(window_parent, savename):
+def check_dct_savename(window_parent, savename: str):
     if savename == '':
         warning(window_parent, 'Название должно содержать хотя бы один символ!')
         return False
@@ -520,72 +526,77 @@ class Entry(object):
     # self.correct_att - количество удачных попыток
     # self.score - доля удачных попыток
     # self.last_att - количество последних неудачных попыток (-1 - значит, что ещё не было попыток)
-    def __init__(self, _wrd, _tr, _notes=None, _forms=None, _fav=False, _all_att=0, _correct_att=0, _last_att=-1):
-        self.wrd = _wrd
-        self.tr = _tr.copy() if (type(_tr) == list) else [_tr]
-        if _notes is None:
+    def __init__(self,
+                 wrd: str,
+                 tr: str | list,
+                 notes: str | list | None = None,
+                 forms: dict | None = None,
+                 fav=False, all_att=0, correct_att=0, last_att=-1):
+        self.wrd = wrd
+        self.tr = tr.copy() if (type(tr) == list) else [tr]
+        if notes is None:
             self.notes = []
-        elif type(_notes) == list:
-            self.notes = _notes.copy()
+        elif type(notes) == list:
+            self.notes = notes.copy()
         else:
-            self.notes = [_notes]
+            self.notes = [notes]
         self.forms = {}
-        if type(_forms) == dict:
-            self.forms = dict(_forms.copy())
+        if type(forms) == dict:
+            self.forms = dict(forms.copy())
         self.count_t = len(self.tr)
         self.count_n = len(self.notes)
         self.count_f = len(self.forms)
-        self.fav = _fav
-        self.all_att = _all_att
-        self.correct_att = _correct_att
-        self.score = _correct_att / _all_att if (_all_att != 0) else 0
-        self.last_att = _last_att
+        self.fav = fav
+        self.all_att = all_att
+        self.correct_att = correct_att
+        self.score = correct_att / all_att if (all_att != 0) else 0
+        self.last_att = last_att
 
     # Записать переводы в строку
     def tr_to_str(self):
         if self.count_t == 0:
             return ''
-        _res = f'> {encode_special_combinations(self.tr[0])}'
-        for _i in range(1, self.count_t):
-            _res += f'\n> {encode_special_combinations(self.tr[_i])}'
-        return _res
+        res = f'> {encode_special_combinations(self.tr[0])}'
+        for i in range(1, self.count_t):
+            res += f'\n> {encode_special_combinations(self.tr[i])}'
+        return res
 
     # Записать сноски в строку
     def notes_to_str(self):
         if self.count_n == 0:
             return ''
-        _res = f'> {encode_special_combinations(self.notes[0])}'
-        for _i in range(1, self.count_n):
-            _res += f'\n> {encode_special_combinations(self.notes[_i])}'
-        return _res
+        res = f'> {encode_special_combinations(self.notes[0])}'
+        for i in range(1, self.count_n):
+            res += f'\n> {encode_special_combinations(self.notes[i])}'
+        return res
 
     # Записать формы в строку
     def frm_to_str(self):
         if self.count_f == 0:
             return ''
-        _keys = list(self.forms.keys())
-        _res = f'[{tpl(_keys[0])}] {encode_special_combinations(self.forms[_keys[0]])}'
-        for _i in range(1, self.count_f):
-            _res += f'\n[{tpl(_keys[_i])}] {encode_special_combinations(self.forms[_keys[_i]])}'
-        return _res
+        keys = list(self.forms.keys())
+        res = f'[{tpl(keys[0])}] {encode_special_combinations(self.forms[keys[0]])}'
+        for i in range(1, self.count_f):
+            res += f'\n[{tpl(keys[i])}] {encode_special_combinations(self.forms[keys[i]])}'
+        return res
 
     # Напечатать перевод
     def tr_print(self, output_widget, end='\n'):
         if self.count_t != 0:
             outp(output_widget, encode_special_combinations(self.tr[0]), end='')
-            for _i in range(1, self.count_t):
-                outp(output_widget, f', {encode_special_combinations(self.tr[_i])}', end='')
+            for i in range(1, self.count_t):
+                outp(output_widget, f', {encode_special_combinations(self.tr[i])}', end='')
         outp(output_widget, '', end=end)
 
     # Напечатать сноски
-    def notes_print(self, output_widget, _tab=0):
-        for _i in range(self.count_n):
-            outp(output_widget, ' ' * _tab + f'> {encode_special_combinations(self.notes[_i])}')
+    def notes_print(self, output_widget, tab=0):
+        for i in range(self.count_n):
+            outp(output_widget, ' ' * tab + f'> {encode_special_combinations(self.notes[i])}')
 
     # Напечатать словоформы
-    def frm_print(self, output_widget, _tab=0):
-        for _key in self.forms.keys():
-            outp(output_widget, ' ' * _tab + f'[{tpl(_key)}] {encode_special_combinations(self.forms[_key])}')
+    def frm_print(self, output_widget, tab=0):
+        for key in self.forms.keys():
+            outp(output_widget, ' ' * tab + f'[{tpl(key)}] {encode_special_combinations(self.forms[key])}')
 
     # Напечатать статистику
     def stat_print(self, output_widget, end='\n'):
@@ -609,13 +620,13 @@ class Entry(object):
     # Напечатать статью - кратко
     def print_briefly(self, output_widget):
         self._print_briefly(output_widget)
-        self.notes_print(output_widget, _tab=13)
+        self.notes_print(output_widget, tab=13)
 
     # Напечатать статью - кратко с формами
     def print_briefly_with_forms(self, output_widget):
         self._print_briefly(output_widget)
-        self.frm_print(output_widget, _tab=13)
-        self.notes_print(output_widget, _tab=13)
+        self.frm_print(output_widget, tab=13)
+        self.notes_print(output_widget, tab=13)
 
     # Напечатать статью - слово со статистикой
     def print_wrd_with_stat(self, output_widget):
@@ -663,12 +674,10 @@ class Entry(object):
                  f'{self.correct_att}/{self.all_att} = ' + '{:.0%}'.format(self.score))
 
     # Добавить перевод
-    def add_tr(self, new_tr, window_parent=None):
+    def add_tr(self, new_tr: str):
         if new_tr not in self.tr:
             self.tr += [new_tr]
             self.count_t += 1
-        elif window_parent:
-            warning(window_parent, 'У этого слова уже есть такой перевод!')
 
     # Добавить сноску
     def add_note(self, new_note):
@@ -719,7 +728,7 @@ class Entry(object):
         self.forms[key] = new_frm
 
     # Объединить статистику при объединении двух статей
-    def merge_stat(self, all_att, correct_att, last_att):
+    def merge_stat(self, all_att: int, correct_att: int, last_att: int):
         self.all_att += all_att
         self.correct_att += correct_att
         self.score = self.correct_att / self.all_att if (self.all_att != 0) else 0
@@ -813,17 +822,17 @@ class Entry(object):
 
 
 # Перевести слово в ключ для словаря
-def wrd_to_key(wrd, num):  # При изменении этой функции, не забыть поменять key_to_wrd
+def wrd_to_key(wrd: str, num: int):  # При изменении этой функции, не забыть поменять key_to_wrd
     return str(num // 10) + str(num % 10) + wrd
 
 
 # Перевести ключ для словаря в слово
-def key_to_wrd(key):  # При изменении этой функции, не забыть поменять wrd_to_key
+def key_to_wrd(key: str):  # При изменении этой функции, не забыть поменять wrd_to_key
     return key[2:]
 
 
 # Выбрать окончание слова в зависимости от количественного числительного
-def set_postfix(n, wrd_forms):
+def set_postfix(n: int, wrd_forms: tuple[str, str, str]):
     if 5 <= (n % 100) <= 20:
         return wrd_forms[2]  # Пример: 5 яблок
     elif n % 10 == 1:
@@ -863,7 +872,7 @@ class Dictionary(object):
             entry.print_briefly_with_forms(output_widget)
 
     # Вывести информацию о количестве избранных статей в словаре
-    def dct_info_fav(self, count_w, count_t, count_f):
+    def dct_info_fav(self, count_w: int, count_t: int, count_f: int):
         w = set_postfix(count_w, ('слово', 'слова', 'слов'))
         f = set_postfix(count_w + count_f, ('словоформа', 'словоформы', 'словоформ'))
         t = set_postfix(count_t, ('перевод', 'перевода', 'переводов'))
@@ -898,7 +907,7 @@ class Dictionary(object):
         return count_w, count_t, count_f
 
     # Напечатать статьи, в которых слова содержат данную строку
-    def print_words_with_str(self, output_widget, search_wrd):
+    def print_words_with_str(self, output_widget, search_wrd: str):
         is_found = False
         for key in self.d.keys():
             wrd = key_to_wrd(key)
@@ -913,7 +922,7 @@ class Dictionary(object):
             outp(output_widget, 'Частичных совпадений не найдено', end='')
 
     # Напечатать статьи, в которых переводы содержат данную строку
-    def print_translations_with_str(self, output_widget, search_tr):
+    def print_translations_with_str(self, output_widget, search_tr: str):
         is_found = False
         for entry in self.d.values():
             is_first_in_line = True
@@ -934,161 +943,161 @@ class Dictionary(object):
             outp(output_widget, 'Частичных совпадений не найдено', end='')
 
     # Выбрать одну статью из нескольких с одинаковыми словами
-    def choose_one_of_similar_entries(self, _window, _wrd):
-        if wrd_to_key(_wrd, 1) not in self.d.keys():  # Если статья только одна, то возвращает её ключ
-            return wrd_to_key(_wrd, 0)
-        _window_note = ChooseNoteW(_window, _wrd)
-        _closed, _answer = _window_note.open()
-        if _closed:
+    def choose_one_of_similar_entries(self, window_parent, wrd: str):
+        if wrd_to_key(wrd, 1) not in self.d.keys():  # Если статья только одна, то возвращает её ключ
+            return wrd_to_key(wrd, 0)
+        window_note = ChooseNoteW(window_parent, wrd)
+        closed, answer = window_note.open()
+        if closed:
             return None
-        return _answer
+        return answer
 
     # Добавить перевод к статье
-    def add_tr(self, _key, _tr, _window=None):
-        self.count_t -= self.d[_key].count_t
-        self.d[_key].add_tr(_tr, _window)
-        self.count_t += self.d[_key].count_t
+    def add_tr(self, key, tr: str):
+        self.count_t -= self.d[key].count_t
+        self.d[key].add_tr(tr)
+        self.count_t += self.d[key].count_t
 
     # Добавить сноску к статье
-    def add_note(self, key, note):
+    def add_note(self, key, note: str):
         self.d[key].add_note(note)
 
     # Добавить словоформу к статье
-    def add_frm(self, _key, _frm_key, _frm, _window=None):
-        self.count_f -= self.d[_key].count_f
-        self.d[_key].add_frm(_frm_key, _frm, _window)
-        self.count_f += self.d[_key].count_f
+    def add_frm(self, key, frm_key, frm, window_parent=None):
+        self.count_f -= self.d[key].count_f
+        self.d[key].add_frm(frm_key, frm, window_parent)
+        self.count_f += self.d[key].count_f
 
     # Изменить слово в статье
-    def edit_wrd(self, _window, _key, _new_wrd):
-        if wrd_to_key(_new_wrd, 0) in self.d.keys():  # Если в словаре уже есть статья с таким словом
-            window = PopupDialogueW(_window, 'Статья с таким словом уже есть в словаре\n'
-                                             'Что вы хотите сделать?',
+    def edit_wrd(self, window_parent, key, new_wrd: str):
+        if wrd_to_key(new_wrd, 0) in self.d.keys():  # Если в словаре уже есть статья с таким словом
+            window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
+                                                   'Что вы хотите сделать?',
                                     'Добавить к существующей статье', 'Создать новую статью',
                                     set_focus_on_btn='none', st_left='Default', st_right='Default',
                                     val_left='l', val_right='r', val_on_close='c')
-            _answer = window.open()
-            if _answer == 'l':  # Добавить к существующей статье
-                _new_key = self.choose_one_of_similar_entries(_window, _new_wrd)
-                if not _new_key:
+            answer = window.open()
+            if answer == 'l':  # Добавить к существующей статье
+                new_key = self.choose_one_of_similar_entries(window_parent, new_wrd)
+                if not new_key:
                     return None
 
-                self.count_t -= self.d[_key].count_t
-                self.count_t -= self.d[_new_key].count_t
-                self.count_f -= self.d[_key].count_f
-                self.count_f -= self.d[_new_key].count_f
+                self.count_t -= self.d[key].count_t
+                self.count_t -= self.d[new_key].count_t
+                self.count_f -= self.d[key].count_f
+                self.count_f -= self.d[new_key].count_f
 
-                for _tr in self.d[_key].tr:
-                    self.d[_new_key].add_tr(_tr)
-                for _note in self.d[_key].notes:
-                    self.d[_new_key].add_note(_note)
-                for _frm_key in self.d[_key].forms.keys():
-                    _frm = self.d[_key].forms[_frm_key]
-                    self.d[_new_key].add_form(_frm_key, _frm, False)
-                if self.d[_key].fav:
-                    self.d[_new_key].fav = True
-                self.d[_new_key].merge_stat(self.d[_key].all_att, self.d[_key].correct_att, self.d[_key].last_att)
+                for _tr in self.d[key].tr:
+                    self.d[new_key].add_tr(_tr)
+                for note in self.d[key].notes:
+                    self.d[new_key].add_note(note)
+                for _frm_key in self.d[key].forms.keys():
+                    frm = self.d[key].forms[_frm_key]
+                    self.d[new_key].add_form(_frm_key, frm, False)
+                if self.d[key].fav:
+                    self.d[new_key].fav = True
+                self.d[new_key].merge_stat(self.d[key].all_att, self.d[key].correct_att, self.d[key].last_att)
 
                 self.count_w -= 1
-                self.count_t += self.d[_new_key].count_t
-                self.count_f += self.d[_new_key].count_f
+                self.count_t += self.d[new_key].count_t
+                self.count_f += self.d[new_key].count_f
 
-                self.d.pop(_key)
-                return _new_key
-            elif _answer == 'r':  # Создать новую статью
-                for _i in range(MAX_SAME_WORDS):
-                    _new_key = wrd_to_key(_new_wrd, _i)
-                    if _new_key not in self.d.keys():
-                        self.d[_new_key] = Entry(_new_wrd, self.d[_key].tr, self.d[_key].notes, self.d[_key].forms,
-                                                 self.d[_key].fav, self.d[_key].all_att, self.d[_key].correct_att,
-                                                 self.d[_key].last_att)
-                        self.d.pop(_key)
-                        return _new_key
-                    _i += 1
-                warning(_window, 'Слишком много статей с одинаковым словом!')
+                self.d.pop(key)
+                return new_key
+            elif answer == 'r':  # Создать новую статью
+                for i in range(MAX_SAME_WORDS):
+                    new_key = wrd_to_key(new_wrd, i)
+                    if new_key not in self.d.keys():
+                        self.d[new_key] = Entry(new_wrd, self.d[key].tr, self.d[key].notes, self.d[key].forms,
+                                                self.d[key].fav, self.d[key].all_att, self.d[key].correct_att,
+                                                self.d[key].last_att)
+                        self.d.pop(key)
+                        return new_key
+                    i += 1
+                warning(window_parent, 'Слишком много статей с одинаковым словом!')
             else:
                 return None
         else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
-            _new_key = wrd_to_key(_new_wrd, 0)
-            self.d[_new_key] = Entry(_new_wrd, self.d[_key].tr, self.d[_key].notes, self.d[_key].forms,
-                                     self.d[_key].fav, self.d[_key].all_att, self.d[_key].correct_att,
-                                     self.d[_key].last_att)
-            self.d.pop(_key)
-            return _new_key
+            new_key = wrd_to_key(new_wrd, 0)
+            self.d[new_key] = Entry(new_wrd, self.d[key].tr, self.d[key].notes, self.d[key].forms,
+                                    self.d[key].fav, self.d[key].all_att, self.d[key].correct_att,
+                                    self.d[key].last_att)
+            self.d.pop(key)
+            return new_key
 
     # Изменить словоформу в статье
-    def edit_frm_with_choose(self, _window, _key):
-        self.d[_key].edit_frm_with_choose(_window)
+    def edit_frm_with_choose(self, window_parent, key):
+        self.d[key].edit_frm_with_choose(window_parent)
 
     # Удалить перевод в статье
-    def delete_tr_with_choose(self, _window, _key):
-        self.count_t -= self.d[_key].count_t
-        _window_choose = PopupChooseW(_window, self.d[_key].tr, 'Выберите, какой перевод хотите удалить',
-                                      default_value=self.d[_key].tr[0], combo_width=width(self.d[_key].tr, 5, 100))
-        _closed, _tr = _window_choose.open()
-        if _closed:
+    def delete_tr_with_choose(self, window_parent, key):
+        self.count_t -= self.d[key].count_t
+        window_choose = PopupChooseW(window_parent, self.d[key].tr, 'Выберите, какой перевод хотите удалить',
+                                     default_value=self.d[key].tr[0], combo_width=width(self.d[key].tr, 5, 100))
+        closed, tr = window_choose.open()
+        if closed:
             return
-        self.d[_key].tr.remove(_tr)
-        self.d[_key].count_t -= 1
-        self.count_t += self.d[_key].count_t
+        self.d[key].tr.remove(tr)
+        self.d[key].count_t -= 1
+        self.count_t += self.d[key].count_t
 
     # Удалить описание в статье
-    def delete_note_with_choose(self, _window, _key):
-        _window_choose = PopupChooseW(_window, self.d[_key].notes, 'Выберите, какую сноску хотите удалить',
-                                      default_value=self.d[_key].notes[0], combo_width=width(self.d[_key].notes, 5, 100))
-        _closed, _note = _window_choose.open()
-        if _closed:
+    def delete_note_with_choose(self, window_parent, key):
+        window_choose = PopupChooseW(window_parent, self.d[key].notes, 'Выберите, какую сноску хотите удалить',
+                                     default_value=self.d[key].notes[0], combo_width=width(self.d[key].notes, 5, 100))
+        closed, note = window_choose.open()
+        if closed:
             return
-        self.d[_key].notes.remove(_note)
-        self.d[_key].count_n -= 1
+        self.d[key].notes.remove(note)
+        self.d[key].count_n -= 1
 
     # Удалить словоформу в статье
-    def delete_frm_with_choose(self, _window, _key):
-        self.count_f -= self.d[_key].count_f
-        self.d[_key].delete_frm_with_choose(_window)
-        self.count_f += self.d[_key].count_f
+    def delete_frm_with_choose(self, window, key):
+        self.count_f -= self.d[key].count_f
+        self.d[key].delete_frm_with_choose(window)
+        self.count_f += self.d[key].count_f
 
     # Добавить статью в словарь (для пользователя)
-    def add_entry(self, _window, _wrd, _tr):
-        if wrd_to_key(_wrd, 0) in self.d.keys():  # Если в словаре уже есть статья с таким словом
+    def add_entry(self, window_parent, wrd: str, tr: str):
+        if wrd_to_key(wrd, 0) in self.d.keys():  # Если в словаре уже есть статья с таким словом
             while True:
-                window = PopupDialogueW(_window, 'Статья с таким словом уже есть в словаре\n'
-                                                 'Что вы хотите сделать?',
+                window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
+                                                       'Что вы хотите сделать?',
                                         'Добавить к существующей статье', 'Создать новую статью',
                                         set_focus_on_btn='none', st_left='Default', st_right='Default',
                                         val_left='l', val_right='r', val_on_close='c')
-                _answer = window.open()
-                if _answer == 'l':  # Добавить к существующей статье
-                    _key = self.choose_one_of_similar_entries(_window, _wrd)
-                    if not _key:
+                answer = window.open()
+                if answer == 'l':  # Добавить к существующей статье
+                    key = self.choose_one_of_similar_entries(window_parent, wrd)
+                    if not key:
                         return None
-                    self.add_tr(_key, _tr, _window)
-                    return _key
-                elif _answer == 'r':  # Создать новую статью
-                    for _i in range(MAX_SAME_WORDS):
-                        _key = wrd_to_key(_wrd, _i)
-                        if _key not in self.d.keys():
-                            self.d[_key] = Entry(_wrd, [_tr])
+                    self.add_tr(key, tr)
+                    return key
+                elif answer == 'r':  # Создать новую статью
+                    for i in range(MAX_SAME_WORDS):
+                        key = wrd_to_key(wrd, i)
+                        if key not in self.d.keys():
+                            self.d[key] = Entry(wrd, [tr])
                             self.count_w += 1
                             self.count_t += 1
-                            return _key
-                        _i += 1
-                    warning(_window, 'Слишком много статей с одинаковым словом!')
+                            return key
+                        i += 1
+                    warning(window_parent, 'Слишком много статей с одинаковым словом!')
                 else:
                     return None
         else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
-            _key = wrd_to_key(_wrd, 0)
-            self.d[_key] = Entry(_wrd, [_tr])
+            key = wrd_to_key(wrd, 0)
+            self.d[key] = Entry(wrd, [tr])
             self.count_w += 1
             self.count_t += 1
-            return _key
+            return key
 
     # Добавить статью в словарь (при чтении файла)
-    def load_entry(self, wrd, tr, all_att, correct_att, last_att):
+    def load_entry(self, wrd: str, tr: str, all_att: int, correct_att: int, last_att: int):
         for i in range(MAX_SAME_WORDS):
             key = wrd_to_key(wrd, i)
             if key not in self.d.keys():
-                self.d[key] = Entry(wrd, [tr], _all_att=all_att, _correct_att=correct_att, _last_att=last_att)
+                self.d[key] = Entry(wrd, [tr], all_att=all_att, correct_att=correct_att, last_att=last_att)
                 self.count_w += 1
                 self.count_t += 1
                 return key
@@ -1142,7 +1151,7 @@ class Dictionary(object):
         return sum_num / sum_den
 
     # Выбрать случайное слово с учётом сложности
-    def random_hard(self, min_good_score_perc):
+    def random_hard(self, min_good_score_perc: int):
         summ = 0
         for entry in self.d.values():
             summ += (100 - round(100 * entry.score)) * 7 + 1
@@ -1162,14 +1171,14 @@ class Dictionary(object):
                 return key
 
     # Сохранить словарь в файл
-    def save(self, filename):
+    def save(self, filename: str):
         with open(filename, 'w', encoding='utf-8') as file:
             file.write(f'v{SAVES_VERSION}\n')
             for entry in self.d.values():
                 entry.save(file)
 
     # Прочитать словарь из файла
-    def read(self, filename):
+    def read(self, filename: str):
         with open(filename, 'r', encoding='utf-8') as file:
             version = file.readline().strip()  # Версия сохранения словаря
             while True:
@@ -1193,12 +1202,12 @@ class Dictionary(object):
 
 
 # Получить название файла со словарём по названию словаря
-def dct_filename(savename):
+def dct_filename(savename: str):
     return f'{savename}.txt'
 
 
 # Загрузить пользовательские темы
-def upload_themes(themes):
+def upload_themes(themes: list[str]):
     if os.listdir(CUSTOM_THEMES_PATH):
         print('\nЗагрузка тем...')
     for dirname in os.listdir(CUSTOM_THEMES_PATH):
@@ -1241,7 +1250,7 @@ def upload_themes(themes):
 
 
 # Загрузить изображения для темы
-def upload_themes_img(theme):
+def upload_themes_img(theme: str):
     global img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo
 
     theme_dir = os.path.join(CUSTOM_THEMES_PATH, theme)
@@ -1260,7 +1269,7 @@ def upload_themes_img(theme):
 
 
 # Проверить наличие обновлений программы
-def check_updates(window_parent, show_updates, show_if_no_updates):
+def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
     print('\nПроверка наличия обновлений...')
     window_last_version = None
     try:
@@ -1340,7 +1349,7 @@ def upload_global_settings():
 
 
 # Обновить локальные настройки с 0 до 1 версии
-def upgrade_local_settings_0_to_1(local_settings_path):
+def upgrade_local_settings_0_to_1(local_settings_path: str):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         lines = local_settings_file.readlines()
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
@@ -1352,7 +1361,7 @@ def upgrade_local_settings_0_to_1(local_settings_path):
 
 
 # Обновить локальные настройки старой версии до актуальной версии
-def upgrade_local_settings(local_settings_path):
+def upgrade_local_settings(local_settings_path: str):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         first_line = local_settings_file.readline()
         if first_line[0] != 'v':  # Версия 0
@@ -1360,7 +1369,7 @@ def upgrade_local_settings(local_settings_path):
 
 
 # Загрузить локальные настройки (настройки словаря)
-def upload_local_settings(savename):
+def upload_local_settings(savename: str):
     filename = dct_filename(savename)
     local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
     form_parameters = {}
@@ -1408,7 +1417,7 @@ def upload_local_settings(savename):
 
 
 # Обновить сохранение словаря с 0 до 1 версии
-def upgrade_dct_save_0_to_1(path):
+def upgrade_dct_save_0_to_1(path: str):
     with open(path, 'r', encoding='utf-8') as dct_save:
         with open(TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             while True:
@@ -1429,7 +1438,7 @@ def upgrade_dct_save_0_to_1(path):
 
 
 # Обновить сохранение словаря старой версии до актуальной версии
-def upgrade_dct_save(path):
+def upgrade_dct_save(path: str):
     with open(path, 'r', encoding='utf-8') as dct_save:
         first_line = dct_save.readline()
     if first_line == '':  # Если сохранение пустое
@@ -1439,7 +1448,7 @@ def upgrade_dct_save(path):
 
 
 # Загрузить словарь (с обновлением и обработкой исключений)
-def upload_dct(window_parent, dct, savename, btn_close_text):
+def upload_dct(window_parent, dct: Dictionary, savename: str, btn_close_text: str):
     filename = dct_filename(savename)
     filepath = os.path.join(SAVES_PATH, filename)
     try:
@@ -1477,7 +1486,7 @@ def upload_dct(window_parent, dct, savename, btn_close_text):
 
 
 # Создать и загрузить пустой словарь
-def create_dct(dct, savename):
+def create_dct(dct: Dictionary, savename: str):
     filename = dct_filename(savename)
     filepath = os.path.join(SAVES_PATH, filename)
     open(filepath, 'w', encoding='utf-8').write(f'v{SAVES_VERSION}\n')
@@ -1487,7 +1496,7 @@ def create_dct(dct, savename):
 
 
 # Сохранить глобальные настройки (настройки программы)
-def save_global_settings(dct_savename, show_updates, typo, theme):
+def save_global_settings(dct_savename: str, show_updates: int, typo: int, theme: str):
     with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
         global_settings_file.write(f'v{GLOBAL_SETTINGS_VERSION}\n'
                                    f'{dct_savename}\n'
@@ -1503,7 +1512,7 @@ def save_dct_name():
 
 
 # Сохранить локальные настройки (настройки словаря)
-def save_local_settings(min_good_score_perc, form_parameters, filename):
+def save_local_settings(min_good_score_perc: int, form_parameters: dict[str, list[str]], filename: str):
     local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
         local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n'
@@ -1533,13 +1542,13 @@ def save_settings_if_has_changes(window_parent):
 
 
 # Сохранить словарь
-def save_dct(dct, filename):
+def save_dct(dct: Dictionary, filename: str):
     filepath = os.path.join(SAVES_PATH, filename)
     dct.save(filepath)
 
 
 # Предложить сохранение словаря, если есть изменения
-def save_dct_if_has_progress(window_parent, dct, filename, has_progress):
+def save_dct_if_has_progress(window_parent, dct: Dictionary, filename: str, has_progress: bool):
     if has_progress:
         window_dia = PopupDialogueW(window_parent, 'Хотите сохранить свой прогресс?', 'Да', 'Нет')
         answer = window_dia.open()
@@ -1558,7 +1567,7 @@ def outp(output_widget, text='', end='\n', mode=tk.END):
 
 
 # Вывести сообщение с предупреждением
-def warning(window_parent, msg):
+def warning(window_parent, msg: str):
     PopupMsgW(window_parent, msg, title='Warning').open()
 
 
@@ -1573,27 +1582,27 @@ def btn_enable(btn: ttk.Button, command):
 
 
 # Ввод только целых чисел от 0 до max_val
-def validate_int_max(value, max_val):
+def validate_int_max(value: str, max_val: int):
     return value == '' or value.isnumeric() and int(value) <= max_val
 
 
 # Ввод только целых чисел от 0 до 100
-def validate_percent(value):
+def validate_percent(value: str):
     return validate_int_max(value, 100)
 
 
 # Валидация ключа специальной комбинации
-def validate_special_combination_key(value):
+def validate_special_combination_key(value: str):
     return len(value) <= 1 and value != SPECIAL_COMBINATION_OPENING_SYMBOL
 
 
 # Валидация значения специальной комбинации
-def validate_special_combination_val(value):
+def validate_special_combination_val(value: str):
     return len(value) <= 1
 
 
 # При выборе второго метода учёбы нельзя добавить словоформы
-def validate_order_and_forms(value, check_forms):
+def validate_order_and_forms(value: str, check_forms: ttk.Checkbutton):
     if value == VALUES_ORDER[1]:
         check_forms['state'] = 'disabled'
     else:
@@ -1603,7 +1612,7 @@ def validate_order_and_forms(value, check_forms):
 
 # Всплывающее окно с сообщением
 class PopupMsgW(tk.Toplevel):
-    def __init__(self, parent, msg, btn_text='Ясно', title=PROGRAM_NAME):
+    def __init__(self, parent, msg: str, btn_text='Ясно', title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
@@ -1761,8 +1770,8 @@ class PopupEntryW(tk.Toplevel):
 
 # Всплывающее окно с полем Combobox
 class PopupChooseW(tk.Toplevel):
-    def __init__(self, parent, values, msg='Выберите один из вариантов', btn_text='Подтвердить',
-                 combo_width=20, default_value=None, title=PROGRAM_NAME):
+    def __init__(self, parent, values: list[str] | tuple[str, ...], msg='Выберите один из вариантов',
+                 btn_text='Подтвердить', combo_width=20, default_value=None, title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
@@ -1806,7 +1815,7 @@ class PopupChooseW(tk.Toplevel):
 
 # Всплывающее окно с изображением
 class PopupImgW(tk.Toplevel):
-    def __init__(self, parent, img, msg, btn_text='Ясно', title=PROGRAM_NAME):
+    def __init__(self, parent, img_name: str, msg: str, btn_text='Ясно', title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
@@ -1815,7 +1824,7 @@ class PopupImgW(tk.Toplevel):
         self.closed = True  # Закрыто ли окно крестиком
 
         try:
-            self.img = tk.PhotoImage(file=img)
+            self.img = tk.PhotoImage(file=img_name)
         except:
             self.lbl_img = ttk.Label(self, text='[!!!] Изображение не найдено [!!!]\n'
                                                 'Недостающие изображения можно скачать здесь:',
@@ -1920,7 +1929,7 @@ class EnterSpecialCombinationW(tk.Toplevel):
 
 # Окно выбора значения параметра словоформы
 class ChooseFormParValW(tk.Toplevel):
-    def __init__(self, parent, par_name, par_vals, combo_width=20):
+    def __init__(self, parent, par_name: str, par_vals: list[str] | tuple[str, ...], combo_width=20):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
@@ -1991,7 +2000,7 @@ class ChooseFormParValW(tk.Toplevel):
 
 # Окно выбора одной статьи из нескольких с одинаковыми словами
 class ChooseNoteW(tk.Toplevel):
-    def __init__(self, parent, wrd):
+    def __init__(self, parent, wrd: str):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME}')
         self.resizable(width=False, height=False)
@@ -2040,12 +2049,12 @@ class ChooseNoteW(tk.Toplevel):
     def print_variants(self):
         self.txt_words['state'] = 'normal'
         self.vals_count = MAX_SAME_WORDS - 1
-        for _i in range(MAX_SAME_WORDS):
-            _key = wrd_to_key(self.wrd, _i)
+        for i in range(MAX_SAME_WORDS):
+            _key = wrd_to_key(self.wrd, i)
             if _key not in _0_global_dct.d.keys():
-                self.vals_count = _i - 1
+                self.vals_count = i - 1
                 break
-            outp(self.txt_words, f'\n({_i})')
+            outp(self.txt_words, f'\n({i})')
             _0_global_dct.d[_key].print_all(self.txt_words)
         self.txt_words['state'] = 'disabled'
 
@@ -2076,7 +2085,7 @@ class ChooseNoteW(tk.Toplevel):
 
 # Окно с сообщением о неверном ответе
 class IncorrectAnswerW(tk.Toplevel):
-    def __init__(self, parent, user_answer, correct_answer, with_typo):
+    def __init__(self, parent, user_answer: str, correct_answer: str, with_typo: bool):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Incorrect answer')
         self.configure(bg=ST_BG[th])
@@ -2136,7 +2145,7 @@ class IncorrectAnswerW(tk.Toplevel):
 
 # Окно уведомления о выходе новой версии
 class CheckUpdatesW(tk.Toplevel):
-    def __init__(self, parent, last_version):
+    def __init__(self, parent, last_version: str):
         super().__init__(parent)
         self.title('New version available')
         self.resizable(width=False, height=False)
@@ -2279,7 +2288,8 @@ class CreateFormTemplateW(tk.Toplevel):
             return
         index = self.parameters.index(par)
 
-        window = ChooseFormParValW(self, par, _0_global_form_parameters[par], combo_width=width(_0_global_form_parameters[par], 5, 100))
+        window = ChooseFormParValW(self, par, _0_global_form_parameters[par],
+                                   combo_width=width(_0_global_form_parameters[par], 5, 100))
         closed, val = window.open()
         if closed:
             return
@@ -2330,7 +2340,7 @@ class CreateFormTemplateW(tk.Toplevel):
 
 # Окно вывода похожих статей для редактирования
 class ParticularMatchesW(tk.Toplevel):
-    def __init__(self, parent, wrd):
+    def __init__(self, parent, wrd: str):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Similar')
         self.resizable(width=False, height=False)
@@ -2504,7 +2514,7 @@ class FormsSettingsW(tk.Toplevel):
 
 # Окно настроек параметра словоформ
 class FormsParameterSettingsW(tk.Toplevel):
-    def __init__(self, parent, parameter):
+    def __init__(self, parent, parameter: str):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
@@ -3042,7 +3052,7 @@ class LearnW(tk.Toplevel):
             self.outp(f'Неверно. Правильный ответ: "{encode_special_combinations(entry.wrd)}"\n')
             if not entry.fav:
                 window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
-                                          encode_special_combinations(entry.wrd), _0_global_typo)
+                                          encode_special_combinations(entry.wrd), bool(_0_global_typo))
                 answer = window.open()
                 if answer != 'typo':
                     entry.incorrect()
@@ -3053,7 +3063,8 @@ class LearnW(tk.Toplevel):
     # Проверка введённой словоформы
     def check_form(self):
         entry = _0_global_dct.d[self.current_key]
-        if encode_special_combinations(self.entry_input.get()) == encode_special_combinations(entry.forms[self.current_form]):
+        if encode_special_combinations(self.entry_input.get()) ==\
+                encode_special_combinations(entry.forms[self.current_form]):
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
@@ -3070,7 +3081,8 @@ class LearnW(tk.Toplevel):
             self.outp(f'Неверно. Правильный ответ: "{encode_special_combinations(entry.forms[self.current_form])}"\n')
             if not entry.fav:
                 window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
-                                          encode_special_combinations(entry.forms[self.current_form]), _0_global_typo)
+                                          encode_special_combinations(entry.forms[self.current_form]),
+                                          bool(_0_global_typo))
                 answer = window.open()
                 if answer != 'typo':
                     entry.incorrect()
@@ -3098,7 +3110,8 @@ class LearnW(tk.Toplevel):
         else:
             self.outp(f'Неверно. Правильный ответ: "{tr_to_str(entry.tr)}"\n')
             if not entry.fav:
-                window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()), tr_to_str(entry.tr), _0_global_typo)
+                window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
+                                          tr_to_str(entry.tr), bool(_0_global_typo))
                 answer = window.open()
                 if answer != 'typo':
                     entry.incorrect()
@@ -3107,183 +3120,183 @@ class LearnW(tk.Toplevel):
             self.count_all += 1
 
     # Выбор слова - все
-    def choose(self, _dct):
-        if len(self.used_words) == _dct.count_w:
+    def choose(self, dct: Dictionary):
+        if len(self.used_words) == dct.count_w:
             self.stop()
             return
         while True:
-            self.current_key = random.choice(list(_dct.d.keys()))
+            self.current_key = random.choice(list(dct.d.keys()))
             if self.current_key not in self.used_words:
                 break
 
         self.txt_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+        dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
         self.txt_dct['state'] = 'disabled'
 
         return True
 
     # Выбор слова - избранные
-    def choose_fav(self, _dct):
+    def choose_fav(self, dct: Dictionary):
         while True:
-            if len(self.used_words) == _dct.count_w:
+            if len(self.used_words) == dct.count_w:
                 self.stop()
                 return
-            self.current_key = random.choice(list(_dct.d.keys()))
-            if not _dct.d[self.current_key].fav:
+            self.current_key = random.choice(list(dct.d.keys()))
+            if not dct.d[self.current_key].fav:
                 self.used_words.add(self.current_key)
                 continue
             if self.current_key not in self.used_words:
                 break
 
         self.txt_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+        dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
         self.txt_dct['state'] = 'disabled'
 
         return True
 
     # Выбор слова - все, сначала сложные
-    def choose_hard(self, _dct, _min_good_score_perc):
-        if len(self.used_words) == _dct.count_w:
+    def choose_hard(self, dct: Dictionary, min_good_score_perc: int):
+        if len(self.used_words) == dct.count_w:
             self.stop()
             return
         while True:
-            self.current_key = _dct.random_hard(_min_good_score_perc)
+            self.current_key = dct.random_hard(min_good_score_perc)
             if self.current_key not in self.used_words:
                 break
 
         self.txt_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+        dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
         self.txt_dct['state'] = 'disabled'
 
         return True
 
     # Выбор словоформы - все
-    def choose_f(self, _dct):
-        if len(self.used_words) == _dct.count_w + _dct.count_f:
+    def choose_f(self, dct: Dictionary):
+        if len(self.used_words) == dct.count_w + dct.count_f:
             self.stop()
             return
         while True:
-            self.current_key = random.choice(list(_dct.d.keys()))
-            self.rnd_f = random.randint(-1, _dct.d[self.current_key].count_f - 1)
+            self.current_key = random.choice(list(dct.d.keys()))
+            self.rnd_f = random.randint(-1, dct.d[self.current_key].count_f - 1)
             if self.rnd_f == -1:
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
                     self.txt_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+                    dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
                     self.txt_dct['state'] = 'disabled'
                     break
             else:
-                self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
+                self.current_form = list(dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
                     self.txt_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.txt_dct, self.current_form)
+                    dct.d[self.current_key].print_tr_and_frm_with_stat(self.txt_dct, self.current_form)
                     self.txt_dct['state'] = 'disabled'
                     break
 
         return True
 
     # Выбор словоформы - избранные
-    def choose_f_fav(self, _dct):
+    def choose_f_fav(self, dct: Dictionary):
         while True:
-            if len(self.used_words) == _dct.count_w + _dct.count_f:
+            if len(self.used_words) == dct.count_w + dct.count_f:
                 self.stop()
                 return
-            self.current_key = random.choice(list(_dct.d.keys()))
-            if not _dct.d[self.current_key].fav:
+            self.current_key = random.choice(list(dct.d.keys()))
+            if not dct.d[self.current_key].fav:
                 self.used_words.add(self.current_key)
-                for frm in _dct.d[self.current_key].forms.keys():
+                for frm in dct.d[self.current_key].forms.keys():
                     self.used_words.add((self.current_key, frm))
                 continue
-            self.rnd_f = random.randint(-1, _dct.d[self.current_key].count_f - 1)
+            self.rnd_f = random.randint(-1, dct.d[self.current_key].count_f - 1)
             if self.rnd_f == -1:
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
                     self.txt_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+                    dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
                     self.txt_dct['state'] = 'disabled'
                     break
             else:
-                self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
+                self.current_form = list(dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
                     self.txt_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.txt_dct, self.current_form)
+                    dct.d[self.current_key].print_tr_and_frm_with_stat(self.txt_dct, self.current_form)
                     self.txt_dct['state'] = 'disabled'
                     break
 
         return True
 
     # Выбор словоформы - все, сначала сложные
-    def choose_f_hard(self, _dct, _min_good_score_perc):
-        if len(self.used_words) == _dct.count_w + _dct.count_f:
+    def choose_f_hard(self, dct: Dictionary, min_good_score_perc: int):
+        if len(self.used_words) == dct.count_w + dct.count_f:
             self.stop()
             return
         while True:
-            self.current_key = _dct.random_hard(_min_good_score_perc)
-            self.rnd_f = random.randint(-1, _dct.d[self.current_key].count_f - 1)
+            self.current_key = dct.random_hard(min_good_score_perc)
+            self.rnd_f = random.randint(-1, dct.d[self.current_key].count_f - 1)
             if self.rnd_f == -1:
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
                     self.txt_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+                    dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
                     self.txt_dct['state'] = 'disabled'
                     break
             else:
-                self.current_form = list(_dct.d[self.current_key].forms.keys())[self.rnd_f]
+                self.current_form = list(dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
                     self.txt_dct['state'] = 'normal'
-                    _dct.d[self.current_key].print_tr_and_frm_with_stat(self.txt_dct, self.current_form)
+                    dct.d[self.current_key].print_tr_and_frm_with_stat(self.txt_dct, self.current_form)
                     self.txt_dct['state'] = 'disabled'
                     break
 
         return True
 
     # Выбор перевода - все
-    def choose_t(self, _dct):
-        if len(self.used_words) == _dct.count_w:
+    def choose_t(self, dct: Dictionary):
+        if len(self.used_words) == dct.count_w:
             self.stop()
             return
         while True:
-            self.current_key = random.choice(list(_dct.d.keys()))
+            self.current_key = random.choice(list(dct.d.keys()))
             if self.current_key not in self.used_words:
                 break
 
         self.txt_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_wrd_with_stat(self.txt_dct)
+        dct.d[self.current_key].print_wrd_with_stat(self.txt_dct)
         self.txt_dct['state'] = 'disabled'
 
         return True
 
     # Выбор перевода - избранные
-    def choose_t_fav(self, _dct):
+    def choose_t_fav(self, dct: Dictionary):
         while True:
-            if len(self.used_words) == _dct.count_w:
+            if len(self.used_words) == dct.count_w:
                 self.stop()
                 return
-            self.current_key = random.choice(list(_dct.d.keys()))
-            if not _dct.d[self.current_key].fav:
+            self.current_key = random.choice(list(dct.d.keys()))
+            if not dct.d[self.current_key].fav:
                 self.used_words.add(self.current_key)
                 continue
             if self.current_key not in self.used_words:
                 break
 
         self.txt_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_wrd_with_stat(self.txt_dct)
+        dct.d[self.current_key].print_wrd_with_stat(self.txt_dct)
         self.txt_dct['state'] = 'disabled'
 
         return True
 
     # Выбор перевода - все, сначала сложные
-    def choose_t_hard(self, _dct, _min_good_score_perc):
-        if len(self.used_words) == _dct.count_w:
+    def choose_t_hard(self, dct: Dictionary, min_good_score_perc: int):
+        if len(self.used_words) == dct.count_w:
             self.stop()
             return
         while True:
-            self.current_key = _dct.random_hard(_min_good_score_perc)
+            self.current_key = dct.random_hard(min_good_score_perc)
             if self.current_key not in self.used_words:
                 break
 
         self.txt_dct['state'] = 'normal'
-        _dct.d[self.current_key].print_wrd_with_stat(self.txt_dct)
+        dct.d[self.current_key].print_wrd_with_stat(self.txt_dct)
         self.txt_dct['state'] = 'disabled'
 
         return True
@@ -3303,7 +3316,7 @@ class LearnW(tk.Toplevel):
 
 # Окно поиска статей
 class SearchW(tk.Toplevel):
-    def __init__(self, parent, wrd):
+    def __init__(self, parent, wrd: str):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Search')
         self.resizable(width=False, height=False)
@@ -3655,7 +3668,7 @@ class EditW(tk.Toplevel):
         if closed:
             return
 
-        _0_global_dct.add_tr(self.key, tr, self)
+        _0_global_dct.add_tr(self.key, tr)
 
         _0_global_has_progress = True
         self.refresh()
@@ -3705,14 +3718,15 @@ class EditW(tk.Toplevel):
             return
 
         window_template = CreateFormTemplateW(self, self.key,
-                                              combo_width=width(_0_global_form_parameters,
+                                              combo_width=width(tuple(_0_global_form_parameters.keys()),
                                                                 5, 100))  # Создание шаблона словоформы
         frm_key = window_template.open()
         if not frm_key:
             return
 
         window_form = PopupEntryW(self, 'Введите форму слова',
-                                  check_answer_function=lambda wnd, val: check_not_void(wnd, val, 'Форма должна содержать хотя бы один символ!'))
+                                  check_answer_function=lambda wnd, val:
+                                  check_not_void(wnd, val, 'Форма должна содержать хотя бы один символ!'))
         closed, frm = window_form.open()
         if closed:
             return
@@ -3722,20 +3736,20 @@ class EditW(tk.Toplevel):
         _0_global_has_progress = True
         self.refresh()
 
-    # Удалить словоформу
-    def frm_del(self):
-        global _0_global_has_progress
-
-        _0_global_dct.delete_frm_with_choose(self, self.key)
-
-        _0_global_has_progress = True
-        self.refresh()
-
     # Изменить словоформу
     def frm_edt(self):
         global _0_global_has_progress
 
         _0_global_dct.edit_frm_with_choose(self, self.key)
+
+        _0_global_has_progress = True
+        self.refresh()
+
+    # Удалить словоформу
+    def frm_del(self):
+        global _0_global_has_progress
+
+        _0_global_dct.delete_frm_with_choose(self, self.key)
 
         _0_global_has_progress = True
         self.refresh()
@@ -3775,7 +3789,7 @@ class EditW(tk.Toplevel):
 
 # Окно добавления статьи
 class AddW(tk.Toplevel):
-    def __init__(self, parent, wrd):
+    def __init__(self, parent, wrd: str):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Add an entry')
         self.resizable(width=False, height=False)
@@ -4481,7 +4495,7 @@ class MainW(tk.Tk):
         except:
             pass
         # Открываем новое уведомление об обновлении
-        _0_global_window_last_version = check_updates(self, _0_global_show_updates, True)
+        _0_global_window_last_version = check_updates(self, bool(_0_global_show_updates), True)
 
     # Установить ttk-стили
     def set_ttk_styles(self):
@@ -4767,7 +4781,7 @@ if not _0_global_dct_savename:
     exit(101)
 _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
     upload_local_settings(_0_global_dct_savename)  # Загружаем локальные настройки
-_0_global_window_last_version = check_updates(root, _0_global_show_updates, False)  # Проверяем наличие обновлений
+_0_global_window_last_version = check_updates(root, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
 root.mainloop()
 
 # Неразрешимые проблемы:
