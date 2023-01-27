@@ -15,12 +15,12 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-171'
-PROGRAM_DATE = '26.1.2023'
-PROGRAM_TIME = '23:14 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-172'
+PROGRAM_DATE = '28.1.2023'
+PROGRAM_TIME = '2:28 (UTC+3)'
 
-SAVES_VERSION = 1  # Актуальная версия сохранений словарей
-LOCAL_SETTINGS_VERSION = 1  # Актуальная версия локальных настроек
+SAVES_VERSION = 2  # Актуальная версия сохранений словарей
+LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
 GLOBAL_SETTINGS_VERSION = 1  # Актуальная версия глобальных настроек
 REQUIRED_THEME_VERSION = 4  # Актуальная версия тем
 
@@ -380,24 +380,17 @@ def encode_tpl(line: str):
     return tuple(line.split(FORMS_SEPARATOR))
 
 
-# Преобразовать кортеж переводов в читаемый вид
-def tr_to_str(tr: tuple | list):
-    encoded_tr = tuple(encode_special_combinations(t) for t in tr)
-    return tpl(encoded_tr)
-
-
 # Найти в строке подстроку и выделить её (только частичные совпадения)
 def find_and_highlight(target_wrd: str, search_wrd: str):
     length = len(search_wrd)
     if target_wrd != search_wrd:  # Полное совпадение не учитывается
         pos = deu_to_eng(target_wrd).lower().find(deu_to_eng(search_wrd).lower())
         if pos != -1:
-            encoded_wrd = encode_special_combinations(target_wrd)
             end_pos = pos + length
             if search_wrd == '':  # Если искомая подстрока пустая, то она не выделяется
-                res = f'{encoded_wrd}'
+                res = target_wrd
             else:
-                res = f'{encoded_wrd[:pos]}[{encoded_wrd[pos:end_pos]}]{encoded_wrd[end_pos:]}'
+                res = f'{target_wrd[:pos]}[{target_wrd[pos:end_pos]}]{target_wrd[end_pos:]}'
             return res
     return ''
 
@@ -410,6 +403,8 @@ def add_frm_param_val(window_parent, values, text='Введите новое з�
     closed, new_val = window_entry.open()
     if closed:
         return False, None
+    new_val = encode_special_combinations(new_val)
+
     return True, new_val
 
 
@@ -427,6 +422,7 @@ def rename_frm_param_val(window_parent, values, pos, dct):
     closed, new_val = window_entry.open()
     if closed:
         return False
+    new_val = encode_special_combinations(new_val)
 
     dct.rename_forms_with_val(pos, old_val, new_val)  # Переименовывание значения во всех словоформах, его содержащих
     index = values.index(old_val)
@@ -460,12 +456,14 @@ def add_frm_param(window_parent, parameters, dct):
     closed, new_par = window_entry.open()
     if closed:
         return False
+    new_par = encode_special_combinations(new_par)
 
     # Ввод первого значения параметра
     has_changes, new_val = add_frm_param_val(window_parent, (),
                                              'Необходимо добавить хотя бы одно значение для параметра')
     if not new_val:
         return False
+    new_val = encode_special_combinations(new_val)
 
     # Обновление параметров
     dct.add_forms_param()
@@ -489,6 +487,7 @@ def rename_frm_param(window_parent, parameters, dct):
     closed, new_name = window_entry.open()
     if closed:
         return False
+    new_name = encode_special_combinations(new_name)
 
     # обновление параметров
     # dct.rename_forms_param(index)
@@ -559,18 +558,18 @@ class Entry(object):
     def tr_to_str(self):
         if self.count_t == 0:
             return ''
-        res = f'> {encode_special_combinations(self.tr[0])}'
+        res = f'> {self.tr[0]}'
         for i in range(1, self.count_t):
-            res += f'\n> {encode_special_combinations(self.tr[i])}'
+            res += f'\n> {self.tr[i]}'
         return res
 
     # Записать сноски в строку
     def notes_to_str(self):
         if self.count_n == 0:
             return ''
-        res = f'> {encode_special_combinations(self.notes[0])}'
+        res = f'> {self.notes[0]}'
         for i in range(1, self.count_n):
-            res += f'\n> {encode_special_combinations(self.notes[i])}'
+            res += f'\n> {self.notes[i]}'
         return res
 
     # Записать формы в строку
@@ -578,28 +577,28 @@ class Entry(object):
         if self.count_f == 0:
             return ''
         keys = list(self.forms.keys())
-        res = f'[{tpl(keys[0])}] {encode_special_combinations(self.forms[keys[0]])}'
+        res = f'[{tpl(keys[0])}] {self.forms[keys[0]]}'
         for i in range(1, self.count_f):
-            res += f'\n[{tpl(keys[i])}] {encode_special_combinations(self.forms[keys[i]])}'
+            res += f'\n[{tpl(keys[i])}] {self.forms[keys[i]]}'
         return res
 
     # Напечатать перевод
     def tr_print(self, output_widget, end='\n'):
         if self.count_t != 0:
-            outp(output_widget, encode_special_combinations(self.tr[0]), end='')
+            outp(output_widget, self.tr[0], end='')
             for i in range(1, self.count_t):
-                outp(output_widget, f', {encode_special_combinations(self.tr[i])}', end='')
+                outp(output_widget, f', {self.tr[i]}', end='')
         outp(output_widget, '', end=end)
 
     # Напечатать сноски
     def notes_print(self, output_widget, tab=0):
         for i in range(self.count_n):
-            outp(output_widget, ' ' * tab + f'> {encode_special_combinations(self.notes[i])}')
+            outp(output_widget, ' ' * tab + f'> {self.notes[i]}')
 
     # Напечатать словоформы
     def frm_print(self, output_widget, tab=0):
         for key in self.forms.keys():
-            outp(output_widget, ' ' * tab + f'[{tpl(key)}] {encode_special_combinations(self.forms[key])}')
+            outp(output_widget, ' ' * tab + f'[{tpl(key)}] {self.forms[key]}')
 
     # Напечатать статистику
     def stat_print(self, output_widget, end='\n'):
@@ -617,7 +616,7 @@ class Entry(object):
         else:
             outp(output_widget, '   ', end=' ')
         self.stat_print(output_widget, end=' ')
-        outp(output_widget, f'{encode_special_combinations(self.wrd)}: ', end='')
+        outp(output_widget, f'{self.wrd}: ', end='')
         self.tr_print(output_widget)
 
     # Напечатать статью - кратко
@@ -633,7 +632,7 @@ class Entry(object):
 
     # Напечатать статью - слово со статистикой
     def print_wrd_with_stat(self, output_widget):
-        outp(output_widget, encode_special_combinations(self.wrd), end=' ')
+        outp(output_widget, self.wrd, end=' ')
         self.stat_print(output_widget)
 
     # Напечатать статью - перевод со статистикой
@@ -649,7 +648,7 @@ class Entry(object):
 
     # Напечатать статью - со всей информацией
     def print_all(self, output_widget):
-        outp(output_widget, f'       Слово: {encode_special_combinations(self.wrd)}')
+        outp(output_widget, f'       Слово: {self.wrd}')
         outp(output_widget, '     Перевод: ', end='')
         self.tr_print(output_widget)
         outp(output_widget, ' Формы слова: ', end='')
@@ -657,17 +656,17 @@ class Entry(object):
             outp(output_widget, '-')
         else:
             keys = [key for key in self.forms.keys()]
-            outp(output_widget, f'[{tpl(keys[0])}] {encode_special_combinations(self.forms[keys[0]])}')
+            outp(output_widget, f'[{tpl(keys[0])}] {self.forms[keys[0]]}')
             for i in range(1, self.count_f):
                 outp(output_widget,
-                     f'              [{tpl(keys[i])}] {encode_special_combinations(self.forms[keys[i]])}')
+                     f'              [{tpl(keys[i])}] {self.forms[keys[i]]}')
         outp(output_widget, '      Сноски: ', end='')
         if self.count_n == 0:
             outp(output_widget, '-')
         else:
-            outp(output_widget, f'> {encode_special_combinations(self.notes[0])}')
+            outp(output_widget, f'> {self.notes[0]}')
             for i in range(1, self.count_n):
-                outp(output_widget, f'              > {encode_special_combinations(self.notes[i])}')
+                outp(output_widget, f'              > {self.notes[i]}')
         outp(output_widget, f'   Избранное: {self.fav}')
         if self.last_att == -1:
             outp(output_widget, '  Статистика: 1) Последних неверных ответов: -')
@@ -697,7 +696,7 @@ class Entry(object):
     # Удалить словоформу
     def delete_frm_with_choose(self, window_parent):
         keys = [key for key in self.forms.keys()]
-        variants = [f'[{tpl(key)}] {encode_special_combinations(self.forms[key])}' for key in keys]
+        variants = [f'[{tpl(key)}] {self.forms[key]}' for key in keys]
 
         window_choose = PopupChooseW(window_parent, variants, 'Выберите форму, которую хотите удалить',
                                      default_value=variants[0], combo_width=width(variants, 5, 100))
@@ -712,7 +711,7 @@ class Entry(object):
     # Изменить словоформу
     def edit_frm_with_choose(self, window_parent):
         keys = [key for key in self.forms.keys()]
-        variants = [f'[{tpl(key)}] {encode_special_combinations(self.forms[key])}' for key in keys]
+        variants = [f'[{tpl(key)}] {self.forms[key]}' for key in keys]
 
         window_choose = PopupChooseW(window_parent, variants, 'Выберите форму, которую хотите изменить',
                                      default_value=variants[0], combo_width=width(variants, 5, 100))
@@ -728,6 +727,8 @@ class Entry(object):
         closed, new_frm = window_entry.open()
         if closed:
             return
+        new_frm = encode_special_combinations(new_frm)
+
         self.forms[key] = new_frm
 
     # Объединить статистику при объединении двух статей
@@ -811,12 +812,12 @@ class Entry(object):
     # Сохранить статью в файл
     def save(self, file):
         file.write(f'w{self.wrd}\n')
-        file.write(f'{self.all_att}#{self.correct_att}#{self.last_att}\n')
+        file.write(f'{self.all_att}:{self.correct_att}:{self.last_att}\n')
         file.write(f'{self.tr[0]}\n')
         for i in range(1, self.count_t):
             file.write(f't{self.tr[i]}\n')
         for note in self.notes:
-            file.write(f'd{note}\n')
+            file.write(f'n{note}\n')
         for frm_template in self.forms.keys():
             file.write(f'f{decode_tpl(frm_template)}\n'
                        f'{self.forms[frm_template]}\n')
@@ -936,7 +937,7 @@ class Dictionary(object):
                         is_first_in_line = False
                         if is_found:
                             outp(output_widget)  # Вывод новой строки после найденной статьи (кроме первой)
-                        outp(output_widget, encode_special_combinations(entry.wrd), end=': ')  # Вывод слова
+                        outp(output_widget, entry.wrd, end=': ')  # Вывод слова
                     else:
                         # Вывод запятой после найденного перевода (кроме первого в статье перевода)
                         outp(output_widget, ', ', end='')
@@ -1174,28 +1175,28 @@ class Dictionary(object):
                 return key
 
     # Сохранить словарь в файл
-    def save(self, filename: str):
-        with open(filename, 'w', encoding='utf-8') as file:
+    def save(self, filepath: str):
+        with open(filepath, 'w', encoding='utf-8') as file:
             file.write(f'v{SAVES_VERSION}\n')
             for entry in self.d.values():
                 entry.save(file)
 
     # Прочитать словарь из файла
-    def read(self, filename: str):
-        with open(filename, 'r', encoding='utf-8') as file:
-            version = file.readline().strip()  # Версия сохранения словаря
+    def read(self, filepath: str):
+        with open(filepath, 'r', encoding='utf-8') as file:
+            file.readline()  # Первая строка - версия сохранения словаря
             while True:
                 line = file.readline().strip()
                 if not line:
                     break
                 elif line[0] == 'w':
                     wrd = line[1:]
-                    all_att, correct_att, last_att = (int(el) for el in file.readline().strip().split('#'))
+                    all_att, correct_att, last_att = (int(el) for el in file.readline().strip().split(':'))
                     tr = file.readline().strip()
                     key = self.load_entry(wrd, tr, all_att, correct_att, last_att)
                 elif line[0] == 't':
                     self.add_tr(key, line[1:])
-                elif line[0] == 'd':
+                elif line[0] == 'n':
                     self.add_note(key, line[1:])
                 elif line[0] == 'f':
                     frm_key = encode_tpl(line[1:])
@@ -1301,7 +1302,7 @@ def upgrade_global_settings_0_to_1():
     with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
         lines = global_settings_file.readlines()
     with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
-        global_settings_file.write(f'v{GLOBAL_SETTINGS_VERSION}\n')
+        global_settings_file.write('v1\n')  # Версия глобальных настроек
         global_settings_file.write(lines[0])  # Название текущего словаря
         global_settings_file.write(lines[1])  # Уведомлять ли о выходе новых версий
         global_settings_file.write('0\n')  # Добавлять ли кнопку "Опечатка" при неверном ответе в учёбе
@@ -1352,16 +1353,39 @@ def upload_global_settings():
     return dct_savename, show_updates, typo, theme
 
 
-# Обновить локальные настройки с 0 до 1 версии
-def upgrade_local_settings_0_to_1(local_settings_path: str):
+# Обновить локальные настройки с 0 до 2 версии
+def upgrade_local_settings_0_to_2(local_settings_path: str):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         lines = local_settings_file.readlines()
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
-        local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n')
+        local_settings_file.write('v1\n')
         local_settings_file.write(lines[0])
         local_settings_file.write('\n')
         for i in range(1, len(lines)):
             local_settings_file.write(lines[i])
+
+    upgrade_local_settings_1_to_2(local_settings_path)
+
+
+# Обновить локальные настройки с 1 до 2 версии
+def upgrade_local_settings_1_to_2(local_settings_path: str):
+    global _0_global_special_combinations
+
+    _, _, _0_global_special_combinations = upload_local_settings(_0_global_dct_savename, upgrade=False)
+
+    with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
+        lines = local_settings_file.readlines()
+    with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
+        local_settings_file.write('v2\n')
+        local_settings_file.write(lines[1])
+        local_settings_file.write(lines[2])
+        for i in range(3, len(lines)):
+            if i % 2 == 1:
+                local_settings_file.write(encode_special_combinations(lines[i]))
+            else:
+                values = lines[i].strip().split(FORMS_SEPARATOR)
+                values = [encode_special_combinations(i) for i in values]
+                local_settings_file.write(decode_tpl(values) + '\n')
 
 
 # Обновить локальные настройки старой версии до актуальной версии
@@ -1369,11 +1393,13 @@ def upgrade_local_settings(local_settings_path: str):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         first_line = local_settings_file.readline()
         if first_line[0] != 'v':  # Версия 0
-            upgrade_local_settings_0_to_1(local_settings_path)
+            upgrade_local_settings_0_to_2(local_settings_path)
+        elif first_line[0:2] == 'v1':  # Версия 1
+            upgrade_local_settings_1_to_2(local_settings_path)
 
 
 # Загрузить локальные настройки (настройки словаря)
-def upload_local_settings(savename: str):
+def upload_local_settings(savename: str, upgrade=True):
     filename = dct_filename(savename)
     local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
     form_parameters = {}
@@ -1384,7 +1410,7 @@ def upload_local_settings(savename: str):
         with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
             local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n'  # Версия локальных настроек
                                       f'67\n'  # МППУ
-                                      f'aäAÄeёEЁoöOÖuüUÜsßSẞ\n'  # Спец. комбинации
+                                      f'aäAÄoöOÖuüUÜsßSẞ\n'  # Специальные комбинации
                                       f'Число\n'
                                       f'ед.ч.{FORMS_SEPARATOR}мн.ч.\n'
                                       f'Род\n'
@@ -1396,7 +1422,8 @@ def upload_local_settings(savename: str):
                                       f'Время\n'
                                       f'пр.вр.{FORMS_SEPARATOR}н.вр.{FORMS_SEPARATOR}буд.вр.')
     else:
-        upgrade_local_settings(local_settings_path)
+        if upgrade:
+            upgrade_local_settings(local_settings_path)
 
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         # Версия
@@ -1406,7 +1433,7 @@ def upload_local_settings(savename: str):
             min_good_score_perc = int(local_settings_file.readline().strip())
         except (ValueError, TypeError):
             min_good_score_perc = 67
-        # Спец. комбинации
+        # Специальные комбинации
         line_special_combinations = local_settings_file.readline()
         for i in range(len(line_special_combinations) // 2):
             special_combinations[line_special_combinations[2 * i]] = line_special_combinations[2 * i + 1]
@@ -1420,10 +1447,11 @@ def upload_local_settings(savename: str):
     return min_good_score_perc, form_parameters, special_combinations
 
 
-# Обновить сохранение словаря с 0 до 1 версии
-def upgrade_dct_save_0_to_1(path: str):
+# Обновить сохранение словаря с 0 до 2 версии
+def upgrade_dct_save_0_to_2(path: str):
     with open(path, 'r', encoding='utf-8') as dct_save:
         with open(TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+            dct_save_tmp.write('v1\n')
             while True:
                 line = dct_save.readline()
                 if not line:
@@ -1431,7 +1459,51 @@ def upgrade_dct_save_0_to_1(path: str):
                 dct_save_tmp.write(line)
     with open(TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
         with open(path, 'w', encoding='utf-8') as dct_save:
-            dct_save.write(f'v{SAVES_VERSION}\n')
+            while True:
+                line = dct_save_tmp.readline()
+                if not line:
+                    break
+                dct_save.write(line)
+    if TMP_FN in os.listdir(RESOURCES_PATH):
+        os.remove(TMP_PATH)
+
+    upgrade_dct_save_1_to_2(path)
+
+
+# Обновить сохранение словаря с 1 до 2 версии
+def upgrade_dct_save_1_to_2(path: str):
+    global _0_global_special_combinations
+
+    _, _, _0_global_special_combinations = upload_local_settings(_0_global_dct_savename, upgrade=False)
+
+    with open(path, 'r', encoding='utf-8') as dct_save:
+        with open(TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+            dct_save.readline()
+            dct_save_tmp.write('v2\n')  # Версия сохранения словаря
+            while True:
+                line = dct_save.readline()
+                if not line:
+                    break
+                elif line[0] == 'w':
+                    dct_save_tmp.write(encode_special_combinations(line))
+                    line = dct_save.readline()
+                    dct_save_tmp.write(line.replace('#', ':'))
+                    line = dct_save.readline()
+                    dct_save_tmp.write(encode_special_combinations(line))
+                elif line[0] == 't':
+                    dct_save_tmp.write(encode_special_combinations(line))
+                elif line[0] == 'd':
+                    dct_save_tmp.write('n' + encode_special_combinations(line[1:]))
+                elif line[0] == 'f':
+                    old_frm_key = encode_tpl(line[1:])
+                    new_frm_key = [encode_special_combinations(i) for i in old_frm_key]
+                    dct_save_tmp.write('f' + decode_tpl(new_frm_key))
+                    line = dct_save.readline()
+                    dct_save_tmp.write(encode_special_combinations(line))
+                elif line[0] == '*':
+                    dct_save_tmp.write('*\n')
+    with open(TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
+        with open(path, 'w', encoding='utf-8') as dct_save:
             while True:
                 line = dct_save_tmp.readline()
                 if not line:
@@ -1448,7 +1520,9 @@ def upgrade_dct_save(path: str):
     if first_line == '':  # Если сохранение пустое
         return
     if first_line[0] == 'w':  # Версия 0
-        upgrade_dct_save_0_to_1(path)
+        upgrade_dct_save_0_to_2(path)
+    elif first_line[0:2] == 'v1':  # Версия 1
+        upgrade_dct_save_1_to_2(path)
 
 
 # Загрузить словарь (с обновлением и обработкой исключений)
@@ -3041,7 +3115,7 @@ class LearnW(tk.Toplevel):
     # Проверка введённого слова
     def check_wrd(self):
         entry = _0_global_dct.d[self.current_key]
-        if encode_special_combinations(self.entry_input.get()) == encode_special_combinations(entry.wrd):
+        if encode_special_combinations(self.entry_input.get()) == entry.wrd:
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
@@ -3055,10 +3129,10 @@ class LearnW(tk.Toplevel):
             self.count_correct += 1
             self.used_words.add(self.current_key)
         else:
-            self.outp(f'Неверно. Правильный ответ: "{encode_special_combinations(entry.wrd)}"\n')
+            self.outp(f'Неверно. Правильный ответ: "{entry.wrd}"\n')
             if not entry.fav:
                 window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
-                                          encode_special_combinations(entry.wrd), bool(_0_global_typo))
+                                          entry.wrd, bool(_0_global_typo))
                 answer = window.open()
                 if answer != 'typo':
                     entry.incorrect()
@@ -3069,8 +3143,7 @@ class LearnW(tk.Toplevel):
     # Проверка введённой словоформы
     def check_form(self):
         entry = _0_global_dct.d[self.current_key]
-        if encode_special_combinations(self.entry_input.get()) ==\
-                encode_special_combinations(entry.forms[self.current_form]):
+        if encode_special_combinations(self.entry_input.get()) == entry.forms[self.current_form]:
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
@@ -3084,11 +3157,10 @@ class LearnW(tk.Toplevel):
             self.count_correct += 1
             self.used_words.add((self.current_key, self.current_form))
         else:
-            self.outp(f'Неверно. Правильный ответ: "{encode_special_combinations(entry.forms[self.current_form])}"\n')
+            self.outp(f'Неверно. Правильный ответ: "{entry.forms[self.current_form]}"\n')
             if not entry.fav:
                 window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
-                                          encode_special_combinations(entry.forms[self.current_form]),
-                                          bool(_0_global_typo))
+                                          entry.forms[self.current_form], bool(_0_global_typo))
                 answer = window.open()
                 if answer != 'typo':
                     entry.incorrect()
@@ -3099,8 +3171,7 @@ class LearnW(tk.Toplevel):
     # Проверка введённого перевода
     def check_tr(self):
         entry = _0_global_dct.d[self.current_key]
-        encoded_tr = [encode_special_combinations(tr) for tr in entry.tr]
-        if encode_special_combinations(self.entry_input.get()) in encoded_tr:
+        if encode_special_combinations(self.entry_input.get()) in entry.tr:
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
@@ -3114,10 +3185,10 @@ class LearnW(tk.Toplevel):
             self.count_correct += 1
             self.used_words.add(self.current_key)
         else:
-            self.outp(f'Неверно. Правильный ответ: "{tr_to_str(entry.tr)}"\n')
+            self.outp(f'Неверно. Правильный ответ: "{tpl(entry.tr)}"\n')
             if not entry.fav:
                 window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
-                                          tr_to_str(entry.tr), bool(_0_global_typo))
+                                          tpl(entry.tr), bool(_0_global_typo))
                 answer = window.open()
                 if answer != 'typo':
                     entry.incorrect()
@@ -3373,14 +3444,14 @@ class SearchW(tk.Toplevel):
     # Поиск статей
     def search(self):
         # Поиск по слову
-        search_wrd = self.var_wrd.get()
+        search_wrd = encode_special_combinations(self.var_wrd.get())
 
         self.txt_wrd['state'] = 'normal'
         self.txt_wrd.delete(1.0, tk.END)
 
         outp(self.txt_wrd, 'Полное совпадение:')
         if wrd_to_key(search_wrd, 0) not in _0_global_dct.d.keys():
-            outp(self.txt_wrd, f'Слово "{encode_special_combinations(search_wrd)}" отсутствует в словаре', end='')
+            outp(self.txt_wrd, f'Слово "{search_wrd}" отсутствует в словаре', end='')
         else:
             for i in range(MAX_SAME_WORDS):
                 key = wrd_to_key(search_wrd, i)
@@ -3395,7 +3466,7 @@ class SearchW(tk.Toplevel):
         self.txt_wrd['state'] = 'disabled'
 
         # Поиск по переводу
-        search_tr = self.var_wrd.get()
+        search_tr = encode_special_combinations(self.var_wrd.get())
 
         self.txt_tr['state'] = 'normal'
         self.txt_tr.delete(1.0, tk.END)
@@ -3408,7 +3479,7 @@ class SearchW(tk.Toplevel):
                 outp(self.txt_tr)
                 entry.print_all(self.txt_tr)
         if not is_found:
-            outp(self.txt_tr, f'Слово с переводом "{encode_special_combinations(search_tr)}" отсутствует в словаре', end='')
+            outp(self.txt_tr, f'Слово с переводом "{search_tr}" отсутствует в словаре', end='')
 
         outp(self.txt_tr, '\n\nЧастичное совпадение:')
         _0_global_dct.print_translations_with_str(self.txt_tr, search_tr)
@@ -3602,7 +3673,7 @@ class EditW(tk.Toplevel):
 
         self.txt_wrd['state'] = 'normal'
         self.txt_wrd.delete(1.0, tk.END)
-        self.txt_wrd.insert(tk.END, encode_special_combinations(_0_global_dct.d[self.key].wrd))
+        self.txt_wrd.insert(tk.END, _0_global_dct.d[self.key].wrd)
         self.txt_wrd['state'] = 'disabled'
 
         self.txt_tr['state'] = 'normal'
@@ -3655,6 +3726,7 @@ class EditW(tk.Toplevel):
         closed, new_wrd = window.open()
         if closed:
             return
+        new_wrd = encode_special_combinations(new_wrd)
 
         self.key = _0_global_dct.edit_wrd(self, self.key, new_wrd)
         if not self.key:
@@ -3673,6 +3745,7 @@ class EditW(tk.Toplevel):
         closed, tr = window.open()
         if closed:
             return
+        tr = encode_special_combinations(tr)
 
         _0_global_dct.add_tr(self.key, tr)
 
@@ -3698,6 +3771,7 @@ class EditW(tk.Toplevel):
         closed, note = window.open()
         if closed:
             return
+        note = encode_special_combinations(note)
 
         _0_global_dct.add_note(self.key, note)
 
@@ -3736,6 +3810,7 @@ class EditW(tk.Toplevel):
         closed, frm = window_form.open()
         if closed:
             return
+        frm = encode_special_combinations(frm)
 
         _0_global_dct.add_frm(self.key, frm_key, frm)
 
@@ -3842,7 +3917,8 @@ class AddW(tk.Toplevel):
             warning(self, 'Перевод должен содержать хотя бы один символ!')
             return
 
-        self.key = _0_global_dct.add_entry(self, self.var_wrd.get(), self.var_tr.get())
+        self.key = _0_global_dct.add_entry(self, encode_special_combinations(self.var_wrd.get()),
+                                           encode_special_combinations(self.var_tr.get()))
         if not self.key:
             return
         _0_global_dct.d[self.key].fav = self.var_fav.get()
@@ -4462,9 +4538,9 @@ class MainW(tk.Tk):
 
     # Нажатие на кнопку "Изменить статью"
     def edit(self):
-        wrd = self.var_word.get()
-        if wrd_to_key(wrd, 0) not in _0_global_dct.d.keys():  # Если такого слова нет, то выводятся частично совпадающие слова
-            ParticularMatchesW(self, wrd).open()
+        wrd = encode_special_combinations(self.var_word.get())
+        if wrd_to_key(wrd, 0) not in _0_global_dct.d.keys():
+            ParticularMatchesW(self, wrd).open()  # Если такого слова нет, то выводятся частично совпадающие слова
             return
         key = _0_global_dct.choose_one_of_similar_entries(self, wrd)
         if not key:
@@ -4769,7 +4845,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development  presents\n'
       f'                              {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
+      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'======================================================================================')
 
@@ -4779,7 +4855,7 @@ _0_global_has_progress = False
 upload_themes(THEMES)  # Загружаем темы
 _0_global_dct_savename, _0_global_show_updates, _0_global_typo, th =\
     upload_global_settings()  # Загружаем глобальные настройки
-upload_themes_img(th)  # Загружаем изображения тем
+upload_themes_img(th)  # Загружаем изображения для выбранной темы
 root = MainW()  # Создаём графический интерфейс
 _0_global_dct_savename = upload_dct(root, _0_global_dct, _0_global_dct_savename,
                                     'Завершить работу')  # Загружаем словарь
@@ -4803,3 +4879,7 @@ root.mainloop()
 
 # EditW -> добавить форму -> PopupEntryW: не устанавливается фокус
 # Закончить с ttk styles
+# все слова (чаще сложные)
+# посмотреть сноски - tab
+# EditW - подсказки для полей ввода
+# CreateTemplate : добавить комбобокс
