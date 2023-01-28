@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-175'
+PROGRAM_VERSION = 'v7.0.0_PRE-176'
 PROGRAM_DATE = '28.1.2023'
-PROGRAM_TIME = '17:08 (UTC+3)'
+PROGRAM_TIME = '20:46 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -149,6 +149,8 @@ if THEMES[1] not in os.listdir(CUSTOM_THEMES_PATH):
     os.mkdir(os.path.join(CUSTOM_THEMES_PATH, THEMES[1]))
 
 # Изображения
+img_ok = os.path.join(IMAGES_PATH, 'ok.png')
+img_cancel = os.path.join(IMAGES_PATH, 'cancel.png')
 img_add = os.path.join(IMAGES_PATH, 'add.png')
 img_delete = os.path.join(IMAGES_PATH, 'delete.png')
 img_edit = os.path.join(IMAGES_PATH, 'edit.png')
@@ -1269,12 +1271,12 @@ def upload_themes(themes: list[str]):
 
 # Загрузить изображения для темы
 def upload_themes_img(theme: str):
-    global img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo
+    global img_ok, img_cancel, img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo
 
     theme_dir = os.path.join(CUSTOM_THEMES_PATH, theme)
 
-    images = [img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo]
-    image_names = ['add', 'delete', 'edit', 'about', 'about_mgsp', 'about_typo']
+    images = [img_ok, img_cancel, img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo]
+    image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'about', 'about_mgsp', 'about_typo']
 
     for i in range(len(images)):
         file_name = f'{image_names[i]}.png'
@@ -1283,7 +1285,7 @@ def upload_themes_img(theme: str):
         else:
             images[i] = os.path.join(IMAGES_PATH, file_name)
 
-    img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo = images
+    img_ok, img_cancel, img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo = images
 
 
 # Проверить наличие обновлений программы
@@ -2020,77 +2022,6 @@ class EnterSpecialCombinationW(tk.Toplevel):
         return self.closed, self.var_key.get(), self.var_val.get()
 
 
-# Окно выбора значения параметра словоформы
-class ChooseFormParValW(tk.Toplevel):
-    def __init__(self, parent, par_name: str, par_vals: list[str] | tuple[str, ...], combo_width=20):
-        super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.configure(bg=ST_BG[th])
-
-        self.parent = parent
-        self.closed = True  # Закрыто ли окно крестиком
-        self.res = ''
-        self.vals = par_vals
-        self.var_par = tk.StringVar(value=self.vals[0])
-
-        self.lbl_choose = ttk.Label(self, text=f'Задайте значение параметра "{par_name}"', justify='center',
-                                    style='Default.TLabel')
-        self.combo = ttk.Combobox(self, textvariable=self.var_par, values=self.vals, width=combo_width,
-                                  font='TkFixedFont', state='readonly', style='.TCombobox')
-        self.btn_choose = ttk.Button(self, text='Задать', command=self.choose,
-                                     takefocus=False, style='Default.TButton')
-        self.btn_none = ttk.Button(self, text='Не указывать/неприменимо', command=self.set_none,
-                                   takefocus=False, style='Default.TButton')
-        self.btn_new = ttk.Button(self, text='Добавить вариант', command=self.new_val,
-                                  takefocus=False, style='Default.TButton')
-
-        self.lbl_choose.grid(row=0, column=0,     padx=(6, 1), pady=(6, 3))
-        self.combo.grid(     row=0, column=1,     padx=(0, 3), pady=(6, 3))
-        self.btn_choose.grid(row=0, column=2,     padx=(0, 6), pady=(6, 3))
-        self.btn_none.grid(  row=1, columnspan=3, padx=6,      pady=3)
-        self.btn_new.grid(   row=2, columnspan=3, padx=6,      pady=(3, 6))
-
-        self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
-
-    # Выбрать параметр и задать ему значение
-    def choose(self):
-        val = self.var_par.get()
-        if val == '':
-            return
-        self.res = val
-        self.closed = False
-        self.destroy()
-
-    # Сбросить значение параметра
-    def set_none(self):
-        self.res = ''
-        self.closed = False
-        self.destroy()
-
-    # Добавить новое значение параметра
-    def new_val(self):
-        _, new_value = add_frm_param_val(self, self.vals)
-        if not new_value:
-            return
-        self.vals += [new_value]
-        self.combo['values'] = self.vals
-
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.btn_choose.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-    def open(self):
-        self.set_focus()
-
-        self.grab_set()
-        self.wait_window()
-
-        return self.closed, self.res
-
-
 # Окно выбора одной статьи из нескольких с одинаковыми словами
 class ChooseNoteW(tk.Toplevel):
     def __init__(self, parent, wrd: str):
@@ -2351,6 +2282,7 @@ class CreateFormTemplateW(tk.Toplevel):
         self.parent = parent
         self.closed = True  # Закрыто ли окно крестиком
         self.parameters = list(_0_global_form_parameters.keys())  # Список параметров словоформ
+        self.par_values = list(_0_global_form_parameters[self.parameters[0]])  # Список значений выбранного параметра
         self.template = []  # Шаблон словоформы
         for _ in range(len(self.parameters)):
             self.template += ['']
@@ -2359,21 +2291,55 @@ class CreateFormTemplateW(tk.Toplevel):
 
         self.var_template = tk.StringVar(value='Текущий шаблон формы: ""')
         self.var_par = tk.StringVar(value=self.parameters[0])
+        self.var_val = tk.StringVar(value=self.par_values[0])
+
+        self.vcmd_par = (self.register(lambda value: self.refresh_vals()), '%P')
 
         self.lbl_template = ttk.Label(self, textvariable=self.var_template, justify='center', style='Default.TLabel')
-        self.lbl_choose = ttk.Label(self, text='Выберите параметр', justify='center', style='Default.TLabel')
-        self.combo = ttk.Combobox(self, textvariable=self.var_par, values=self.parameters, width=combo_width,
-                                  font='TkFixedFont', state='readonly', style='.TCombobox')
-        self.btn_choose = ttk.Button(self, text='Задать значение', command=self.choose,
-                                     takefocus=False, style='Default.TButton')
+        self.lbl_choose_par = ttk.Label(self, text='Выберите параметр:', justify='center', style='Default.TLabel')
+        self.combo_par = ttk.Combobox(self, textvariable=self.var_par, values=self.parameters, width=combo_width,
+                                      font='TkFixedFont', validate='focusin', validatecommand=self.vcmd_par,
+                                      state='readonly', style='.TCombobox')
+        self.lbl_choose_val = ttk.Label(self, text='Задайте значение параметра:', justify='center',
+                                        style='Default.TLabel')
+        self.frame_val = ttk.Frame(self, style='Invis.TFrame')
+        # {
+        self.combo_val = ttk.Combobox(self.frame_val, textvariable=self.var_val, values=self.par_values,
+                                      width=width(self.par_values, 5, 100),
+                                      font='TkFixedFont', state='readonly', style='.TCombobox')
+        try:
+            self.img_choose = tk.PhotoImage(file=img_ok)
+        except:
+            self.btn_choose = ttk.Button(self.frame_val, text='Задать значение', command=self.choose,
+                                         takefocus=False, style='Default.TButton')
+        else:
+            self.btn_choose = ttk.Button(self.frame_val, image=self.img_choose, command=self.choose,
+                                         takefocus=False, style='Image.TButton')
+            self.tip_btn_choose = ttip.Hovertip(self.btn_choose, 'Задать значение', hover_delay=500)
+        try:
+            self.img_none = tk.PhotoImage(file=img_cancel)
+        except:
+            self.btn_none = ttk.Button(self.frame_val, text='Не указывать/неприменимо', command=self.set_none,
+                                       takefocus=False, style='Default.TButton')
+        else:
+            self.btn_none = ttk.Button(self.frame_val, image=self.img_none, command=self.set_none,
+                                       takefocus=False, style='Image.TButton')
+            self.tip_btn_none = ttip.Hovertip(self.btn_none, 'Не указывать/неприменимо', hover_delay=500)
+        # }
         self.btn_done = ttk.Button(self, text='Закончить с шаблоном и ввести форму слова', command=self.done,
                                    takefocus=False, style='Default.TButton')
 
-        self.lbl_template.grid(row=0, columnspan=3, padx=6,      pady=6)
-        self.lbl_choose.grid(  row=1, column=0,     padx=(6, 1), pady=1)
-        self.combo.grid(       row=1, column=1,     padx=(0, 3), pady=1)
-        self.btn_choose.grid(  row=1, column=2,     padx=(0, 6), pady=1)
-        self.btn_done.grid(    row=2, columnspan=3, padx=6,      pady=6)
+        self.lbl_template.grid(  row=0, columnspan=2, padx=6,      pady=6)
+        self.lbl_choose_par.grid(row=1, column=0,     padx=(6, 1), pady=1, sticky='E')
+        self.combo_par.grid(     row=1, column=1,     padx=(0, 6), pady=1, sticky='W')
+        self.lbl_choose_val.grid(row=2, column=0,     padx=(6, 1), pady=1, sticky='E')
+        self.frame_val.grid(     row=2, column=1,     padx=(0, 6), pady=1, sticky='W')
+        # {
+        self.combo_val.grid( row=0, column=0, padx=0, pady=0)
+        self.btn_choose.grid(row=0, column=1, padx=0, pady=0)
+        self.btn_none.grid(  row=0, column=2, padx=0, pady=0)
+        # }
+        self.btn_done.grid(row=3, columnspan=2, padx=6, pady=6)
 
         self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
 
@@ -2386,10 +2352,8 @@ class CreateFormTemplateW(tk.Toplevel):
             return
         index = self.parameters.index(par)
 
-        window = ChooseFormParValW(self, par, _0_global_form_parameters[par],
-                                   combo_width=width(_0_global_form_parameters[par], 5, 100))
-        closed, val = window.open()
-        if closed:
+        val = self.var_val.get()
+        if val == '':
             return
         self.template[index] = val
 
@@ -2405,6 +2369,30 @@ class CreateFormTemplateW(tk.Toplevel):
             if self.template[i] == '':
                 self.var_par.set(self.parameters[i])
                 break
+        self.refresh_vals()
+
+    # Не указывать значение параметра
+    def set_none(self):
+        par = self.var_par.get()
+        if par == '':
+            return
+        index = self.parameters.index(par)
+
+        self.template[index] = ''
+
+        self.var_template.set(f'Текущий шаблон формы: "{tpl(self.template)}"')
+
+        if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
+            btn_disable(self.btn_done)
+        else:
+            btn_enable(self.btn_done, self.done)
+
+        # В combobox значением по умолчанию становится первый ещё не заданный параметр
+        for i in range(len(self.template)):
+            if self.template[i] == '':
+                self.var_par.set(self.parameters[i])
+                break
+        self.refresh_vals()
 
     # Закончить с шаблоном
     def done(self):
@@ -2413,6 +2401,14 @@ class CreateFormTemplateW(tk.Toplevel):
             return
         self.closed = False
         self.destroy()
+
+    # Обновить combobox со значениями параметра после выбора параметра
+    def refresh_vals(self):
+        self.par_values = list(_0_global_form_parameters[self.var_par.get()])
+        self.var_val = tk.StringVar(value=self.par_values[0])
+        self.combo_val.configure(textvariable=self.var_val, values=self.par_values,
+                                 width=width(self.par_values, 5, 100))
+        return True
 
     # Установить фокус
     def set_focus(self):
@@ -4898,4 +4894,3 @@ root.mainloop()
 # Поиск статьи по форме
 
 # EditW -> добавить форму -> PopupEntryW: не устанавливается фокус
-# CreateTemplate : добавить комбобокс
