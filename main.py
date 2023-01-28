@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-176'
+PROGRAM_VERSION = 'v7.0.0_PRE-177'
 PROGRAM_DATE = '28.1.2023'
-PROGRAM_TIME = '20:46 (UTC+3)'
+PROGRAM_TIME = '22:13 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -1729,7 +1729,6 @@ class PopupMsgW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        self.btn_ok.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
@@ -1792,11 +1791,9 @@ class PopupDialogueW(tk.Toplevel):
     def set_focus(self):
         self.focus_set()
         if self.set_focus_on_btn == 'left':
-            self.btn_left.focus_set()
             self.bind('<Return>', lambda event=None: self.btn_left.invoke())
             self.bind('<Escape>', lambda event=None: self.btn_right.invoke())
         elif self.set_focus_on_btn == 'right':
-            self.btn_right.focus_set()
             self.bind('<Return>', lambda event=None: self.btn_right.invoke())
             self.bind('<Escape>', lambda event=None: self.btn_left.invoke())
 
@@ -1895,7 +1892,6 @@ class PopupChooseW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        self.btn_ok.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
@@ -1949,7 +1945,6 @@ class PopupImgW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        self.btn_ok.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
@@ -2157,7 +2152,6 @@ class IncorrectAnswerW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        self.btn_yes.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_yes.invoke())
         self.bind('<Escape>', lambda event=None: self.btn_no.invoke())
         if self.with_typo:
@@ -2335,9 +2329,9 @@ class CreateFormTemplateW(tk.Toplevel):
         self.lbl_choose_val.grid(row=2, column=0,     padx=(6, 1), pady=1, sticky='E')
         self.frame_val.grid(     row=2, column=1,     padx=(0, 6), pady=1, sticky='W')
         # {
-        self.combo_val.grid( row=0, column=0, padx=0, pady=0)
-        self.btn_choose.grid(row=0, column=1, padx=0, pady=0)
-        self.btn_none.grid(  row=0, column=2, padx=0, pady=0)
+        self.combo_val.grid( row=0, column=0, padx=0,      pady=0)
+        self.btn_choose.grid(row=0, column=1, padx=(3, 0), pady=0)
+        self.btn_none.grid(  row=0, column=2, padx=0,      pady=0)
         # }
         self.btn_done.grid(row=3, columnspan=2, padx=6, pady=6)
 
@@ -2413,7 +2407,6 @@ class CreateFormTemplateW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        self.btn_choose.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
@@ -2882,7 +2875,6 @@ class PrintW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        self.btn_print.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_print.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
@@ -2949,7 +2941,6 @@ class ChooseLearnModeW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        self.btn_start.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_start.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
@@ -3876,7 +3867,6 @@ class EditW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        self.btn_back.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_back.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
@@ -4892,5 +4882,3 @@ root.mainloop()
 # Добавить изменение статьи по переводу
 # Сделать установщик отдельной программой
 # Поиск статьи по форме
-
-# EditW -> добавить форму -> PopupEntryW: не устанавливается фокус
