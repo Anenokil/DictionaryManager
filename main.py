@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-177'
+PROGRAM_VERSION = 'v7.0.0_PRE-178'
 PROGRAM_DATE = '28.1.2023'
-PROGRAM_TIME = '22:13 (UTC+3)'
+PROGRAM_TIME = '22:17 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -4224,6 +4224,7 @@ class SettingsW(tk.Toplevel):
         _0_global_dct = Dictionary()
         savename = upload_dct(self, _0_global_dct, savename, 'Отмена')
         if not savename:
+            self.destroy()  # Если была попытка открыть повреждённый словарь, то при сохранении настроек, текущий словарь стёрся бы
             return
         _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
             upload_local_settings(savename)
@@ -4881,4 +4882,4 @@ root.mainloop()
 # Принимать несколько ответов при угадывании слова
 # Добавить изменение статьи по переводу
 # Сделать установщик отдельной программой
-# Поиск статьи по форме
+# Поиск статьи по словоформе
