@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-173'
+PROGRAM_VERSION = 'v7.0.0_PRE-174'
 PROGRAM_DATE = '28.1.2023'
-PROGRAM_TIME = '3:00 (UTC+3)'
+PROGRAM_TIME = '16:44 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -2851,10 +2851,11 @@ class PrintW(tk.Toplevel):
         self.scrollbar_y.config(command=self.txt_dct.yview, orient='vertical')
 
         self.tip_text = ttip.Hovertip(self.txt_dct, '(*) [1;  60%] word: слово\n'
-                                                     '|    (*) - избранное\n'
-                                                     '|    1 - количество ответов после\n'
-                                                     '|         последнего верного ответа\n'
-                                                     '|    60% - доля верных ответов')
+                                                    '----------------------------------\n'
+                                                    '(*) - избранное\n'
+                                                    '1 - количество ответов после\n'
+                                                    '      последнего верного ответа\n'
+                                                    '60% - доля верных ответов')
 
         self.print()
 
@@ -3548,6 +3549,8 @@ class EditW(tk.Toplevel):
         except:
             self.btn_wrd_edt = ttk.Button(self.frame_main, text='изм.', command=self.wrd_edt, width=4,
                                           takefocus=False, style='Default.TButton')
+        else:
+            self.tip_btn_wrd_edt = ttip.Hovertip(self.btn_wrd_edt, 'Изменить слово', hover_delay=500)
         #
         self.lbl_tr = ttk.Label(self.frame_main, text='Перевод:', style='Default.TLabel')
         self.scrollbar_tr = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
@@ -3565,6 +3568,8 @@ class EditW(tk.Toplevel):
         except:
             self.btn_tr_add = ttk.Button(self.frame_btns_tr, text='+', command=self.tr_add, width=2,
                                          takefocus=False, style='Default.TButton')
+        else:
+            self.tip_btn_tr_add = ttip.Hovertip(self.btn_tr_add, 'Добавить перевод', hover_delay=500)
         try:
             self.img_delete = tk.PhotoImage(file=img_delete)
             self.btn_tr_del = ttk.Button(self.frame_btns_tr, image=self.img_delete, command=self.tr_del,
@@ -3572,6 +3577,8 @@ class EditW(tk.Toplevel):
         except:
             self.btn_tr_del = ttk.Button(self.frame_btns_tr, text='-', command=self.tr_del, width=2,
                                          takefocus=False, style='Default.TButton')
+        else:
+            self.tip_btn_tr_del = ttip.Hovertip(self.btn_tr_del, 'Удалить перевод', hover_delay=500)
         # } }
         self.lbl_notes = ttk.Label(self.frame_main, text='Сноски:', style='Default.TLabel')
         self.scrollbar_notes = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
@@ -3588,12 +3595,16 @@ class EditW(tk.Toplevel):
         except:
             self.btn_notes_add = ttk.Button(self.frame_btns_notes, text='+', command=self.notes_add, width=2,
                                             takefocus=False, style='Default.TButton')
+        else:
+            self.tip_btn_notes_add = ttip.Hovertip(self.btn_notes_add, 'Добавить сноску', hover_delay=500)
         try:
             self.btn_notes_del = ttk.Button(self.frame_btns_notes, image=self.img_delete, command=self.notes_del,
                                             takefocus=False, style='Image.TButton')
         except:
             self.btn_notes_del = ttk.Button(self.frame_btns_notes, text='-', command=self.notes_del, width=2,
                                             takefocus=False, style='Default.TButton')
+        else:
+            self.tip_btn_notes_del = ttip.Hovertip(self.btn_notes_del, 'Удалить сноску', hover_delay=500)
         # } }
         self.lbl_frm = ttk.Label(self.frame_main, text='Формы слова:', style='Default.TLabel')
         self.scrollbar_frm = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
@@ -3610,18 +3621,24 @@ class EditW(tk.Toplevel):
         except:
             self.btn_frm_add = ttk.Button(self.frame_btns_frm, text='+', command=self.frm_add, width=2,
                                           takefocus=False, style='Default.TButton')
+        else:
+            self.tip_btn_frm_add = ttip.Hovertip(self.btn_frm_add, 'Добавить словоформу', hover_delay=500)
         try:
             self.btn_frm_del = ttk.Button(self.frame_btns_frm, image=self.img_delete, command=self.frm_del,
                                           takefocus=False, style='Image.TButton')
         except:
             self.btn_frm_del = ttk.Button(self.frame_btns_frm, text='-', command=self.frm_del, width=2,
                                           takefocus=False, style='Default.TButton')
+        else:
+            self.tip_btn_frm_del = ttip.Hovertip(self.btn_frm_del, 'Удалить словоформу', hover_delay=500)
         try:
             self.btn_frm_edt = ttk.Button(self.frame_btns_frm, image=self.img_edit, command=self.frm_edt,
                                           takefocus=False, style='Image.TButton')
         except:
             self.btn_frm_edt = ttk.Button(self.frame_btns_frm, text='изм.', command=self.frm_edt, width=4,
                                           takefocus=False, style='Default.TButton')
+        else:
+            self.tip_btn_frm_edt = ttip.Hovertip(self.btn_frm_edt, 'Изменить словоформу', hover_delay=500)
         # } }
         self.lbl_fav = ttk.Label(self.frame_main, text='Избранное:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=self.set_fav,
@@ -3986,7 +4003,6 @@ class SettingsW(tk.Toplevel):
         else:
             self.btn_about_mgsp = ttk.Button(self.frame_mgsp, image=self.img_about, command=self.about_mgsp,
                                              width=2, takefocus=False, style='Image.TButton')
-            self.tip_btn_about_mgsp = ttip.Hovertip(self.btn_about_mgsp, 'Это кнопка', hover_delay=500)
         self.lbl_mgsp = ttk.Label(self.frame_mgsp, text='Минимальный приемлемый процент угадываний слова:',
                                   style='Default.TLabel')
         self.entry_mgsp = ttk.Entry(self.frame_mgsp, textvariable=self.var_mgsp, width=5,
@@ -4020,8 +4036,6 @@ class SettingsW(tk.Toplevel):
         except:
             self.btn_about_typo = ttk.Button(self.frame_show_typo_button, text='?', command=self.about_typo,
                                              width=2, takefocus=False, style='Default.TButton')
-        else:
-            self.tip_btn_about_typo = ttip.Hovertip(self.btn_about_typo, 'Это кнопка', hover_delay=500)
         self.lbl_show_typo_button = ttk.Label(self.frame_show_typo_button, text='Показывать кнопку "Опечатка":',
                                               style='Default.TLabel')
         self.check_show_typo_button = ttk.Checkbutton(self.frame_show_typo_button, variable=self.var_show_typo_button,
@@ -4061,7 +4075,7 @@ class SettingsW(tk.Toplevel):
                                        font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                        highlightbackground=ST_BORDER[th])
-        self.txt_themes_note.insert(tk.END, f'{URL_RELEASES}')
+        self.txt_themes_note.insert(tk.END, URL_RELEASES)
         self.txt_themes_note['state'] = 'disabled'
         # } }
         # }
@@ -4180,10 +4194,6 @@ class SettingsW(tk.Toplevel):
         self.txt_themes_note.configure(font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                        highlightbackground=ST_BORDER[th])
-        #self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
-        #                                 state='readonly', style='.TCombobox')
-        #self.combo_themes.option_clear()
-        #self.combo_themes.option_add('*TCombobox*Listbox*Background', ST_BG_FIELDS[th])
 
         # Установка фона для главного окна
         self.parent.configure(bg=ST_BG[th])
@@ -4509,7 +4519,7 @@ class MainW(tk.Tk):
         self.lbl_header.grid(row=0, padx=0, pady=0)
         self.lbl_logo.grid(  row=1, padx=0, pady=0)
         # }
-        self.frame_buttons.grid(row=1, padx=6, pady=6)
+        self.frame_buttons.grid(row=1, padx=6, pady=(0, 6))
         # {
         self.btn_print.grid( row=0, padx=0, pady=(0, 3))
         self.btn_learn.grid( row=1, padx=0, pady=(3, 3))
@@ -4528,7 +4538,7 @@ class MainW(tk.Tk):
         self.lbl_footer.grid(row=2, padx=6, pady=3)
 
         self.tip_entry = ttip.Hovertip(self.entry_word, 'Введите слово, которое хотите\n'
-                                                        'найти/изменить/добавить.',
+                                                        'найти/изменить/добавить',
                                        hover_delay=500)
 
         self.set_focus()
@@ -4635,16 +4645,14 @@ class MainW(tk.Tk):
                                    foreground=ST_FG_WARN[th])
 
         # Стиль entry
-        # highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
         self.st_entry = ttk.Style()
         self.st_entry.theme_use('alt')
         self.st_entry.configure('.TEntry',
-                                font=('StdFont', 10),
-                                relief='solid')
+                                font=('StdFont', 10))
         self.st_entry.map('.TEntry',
-                          fieldbackground=[('readonly', ST_BG_FIELDS[th]),
+                          fieldbackground=[('readonly', ST_BG[th]),
                                            ('!readonly', ST_BG_FIELDS[th])],
-                          foreground=[('readonly', ST_FG_ENTRY[th]),
+                          foreground=[('readonly', ST_FG[th]),
                                       ('!readonly', ST_FG_ENTRY[th])],
                           selectbackground=[('readonly', ST_SELECT_BG[th]),
                                             ('!readonly', ST_SELECT_BG[th])],
@@ -4655,7 +4663,8 @@ class MainW(tk.Tk):
         self.st_btn_default = ttk.Style()
         self.st_btn_default.theme_use('alt')
         self.st_btn_default.configure('Default.TButton',
-                                      font=('StdFont', 12))
+                                      font=('StdFont', 12),
+                                      borderwidth=1)
         self.st_btn_default.map('Default.TButton',
                                 relief=[('pressed', 'sunken'),
                                         ('active', 'flat'),
@@ -4665,18 +4674,14 @@ class MainW(tk.Tk):
                                             ('!active', ST_BTN_BG[th])],
                                 foreground=[('pressed', ST_FG[th]),
                                             ('active', ST_FG[th]),
-                                            ('!active', ST_FG[th])])#,
-                                #highlightcolor=[('pressed', 'red'),
-                                #                ('active', 'green'),
-                                #                ('!active', 'blue')],
-                                #highlightbackground=[('pressed', ST_BORDER[th]),
-                                #                     ('active', ST_BORDER[th])])
+                                            ('!active', ST_FG[th])])
 
         # Стиль button "disabled" (для выключенных "default")
         self.st_btn_disabled = ttk.Style()
         self.st_btn_disabled.theme_use('alt')
         self.st_btn_disabled.configure('Disabled.TButton',
-                                       font=('StdFont', 12))
+                                       font=('StdFont', 12),
+                                       borderwidth=1)
         self.st_btn_disabled.map('Disabled.TButton',
                                  relief=[('active', 'raised'),
                                          ('!active', 'raised')],
@@ -4689,7 +4694,8 @@ class MainW(tk.Tk):
         self.st_btn_yes = ttk.Style()
         self.st_btn_yes.theme_use('alt')
         self.st_btn_yes.configure('Yes.TButton',
-                                  font=('StdFont', 12))
+                                  font=('StdFont', 12),
+                                  borderwidth=1)
         self.st_btn_yes.map('Yes.TButton',
                             relief=[('pressed', 'sunken'),
                                     ('active', 'flat'),
@@ -4705,7 +4711,8 @@ class MainW(tk.Tk):
         self.st_btn_no = ttk.Style()
         self.st_btn_no.theme_use('alt')
         self.st_btn_no.configure('No.TButton',
-                                 font=('StdFont', 12))
+                                 font=('StdFont', 12),
+                                 borderwidth=1)
         self.st_btn_no.map('No.TButton',
                            relief=[('pressed', 'sunken'),
                                    ('active', 'flat'),
@@ -4737,28 +4744,28 @@ class MainW(tk.Tk):
         # Стиль checkbutton
         self.st_check = ttk.Style()
         self.st_check.theme_use('alt')
-        self.st_check.configure('.TCheckbutton',
-                                background=ST_BG[th])
         self.st_check.map('.TCheckbutton',
-                          background=[('active', ST_CHECK_BG_SEL[th])])
+                          background=[('active', ST_CHECK_BG_SEL[th]),
+                                      ('!active', ST_BG[th])])
 
         # Стиль combobox
         self.st_combo = ttk.Style()
         self.st_combo.theme_use('alt')
         self.st_combo.configure('.TCombobox',
-                                background=ST_BTN_BG[th],
-                                fieldbackground=ST_BG_FIELDS[th],
-                                selectbackground=ST_BG_FIELDS[th],
-                                highlightbackground=ST_BORDER[th],
-                                foreground=ST_FG[th],
-                                selectforeground=ST_FG[th])
+                                font=('StdFont', 10))
         self.st_combo.map('.TCombobox',
-                          background=[('readonly', ST_BTN_BG[th])],
-                          fieldbackground=[('readonly', ST_BG_FIELDS[th])],
-                          selectbackground=[('readonly', ST_BG_FIELDS[th])],
-                          highlightbackground=[('readonly', ST_BORDER[th])],
-                          foreground=[('readonly', ST_FG[th])],
-                          selectforeground=[('readonly', ST_FG[th])])
+                          background=[('readonly', ST_BTN_BG[th]),
+                                      ('!readonly', ST_BTN_BG[th])],
+                          fieldbackground=[('readonly', ST_BG_FIELDS[th]),
+                                           ('!readonly', ST_BG_FIELDS[th])],
+                          selectbackground=[('readonly', ST_BG_FIELDS[th]),
+                                            ('!readonly', ST_BG_FIELDS[th])],
+                          highlightbackground=[('readonly', ST_BORDER[th]),
+                                               ('!readonly', ST_BORDER[th])],
+                          foreground=[('readonly', ST_FG[th]),
+                                      ('!readonly', ST_FG[th])],
+                          selectforeground=[('readonly', ST_FG[th]),
+                                            ('!readonly', ST_FG[th])])
 
         # Стиль всплывающего списка combobox
         self.option_add('*TCombobox*Listbox*Font', ('StdFont', 10))
@@ -4770,60 +4777,51 @@ class MainW(tk.Tk):
         # Стиль scrollbar "vertical"
         self.st_vscroll = ttk.Style()
         self.st_vscroll.theme_use('alt')
-        self.st_vscroll.configure('Vertical.TScrollbar',
-                                  troughcolor=ST_SCROLL_BG[th],
-                                  background=ST_SCROLL_FG[th])
         self.st_vscroll.map('Vertical.TScrollbar',
                             troughcolor=[('disabled', ST_BG[th]),
-                                         ('pressed', ST_SCROLL_BG_SEL[th])],
+                                         ('pressed', ST_SCROLL_BG_SEL[th]),
+                                         ('!pressed', ST_SCROLL_BG[th])],
                             background=[('disabled', ST_BG[th]),
-                                        ('pressed', ST_SCROLL_FG_SEL[th])])
+                                        ('pressed', ST_SCROLL_FG_SEL[th]),
+                                        ('!pressed', ST_SCROLL_FG[th])])
 
         # Стиль scrollbar "horizontal"
         self.st_hscroll = ttk.Style()
         self.st_hscroll.theme_use('alt')
-        self.st_hscroll.configure('Horizontal.TScrollbar',
-                                  troughcolor=ST_SCROLL_BG[th],
-                                  background=ST_SCROLL_FG[th])
         self.st_hscroll.map('Horizontal.TScrollbar',
                             troughcolor=[('disabled', ST_BG[th]),
-                                         ('pressed', ST_SCROLL_BG_SEL[th])],
+                                         ('pressed', ST_SCROLL_BG_SEL[th]),
+                                         ('!pressed', ST_SCROLL_BG[th])],
                             background=[('disabled', ST_BG[th]),
-                                        ('pressed', ST_SCROLL_FG_SEL[th])])
+                                        ('pressed', ST_SCROLL_FG_SEL[th]),
+                                        ('!pressed', ST_SCROLL_FG[th])])
 
         # Стиль notebook
         self.st_note = ttk.Style()
         self.st_note.theme_use('alt')
-        self.st_note.configure('.TNotebook',
-                               troughcolor=ST_BG[th],
-                               background=ST_BG[th])#,
-                               #highlightbackground=ST_BORDER[th],
-                               #foreground=ST_FG[th])
         self.st_note.map('.TNotebook',
-                         troughcolor=[('active', ST_BG[th])],
-                         background=[('selected', ST_BTN_BG_SEL[th])])#,
-                         #highlightbackground=[('active', ST_BTN_BG_SEL[th])],
-                         #foreground=[('active', ST_BTN_BG_SEL[th])])
+                         troughcolor=[('active', ST_BG[th]),
+                                      ('!active', ST_BG[th])],
+                         background=[('selected', ST_BTN_BG_SEL[th]),
+                                     ('!selected', ST_BG[th])])
 
         # Стиль вкладок notebook
-        self.st_note.configure('TNotebook.Tab',
-                               background=ST_TAB_BG[th],
-                               foreground=ST_TAB_FG[th])
         self.st_note.map('TNotebook.Tab',
-                         background=[('selected', ST_TAB_BG_SEL[th])],
-                         foreground=[('selected', ST_TAB_FG_SEL[th])])
+                         background=[('selected', ST_TAB_BG_SEL[th]),
+                                     ('!selected', ST_TAB_BG[th])],
+                         foreground=[('selected', ST_TAB_FG_SEL[th]),
+                                     ('!selected', ST_TAB_FG[th])])
 
         # Стиль frame "default"
-        # highlightbackground=ST_BORDER[th]
         self.st_frame_default = ttk.Style()
         self.st_frame_default.theme_use('alt')
         self.st_frame_default.configure('Default.TFrame',
+                                        borderwidth=1,
                                         relief=ST_RELIEF[th],
                                         background=ST_BG[th],
                                         bordercolor=ST_BORDER[th])
 
         # Стиль frame "invis"
-        # highlightbackground=ST_BORDER[th]
         self.st_frame_invis = ttk.Style()
         self.st_frame_invis.theme_use('alt')
         self.st_frame_invis.configure('Invis.TFrame',
@@ -4858,7 +4856,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development  presents\n'
       f'                              {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'======================================================================================')
 
@@ -4891,7 +4889,5 @@ root.mainloop()
 # Поиск статьи по форме
 
 # EditW -> добавить форму -> PopupEntryW: не устанавливается фокус
-# Закончить с ttk styles
 # посмотреть сноски - tab
-# EditW - подсказки для полей ввода
 # CreateTemplate : добавить комбобокс
