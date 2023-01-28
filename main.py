@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-178'
+PROGRAM_VERSION = 'v7.0.0_PRE-179'
 PROGRAM_DATE = '28.1.2023'
-PROGRAM_TIME = '22:17 (UTC+3)'
+PROGRAM_TIME = '22:57 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -33,7 +33,7 @@ ST_BG            = {THEMES[0]: '#EAEAEA', THEMES[1]: '#222222'}  # Цвет фо
 ST_BG_FIELDS     = {THEMES[0]: '#FFFFFF', THEMES[1]: '#171717'}  # Цвет фона полей ввода
 
 ST_FG            = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет обычного текста
-ST_FG_LOGO       = {THEMES[0]: '#FF7200', THEMES[1]: '#803600'}  # Цвет текста логотипа
+ST_FG_LOGO       = {THEMES[0]: '#FF7200', THEMES[1]: '#AA4600'}  # Цвет текста логотипа
 ST_FG_FOOTER     = {THEMES[0]: '#666666', THEMES[1]: '#666666'}  # Цвет текста нижнего колонтитула
 ST_FG_WARN       = {THEMES[0]: '#DD2222', THEMES[1]: '#DD2222'}  # Цвет текста предупреждения
 ST_FG_ENTRY      = {THEMES[0]: '#222222', THEMES[1]: '#777777'}  # Цвет вводимого текста
@@ -62,8 +62,8 @@ ST_TAB_BG_SEL    = {THEMES[0]: '#EEEEEE', THEMES[1]: '#222222'}  # Цвет фо
 ST_TAB_FG        = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста закрытой вкладки
 ST_TAB_FG_SEL    = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста открытой вкладки
 
-ST_SCROLL_BG     = {THEMES[0]: '#E0E0E0', THEMES[1]: '#202020'}  # Цвет фона ползунка
-ST_SCROLL_BG_SEL = {THEMES[0]: '#E0E0E0', THEMES[1]: '#202020'}  # Цвет фона ползунка при нажатии
+ST_SCROLL_BG     = {THEMES[0]: '#E0E0E0', THEMES[1]: '#1B1B1B'}  # Цвет фона ползунка
+ST_SCROLL_BG_SEL = {THEMES[0]: '#E0E0E0', THEMES[1]: '#1B1B1B'}  # Цвет фона ползунка при нажатии
 ST_SCROLL_FG     = {THEMES[0]: '#CACACA', THEMES[1]: '#292929'}  # Цвет ползунка
 ST_SCROLL_FG_SEL = {THEMES[0]: '#ABABAB', THEMES[1]: '#333333'}  # Цвет ползунка при нажатии
 
@@ -1909,6 +1909,7 @@ class PopupImgW(tk.Toplevel):
     def __init__(self, parent, img_name: str, msg: str, btn_text='Ясно', title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
+        self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
@@ -2123,16 +2124,17 @@ class IncorrectAnswerW(tk.Toplevel):
         self.btn_typo = ttk.Button(self, text='Просто опечатка', command=self.typo,
                                    takefocus=False, style='Default.TButton')
 
-        self.lbl_msg.grid(row=0, column=0, padx=6, pady=4)
-        self.btn_yes.grid(row=1, column=0, padx=6, pady=4, sticky='E')
-        self.btn_no.grid( row=1, column=1, padx=6, pady=4, sticky='W')
         if with_typo:
-            self.btn_typo.grid(row=1, column=2, padx=6, pady=4, sticky='W')
-            self.lbl_msg.grid(columnspan=3)
+            self.lbl_msg.grid( row=0, column=0, columnspan=3, padx=6, pady=4)
+            self.btn_yes.grid( row=1, column=0,               padx=6, pady=4, sticky='E')
+            self.btn_no.grid(  row=1, column=1,               padx=6, pady=4)
+            self.btn_typo.grid(row=1, column=2,               padx=6, pady=4, sticky='W')
 
             self.tip_btn_notes = ttip.Hovertip(self.btn_typo, 'Срабатывает при нажатии на Tab', hover_delay=700)
         else:
-            self.lbl_msg.grid(columnspan=2)
+            self.lbl_msg.grid(row=0, column=0, columnspan=2, padx=6, pady=4)
+            self.btn_yes.grid(row=1, column=0,               padx=6, pady=4, sticky='E')
+            self.btn_no.grid( row=1, column=1,               padx=6, pady=4, sticky='W')
 
     # Нажатие на кнопку "Да"
     def yes(self):
@@ -2271,6 +2273,7 @@ class CreateFormTemplateW(tk.Toplevel):
     def __init__(self, parent, key, combo_width=20):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
+        self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
@@ -2458,8 +2461,8 @@ class ParticularMatchesW(tk.Toplevel):
         self.lbl_tr.grid(       row=1, column=2, columnspan=2, padx=(3, 6), pady=(0, 3))
         self.txt_wrd.grid(      row=2, column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
         self.scrollbar_wrd.grid(row=2, column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.txt_tr.grid(       row=2, column=2,               padx=(0, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar_tr.grid( row=2, column=3,               padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.scrollbar_tr.grid( row=2, column=2,               padx=(6, 0), pady=(0, 6), sticky='NSE')
+        self.txt_tr.grid(       row=2, column=3,               padx=(0, 6), pady=(0, 6), sticky='NSEW')
 
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
         self.scrollbar_tr.config( command=self.txt_tr.yview)
@@ -2499,6 +2502,7 @@ class FormsSettingsW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
+        self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
@@ -2604,6 +2608,7 @@ class FormsParameterSettingsW(tk.Toplevel):
     def __init__(self, parent, parameter: str):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
+        self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
@@ -2701,6 +2706,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
+        self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
@@ -3442,8 +3448,8 @@ class SearchW(tk.Toplevel):
         self.lbl_tr.grid(       row=1, column=2, columnspan=2, padx=(3, 6), pady=(0, 3))
         self.txt_wrd.grid(      row=2, column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
         self.scrollbar_wrd.grid(row=2, column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.txt_tr.grid(       row=2, column=2,               padx=(0, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar_tr.grid( row=2, column=3,               padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.scrollbar_tr.grid( row=2, column=2,               padx=(6, 0), pady=(0, 6), sticky='NSE')
+        self.txt_tr.grid(       row=2, column=3,               padx=(0, 6), pady=(0, 6), sticky='NSEW')
 
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
         self.scrollbar_tr.config( command=self.txt_tr.yview)
