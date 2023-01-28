@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-174'
+PROGRAM_VERSION = 'v7.0.0_PRE-175'
 PROGRAM_DATE = '28.1.2023'
-PROGRAM_TIME = '16:44 (UTC+3)'
+PROGRAM_TIME = '17:08 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -2184,6 +2184,7 @@ class IncorrectAnswerW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
+        self.with_typo = with_typo
         self.answer = 'no'  # Значение, возвращаемое методом self.open
 
         self.lbl_msg = ttk.Label(self, text=f'Неверно.\n'
@@ -2202,6 +2203,8 @@ class IncorrectAnswerW(tk.Toplevel):
         if with_typo:
             self.btn_typo.grid(row=1, column=2, padx=6, pady=4, sticky='W')
             self.lbl_msg.grid(columnspan=3)
+
+            self.tip_btn_notes = ttip.Hovertip(self.btn_typo, 'Срабатывает при нажатии на Tab', hover_delay=700)
         else:
             self.lbl_msg.grid(columnspan=2)
 
@@ -2226,6 +2229,8 @@ class IncorrectAnswerW(tk.Toplevel):
         self.btn_yes.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_yes.invoke())
         self.bind('<Escape>', lambda event=None: self.btn_no.invoke())
+        if self.with_typo:
+            self.bind('<Tab>', lambda event=None: self.btn_typo.invoke())
 
     def open(self):
         self.set_focus()
@@ -3010,7 +3015,9 @@ class LearnW(tk.Toplevel):
         # } }
         self.btn_stop.grid(row=3, columnspan=2, padx=6, pady=6)
 
-        self.tip_btn_notes = ttip.Hovertip(self.btn_notes, 'Если сносок нет, то ничего не выведется', hover_delay=700)
+        self.tip_btn_notes = ttip.Hovertip(self.btn_notes, 'Срабатывает при нажатии на Tab;\n'
+                                                           'Если сносок нет, то ничего не выведется',
+                                           hover_delay=700)
         if conf[0] == VALUES_ORDER[0]:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
         else:
@@ -3397,6 +3404,7 @@ class LearnW(tk.Toplevel):
         self.focus_set()
         self.entry_input.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_input.invoke())
+        self.bind('<Tab>', lambda event=None: self.btn_notes.invoke())
 
     def open(self):
         self.set_focus()
@@ -4387,7 +4395,8 @@ class SettingsW(tk.Toplevel):
         PopupImgW(self, img_about_typo, 'Если функция включена, то\n'
                                         'когда вы неверно отвечаете при учёбе,\n'
                                         'появляется кнопка "Просто опечатка".\n'
-                                        'При её нажатии, ошибка не засчитывается.').open()
+                                        'При её нажатии, ошибка не засчитывается.\n'
+                                        'Срабатывает при нажатии на Tab.').open()
 
     # Изменить размер окна в зависимости от открытой вкладки
     def resize_tabs(self):
@@ -4889,5 +4898,4 @@ root.mainloop()
 # Поиск статьи по форме
 
 # EditW -> добавить форму -> PopupEntryW: не устанавливается фокус
-# посмотреть сноски - tab
 # CreateTemplate : добавить комбобокс
