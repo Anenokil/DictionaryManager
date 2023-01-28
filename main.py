@@ -15,9 +15,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-172'
+PROGRAM_VERSION = 'v7.0.0_PRE-173'
 PROGRAM_DATE = '28.1.2023'
-PROGRAM_TIME = '2:28 (UTC+3)'
+PROGRAM_TIME = '3:00 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -177,7 +177,7 @@ FORMS_SEPARATOR = '@'  # Разделитель для записи форм в 
 SPECIAL_COMBINATION_OPENING_SYMBOL = '#'  # Открывающий символ специальных комбинаций
 
 VALUES_ORDER = ('Угадывать слово по переводу', 'Угадывать перевод по слову')  # Варианты метода учёбы
-VALUES_WORDS = ('Все слова', 'Чаще сложные', 'Только избранные')  # Варианты подбора слов для учёбы
+VALUES_WORDS = ('Все слова', 'Все слова (чаще сложные)', 'Только избранные')  # Варианты подбора слов для учёбы
 
 MAX_SAME_WORDS = 100  # Максимальное количество статей с одинаковым словом
 
@@ -330,25 +330,53 @@ def encode_special_combinations(text: str):
     return encoded_text
 
 
-# Заменить в тексте немецкие буквы соответствующими английскими (для find_and_highlight)
-def deu_to_eng(text: str):  # deu_to_eng только для немецкого
-    converted_text = encode_special_combinations(text)
+# Заменить буквы в тексте соответствующими английскими (для find_and_highlight)
+def simplify(text: str):
+    encoded_text = encode_special_combinations(text)
+    converted_text = ''
+    transformations = []
 
-    converted_text = converted_text.replace('ä', 'a')
-    converted_text = converted_text.replace('Ä', 'A')
-    converted_text = converted_text.replace('ö', 'o')
-    converted_text = converted_text.replace('Ö', 'O')
-    converted_text = converted_text.replace('ü', 'u')
-    converted_text = converted_text.replace('Ü', 'U')
-    converted_text = converted_text.replace('ß', 's')
-    converted_text = converted_text.replace('ẞ', 'S')
+    for symbol in encoded_text:
+        if symbol in ('ä', 'Ä', 'ë', 'Ë', 'ö', 'Ö', 'ü', 'Ü', 'ß', 'ẞ'):
+            pos = ('ä', 'Ä', 'ë', 'Ë', 'ö', 'Ö', 'ü', 'Ü', 'ß', 'ẞ').index(symbol)
+            converted_text += ('a', 'A', 'e', 'E', 'o', 'O', 'u', 'U', 'ss', 'SS')[pos]
+            transformations += (['ä'], ['Ä'], ['ë'], ['Ë'], ['ö'], ['Ö'], ['ü'], ['Ü'], ['ß', ''], ['ẞ', ''])[pos]
+        else:
+            converted_text += symbol
+            transformations += [symbol]
 
-    converted_text = converted_text.replace('ss', 's')
-    converted_text = converted_text.replace('sS', 's')
-    converted_text = converted_text.replace('SS', 'S')
-    converted_text = converted_text.replace('Ss', 'S')
+    return converted_text.lower(), transformations
 
-    return converted_text
+
+# Конкатенация строк
+def arr_to_str(arr: list[str] | tuple[str, ...]):
+    res = ''
+    for frag in arr:
+        res += frag
+    return res
+
+
+# Найти в строке подстроку и выделить её (только частичные совпадения)
+def find_and_highlight(target_wrd: str, search_wrd: str):
+    target_wrd = encode_special_combinations(target_wrd)
+    search_wrd = encode_special_combinations(search_wrd)
+
+    target_simpl, target_arr = simplify(target_wrd)
+    search_simpl, search_arr = simplify(search_wrd)
+
+    if target_wrd != search_wrd:  # Полное совпадение не учитывается
+        pos = target_simpl.find(search_simpl)
+        if pos != -1:
+            search_len = len(encode_special_combinations(search_simpl))
+            end_pos = pos + search_len
+            if search_wrd == '':  # Если искомая подстрока пустая, то она не выделяется
+                res = target_wrd
+            else:
+                res = f'{arr_to_str(target_arr[:pos])}' \
+                      f'[{arr_to_str(target_arr[pos:end_pos])}]' \
+                      f'{arr_to_str(target_arr[end_pos:])}'
+            return res
+    return ''
 
 
 # Преобразовать кортеж в читаемый вид (для вывода на экран)
@@ -378,21 +406,6 @@ def decode_tpl(input_tuple: tuple | list):
 # Преобразовать строку в кортеж (для чтения значений параметров форм из файла локальных настроек)
 def encode_tpl(line: str):
     return tuple(line.split(FORMS_SEPARATOR))
-
-
-# Найти в строке подстроку и выделить её (только частичные совпадения)
-def find_and_highlight(target_wrd: str, search_wrd: str):
-    length = len(search_wrd)
-    if target_wrd != search_wrd:  # Полное совпадение не учитывается
-        pos = deu_to_eng(target_wrd).lower().find(deu_to_eng(search_wrd).lower())
-        if pos != -1:
-            end_pos = pos + length
-            if search_wrd == '':  # Если искомая подстрока пустая, то она не выделяется
-                res = target_wrd
-            else:
-                res = f'{target_wrd[:pos]}[{target_wrd[pos:end_pos]}]{target_wrd[end_pos:]}'
-            return res
-    return ''
 
 
 # Добавить значение параметра словоформ
@@ -4356,7 +4369,7 @@ class SettingsW(tk.Toplevel):
     def about_mgsp(self):
         PopupImgW(self, img_about_mgsp, 'Статьи, у которых процент угадывания ниже этого значения,\n'
                                         'будут считаться более сложными.\n'
-                                        'При выборе режима учёбы "Чаще сложные"\n'
+                                        'При выборе режима учёбы "Все слова (чаще сложные)"\n'
                                         'такие слова будут чаще попадаться.').open()
 
     # Справка о кнопке "Опечатка"
@@ -4879,7 +4892,6 @@ root.mainloop()
 
 # EditW -> добавить форму -> PopupEntryW: не устанавливается фокус
 # Закончить с ttk styles
-# все слова (чаще сложные)
 # посмотреть сноски - tab
 # EditW - подсказки для полей ввода
 # CreateTemplate : добавить комбобокс
