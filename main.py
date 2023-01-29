@@ -4,6 +4,7 @@ import shutil
 import random
 import math
 import tkinter as tk
+from tkinter import colorchooser
 import tkinter.ttk as ttk
 import idlelib.tooltip as ttip  # Всплывающие подсказки
 import re  # Несколько разделителей в split
@@ -15,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-179'
-PROGRAM_DATE = '28.1.2023'
-PROGRAM_TIME = '22:57 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-180'
+PROGRAM_DATE = '29.1.2023'
+PROGRAM_TIME = '21:39 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -26,46 +27,48 @@ REQUIRED_THEME_VERSION = 4  # Актуальная версия тем
 
 """ Стандартные темы """
 
-THEMES = ['light', 'dark']  # Названия тем
+CUSTOM_TH = '</custom\\>'  # Название пользовательской темы
+THEMES = [CUSTOM_TH, 'light', 'dark']  # Названия тем
+DEFAULT_TH = THEMES[1]  # Тема по умолчанию
 
 # Стили для каждой темы
-ST_BG            = {THEMES[0]: '#EAEAEA', THEMES[1]: '#222222'}  # Цвет фона окна
-ST_BG_FIELDS     = {THEMES[0]: '#FFFFFF', THEMES[1]: '#171717'}  # Цвет фона полей ввода
+ST_BG            = {THEMES[1]: '#EAEAEA', THEMES[2]: '#222222'}  # Цвет фона окна
+ST_BG_FIELDS     = {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}  # Цвет фона полей ввода
 
-ST_FG            = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет обычного текста
-ST_FG_LOGO       = {THEMES[0]: '#FF7200', THEMES[1]: '#AA4600'}  # Цвет текста логотипа
-ST_FG_FOOTER     = {THEMES[0]: '#666666', THEMES[1]: '#666666'}  # Цвет текста нижнего колонтитула
-ST_FG_WARN       = {THEMES[0]: '#DD2222', THEMES[1]: '#DD2222'}  # Цвет текста предупреждения
-ST_FG_ENTRY      = {THEMES[0]: '#222222', THEMES[1]: '#777777'}  # Цвет вводимого текста
+ST_FG            = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет обычного текста
+ST_FG_LOGO       = {THEMES[1]: '#FF7200', THEMES[2]: '#AA4600'}  # Цвет текста логотипа
+ST_FG_FOOTER     = {THEMES[1]: '#666666', THEMES[2]: '#666666'}  # Цвет текста нижнего колонтитула
+ST_FG_WARN       = {THEMES[1]: '#DD2222', THEMES[2]: '#DD2222'}  # Цвет текста предупреждения
+ST_FG_ENTRY      = {THEMES[1]: '#222222', THEMES[2]: '#777777'}  # Цвет вводимого текста
 
-ST_SELECT_BG     = {THEMES[0]: '#BBBBBB', THEMES[1]: '#444444'}  # Цвет выделения фона (selectbackground)
-ST_SELECT_FG     = {THEMES[0]: '#101010', THEMES[1]: '#A0A0A0'}  # Цвет выделения текста (selectforeground)
+ST_SELECT_BG     = {THEMES[1]: '#BBBBBB', THEMES[2]: '#444444'}  # Цвет выделения фона (selectbackground)
+ST_SELECT_FG     = {THEMES[1]: '#101010', THEMES[2]: '#A0A0A0'}  # Цвет выделения текста (selectforeground)
 
-ST_RELIEF        = {THEMES[0]: 'groove',  THEMES[1]: 'solid'  }  # Стиль рамок
-ST_BORDER        = {THEMES[0]: '#222222', THEMES[1]: '#111111'}  # Цвет обводки полей (highlightbackground)
-ST_HIGHLIGHT     = {THEMES[0]: '#00DD00', THEMES[1]: '#005500'}  # Цвет подсветки виджета при фокусе (highlightcolor)
+ST_RELIEF        = {THEMES[1]: 'groove',  THEMES[2]: 'solid'  }  # Стиль рамок
+ST_BORDER        = {THEMES[1]: '#222222', THEMES[2]: '#111111'}  # Цвет обводки полей (highlightbackground)
+ST_HIGHLIGHT     = {THEMES[1]: '#00DD00', THEMES[2]: '#005500'}  # Цвет подсветки виджета при фокусе (highlightcolor)
 
-ST_BTN_BG        = {THEMES[0]: '#D0D0D0', THEMES[1]: '#1D1D1D'}  # Цвет фона обычных кнопок
-ST_BTN_BG_SEL    = {THEMES[0]: '#BABABA', THEMES[1]: '#191919'}  # Цвет фона обычных кнопок при нажатии
-ST_BTN_Y_BG      = {THEMES[0]: '#88DD88', THEMES[1]: '#446F44'}  # Цвет фона да-кнопок
-ST_BTN_Y_BG_SEL  = {THEMES[0]: '#77CC77', THEMES[1]: '#558055'}  # Цвет фона да-кнопок при нажатии
-ST_BTN_N_BG      = {THEMES[0]: '#FF6666', THEMES[1]: '#803333'}  # Цвет фона нет-кнопок
-ST_BTN_N_BG_SEL  = {THEMES[0]: '#EE5555', THEMES[1]: '#904444'}  # Цвет фона нет-кнопок при нажатии
+ST_BTN_BG        = {THEMES[1]: '#D0D0D0', THEMES[2]: '#1D1D1D'}  # Цвет фона обычных кнопок
+ST_BTN_BG_SEL    = {THEMES[1]: '#BABABA', THEMES[2]: '#191919'}  # Цвет фона обычных кнопок при нажатии
+ST_BTN_Y_BG      = {THEMES[1]: '#88DD88', THEMES[2]: '#446F44'}  # Цвет фона да-кнопок
+ST_BTN_Y_BG_SEL  = {THEMES[1]: '#77CC77', THEMES[2]: '#558055'}  # Цвет фона да-кнопок при нажатии
+ST_BTN_N_BG      = {THEMES[1]: '#FF6666', THEMES[2]: '#803333'}  # Цвет фона нет-кнопок
+ST_BTN_N_BG_SEL  = {THEMES[1]: '#EE5555', THEMES[2]: '#904444'}  # Цвет фона нет-кнопок при нажатии
 
-ST_BTN_BG_DISABL = {THEMES[0]: '#D9D9D9', THEMES[1]: '#151515'}  # Цвет фона выключенных кнопок
-ST_BTN_FG_DISABL = {THEMES[0]: '#B0B0B0', THEMES[1]: '#454545'}  # Цвет текста выключенных кнопок
+ST_BTN_BG_DISABL = {THEMES[1]: '#D9D9D9', THEMES[2]: '#151515'}  # Цвет фона выключенных кнопок
+ST_BTN_FG_DISABL = {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}  # Цвет текста выключенных кнопок
 
-ST_CHECK_BG_SEL  = {THEMES[0]: '#DDDDDD', THEMES[1]: '#333333'}  # Цвет фона переключателя при наведении на него
+ST_CHECK_BG_SEL  = {THEMES[1]: '#DDDDDD', THEMES[2]: '#333333'}  # Цвет фона переключателя при наведении на него
 
-ST_TAB_BG        = {THEMES[0]: '#D0D0D0', THEMES[1]: '#1A1A1A'}  # Цвет фона закрытой вкладки
-ST_TAB_BG_SEL    = {THEMES[0]: '#EEEEEE', THEMES[1]: '#222222'}  # Цвет фона открытой вкладки
-ST_TAB_FG        = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста закрытой вкладки
-ST_TAB_FG_SEL    = {THEMES[0]: '#222222', THEMES[1]: '#979797'}  # Цвет текста открытой вкладки
+ST_TAB_BG        = {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}  # Цвет фона закрытой вкладки
+ST_TAB_BG_SEL    = {THEMES[1]: '#EAEAEA', THEMES[2]: '#222222'}  # Цвет фона открытой вкладки
+ST_TAB_FG        = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет текста закрытой вкладки
+ST_TAB_FG_SEL    = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет текста открытой вкладки
 
-ST_SCROLL_BG     = {THEMES[0]: '#E0E0E0', THEMES[1]: '#1B1B1B'}  # Цвет фона ползунка
-ST_SCROLL_BG_SEL = {THEMES[0]: '#E0E0E0', THEMES[1]: '#1B1B1B'}  # Цвет фона ползунка при нажатии
-ST_SCROLL_FG     = {THEMES[0]: '#CACACA', THEMES[1]: '#292929'}  # Цвет ползунка
-ST_SCROLL_FG_SEL = {THEMES[0]: '#ABABAB', THEMES[1]: '#333333'}  # Цвет ползунка при нажатии
+ST_SCROLL_BG     = {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}  # Цвет фона ползунка
+ST_SCROLL_BG_SEL = {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}  # Цвет фона ползунка при нажатии
+ST_SCROLL_FG     = {THEMES[1]: '#CACACA', THEMES[2]: '#292929'}  # Цвет ползунка
+ST_SCROLL_FG_SEL = {THEMES[1]: '#ABABAB', THEMES[2]: '#333333'}  # Цвет ползунка при нажатии
 
 # Названия стилизуемых элементов
 STYLE_ELEMENTS = ('BG', 'BG_FIELDS',
@@ -111,7 +114,7 @@ STYLES = {STYLE_ELEMENTS[0]:  ST_BG,
 
 """ Пути и файлы """
 
-MAIN_PATH = os.path.dirname(__file__)
+MAIN_PATH = os.path.dirname(__file__)  # Папка с программой
 RESOURCES_DIR = 'resources'  # Папка с ресурсами
 RESOURCES_PATH = os.path.join(MAIN_PATH, RESOURCES_DIR)
 SAVES_DIR = 'saves'  # Папка с сохранениями
@@ -120,11 +123,13 @@ LOCAL_SETTINGS_DIR = 'local_settings'  # Папка с локальными на
 LOCAL_SETTINGS_PATH = os.path.join(RESOURCES_PATH, LOCAL_SETTINGS_DIR)
 GLOBAL_SETTINGS_FN = 'global_settings.txt'  # Файл с глобальными настройками (настройки программы)
 GLOBAL_SETTINGS_PATH = os.path.join(RESOURCES_PATH, GLOBAL_SETTINGS_FN)
-CUSTOM_THEMES_DIR = 'themes'  # Папка с пользовательскими темами
-CUSTOM_THEMES_PATH = os.path.join(RESOURCES_PATH, CUSTOM_THEMES_DIR)
+ADDITIONAL_THEMES_DIR = 'themes'  # Папка с дополнительными темами
+ADDITIONAL_THEMES_PATH = os.path.join(RESOURCES_PATH, ADDITIONAL_THEMES_DIR)
+CUSTOM_THEME_DIR = 'custom_theme'  # Папка с пользовательской темой
+CUSTOM_THEME_PATH = os.path.join(RESOURCES_PATH, CUSTOM_THEME_DIR)
 IMAGES_DIR = 'images'  # Папка с изображениями
 IMAGES_PATH = os.path.join(RESOURCES_PATH, IMAGES_DIR)
-TMP_FN = 'tmp.txt'  # Временный файл
+TMP_FN = 'tmp.txt'  # Временный файл (для обновления словарей)
 TMP_PATH = os.path.join(RESOURCES_PATH, TMP_FN)
 
 # Если папки отсутствуют, то они создаются
@@ -134,8 +139,10 @@ if SAVES_DIR not in os.listdir(RESOURCES_PATH):
     os.mkdir(SAVES_PATH)
 if LOCAL_SETTINGS_DIR not in os.listdir(RESOURCES_PATH):
     os.mkdir(LOCAL_SETTINGS_PATH)
-if CUSTOM_THEMES_DIR not in os.listdir(RESOURCES_PATH):
-    os.mkdir(CUSTOM_THEMES_PATH)
+if ADDITIONAL_THEMES_DIR not in os.listdir(RESOURCES_PATH):
+    os.mkdir(ADDITIONAL_THEMES_PATH)
+if CUSTOM_THEME_DIR not in os.listdir(RESOURCES_PATH):
+    os.mkdir(CUSTOM_THEME_PATH)
 if IMAGES_DIR not in os.listdir(RESOURCES_PATH):
     os.mkdir(IMAGES_PATH)
 
@@ -143,10 +150,10 @@ if IMAGES_DIR not in os.listdir(RESOURCES_PATH):
 if TMP_FN in os.listdir(RESOURCES_PATH):
     os.remove(TMP_PATH)
 
-if THEMES[0] not in os.listdir(CUSTOM_THEMES_PATH):
-    os.mkdir(os.path.join(CUSTOM_THEMES_PATH, THEMES[0]))
-if THEMES[1] not in os.listdir(CUSTOM_THEMES_PATH):
-    os.mkdir(os.path.join(CUSTOM_THEMES_PATH, THEMES[1]))
+if THEMES[1] not in os.listdir(ADDITIONAL_THEMES_PATH):
+    os.mkdir(os.path.join(ADDITIONAL_THEMES_PATH, THEMES[1]))
+if THEMES[2] not in os.listdir(ADDITIONAL_THEMES_PATH):
+    os.mkdir(os.path.join(ADDITIONAL_THEMES_PATH, THEMES[2]))
 
 # Изображения
 img_ok = os.path.join(IMAGES_PATH, 'ok.png')
@@ -1225,12 +1232,12 @@ def dct_filename(savename: str):
     return f'{savename}.txt'
 
 
-# Загрузить пользовательские темы
+# Загрузить дополнительные темы
 def upload_themes(themes: list[str]):
-    if os.listdir(CUSTOM_THEMES_PATH):
+    if os.listdir(ADDITIONAL_THEMES_PATH):
         print('\nЗагрузка тем...')
-    for dirname in os.listdir(CUSTOM_THEMES_PATH):
-        path = os.path.join(CUSTOM_THEMES_PATH, dirname)
+    for dirname in os.listdir(ADDITIONAL_THEMES_PATH):
+        path = os.path.join(ADDITIONAL_THEMES_PATH, dirname)
         if not os.path.isdir(path):
             continue
         styles_filename = 'styles.txt'
@@ -1240,8 +1247,8 @@ def upload_themes(themes: list[str]):
         try:
             is_correct = True
             styles_path = os.path.join(path, styles_filename)
-            with open(styles_path, 'r', encoding='utf-8') as theme_file:
-                line = theme_file.readline().strip()
+            with open(styles_path, 'r', encoding='utf-8') as styles_file:
+                line = styles_file.readline().strip()
                 theme_version = int(re.split(' |//', line)[0])  # После // идут комментарии
                 if theme_version != REQUIRED_THEME_VERSION:  # Проверка версии темы
                     print(f'Не удалось загрузить тему "{theme}",\n'
@@ -1251,7 +1258,7 @@ def upload_themes(themes: list[str]):
                     continue
                 themes += [theme]  # Добавляем название новой темы
                 for style_elem in STYLE_ELEMENTS:  # Проходимся по стилизуемым элементам
-                    line = theme_file.readline().strip()
+                    line = styles_file.readline().strip()
                     style = re.split(' |//', line)[0]  # После // идут комментарии
                     element = STYLES[style_elem]
                     element[theme] = style  # Добавляем новый стиль для элемента, соответствующий теме theme
@@ -1269,11 +1276,50 @@ def upload_themes(themes: list[str]):
             print(f'Тема "{theme}" успешно загружена')
 
 
-# Загрузить изображения для темы
+# Загрузить пользовательскую тему
+def upload_custom_theme():
+    styles_filename = 'styles.txt'
+    if styles_filename not in os.listdir(CUSTOM_THEME_PATH):
+        create_default_custom_theme()
+    styles_path = os.path.join(CUSTOM_THEME_PATH, styles_filename)
+    try:
+        with open(styles_path, 'r', encoding='utf-8') as styles_file:
+            line = styles_file.readline().strip()
+            theme_version = int(re.split(' |//', line)[0])  # После // идут комментарии
+            if theme_version != REQUIRED_THEME_VERSION:  # Проверка версии темы
+                create_default_custom_theme()
+            for style_elem in STYLE_ELEMENTS:  # Проходимся по стилизуемым элементам
+                line = styles_file.readline().strip()
+                style = re.split(' |//', line)[0]  # После // идут комментарии
+                element = STYLES[style_elem]
+                element[CUSTOM_TH] = style
+                if not style:
+                    create_default_custom_theme()
+    except:
+        create_default_custom_theme()
+
+
+# Установить в качестве пользовательской темы тему по умолчанию
+def create_default_custom_theme():
+    styles_filename = 'styles.txt'
+    styles_path = os.path.join(CUSTOM_THEME_PATH, styles_filename)
+    with open(styles_path, 'w', encoding='utf-8') as styles_file:
+        styles_file.write(f'{REQUIRED_THEME_VERSION}')
+        for style_elem in STYLE_ELEMENTS:  # Проходимся по стилизуемым элементам
+            element = STYLES[style_elem]
+            style = element[DEFAULT_TH]
+            element[CUSTOM_TH] = style
+            styles_file.write(f'\n{style}')
+
+
+# Загрузить изображения для выбранной темы
 def upload_themes_img(theme: str):
     global img_ok, img_cancel, img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo
 
-    theme_dir = os.path.join(CUSTOM_THEMES_PATH, theme)
+    if theme == CUSTOM_TH:
+        theme_dir = CUSTOM_THEME_PATH
+    else:
+        theme_dir = os.path.join(ADDITIONAL_THEMES_PATH, theme)
 
     images = [img_ok, img_cancel, img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo]
     image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'about', 'about_mgsp', 'about_typo']
@@ -1342,7 +1388,7 @@ def upload_global_settings():
                                        f'words\n'
                                        f'1\n'
                                        f'0\n'
-                                       f'{THEMES[0]}')
+                                       f'{DEFAULT_TH}')
     else:
         upgrade_global_settings()
 
@@ -1364,7 +1410,7 @@ def upload_global_settings():
         # Установленная тема
         theme = global_settings_file.readline().strip()
         if theme not in THEMES:
-            theme = THEMES[0]
+            theme = DEFAULT_TH
     return dct_savename, show_updates, typo, theme
 
 
@@ -2800,6 +2846,382 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         return self.has_changes
 
 
+# Окно настроек пользовательской темы
+class CustomThemeSettingsW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Custom theme settings')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[th])
+
+        self.closed = True  # Закрыто ли окно крестиком
+        self.custom_styles = {}  # Стили пользовательской темы
+
+        self.var_theme = tk.StringVar(value=DEFAULT_TH)
+        self.var_relief = tk.StringVar()
+
+        self.frame_set_theme = ttk.Frame(self, style='Invis.TFrame')
+        # {
+        self.lbl_set_theme = ttk.Label(self.frame_set_theme, text='Взять за основу уже существующую тему:',
+                                       style='Default.TLabel')
+        self.combo_set_theme = ttk.Combobox(self.frame_set_theme, textvariable=self.var_theme, values=THEMES[1:],
+                                            state='readonly', style='.TCombobox')
+        self.btn_set_theme = ttk.Button(self.frame_set_theme, text='Выбрать', command=self.set_theme,
+                                        takefocus=False, style='Default.TButton')
+        # }
+        self.lbl_bg = ttk.Label(self, text='Цвет фона окна:', style='Default.TLabel')
+        self.frame_bg = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_bg = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                 command=lambda: self.choose_color(0))
+        #
+        self.lbl_bg_fields = ttk.Label(self, text='Цвет фона полей ввода:', style='Default.TLabel')
+        self.frame_bg_fields = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_bg_fields = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                        command=lambda: self.choose_color(1))
+        #
+        self.lbl_fg = ttk.Label(self, text='Цвет обычного текста:', style='Default.TLabel')
+        self.frame_fg = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_fg = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                 command=lambda: self.choose_color(2))
+        #
+        self.lbl_fg_logo = ttk.Label(self, text='Цвет текста логотипа:', style='Default.TLabel')
+        self.frame_fg_logo = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_fg_logo = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                      command=lambda: self.choose_color(3))
+        #
+        self.lbl_fg_footer = ttk.Label(self, text='Цвет текста нижнего колонтитула:', style='Default.TLabel')
+        self.frame_fg_footer = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_fg_footer = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                        command=lambda: self.choose_color(4))
+        #
+        self.lbl_fg_warn = ttk.Label(self, text='Цвет текста предупреждения:', style='Default.TLabel')
+        self.frame_fg_warn = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_fg_warn = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                      command=lambda: self.choose_color(5))
+        #
+        self.lbl_fg_entry = ttk.Label(self, text='Цвет вводимого текста:', style='Default.TLabel')
+        self.frame_fg_entry = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_fg_entry = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                       command=lambda: self.choose_color(6))
+        #
+        self.lbl_select_bg = ttk.Label(self, text='Цвет выделения фона:', style='Default.TLabel')
+        self.frame_select_bg = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_select_bg = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                        command=lambda: self.choose_color(7))
+        #
+        self.lbl_select_fg = ttk.Label(self, text='Цвет выделения текста:', style='Default.TLabel')
+        self.frame_select_fg = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_select_fg = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                        command=lambda: self.choose_color(8))
+        #
+        self.lbl_relief = ttk.Label(self, text='Стиль рамок:', style='Default.TLabel')
+        self.combo_relief = ttk.Combobox(self, values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
+                                         textvariable=self.var_relief, state='readonly', width=23, style='.TCombobox')
+        #
+        self.lbl_border = ttk.Label(self, text='Цвет обводки полей:', style='Default.TLabel')
+        self.frame_border = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_border = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                     command=lambda: self.choose_color(10))
+        #
+        self.lbl_highlight = ttk.Label(self, text='Цвет подсветки виджета при фокусе:', style='Default.TLabel')
+        self.frame_highlight = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_highlight = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                        command=lambda: self.choose_color(11))
+        #
+        self.lbl_btn_bg = ttk.Label(self, text='Цвет фона обычных кнопок:', style='Default.TLabel')
+        self.frame_btn_bg = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_btn_bg = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                     command=lambda: self.choose_color(12))
+        #
+        self.lbl_btn_bg_sel = ttk.Label(self, text='Цвет фона обычных кнопок при нажатии:', style='Default.TLabel')
+        self.frame_btn_bg_sel = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_btn_bg_sel = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                         command=lambda: self.choose_color(13))
+        #
+        self.lbl_btn_y_bg = ttk.Label(self, text='Цвет фона да-кнопок:', style='Default.TLabel')
+        self.frame_btn_y_bg = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_btn_y_bg = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                       command=lambda: self.choose_color(14))
+        #
+        self.lbl_btn_y_bg_sel = ttk.Label(self, text='Цвет фона да-кнопок при нажатии:', style='Default.TLabel')
+        self.frame_btn_y_bg_sel = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_btn_y_bg_sel = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                           command=lambda: self.choose_color(15))
+        #
+        self.lbl_btn_n_bg = ttk.Label(self, text='Цвет фона нет-кнопок:', style='Default.TLabel')
+        self.frame_btn_n_bg = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_btn_n_bg = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                       command=lambda: self.choose_color(16))
+        #
+        self.lbl_btn_n_bg_sel = ttk.Label(self, text='Цвет фона нет-кнопок при нажатии:', style='Default.TLabel')
+        self.frame_btn_n_bg_sel = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_btn_n_bg_sel = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                           command=lambda: self.choose_color(17))
+        #
+        self.lbl_btn_bg_disabl = ttk.Label(self, text='Цвет фона выключенных кнопок:', style='Default.TLabel')
+        self.frame_btn_bg_disabl = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_btn_bg_disabl = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                            command=lambda: self.choose_color(18))
+        #
+        self.lbl_btn_fg_disabl = ttk.Label(self, text='Цвет текста выключенных кнопок:', style='Default.TLabel')
+        self.frame_btn_fg_disabl = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_btn_fg_disabl = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                            command=lambda: self.choose_color(19))
+        #
+        self.lbl_check_bg_sel = ttk.Label(self, text='Цвет фона переключателя при наведении на него:',
+                                          style='Default.TLabel')
+        self.frame_check_bg_sel = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_check_bg_sel = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                           command=lambda: self.choose_color(20))
+        #
+        self.lbl_tab_bg = ttk.Label(self, text='Цвет фона закрытой вкладки:', style='Default.TLabel')
+        self.frame_tab_bg = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_tab_bg = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                     command=lambda: self.choose_color(21))
+        #
+        self.lbl_tab_bg_sel = ttk.Label(self, text='Цвет фона открытой вкладки:', style='Default.TLabel')
+        self.frame_tab_bg_sel = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_tab_bg_sel = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                         command=lambda: self.choose_color(22))
+        #
+        self.lbl_tab_fg = ttk.Label(self, text='Цвет текста закрытой вкладки:', style='Default.TLabel')
+        self.frame_tab_fg = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_tab_fg = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                     command=lambda: self.choose_color(23))
+        #
+        self.lbl_tab_fg_sel = ttk.Label(self, text='Цвет текста открытой вкладки:', style='Default.TLabel')
+        self.frame_tab_fg_sel = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_tab_fg_sel = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                         command=lambda: self.choose_color(24))
+        #
+        self.lbl_scroll_bg = ttk.Label(self, text='Цвет фона ползунка:', style='Default.TLabel')
+        self.frame_scroll_bg = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_scroll_bg = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                        command=lambda: self.choose_color(25))
+        #
+        self.lbl_scroll_bg_sel = ttk.Label(self, text='Цвет фона ползунка при нажатии:', style='Default.TLabel')
+        self.frame_scroll_bg_sel = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_scroll_bg_sel = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                            command=lambda: self.choose_color(26))
+        #
+        self.lbl_scroll_fg = ttk.Label(self, text='Цвет ползунка:', style='Default.TLabel')
+        self.frame_scroll_fg = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_scroll_fg = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                        command=lambda: self.choose_color(27))
+        #
+        self.lbl_scroll_fg_sel = ttk.Label(self, text='Цвет ползунка при нажатии:', style='Default.TLabel')
+        self.frame_scroll_fg_sel = tk.Frame(self, relief='solid', borderwidth=1, width=20, height=20)
+        self.btn_scroll_fg_sel = ttk.Button(self, text='Выбрать', takefocus=False, style='Default.TButton',
+                                            command=lambda: self.choose_color(28))
+        #
+        self.btn_save = ttk.Button(self, text='Сохранить', command=self.save, takefocus=False, style='Default.TButton')
+
+        self.frames = {STYLE_ELEMENTS[0]: self.frame_bg,
+                       STYLE_ELEMENTS[1]: self.frame_bg_fields,
+                       STYLE_ELEMENTS[2]: self.frame_fg,
+                       STYLE_ELEMENTS[3]: self.frame_fg_logo,
+                       STYLE_ELEMENTS[4]: self.frame_fg_footer,
+                       STYLE_ELEMENTS[5]: self.frame_fg_warn,
+                       STYLE_ELEMENTS[6]: self.frame_fg_entry,
+                       STYLE_ELEMENTS[7]: self.frame_select_bg,
+                       STYLE_ELEMENTS[8]: self.frame_select_fg,
+                       STYLE_ELEMENTS[10]: self.frame_border,
+                       STYLE_ELEMENTS[11]: self.frame_highlight,
+                       STYLE_ELEMENTS[12]: self.frame_btn_bg,
+                       STYLE_ELEMENTS[13]: self.frame_btn_bg_sel,
+                       STYLE_ELEMENTS[14]: self.frame_btn_y_bg,
+                       STYLE_ELEMENTS[15]: self.frame_btn_y_bg_sel,
+                       STYLE_ELEMENTS[16]: self.frame_btn_n_bg,
+                       STYLE_ELEMENTS[17]: self.frame_btn_n_bg_sel,
+                       STYLE_ELEMENTS[18]: self.frame_btn_bg_disabl,
+                       STYLE_ELEMENTS[19]: self.frame_btn_fg_disabl,
+                       STYLE_ELEMENTS[20]: self.frame_check_bg_sel,
+                       STYLE_ELEMENTS[21]: self.frame_tab_bg,
+                       STYLE_ELEMENTS[22]: self.frame_tab_bg_sel,
+                       STYLE_ELEMENTS[23]: self.frame_tab_fg,
+                       STYLE_ELEMENTS[24]: self.frame_tab_fg_sel,
+                       STYLE_ELEMENTS[25]: self.frame_scroll_bg,
+                       STYLE_ELEMENTS[26]: self.frame_scroll_bg_sel,
+                       STYLE_ELEMENTS[27]: self.frame_scroll_fg,
+                       STYLE_ELEMENTS[28]: self.frame_scroll_fg_sel}
+
+        self.frame_set_theme.grid(row=0, columnspan=3, padx=6, pady=6)
+        # {
+        self.lbl_set_theme.grid(  row=0, column=0, padx=(0, 1), pady=0, sticky='E')
+        self.combo_set_theme.grid(row=0, column=1, padx=(0, 3), pady=0)
+        self.btn_set_theme.grid(  row=0, column=2, padx=(0, 0), pady=0, sticky='W')
+        # }
+        self.lbl_bg.grid(  row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_bg.grid(row=1, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_bg.grid(  row=1, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_bg_fields.grid(  row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_bg_fields.grid(row=2, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_bg_fields.grid(  row=2, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_fg.grid(  row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_fg.grid(row=3, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_fg.grid(  row=3, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_fg_logo.grid(  row=4, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_fg_logo.grid(row=4, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_fg_logo.grid(  row=4, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_fg_footer.grid(  row=5, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_fg_footer.grid(row=5, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_fg_footer.grid(  row=5, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_fg_warn.grid(  row=6, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_fg_warn.grid(row=6, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_fg_warn.grid(  row=6, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_fg_entry.grid(  row=7, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_fg_entry.grid(row=7, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_fg_entry.grid(  row=7, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_select_bg.grid(  row=8, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_select_bg.grid(row=8, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_select_bg.grid(  row=8, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_select_fg.grid(  row=9, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_select_fg.grid(row=9, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_select_fg.grid(  row=9, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_relief.grid(  row=10, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
+        self.combo_relief.grid(row=10, column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_border.grid(  row=11, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_border.grid(row=11, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_border.grid(  row=11, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_highlight.grid(  row=12, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_highlight.grid(row=12, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_highlight.grid(  row=12, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_btn_bg.grid(  row=13, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_btn_bg.grid(row=13, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_btn_bg.grid(  row=13, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_btn_bg_sel.grid(  row=14, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_btn_bg_sel.grid(row=14, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_btn_bg_sel.grid(  row=14, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_btn_y_bg.grid(  row=15, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_btn_y_bg.grid(row=15, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_btn_y_bg.grid(  row=15, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_btn_y_bg_sel.grid(  row=16, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_btn_y_bg_sel.grid(row=16, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_btn_y_bg_sel.grid(  row=16, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_btn_n_bg.grid(  row=17, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_btn_n_bg.grid(row=17, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_btn_n_bg.grid(  row=17, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_btn_n_bg_sel.grid(  row=18, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_btn_n_bg_sel.grid(row=18, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_btn_n_bg_sel.grid(  row=18, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_btn_bg_disabl.grid(  row=19, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_btn_bg_disabl.grid(row=19, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_btn_bg_disabl.grid(  row=19, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_btn_fg_disabl.grid(  row=20, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_btn_fg_disabl.grid(row=20, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_btn_fg_disabl.grid(  row=20, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_check_bg_sel.grid(  row=21, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_check_bg_sel.grid(row=21, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_check_bg_sel.grid(  row=21, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_tab_bg.grid(  row=22, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_tab_bg.grid(row=22, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_tab_bg.grid(  row=22, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_tab_bg_sel.grid(  row=23, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_tab_bg_sel.grid(row=23, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_tab_bg_sel.grid(  row=23, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_tab_fg.grid(  row=24, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_tab_fg.grid(row=24, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_tab_fg.grid(  row=24, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_tab_fg_sel.grid(  row=25, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_tab_fg_sel.grid(row=25, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_tab_fg_sel.grid(  row=25, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_scroll_bg.grid(  row=26, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_scroll_bg.grid(row=26, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_scroll_bg.grid(  row=26, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_scroll_bg_sel.grid(  row=27, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_scroll_bg_sel.grid(row=27, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_scroll_bg_sel.grid(  row=27, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_scroll_fg.grid(  row=28, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame_scroll_fg.grid(row=28, column=1, padx=(0, 3), pady=(0, 3))
+        self.btn_scroll_fg.grid(  row=28, column=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_scroll_fg_sel.grid(  row=29, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.frame_scroll_fg_sel.grid(row=29, column=1, padx=(0, 3), pady=(0, 6))
+        self.btn_scroll_fg_sel.grid(  row=29, column=2, padx=(0, 6), pady=(0, 6), sticky='W')
+        #
+        self.btn_save.grid(row=30, columnspan=3, padx=6, pady=6)
+
+        self.read()
+
+    # Выбрать цвет
+    def choose_color(self, n: int):
+        (rgb, hx) = colorchooser.askcolor()
+
+        var = STYLE_ELEMENTS[n]
+        self.frames[var].config(bg=hx)
+        self.custom_styles[var] = hx
+
+    # Взять за основу уже существующую тему
+    def set_theme(self):
+        theme_name = self.var_theme.get()
+        for var in STYLE_ELEMENTS:
+            if var == 'RELIEF':
+                self.var_relief.set(STYLES[var][theme_name])
+            else:
+                self.frames[var].config(bg=STYLES[var][theme_name])
+            self.custom_styles[var] = STYLES[var][theme_name]
+
+    # Загрузить пользовательскую тему
+    def read(self):
+        filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
+        with open(filepath, 'r') as file:
+            file.readline()  # Версия темы
+            for var in STYLE_ELEMENTS:
+                self.custom_styles[var] = file.readline().strip()
+                if var == 'RELIEF':
+                    self.var_relief.set(self.custom_styles[var])
+                else:
+                    self.frames[var].config(bg=self.custom_styles[var])
+
+    # Сохранить пользовательскую тему
+    def save(self):
+        filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
+        with open(filepath, 'w') as file:
+            file.write(f'{REQUIRED_THEME_VERSION}')
+            for var in STYLE_ELEMENTS:
+                file.write(f'\n{self.custom_styles[var]}')
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.closed
+
+
 # Окно печати словаря
 class PrintW(tk.Toplevel):
     def __init__(self, parent):
@@ -4077,6 +4499,8 @@ class SettingsW(tk.Toplevel):
                                        highlightbackground=ST_BORDER[th])
         self.txt_themes_note.insert(tk.END, URL_RELEASES)
         self.txt_themes_note['state'] = 'disabled'
+        self.btn_custom_theme = ttk.Button(self.frame_themes, text='Собственная тема', command=self.custom_theme,
+                                           takefocus=False, style='Default.TButton')
         # } }
         # }
         self.btn_save = ttk.Button(self, text='Сохранить изменения', command=self.save,
@@ -4124,10 +4548,11 @@ class SettingsW(tk.Toplevel):
         # }
         self.frame_themes.grid(row=3, padx=6, pady=6)
         # {
-        self.lbl_themes.grid(     row=0, rowspan=2, column=0, padx=(6, 1), pady=6)
-        self.combo_themes.grid(   row=0, rowspan=2, column=1, padx=0,      pady=6)
-        self.lbl_themes_note.grid(row=0,            column=2, padx=6,      pady=(6, 0), sticky='W')
-        self.txt_themes_note.grid(row=1,            column=2, padx=6,      pady=(0, 6), sticky='W')
+        self.lbl_themes.grid(      row=0, column=0, padx=(6, 1),  pady=6)
+        self.combo_themes.grid(    row=0, column=1, padx=0,       pady=6)
+        self.lbl_themes_note.grid( row=0, column=2, padx=(6, 12), pady=(6, 0), sticky='W')
+        self.btn_custom_theme.grid(row=1, column=1, padx=0,       pady=(0, 6), sticky='W')
+        self.txt_themes_note.grid( row=1, column=2, padx=(6, 12), pady=(0, 6), sticky='W')
         # }
         #
         self.btn_save.grid( row=4, column=0, padx=(6, 3), pady=(0, 6))
@@ -4203,6 +4628,13 @@ class SettingsW(tk.Toplevel):
             _0_global_window_last_version.configure(bg=ST_BG[th])
         except:  # Если окно обновления не открыто
             pass
+
+    # Задать пользовательскую тему
+    def custom_theme(self):
+        CustomThemeSettingsW(self).open()
+        upload_custom_theme()
+        if th == CUSTOM_TH:
+            self.set_theme()
 
     # Открыть словарь
     def dct_open(self):
@@ -4865,7 +5297,8 @@ print(f'========================================================================
 _0_global_dct = Dictionary()
 _0_global_has_progress = False
 
-upload_themes(THEMES)  # Загружаем темы
+upload_themes(THEMES)  # Загружаем дополнительные темы
+upload_custom_theme()  # Загружаем пользовательскую тему
 _0_global_dct_savename, _0_global_show_updates, _0_global_typo, th =\
     upload_global_settings()  # Загружаем глобальные настройки
 upload_themes_img(th)  # Загружаем изображения для выбранной темы
@@ -4879,13 +5312,14 @@ _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_comb
 _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
 root.mainloop()
 
-# Неразрешимые проблемы:
-# wait_window
-# Combobox.Listbox
-
 # Открывать программу после обновления
+# Сделать установщик отдельной программой
 # Если ответ немного отличается от правильного, то ...
 # Принимать несколько ответов при угадывании слова
 # Добавить изменение статьи по переводу
-# Сделать установщик отдельной программой
 # Поиск статьи по словоформе
+# убрать st_border и st_highlight
+
+# Неразрешимые проблемы:
+# wait_window
+# Combobox.Listbox
