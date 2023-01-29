@@ -16,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-181'
+PROGRAM_VERSION = 'v7.0.0_PRE-182'
 PROGRAM_DATE = '30.1.2023'
-PROGRAM_TIME = '1:11 (UTC+3)'
+PROGRAM_TIME = '2:38 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -2865,7 +2865,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                                        style='Default.TLabel')
         self.combo_set_theme = ttk.Combobox(self.frame_set_theme, textvariable=self.var_theme, values=THEMES[1:],
                                             state='readonly', style='.TCombobox')
-        self.btn_set_theme = ttk.Button(self.frame_set_theme, text='Выбрать', command=self.set_theme,
+        self.btn_set_theme = ttk.Button(self.frame_set_theme, text='Выбрать', width=8, command=self.set_theme,
                                         takefocus=False, style='Default.TButton')
         # }
         self.vscrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
@@ -3045,6 +3045,24 @@ class CustomThemeSettingsW(tk.Toplevel):
         #
         self.btn_save = ttk.Button(self, text='Сохранить', command=self.save, takefocus=False, style='Default.TButton')
 
+        self.frame_demonstration = ttk.Frame(self, style='DemoDefault.TFrame', relief='solid')
+        self.lbl_demo_header = ttk.Label(self.frame_demonstration, text='Anenokil developments presents',
+                                         style='DemoHeader.TLabel')
+        self.lbl_demo_logo = ttk.Label(self.frame_demonstration, text='Демонстрация', style='DemoLogo.TLabel')
+        self.frame_demo = ttk.Frame(self.frame_demonstration, style='DemoDefault.TFrame')
+        self.lbl_demo_def = ttk.Label(self.frame_demo, text='Надпись:', style='DemoDefault.TLabel')
+        self.check_demo = ttk.Checkbutton(self.frame_demo, style='Demo.TCheckbutton')
+        self.entry_demo = ttk.Entry(self.frame_demonstration, style='Demo.TEntry')
+        self.btn_demo_def = ttk.Button(self.frame_demonstration, text='Кнопка', takefocus=False,
+                                       style='DemoDefault.TButton')
+        self.btn_demo_dis = ttk.Button(self.frame_demonstration, text='Выключена', takefocus=False,
+                                       style='DemoDisabled.TButton')
+        self.btn_demo_y = ttk.Button(self.frame_demonstration, text='Сохранить', takefocus=False,
+                                     style='DemoYes.TButton')
+        self.btn_demo_n = ttk.Button(self.frame_demonstration, text='Закрыть', takefocus=False, style='DemoNo.TButton')
+        self.lbl_demo_warn = ttk.Label(self.frame_demonstration, text='Предупреждение!', style='DemoWarn.TLabel')
+        self.lbl_demo_footer = ttk.Label(self.frame_demonstration, text='Нижний колонтитул', style='DemoFooter.TLabel')
+
         self.frames = {STYLE_ELEMENTS[0]: self.frame_bg,
                        STYLE_ELEMENTS[1]: self.frame_bg_fields,
                        STYLE_ELEMENTS[2]: self.frame_fg,
@@ -3202,6 +3220,24 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.btn_scroll_fg_sel.grid(  row=28, column=2, padx=(0, 6), pady=(0, 6), sticky='W')
         # }
         self.btn_save.grid(row=2, columnspan=2, padx=6, pady=6)
+        #
+        self.frame_demonstration.grid(row=0, rowspan=3, column=2, padx=12, pady=12)
+        # {
+        self.lbl_demo_header.grid(row=0, column=0, columnspan=2, padx=6, pady=6)
+        self.lbl_demo_logo.grid(  row=1, column=0, columnspan=2, padx=6, pady=(0, 6))
+        self.frame_demo.grid(     row=2, column=0, columnspan=2, padx=6, pady=(0, 6))
+        # { {
+        self.lbl_demo_def.grid(row=0, column=0, padx=(6, 1), pady=6, sticky='E')
+        self.check_demo.grid(  row=0, column=1, padx=(0, 6), pady=6, sticky='W')
+        # } }
+        self.entry_demo.grid(     row=3, column=0, columnspan=2, padx=6,      pady=(0, 6))
+        self.btn_demo_def.grid(   row=4, column=0,               padx=6,      pady=(0, 6), sticky='E')
+        self.btn_demo_dis.grid(   row=4, column=1,               padx=(0, 6), pady=(0, 6), sticky='W')
+        self.btn_demo_y.grid(     row=5, column=0,               padx=6,      pady=(0, 6), sticky='E')
+        self.btn_demo_n.grid(     row=5, column=1,               padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_demo_warn.grid(  row=6, column=0, columnspan=2, padx=6,      pady=(0, 6))
+        self.lbl_demo_footer.grid(row=7, column=0, columnspan=2, padx=6,      pady=(0, 6))
+        # }
 
         self.read()
 
@@ -3213,6 +3249,8 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.frames[var].config(bg=hx)
         self.custom_styles[var] = hx
 
+        self.set_demo_ttk_styles()
+
     # Взять за основу уже существующую тему
     def set_theme(self):
         theme_name = self.var_theme.get()
@@ -3222,6 +3260,8 @@ class CustomThemeSettingsW(tk.Toplevel):
             else:
                 self.frames[var].config(bg=STYLES[var][theme_name])
             self.custom_styles[var] = STYLES[var][theme_name]
+
+        self.set_demo_ttk_styles()
 
     # Загрузить пользовательскую тему
     def read(self):
@@ -3235,6 +3275,8 @@ class CustomThemeSettingsW(tk.Toplevel):
                 else:
                     self.frames[var].config(bg=self.custom_styles[var])
 
+        self.set_demo_ttk_styles()
+
     # Сохранить пользовательскую тему
     def save(self):
         self.custom_styles['RELIEF'] = self.var_relief.get()
@@ -3243,6 +3285,144 @@ class CustomThemeSettingsW(tk.Toplevel):
             file.write(f'{REQUIRED_THEME_VERSION}')
             for var in STYLE_ELEMENTS:
                 file.write(f'\n{self.custom_styles[var]}')
+
+    # Обновить демонстрацию
+    def set_demo_ttk_styles(self):
+        # Стиль label "demo default"
+        self.st_lbl_default = ttk.Style()
+        self.st_lbl_default.theme_use('alt')
+        self.st_lbl_default.configure('DemoDefault.TLabel',
+                                      font=('StdFont', 10),
+                                      background=self.custom_styles['BG'],
+                                      foreground=self.custom_styles['FG'])
+
+        # Стиль label "demo header"
+        self.st_lbl_header = ttk.Style()
+        self.st_lbl_header.theme_use('alt')
+        self.st_lbl_header.configure('DemoHeader.TLabel',
+                                     font=('StdFont', 15),
+                                     background=self.custom_styles['BG'],
+                                     foreground=self.custom_styles['FG'])
+
+        # Стиль label "demo logo"
+        self.st_lbl_logo = ttk.Style()
+        self.st_lbl_logo.theme_use('alt')
+        self.st_lbl_logo.configure('DemoLogo.TLabel',
+                                   font=('Times', 21),
+                                   background=self.custom_styles['BG'],
+                                   foreground=self.custom_styles['FG_LOGO'])
+
+        # Стиль label "demo footer"
+        self.st_lbl_footer = ttk.Style()
+        self.st_lbl_footer.theme_use('alt')
+        self.st_lbl_footer.configure('DemoFooter.TLabel',
+                                     font=('StdFont', 8),
+                                     background=self.custom_styles['BG'],
+                                     foreground=self.custom_styles['FG_FOOTER'])
+
+        # Стиль label "demo warn"
+        self.st_lbl_warn = ttk.Style()
+        self.st_lbl_warn.theme_use('alt')
+        self.st_lbl_warn.configure('DemoWarn.TLabel',
+                                   font=('StdFont', 10),
+                                   background=self.custom_styles['BG'],
+                                   foreground=self.custom_styles['FG_WARN'])
+
+        # Стиль entry "demo"
+        self.st_entry = ttk.Style()
+        self.st_entry.theme_use('alt')
+        self.st_entry.configure('Demo.TEntry',
+                                font=('StdFont', 10))
+        self.st_entry.map('Demo.TEntry',
+                          fieldbackground=[('readonly', self.custom_styles['BG']),
+                                           ('!readonly', self.custom_styles['BG_FIELDS'])],
+                          foreground=[('readonly', self.custom_styles['FG']),
+                                      ('!readonly', self.custom_styles['FG_ENTRY'])],
+                          selectbackground=[('readonly', self.custom_styles['SELECT_BG']),
+                                            ('!readonly', self.custom_styles['SELECT_BG'])],
+                          selectforeground=[('readonly', self.custom_styles['SELECT_FG']),
+                                            ('!readonly', self.custom_styles['SELECT_FG'])])
+
+        # Стиль button "demo default"
+        self.st_btn_default = ttk.Style()
+        self.st_btn_default.theme_use('alt')
+        self.st_btn_default.configure('DemoDefault.TButton',
+                                      font=('StdFont', 12),
+                                      borderwidth=1)
+        self.st_btn_default.map('DemoDefault.TButton',
+                                relief=[('pressed', 'sunken'),
+                                        ('active', 'flat'),
+                                        ('!active', 'raised')],
+                                background=[('pressed', self.custom_styles['BTN_BG_SEL']),
+                                            ('active', self.custom_styles['BTN_BG']),
+                                            ('!active', self.custom_styles['BTN_BG'])],
+                                foreground=[('pressed', self.custom_styles['FG']),
+                                            ('active', self.custom_styles['FG']),
+                                            ('!active', self.custom_styles['FG'])])
+
+        # Стиль button "demo disabled"
+        self.st_btn_disabled = ttk.Style()
+        self.st_btn_disabled.theme_use('alt')
+        self.st_btn_disabled.configure('DemoDisabled.TButton',
+                                       font=('StdFont', 12),
+                                       borderwidth=1)
+        self.st_btn_disabled.map('DemoDisabled.TButton',
+                                 relief=[('active', 'raised'),
+                                         ('!active', 'raised')],
+                                 background=[('active', self.custom_styles['BTN_BG_DISABL']),
+                                             ('!active', self.custom_styles['BTN_BG_DISABL'])],
+                                 foreground=[('active', self.custom_styles['BTN_FG_DISABL']),
+                                             ('!active', self.custom_styles['BTN_FG_DISABL'])])
+
+        # Стиль button "demo yes"
+        self.st_btn_yes = ttk.Style()
+        self.st_btn_yes.theme_use('alt')
+        self.st_btn_yes.configure('DemoYes.TButton',
+                                  font=('StdFont', 12),
+                                  borderwidth=1)
+        self.st_btn_yes.map('DemoYes.TButton',
+                            relief=[('pressed', 'sunken'),
+                                    ('active', 'flat'),
+                                    ('!active', 'raised')],
+                            background=[('pressed', self.custom_styles['BTN_Y_BG_SEL']),
+                                        ('active', self.custom_styles['BTN_Y_BG']),
+                                        ('!active', self.custom_styles['BTN_Y_BG'])],
+                            foreground=[('pressed', self.custom_styles['FG']),
+                                        ('active', self.custom_styles['FG']),
+                                        ('!active', self.custom_styles['FG'])])
+
+        # Стиль button "demo no"
+        self.st_btn_no = ttk.Style()
+        self.st_btn_no.theme_use('alt')
+        self.st_btn_no.configure('DemoNo.TButton',
+                                 font=('StdFont', 12),
+                                 borderwidth=1)
+        self.st_btn_no.map('DemoNo.TButton',
+                           relief=[('pressed', 'sunken'),
+                                   ('active', 'flat'),
+                                   ('!active', 'raised')],
+                           background=[('pressed', self.custom_styles['BTN_N_BG_SEL']),
+                                       ('active', self.custom_styles['BTN_N_BG']),
+                                       ('!active', self.custom_styles['BTN_N_BG'])],
+                           foreground=[('pressed', self.custom_styles['FG']),
+                                       ('active', self.custom_styles['FG']),
+                                       ('!active', self.custom_styles['FG'])])
+
+        # Стиль checkbutton "demo"
+        self.st_check = ttk.Style()
+        self.st_check.theme_use('alt')
+        self.st_check.map('Demo.TCheckbutton',
+                          background=[('active', self.custom_styles['CHECK_BG_SEL']),
+                                      ('!active', self.custom_styles['BG'])])
+
+        # Стиль frame "demo default"
+        self.st_frame_default = ttk.Style()
+        self.st_frame_default.theme_use('alt')
+        self.st_frame_default.configure('DemoDefault.TFrame',
+                                        borderwidth=1,
+                                        relief=self.custom_styles['RELIEF'],
+                                        background=self.custom_styles['BG'],
+                                        bordercolor=self.custom_styles['BORDER'])
 
     # Установить фокус
     def set_focus(self):
