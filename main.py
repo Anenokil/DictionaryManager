@@ -16,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-184'
+PROGRAM_VERSION = 'v7.0.0_PRE-185'
 PROGRAM_DATE = '30.1.2023'
-PROGRAM_TIME = '4:11 (UTC+3)'
+PROGRAM_TIME = '18:54 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -2154,6 +2154,7 @@ class IncorrectAnswerW(tk.Toplevel):
     def __init__(self, parent, user_answer: str, correct_answer: str, with_typo: bool):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Incorrect answer')
+        self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
         self.parent = parent
@@ -5519,13 +5520,13 @@ class MainW(tk.Tk):
 
 
 # Вывод информации о программе
-print(f'======================================================================================\n'
+print(f'=====================================================================================\n'
       f'\n'
-      f'                            Anenokil development  presents\n'
-      f'                              {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                            Anenokil development presents\n'
+      f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
-      f'======================================================================================')
+      f'=====================================================================================')
 
 _0_global_dct = Dictionary()
 _0_global_has_progress = False
@@ -5546,12 +5547,11 @@ _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates)
 root.mainloop()
 
 # Открывать программу после обновления
-# Сделать установщик отдельной программой
-# Если ответ немного отличается от правильного, то ...
+# Сделать установщик отдельной программой: os.system(f'"{os.path.join(MAIN_PATH, exe_file_name)}"')
 # Принимать несколько ответов при угадывании слова
 # Добавить изменение статьи по переводу
 # Поиск статьи по словоформе
-# убрать st_border и st_highlight
+# Убрать st_highlight (и st_border)
 
 # Неразрешимые проблемы:
 # wait_window
