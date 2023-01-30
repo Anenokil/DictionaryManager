@@ -16,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-183'
+PROGRAM_VERSION = 'v7.0.0_PRE-184'
 PROGRAM_DATE = '30.1.2023'
-PROGRAM_TIME = '4:04 (UTC+3)'
+PROGRAM_TIME = '4:11 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -3046,7 +3046,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.btn_scroll_fg_sel = ttk.Button(self.interior, text='Изменить', takefocus=False, style='Default.TButton',
                                             command=lambda: self.choose_color(28))
         #
-        self.btn_save = ttk.Button(self, text='Сохранить', command=self.save, takefocus=False, style='Default.TButton')
+        self.btn_save = ttk.Button(self, text='Сохранить', command=self.save, takefocus=False, style='Yes.TButton')
 
         self.frame_demonstration = ttk.Frame(self, style='Window.TFrame', relief='solid')
         self.lbl_demo_header = ttk.Label(self.frame_demonstration, text='Anenokil developments presents',
@@ -3226,9 +3226,9 @@ class CustomThemeSettingsW(tk.Toplevel):
         #
         self.frame_demonstration.grid(row=0, rowspan=3, column=2, padx=12, pady=12)
         # {
-        self.lbl_demo_header.grid(row=0, column=0, columnspan=2, padx=6, pady=6)
-        self.lbl_demo_logo.grid(  row=1, column=0, columnspan=2, padx=6, pady=(0, 6))
-        self.frame_demo.grid(     row=2, column=0, columnspan=2, padx=6, pady=(0, 6))
+        self.lbl_demo_header.grid(row=0, column=0, columnspan=2, padx=12, pady=(12, 0))
+        self.lbl_demo_logo.grid(  row=1, column=0, columnspan=2, padx=12, pady=(0, 12))
+        self.frame_demo.grid(     row=2, column=0, columnspan=2, padx=6,  pady=(0, 6))
         # { {
         self.lbl_demo_def.grid(row=0, column=0, padx=(6, 1), pady=6, sticky='E')
         self.check_demo.grid(  row=0, column=1, padx=(0, 6), pady=6, sticky='W')
