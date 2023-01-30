@@ -16,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-185'
+PROGRAM_VERSION = 'v7.0.0_PRE-186'
 PROGRAM_DATE = '30.1.2023'
-PROGRAM_TIME = '18:54 (UTC+3)'
+PROGRAM_TIME = '19:15 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -2110,6 +2110,8 @@ class ChooseNoteW(tk.Toplevel):
         self.scrollbar.config(command=self.txt_words.yview)
 
         self.print_variants()
+
+        self.tip_entry = ttip.Hovertip(self.entry_input, f'Введите номер от 0 до {self.vals_count}', hover_delay=800)
 
     # Вывод вариантов статей
     def print_variants(self):
@@ -4873,7 +4875,7 @@ class SettingsW(tk.Toplevel):
     # Открыть словарь
     def dct_open(self):
         global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc,\
-            _0_global_form_parameters, _0_global_special_combinations
+            _0_global_form_parameters, _0_global_special_combinations, _0_global_has_progress
 
         saves_list = []
         for file_name in os.listdir(SAVES_PATH):
@@ -4908,6 +4910,7 @@ class SettingsW(tk.Toplevel):
 
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
 
+        _0_global_has_progress = False
         self.has_forms_changes = False
         self.has_spec_comb_changes = False
 
@@ -4916,7 +4919,7 @@ class SettingsW(tk.Toplevel):
     # Создать словарь
     def dct_create(self):
         global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc,\
-            _0_global_form_parameters, _0_global_special_combinations
+            _0_global_form_parameters, _0_global_special_combinations, _0_global_has_progress
 
         window = PopupEntryW(self, 'Введите название нового словаря', check_answer_function=check_dct_savename)
         closed, savename = window.open()
@@ -4938,6 +4941,7 @@ class SettingsW(tk.Toplevel):
 
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
 
+        _0_global_has_progress = False
         self.has_forms_changes = False
         self.has_spec_comb_changes = False
 
