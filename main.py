@@ -16,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-186'
+PROGRAM_VERSION = 'v7.0.0_PRE-187'
 PROGRAM_DATE = '30.1.2023'
-PROGRAM_TIME = '19:15 (UTC+3)'
+PROGRAM_TIME = '21:03 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -3477,10 +3477,10 @@ class PrintW(tk.Toplevel):
         # {
         self.lbl_fav = ttk.Label(self.frame_main, text='Только избранные:', style='Default.TLabel')
         self.lbl_forms = ttk.Label(self.frame_main, text='Все формы:', style='Default.TLabel')
-        self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, style='.TCheckbutton')
-        self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='.TCheckbutton')
-        self.btn_print = ttk.Button(self.frame_main, text='Печать', command=self.print,
-                                    takefocus=False, style='Default.TButton')
+        self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=self.print,
+                                         style='.TCheckbutton')
+        self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, command=self.print,
+                                           style='.TCheckbutton')
         # }
         self.scrollbar_x = ttk.Scrollbar(self, style='Horizontal.TScrollbar')
         self.scrollbar_y = ttk.Scrollbar(self, style='Vertical.TScrollbar')
@@ -3498,7 +3498,6 @@ class PrintW(tk.Toplevel):
         self.check_fav.grid(  row=0, column=1, padx=(0, 6), pady=6, sticky='W')
         self.lbl_forms.grid(  row=0, column=2, padx=(6, 1), pady=6, sticky='E')
         self.check_forms.grid(row=0, column=3, padx=(0, 6), pady=6, sticky='W')
-        self.btn_print.grid(  row=0, column=4, padx=6,      pady=6)
         # }
         self.txt_dct.grid(    row=2, column=0,     padx=(6, 0), pady=0,      sticky='NSEW')
         self.scrollbar_x.grid(row=3, column=0,     padx=(6, 0), pady=0,      sticky='NWE')
@@ -3539,7 +3538,6 @@ class PrintW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_print.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
     def open(self):
