@@ -16,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-187'
+PROGRAM_VERSION = 'v7.0.0_PRE-188'
 PROGRAM_DATE = '30.1.2023'
-PROGRAM_TIME = '21:03 (UTC+3)'
+PROGRAM_TIME = '23:45 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -1340,7 +1340,7 @@ def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
     window_last_version = None
     try:
         data = urllib2.urlopen(URL_LAST_VERSION)
-        last_version = str(data.read().decode('utf-8')).strip()
+        last_version = str(data.readline().decode('utf-8')).strip()
         if PROGRAM_VERSION == last_version:
             print('Установлена последняя доступная версия')
             if show_updates and show_if_no_updates:
@@ -1348,7 +1348,7 @@ def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
         else:
             print(f'Доступна новая версия: {last_version}')
             if show_updates:
-                window_last_version = CheckUpdatesW(window_parent, last_version)
+                window_last_version = UpdateAvailableW(window_parent, last_version)
     except Exception as exc:
         print(f'Ошибка: невозможно проверить наличие обновлений!\n'
               f'{exc}')
@@ -2218,7 +2218,7 @@ class IncorrectAnswerW(tk.Toplevel):
 
 
 # Окно уведомления о выходе новой версии
-class CheckUpdatesW(tk.Toplevel):
+class UpdateAvailableW(tk.Toplevel):
     def __init__(self, parent, last_version: str):
         super().__init__(parent)
         self.title('New version available')
@@ -3249,12 +3249,12 @@ class CustomThemeSettingsW(tk.Toplevel):
 
     # Выбрать цвет
     def choose_color(self, n: int):
-        (rgb, hx) = colorchooser.askcolor()
+        var = STYLE_ELEMENTS[n]
 
+        (rgb, hx) = colorchooser.askcolor(self.custom_styles[var])
         if not hx:
             return
 
-        var = STYLE_ELEMENTS[n]
         self.frames[var].config(bg=hx)
         self.custom_styles[var] = hx
 
@@ -5553,8 +5553,12 @@ root.mainloop()
 # Принимать несколько ответов при угадывании слова
 # Добавить изменение статьи по переводу
 # Поиск статьи по словоформе
-# Убрать st_highlight (и st_border)
 
 # Неразрешимые проблемы:
 # wait_window
 # Combobox.Listbox
+
+# -st_highlight (и st_border)
+# +relief txt
+# +btn img select
+# +btn img active
