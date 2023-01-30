@@ -16,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-182'
+PROGRAM_VERSION = 'v7.0.0_PRE-183'
 PROGRAM_DATE = '30.1.2023'
-PROGRAM_TIME = '2:38 (UTC+3)'
+PROGRAM_TIME = '4:04 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -2938,9 +2938,12 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.btn_select_fg = ttk.Button(self.interior, text='Изменить', takefocus=False, style='Default.TButton',
                                         command=lambda: self.choose_color(8))
         #
+        self.vcmd_refresh_demonstration = (self.register(lambda value: self.set_demo_ttk_styles()), '%P')
         self.lbl_relief = ttk.Label(self.interior, text='Стиль рамок:', style='Default.TLabel')
         self.combo_relief = ttk.Combobox(self.interior, values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
-                                         textvariable=self.var_relief, state='readonly', width=19, style='.TCombobox')
+                                         textvariable=self.var_relief, width=19,
+                                         validate='focus', validatecommand=self.vcmd_refresh_demonstration,
+                                         state='readonly', style='.TCombobox')
         #
         self.lbl_border = ttk.Label(self.interior, text='Цвет обводки полей:', style='Default.TLabel')
         self.frame_border = tk.Frame(self.interior, relief='solid', borderwidth=1, width=20, height=20)
@@ -3045,7 +3048,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         #
         self.btn_save = ttk.Button(self, text='Сохранить', command=self.save, takefocus=False, style='Default.TButton')
 
-        self.frame_demonstration = ttk.Frame(self, style='DemoDefault.TFrame', relief='solid')
+        self.frame_demonstration = ttk.Frame(self, style='Window.TFrame', relief='solid')
         self.lbl_demo_header = ttk.Label(self.frame_demonstration, text='Anenokil developments presents',
                                          style='DemoHeader.TLabel')
         self.lbl_demo_logo = ttk.Label(self.frame_demonstration, text='Демонстрация', style='DemoLogo.TLabel')
@@ -3057,9 +3060,9 @@ class CustomThemeSettingsW(tk.Toplevel):
                                        style='DemoDefault.TButton')
         self.btn_demo_dis = ttk.Button(self.frame_demonstration, text='Выключена', takefocus=False,
                                        style='DemoDisabled.TButton')
-        self.btn_demo_y = ttk.Button(self.frame_demonstration, text='Сохранить', takefocus=False,
+        self.btn_demo_y = ttk.Button(self.frame_demonstration, text='Да', takefocus=False,
                                      style='DemoYes.TButton')
-        self.btn_demo_n = ttk.Button(self.frame_demonstration, text='Закрыть', takefocus=False, style='DemoNo.TButton')
+        self.btn_demo_n = ttk.Button(self.frame_demonstration, text='Нет', takefocus=False, style='DemoNo.TButton')
         self.lbl_demo_warn = ttk.Label(self.frame_demonstration, text='Предупреждение!', style='DemoWarn.TLabel')
         self.lbl_demo_footer = ttk.Label(self.frame_demonstration, text='Нижний колонтитул', style='DemoFooter.TLabel')
 
@@ -3245,6 +3248,9 @@ class CustomThemeSettingsW(tk.Toplevel):
     def choose_color(self, n: int):
         (rgb, hx) = colorchooser.askcolor()
 
+        if not hx:
+            return
+
         var = STYLE_ELEMENTS[n]
         self.frames[var].config(bg=hx)
         self.custom_styles[var] = hx
@@ -3288,6 +3294,8 @@ class CustomThemeSettingsW(tk.Toplevel):
 
     # Обновить демонстрацию
     def set_demo_ttk_styles(self):
+        self.custom_styles['RELIEF'] = self.var_relief.get()
+
         # Стиль label "demo default"
         self.st_lbl_default = ttk.Style()
         self.st_lbl_default.theme_use('alt')
@@ -3423,6 +3431,17 @@ class CustomThemeSettingsW(tk.Toplevel):
                                         relief=self.custom_styles['RELIEF'],
                                         background=self.custom_styles['BG'],
                                         bordercolor=self.custom_styles['BORDER'])
+
+        # Стиль frame "window"
+        self.st_frame_window = ttk.Style()
+        self.st_frame_window.theme_use('alt')
+        self.st_frame_window.configure('Window.TFrame',
+                                       borderwidth=1,
+                                       relief='groove',
+                                       background=self.custom_styles['BG'],
+                                       bordercolor='#888888')
+
+        return True
 
     # Установить фокус
     def set_focus(self):
