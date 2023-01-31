@@ -16,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-189'
+PROGRAM_VERSION = 'v7.0.0_PRE-190'
 PROGRAM_DATE = '31.1.2023'
-PROGRAM_TIME = '1:37 (UTC+3)'
+PROGRAM_TIME = '11:41 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -2931,9 +2931,8 @@ class CustomThemeSettingsW(tk.Toplevel):
         # Выбор цветов
         self.labels = [ttk.Label(self.interior, style='Default.TLabel')
                        for _ in range(len(STYLE_ELEMENTS))]
-        self.frames = [tk.Frame(self.interior, relief='solid', borderwidth=1, width=20, height=20)
-                       for _ in range(len(STYLE_ELEMENTS))]
-        self.buttons = [ttk.Button(self.interior, text='Изменить', takefocus=False, style='Default.TButton')
+        self.buttons = [tk.Button(self.interior, relief='solid', overrelief='raised',
+                                  borderwidth=1, width=18, takefocus=False)
                         for i in range(len(STYLE_ELEMENTS))]
         # Получается по 1 лишнему экземпляру каждого виджета (но пусть будет так)
 
@@ -2944,19 +2943,15 @@ class CustomThemeSettingsW(tk.Toplevel):
                 self.buttons[i].configure(command=lambda i=i: self.choose_color(i))
 
                 self.labels[i].grid( row=i, column=0, padx=(6, 1), sticky='E')
-                self.frames[i].grid( row=i, column=1, padx=(0, 3))
-                self.buttons[i].grid(row=i, column=2, padx=(0, 6), sticky='W')
+                self.buttons[i].grid(row=i, column=1, padx=(0, 6), sticky='W')
                 if i == 0:
                     self.labels[i].grid(pady=(6, 3))
-                    self.frames[i].grid(pady=(6, 3))
                     self.buttons[i].grid(pady=(6, 3))
                 elif i == len(STYLE_ELEMENTS) - 1:
                     self.labels[i].grid(pady=(0, 6))
-                    self.frames[i].grid(pady=(0, 6))
                     self.buttons[i].grid(pady=(0, 6))
                 else:
                     self.labels[i].grid(pady=(0, 3))
-                    self.frames[i].grid(pady=(0, 3))
                     self.buttons[i].grid(pady=(0, 3))
         #
         # Выбор стиля рамок
@@ -3026,6 +3021,8 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.lbl_demo_footer.grid(row=7, column=0, columnspan=2, padx=6,      pady=(0, 6))
         # }
 
+        self.entry_demo.insert(tk.END, 'abcde12345')
+
         self.read()
 
     # Выбрать цвет
@@ -3036,7 +3033,8 @@ class CustomThemeSettingsW(tk.Toplevel):
         if not hx:
             return
 
-        self.frames[n].config(bg=hx)
+        self.buttons[n].config(bg=hx)
+        self.buttons[n].config(activebackground=hx)
         self.custom_styles[var] = hx
 
         self.set_demo_ttk_styles()
@@ -3049,7 +3047,8 @@ class CustomThemeSettingsW(tk.Toplevel):
             if var == 'RELIEF':
                 self.var_relief.set(STYLES[var][theme_name])
             else:
-                self.frames[i].config(bg=STYLES[var][theme_name])
+                self.buttons[i].config(bg=STYLES[var][theme_name])
+                self.buttons[i].config(activebackground=STYLES[var][theme_name])
             self.custom_styles[var] = STYLES[var][theme_name]
 
         self.set_demo_ttk_styles()
@@ -3065,7 +3064,8 @@ class CustomThemeSettingsW(tk.Toplevel):
                 if var == 'RELIEF':
                     self.var_relief.set(self.custom_styles[var])
                 else:
-                    self.frames[i].config(bg=self.custom_styles[var])
+                    self.buttons[i].config(bg=self.custom_styles[var])
+                    self.buttons[i].config(activebackground=self.custom_styles[var])
 
         self.set_demo_ttk_styles()
 
@@ -5309,7 +5309,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development presents\n'
       f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
+      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
