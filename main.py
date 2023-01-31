@@ -16,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-191'
-PROGRAM_DATE = '31.1.2023'
-PROGRAM_TIME = '23:40 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0_PRE-192'
+PROGRAM_DATE = '1.2.2023'
+PROGRAM_TIME = '2:29 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -36,7 +36,7 @@ ST_BG             = {THEMES[1]: '#EAEAEA', THEMES[2]: '#222222'}  # Цвет ф�
 ST_BG_FIELDS      = {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}  # Цвет фона полей ввода
 
 ST_FG             = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет обычного текста
-ST_FG_LOGO        = {THEMES[1]: '#FF7200', THEMES[2]: '#AA4600'}  # Цвет текста логотипа
+ST_FG_LOGO        = {THEMES[1]: '#FF8800', THEMES[2]: '#AA4600'}  # Цвет текста логотипа
 ST_FG_FOOTER      = {THEMES[1]: '#666666', THEMES[2]: '#666666'}  # Цвет текста нижнего колонтитула
 ST_FG_WARN        = {THEMES[1]: '#DD2222', THEMES[2]: '#DD2222'}  # Цвет текста предупреждения
 ST_FG_ENTRY       = {THEMES[1]: '#222222', THEMES[2]: '#777777'}  # Цвет вводимого текста
@@ -48,7 +48,7 @@ ST_RELIEF_FRAME   = {THEMES[1]: 'groove',  THEMES[2]: 'solid'  }  # Стиль �
 ST_RELIEF_TEXT    = {THEMES[1]: 'sunken',  THEMES[2]: 'solid'  }  # Стиль рамок текстовых полей
 ST_BORDERCOLOR    = {THEMES[1]: '#222222', THEMES[2]: '#111111'}  # Цвет рамок (highlightbackground; работает для solid)
 
-ST_BTN_BG         = {THEMES[1]: '#D0D0D0', THEMES[2]: '#1D1D1D'}  # Цвет фона обычных кнопок
+ST_BTN_BG         = {THEMES[1]: '#D0D0D0', THEMES[2]: '#1C1C1C'}  # Цвет фона обычных кнопок
 ST_BTN_BG_SEL     = {THEMES[1]: '#BABABA', THEMES[2]: '#191919'}  # Цвет фона обычных кнопок при нажатии
 ST_BTN_Y_BG       = {THEMES[1]: '#88DD88', THEMES[2]: '#446F44'}  # Цвет фона да-кнопок
 ST_BTN_Y_BG_SEL   = {THEMES[1]: '#77CC77', THEMES[2]: '#558055'}  # Цвет фона да-кнопок при нажатии
@@ -58,7 +58,7 @@ ST_BTN_N_BG_SEL   = {THEMES[1]: '#EE5555', THEMES[2]: '#904444'}  # Цвет ф�
 ST_BTN_IMG_BG_HOV = {THEMES[1]: '#D0D0D0', THEMES[2]: '#1D1D1D'}  # Цвет фона кнопок-картинок при наведении
 ST_BTN_IMG_BG_SEL = {THEMES[1]: '#BABABA', THEMES[2]: '#191919'}  # Цвет фона кнопок-картинок при нажатии
 
-ST_BTN_BG_DISABL  = {THEMES[1]: '#D9D9D9', THEMES[2]: '#151515'}  # Цвет фона выключенных кнопок
+ST_BTN_BG_DISABL  = {THEMES[1]: '#D9D9D9', THEMES[2]: '#1E1E1E'}  # Цвет фона выключенных кнопок
 ST_BTN_FG_DISABL  = {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}  # Цвет текста выключенных кнопок
 
 ST_CHECK_BG_SEL   = {THEMES[1]: '#DDDDDD', THEMES[2]: '#333333'}  # Цвет фона переключателя при наведении на него
@@ -2989,7 +2989,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                     self.buttons[i].grid(pady=(0, 3))
         #
         # Выбор стиля рамок
-        self.vcmd_refresh_demonstration = (self.register(lambda value: self.set_demo_ttk_styles()), '%P')
+        self.vcmd_refresh_demonstration = (self.register(lambda value: self.set_demo_styles()), '%P')
 
         self.lbl_relief_frame = ttk.Label(self.interior, text='Стиль рамок фреймов:', style='Default.TLabel')
         self.combo_relief_frame = ttk.Combobox(self.interior, textvariable=self.var_relief_frame, width=19,
@@ -3016,6 +3016,9 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.check_demo = ttk.Checkbutton(self.frame_demo, style='Demo.TCheckbutton')
         # } }
         self.entry_demo = ttk.Entry(self.frame_demonstration, style='Demo.TEntry')
+        self.txt_demo = tk.Text(self.frame_demonstration, width=12, height=4, state='normal')
+        self.scroll_demo = ttk.Scrollbar(self.frame_demonstration, command=self.txt_demo.yview,
+                                         style='Demo.Vertical.TScrollbar')
         self.btn_demo_def = ttk.Button(self.frame_demonstration, text='Кнопка', takefocus=False,
                                        style='DemoDefault.TButton')
         self.btn_demo_dis = ttk.Button(self.frame_demonstration, text='Выключена', takefocus=False,
@@ -3048,23 +3051,29 @@ class CustomThemeSettingsW(tk.Toplevel):
         #
         self.frame_demonstration.grid(row=0, rowspan=3, column=2, padx=12, pady=12)
         # {
-        self.lbl_demo_header.grid(row=0, column=0, columnspan=2, padx=12, pady=(12, 0))
-        self.lbl_demo_logo.grid(  row=1, column=0, columnspan=2, padx=12, pady=(0, 12))
-        self.frame_demo.grid(     row=2, column=0, columnspan=2, padx=6,  pady=(0, 6))
+        self.lbl_demo_header.grid(row=0, column=0, columnspan=3, padx=12, pady=(12, 0))
+        self.lbl_demo_logo.grid(  row=1, column=0, columnspan=3, padx=12, pady=(0, 12))
+        self.frame_demo.grid(     row=2, column=0,               padx=6,  pady=(0, 6), sticky='E')
         # { {
         self.lbl_demo_def.grid(row=0, column=0, padx=(6, 1), pady=6, sticky='E')
         self.check_demo.grid(  row=0, column=1, padx=(0, 6), pady=6, sticky='W')
         # } }
-        self.entry_demo.grid(     row=3, column=0, columnspan=2, padx=6,      pady=(0, 6))
-        self.btn_demo_def.grid(   row=4, column=0,               padx=6,      pady=(0, 6), sticky='E')
-        self.btn_demo_dis.grid(   row=4, column=1,               padx=(0, 6), pady=(0, 6), sticky='W')
-        self.btn_demo_y.grid(     row=5, column=0,               padx=6,      pady=(0, 6), sticky='E')
-        self.btn_demo_n.grid(     row=5, column=1,               padx=(0, 6), pady=(0, 6), sticky='W')
-        self.lbl_demo_warn.grid(  row=6, column=0, columnspan=2, padx=6,      pady=(0, 6))
-        self.lbl_demo_footer.grid(row=7, column=0, columnspan=2, padx=6,      pady=(0, 6))
+        self.txt_demo.grid(       row=2, rowspan=4, column=1,               padx=0,      pady=(0, 6), sticky='SNWE')
+        self.scroll_demo.grid(    row=2, rowspan=4, column=2,               padx=(0, 6), pady=(0, 6), sticky='SNW')
+        self.entry_demo.grid(     row=3,            column=0,               padx=6,      pady=(0, 6), sticky='E')
+        self.btn_demo_def.grid(   row=4,            column=0,               padx=6,      pady=(0, 6), sticky='E')
+        self.btn_demo_dis.grid(   row=5,            column=0,               padx=6,      pady=(0, 6), sticky='E')
+        self.btn_demo_y.grid(     row=6,            column=0,               padx=6,      pady=(0, 6), sticky='E')
+        self.btn_demo_n.grid(     row=6,            column=1, columnspan=2, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_demo_warn.grid(  row=7,            column=0, columnspan=3, padx=6,      pady=(0, 6))
+        self.lbl_demo_footer.grid(row=8,            column=0, columnspan=3, padx=6,      pady=(0, 6))
         # }
 
-        self.entry_demo.insert(tk.END, 'abcde12345')
+        self.entry_demo.insert(tk.END, 'abcde 12345')
+        self.txt_demo.insert(tk.END, '1')
+        for i in range(2, 51):
+            self.txt_demo.insert(tk.END, f'\n{i}')
+        self.txt_demo.config(yscrollcommand=self.scroll_demo.set, state='disabled')
 
         self.read()
 
@@ -3080,7 +3089,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.buttons[n].config(activebackground=hx)
         self.custom_styles[var] = hx
 
-        self.set_demo_ttk_styles()
+        self.set_demo_styles()
 
     # Взять за основу уже существующую тему
     def set_theme(self):
@@ -3096,7 +3105,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                 self.buttons[i].config(activebackground=STYLES[var][theme_name])
             self.custom_styles[var] = STYLES[var][theme_name]
 
-        self.set_demo_ttk_styles()
+        self.set_demo_styles()
 
     # Загрузить пользовательскую тему
     def read(self):
@@ -3116,7 +3125,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                     self.buttons[i].config(bg=self.custom_styles[var])
                     self.buttons[i].config(activebackground=self.custom_styles[var])
 
-        self.set_demo_ttk_styles()
+        self.set_demo_styles()
 
     # Сохранить пользовательскую тему
     def save(self):
@@ -3129,9 +3138,16 @@ class CustomThemeSettingsW(tk.Toplevel):
                 file.write(f'\n{self.custom_styles[var]}')
 
     # Обновить демонстрацию
-    def set_demo_ttk_styles(self):
+    def set_demo_styles(self):
         self.custom_styles['RELIEF_FRAME'] = self.var_relief_frame.get()
         self.custom_styles['RELIEF_TEXT'] = self.var_relief_text.get()
+
+        self.txt_demo.config(relief=self.custom_styles['RELIEF_TEXT'],
+                             bg=self.custom_styles['BG_FIELDS'],
+                             fg=self.custom_styles['FG'],
+                             selectbackground=self.custom_styles['SELECT_BG'],
+                             selectforeground=self.custom_styles['SELECT_FG'],
+                             highlightbackground=self.custom_styles['BORDERCOLOR'])
 
         # Стиль label "demo default"
         self.st_lbl_default = ttk.Style()
@@ -3277,6 +3293,17 @@ class CustomThemeSettingsW(tk.Toplevel):
                                        relief='groove',
                                        background=self.custom_styles['BG'],
                                        bordercolor='#888888')
+
+        # Стиль scrollbar "vertical"
+        self.st_vscroll = ttk.Style()
+        self.st_vscroll.theme_use('alt')
+        self.st_vscroll.map('Demo.Vertical.TScrollbar',
+                            troughcolor=[('disabled', self.custom_styles['BG']),
+                                         ('pressed', self.custom_styles['SCROLL_BG_SEL']),
+                                         ('!pressed', self.custom_styles['SCROLL_BG'])],
+                            background=[('disabled', self.custom_styles['BG']),
+                                        ('pressed', self.custom_styles['SCROLL_FG_SEL']),
+                                        ('!pressed', self.custom_styles['SCROLL_FG'])])
 
         return True
 
@@ -5360,7 +5387,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development presents\n'
       f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
