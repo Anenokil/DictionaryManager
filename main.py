@@ -16,14 +16,14 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-190'
+PROGRAM_VERSION = 'v7.0.0_PRE-191'
 PROGRAM_DATE = '31.1.2023'
-PROGRAM_TIME = '11:41 (UTC+3)'
+PROGRAM_TIME = '23:40 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
 GLOBAL_SETTINGS_VERSION = 1  # Актуальная версия глобальных настроек
-REQUIRED_THEME_VERSION = 4  # Актуальная версия тем
+REQUIRED_THEME_VERSION = 5  # Актуальная версия тем
 
 """ Стандартные темы """
 
@@ -32,50 +32,54 @@ THEMES = [CUSTOM_TH, 'light', 'dark']  # Названия тем
 DEFAULT_TH = THEMES[1]  # Тема по умолчанию
 
 # Стили для каждой темы
-ST_BG            = {THEMES[1]: '#EAEAEA', THEMES[2]: '#222222'}  # Цвет фона окна
-ST_BG_FIELDS     = {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}  # Цвет фона полей ввода
+ST_BG             = {THEMES[1]: '#EAEAEA', THEMES[2]: '#222222'}  # Цвет фона окна
+ST_BG_FIELDS      = {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}  # Цвет фона полей ввода
 
-ST_FG            = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет обычного текста
-ST_FG_LOGO       = {THEMES[1]: '#FF7200', THEMES[2]: '#AA4600'}  # Цвет текста логотипа
-ST_FG_FOOTER     = {THEMES[1]: '#666666', THEMES[2]: '#666666'}  # Цвет текста нижнего колонтитула
-ST_FG_WARN       = {THEMES[1]: '#DD2222', THEMES[2]: '#DD2222'}  # Цвет текста предупреждения
-ST_FG_ENTRY      = {THEMES[1]: '#222222', THEMES[2]: '#777777'}  # Цвет вводимого текста
+ST_FG             = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет обычного текста
+ST_FG_LOGO        = {THEMES[1]: '#FF7200', THEMES[2]: '#AA4600'}  # Цвет текста логотипа
+ST_FG_FOOTER      = {THEMES[1]: '#666666', THEMES[2]: '#666666'}  # Цвет текста нижнего колонтитула
+ST_FG_WARN        = {THEMES[1]: '#DD2222', THEMES[2]: '#DD2222'}  # Цвет текста предупреждения
+ST_FG_ENTRY       = {THEMES[1]: '#222222', THEMES[2]: '#777777'}  # Цвет вводимого текста
 
-ST_SELECT_BG     = {THEMES[1]: '#BBBBBB', THEMES[2]: '#444444'}  # Цвет выделения фона (selectbackground)
-ST_SELECT_FG     = {THEMES[1]: '#101010', THEMES[2]: '#A0A0A0'}  # Цвет выделения текста (selectforeground)
+ST_SELECT_BG      = {THEMES[1]: '#BBBBBB', THEMES[2]: '#444444'}  # Цвет выделения фона (selectbackground)
+ST_SELECT_FG      = {THEMES[1]: '#101010', THEMES[2]: '#A0A0A0'}  # Цвет выделения текста (selectforeground)
 
-ST_RELIEF        = {THEMES[1]: 'groove',  THEMES[2]: 'solid'  }  # Стиль рамок
-ST_BORDER        = {THEMES[1]: '#222222', THEMES[2]: '#111111'}  # Цвет рамок (highlightbackground; работает для solid)
-ST_HIGHLIGHT     = {THEMES[1]: '#00DD00', THEMES[2]: '#005500'}  # Цвет подсветки виджета при фокусе (highlightcolor)
+ST_RELIEF_FRAME   = {THEMES[1]: 'groove',  THEMES[2]: 'solid'  }  # Стиль рамок фреймов
+ST_RELIEF_TEXT    = {THEMES[1]: 'sunken',  THEMES[2]: 'solid'  }  # Стиль рамок текстовых полей
+ST_BORDERCOLOR    = {THEMES[1]: '#222222', THEMES[2]: '#111111'}  # Цвет рамок (highlightbackground; работает для solid)
 
-ST_BTN_BG        = {THEMES[1]: '#D0D0D0', THEMES[2]: '#1D1D1D'}  # Цвет фона обычных кнопок
-ST_BTN_BG_SEL    = {THEMES[1]: '#BABABA', THEMES[2]: '#191919'}  # Цвет фона обычных кнопок при нажатии
-ST_BTN_Y_BG      = {THEMES[1]: '#88DD88', THEMES[2]: '#446F44'}  # Цвет фона да-кнопок
-ST_BTN_Y_BG_SEL  = {THEMES[1]: '#77CC77', THEMES[2]: '#558055'}  # Цвет фона да-кнопок при нажатии
-ST_BTN_N_BG      = {THEMES[1]: '#FF6666', THEMES[2]: '#803333'}  # Цвет фона нет-кнопок
-ST_BTN_N_BG_SEL  = {THEMES[1]: '#EE5555', THEMES[2]: '#904444'}  # Цвет фона нет-кнопок при нажатии
+ST_BTN_BG         = {THEMES[1]: '#D0D0D0', THEMES[2]: '#1D1D1D'}  # Цвет фона обычных кнопок
+ST_BTN_BG_SEL     = {THEMES[1]: '#BABABA', THEMES[2]: '#191919'}  # Цвет фона обычных кнопок при нажатии
+ST_BTN_Y_BG       = {THEMES[1]: '#88DD88', THEMES[2]: '#446F44'}  # Цвет фона да-кнопок
+ST_BTN_Y_BG_SEL   = {THEMES[1]: '#77CC77', THEMES[2]: '#558055'}  # Цвет фона да-кнопок при нажатии
+ST_BTN_N_BG       = {THEMES[1]: '#FF6666', THEMES[2]: '#803333'}  # Цвет фона нет-кнопок
+ST_BTN_N_BG_SEL   = {THEMES[1]: '#EE5555', THEMES[2]: '#904444'}  # Цвет фона нет-кнопок при нажатии
 
-ST_BTN_BG_DISABL = {THEMES[1]: '#D9D9D9', THEMES[2]: '#151515'}  # Цвет фона выключенных кнопок
-ST_BTN_FG_DISABL = {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}  # Цвет текста выключенных кнопок
+ST_BTN_IMG_BG_HOV = {THEMES[1]: '#D0D0D0', THEMES[2]: '#1D1D1D'}  # Цвет фона кнопок-картинок при наведении
+ST_BTN_IMG_BG_SEL = {THEMES[1]: '#BABABA', THEMES[2]: '#191919'}  # Цвет фона кнопок-картинок при нажатии
 
-ST_CHECK_BG_SEL  = {THEMES[1]: '#DDDDDD', THEMES[2]: '#333333'}  # Цвет фона переключателя при наведении на него
+ST_BTN_BG_DISABL  = {THEMES[1]: '#D9D9D9', THEMES[2]: '#151515'}  # Цвет фона выключенных кнопок
+ST_BTN_FG_DISABL  = {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}  # Цвет текста выключенных кнопок
 
-ST_TAB_BG        = {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}  # Цвет фона закрытой вкладки
-ST_TAB_BG_SEL    = {THEMES[1]: '#EAEAEA', THEMES[2]: '#222222'}  # Цвет фона открытой вкладки
-ST_TAB_FG        = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет текста закрытой вкладки
-ST_TAB_FG_SEL    = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет текста открытой вкладки
+ST_CHECK_BG_SEL   = {THEMES[1]: '#DDDDDD', THEMES[2]: '#333333'}  # Цвет фона переключателя при наведении на него
 
-ST_SCROLL_BG     = {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}  # Цвет фона ползунка
-ST_SCROLL_BG_SEL = {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}  # Цвет фона ползунка при нажатии
-ST_SCROLL_FG     = {THEMES[1]: '#CACACA', THEMES[2]: '#292929'}  # Цвет ползунка
-ST_SCROLL_FG_SEL = {THEMES[1]: '#ABABAB', THEMES[2]: '#333333'}  # Цвет ползунка при нажатии
+ST_TAB_BG         = {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}  # Цвет фона закрытой вкладки
+ST_TAB_BG_SEL     = {THEMES[1]: '#EAEAEA', THEMES[2]: '#222222'}  # Цвет фона открытой вкладки
+ST_TAB_FG         = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет текста закрытой вкладки
+ST_TAB_FG_SEL     = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет текста открытой вкладки
+
+ST_SCROLL_BG      = {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}  # Цвет фона ползунка
+ST_SCROLL_BG_SEL  = {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}  # Цвет фона ползунка при нажатии
+ST_SCROLL_FG      = {THEMES[1]: '#CACACA', THEMES[2]: '#292929'}  # Цвет ползунка
+ST_SCROLL_FG_SEL  = {THEMES[1]: '#ABABAB', THEMES[2]: '#333333'}  # Цвет ползунка при нажатии
 
 # Названия стилизуемых элементов
 STYLE_ELEMENTS = ('BG', 'BG_FIELDS',
                   'FG', 'FG_LOGO', 'FG_FOOTER', 'FG_WARN', 'FG_ENTRY',
                   'SELECT_BG', 'SELECT_FG',
-                  'RELIEF', 'BORDER', 'HIGHLIGHT',
+                  'RELIEF_FRAME', 'RELIEF_TEXT', 'BORDERCOLOR',
                   'BTN_BG', 'BTN_BG_SEL', 'BTN_Y_BG', 'BTN_Y_BG_SEL', 'BTN_N_BG', 'BTN_N_BG_SEL',
+                  'BTN_IMG_BG_HOV', 'BTN_IMG_BG_SEL',
                   'BTN_BG_DISABL', 'BTN_FG_DISABL',
                   'CHECK_BG_SEL',
                   'TAB_BG', 'TAB_BG_SEL', 'TAB_FG', 'TAB_FG_SEL',
@@ -91,26 +95,28 @@ STYLES = {STYLE_ELEMENTS[0]:  ST_BG,
           STYLE_ELEMENTS[6]:  ST_FG_ENTRY,
           STYLE_ELEMENTS[7]:  ST_SELECT_BG,
           STYLE_ELEMENTS[8]:  ST_SELECT_FG,
-          STYLE_ELEMENTS[9]:  ST_RELIEF,
-          STYLE_ELEMENTS[10]: ST_BORDER,
-          STYLE_ELEMENTS[11]: ST_HIGHLIGHT,
+          STYLE_ELEMENTS[9]:  ST_RELIEF_FRAME,
+          STYLE_ELEMENTS[10]: ST_RELIEF_TEXT,
+          STYLE_ELEMENTS[11]: ST_BORDERCOLOR,
           STYLE_ELEMENTS[12]: ST_BTN_BG,
           STYLE_ELEMENTS[13]: ST_BTN_BG_SEL,
           STYLE_ELEMENTS[14]: ST_BTN_Y_BG,
           STYLE_ELEMENTS[15]: ST_BTN_Y_BG_SEL,
           STYLE_ELEMENTS[16]: ST_BTN_N_BG,
           STYLE_ELEMENTS[17]: ST_BTN_N_BG_SEL,
-          STYLE_ELEMENTS[18]: ST_BTN_BG_DISABL,
-          STYLE_ELEMENTS[19]: ST_BTN_FG_DISABL,
-          STYLE_ELEMENTS[20]: ST_CHECK_BG_SEL,
-          STYLE_ELEMENTS[21]: ST_TAB_BG,
-          STYLE_ELEMENTS[22]: ST_TAB_BG_SEL,
-          STYLE_ELEMENTS[23]: ST_TAB_FG,
-          STYLE_ELEMENTS[24]: ST_TAB_FG_SEL,
-          STYLE_ELEMENTS[25]: ST_SCROLL_BG,
-          STYLE_ELEMENTS[26]: ST_SCROLL_BG_SEL,
-          STYLE_ELEMENTS[27]: ST_SCROLL_FG,
-          STYLE_ELEMENTS[28]: ST_SCROLL_FG_SEL}
+          STYLE_ELEMENTS[18]: ST_BTN_IMG_BG_HOV,
+          STYLE_ELEMENTS[19]: ST_BTN_IMG_BG_SEL,
+          STYLE_ELEMENTS[20]: ST_BTN_BG_DISABL,
+          STYLE_ELEMENTS[21]: ST_BTN_FG_DISABL,
+          STYLE_ELEMENTS[22]: ST_CHECK_BG_SEL,
+          STYLE_ELEMENTS[23]: ST_TAB_BG,
+          STYLE_ELEMENTS[24]: ST_TAB_BG_SEL,
+          STYLE_ELEMENTS[25]: ST_TAB_FG,
+          STYLE_ELEMENTS[26]: ST_TAB_FG_SEL,
+          STYLE_ELEMENTS[27]: ST_SCROLL_BG,
+          STYLE_ELEMENTS[28]: ST_SCROLL_BG_SEL,
+          STYLE_ELEMENTS[29]: ST_SCROLL_FG,
+          STYLE_ELEMENTS[30]: ST_SCROLL_FG_SEL}
 
 # Названия стилей
 STYLE_NAMES = {STYLE_ELEMENTS[0]:  'Цвет фона окна',
@@ -122,26 +128,28 @@ STYLE_NAMES = {STYLE_ELEMENTS[0]:  'Цвет фона окна',
                STYLE_ELEMENTS[6]:  'Цвет вводимого текста',
                STYLE_ELEMENTS[7]:  'Цвет выделения фона',
                STYLE_ELEMENTS[8]:  'Цвет выделения текста',
-               STYLE_ELEMENTS[9]:  'Стиль рамок',
-               STYLE_ELEMENTS[10]: 'Цвет рамок',
-               STYLE_ELEMENTS[11]: 'Цвет подсветки виджета при фокусе',
+               STYLE_ELEMENTS[9]:  'Стиль рамок фреймов',
+               STYLE_ELEMENTS[10]: 'Стиль рамок текстовых полей',
+               STYLE_ELEMENTS[11]: 'Цвет рамок',
                STYLE_ELEMENTS[12]: 'Цвет фона обычных кнопок',
                STYLE_ELEMENTS[13]: 'Цвет фона обычных кнопок при нажатии',
                STYLE_ELEMENTS[14]: 'Цвет фона да-кнопок',
                STYLE_ELEMENTS[15]: 'Цвет фона да-кнопок при нажатии',
                STYLE_ELEMENTS[16]: 'Цвет фона нет-кнопок',
                STYLE_ELEMENTS[17]: 'Цвет фона нет-кнопок при нажатии',
-               STYLE_ELEMENTS[18]: 'Цвет фона выключенных кнопок',
-               STYLE_ELEMENTS[19]: 'Цвет текста выключенных кнопок',
-               STYLE_ELEMENTS[20]: 'Цвет фона переключателя при наведении на него',
-               STYLE_ELEMENTS[21]: 'Цвет фона закрытой вкладки',
-               STYLE_ELEMENTS[22]: 'Цвет фона открытой вкладки',
-               STYLE_ELEMENTS[23]: 'Цвет текста закрытой вкладки',
-               STYLE_ELEMENTS[24]: 'Цвет текста открытой вкладки',
-               STYLE_ELEMENTS[25]: 'Цвет фона ползунка',
-               STYLE_ELEMENTS[26]: 'Цвет фона ползунка при нажатии',
-               STYLE_ELEMENTS[27]: 'Цвет ползунка',
-               STYLE_ELEMENTS[28]: 'Цвет ползунка при нажатии'}
+               STYLE_ELEMENTS[18]: 'Цвет фона кнопок-картинок при наведении',
+               STYLE_ELEMENTS[19]: 'Цвет фона кнопок-картинок при нажатии',
+               STYLE_ELEMENTS[20]: 'Цвет фона выключенных кнопок',
+               STYLE_ELEMENTS[21]: 'Цвет текста выключенных кнопок',
+               STYLE_ELEMENTS[22]: 'Цвет фона переключателя при наведении на него',
+               STYLE_ELEMENTS[23]: 'Цвет фона закрытой вкладки',
+               STYLE_ELEMENTS[24]: 'Цвет фона открытой вкладки',
+               STYLE_ELEMENTS[25]: 'Цвет текста закрытой вкладки',
+               STYLE_ELEMENTS[26]: 'Цвет текста открытой вкладки',
+               STYLE_ELEMENTS[27]: 'Цвет фона ползунка',
+               STYLE_ELEMENTS[28]: 'Цвет фона ползунка при нажатии',
+               STYLE_ELEMENTS[29]: 'Цвет ползунка',
+               STYLE_ELEMENTS[30]: 'Цвет ползунка при нажатии'}
 
 """ Пути и файлы """
 
@@ -1263,6 +1271,57 @@ def dct_filename(savename: str):
     return f'{savename}.txt'
 
 
+# Проверить наличие обновлений программы
+def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
+    print('\nПроверка наличия обновлений...')
+    window_last_version = None
+    try:
+        data = urllib2.urlopen(URL_LAST_VERSION)
+        last_version = str(data.readline().decode('utf-8')).strip()
+        if PROGRAM_VERSION == last_version:
+            print('Установлена последняя доступная версия')
+            if show_updates and show_if_no_updates:
+                window_last_version = PopupMsgW(window_parent, 'Установлена последняя доступная версия')
+        else:
+            print(f'Доступна новая версия: {last_version}')
+            if show_updates:
+                window_last_version = UpdateAvailableW(window_parent, last_version)
+    except Exception as exc:
+        print(f'Ошибка: невозможно проверить наличие обновлений!\n'
+              f'{exc}')
+        if show_updates:
+            warning(window_parent, f'Ошибка: невозможно проверить наличие обновлений!\n'
+                                   f'{exc}')
+    return window_last_version
+
+
+# Обновить тему с 4 до 5 версии
+def upgrade_theme_4_to_5(filepath: str):
+    with open(filepath, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+    print(lines)
+    with open(filepath, 'w', encoding='utf-8') as file:
+        file.write('5\n')
+        for i in range(1, 11):
+            file.write(lines[i])
+        file.write(lines[10])
+        file.write(lines[11])
+        for i in range(13, 19):
+            file.write(lines[i])
+        file.write(lines[13])
+        file.write(lines[14])
+        for i in range(19, 30):
+            file.write(lines[i])
+
+
+# Обновить тему старой версии до актуальной версии
+def upgrade_theme(filepath: str):
+    with open(filepath, 'r', encoding='utf-8') as file:
+        first_line = file.readline()
+        if first_line[0] == '4':  # Версия 4
+            upgrade_theme_4_to_5(filepath)
+
+
 # Загрузить дополнительные темы
 def upload_themes(themes: list[str]):
     if os.listdir(ADDITIONAL_THEMES_PATH):
@@ -1314,11 +1373,9 @@ def upload_custom_theme():
         create_default_custom_theme()
     styles_path = os.path.join(CUSTOM_THEME_PATH, styles_filename)
     try:
+        upgrade_theme(styles_path)
         with open(styles_path, 'r', encoding='utf-8') as styles_file:
-            line = styles_file.readline().strip()
-            theme_version = int(re.split(' |//', line)[0])  # После // идут комментарии
-            if theme_version != REQUIRED_THEME_VERSION:  # Проверка версии темы
-                create_default_custom_theme()
+            styles_file.readline()  # Версия темы
             for style_elem in STYLE_ELEMENTS:  # Проходимся по стилизуемым элементам
                 line = styles_file.readline().strip()
                 style = re.split(' |//', line)[0]  # После // идут комментарии
@@ -1363,30 +1420,6 @@ def upload_themes_img(theme: str):
             images[i] = os.path.join(IMAGES_PATH, file_name)
 
     img_ok, img_cancel, img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo = images
-
-
-# Проверить наличие обновлений программы
-def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
-    print('\nПроверка наличия обновлений...')
-    window_last_version = None
-    try:
-        data = urllib2.urlopen(URL_LAST_VERSION)
-        last_version = str(data.readline().decode('utf-8')).strip()
-        if PROGRAM_VERSION == last_version:
-            print('Установлена последняя доступная версия')
-            if show_updates and show_if_no_updates:
-                window_last_version = PopupMsgW(window_parent, 'Установлена последняя доступная версия')
-        else:
-            print(f'Доступна новая версия: {last_version}')
-            if show_updates:
-                window_last_version = UpdateAvailableW(window_parent, last_version)
-    except Exception as exc:
-        print(f'Ошибка: невозможно проверить наличие обновлений!\n'
-              f'{exc}')
-        if show_updates:
-            warning(window_parent, f'Ошибка: невозможно проверить наличие обновлений!\n'
-                                   f'{exc}')
-    return window_last_version
 
 
 # Обновить глобальные настройки с 0 до 1 версии
@@ -2002,7 +2035,7 @@ class PopupImgW(tk.Toplevel):
             self.txt_img_not_found = tk.Text(self, height=1, width=40, relief='sunken', borderwidth=1,
                                              font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
                                              selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                             highlightbackground=ST_BORDER[th])
+                                             highlightbackground=ST_BORDERCOLOR[th])
             self.txt_img_not_found.insert(tk.END, f'{URL_RELEASES}')
             self.txt_img_not_found['state'] = 'disabled'
             self.txt_img_not_found.grid(row=1, column=0, padx=6, pady=(0, 16))
@@ -2125,9 +2158,9 @@ class ChooseNoteW(tk.Toplevel):
         # }
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_words = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
-                                 bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                                 bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                 relief=ST_RELIEF[th])
+                                 relief=ST_RELIEF_TEXT[th])
 
         self.frame_main.grid(row=0, columnspan=2, padx=6, pady=6)
         # {
@@ -2526,15 +2559,15 @@ class ParticularMatchesW(tk.Toplevel):
         self.lbl_wrd = ttk.Label(self, text=f'Слова, содержащие "{wrd}"', justify='center', style='Default.TLabel')
         self.scrollbar_wrd = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
-                               bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                               bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                               relief=ST_RELIEF[th])
+                               relief=ST_RELIEF_TEXT[th])
         self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{wrd}"', justify='center', style='Default.TLabel')
         self.scrollbar_tr = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
-                              bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                              bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                              relief=ST_RELIEF[th])
+                              relief=ST_RELIEF_TEXT[th])
 
         self.lbl_header.grid(   row=0, column=0, columnspan=4, padx=6,      pady=(6, 3))
         self.lbl_wrd.grid(      row=1, column=0, columnspan=2, padx=(6, 3), pady=(0, 3))
@@ -2594,9 +2627,9 @@ class FormsSettingsW(tk.Toplevel):
                                       justify='center', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                    bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                                    bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
                                     selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                    relief=ST_RELIEF[th])
+                                    relief=ST_RELIEF_TEXT[th])
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.btn_add = ttk.Button(self.frame_buttons, text='Добавить параметр форм', command=self.add,
@@ -2704,9 +2737,9 @@ class FormsParameterSettingsW(tk.Toplevel):
                                      justify='center', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_par_val = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                   bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                                   bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
                                    selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                   relief=ST_RELIEF[th])
+                                   relief=ST_RELIEF_TEXT[th])
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.btn_add = ttk.Button(self.frame_buttons, text='Добавить значение параметра', command=self.add,
@@ -2797,9 +2830,9 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.lbl_form_par = ttk.Label(self, text='Существующие комбинации:', justify='center', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                    bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                                    bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
                                     selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                    relief=ST_RELIEF[th])
+                                    relief=ST_RELIEF_TEXT[th])
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.btn_add = ttk.Button(self.frame_buttons, text='Добавить комбинацию', command=self.add,
@@ -2891,7 +2924,8 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.custom_styles = {}  # Стили пользовательской темы
 
         self.var_theme = tk.StringVar(value=DEFAULT_TH)
-        self.var_relief = tk.StringVar()
+        self.var_relief_frame = tk.StringVar()
+        self.var_relief_text = tk.StringVar()
 
         self.frame_set_theme = ttk.Frame(self, style='Invis.TFrame')
         # {
@@ -2934,11 +2968,11 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.buttons = [tk.Button(self.interior, relief='solid', overrelief='raised',
                                   borderwidth=1, width=18, takefocus=False)
                         for i in range(len(STYLE_ELEMENTS))]
-        # Получается по 1 лишнему экземпляру каждого виджета (но пусть будет так)
+        # Получается по 2 лишних экземпляра каждого виджета (но пусть будет так)
 
         for i in range(len(STYLE_ELEMENTS)):
             el = STYLE_ELEMENTS[i]
-            if el != 'RELIEF':
+            if el not in ['RELIEF_FRAME', 'RELIEF_TEXT']:
                 self.labels[i].configure(text=f'{STYLE_NAMES[el]}:')
                 self.buttons[i].configure(command=lambda i=i: self.choose_color(i))
 
@@ -2956,11 +2990,18 @@ class CustomThemeSettingsW(tk.Toplevel):
         #
         # Выбор стиля рамок
         self.vcmd_refresh_demonstration = (self.register(lambda value: self.set_demo_ttk_styles()), '%P')
-        self.lbl_relief = ttk.Label(self.interior, text='Стиль рамок:', style='Default.TLabel')
-        self.combo_relief = ttk.Combobox(self.interior, values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
-                                         textvariable=self.var_relief, width=19,
-                                         validate='focus', validatecommand=self.vcmd_refresh_demonstration,
-                                         state='readonly', style='.TCombobox')
+
+        self.lbl_relief_frame = ttk.Label(self.interior, text='Стиль рамок фреймов:', style='Default.TLabel')
+        self.combo_relief_frame = ttk.Combobox(self.interior, textvariable=self.var_relief_frame, width=19,
+                                               values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
+                                               validate='focus', validatecommand=self.vcmd_refresh_demonstration,
+                                               state='readonly', style='.TCombobox')
+
+        self.lbl_relief_text = ttk.Label(self.interior, text='Стиль рамок текстовых полей:', style='Default.TLabel')
+        self.combo_relief_text = ttk.Combobox(self.interior, textvariable=self.var_relief_text, width=19,
+                                              values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
+                                              validate='focus', validatecommand=self.vcmd_refresh_demonstration,
+                                              state='readonly', style='.TCombobox')
         #
         self.btn_save = ttk.Button(self, text='Сохранить', command=self.save, takefocus=False, style='Yes.TButton')
         #
@@ -2998,8 +3039,10 @@ class CustomThemeSettingsW(tk.Toplevel):
         # }
         self.vscrollbar.grid(row=1, column=1, sticky='WSN')
         # {
-        self.lbl_relief.grid(  row=9, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
-        self.combo_relief.grid(row=9, column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        self.lbl_relief_frame.grid(  row=9,  column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
+        self.combo_relief_frame.grid(row=9,  column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        self.lbl_relief_text.grid(   row=10, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
+        self.combo_relief_text.grid( row=10, column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
         # }
         self.btn_save.grid(row=2, columnspan=2, padx=6, pady=6)
         #
@@ -3044,8 +3087,10 @@ class CustomThemeSettingsW(tk.Toplevel):
         theme_name = self.var_theme.get()
         for i in range(len(STYLE_ELEMENTS)):
             var = STYLE_ELEMENTS[i]
-            if var == 'RELIEF':
-                self.var_relief.set(STYLES[var][theme_name])
+            if var == 'RELIEF_FRAME':
+                self.var_relief_frame.set(STYLES[var][theme_name])
+            elif var == 'RELIEF_TEXT':
+                self.var_relief_text.set(STYLES[var][theme_name])
             else:
                 self.buttons[i].config(bg=STYLES[var][theme_name])
                 self.buttons[i].config(activebackground=STYLES[var][theme_name])
@@ -3056,13 +3101,17 @@ class CustomThemeSettingsW(tk.Toplevel):
     # Загрузить пользовательскую тему
     def read(self):
         filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
-        with open(filepath, 'r') as file:
-            file.readline()  # Версия темы
+        with open(filepath, 'r', encoding='utf-8') as file:
+            ver = file.readline().strip()  # Версия темы
+            if ver != f'{REQUIRED_THEME_VERSION}':
+                upgrade_theme(filepath)
             for i in range(len(STYLE_ELEMENTS)):
                 var = STYLE_ELEMENTS[i]
                 self.custom_styles[var] = file.readline().strip()
-                if var == 'RELIEF':
-                    self.var_relief.set(self.custom_styles[var])
+                if var == 'RELIEF_FRAME':
+                    self.var_relief_frame.set(self.custom_styles[var])
+                elif var == 'RELIEF_TEXT':
+                    self.var_relief_text.set(self.custom_styles[var])
                 else:
                     self.buttons[i].config(bg=self.custom_styles[var])
                     self.buttons[i].config(activebackground=self.custom_styles[var])
@@ -3071,16 +3120,18 @@ class CustomThemeSettingsW(tk.Toplevel):
 
     # Сохранить пользовательскую тему
     def save(self):
-        self.custom_styles['RELIEF'] = self.var_relief.get()
+        self.custom_styles['RELIEF_FRAME'] = self.var_relief_frame.get()
+        self.custom_styles['RELIEF_TEXT'] = self.var_relief_text.get()
         filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
-        with open(filepath, 'w') as file:
+        with open(filepath, 'w', encoding='utf-8') as file:
             file.write(f'{REQUIRED_THEME_VERSION}')
             for var in STYLE_ELEMENTS:
                 file.write(f'\n{self.custom_styles[var]}')
 
     # Обновить демонстрацию
     def set_demo_ttk_styles(self):
-        self.custom_styles['RELIEF'] = self.var_relief.get()
+        self.custom_styles['RELIEF_FRAME'] = self.var_relief_frame.get()
+        self.custom_styles['RELIEF_TEXT'] = self.var_relief_text.get()
 
         # Стиль label "demo default"
         self.st_lbl_default = ttk.Style()
@@ -3214,9 +3265,9 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_frame_default.theme_use('alt')
         self.st_frame_default.configure('DemoDefault.TFrame',
                                         borderwidth=1,
-                                        relief=self.custom_styles['RELIEF'],
+                                        relief=self.custom_styles['RELIEF_FRAME'],
                                         background=self.custom_styles['BG'],
-                                        bordercolor=self.custom_styles['BORDER'])
+                                        bordercolor=self.custom_styles['BORDERCOLOR'])
 
         # Стиль frame "window"
         self.st_frame_window = ttk.Style()
@@ -3269,9 +3320,9 @@ class PrintW(tk.Toplevel):
         self.scrollbar_y = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', wrap='none',
                                xscrollcommand=self.scrollbar_x.set, yscrollcommand=self.scrollbar_y.set,
-                               bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                               bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                               relief=ST_RELIEF[th])
+                               relief=ST_RELIEF_TEXT[th])
         self.lbl_info = ttk.Label(self, textvariable=self.var_info, style='Default.TLabel')
 
         self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
@@ -3422,9 +3473,9 @@ class LearnW(tk.Toplevel):
                                            style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
-                               bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                               bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                               relief=ST_RELIEF[th])
+                               relief=ST_RELIEF_TEXT[th])
         self.scrollbar.config(command=self.txt_dct.yview)
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # { {
@@ -3867,15 +3918,15 @@ class SearchW(tk.Toplevel):
         self.lbl_wrd = ttk.Label(self, text='Поиск по слову', style='Default.TLabel')
         self.scrollbar_wrd = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
-                               bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                               bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                               relief=ST_RELIEF[th])
+                               relief=ST_RELIEF_TEXT[th])
         self.lbl_tr = ttk.Label(self, text='Поиск по переводу', style='Default.TLabel')
         self.scrollbar_tr = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
-                              bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDER[th],
+                              bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                              relief=ST_RELIEF[th])
+                              relief=ST_RELIEF_TEXT[th])
 
         self.frame_main.grid(row=0, columnspan=4, padx=6, pady=(6, 4))
         # {
@@ -3979,8 +4030,8 @@ class EditW(tk.Toplevel):
         self.scrollbar_wrd = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_wrd = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_wrd.set,
                                relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                               highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
-                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
+                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                               highlightbackground=ST_BORDERCOLOR[th])
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
         try:
             self.img_edit = tk.PhotoImage(file=img_edit)
@@ -3996,8 +4047,8 @@ class EditW(tk.Toplevel):
         self.scrollbar_tr = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_tr = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_tr.set,
                               relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                              highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
-                              selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
+                              selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                              highlightbackground=ST_BORDERCOLOR[th])
         self.scrollbar_tr.config(command=self.txt_tr.yview)
         self.frame_btns_tr = ttk.Frame(self.frame_main, style='Invis.TFrame')
         # { {
@@ -4024,8 +4075,8 @@ class EditW(tk.Toplevel):
         self.scrollbar_notes = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_notes = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_notes.set,
                                  relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                                 highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
-                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
+                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                 highlightbackground=ST_BORDERCOLOR[th])
         self.scrollbar_notes.config(command=self.txt_notes.yview)
         self.frame_btns_notes = ttk.Frame(self.frame_main, style='Invis.TFrame')
         # { {
@@ -4050,8 +4101,8 @@ class EditW(tk.Toplevel):
         self.scrollbar_frm = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_frm = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_frm.set,
                                relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                               highlightbackground=ST_BORDER[th], highlightcolor=ST_HIGHLIGHT[th],
-                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
+                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                               highlightbackground=ST_BORDERCOLOR[th])
         self.scrollbar_frm.config(command=self.txt_frm.yview)
         self.frame_btns_frm = ttk.Frame(self.frame_main, style='Invis.TFrame')
         # { {
@@ -4484,10 +4535,10 @@ class SettingsW(tk.Toplevel):
         # { {
         self.lbl_dcts = ttk.Label(self.frame_dcts, text='Существующие словари:', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self.frame_dcts, style='Vertical.TScrollbar')
-        self.txt_dcts = tk.Text(self.frame_dcts, width=27, height=6, state='disabled', relief=ST_RELIEF[th],
+        self.txt_dcts = tk.Text(self.frame_dcts, width=27, height=6, state='disabled', relief=ST_RELIEF_TEXT[th],
                                 yscrollcommand=self.scrollbar.set, bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                highlightbackground=ST_BORDER[th])
+                                highlightbackground=ST_BORDERCOLOR[th])
         self.frame_dct_buttons = ttk.Frame(self.frame_dcts, style='Invis.TFrame')
         # { { {
         self.btn_dct_open = ttk.Button(self.frame_dct_buttons, text='Открыть словарь', command=self.dct_open,
@@ -4506,14 +4557,14 @@ class SettingsW(tk.Toplevel):
         # { {
         self.lbl_themes = ttk.Label(self.frame_themes, text='Тема:', style='Default.TLabel')
         self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
-                                         state='readonly', style='.TCombobox')
+                                         state='readonly', style='.TCombobox', width=21)
         self.lbl_themes_note = ttk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
                                                                  f'Актуальные темы можно скачать здесь:',
                                          justify='left', style='Default.TLabel')
         self.txt_themes_note = tk.Text(self.frame_themes, height=1, width=40, relief='sunken', borderwidth=1,
                                        font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                       highlightbackground=ST_BORDER[th])
+                                       highlightbackground=ST_BORDERCOLOR[th])
         self.txt_themes_note.insert(tk.END, URL_RELEASES)
         self.txt_themes_note['state'] = 'disabled'
         self.btn_custom_theme = ttk.Button(self.frame_themes, text='Собственная тема', command=self.custom_theme,
@@ -4630,12 +4681,12 @@ class SettingsW(tk.Toplevel):
 
         # Установка некоторых стилей для окна настроек
         self.configure(bg=ST_BG[th])
-        self.txt_dcts.configure(relief=ST_RELIEF[th], bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+        self.txt_dcts.configure(relief=ST_RELIEF_TEXT[th], bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                highlightbackground=ST_BORDER[th])
+                                highlightbackground=ST_BORDERCOLOR[th])
         self.txt_themes_note.configure(font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                       highlightbackground=ST_BORDER[th])
+                                       highlightbackground=ST_BORDERCOLOR[th])
 
         # Установка фона для главного окна
         self.parent.configure(bg=ST_BG[th])
@@ -5187,8 +5238,8 @@ class MainW(tk.Tk):
                               relief=[('pressed', 'flat'),
                                       ('active', 'flat'),
                                       ('!active', 'flat')],
-                              background=[('pressed', ST_BTN_BG_SEL[th]),
-                                          ('active', ST_BTN_BG[th]),
+                              background=[('pressed', ST_BTN_IMG_BG_SEL[th]),
+                                          ('active', ST_BTN_IMG_BG_HOV[th]),
                                           ('!active', ST_BG[th])],
                               foreground=[('pressed', ST_FG[th]),
                                           ('active', ST_FG[th]),
@@ -5213,8 +5264,8 @@ class MainW(tk.Tk):
                                            ('!readonly', ST_BG_FIELDS[th])],
                           selectbackground=[('readonly', ST_BG_FIELDS[th]),
                                             ('!readonly', ST_BG_FIELDS[th])],
-                          highlightbackground=[('readonly', ST_BORDER[th]),
-                                               ('!readonly', ST_BORDER[th])],
+                          highlightbackground=[('readonly', ST_BORDERCOLOR[th]),
+                                               ('!readonly', ST_BORDERCOLOR[th])],
                           foreground=[('readonly', ST_FG[th]),
                                       ('!readonly', ST_FG[th])],
                           selectforeground=[('readonly', ST_FG[th]),
@@ -5270,16 +5321,16 @@ class MainW(tk.Tk):
         self.st_frame_default.theme_use('alt')
         self.st_frame_default.configure('Default.TFrame',
                                         borderwidth=1,
-                                        relief=ST_RELIEF[th],
+                                        relief=ST_RELIEF_FRAME[th],
                                         background=ST_BG[th],
-                                        bordercolor=ST_BORDER[th])
+                                        bordercolor=ST_BORDERCOLOR[th])
 
         # Стиль frame "invis"
         self.st_frame_invis = ttk.Style()
         self.st_frame_invis.theme_use('alt')
         self.st_frame_invis.configure('Invis.TFrame',
                                       borderwidth=0,
-                                      relief=ST_RELIEF[th],
+                                      relief=ST_RELIEF_FRAME[th],
                                       background=ST_BG[th])
 
     # Установить фокус
@@ -5340,8 +5391,3 @@ root.mainloop()
 # Неразрешимые проблемы:
 # wait_window
 # Combobox.Listbox
-
-# -st_highlight (и st_border)
-# +relief txt
-# +btn img select
-# +btn img active
