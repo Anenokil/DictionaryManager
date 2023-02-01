@@ -16,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-197'
+PROGRAM_VERSION = 'v7.0.0_PRE-198'
 PROGRAM_DATE = '1.2.2023'
-PROGRAM_TIME = '22:28 (UTC+3)'
+PROGRAM_TIME = '23:36 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -195,6 +195,12 @@ if THEMES[2] not in os.listdir(ADDITIONAL_THEMES_PATH):
     os.mkdir(os.path.join(ADDITIONAL_THEMES_PATH, THEMES[2]))
 
 # Изображения
+IMG_NAMES = ['ok', 'cancel',
+             'add', 'delete', 'edit',
+             'undo', 'redo',
+             'about', 'about_mgsp', 'about_typo']
+ICON_NAMES = IMG_NAMES[:-2]
+
 img_ok = os.path.join(IMAGES_PATH, 'ok.png')
 img_cancel = os.path.join(IMAGES_PATH, 'cancel.png')
 img_add = os.path.join(IMAGES_PATH, 'add.png')
@@ -1414,10 +1420,9 @@ def upload_theme_img(theme: str):
 
     images = [img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_about, img_about_mgsp,
               img_about_typo]
-    image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'undo', 'redo', 'about', 'about_mgsp', 'about_typo']
 
     for i in range(len(images)):
-        file_name = f'{image_names[i]}.png'
+        file_name = f'{IMG_NAMES[i]}.png'
         if file_name in os.listdir(theme_dir):
             images[i] = os.path.join(theme_dir, file_name)
         else:
@@ -3074,23 +3079,9 @@ class CustomThemeSettingsW(tk.Toplevel):
                                          style='Demo.Vertical.TScrollbar')
         self.frame_demo_img = ttk.Frame(self.frame_demonstration, style='DemoDefault.TFrame')
         # { {
-        image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'undo', 'redo', 'about']
-        self.images = [tk.PhotoImage(file='') for _ in range(len(image_names))]
-        self.img_buttons = [ttk.Button(self.frame_demo_img, width=2, takefocus=False) for _ in range(len(image_names))]
-        for i in range(len(image_names)):
-            img = f'{image_names[i]}.png'
-            try:
-                self.images[i].config(file=os.path.join(self.dir_with_images, img))
-            except:
-                try:
-                    self.images[i].config(file=os.path.join(IMAGES_PATH, img))
-                except:
-                    self.img_buttons[i].config(text='?', image='', compound='text', style='DemoDefault.TButton')
-                else:
-                    self.img_buttons[i].config(image=self.images[i], compound='image', style='DemoImage.TButton')
-            else:
-                self.img_buttons[i].config(image=self.images[i], compound='image', style='DemoImage.TButton')
-            self.img_buttons[i].grid(row=0, column=i, padx=3, pady=3)
+        self.images = [tk.PhotoImage(file='') for _ in range(len(ICON_NAMES))]
+        self.img_buttons = [ttk.Button(self.frame_demo_img, width=2, takefocus=False) for _ in range(len(ICON_NAMES))]
+        self.refresh_images()
         # } }
         self.lbl_demo_warn = ttk.Label(self.frame_demonstration, text='Предупреждение!', style='DemoWarn.TLabel')
         self.lbl_demo_footer = ttk.Label(self.frame_demonstration, text='Нижний колонтитул', style='DemoFooter.TLabel')
@@ -3163,8 +3154,12 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.txt_demo.grid(       row=3, rowspan=4, column=1,               padx=0,      pady=(0, 6), sticky='SNWE')
         self.scroll_demo.grid(    row=3, rowspan=4, column=2,               padx=(0, 6), pady=(0, 6), sticky='SNW')
         self.frame_demo_img.grid( row=7,            column=0, columnspan=3, padx=6,      pady=(0, 6))
-        self.lbl_demo_warn.grid(  row=8,            column=0, columnspan=3, padx=6,      pady=(0, 6))
-        self.lbl_demo_footer.grid(row=9,            column=0, columnspan=3, padx=6,      pady=(0, 6))
+        # { {
+        for i in range(len(ICON_NAMES)):
+            self.img_buttons[i].grid(row=0, column=i, padx=3, pady=3)
+        # } }
+        self.lbl_demo_warn.grid(  row=8, column=0, columnspan=3, padx=6, pady=(0, 6))
+        self.lbl_demo_footer.grid(row=9, column=0, columnspan=3, padx=6, pady=(0, 6))
         # }
 
         self.entry_demo.insert(tk.END, 'abcde 12345')
@@ -3217,6 +3212,9 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.history += [('all', old_vals, new_vals)]
         self.history_undo.clear()
 
+        self.var_images.set(theme_name)
+        self.set_images()
+
     # Выбрать изображения
     def set_images(self):
         old_img = self.dir_with_images
@@ -3227,20 +3225,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.history += [('img', old_img, new_img)]
         self.history_undo.clear()
 
-        image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'undo', 'redo', 'about']
-        for i in range(len(image_names)):
-            img = f'{image_names[i]}.png'
-            try:
-                self.images[i].config(file=os.path.join(self.dir_with_images, img))
-            except:
-                try:
-                    self.images[i].config(file=os.path.join(IMAGES_PATH, img))
-                except:
-                    self.img_buttons[i].config(text='?', image='', compound='text', style='DemoDefault.TButton')
-                else:
-                    self.img_buttons[i].config(image=self.images[i], compound='image', style='DemoImage.TButton')
-            else:
-                self.img_buttons[i].config(image=self.images[i], compound='image', style='DemoImage.TButton')
+        self.refresh_images()
 
     # Загрузить пользовательскую тему
     def read(self):
@@ -3274,9 +3259,8 @@ class CustomThemeSettingsW(tk.Toplevel):
         if self.dir_with_images != CUSTOM_THEME_PATH:
             images = [img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_about, img_about_mgsp,
                       img_about_typo]
-            image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'undo', 'redo', 'about', 'about_mgsp', 'about_typo']
             for i in range(len(images)):
-                file_name = f'{image_names[i]}.png'
+                file_name = f'{IMG_NAMES[i]}.png'
                 src_path = os.path.join(self.dir_with_images, file_name)
                 dst_path = os.path.join(CUSTOM_THEME_PATH, file_name)
                 if file_name in os.listdir(CUSTOM_THEME_PATH):
@@ -3307,21 +3291,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                 val = last_action[1]
                 self.dir_with_images = val
 
-                image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'undo', 'redo', 'about']
-                for i in range(len(image_names)):
-                    img = f'{image_names[i]}.png'
-                    try:
-                        self.images[i].config(file=os.path.join(self.dir_with_images, img))
-                    except:
-                        try:
-                            self.images[i].config(file=os.path.join(IMAGES_PATH, img))
-                        except:
-                            self.img_buttons[i].config(text='?', image='', compound='text', style='DemoDefault.TButton')
-                        else:
-                            self.img_buttons[i].config(image=self.images[i], compound='image',
-                                                       style='DemoImage.TButton')
-                    else:
-                        self.img_buttons[i].config(image=self.images[i], compound='image', style='DemoImage.TButton')
+                self.refresh_images()
             else:
                 el = var
                 val = last_action[1]
@@ -3362,21 +3332,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                 val = last_undo_action[2]
                 self.dir_with_images = val
 
-                image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'undo', 'redo', 'about']
-                for i in range(len(image_names)):
-                    img = f'{image_names[i]}.png'
-                    try:
-                        self.images[i].config(file=os.path.join(self.dir_with_images, img))
-                    except:
-                        try:
-                            self.images[i].config(file=os.path.join(IMAGES_PATH, img))
-                        except:
-                            self.img_buttons[i].config(text='?', image='', compound='text', style='DemoDefault.TButton')
-                        else:
-                            self.img_buttons[i].config(image=self.images[i], compound='image',
-                                                       style='DemoImage.TButton')
-                    else:
-                        self.img_buttons[i].config(image=self.images[i], compound='image', style='DemoImage.TButton')
+                self.refresh_images()
             else:
                 el = var
                 val = last_undo_action[2]
@@ -3580,6 +3536,22 @@ class CustomThemeSettingsW(tk.Toplevel):
                                         ('!pressed', self.custom_styles['SCROLL_FG'])])
 
         return True
+
+    # Обновить изображения в демонстрации
+    def refresh_images(self):
+        for i in range(len(ICON_NAMES)):
+            img = f'{ICON_NAMES[i]}.png'
+            try:
+                self.images[i].config(file=os.path.join(self.dir_with_images, img))
+            except:
+                try:
+                    self.images[i].config(file=os.path.join(IMAGES_PATH, img))
+                except:
+                    self.img_buttons[i].config(text='-', image='', compound='text', style='DemoDefault.TButton')
+                else:
+                    self.img_buttons[i].config(image=self.images[i], compound='image', style='DemoImage.TButton')
+            else:
+                self.img_buttons[i].config(image=self.images[i], compound='image', style='DemoImage.TButton')
 
     # Установить фокус
     def set_focus(self):
