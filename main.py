@@ -16,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-192'
+PROGRAM_VERSION = 'v7.0.0_PRE-193'
 PROGRAM_DATE = '1.2.2023'
-PROGRAM_TIME = '2:29 (UTC+3)'
+PROGRAM_TIME = '4:21 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -200,6 +200,8 @@ img_cancel = os.path.join(IMAGES_PATH, 'cancel.png')
 img_add = os.path.join(IMAGES_PATH, 'add.png')
 img_delete = os.path.join(IMAGES_PATH, 'delete.png')
 img_edit = os.path.join(IMAGES_PATH, 'edit.png')
+img_prev = os.path.join(IMAGES_PATH, 'prev.png')
+img_next = os.path.join(IMAGES_PATH, 'next.png')
 img_about = os.path.join(IMAGES_PATH, 'about.png')
 img_about_mgsp = os.path.join(IMAGES_PATH, 'about_mgsp.png')
 img_about_typo = os.path.join(IMAGES_PATH, 'about_typo.png')
@@ -2922,6 +2924,8 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
 
         self.custom_styles = {}  # Стили пользовательской темы
+        self.history = []  # История изменений
+        self.history_undo = []  # История отмен
 
         self.var_theme = tk.StringVar(value=DEFAULT_TH)
         self.var_relief_frame = tk.StringVar()
@@ -2936,6 +2940,13 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.btn_set_theme = ttk.Button(self.frame_set_theme, text='Выбрать', width=8, command=self.set_theme,
                                         takefocus=False, style='Default.TButton')
         # }
+        self.frame_history = ttk.Frame(self, style='Invis.TFrame')
+        self.img_undo = tk.PhotoImage(file=img_prev)
+        self.img_redo = tk.PhotoImage(file=img_next)
+        self.btn_undo = ttk.Button(self.frame_history, image=self.img_undo, width=2, command=self.undo,
+                                   takefocus=False, style='Image.TButton')
+        self.btn_redo = ttk.Button(self.frame_history, image=self.img_redo, width=2, command=self.redo,
+                                   takefocus=False, style='Image.TButton')
         # Прокручиваемая область с настройками
         self.vscrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.frame_canvas = ttk.Frame(self, style='Default.TFrame')
@@ -2988,19 +2999,28 @@ class CustomThemeSettingsW(tk.Toplevel):
                     self.labels[i].grid(pady=(0, 3))
                     self.buttons[i].grid(pady=(0, 3))
         #
+
         # Выбор стиля рамок
-        self.vcmd_refresh_demonstration = (self.register(lambda value: self.set_demo_styles()), '%P')
+        def _choose_relief(var, value):
+            if self.custom_styles[var] != value:
+                self.history += [(var, self.custom_styles[var], value)]
+                self.history_undo.clear()
+            self.set_demo_styles()
+            return True
+
+        self.vcmd_relief_frame = (self.register(lambda value: _choose_relief('RELIEF_FRAME', value)), '%P')
+        self.vcmd_relief_text = (self.register(lambda value: _choose_relief('RELIEF_TEXT', value)), '%P')
 
         self.lbl_relief_frame = ttk.Label(self.interior, text='Стиль рамок фреймов:', style='Default.TLabel')
         self.combo_relief_frame = ttk.Combobox(self.interior, textvariable=self.var_relief_frame, width=19,
                                                values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
-                                               validate='focus', validatecommand=self.vcmd_refresh_demonstration,
+                                               validate='focus', validatecommand=self.vcmd_relief_frame,
                                                state='readonly', style='.TCombobox')
 
         self.lbl_relief_text = ttk.Label(self.interior, text='Стиль рамок текстовых полей:', style='Default.TLabel')
         self.combo_relief_text = ttk.Combobox(self.interior, textvariable=self.var_relief_text, width=19,
                                               values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
-                                              validate='focus', validatecommand=self.vcmd_refresh_demonstration,
+                                              validate='focus', validatecommand=self.vcmd_relief_text,
                                               state='readonly', style='.TCombobox')
         #
         self.btn_save = ttk.Button(self, text='Сохранить', command=self.save, takefocus=False, style='Yes.TButton')
@@ -3030,26 +3050,47 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.lbl_demo_footer = ttk.Label(self.frame_demonstration, text='Нижний колонтитул', style='DemoFooter.TLabel')
         # }
 
-        self.frame_set_theme.grid(row=0, columnspan=2, padx=6, pady=6)
+        # *-----------------------------------------------------------*
+        # |                                                           |
+        # |   *---------------------------*   *-------------------*   |
+        # |   |  [lbl]   [combo]   [btn]  |   |    [<-]   [->]    |   |
+        # |   *---------------------------*   *-------------------*   |
+        # |                                                           |
+        # |   *------------------------*--*   *-------------------*   |
+        # |   |                        |  |   |                   |   |
+        # |   |                        |  |   |                   |   |
+        # |   |                        |sc|   |                   |   |
+        # |   |                        |ro|   |                   |   |
+        # |   |                        |ll|   |                   |   |
+        # |   |                        |  |   *-------------------*   |
+        # |   |                        |  |                           |
+        # |   *------------------------*--*        [ s a v e ]        |
+        # |                                                           |
+        # *-----------------------------------------------------------*
+
+        self.frame_set_theme.grid(row=0, column=0, columnspan=2, padx=(6, 0), pady=(6, 0))
         # {
         self.lbl_set_theme.grid(  row=0, column=0, padx=(0, 1), pady=0, sticky='E')
         self.combo_set_theme.grid(row=0, column=1, padx=(0, 3), pady=0)
         self.btn_set_theme.grid(  row=0, column=2, padx=(0, 0), pady=0, sticky='W')
         # }
-        self.frame_canvas.grid(row=1, column=0, sticky='ESN')
+        self.frame_history.grid(row=0, column=2, padx=(0, 6), pady=(6, 0))
+        # {
+        self.btn_undo.grid(row=0, column=0, padx=(6, 6), pady=6, sticky='W')
+        self.btn_redo.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
+        # }
+        self.frame_canvas.grid(row=1, rowspan=2, column=0, padx=(12, 0), pady=(0, 12), sticky='ESN')
         # {
         self.canvas.grid(row=0, column=0, padx=1, pady=1)
-        # }
-        self.vscrollbar.grid(row=1, column=1, sticky='WSN')
-        # {
+        # { {
         self.lbl_relief_frame.grid(  row=9,  column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_relief_frame.grid(row=9,  column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_relief_text.grid(   row=10, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_relief_text.grid( row=10, column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        # } }
         # }
-        self.btn_save.grid(row=2, columnspan=2, padx=6, pady=6)
-        #
-        self.frame_demonstration.grid(row=0, rowspan=3, column=2, padx=12, pady=12)
+        self.vscrollbar.grid(         row=1, rowspan=2, column=1, padx=(0, 6),  pady=(0, 12), sticky='WSN')
+        self.frame_demonstration.grid(row=1,            column=2, padx=(0, 12), pady=(0, 6))
         # {
         self.lbl_demo_header.grid(row=0, column=0, columnspan=3, padx=12, pady=(12, 0))
         self.lbl_demo_logo.grid(  row=1, column=0, columnspan=3, padx=12, pady=(0, 12))
@@ -3068,6 +3109,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.lbl_demo_warn.grid(  row=7,            column=0, columnspan=3, padx=6,      pady=(0, 6))
         self.lbl_demo_footer.grid(row=8,            column=0, columnspan=3, padx=6,      pady=(0, 6))
         # }
+        self.btn_save.grid(row=2, column=2, padx=6, pady=6)
 
         self.entry_demo.insert(tk.END, 'abcde 12345')
         self.txt_demo.insert(tk.END, '1')
@@ -3080,16 +3122,21 @@ class CustomThemeSettingsW(tk.Toplevel):
     # Выбрать цвет
     def choose_color(self, n: int):
         var = STYLE_ELEMENTS[n]
+        hx = self.custom_styles[var]
 
-        (rgb, hx) = colorchooser.askcolor(self.custom_styles[var])
-        if not hx:
+        (rgb, new_hx) = colorchooser.askcolor(hx)
+        if not new_hx:
             return
 
-        self.buttons[n].config(bg=hx)
-        self.buttons[n].config(activebackground=hx)
-        self.custom_styles[var] = hx
+        self.buttons[n].config(bg=new_hx)
+        self.buttons[n].config(activebackground=new_hx)
+        self.custom_styles[var] = new_hx
 
         self.set_demo_styles()
+
+        if new_hx != hx:
+            self.history += [(var, hx, new_hx)]
+            self.history_undo.clear()
 
     # Взять за основу уже существующую тему
     def set_theme(self):
@@ -3136,6 +3183,42 @@ class CustomThemeSettingsW(tk.Toplevel):
             file.write(f'{REQUIRED_THEME_VERSION}')
             for var in STYLE_ELEMENTS:
                 file.write(f'\n{self.custom_styles[var]}')
+
+    # Отменить последнее действие
+    def undo(self):
+        if self.history:
+            last_action = self.history[-1]
+
+            var = last_action[0]
+            val = last_action[1]
+            self.custom_styles[var] = val
+            if var == 'RELIEF_FRAME':
+                self.var_relief_frame.set(val)
+            elif var == 'RELIEF_TEXT':
+                self.var_relief_text.set(val)
+
+            self.history_undo += [last_action]
+            self.history.pop(-1)
+
+            self.set_demo_styles()
+
+    # Вернуть отменённое действие
+    def redo(self):
+        if self.history_undo:
+            last_undo_action = self.history_undo[-1]
+
+            var = last_undo_action[0]
+            val = last_undo_action[2]
+            self.custom_styles[var] = val
+            if var == 'RELIEF_FRAME':
+                self.var_relief_frame.set(val)
+            elif var == 'RELIEF_TEXT':
+                self.var_relief_text.set(val)
+
+            self.history += [last_undo_action]
+            self.history_undo.pop(-1)
+
+            self.set_demo_styles()
 
     # Обновить демонстрацию
     def set_demo_styles(self):
