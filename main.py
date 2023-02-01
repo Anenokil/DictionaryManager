@@ -16,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-196'
+PROGRAM_VERSION = 'v7.0.0_PRE-197'
 PROGRAM_DATE = '1.2.2023'
-PROGRAM_TIME = '18:17 (UTC+3)'
+PROGRAM_TIME = '22:28 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -2929,27 +2929,28 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.custom_styles = {}  # Стили пользовательской темы
         self.history = []  # История изменений
         self.history_undo = []  # История отмен
+        self.dir_with_images = CUSTOM_THEME_PATH  # Папка с изображениями
 
         self.var_theme = tk.StringVar(value=DEFAULT_TH)
+        self.var_images = tk.StringVar(value=DEFAULT_TH)
         self.var_relief_frame = tk.StringVar()
         self.var_relief_text = tk.StringVar()
 
-        self.frame_set_theme = ttk.Frame(self, style='Invis.TFrame')
+        self.frame_themes = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.lbl_set_theme = ttk.Label(self.frame_set_theme, text='Взять за основу уже существующую тему:',
+        self.lbl_set_theme = ttk.Label(self.frame_themes, text='Взять за основу уже существующую тему:',
                                        style='Default.TLabel')
-        self.combo_set_theme = ttk.Combobox(self.frame_set_theme, textvariable=self.var_theme, values=THEMES[1:],
+        self.combo_set_theme = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES[1:],
                                             state='readonly', style='.TCombobox')
-        self.btn_set_theme = ttk.Button(self.frame_set_theme, text='Выбрать', width=8, command=self.set_theme,
+        self.btn_set_theme = ttk.Button(self.frame_themes, text='Выбрать', width=8, command=self.set_theme,
                                         takefocus=False, style='Default.TButton')
+        self.lbl_set_images = ttk.Label(self.frame_themes, text='Использовать изображения из темы:',
+                                        style='Default.TLabel')
+        self.combo_set_images = ttk.Combobox(self.frame_themes, textvariable=self.var_images, values=THEMES[1:],
+                                             state='readonly', style='.TCombobox')
+        self.btn_set_images = ttk.Button(self.frame_themes, text='Выбрать', width=8, command=self.set_images,
+                                         takefocus=False, style='Default.TButton')
         # }
-        self.frame_history = ttk.Frame(self, style='Invis.TFrame')
-        self.img_undo = tk.PhotoImage(file=img_undo)
-        self.img_redo = tk.PhotoImage(file=img_redo)
-        self.btn_undo = ttk.Button(self.frame_history, image=self.img_undo, width=2, command=self.undo,
-                                   takefocus=False, style='Image.TButton')
-        self.btn_redo = ttk.Button(self.frame_history, image=self.img_redo, width=2, command=self.redo,
-                                   takefocus=False, style='Image.TButton')
         # Прокручиваемая область с настройками
         self.vscrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.frame_canvas = ttk.Frame(self, style='Default.TFrame')
@@ -3026,22 +3027,40 @@ class CustomThemeSettingsW(tk.Toplevel):
                                               validate='focus', validatecommand=self.vcmd_relief_text,
                                               state='readonly', style='.TCombobox')
         #
-        self.btn_save = ttk.Button(self, text='Сохранить', command=self.save, takefocus=False, style='Yes.TButton')
-        #
+        self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
+        # {
+        self.btn_save = ttk.Button(self.frame_buttons, text='Сохранить', command=self.save, takefocus=False,
+                                   style='Yes.TButton')
+        self.frame_history = ttk.Frame(self.frame_buttons, style='Invis.TFrame')
+        # { {
+        try:
+            self.img_undo = tk.PhotoImage(file=img_undo)
+        except:
+            self.btn_undo = ttk.Button(self.frame_history, text='<<', width=2, command=self.undo,
+                                       takefocus=False, style='Default.TButton')
+        else:
+            self.btn_undo = ttk.Button(self.frame_history, image=self.img_undo, width=2, command=self.undo,
+                                       takefocus=False, style='Image.TButton')
+        try:
+            self.img_redo = tk.PhotoImage(file=img_redo)
+        except:
+            self.btn_redo = ttk.Button(self.frame_history, text='>>', width=2, command=self.redo,
+                                       takefocus=False, style='Default.TButton')
+        else:
+            self.btn_redo = ttk.Button(self.frame_history, image=self.img_redo, width=2, command=self.redo,
+                                       takefocus=False, style='Image.TButton')
+        # } }
+        # }
         self.frame_demonstration = ttk.Frame(self, style='Window.TFrame', relief='solid')
         # {
         self.lbl_demo_header = ttk.Label(self.frame_demonstration, text='Anenokil developments presents',
                                          style='DemoHeader.TLabel')
         self.lbl_demo_logo = ttk.Label(self.frame_demonstration, text='Демонстрация', style='DemoLogo.TLabel')
-        self.frame_demo = ttk.Frame(self.frame_demonstration, style='DemoDefault.TFrame')
+        self.frame_demo_check = ttk.Frame(self.frame_demonstration, style='DemoDefault.TFrame')
         # { {
-        self.lbl_demo_def = ttk.Label(self.frame_demo, text='Надпись:', style='DemoDefault.TLabel')
-        self.check_demo = ttk.Checkbutton(self.frame_demo, style='Demo.TCheckbutton')
+        self.lbl_demo_def = ttk.Label(self.frame_demo_check, text='Надпись:', style='DemoDefault.TLabel')
+        self.check_demo = ttk.Checkbutton(self.frame_demo_check, style='Demo.TCheckbutton')
         # } }
-        self.entry_demo = ttk.Entry(self.frame_demonstration, style='Demo.TEntry')
-        self.txt_demo = tk.Text(self.frame_demonstration, width=12, height=4, state='normal')
-        self.scroll_demo = ttk.Scrollbar(self.frame_demonstration, command=self.txt_demo.yview,
-                                         style='Demo.Vertical.TScrollbar')
         self.btn_demo_def = ttk.Button(self.frame_demonstration, text='Кнопка', takefocus=False,
                                        style='DemoDefault.TButton')
         self.btn_demo_dis = ttk.Button(self.frame_demonstration, text='Выключена', takefocus=False,
@@ -3049,40 +3068,65 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.btn_demo_y = ttk.Button(self.frame_demonstration, text='Да', takefocus=False,
                                      style='DemoYes.TButton')
         self.btn_demo_n = ttk.Button(self.frame_demonstration, text='Нет', takefocus=False, style='DemoNo.TButton')
+        self.entry_demo = ttk.Entry(self.frame_demonstration, style='Demo.TEntry', width=21)
+        self.txt_demo = tk.Text(self.frame_demonstration, width=12, height=4, state='normal')
+        self.scroll_demo = ttk.Scrollbar(self.frame_demonstration, command=self.txt_demo.yview,
+                                         style='Demo.Vertical.TScrollbar')
+        self.frame_demo_img = ttk.Frame(self.frame_demonstration, style='DemoDefault.TFrame')
+        # { {
+        image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'undo', 'redo', 'about']
+        self.images = [tk.PhotoImage(file='') for _ in range(len(image_names))]
+        self.img_buttons = [ttk.Button(self.frame_demo_img, width=2, takefocus=False) for _ in range(len(image_names))]
+        for i in range(len(image_names)):
+            img = f'{image_names[i]}.png'
+            try:
+                self.images[i].config(file=os.path.join(self.dir_with_images, img))
+            except:
+                try:
+                    self.images[i].config(file=os.path.join(IMAGES_PATH, img))
+                except:
+                    self.img_buttons[i].config(text='?', image='', compound='text', style='DemoDefault.TButton')
+                else:
+                    self.img_buttons[i].config(image=self.images[i], compound='image', style='DemoImage.TButton')
+            else:
+                self.img_buttons[i].config(image=self.images[i], compound='image', style='DemoImage.TButton')
+            self.img_buttons[i].grid(row=0, column=i, padx=3, pady=3)
+        # } }
         self.lbl_demo_warn = ttk.Label(self.frame_demonstration, text='Предупреждение!', style='DemoWarn.TLabel')
         self.lbl_demo_footer = ttk.Label(self.frame_demonstration, text='Нижний колонтитул', style='DemoFooter.TLabel')
         # }
 
-        # *-----------------------------------------------------------*
+        # *---0------------------------1------2-----------------------*
         # |                                                           |
-        # |   *---------------------------*   *-------------------*   |
-        # |   |  [lbl]   [combo]   [btn]  |   |    [<-]   [->]    |   |
-        # |   *---------------------------*   *-------------------*   |
-        # |                                                           |
-        # |   *------------------------*--*   *-------------------*   |
-        # |   |                        |  |   |                   |   |
+        # 0   *---------------------------*   *-------------------*   |
+        # |   |  [lbl]   [combo]   [btn]  |   |                   |   |
+        # |   |  [lbl]   [combo]   [btn]  |   |                   |   |
+        # |   *---------------------------*   |                   |   |
+        # |                                   |                   |   |
+        # 1   *------------------------*--*   |                   |   |
         # |   |                        |  |   |                   |   |
         # |   |                        |sc|   |                   |   |
         # |   |                        |ro|   |                   |   |
         # |   |                        |ll|   |                   |   |
-        # |   |                        |  |   *-------------------*   |
-        # |   |                        |  |                           |
-        # |   *------------------------*--*        [ s a v e ]        |
+        # |   |                        |  |   |                   |   |
+        # |   *------------------------*--*   |                   |   |
+        # |                                   |                   |   |
+        # 2   *---------------------------*   |                   |   |
+        # |   |    [<-]  [->]   [save]    |   |                   |   |
+        # |   *---------------------------*   *-------------------*   |
         # |                                                           |
         # *-----------------------------------------------------------*
 
-        self.frame_set_theme.grid(row=0, column=0, columnspan=2, padx=(6, 0), pady=(6, 0))
+        self.frame_themes.grid(row=0, column=0, columnspan=2, padx=6, pady=(6, 0))
         # {
-        self.lbl_set_theme.grid(  row=0, column=0, padx=(0, 1), pady=0, sticky='E')
-        self.combo_set_theme.grid(row=0, column=1, padx=(0, 3), pady=0)
-        self.btn_set_theme.grid(  row=0, column=2, padx=(0, 0), pady=0, sticky='W')
+        self.lbl_set_theme.grid(   row=0, column=0, padx=(0, 1), pady=(0, 6), sticky='E')
+        self.combo_set_theme.grid( row=0, column=1, padx=(0, 3), pady=(0, 6))
+        self.btn_set_theme.grid(   row=0, column=2, padx=(0, 0), pady=(0, 6), sticky='W')
+        self.lbl_set_images.grid(  row=1, column=0, padx=(0, 1), pady=0,      sticky='E')
+        self.combo_set_images.grid(row=1, column=1, padx=(0, 3), pady=0)
+        self.btn_set_images.grid(  row=1, column=2, padx=(0, 0), pady=0,      sticky='W')
         # }
-        self.frame_history.grid(row=0, column=2, padx=(0, 6), pady=(6, 0))
-        # {
-        self.btn_undo.grid(row=0, column=0, padx=(6, 6), pady=6, sticky='W')
-        self.btn_redo.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
-        # }
-        self.frame_canvas.grid(row=1, rowspan=2, column=0, padx=(12, 0), pady=(0, 12), sticky='ESN')
+        self.frame_canvas.grid(row=1, column=0, padx=(6, 0), pady=6, sticky='ESN')
         # {
         self.canvas.grid(row=0, column=0, padx=1, pady=1)
         # { {
@@ -3092,27 +3136,36 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.combo_relief_text.grid( row=10, column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
         # } }
         # }
-        self.vscrollbar.grid(         row=1, rowspan=2, column=1, padx=(0, 6),  pady=(0, 12), sticky='WSN')
-        self.frame_demonstration.grid(row=1,            column=2, padx=(0, 12), pady=(0, 6))
+        self.vscrollbar.grid(   row=1, column=1,               padx=(0, 6), pady=6,     sticky='WSN')
+        self.frame_buttons.grid(row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
         # {
-        self.lbl_demo_header.grid(row=0, column=0, columnspan=3, padx=12, pady=(12, 0))
-        self.lbl_demo_logo.grid(  row=1, column=0, columnspan=3, padx=12, pady=(0, 12))
-        self.frame_demo.grid(     row=2, column=0,               padx=6,  pady=(0, 6), sticky='E')
+        self.btn_save.grid(     row=0, column=0, padx=(0, 36), pady=0)
+        self.frame_history.grid(row=0, column=1, padx=0,       pady=0)
+        # { {
+        self.btn_undo.grid(row=0, column=0, padx=(0, 6), pady=0, sticky='W')
+        self.btn_redo.grid(row=0, column=1, padx=0,      pady=0, sticky='W')
+        # } }
+        # }
+        self.frame_demonstration.grid(row=0, rowspan=3, column=2, padx=6, pady=6)
+        # {
+        self.lbl_demo_header.grid( row=0, column=0, columnspan=3, padx=12, pady=(12, 0))
+        self.lbl_demo_logo.grid(   row=1, column=0, columnspan=3, padx=12, pady=(0, 12))
+        self.frame_demo_check.grid(row=2, column=0,               padx=6,  pady=(0, 6), sticky='E')
         # { {
         self.lbl_demo_def.grid(row=0, column=0, padx=(6, 1), pady=6, sticky='E')
         self.check_demo.grid(  row=0, column=1, padx=(0, 6), pady=6, sticky='W')
         # } }
-        self.txt_demo.grid(       row=2, rowspan=4, column=1,               padx=0,      pady=(0, 6), sticky='SNWE')
-        self.scroll_demo.grid(    row=2, rowspan=4, column=2,               padx=(0, 6), pady=(0, 6), sticky='SNW')
-        self.entry_demo.grid(     row=3,            column=0,               padx=6,      pady=(0, 6), sticky='E')
-        self.btn_demo_def.grid(   row=4,            column=0,               padx=6,      pady=(0, 6), sticky='E')
-        self.btn_demo_dis.grid(   row=5,            column=0,               padx=6,      pady=(0, 6), sticky='E')
-        self.btn_demo_y.grid(     row=6,            column=0,               padx=6,      pady=(0, 6), sticky='E')
-        self.btn_demo_n.grid(     row=6,            column=1, columnspan=2, padx=(0, 6), pady=(0, 6), sticky='W')
-        self.lbl_demo_warn.grid(  row=7,            column=0, columnspan=3, padx=6,      pady=(0, 6))
-        self.lbl_demo_footer.grid(row=8,            column=0, columnspan=3, padx=6,      pady=(0, 6))
+        self.btn_demo_def.grid(   row=3,            column=0,               padx=6,      pady=(0, 6), sticky='E')
+        self.btn_demo_dis.grid(   row=4,            column=0,               padx=6,      pady=(0, 6), sticky='E')
+        self.btn_demo_y.grid(     row=5,            column=0,               padx=6,      pady=(0, 6), sticky='E')
+        self.btn_demo_n.grid(     row=6,            column=0,               padx=6,      pady=(0, 6), sticky='E')
+        self.entry_demo.grid(     row=2,            column=1, columnspan=2, padx=(0, 6), pady=(0, 6), sticky='SW')
+        self.txt_demo.grid(       row=3, rowspan=4, column=1,               padx=0,      pady=(0, 6), sticky='SNWE')
+        self.scroll_demo.grid(    row=3, rowspan=4, column=2,               padx=(0, 6), pady=(0, 6), sticky='SNW')
+        self.frame_demo_img.grid( row=7,            column=0, columnspan=3, padx=6,      pady=(0, 6))
+        self.lbl_demo_warn.grid(  row=8,            column=0, columnspan=3, padx=6,      pady=(0, 6))
+        self.lbl_demo_footer.grid(row=9,            column=0, columnspan=3, padx=6,      pady=(0, 6))
         # }
-        self.btn_save.grid(row=2, column=2, padx=6, pady=6)
 
         self.entry_demo.insert(tk.END, 'abcde 12345')
         self.txt_demo.insert(tk.END, '1')
@@ -3164,6 +3217,31 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.history += [('all', old_vals, new_vals)]
         self.history_undo.clear()
 
+    # Выбрать изображения
+    def set_images(self):
+        old_img = self.dir_with_images
+        new_img = os.path.join(ADDITIONAL_THEMES_PATH, self.var_images.get())
+
+        self.dir_with_images = new_img
+
+        self.history += [('img', old_img, new_img)]
+        self.history_undo.clear()
+
+        image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'undo', 'redo', 'about']
+        for i in range(len(image_names)):
+            img = f'{image_names[i]}.png'
+            try:
+                self.images[i].config(file=os.path.join(self.dir_with_images, img))
+            except:
+                try:
+                    self.images[i].config(file=os.path.join(IMAGES_PATH, img))
+                except:
+                    self.img_buttons[i].config(text='?', image='', compound='text', style='DemoDefault.TButton')
+                else:
+                    self.img_buttons[i].config(image=self.images[i], compound='image', style='DemoImage.TButton')
+            else:
+                self.img_buttons[i].config(image=self.images[i], compound='image', style='DemoImage.TButton')
+
     # Загрузить пользовательскую тему
     def read(self):
         filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
@@ -3193,6 +3271,19 @@ class CustomThemeSettingsW(tk.Toplevel):
             for el in STYLE_ELEMENTS:
                 file.write(f'\n{self.custom_styles[el]}')
 
+        if self.dir_with_images != CUSTOM_THEME_PATH:
+            images = [img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_about, img_about_mgsp,
+                      img_about_typo]
+            image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'undo', 'redo', 'about', 'about_mgsp', 'about_typo']
+            for i in range(len(images)):
+                file_name = f'{image_names[i]}.png'
+                src_path = os.path.join(self.dir_with_images, file_name)
+                dst_path = os.path.join(CUSTOM_THEME_PATH, file_name)
+                if file_name in os.listdir(CUSTOM_THEME_PATH):
+                    os.remove(dst_path)
+                if file_name in os.listdir(self.dir_with_images):
+                    shutil.copyfile(src_path, dst_path)
+
     # Отменить последнее действие
     def undo(self):
         if self.history:
@@ -3212,6 +3303,25 @@ class CustomThemeSettingsW(tk.Toplevel):
                         self.buttons[i].config(bg=vals[i], activebackground=vals[i])
 
                     self.custom_styles[el] = vals[i]
+            elif var == 'img':
+                val = last_action[1]
+                self.dir_with_images = val
+
+                image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'undo', 'redo', 'about']
+                for i in range(len(image_names)):
+                    img = f'{image_names[i]}.png'
+                    try:
+                        self.images[i].config(file=os.path.join(self.dir_with_images, img))
+                    except:
+                        try:
+                            self.images[i].config(file=os.path.join(IMAGES_PATH, img))
+                        except:
+                            self.img_buttons[i].config(text='?', image='', compound='text', style='DemoDefault.TButton')
+                        else:
+                            self.img_buttons[i].config(image=self.images[i], compound='image',
+                                                       style='DemoImage.TButton')
+                    else:
+                        self.img_buttons[i].config(image=self.images[i], compound='image', style='DemoImage.TButton')
             else:
                 el = var
                 val = last_action[1]
@@ -3220,6 +3330,9 @@ class CustomThemeSettingsW(tk.Toplevel):
                     self.var_relief_frame.set(val)
                 elif el == 'RELIEF_TEXT':
                     self.var_relief_text.set(val)
+                else:
+                    i = STYLE_ELEMENTS.index(el)
+                    self.buttons[i].config(bg=val, activebackground=val)
 
             self.history_undo += [last_action]
             self.history.pop(-1)
@@ -3245,6 +3358,25 @@ class CustomThemeSettingsW(tk.Toplevel):
                         self.buttons[i].config(bg=vals[i], activebackground=vals[i])
 
                     self.custom_styles[el] = vals[i]
+            elif var == 'img':
+                val = last_undo_action[2]
+                self.dir_with_images = val
+
+                image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'undo', 'redo', 'about']
+                for i in range(len(image_names)):
+                    img = f'{image_names[i]}.png'
+                    try:
+                        self.images[i].config(file=os.path.join(self.dir_with_images, img))
+                    except:
+                        try:
+                            self.images[i].config(file=os.path.join(IMAGES_PATH, img))
+                        except:
+                            self.img_buttons[i].config(text='?', image='', compound='text', style='DemoDefault.TButton')
+                        else:
+                            self.img_buttons[i].config(image=self.images[i], compound='image',
+                                                       style='DemoImage.TButton')
+                    else:
+                        self.img_buttons[i].config(image=self.images[i], compound='image', style='DemoImage.TButton')
             else:
                 el = var
                 val = last_undo_action[2]
@@ -3253,6 +3385,9 @@ class CustomThemeSettingsW(tk.Toplevel):
                     self.var_relief_frame.set(val)
                 elif el == 'RELIEF_TEXT':
                     self.var_relief_text.set(val)
+                else:
+                    i = STYLE_ELEMENTS.index(el)
+                    self.buttons[i].config(bg=val, activebackground=val)
 
             self.history += [last_undo_action]
             self.history_undo.pop(-1)
@@ -3390,6 +3525,23 @@ class CustomThemeSettingsW(tk.Toplevel):
                            foreground=[('pressed', self.custom_styles['FG']),
                                        ('active', self.custom_styles['FG']),
                                        ('!active', self.custom_styles['FG'])])
+
+        # Стиль button "demo image"
+        self.st_btn_image = ttk.Style()
+        self.st_btn_image.theme_use('alt')
+        self.st_btn_image.configure('DemoImage.TButton',
+                                    font=('StdFont', 12),
+                                    borderwidth=0)
+        self.st_btn_image.map('DemoImage.TButton',
+                              relief=[('pressed', 'flat'),
+                                      ('active', 'flat'),
+                                      ('!active', 'flat')],
+                              background=[('pressed', self.custom_styles['BTN_IMG_BG_SEL']),
+                                          ('active', self.custom_styles['BTN_IMG_BG_HOV']),
+                                          ('!active', self.custom_styles['BG'])],
+                              foreground=[('pressed', self.custom_styles['FG']),
+                                          ('active', self.custom_styles['FG']),
+                                          ('!active', self.custom_styles['FG'])])
 
         # Стиль checkbutton "demo"
         self.st_check = ttk.Style()
@@ -5540,5 +5692,3 @@ root.mainloop()
 # Неразрешимые проблемы:
 # wait_window
 # Combobox.Listbox
-
-# добавлять картинки в кастомную тему
