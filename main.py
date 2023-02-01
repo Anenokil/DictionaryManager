@@ -16,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-194'
+PROGRAM_VERSION = 'v7.0.0_PRE-195'
 PROGRAM_DATE = '1.2.2023'
-PROGRAM_TIME = '4:21 (UTC+3)'
+PROGRAM_TIME = '17:13 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -3001,9 +3001,9 @@ class CustomThemeSettingsW(tk.Toplevel):
         #
 
         # Выбор стиля рамок
-        def _choose_relief(var, value):
-            if self.custom_styles[var] != value:
-                self.history += [(var, self.custom_styles[var], value)]
+        def _choose_relief(el, value):
+            if self.custom_styles[el] != value:
+                self.history += [(el, self.custom_styles[el], value)]
                 self.history_undo.clear()
             self.set_demo_styles()
             return True
@@ -3121,56 +3121,62 @@ class CustomThemeSettingsW(tk.Toplevel):
 
     # Выбрать цвет
     def choose_color(self, n: int):
-        var = STYLE_ELEMENTS[n]
-        hx = self.custom_styles[var]
+        el = STYLE_ELEMENTS[n]
+        hx = self.custom_styles[el]
 
         (rgb, new_hx) = colorchooser.askcolor(hx)
         if not new_hx:
             return
 
-        self.buttons[n].config(bg=new_hx)
-        self.buttons[n].config(activebackground=new_hx)
-        self.custom_styles[var] = new_hx
+        self.buttons[n].config(bg=new_hx, activebackground=new_hx)
+        self.custom_styles[el] = new_hx
 
         self.set_demo_styles()
 
         if new_hx != hx:
-            self.history += [(var, hx, new_hx)]
+            self.history += [(el, hx, new_hx)]
             self.history_undo.clear()
 
     # Взять за основу уже существующую тему
     def set_theme(self):
         theme_name = self.var_theme.get()
+        old_vals = []
+        new_vals = []
         for i in range(len(STYLE_ELEMENTS)):
-            var = STYLE_ELEMENTS[i]
-            if var == 'RELIEF_FRAME':
-                self.var_relief_frame.set(STYLES[var][theme_name])
-            elif var == 'RELIEF_TEXT':
-                self.var_relief_text.set(STYLES[var][theme_name])
+            el = STYLE_ELEMENTS[i]
+
+            if el == 'RELIEF_FRAME':
+                self.var_relief_frame.set(STYLES[el][theme_name])
+            elif el == 'RELIEF_TEXT':
+                self.var_relief_text.set(STYLES[el][theme_name])
             else:
-                self.buttons[i].config(bg=STYLES[var][theme_name])
-                self.buttons[i].config(activebackground=STYLES[var][theme_name])
-            self.custom_styles[var] = STYLES[var][theme_name]
+                self.buttons[i].config(bg=STYLES[el][theme_name], activebackground=STYLES[el][theme_name])
+
+            old_vals += [self.custom_styles[el]]
+            new_vals += [STYLES[el][theme_name]]
+            self.custom_styles[el] = STYLES[el][theme_name]
 
         self.set_demo_styles()
+
+        self.history += [('all', old_vals, new_vals)]
+        self.history_undo.clear()
 
     # Загрузить пользовательскую тему
     def read(self):
         filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
         with open(filepath, 'r', encoding='utf-8') as file:
-            ver = file.readline().strip()  # Версия темы
-            if ver != f'{REQUIRED_THEME_VERSION}':
+            version = file.readline().strip()  # Версия темы
+            if version != f'{REQUIRED_THEME_VERSION}':
                 upgrade_theme(filepath)
             for i in range(len(STYLE_ELEMENTS)):
-                var = STYLE_ELEMENTS[i]
-                self.custom_styles[var] = file.readline().strip()
-                if var == 'RELIEF_FRAME':
-                    self.var_relief_frame.set(self.custom_styles[var])
-                elif var == 'RELIEF_TEXT':
-                    self.var_relief_text.set(self.custom_styles[var])
+                el = STYLE_ELEMENTS[i]
+                self.custom_styles[el] = file.readline().strip()
+                if el == 'RELIEF_FRAME':
+                    self.var_relief_frame.set(self.custom_styles[el])
+                elif el == 'RELIEF_TEXT':
+                    self.var_relief_text.set(self.custom_styles[el])
                 else:
-                    self.buttons[i].config(bg=self.custom_styles[var])
-                    self.buttons[i].config(activebackground=self.custom_styles[var])
+                    self.buttons[i].config(bg=self.custom_styles[el], activebackground=self.custom_styles[el])
 
         self.set_demo_styles()
 
@@ -3181,8 +3187,8 @@ class CustomThemeSettingsW(tk.Toplevel):
         filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
         with open(filepath, 'w', encoding='utf-8') as file:
             file.write(f'{REQUIRED_THEME_VERSION}')
-            for var in STYLE_ELEMENTS:
-                file.write(f'\n{self.custom_styles[var]}')
+            for el in STYLE_ELEMENTS:
+                file.write(f'\n{self.custom_styles[el]}')
 
     # Отменить последнее действие
     def undo(self):
@@ -3190,12 +3196,27 @@ class CustomThemeSettingsW(tk.Toplevel):
             last_action = self.history[-1]
 
             var = last_action[0]
-            val = last_action[1]
-            self.custom_styles[var] = val
-            if var == 'RELIEF_FRAME':
-                self.var_relief_frame.set(val)
-            elif var == 'RELIEF_TEXT':
-                self.var_relief_text.set(val)
+            if var == 'all':
+                vals = last_action[1]
+                for i in range(len(STYLE_ELEMENTS)):
+                    el = STYLE_ELEMENTS[i]
+
+                    if el == 'RELIEF_FRAME':
+                        self.var_relief_frame.set(vals[i])
+                    elif el == 'RELIEF_TEXT':
+                        self.var_relief_text.set(vals[i])
+                    else:
+                        self.buttons[i].config(bg=vals[i], activebackground=vals[i])
+
+                    self.custom_styles[el] = vals[i]
+            else:
+                el = var
+                val = last_action[1]
+                self.custom_styles[el] = val
+                if el == 'RELIEF_FRAME':
+                    self.var_relief_frame.set(val)
+                elif el == 'RELIEF_TEXT':
+                    self.var_relief_text.set(val)
 
             self.history_undo += [last_action]
             self.history.pop(-1)
@@ -3208,12 +3229,27 @@ class CustomThemeSettingsW(tk.Toplevel):
             last_undo_action = self.history_undo[-1]
 
             var = last_undo_action[0]
-            val = last_undo_action[2]
-            self.custom_styles[var] = val
-            if var == 'RELIEF_FRAME':
-                self.var_relief_frame.set(val)
-            elif var == 'RELIEF_TEXT':
-                self.var_relief_text.set(val)
+            if var == 'all':
+                vals = last_undo_action[2]
+                for i in range(len(STYLE_ELEMENTS)):
+                    el = STYLE_ELEMENTS[i]
+
+                    if el == 'RELIEF_FRAME':
+                        self.var_relief_frame.set(vals[i])
+                    elif el == 'RELIEF_TEXT':
+                        self.var_relief_text.set(vals[i])
+                    else:
+                        self.buttons[i].config(bg=vals[i], activebackground=vals[i])
+
+                    self.custom_styles[el] = vals[i]
+            else:
+                el = var
+                val = last_undo_action[2]
+                self.custom_styles[el] = val
+                if el == 'RELIEF_FRAME':
+                    self.var_relief_frame.set(val)
+                elif el == 'RELIEF_TEXT':
+                    self.var_relief_text.set(val)
 
             self.history += [last_undo_action]
             self.history_undo.pop(-1)
@@ -5470,7 +5506,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development presents\n'
       f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
-      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
@@ -5502,6 +5538,5 @@ root.mainloop()
 # wait_window
 # Combobox.Listbox
 
-# сделать undo и redo для set_theme
 # добавить в темы картинки undo и redo
 # добавлять картинки в кастомную тему
