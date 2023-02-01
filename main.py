@@ -16,9 +16,9 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-195'
+PROGRAM_VERSION = 'v7.0.0_PRE-196'
 PROGRAM_DATE = '1.2.2023'
-PROGRAM_TIME = '17:13 (UTC+3)'
+PROGRAM_TIME = '18:17 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -1403,16 +1403,18 @@ def create_default_custom_theme():
 
 
 # Загрузить изображения для выбранной темы
-def upload_themes_img(theme: str):
-    global img_ok, img_cancel, img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo
+def upload_theme_img(theme: str):
+    global img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_about, img_about_mgsp,\
+        img_about_typo
 
     if theme == CUSTOM_TH:
         theme_dir = CUSTOM_THEME_PATH
     else:
         theme_dir = os.path.join(ADDITIONAL_THEMES_PATH, theme)
 
-    images = [img_ok, img_cancel, img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo]
-    image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'about', 'about_mgsp', 'about_typo']
+    images = [img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_about, img_about_mgsp,
+              img_about_typo]
+    image_names = ['ok', 'cancel', 'add', 'delete', 'edit', 'undo', 'redo', 'about', 'about_mgsp', 'about_typo']
 
     for i in range(len(images)):
         file_name = f'{image_names[i]}.png'
@@ -1421,7 +1423,8 @@ def upload_themes_img(theme: str):
         else:
             images[i] = os.path.join(IMAGES_PATH, file_name)
 
-    img_ok, img_cancel, img_add, img_delete, img_edit, img_about, img_about_mgsp, img_about_typo = images
+    img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_about, img_about_mgsp,\
+        img_about_typo = images
 
 
 # Обновить глобальные настройки с 0 до 1 версии
@@ -4813,7 +4816,7 @@ class SettingsW(tk.Toplevel):
         th = self.var_theme.get()
 
         self.parent.set_ttk_styles()  # Установка ttk-стилей
-        upload_themes_img(th)  # Загрузка изображений тем
+        upload_theme_img(th)  # Загрузка изображений темы
 
         # Установка изображений
         try:
@@ -5517,7 +5520,7 @@ upload_themes(THEMES)  # Загружаем дополнительные тем�
 upload_custom_theme()  # Загружаем пользовательскую тему
 _0_global_dct_savename, _0_global_show_updates, _0_global_typo, th =\
     upload_global_settings()  # Загружаем глобальные настройки
-upload_themes_img(th)  # Загружаем изображения для выбранной темы
+upload_theme_img(th)  # Загружаем изображения для выбранной темы
 root = MainW()  # Создаём графический интерфейс
 _0_global_dct_savename = upload_dct(root, _0_global_dct, _0_global_dct_savename,
                                     'Завершить работу')  # Загружаем словарь
@@ -5538,5 +5541,4 @@ root.mainloop()
 # wait_window
 # Combobox.Listbox
 
-# добавить в темы картинки undo и redo
 # добавлять картинки в кастомную тему
