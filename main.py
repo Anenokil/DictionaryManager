@@ -16,7 +16,7 @@ import zipfile  # Для распаковки обновления
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-193'
+PROGRAM_VERSION = 'v7.0.0_PRE-194'
 PROGRAM_DATE = '1.2.2023'
 PROGRAM_TIME = '4:21 (UTC+3)'
 
@@ -200,8 +200,8 @@ img_cancel = os.path.join(IMAGES_PATH, 'cancel.png')
 img_add = os.path.join(IMAGES_PATH, 'add.png')
 img_delete = os.path.join(IMAGES_PATH, 'delete.png')
 img_edit = os.path.join(IMAGES_PATH, 'edit.png')
-img_prev = os.path.join(IMAGES_PATH, 'prev.png')
-img_next = os.path.join(IMAGES_PATH, 'next.png')
+img_undo = os.path.join(IMAGES_PATH, 'undo.png')
+img_redo = os.path.join(IMAGES_PATH, 'redo.png')
 img_about = os.path.join(IMAGES_PATH, 'about.png')
 img_about_mgsp = os.path.join(IMAGES_PATH, 'about_mgsp.png')
 img_about_typo = os.path.join(IMAGES_PATH, 'about_typo.png')
@@ -2941,8 +2941,8 @@ class CustomThemeSettingsW(tk.Toplevel):
                                         takefocus=False, style='Default.TButton')
         # }
         self.frame_history = ttk.Frame(self, style='Invis.TFrame')
-        self.img_undo = tk.PhotoImage(file=img_prev)
-        self.img_redo = tk.PhotoImage(file=img_next)
+        self.img_undo = tk.PhotoImage(file=img_undo)
+        self.img_redo = tk.PhotoImage(file=img_redo)
         self.btn_undo = ttk.Button(self.frame_history, image=self.img_undo, width=2, command=self.undo,
                                    takefocus=False, style='Image.TButton')
         self.btn_redo = ttk.Button(self.frame_history, image=self.img_redo, width=2, command=self.redo,
@@ -5501,3 +5501,7 @@ root.mainloop()
 # Неразрешимые проблемы:
 # wait_window
 # Combobox.Listbox
+
+# сделать undo и redo для set_theme
+# добавить в темы картинки undo и redo
+# добавлять картинки в кастомную тему
