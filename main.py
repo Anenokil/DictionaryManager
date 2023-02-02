@@ -17,9 +17,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.0-Beta'
+PROGRAM_VERSION = 'v7.0.0-Gamma'
 PROGRAM_DATE = '2.2.2023'
-PROGRAM_TIME = '4:39 (UTC+3)'
+PROGRAM_TIME = '5:49 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -239,8 +239,6 @@ SPECIAL_COMBINATION_OPENING_SYMBOL = '#'  # Открывающий символ 
 VALUES_LEARN_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову')  # Варианты метода учёбы
 VALUES_LEARN_WORDS = ('Все слова', 'Все слова (чаще сложные)', 'Только избранные')  # Варианты подбора слов для учёбы
 
-MAX_SAME_WORDS = 100  # Максимальное количество статей с одинаковым словом
-
 """ Объекты """
 
 
@@ -260,9 +258,9 @@ class Entry(object):
     # self.last_att - количество последних неудачных попыток (-1 - значит, что ещё не было попыток)
     def __init__(self,
                  wrd: str,
-                 tr: str | list,
-                 notes: str | list | None = None,
-                 forms: dict | None = None,
+                 tr: str | list[str],
+                 notes: str | list[str] | None = None,
+                 forms: dict[tuple[str, ...], str] | None = None,
                  fav=False, all_att=0, correct_att=0, last_att=-1):
         self.wrd = wrd
         self.tr = tr.copy() if (type(tr) == list) else [tr]
@@ -557,7 +555,7 @@ class Entry(object):
 
 # Словарь
 class Dictionary(object):
-    # self.d - сам словарь
+    # self.d: dict[tuple[str, int], Entry] - сам словарь
     # self.count_w - количество статей (слов) в словаре
     # self.count_t - количество переводов в словаре
     # self.count_f - количество неначальных словоформ в словаре
@@ -666,23 +664,23 @@ class Dictionary(object):
         return answer
 
     # Добавить перевод к статье
-    def add_tr(self, key: str, tr: str):
+    def add_tr(self, key: tuple[str, int], tr: str):
         self.count_t -= self.d[key].count_t
         self.d[key].add_tr(tr)
         self.count_t += self.d[key].count_t
 
     # Добавить сноску к статье
-    def add_note(self, key: str, note: str):
+    def add_note(self, key: tuple[str, int], note: str):
         self.d[key].add_note(note)
 
     # Добавить словоформу к статье
-    def add_frm(self, key: str, frm_key: tuple | list, frm: str):
+    def add_frm(self, key: tuple[str, int], frm_key: tuple | list, frm: str):
         self.count_f -= self.d[key].count_f
         self.d[key].add_frm(frm_key, frm)
         self.count_f += self.d[key].count_f
 
     # Изменить слово в статье
-    def edit_wrd(self, window_parent, key: str, new_wrd: str):
+    def edit_wrd(self, window_parent, key: tuple[str, int], new_wrd: str):
         if wrd_to_key(new_wrd, 0) in self.d.keys():  # Если в словаре уже есть статья с таким словом
             window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                    'Что вы хотите сделать?',
@@ -718,7 +716,8 @@ class Dictionary(object):
                 self.d.pop(key)
                 return new_key
             elif answer == 'r':  # Создать новую статью
-                for i in range(MAX_SAME_WORDS):
+                i = 0
+                while True:
                     new_key = wrd_to_key(new_wrd, i)
                     if new_key not in self.d.keys():
                         self.d[new_key] = Entry(new_wrd, self.d[key].tr, self.d[key].notes, self.d[key].forms,
@@ -727,7 +726,6 @@ class Dictionary(object):
                         self.d.pop(key)
                         return new_key
                     i += 1
-                warning(window_parent, 'Слишком много статей с одинаковым словом!')
             else:
                 return None
         else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
@@ -739,11 +737,11 @@ class Dictionary(object):
             return new_key
 
     # Изменить словоформу в статье
-    def edit_frm_with_choose(self, window_parent, key: str):
+    def edit_frm_with_choose(self, window_parent, key: tuple[str, int]):
         self.d[key].edit_frm_with_choose(window_parent)
 
     # Удалить перевод в статье
-    def delete_tr_with_choose(self, window_parent, key: str):
+    def delete_tr_with_choose(self, window_parent, key: tuple[str, int]):
         self.count_t -= self.d[key].count_t
         window_choose = PopupChooseW(window_parent, self.d[key].tr, 'Выберите, какой перевод хотите удалить',
                                      default_value=self.d[key].tr[0], combo_width=width(self.d[key].tr, 5, 100))
@@ -755,7 +753,7 @@ class Dictionary(object):
         self.count_t += self.d[key].count_t
 
     # Удалить описание в статье
-    def delete_note_with_choose(self, window_parent, key: str):
+    def delete_note_with_choose(self, window_parent, key: tuple[str, int]):
         window_choose = PopupChooseW(window_parent, self.d[key].notes, 'Выберите, какую сноску хотите удалить',
                                      default_value=self.d[key].notes[0], combo_width=width(self.d[key].notes, 5, 100))
         closed, note = window_choose.open()
@@ -765,7 +763,7 @@ class Dictionary(object):
         self.d[key].count_n -= 1
 
     # Удалить словоформу в статье
-    def delete_frm_with_choose(self, window_parent, key: str):
+    def delete_frm_with_choose(self, window_parent, key: tuple[str, int]):
         self.count_f -= self.d[key].count_f
         self.d[key].delete_frm_with_choose(window_parent)
         self.count_f += self.d[key].count_f
@@ -787,7 +785,8 @@ class Dictionary(object):
                     self.add_tr(key, tr)
                     return key
                 elif answer == 'r':  # Создать новую статью
-                    for i in range(MAX_SAME_WORDS):
+                    i = 0
+                    while True:
                         key = wrd_to_key(wrd, i)
                         if key not in self.d.keys():
                             self.d[key] = Entry(wrd, [tr])
@@ -795,7 +794,6 @@ class Dictionary(object):
                             self.count_t += 1
                             return key
                         i += 1
-                    warning(window_parent, 'Слишком много статей с одинаковым словом!')
                 else:
                     return None
         else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
@@ -807,7 +805,8 @@ class Dictionary(object):
 
     # Добавить статью в словарь (при чтении файла)
     def load_entry(self, wrd: str, tr: str, all_att: int, correct_att: int, last_att: int):
-        for i in range(MAX_SAME_WORDS):
+        i = 0
+        while True:
             key = wrd_to_key(wrd, i)
             if key not in self.d.keys():
                 self.d[key] = Entry(wrd, [tr], all_att=all_att, correct_att=correct_att, last_att=last_att)
@@ -817,7 +816,7 @@ class Dictionary(object):
             i += 1
 
     # Удалить статью
-    def delete_entry(self, key: str):
+    def delete_entry(self, key: tuple[str, int]):
         self.count_w -= 1
         self.count_t -= self.d[key].count_t
         self.count_f -= self.d[key].count_f
@@ -1126,12 +1125,12 @@ def encode_tpl(line: str):
 
 # Перевести слово в ключ для словаря
 def wrd_to_key(wrd: str, num: int):  # При изменении этой функции, не забыть поменять key_to_wrd
-    return str(num // 10) + str(num % 10) + wrd
+    return wrd, num
 
 
 # Перевести ключ для словаря в слово
-def key_to_wrd(key: str):  # При изменении этой функции, не забыть поменять wrd_to_key
-    return key[2:]
+def key_to_wrd(key: tuple[str, int]):  # При изменении этой функции, не забыть поменять wrd_to_key
+    return key[0]
 
 
 # Выбрать окончание слова в зависимости от количественного числительного
@@ -1874,10 +1873,13 @@ class PopupDialogueW(tk.Toplevel):
                  set_focus_on_btn='left',  # Какая кнопка срабатывает при нажатии кнопки enter
                  title=PROGRAM_NAME):
         ALLOWED_ST_VALUES = ['Default', 'Yes', 'No']  # Проверка корректности параметров
-        assert st_left in ALLOWED_ST_VALUES, f'Bad value: st_left\nAllowed values: {ALLOWED_ST_VALUES}'
-        assert st_right in ALLOWED_ST_VALUES, f'Bad value: st_right\nAllowed values: {ALLOWED_ST_VALUES}'
+        assert st_left in ALLOWED_ST_VALUES, f'Bad value: st_left\n' \
+                                             f'Allowed values: {ALLOWED_ST_VALUES}'
+        assert st_right in ALLOWED_ST_VALUES, f'Bad value: st_right\n' \
+                                              f'Allowed values: {ALLOWED_ST_VALUES}'
         ALLOWED_FOCUS_VALUES = ['left', 'right', 'none']  # Проверка корректности параметров
-        assert set_focus_on_btn in ALLOWED_FOCUS_VALUES, f'Bad value: set_focus_on_btn\nAllowed values: {ALLOWED_FOCUS_VALUES}'
+        assert set_focus_on_btn in ALLOWED_FOCUS_VALUES, f'Bad value: set_focus_on_btn\n' \
+                                                         f'Allowed values: {ALLOWED_FOCUS_VALUES}'
 
         super().__init__(parent)
         self.title(title)
@@ -1928,7 +1930,7 @@ class PopupDialogueW(tk.Toplevel):
         return self.answer
 
 
-# Всплывающее окно с полем ввода и кнопкой
+# Всплывающее окно с полем ввода
 class PopupEntryW(tk.Toplevel):
     def __init__(self, parent, msg='Введите строку', btn_text='Подтвердить', entry_width=30,
                  check_answer_function=None, if_correct_function=None, if_incorrect_function=None, title=PROGRAM_NAME):
@@ -2190,22 +2192,23 @@ class ChooseNoteW(tk.Toplevel):
     # Вывод вариантов статей
     def print_variants(self):
         self.txt_words['state'] = 'normal'
-        self.vals_count = MAX_SAME_WORDS - 1
-        for i in range(MAX_SAME_WORDS):
-            _key = wrd_to_key(self.wrd, i)
-            if _key not in _0_global_dct.d.keys():
+        i = 0
+        while True:
+            key = wrd_to_key(self.wrd, i)
+            if key not in _0_global_dct.d.keys():
                 self.vals_count = i - 1
                 break
             outp(self.txt_words, f'\n({i})')
-            _0_global_dct.d[_key].print_all(self.txt_words)
+            _0_global_dct.d[key].print_all(self.txt_words)
+            i += 1
         self.txt_words['state'] = 'disabled'
 
     # Выбор одной статьи из нескольких
     def choose(self):
-        _input = self.var_input.get()
-        if _input != "":
-            _index = int(_input)
-            self.answer = wrd_to_key(self.wrd, _index)
+        answer = self.var_input.get()
+        if answer != '':
+            index = int(answer)
+            self.answer = wrd_to_key(self.wrd, index)
         self.closed = False
         self.destroy()
 
@@ -2392,7 +2395,7 @@ class NewVersionAvailableW(tk.Toplevel):
 
 # Окно создания шаблона словоформы
 class CreateFormTemplateW(tk.Toplevel):
-    def __init__(self, parent, key: str, combo_width=20):
+    def __init__(self, parent, key: tuple[str, int], combo_width=20):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
@@ -3005,9 +3008,9 @@ class CustomThemeSettingsW(tk.Toplevel):
         #
 
         # Выбор стиля рамок
-        def _choose_relief(el, value):
-            if self.custom_styles[el] != value:
-                self.history += [(el, self.custom_styles[el], value)]
+        def _choose_relief(elem, value):
+            if self.custom_styles[elem] != value:
+                self.history += [(elem, self.custom_styles[elem], value)]
                 self.history_undo.clear()
             self.set_demo_styles()
             return True
@@ -4214,12 +4217,14 @@ class SearchW(tk.Toplevel):
         if wrd_to_key(search_wrd, 0) not in _0_global_dct.d.keys():
             outp(self.txt_wrd, f'Слово "{search_wrd}" отсутствует в словаре', end='')
         else:
-            for i in range(MAX_SAME_WORDS):
+            i = 0
+            while True:
                 key = wrd_to_key(search_wrd, i)
                 if key not in _0_global_dct.d.keys():
                     break
                 outp(self.txt_wrd)
                 _0_global_dct.d[key].print_all(self.txt_wrd)
+                i += 1
 
         outp(self.txt_wrd, '\n\nЧастичное совпадение:')
         _0_global_dct.print_words_with_str(self.txt_wrd, search_wrd)
@@ -4263,7 +4268,7 @@ class SearchW(tk.Toplevel):
 
 # Окно изменения статьи
 class EditW(tk.Toplevel):
-    def __init__(self, parent, key: str):
+    def __init__(self, parent, key: tuple[str, int]):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Edit an entry')
         self.resizable(width=False, height=False)
@@ -5634,9 +5639,6 @@ _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinati
     upload_local_settings(_0_global_dct_savename)  # Загружаем локальные настройки
 _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
 root.mainloop()
-
-# pos -> ctg
-# 000wrd -> (wrd, 0)
 
 """
     Про формы и категории:
