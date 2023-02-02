@@ -17,9 +17,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.0-Gamma'
+PROGRAM_VERSION = 'v7.0.0-Delta'
 PROGRAM_DATE = '2.2.2023'
-PROGRAM_TIME = '5:49 (UTC+3)'
+PROGRAM_TIME = '21:23 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -282,27 +282,27 @@ class Entry(object):
         self.score = correct_att / all_att if (all_att != 0) else 0
         self.last_att = last_att
 
-    # Записать переводы в строку
+    # Преобразовать переводы в читаемый вид
     def tr_to_str(self):
-        if self.count_t == 0:
+        if self.count_t == 0:  # Если нет переводов, возвращается пустая строка
             return ''
         res = f'> {self.tr[0]}'
         for i in range(1, self.count_t):
             res += f'\n> {self.tr[i]}'
         return res
 
-    # Записать сноски в строку
+    # Преобразовать сноски в читаемый вид
     def notes_to_str(self):
-        if self.count_n == 0:
+        if self.count_n == 0:  # Если нет сносок, возвращается пустая строка
             return ''
         res = f'> {self.notes[0]}'
         for i in range(1, self.count_n):
             res += f'\n> {self.notes[i]}'
         return res
 
-    # Записать словоформы в строку
+    # Преобразовать словоформы в читаемый вид
     def frm_to_str(self):
-        if self.count_f == 0:
+        if self.count_f == 0:  # Если нет словоформ, возвращается пустая строка
             return ''
         keys = list(self.forms.keys())
         res = f'[{tpl(keys[0])}] {self.forms[keys[0]]}'
@@ -310,7 +310,7 @@ class Entry(object):
             res += f'\n[{tpl(keys[i])}] {self.forms[keys[i]]}'
         return res
 
-    # Напечатать перевод
+    # Напечатать переводы
     def tr_print(self, output_widget: tk.Entry | ttk.Entry | tk.Text, end='\n'):
         if self.count_t != 0:
             outp(output_widget, self.tr[0], end='')
@@ -330,7 +330,7 @@ class Entry(object):
 
     # Напечатать статистику
     def stat_print(self, output_widget: tk.Entry | ttk.Entry | tk.Text, end='\n'):
-        if self.last_att == -1:
+        if self.last_att == -1:  # Если ещё не было попыток
             outp(output_widget, '[-:  0%]', end=end)
         else:
             score = '{:.0%}'.format(self.score)
@@ -369,7 +369,8 @@ class Entry(object):
         self.stat_print(output_widget)
 
     # Напечатать статью - перевод со словоформой и со статистикой
-    def print_tr_and_frm_with_stat(self, output_widget: tk.Entry | ttk.Entry | tk.Text, frm_key: tuple | list):
+    def print_tr_and_frm_with_stat(self, output_widget: tk.Entry | ttk.Entry | tk.Text,
+                                   frm_key: tuple[str, ...] | list[str]):
         self.tr_print(output_widget, end=' ')
         outp(output_widget, f'({tpl(frm_key)})', end=' ')
         self.stat_print(output_widget)
@@ -410,77 +411,32 @@ class Entry(object):
             self.tr += [new_tr]
             self.count_t += 1
 
+    # Удалить перевод
+    def delete_tr(self, tr: str):
+        self.tr.remove(tr)
+        self.count_t -= 1
+
     # Добавить сноску
     def add_note(self, new_note: str):
-        self.notes += [new_note]
-        self.count_n += 1
+        if new_note not in self.notes:
+            self.notes += [new_note]
+            self.count_n += 1
+
+    # Удалить сноску
+    def delete_note(self, note: str):
+        self.notes.remove(note)
+        self.count_n -= 1
 
     # Добавить словоформу
-    def add_frm(self, frm_key: tuple | list, new_frm: str):
+    def add_frm(self, frm_key: tuple[str, ...] | list[str], new_frm: str):
         if frm_key not in self.forms.keys():
             self.forms[frm_key] = new_frm
             self.count_f += 1
 
     # Удалить словоформу
-    def delete_frm_with_choose(self, window_parent):
-        keys = [key for key in self.forms.keys()]
-        variants = [f'[{tpl(key)}] {self.forms[key]}' for key in keys]
-
-        window_choose = PopupChooseW(window_parent, variants, 'Выберите словоформу, которую хотите удалить',
-                                     default_value=variants[0], combo_width=width(variants, 5, 100))
-        closed, answer = window_choose.open()
-        if closed:
-            return
-        index = variants.index(answer)
-        key = keys[index]
-        self.forms.pop(key)
+    def delete_frm(self, frm_key: tuple[str, ...] | list[str]):
+        self.forms.pop(frm_key)
         self.count_f -= 1
-
-    # Изменить словоформу
-    def edit_frm_with_choose(self, window_parent):
-        keys = [key for key in self.forms.keys()]
-        variants = [f'[{tpl(key)}] {self.forms[key]}' for key in keys]
-
-        window_choose = PopupChooseW(window_parent, variants, 'Выберите словоформу, которую хотите изменить',
-                                     default_value=variants[0], combo_width=width(variants, 5, 100))
-        closed, answer = window_choose.open()
-        if closed:
-            return
-        index = variants.index(answer)
-        key = keys[index]
-
-        window_entry = PopupEntryW(window_parent, 'Введите форму слова',
-                                   check_answer_function=lambda wnd, val:
-                                   check_not_void(wnd, val, 'Словоформа должна содержать хотя бы один символ!'))
-        closed, new_frm = window_entry.open()
-        if closed:
-            return
-        new_frm = encode_special_combinations(new_frm)
-
-        self.forms[key] = new_frm
-
-    # Объединить статистику при объединении двух статей
-    def merge_stat(self, all_att: int, correct_att: int, last_att: int):
-        self.all_att += all_att
-        self.correct_att += correct_att
-        self.score = self.correct_att / self.all_att if (self.all_att != 0) else 0
-        self.last_att += last_att
-
-    # Обновить статистику, если совершена верная попытка
-    def correct(self):
-        self.all_att += 1
-        self.correct_att += 1
-        self.score = self.correct_att / self.all_att
-        self.last_att = 0
-
-    # Обновить статистику, если совершена неверная попытка
-    def incorrect(self):
-        self.all_att += 1
-        self.score = self.correct_att / self.all_att
-        if self.last_att == -1:
-            self.last_att = 1
-        else:
-            self.last_att += 1
 
     # Удалить данное значение категории у всех словоформ
     def delete_forms_with_val(self, pos: int, ctg_val: str):
@@ -536,6 +492,29 @@ class Entry(object):
 
     # Переименовать данную категорию у всех словоформ
     """ def rename_ctg(self, pos: int): """
+
+    # Объединить статистику при объединении двух статей
+    def merge_stat(self, all_att: int, correct_att: int, last_att: int):
+        self.all_att += all_att
+        self.correct_att += correct_att
+        self.score = self.correct_att / self.all_att if (self.all_att != 0) else 0
+        self.last_att += last_att
+
+    # Обновить статистику, если совершена верная попытка
+    def correct(self):
+        self.all_att += 1
+        self.correct_att += 1
+        self.score = self.correct_att / self.all_att
+        self.last_att = 0
+
+    # Обновить статистику, если совершена неверная попытка
+    def incorrect(self):
+        self.all_att += 1
+        self.score = self.correct_att / self.all_att
+        if self.last_att == -1:
+            self.last_att = 1
+        else:
+            self.last_att += 1
 
     # Сохранить статью в файл
     def save(self, file: typing.TextIO):
@@ -663,22 +642,6 @@ class Dictionary(object):
             return None
         return answer
 
-    # Добавить перевод к статье
-    def add_tr(self, key: tuple[str, int], tr: str):
-        self.count_t -= self.d[key].count_t
-        self.d[key].add_tr(tr)
-        self.count_t += self.d[key].count_t
-
-    # Добавить сноску к статье
-    def add_note(self, key: tuple[str, int], note: str):
-        self.d[key].add_note(note)
-
-    # Добавить словоформу к статье
-    def add_frm(self, key: tuple[str, int], frm_key: tuple | list, frm: str):
-        self.count_f -= self.d[key].count_f
-        self.d[key].add_frm(frm_key, frm)
-        self.count_f += self.d[key].count_f
-
     # Изменить слово в статье
     def edit_wrd(self, window_parent, key: tuple[str, int], new_wrd: str):
         if wrd_to_key(new_wrd, 0) in self.d.keys():  # Если в словаре уже есть статья с таким словом
@@ -736,36 +699,36 @@ class Dictionary(object):
             self.d.pop(key)
             return new_key
 
-    # Изменить словоформу в статье
-    def edit_frm_with_choose(self, window_parent, key: tuple[str, int]):
-        self.d[key].edit_frm_with_choose(window_parent)
-
-    # Удалить перевод в статье
-    def delete_tr_with_choose(self, window_parent, key: tuple[str, int]):
+    # Добавить перевод к статье
+    def add_tr(self, key: tuple[str, int], tr: str):
         self.count_t -= self.d[key].count_t
-        window_choose = PopupChooseW(window_parent, self.d[key].tr, 'Выберите, какой перевод хотите удалить',
-                                     default_value=self.d[key].tr[0], combo_width=width(self.d[key].tr, 5, 100))
-        closed, tr = window_choose.open()
-        if closed:
-            return
-        self.d[key].tr.remove(tr)
-        self.d[key].count_t -= 1
+        self.d[key].add_tr(tr)
         self.count_t += self.d[key].count_t
 
-    # Удалить описание в статье
-    def delete_note_with_choose(self, window_parent, key: tuple[str, int]):
-        window_choose = PopupChooseW(window_parent, self.d[key].notes, 'Выберите, какую сноску хотите удалить',
-                                     default_value=self.d[key].notes[0], combo_width=width(self.d[key].notes, 5, 100))
-        closed, note = window_choose.open()
-        if closed:
-            return
-        self.d[key].notes.remove(note)
-        self.d[key].count_n -= 1
+    # Добавить сноску к статье
+    def add_note(self, key: tuple[str, int], note: str):
+        self.d[key].add_note(note)
+
+    # Добавить словоформу к статье
+    def add_frm(self, key: tuple[str, int], frm_key: tuple | list, frm: str):
+        self.count_f -= self.d[key].count_f
+        self.d[key].add_frm(frm_key, frm)
+        self.count_f += self.d[key].count_f
+
+    # Удалить перевод в статье
+    def delete_tr(self, key: tuple[str, int], tr: str):
+        self.count_t -= self.d[key].count_t
+        self.d[key].delete_tr(tr)
+        self.count_t += self.d[key].count_t
+
+    # Удалить сноску в статье
+    def delete_note(self, key: tuple[str, int], note: str):
+        self.d[key].delete_note(note)
 
     # Удалить словоформу в статье
-    def delete_frm_with_choose(self, window_parent, key: tuple[str, int]):
+    def delete_frm(self, key: tuple[str, int], frm_key: tuple[str, ...] | list[str]):
         self.count_f -= self.d[key].count_f
-        self.d[key].delete_frm_with_choose(window_parent)
+        self.d[key].delete_frm(frm_key)
         self.count_f += self.d[key].count_f
 
     # Добавить статью в словарь (для пользователя)
@@ -821,6 +784,16 @@ class Dictionary(object):
         self.count_t -= self.d[key].count_t
         self.count_f -= self.d[key].count_f
         self.d.pop(key)
+
+    # Добавить все статьи в избранное
+    def fav_all(self):
+        for note in self.d.values():
+            note.fav = True
+
+    # Убрать все статьи из избранного
+    def unfav_all(self):
+        for note in self.d.values():
+            note.fav = False
 
     # Удалить данное значение категории у всех словоформ
     def delete_forms_with_val(self, pos: int, ctg_val: str):
@@ -1816,15 +1789,6 @@ def validate_special_combination_val(value: str):
     return len(value) <= 1
 
 
-# При выборе второго метода учёбы нельзя добавить словоформы
-def validate_order_and_forms(value: str, check_forms: ttk.Checkbutton):
-    if value == VALUES_LEARN_METHOD[1]:
-        check_forms['state'] = 'disabled'
-    else:
-        check_forms['state'] = 'normal'
-    return True
-
-
 """ Графический интерфейс - всплывающие окна """
 
 
@@ -1946,7 +1910,7 @@ class PopupEntryW(tk.Toplevel):
         self.var_text = tk.StringVar()
 
         self.lbl_msg = ttk.Label(self, text=f'{msg}:', justify='center', style='Default.TLabel')
-        self.entry_inp = ttk.Entry(self, textvariable=self.var_text, width=entry_width, style='.TEntry')
+        self.entry_inp = ttk.Entry(self, textvariable=self.var_text, width=entry_width, style='Default.TEntry')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
 
         self.lbl_msg.grid(  row=0, padx=6, pady=(6, 3))
@@ -1997,7 +1961,7 @@ class PopupChooseW(tk.Toplevel):
 
         self.lbl_msg = ttk.Label(self, text=msg, justify='center', style='Default.TLabel')
         self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values, width=combo_width,
-                                       font='TkFixedFont', state='readonly', style='.TCombobox')
+                                       font='TkFixedFont', state='readonly', style='Default.TCombobox')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
 
         self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
@@ -2103,10 +2067,10 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.lbl_1 = ttk.Label(self.frame_main, text=SPECIAL_COMBINATION_OPENING_SYMBOL,
                                justify='right', style='Default.TLabel')
         self.entry_key = ttk.Entry(self.frame_main, textvariable=self.var_key, width=2, justify='right',
-                                   validate='key', validatecommand=self.vcmd_key, style='.TEntry')
+                                   validate='key', validatecommand=self.vcmd_key, style='Default.TEntry')
         self.lbl_2 = ttk.Label(self.frame_main, text='->', justify='center', style='Default.TLabel')
         self.entry_val = ttk.Entry(self.frame_main, textvariable=self.var_val, width=2,
-                                   validate='key', validatecommand=self.vcmd_val, style='.TEntry')
+                                   validate='key', validatecommand=self.vcmd_val, style='Default.TEntry')
         # }
         self.btn_ok = ttk.Button(self, text='Подтвердить', command=self.ok, takefocus=False, style='Yes.TButton')
 
@@ -2164,7 +2128,7 @@ class ChooseNoteW(tk.Toplevel):
         self.lbl_input = ttk.Label(self.frame_main, text='Выберите одну из статей:',
                                    justify='center', style='Default.TLabel')
         self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=5,
-                                     validate='key', validatecommand=self.vcmd_max, style='.TEntry')
+                                     validate='key', validatecommand=self.vcmd_max, style='Default.TEntry')
         self.btn_choose = ttk.Button(self.frame_main, text='Выбор', command=self.choose,
                                      takefocus=False, style='Default.TButton')
         # }
@@ -2309,7 +2273,7 @@ class NewVersionAvailableW(tk.Toplevel):
         self.frame_url = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.entry_url = ttk.Entry(self.frame_url, textvariable=self.var_url, state='readonly', width=45,
-                                   justify='center', style='.TEntry')
+                                   justify='center', style='Default.TEntry')
         self.btn_open = ttk.Button(self.frame_url, text='Открыть ссылку', command=self.open_github,
                                    takefocus=False, style='Default.TButton')
         # }
@@ -2420,14 +2384,14 @@ class CreateFormTemplateW(tk.Toplevel):
         self.lbl_choose_ctg = ttk.Label(self, text='Выберите категорию:', justify='center', style='Default.TLabel')
         self.combo_ctg = ttk.Combobox(self, textvariable=self.var_ctg, values=self.categories, width=combo_width,
                                       font='TkFixedFont', validate='focusin', validatecommand=self.vcmd_ctg,
-                                      state='readonly', style='.TCombobox')
+                                      state='readonly', style='Default.TCombobox')
         self.lbl_choose_val = ttk.Label(self, text='Задайте значение категории:', justify='center',
                                         style='Default.TLabel')
         self.frame_val = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.combo_val = ttk.Combobox(self.frame_val, textvariable=self.var_val, values=self.ctg_values,
                                       width=width(self.ctg_values, 5, 100),
-                                      font='TkFixedFont', state='readonly', style='.TCombobox')
+                                      font='TkFixedFont', state='readonly', style='Default.TCombobox')
         try:
             self.img_choose = tk.PhotoImage(file=img_ok)
         except:
@@ -2944,13 +2908,13 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.lbl_set_theme = ttk.Label(self.frame_themes, text='Взять за основу уже существующую тему:',
                                        style='Default.TLabel')
         self.combo_set_theme = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES[1:],
-                                            state='readonly', style='.TCombobox')
+                                            state='readonly', style='Default.TCombobox')
         self.btn_set_theme = ttk.Button(self.frame_themes, text='Выбрать', width=8, command=self.set_theme,
                                         takefocus=False, style='Default.TButton')
         self.lbl_set_images = ttk.Label(self.frame_themes, text='Использовать изображения из темы:',
                                         style='Default.TLabel')
         self.combo_set_images = ttk.Combobox(self.frame_themes, textvariable=self.var_images, values=THEMES[1:],
-                                             state='readonly', style='.TCombobox')
+                                             state='readonly', style='Default.TCombobox')
         self.btn_set_images = ttk.Button(self.frame_themes, text='Выбрать', width=8, command=self.set_images,
                                          takefocus=False, style='Default.TButton')
         # }
@@ -3022,13 +2986,13 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.combo_relief_frame = ttk.Combobox(self.interior, textvariable=self.var_relief_frame, width=19,
                                                values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
                                                validate='focus', validatecommand=self.vcmd_relief_frame,
-                                               state='readonly', style='.TCombobox')
+                                               state='readonly', style='Default.TCombobox')
 
         self.lbl_relief_text = ttk.Label(self.interior, text='Стиль рамок текстовых полей:', style='Default.TLabel')
         self.combo_relief_text = ttk.Combobox(self.interior, textvariable=self.var_relief_text, width=19,
                                               values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
                                               validate='focus', validatecommand=self.vcmd_relief_text,
-                                              state='readonly', style='.TCombobox')
+                                              state='readonly', style='Default.TCombobox')
         #
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
@@ -3062,7 +3026,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.frame_demo_check = ttk.Frame(self.frame_demonstration, style='DemoDefault.TFrame')
         # { {
         self.lbl_demo_def = ttk.Label(self.frame_demo_check, text='Надпись:', style='DemoDefault.TLabel')
-        self.check_demo = ttk.Checkbutton(self.frame_demo_check, style='Demo.TCheckbutton')
+        self.check_demo = ttk.Checkbutton(self.frame_demo_check, style='DemoDefault.TCheckbutton')
         # } }
         self.btn_demo_def = ttk.Button(self.frame_demonstration, text='Кнопка', takefocus=False,
                                        style='DemoDefault.TButton')
@@ -3071,7 +3035,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.btn_demo_y = ttk.Button(self.frame_demonstration, text='Да', takefocus=False,
                                      style='DemoYes.TButton')
         self.btn_demo_n = ttk.Button(self.frame_demonstration, text='Нет', takefocus=False, style='DemoNo.TButton')
-        self.entry_demo = ttk.Entry(self.frame_demonstration, style='Demo.TEntry', width=21)
+        self.entry_demo = ttk.Entry(self.frame_demonstration, style='DemoDefault.TEntry', width=21)
         self.txt_demo = tk.Text(self.frame_demonstration, width=12, height=4, state='normal')
         self.scroll_demo = ttk.Scrollbar(self.frame_demonstration, command=self.txt_demo.yview,
                                          style='Demo.Vertical.TScrollbar')
@@ -3403,9 +3367,9 @@ class CustomThemeSettingsW(tk.Toplevel):
         # Стиль entry "demo"
         self.st_entry = ttk.Style()
         self.st_entry.theme_use('alt')
-        self.st_entry.configure('Demo.TEntry',
+        self.st_entry.configure('DemoDefault.TEntry',
                                 font=('StdFont', 10))
-        self.st_entry.map('Demo.TEntry',
+        self.st_entry.map('DemoDefault.TEntry',
                           fieldbackground=[('readonly', self.custom_styles['BG']),
                                            ('!readonly', self.custom_styles['BG_FIELDS'])],
                           foreground=[('readonly', self.custom_styles['FG']),
@@ -3500,7 +3464,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         # Стиль checkbutton "demo"
         self.st_check = ttk.Style()
         self.st_check.theme_use('alt')
-        self.st_check.map('Demo.TCheckbutton',
+        self.st_check.map('DemoDefault.TCheckbutton',
                           background=[('active', self.custom_styles['CHECK_BG_SEL']),
                                       ('!active', self.custom_styles['BG'])])
 
@@ -3581,9 +3545,9 @@ class PrintW(tk.Toplevel):
         self.lbl_fav = ttk.Label(self.frame_main, text='Только избранные:', style='Default.TLabel')
         self.lbl_forms = ttk.Label(self.frame_main, text='Все формы:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=self.print,
-                                         style='.TCheckbutton')
+                                         style='Default.TCheckbutton')
         self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, command=self.print,
-                                           style='.TCheckbutton')
+                                           style='Default.TCheckbutton')
         # }
         self.scrollbar_x = ttk.Scrollbar(self, style='Horizontal.TScrollbar')
         self.scrollbar_y = ttk.Scrollbar(self, style='Vertical.TScrollbar')
@@ -3593,6 +3557,11 @@ class PrintW(tk.Toplevel):
                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                relief=ST_RELIEF_TEXT[th])
         self.lbl_info = ttk.Label(self, textvariable=self.var_info, style='Default.TLabel')
+        self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
+        self.btn_fav_all = ttk.Button(self.frame_buttons, text='Добавить всё в избранное', command=self.fav_all,
+                                      takefocus=False, style='Default.TButton')
+        self.btn_unfav_all = ttk.Button(self.frame_buttons, text='Убрать всё из избранного', command=self.unfav_all,
+                                        takefocus=False, style='Default.TButton')
 
         self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
         self.frame_main.grid(  row=1, columnspan=2, padx=6, pady=(0, 4))
@@ -3602,10 +3571,15 @@ class PrintW(tk.Toplevel):
         self.lbl_forms.grid(  row=0, column=2, padx=(6, 1), pady=6, sticky='E')
         self.check_forms.grid(row=0, column=3, padx=(0, 6), pady=6, sticky='W')
         # }
-        self.txt_dct.grid(    row=2, column=0,     padx=(6, 0), pady=0,      sticky='NSEW')
-        self.scrollbar_x.grid(row=3, column=0,     padx=(6, 0), pady=0,      sticky='NWE')
-        self.scrollbar_y.grid(row=2, column=1,     padx=(0, 6), pady=0,      sticky='NSW')
-        self.lbl_info.grid(   row=4, columnspan=2, padx=6,      pady=(0, 6))
+        self.txt_dct.grid(      row=2, column=0,     padx=(6, 0), pady=0,      sticky='NSEW')
+        self.scrollbar_x.grid(  row=3, column=0,     padx=(6, 0), pady=0,      sticky='NWE')
+        self.scrollbar_y.grid(  row=2, column=1,     padx=(0, 6), pady=0,      sticky='NSW')
+        self.lbl_info.grid(     row=4, columnspan=2, padx=6,      pady=(0, 6))
+        self.frame_buttons.grid(row=5, columnspan=2, padx=6,      pady=(0, 6))
+        # {
+        self.btn_fav_all.grid(  row=0, column=0, padx=(0, 6), pady=0)
+        self.btn_unfav_all.grid(row=0, column=1, padx=0,      pady=0)
+        # }
 
         self.scrollbar_x.config(command=self.txt_dct.xview, orient='horizontal')
         self.scrollbar_y.config(command=self.txt_dct.yview, orient='vertical')
@@ -3643,6 +3617,24 @@ class PrintW(tk.Toplevel):
         self.focus_set()
         self.bind('<Escape>', lambda event=None: self.destroy())
 
+    # Добавить все статьи в избранное
+    def fav_all(self):
+        window = PopupDialogueW(self, 'Вы действительно хотите добавить все статьи в избранное?')
+        answer = window.open()
+        if not answer:
+            return
+        _0_global_dct.fav_all()
+        self.print()
+
+    # Убрать все статьи из избранного
+    def unfav_all(self):
+        window = PopupDialogueW(self, 'Вы действительно хотите убрать все статьи из избранного?')
+        answer = window.open()
+        if not answer:
+            return
+        _0_global_dct.unfav_all()
+        self.print()
+
     def open(self):
         self.set_focus()
 
@@ -3669,12 +3661,12 @@ class ChooseLearnModeW(tk.Toplevel):
         # {
         self.lbl_order = ttk.Label(self.frame_main, text='Метод:', style='Default.TLabel')
         self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=VALUES_LEARN_METHOD,
-                                        validate='focusin', width=30, state='readonly', style='.TCombobox')
+                                        validate='focusin', width=30, state='readonly', style='Default.TCombobox')
         self.lbl_forms = ttk.Label(self.frame_main, text='Все словоформы:', style='Default.TLabel')
-        self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='.TCheckbutton')
+        self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='Default.TCheckbutton')
         self.lbl_words = ttk.Label(self.frame_main, text='Подбор слов:', style='Default.TLabel')
         self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=VALUES_LEARN_WORDS,
-                                        width=30, state='readonly', style='.TCombobox')
+                                        width=30, state='readonly', style='Default.TCombobox')
         # }
         self.btn_start = ttk.Button(self, text='Учить', command=self.start, takefocus=False, style='Default.TButton')
 
@@ -3691,7 +3683,14 @@ class ChooseLearnModeW(tk.Toplevel):
         self.btn_start.grid(row=2, column=0, padx=6, pady=(0, 6))
 
         # При выборе второго метода учёбы нельзя добавить словоформы
-        self.vcmd_order = (self.register(lambda value: validate_order_and_forms(value, self.check_forms)), '%P')
+        def validate_order_and_forms(value: str):
+            if value == VALUES_LEARN_METHOD[1]:
+                self.check_forms['state'] = 'disabled'
+            else:
+                self.check_forms['state'] = 'normal'
+            return True
+
+        self.vcmd_order = (self.register(validate_order_and_forms), '%P')
         self.combo_order['validatecommand'] = self.vcmd_order
 
     # Учить слова
@@ -3750,7 +3749,7 @@ class LearnW(tk.Toplevel):
         # { {
         self.btn_input = ttk.Button(self.frame_main, text='Ввод', command=self.input,
                                     takefocus=False, style='Default.TButton')
-        self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=50, style='.TEntry')
+        self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=50, style='Default.TEntry')
         self.btn_notes = ttk.Button(self.frame_main, text='Посмотреть сноски', command=self.show_notes,
                                     takefocus=False, style='Default.TButton')
         # } }
@@ -4170,7 +4169,7 @@ class SearchW(tk.Toplevel):
         self.frame_main = ttk.Frame(self, style='Default.TFrame')
         # {
         self.lbl_input = ttk.Label(self.frame_main, text='Введите запрос:', style='Default.TLabel')
-        self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_wrd, width=60, style='.TEntry')
+        self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_wrd, width=60, style='Default.TEntry')
         self.btn_search = ttk.Button(self.frame_main, text='Поиск', command=self.search,
                                      takefocus=False, style='Default.TButton')
         # }
@@ -4274,7 +4273,7 @@ class EditW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.key = key
+        self.dct_key = key
         self.line_width = 35
         self.max_height_w = 3
         self.max_height_t = 6
@@ -4341,21 +4340,21 @@ class EditW(tk.Toplevel):
         self.frame_btns_notes = ttk.Frame(self.frame_main, style='Invis.TFrame')
         # { {
         try:
-            self.btn_notes_add = ttk.Button(self.frame_btns_notes, image=self.img_add, command=self.notes_add,
+            self.btn_note_add = ttk.Button(self.frame_btns_notes, image=self.img_add, command=self.note_add,
                                             takefocus=False, style='Image.TButton')
         except:
-            self.btn_notes_add = ttk.Button(self.frame_btns_notes, text='+', command=self.notes_add, width=2,
+            self.btn_note_add = ttk.Button(self.frame_btns_notes, text='+', command=self.note_add, width=2,
                                             takefocus=False, style='Default.TButton')
         else:
-            self.tip_btn_notes_add = ttip.Hovertip(self.btn_notes_add, 'Добавить сноску', hover_delay=500)
+            self.tip_btn_note_add = ttip.Hovertip(self.btn_note_add, 'Добавить сноску', hover_delay=500)
         try:
-            self.btn_notes_del = ttk.Button(self.frame_btns_notes, image=self.img_delete, command=self.notes_del,
+            self.btn_note_del = ttk.Button(self.frame_btns_notes, image=self.img_delete, command=self.note_del,
                                             takefocus=False, style='Image.TButton')
         except:
-            self.btn_notes_del = ttk.Button(self.frame_btns_notes, text='-', command=self.notes_del, width=2,
+            self.btn_note_del = ttk.Button(self.frame_btns_notes, text='-', command=self.note_del, width=2,
                                             takefocus=False, style='Default.TButton')
         else:
-            self.tip_btn_notes_del = ttip.Hovertip(self.btn_notes_del, 'Удалить сноску', hover_delay=500)
+            self.tip_btn_note_del = ttip.Hovertip(self.btn_note_del, 'Удалить сноску', hover_delay=500)
         # } }
         self.lbl_frm = ttk.Label(self.frame_main, text='Формы слова:', style='Default.TLabel')
         self.scrollbar_frm = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
@@ -4393,7 +4392,7 @@ class EditW(tk.Toplevel):
         # } }
         self.lbl_fav = ttk.Label(self.frame_main, text='Избранное:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=self.set_fav,
-                                         style='.TCheckbutton')
+                                         style='Default.TCheckbutton')
         # }
         self.btn_back = ttk.Button(self, text='Закончить', command=self.back,
                                    takefocus=False, style='Default.TButton')
@@ -4420,8 +4419,8 @@ class EditW(tk.Toplevel):
         self.scrollbar_notes.grid( row=2, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
         self.frame_btns_notes.grid(row=2, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
         # { {
-        self.btn_notes_add.grid(row=0, column=0, padx=(0, 1), pady=0)
-        self.btn_notes_del.grid(row=0, column=1, padx=(1, 0), pady=0)
+        self.btn_note_add.grid(row=0, column=0, padx=(0, 1), pady=0)
+        self.btn_note_del.grid(row=0, column=1, padx=(1, 0), pady=0)
         # } }
         self.lbl_frm.grid(       row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.txt_frm.grid(       row=3, column=1, padx=(0, 1), pady=(0, 3), sticky='WE')
@@ -4442,10 +4441,10 @@ class EditW(tk.Toplevel):
 
     # Обновить поля
     def refresh(self):
-        height_w = max(min(height(_0_global_dct.d[self.key].wrd,            self.line_width), self.max_height_w), 1)
-        height_t = max(min(height(_0_global_dct.d[self.key].tr_to_str(),    self.line_width), self.max_height_t), 1)
-        height_n = max(min(height(_0_global_dct.d[self.key].notes_to_str(), self.line_width), self.max_height_n), 1)
-        height_f = max(min(height(_0_global_dct.d[self.key].frm_to_str(),   self.line_width), self.max_height_f), 1)
+        height_w = max(min(height(_0_global_dct.d[self.dct_key].wrd,            self.line_width), self.max_height_w), 1)
+        height_t = max(min(height(_0_global_dct.d[self.dct_key].tr_to_str(),    self.line_width), self.max_height_t), 1)
+        height_n = max(min(height(_0_global_dct.d[self.dct_key].notes_to_str(), self.line_width), self.max_height_n), 1)
+        height_f = max(min(height(_0_global_dct.d[self.dct_key].frm_to_str(),   self.line_width), self.max_height_f), 1)
 
         self.txt_wrd  ['height'] = height_w
         self.txt_tr   ['height'] = height_t
@@ -4454,26 +4453,26 @@ class EditW(tk.Toplevel):
 
         self.txt_wrd['state'] = 'normal'
         self.txt_wrd.delete(1.0, tk.END)
-        self.txt_wrd.insert(tk.END, _0_global_dct.d[self.key].wrd)
+        self.txt_wrd.insert(tk.END, _0_global_dct.d[self.dct_key].wrd)
         self.txt_wrd['state'] = 'disabled'
 
         self.txt_tr['state'] = 'normal'
         self.txt_tr.delete(1.0, tk.END)
-        self.txt_tr.insert(tk.END, _0_global_dct.d[self.key].tr_to_str())
+        self.txt_tr.insert(tk.END, _0_global_dct.d[self.dct_key].tr_to_str())
         self.txt_tr['state'] = 'disabled'
 
         self.txt_notes['state'] = 'normal'
         self.txt_notes.delete(1.0, tk.END)
-        self.txt_notes.insert(tk.END, _0_global_dct.d[self.key].notes_to_str())
+        self.txt_notes.insert(tk.END, _0_global_dct.d[self.dct_key].notes_to_str())
         self.txt_notes['state'] = 'disabled'
 
         self.txt_frm['state'] = 'normal'
         self.txt_frm.delete(1.0, tk.END)
-        self.txt_frm.insert(tk.END, _0_global_dct.d[self.key].frm_to_str())
+        self.txt_frm.insert(tk.END, _0_global_dct.d[self.dct_key].frm_to_str())
         self.txt_frm['state'] = 'disabled'
 
         self.btn_tr_del.grid(     row=0, column=1, padx=(1, 0), pady=0)
-        self.btn_notes_del.grid(  row=0, column=1, padx=(1, 0), pady=0)
+        self.btn_note_del.grid(  row=0, column=1, padx=(1, 0), pady=0)
         self.btn_frm_del.grid(    row=0, column=1, padx=(1, 1), pady=0)
         self.btn_frm_edt.grid(    row=0, column=2, padx=(1, 0), pady=0)
         self.scrollbar_wrd.grid(  row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
@@ -4481,11 +4480,11 @@ class EditW(tk.Toplevel):
         self.scrollbar_notes.grid(row=2, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
         self.scrollbar_frm.grid(  row=3, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
 
-        if _0_global_dct.d[self.key].count_t < 2:
+        if _0_global_dct.d[self.dct_key].count_t < 2:
             self.btn_tr_del.grid_remove()
-        if _0_global_dct.d[self.key].count_n < 1:
-            self.btn_notes_del.grid_remove()
-        if _0_global_dct.d[self.key].count_f < 1:
+        if _0_global_dct.d[self.dct_key].count_n < 1:
+            self.btn_note_del.grid_remove()
+        if _0_global_dct.d[self.dct_key].count_f < 1:
             self.btn_frm_del.grid_remove()
             self.btn_frm_edt.grid_remove()
 
@@ -4503,14 +4502,14 @@ class EditW(tk.Toplevel):
         global _0_global_has_progress
 
         window = PopupEntryW(self, 'Введите новое слово',
-                             check_answer_function=lambda wnd, val: check_wrd_edit(wnd, key_to_wrd(self.key), val))
+                             check_answer_function=lambda wnd, val: check_wrd_edit(wnd, key_to_wrd(self.dct_key), val))
         closed, new_wrd = window.open()
         if closed:
             return
         new_wrd = encode_special_combinations(new_wrd)
 
-        self.key = _0_global_dct.edit_wrd(self, self.key, new_wrd)
-        if not self.key:
+        self.dct_key = _0_global_dct.edit_wrd(self, self.dct_key, new_wrd)
+        if not self.dct_key:
             return
 
         _0_global_has_progress = True
@@ -4521,14 +4520,14 @@ class EditW(tk.Toplevel):
         global _0_global_has_progress
 
         window = PopupEntryW(self, 'Введите новый перевод',
-                             check_answer_function=lambda wnd, val: check_tr(wnd, _0_global_dct.d[self.key].tr,
-                                                                             val, key_to_wrd(self.key)))
+                             check_answer_function=lambda wnd, val: check_tr(wnd, _0_global_dct.d[self.dct_key].tr,
+                                                                             val, key_to_wrd(self.dct_key)))
         closed, tr = window.open()
         if closed:
             return
         tr = encode_special_combinations(tr)
 
-        _0_global_dct.add_tr(self.key, tr)
+        _0_global_dct.add_tr(self.dct_key, tr)
 
         _0_global_has_progress = True
         self.refresh()
@@ -4537,33 +4536,48 @@ class EditW(tk.Toplevel):
     def tr_del(self):
         global _0_global_has_progress
 
-        _0_global_dct.delete_tr_with_choose(self, self.key)
+        window_choose = PopupChooseW(self, _0_global_dct.d[self.dct_key].tr, 'Выберите, какой перевод хотите удалить',
+                                     default_value=_0_global_dct.d[self.dct_key].tr[0],
+                                     combo_width=width(_0_global_dct.d[self.dct_key].tr, 5, 100))
+        closed, tr = window_choose.open()
+        if closed:
+            return
+
+        _0_global_dct.delete_tr(self.dct_key, tr)
 
         _0_global_has_progress = True
         self.refresh()
 
     # Добавить сноску
-    def notes_add(self):
+    def note_add(self):
         global _0_global_has_progress
 
         window = PopupEntryW(self, 'Введите сноску',
-                             check_answer_function=lambda wnd, val: check_note(wnd, _0_global_dct.d[self.key].notes,
-                                                                               val, key_to_wrd(self.key)))
+                             check_answer_function=lambda wnd, val: check_note(wnd, _0_global_dct.d[self.dct_key].notes,
+                                                                               val, key_to_wrd(self.dct_key)))
         closed, note = window.open()
         if closed:
             return
         note = encode_special_combinations(note)
 
-        _0_global_dct.add_note(self.key, note)
+        _0_global_dct.add_note(self.dct_key, note)
 
         _0_global_has_progress = True
         self.refresh()
 
     # Удалить сноску
-    def notes_del(self):
+    def note_del(self):
         global _0_global_has_progress
 
-        _0_global_dct.delete_note_with_choose(self, self.key)
+        window_choose = PopupChooseW(self, _0_global_dct.d[self.dct_key].notes,
+                                     'Выберите, какую сноску хотите удалить',
+                                     default_value=_0_global_dct.d[self.dct_key].notes[0],
+                                     combo_width=width(_0_global_dct.d[self.dct_key].notes, 5, 100))
+        closed, note = window_choose.open()
+        if closed:
+            return
+
+        _0_global_dct.delete_note(self.dct_key, note)
 
         _0_global_has_progress = True
         self.refresh()
@@ -4578,7 +4592,7 @@ class EditW(tk.Toplevel):
                           'Настройки/Настройки словаря/Грамматические категории')
             return
 
-        window_template = CreateFormTemplateW(self, self.key,
+        window_template = CreateFormTemplateW(self, self.dct_key,
                                               combo_width=width(tuple(_0_global_categories.keys()),
                                                                 5, 100))  # Создание шаблона словоформы
         frm_key = window_template.open()
@@ -4593,7 +4607,7 @@ class EditW(tk.Toplevel):
             return
         frm = encode_special_combinations(frm)
 
-        _0_global_dct.add_frm(self.key, frm_key, frm)
+        _0_global_dct.add_frm(self.dct_key, frm_key, frm)
 
         _0_global_has_progress = True
         self.refresh()
@@ -4602,7 +4616,26 @@ class EditW(tk.Toplevel):
     def frm_edt(self):
         global _0_global_has_progress
 
-        _0_global_dct.edit_frm_with_choose(self, self.key)
+        frm_keys = tuple(_0_global_dct.d[self.dct_key].forms.keys())
+        variants = tuple(f'[{tpl(key)}] {_0_global_dct.d[self.dct_key].forms[key]}' for key in frm_keys)
+
+        window_choose = PopupChooseW(self, variants, 'Выберите словоформу, которую хотите изменить',
+                                     default_value=variants[0], combo_width=width(variants, 5, 100))
+        closed, answer = window_choose.open()
+        if closed:
+            return
+        index = variants.index(answer)
+        selected_key = frm_keys[index]
+
+        window_entry = PopupEntryW(self, 'Введите форму слова',
+                                   check_answer_function=lambda wnd, val:
+                                   check_not_void(wnd, val, 'Словоформа должна содержать хотя бы один символ!'))
+        closed, new_frm = window_entry.open()
+        if closed:
+            return
+        new_frm = encode_special_combinations(new_frm)
+
+        _0_global_dct.d[self.dct_key].forms[selected_key] = new_frm
 
         _0_global_has_progress = True
         self.refresh()
@@ -4611,24 +4644,25 @@ class EditW(tk.Toplevel):
     def frm_del(self):
         global _0_global_has_progress
 
-        _0_global_dct.delete_frm_with_choose(self, self.key)
+        frm_keys = tuple(_0_global_dct.d[self.dct_key].forms.keys())
+        variants = tuple(f'[{tpl(key)}] {_0_global_dct.d[self.dct_key].forms[key]}' for key in frm_keys)
+
+        window_choose = PopupChooseW(self, variants, 'Выберите словоформу, которую хотите удалить',
+                                     default_value=variants[0], combo_width=width(variants, 5, 100))
+        closed, answer = window_choose.open()
+        if closed:
+            return
+        index = variants.index(answer)
+        selected_key = frm_keys[index]
+
+        _0_global_dct.delete_frm(self.dct_key, selected_key)
 
         _0_global_has_progress = True
         self.refresh()
 
     # Добавить в избранное/убрать из избранного
     def set_fav(self):
-        _0_global_dct.d[self.key].fav = self.var_fav.get()
-
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_back.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-    # Закрыть настройки
-    def back(self):
-        self.destroy()
+        _0_global_dct.d[self.dct_key].fav = self.var_fav.get()
 
     # Удалить статью
     def delete(self):
@@ -4637,9 +4671,19 @@ class EditW(tk.Toplevel):
         window = PopupDialogueW(self, 'Вы уверены, что хотите удалить эту статью?', set_focus_on_btn='none')
         answer = window.open()
         if answer:
-            _0_global_dct.delete_entry(self.key)
+            _0_global_dct.delete_entry(self.dct_key)
             _0_global_has_progress = True
             self.destroy()
+
+    # Закрыть настройки
+    def back(self):
+        self.destroy()
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_back.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
     def open(self):
         self.set_focus()
@@ -4656,18 +4700,18 @@ class AddW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.key = None
+        self.dct_key = None
 
         self.var_wrd = tk.StringVar(value=wrd)
         self.var_tr = tk.StringVar()
         self.var_fav = tk.BooleanVar(value=False)
 
         self.lbl_wrd = ttk.Label(self, text='Введите слово:', style='Default.TLabel')
-        self.entry_wrd = ttk.Entry(self, textvariable=self.var_wrd, width=60, style='.TEntry')
+        self.entry_wrd = ttk.Entry(self, textvariable=self.var_wrd, width=60, validate='all', style='Default.TEntry')
         self.lbl_tr = ttk.Label(self, text='Введите перевод:', style='Default.TLabel')
-        self.entry_tr = ttk.Entry(self, textvariable=self.var_tr, width=60, style='.TEntry')
+        self.entry_tr = ttk.Entry(self, textvariable=self.var_tr, width=60, validate='all', style='Default.TEntry')
         self.lbl_fav = ttk.Label(self, text='Избранное:', style='Default.TLabel')
-        self.check_fav = ttk.Checkbutton(self, variable=self.var_fav, style='.TCheckbutton')
+        self.check_fav = ttk.Checkbutton(self, variable=self.var_fav, style='Default.TCheckbutton')
         self.btn_add = ttk.Button(self, text='Добавить', command=self.add, takefocus=False, style='Default.TButton')
 
         self.lbl_wrd.grid(  row=0, column=0,     padx=(6, 1), pady=(6, 3), sticky='E')
@@ -4677,6 +4721,21 @@ class AddW(tk.Toplevel):
         self.lbl_fav.grid(  row=2, column=0,     padx=(6, 1), pady=(0, 3), sticky='E')
         self.check_fav.grid(row=2, column=1,     padx=(0, 6), pady=(0, 3), sticky='W')
         self.btn_add.grid(  row=3, columnspan=2, padx=6,      pady=(0, 6))
+
+        btn_disable(self.btn_add)
+
+        # При незаполненных полях нельзя нажать кнопку
+        def validate_entries(value: str, second_value: str):
+            if value == '' or second_value == '':
+                btn_disable(self.btn_add)
+            else:
+                btn_enable(self.btn_add, self.add)
+            return True
+
+        self.vcmd_wrd = (self.register(lambda value: validate_entries(value, self.var_tr.get())), '%P')
+        self.vcmd_tr = (self.register(lambda value: validate_entries(value, self.var_wrd.get())), '%P')
+        self.entry_wrd['validatecommand'] = self.vcmd_wrd
+        self.entry_tr['validatecommand'] = self.vcmd_tr
 
     # Установить фокус
     def set_focus(self):
@@ -4689,18 +4748,11 @@ class AddW(tk.Toplevel):
     def add(self):
         global _0_global_has_progress
 
-        if self.var_wrd.get() == '':
-            warning(self, 'Слово должно содержать хотя бы один символ!')
+        self.dct_key = _0_global_dct.add_entry(self, encode_special_combinations(self.var_wrd.get()),
+                                               encode_special_combinations(self.var_tr.get()))
+        if not self.dct_key:
             return
-        if self.var_tr.get() == '':
-            warning(self, 'Перевод должен содержать хотя бы один символ!')
-            return
-
-        self.key = _0_global_dct.add_entry(self, encode_special_combinations(self.var_wrd.get()),
-                                           encode_special_combinations(self.var_tr.get()))
-        if not self.key:
-            return
-        _0_global_dct.d[self.key].fav = self.var_fav.get()
+        _0_global_dct.d[self.dct_key].fav = self.var_fav.get()
 
         _0_global_has_progress = True
         self.destroy()
@@ -4711,7 +4763,7 @@ class AddW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        return self.key
+        return self.dct_key
 
 
 # Окно настроек
@@ -4737,7 +4789,7 @@ class SettingsW(tk.Toplevel):
         # Только целые числа от 0 до 100
         self.vcmd = (self.register(validate_percent), '%P')
 
-        self.tabs = ttk.Notebook(self, style='.TNotebook')
+        self.tabs = ttk.Notebook(self, style='Default.TNotebook')
         self.tab_local = ttk.Frame(self.tabs, style='Invis.TFrame')
         self.lbl_dct_name = ttk.Label(self, text=f'Открыт словарь "{_0_global_dct_savename}"', style='Default.TLabel')
         self.tabs.add(self.tab_local, text='Настройки словаря')
@@ -4755,7 +4807,7 @@ class SettingsW(tk.Toplevel):
         self.lbl_mgsp = ttk.Label(self.frame_mgsp, text='Минимальный приемлемый процент угадываний слова:',
                                   style='Default.TLabel')
         self.entry_mgsp = ttk.Entry(self.frame_mgsp, textvariable=self.var_mgsp, width=5,
-                                    validate='key', validatecommand=self.vcmd, style='.TEntry')
+                                    validate='key', validatecommand=self.vcmd, style='Default.TEntry')
         # } }
         self.btn_forms = ttk.Button(self.tab_local, text='Грамматические категории', command=self.categories,
                                     takefocus=False, style='Default.TButton')
@@ -4775,7 +4827,7 @@ class SettingsW(tk.Toplevel):
         self.lbl_show_updates = ttk.Label(self.frame_show_updates, text='Сообщать о выходе новых версий:',
                                           style='Default.TLabel')
         self.check_show_updates = ttk.Checkbutton(self.frame_show_updates, variable=self.var_show_updates,
-                                                  style='.TCheckbutton')
+                                                  style='Default.TCheckbutton')
         # } }
         self.frame_show_typo_button = ttk.Frame(self.tab_global, style='Default.TFrame')
         # { {
@@ -4788,7 +4840,7 @@ class SettingsW(tk.Toplevel):
         self.lbl_show_typo_button = ttk.Label(self.frame_show_typo_button, text='Показывать кнопку "Опечатка":',
                                               style='Default.TLabel')
         self.check_show_typo_button = ttk.Checkbutton(self.frame_show_typo_button, variable=self.var_show_typo_button,
-                                                      style='.TCheckbutton')
+                                                      style='Default.TCheckbutton')
         # } }
         self.frame_dcts = ttk.Frame(self.tab_global, style='Default.TFrame')
         # { {
@@ -4816,7 +4868,7 @@ class SettingsW(tk.Toplevel):
         # { {
         self.lbl_themes = ttk.Label(self.frame_themes, text='Тема:', style='Default.TLabel')
         self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
-                                         state='readonly', style='.TCombobox', width=21)
+                                         state='readonly', style='Default.TCombobox', width=21)
         self.lbl_themes_note = ttk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
                                                                  f'Актуальные темы можно скачать здесь:',
                                          justify='left', style='Default.TLabel')
@@ -5255,7 +5307,7 @@ class MainW(tk.Tk):
                                     takefocus=False, style='Default.TButton')
         self.frame_word = ttk.Frame(self.frame_buttons, style='Default.TFrame')
         # { {
-        self.entry_word = ttk.Entry(self.frame_word, textvariable=self.var_word, width=30, style='.TEntry')
+        self.entry_word = ttk.Entry(self.frame_word, textvariable=self.var_word, width=30, style='Default.TEntry')
         self.btn_search = ttk.Button(self.frame_word, text='Найти статью', command=self.search,
                                      takefocus=False, style='Default.TButton')
         self.btn_edit = ttk.Button(self.frame_word, text='Изменить статью', command=self.edit,
@@ -5409,9 +5461,9 @@ class MainW(tk.Tk):
         # Стиль entry
         self.st_entry = ttk.Style()
         self.st_entry.theme_use('alt')
-        self.st_entry.configure('.TEntry',
+        self.st_entry.configure('Default.TEntry',
                                 font=('StdFont', 10))
-        self.st_entry.map('.TEntry',
+        self.st_entry.map('Default.TEntry',
                           fieldbackground=[('readonly', ST_BG[th]),
                                            ('!readonly', ST_BG_FIELDS[th])],
                           foreground=[('readonly', ST_FG[th]),
@@ -5506,16 +5558,16 @@ class MainW(tk.Tk):
         # Стиль checkbutton
         self.st_check = ttk.Style()
         self.st_check.theme_use('alt')
-        self.st_check.map('.TCheckbutton',
+        self.st_check.map('Default.TCheckbutton',
                           background=[('active', ST_CHECK_BG_SEL[th]),
                                       ('!active', ST_BG[th])])
 
         # Стиль combobox
         self.st_combo = ttk.Style()
         self.st_combo.theme_use('alt')
-        self.st_combo.configure('.TCombobox',
+        self.st_combo.configure('Default.TCombobox',
                                 font=('StdFont', 10))
-        self.st_combo.map('.TCombobox',
+        self.st_combo.map('Default.TCombobox',
                           background=[('readonly', ST_BTN_BG[th]),
                                       ('!readonly', ST_BTN_BG[th])],
                           fieldbackground=[('readonly', ST_BG_FIELDS[th]),
@@ -5561,7 +5613,7 @@ class MainW(tk.Tk):
         # Стиль notebook
         self.st_note = ttk.Style()
         self.st_note.theme_use('alt')
-        self.st_note.map('.TNotebook',
+        self.st_note.map('Default.TNotebook',
                          troughcolor=[('active', ST_BG[th]),
                                       ('!active', ST_BG[th])],
                          background=[('selected', ST_BTN_BG_SEL[th]),
@@ -5617,8 +5669,8 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                           {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                           {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
@@ -5656,3 +5708,5 @@ root.mainloop()
     'ед. число' и 'множ. число' - ЗНАЧЕНИЯ категории 'число'
     'им. падеж' и   'тв. падеж' - ЗНАЧЕНИЯ категории 'падеж'
 """
+
+# AddW - если пустое поле
