@@ -12,21 +12,21 @@ import webbrowser  # Для открытия веб-страницы
 import urllib.request as urllib2  # Для проверки наличия обновлений
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
-import typing
+import typing  # Аннотации
 
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.0-Alpha'
+PROGRAM_VERSION = 'v7.0.0-Beta'
 PROGRAM_DATE = '2.2.2023'
-PROGRAM_TIME = '3:59 (UTC+3)'
+PROGRAM_TIME = '4:39 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
 GLOBAL_SETTINGS_VERSION = 1  # Актуальная версия глобальных настроек
 REQUIRED_THEME_VERSION = 5  # Актуальная версия тем
 
-""" Стандартные темы """
+""" Темы """
 
 CUSTOM_TH = '</custom\\>'  # Название пользовательской темы
 THEMES = [CUSTOM_TH, 'light', 'dark']  # Названия тем
@@ -152,7 +152,7 @@ STYLE_NAMES = {STYLE_ELEMENTS[0]:  'Цвет фона окна',
                STYLE_ELEMENTS[29]: 'Цвет ползунка',
                STYLE_ELEMENTS[30]: 'Цвет ползунка при нажатии'}
 
-""" Пути и файлы """
+""" Пути, файлы, ссылки """
 
 MAIN_PATH = os.path.dirname(__file__)  # Папка с программой
 RESOURCES_DIR = 'resources'  # Папка с ресурсами
@@ -231,363 +231,20 @@ NEW_VERSION_PATH = os.path.join(MAIN_PATH, NEW_VERSION_DIR)  # Временна�
 NEW_VERSION_ZIP = f'{NEW_VERSION_DIR}.zip'
 NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с обновлением
 
-""" Другое """
+""" Другие константы """
 
 CATEGORY_SEPARATOR = '@'  # Разделитель для записи значений категории в файл локальных настроек
 SPECIAL_COMBINATION_OPENING_SYMBOL = '#'  # Открывающий символ специальных комбинаций
 
-VALUES_ORDER = ('Угадывать слово по переводу', 'Угадывать перевод по слову')  # Варианты метода учёбы
-VALUES_WORDS = ('Все слова', 'Все слова (чаще сложные)', 'Только избранные')  # Варианты подбора слов для учёбы
+VALUES_LEARN_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову')  # Варианты метода учёбы
+VALUES_LEARN_WORDS = ('Все слова', 'Все слова (чаще сложные)', 'Только избранные')  # Варианты подбора слов для учёбы
 
 MAX_SAME_WORDS = 100  # Максимальное количество статей с одинаковым словом
 
-"""
-    Про формы и категории:
-    
-    'чашка' - СЛОВО
+""" Объекты """
 
-    'чашка'   - начальная ФОРМА СЛОВА 'чашка'   (ед. число, им. падеж)
-    'чашками' -           ФОРМА СЛОВА 'чашка' (множ. число, тв. падеж)
-    
-      'ед. число, им. падеж' - ШАБЛОН ФОРМЫ 'чашка'
-    'множ. число, тв. падеж' - ШАБЛОН ФОРМЫ 'чашками'
-    
-    'число' и 'падеж' - КАТЕГОРИИ слов
-    
-    'ед. число' и 'множ. число' - ЗНАЧЕНИЯ категории 'число'
-    'им. падеж' и   'тв. падеж' - ЗНАЧЕНИЯ категории 'падеж'
-"""
 
-""" Функции проверки """
-
-
-# Проверить строку на непустоту
-def check_not_void(window_parent, value: str, msg_if_void: str):
-    if value == '':
-        warning(window_parent, msg_if_void)
-        return False
-    return True
-
-
-# Проверить корректность названия словаря
-def check_dct_savename(window_parent, savename: str):
-    if savename == '':
-        warning(window_parent, 'Название должно содержать хотя бы один символ!')
-        return False
-    if dct_filename(savename) in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
-        warning(window_parent, 'Файл с таким названием уже существует!')
-        return False
-    return True
-
-
-# Проверить корректность изменённого слова
-def check_wrd_edit(window_parent, old_wrd: str, new_wrd: str):
-    if new_wrd == '':
-        warning(window_parent, 'Слово должно содержать хотя бы один символ!')
-        return False
-    if new_wrd == old_wrd:
-        warning(window_parent, 'Это то же самое слово!')
-        return False
-    return True
-
-
-# Проверить корректность перевода
-def check_tr(window_parent, translations: list[str] | tuple[str, ...], new_tr: str, wrd: str):
-    if new_tr == '':
-        warning(window_parent, 'Перевод должен содержать хотя бы один символ!')
-        return False
-    if new_tr in translations:
-        warning(window_parent, f'У слова "{wrd}" уже есть такой перевод!')
-        return False
-    return True
-
-
-# Проверить корректность сноски
-def check_note(window_parent, notes: list[str] | tuple[str, ...], new_note: str, wrd: str):
-    if new_note == '':
-        warning(window_parent, 'Сноска должна содержать хотя бы один символ!')
-        return False
-    if new_note in notes:
-        warning(window_parent, f'У слова "{wrd}" уже есть такая сноска!')
-        return False
-    return True
-
-
-# Проверить корректность названия категории
-def check_ctg(window_parent, categories: list[str] | tuple[str, ...], new_ctg: str):
-    if new_ctg == '':
-        warning(window_parent, 'Название категории должно содержать хотя бы один символ!')
-        return False
-    if new_ctg in categories:  # Если уже есть категория с таким названием
-        warning(window_parent, f'Категория "{new_ctg}" уже существует!')
-        return False
-    return True
-
-
-# Проверить корректность значения категории
-def check_ctg_val(window_parent, values: list[str] | tuple[str, ...], new_val: str):
-    if new_val == '':
-        warning(window_parent, 'Значение категории должно содержать хотя бы один символ!')
-        return False
-    if new_val in values:
-        warning(window_parent, f'Значение "{new_val}" уже существует!')
-        return False
-    if CATEGORY_SEPARATOR in new_val:
-        warning(window_parent, f'Недопустимый символ: {CATEGORY_SEPARATOR}!')
-        return False
-    return True
-
-
-""" Основные функции """
-
-
-# Вычислить количество строк, необходимых для записи данного текста
-# в многострочное текстовое поле при данной длине строки
-def height(text: str, len_str: int):
-    assert len_str > 0
-
-    segments = text.split('\n')
-    return sum(math.ceil(len(segment) / len_str) for segment in segments)
-
-
-# Вычислить ширину моноширинного поля, в которое должно помещаться каждое из данных значений
-def width(values: tuple[str, ...] | list[str], min_width: int, max_width: int):
-    assert min_width >= 0
-    assert max_width >= 0
-    assert max_width >= min_width
-
-    max_len_of_vals = max(len(val) for val in values)
-    return min(max(max_len_of_vals, min_width), max_width)
-
-
-# Преобразовать специальную комбинацию в читаемый вид (для отображения в настройках)
-def special_combination(key: str):
-    val = _0_global_special_combinations[key]
-    return f'{SPECIAL_COMBINATION_OPENING_SYMBOL}{key} -> {val}'
-
-
-# Преобразовать в тексте специальные комбинации в соответствующие символы
-def encode_special_combinations(text: str):
-    encoded_text = ''
-
-    is_special_combination_open = False  # Встречен ли открывающий символ специальной комбинации
-    for symbol in text:
-        if is_special_combination_open:
-            if symbol in _0_global_special_combinations.keys():  # Если есть комбинация с этим символом
-                encoded_text += _0_global_special_combinations[symbol]
-            elif symbol == SPECIAL_COMBINATION_OPENING_SYMBOL:  # Если встречено два открывающих символа подряд
-                encoded_text += SPECIAL_COMBINATION_OPENING_SYMBOL  # (## -> #)
-            else:  # Если нет комбинации с этим символом
-                encoded_text += f'{SPECIAL_COMBINATION_OPENING_SYMBOL}{symbol}'
-            is_special_combination_open = False
-        elif symbol == SPECIAL_COMBINATION_OPENING_SYMBOL:  # Если встречен открывающий символ специальной комбинации
-            is_special_combination_open = True
-        else:  # Если встречен обычный символ
-            encoded_text += symbol
-    if is_special_combination_open:  # Если текст завершается открывающим символом специальной комбинации
-        encoded_text += SPECIAL_COMBINATION_OPENING_SYMBOL
-
-    return encoded_text
-
-
-# Заменить буквы в тексте соответствующими английскими (для find_and_highlight)
-def simplify(text: str):
-    encoded_text = encode_special_combinations(text)
-    converted_text = ''
-    transformations = []
-
-    for symbol in encoded_text:
-        if symbol in ('ä', 'Ä', 'ë', 'Ë', 'ö', 'Ö', 'ü', 'Ü', 'ß', 'ẞ'):
-            pos = ('ä', 'Ä', 'ë', 'Ë', 'ö', 'Ö', 'ü', 'Ü', 'ß', 'ẞ').index(symbol)
-            converted_text += ('a', 'A', 'e', 'E', 'o', 'O', 'u', 'U', 'ss', 'SS')[pos]
-            transformations += (['ä'], ['Ä'], ['ë'], ['Ë'], ['ö'], ['Ö'], ['ü'], ['Ü'], ['ß', ''], ['ẞ', ''])[pos]
-        else:
-            converted_text += symbol
-            transformations += [symbol]
-
-    return converted_text.lower(), transformations
-
-
-# Конкатенация строк
-def arr_to_str(arr: list[str] | tuple[str, ...]):
-    res = ''
-    for frag in arr:
-        res += frag
-    return res
-
-
-# Найти в строке подстроку и выделить её (только частичные совпадения)
-def find_and_highlight(target_wrd: str, search_wrd: str):
-    target_wrd = encode_special_combinations(target_wrd)
-    search_wrd = encode_special_combinations(search_wrd)
-
-    target_simpl, target_arr = simplify(target_wrd)
-    search_simpl, search_arr = simplify(search_wrd)
-
-    if target_wrd != search_wrd:  # Полное совпадение не учитывается
-        pos = target_simpl.find(search_simpl)
-        if pos != -1:
-            search_len = len(encode_special_combinations(search_simpl))
-            end_pos = pos + search_len
-            if search_wrd == '':  # Если искомая подстрока пустая, то она не выделяется
-                res = target_wrd
-            else:
-                res = f'{arr_to_str(target_arr[:pos])}' \
-                      f'[{arr_to_str(target_arr[pos:end_pos])}]' \
-                      f'{arr_to_str(target_arr[end_pos:])}'
-            return res
-    return ''
-
-
-# Преобразовать кортеж в читаемый вид (для вывода на экран)
-def tpl(input_tuple: tuple | list):
-    res = ''
-    is_first = True
-    for i in range(len(input_tuple)):
-        if input_tuple[i] != '':
-            if is_first:  # Перед первым элементом не ставится запятая
-                res += f'{input_tuple[i]}'
-                is_first = False
-            else:  # Перед последующими элементами ставится запятая
-                res += f', {input_tuple[i]}'
-    return res
-
-
-# Преобразовать кортеж в строку (для сохранения значений категории в файл локальных настроек)
-def decode_tpl(input_tuple: tuple | list):
-    if not input_tuple:  # input_tuple == () или input_tuple == ('')
-        return ''
-    res = input_tuple[0]
-    for i in range(1, len(input_tuple)):
-        res += f'{CATEGORY_SEPARATOR}{input_tuple[i]}'
-    return res
-
-
-# Преобразовать строку в кортеж (для чтения значений категории из файла локальных настроек)
-def encode_tpl(line: str):
-    return tuple(line.split(CATEGORY_SEPARATOR))
-
-
-# Добавить категорию
-def add_ctg(window_parent, categories, dct):
-    # Ввод новой категории
-    window_entry = PopupEntryW(window_parent, 'Введите название новой категории',
-                               check_answer_function=lambda wnd, val: check_ctg(wnd, categories.keys(), val))
-    closed, new_ctg = window_entry.open()
-    if closed:
-        return False
-    new_ctg = encode_special_combinations(new_ctg)
-
-    # Ввод первого значения категории
-    has_changes, new_val = add_ctg_val(window_parent, (),
-                                       'Необходимо добавить хотя бы одно значение для категории')
-    if not new_val:
-        return False
-    new_val = encode_special_combinations(new_val)
-
-    # Обновление категорий
-    dct.add_ctg()
-    categories[new_ctg] = []
-    categories[new_ctg] += [new_val]
-    return True
-
-
-# Переименовать категорию
-def rename_ctg(window_parent, categories, dct):
-    ctg_names = [ctg_name for ctg_name in categories.keys()]
-    window_choose = PopupChooseW(window_parent, ctg_names, default_value=ctg_names[0], btn_text='Переименовать',
-                                 combo_width=width(ctg_names, 5, 100))  # Выбор категории, которую нужно переименовать
-    closed, old_name = window_choose.open()
-    if closed:
-        return False
-
-    # Ввод нового названия категории
-    window_entry = PopupEntryW(window_parent, 'Введите новое название категории',
-                               check_answer_function=lambda wnd, val: check_ctg(wnd, categories.keys(), val))
-    closed, new_name = window_entry.open()
-    if closed:
-        return False
-    new_name = encode_special_combinations(new_name)
-
-    # обновление категорий
-    # dct.rename_ctg(index)
-    categories[new_name] = categories[old_name]
-    categories.pop(old_name)
-    return True
-
-
-# Удалить категорию
-def delete_ctg(window_parent, categories, dct):
-    ctg_names = [ctg_name for ctg_name in categories.keys()]
-    window_choose = PopupChooseW(window_parent, ctg_names, default_value=ctg_names[0], btn_text='Удалить',
-                                 combo_width=width(ctg_names, 5, 100))  # Выбор категории, которую нужно удалить
-    closed, selected_ctg_name = window_choose.open()
-    if closed:
-        return False
-    window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие эту категорию, будут удалены!\n'
-                                               'Хотите продолжить?')  # Подтверждение действия
-    answer = window_dia.open()
-    if answer:
-        pos = ctg_names.index(selected_ctg_name)
-        categories.pop(selected_ctg_name)
-        dct.delete_ctg(pos)
-        return True
-    return False
-
-
-# Добавить значение категории
-def add_ctg_val(window_parent, values: list[str] | tuple[str, ...], text='Введите новое значение категории'):
-    # Ввод нового значения
-    window_entry = PopupEntryW(window_parent, text,
-                               check_answer_function=lambda wnd, val: check_ctg_val(wnd, values, val))
-    closed, new_val = window_entry.open()
-    if closed:
-        return False, None
-    new_val = encode_special_combinations(new_val)
-
-    return True, new_val
-
-
-# Переименовать значение категории
-def rename_ctg_val(window_parent, values: list[str] | tuple[str, ...], pos: int, dct):
-    window_choose = PopupChooseW(window_parent, values, default_value=values[0],
-                                 combo_width=width(values, 5, 100))  # Выбор значения, которое нужно переименовать
-    closed, old_val = window_choose.open()
-    if closed:
-        return False
-
-    # Ввод нового значения
-    window_entry = PopupEntryW(window_parent, 'Введите новое значение категории',
-                               check_answer_function=lambda wnd, val: check_ctg_val(wnd, values, val))
-    closed, new_val = window_entry.open()
-    if closed:
-        return False
-    new_val = encode_special_combinations(new_val)
-
-    dct.rename_forms_with_val(pos, old_val, new_val)  # Переименовывание значения во всех словоформах, его содержащих
-    index = values.index(old_val)
-    values[index] = new_val
-    return True
-
-
-# Удалить значение категории
-def delete_ctg_val(window_parent, values: list[str] | tuple[str, ...], dct):
-    window_choose = PopupChooseW(window_parent, values, default_value=values[0],
-                                 combo_width=width(values, 5, 100))  # Выбор значения, которое нужно удалить
-    closed, val = window_choose.open()
-    if closed:
-        return False
-    window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие это значение категории, будут удалены!\n'
-                                               'Хотите продолжить?')  # Подтверждение действия
-    answer = window_dia.open()
-    if answer:
-        index = values.index(val)
-        values.pop(index)
-        dct.delete_forms_with_val(index, val)  # Удаление всех словоформ, содержащих это значение категории
-        return True
-    return False
-
-
+# Словарная статья
 class Entry(object):
     # self.wrd - слово (начальная форма)
     # self.tr - переводы
@@ -898,28 +555,7 @@ class Entry(object):
             file.write('*\n')
 
 
-# Перевести слово в ключ для словаря
-def wrd_to_key(wrd: str, num: int):  # При изменении этой функции, не забыть поменять key_to_wrd
-    return str(num // 10) + str(num % 10) + wrd
-
-
-# Перевести ключ для словаря в слово
-def key_to_wrd(key: str):  # При изменении этой функции, не забыть поменять wrd_to_key
-    return key[2:]
-
-
-# Выбрать окончание слова в зависимости от количественного числительного
-def set_postfix(n: int, wrd_forms: tuple[str, str, str]):
-    if 5 <= (n % 100) <= 20:
-        return wrd_forms[2]  # Пример: 5 яблок
-    elif n % 10 == 1:
-        return wrd_forms[0]  # Пример: 1 яблоко
-    elif 1 < n % 10 < 5:
-        return wrd_forms[1]  # Пример: 2 яблока
-    else:
-        return wrd_forms[2]  # Пример: 0 яблок
-
-
+# Словарь
 class Dictionary(object):
     # self.d - сам словарь
     # self.count_w - количество статей (слов) в словаре
@@ -1278,9 +914,367 @@ class Dictionary(object):
                 entry.save(file)
 
 
+""" Функции проверки """
+
+
+# Проверить строку на непустоту
+def check_not_void(window_parent, value: str, msg_if_void: str):
+    if value == '':
+        warning(window_parent, msg_if_void)
+        return False
+    return True
+
+
+# Проверить корректность названия словаря
+def check_dct_savename(window_parent, savename: str):
+    if savename == '':
+        warning(window_parent, 'Название должно содержать хотя бы один символ!')
+        return False
+    if dct_filename(savename) in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
+        warning(window_parent, 'Файл с таким названием уже существует!')
+        return False
+    return True
+
+
+# Проверить корректность изменённого слова
+def check_wrd_edit(window_parent, old_wrd: str, new_wrd: str):
+    if new_wrd == '':
+        warning(window_parent, 'Слово должно содержать хотя бы один символ!')
+        return False
+    if new_wrd == old_wrd:
+        warning(window_parent, 'Это то же самое слово!')
+        return False
+    return True
+
+
+# Проверить корректность перевода
+def check_tr(window_parent, translations: list[str] | tuple[str, ...], new_tr: str, wrd: str):
+    if new_tr == '':
+        warning(window_parent, 'Перевод должен содержать хотя бы один символ!')
+        return False
+    if new_tr in translations:
+        warning(window_parent, f'У слова "{wrd}" уже есть такой перевод!')
+        return False
+    return True
+
+
+# Проверить корректность сноски
+def check_note(window_parent, notes: list[str] | tuple[str, ...], new_note: str, wrd: str):
+    if new_note == '':
+        warning(window_parent, 'Сноска должна содержать хотя бы один символ!')
+        return False
+    if new_note in notes:
+        warning(window_parent, f'У слова "{wrd}" уже есть такая сноска!')
+        return False
+    return True
+
+
+# Проверить корректность названия категории
+def check_ctg(window_parent, categories: list[str] | tuple[str, ...], new_ctg: str):
+    if new_ctg == '':
+        warning(window_parent, 'Название категории должно содержать хотя бы один символ!')
+        return False
+    if new_ctg in categories:  # Если уже есть категория с таким названием
+        warning(window_parent, f'Категория "{new_ctg}" уже существует!')
+        return False
+    return True
+
+
+# Проверить корректность значения категории
+def check_ctg_val(window_parent, values: list[str] | tuple[str, ...], new_val: str):
+    if new_val == '':
+        warning(window_parent, 'Значение категории должно содержать хотя бы один символ!')
+        return False
+    if new_val in values:
+        warning(window_parent, f'Значение "{new_val}" уже существует!')
+        return False
+    if CATEGORY_SEPARATOR in new_val:
+        warning(window_parent, f'Недопустимый символ: {CATEGORY_SEPARATOR}!')
+        return False
+    return True
+
+
+""" Вспомогательные функции """
+
+
+# Вычислить количество строк, необходимых для записи данного текста
+# в многострочное текстовое поле при данной длине строки
+def height(text: str, len_str: int):
+    assert len_str > 0
+
+    segments = text.split('\n')
+    return sum(math.ceil(len(segment) / len_str) for segment in segments)
+
+
+# Вычислить ширину моноширинного поля, в которое должно помещаться каждое из данных значений
+def width(values: tuple[str, ...] | list[str], min_width: int, max_width: int):
+    assert min_width >= 0
+    assert max_width >= 0
+    assert max_width >= min_width
+
+    max_len_of_vals = max(len(val) for val in values)
+    return min(max(max_len_of_vals, min_width), max_width)
+
+
+# Преобразовать специальную комбинацию в читаемый вид (для отображения в настройках)
+def special_combination(key: str):
+    val = _0_global_special_combinations[key]
+    return f'{SPECIAL_COMBINATION_OPENING_SYMBOL}{key} -> {val}'
+
+
+# Преобразовать в тексте специальные комбинации в соответствующие символы
+def encode_special_combinations(text: str):
+    encoded_text = ''
+
+    is_special_combination_open = False  # Встречен ли открывающий символ специальной комбинации
+    for symbol in text:
+        if is_special_combination_open:
+            if symbol in _0_global_special_combinations.keys():  # Если есть комбинация с этим символом
+                encoded_text += _0_global_special_combinations[symbol]
+            elif symbol == SPECIAL_COMBINATION_OPENING_SYMBOL:  # Если встречено два открывающих символа подряд
+                encoded_text += SPECIAL_COMBINATION_OPENING_SYMBOL  # (## -> #)
+            else:  # Если нет комбинации с этим символом
+                encoded_text += f'{SPECIAL_COMBINATION_OPENING_SYMBOL}{symbol}'
+            is_special_combination_open = False
+        elif symbol == SPECIAL_COMBINATION_OPENING_SYMBOL:  # Если встречен открывающий символ специальной комбинации
+            is_special_combination_open = True
+        else:  # Если встречен обычный символ
+            encoded_text += symbol
+    if is_special_combination_open:  # Если текст завершается открывающим символом специальной комбинации
+        encoded_text += SPECIAL_COMBINATION_OPENING_SYMBOL
+
+    return encoded_text
+
+
+# Заменить буквы в тексте соответствующими английскими (для find_and_highlight)
+def simplify(text: str):
+    encoded_text = encode_special_combinations(text)
+    converted_text = ''
+    transformations = []
+
+    for symbol in encoded_text:
+        if symbol in ('ä', 'Ä', 'ë', 'Ë', 'ö', 'Ö', 'ü', 'Ü', 'ß', 'ẞ'):
+            pos = ('ä', 'Ä', 'ë', 'Ë', 'ö', 'Ö', 'ü', 'Ü', 'ß', 'ẞ').index(symbol)
+            converted_text += ('a', 'A', 'e', 'E', 'o', 'O', 'u', 'U', 'ss', 'SS')[pos]
+            transformations += (['ä'], ['Ä'], ['ë'], ['Ë'], ['ö'], ['Ö'], ['ü'], ['Ü'], ['ß', ''], ['ẞ', ''])[pos]
+        else:
+            converted_text += symbol
+            transformations += [symbol]
+
+    return converted_text.lower(), transformations
+
+
+# Конкатенация строк
+def arr_to_str(arr: list[str] | tuple[str, ...]):
+    res = ''
+    for frag in arr:
+        res += frag
+    return res
+
+
+# Найти в строке подстроку и выделить её (только частичные совпадения)
+def find_and_highlight(target_wrd: str, search_wrd: str):
+    target_wrd = encode_special_combinations(target_wrd)
+    search_wrd = encode_special_combinations(search_wrd)
+
+    target_simpl, target_arr = simplify(target_wrd)
+    search_simpl, search_arr = simplify(search_wrd)
+
+    if target_wrd != search_wrd:  # Полное совпадение не учитывается
+        pos = target_simpl.find(search_simpl)
+        if pos != -1:
+            search_len = len(encode_special_combinations(search_simpl))
+            end_pos = pos + search_len
+            if search_wrd == '':  # Если искомая подстрока пустая, то она не выделяется
+                res = target_wrd
+            else:
+                res = f'{arr_to_str(target_arr[:pos])}' \
+                      f'[{arr_to_str(target_arr[pos:end_pos])}]' \
+                      f'{arr_to_str(target_arr[end_pos:])}'
+            return res
+    return ''
+
+
+# Преобразовать кортеж в читаемый вид (для вывода на экран)
+def tpl(input_tuple: tuple | list):
+    res = ''
+    is_first = True
+    for i in range(len(input_tuple)):
+        if input_tuple[i] != '':
+            if is_first:  # Перед первым элементом не ставится запятая
+                res += f'{input_tuple[i]}'
+                is_first = False
+            else:  # Перед последующими элементами ставится запятая
+                res += f', {input_tuple[i]}'
+    return res
+
+
+# Преобразовать кортеж в строку (для сохранения значений категории в файл локальных настроек)
+def decode_tpl(input_tuple: tuple | list):
+    if not input_tuple:  # input_tuple == () или input_tuple == ('')
+        return ''
+    res = input_tuple[0]
+    for i in range(1, len(input_tuple)):
+        res += f'{CATEGORY_SEPARATOR}{input_tuple[i]}'
+    return res
+
+
+# Преобразовать строку в кортеж (для чтения значений категории из файла локальных настроек)
+def encode_tpl(line: str):
+    return tuple(line.split(CATEGORY_SEPARATOR))
+
+
+# Перевести слово в ключ для словаря
+def wrd_to_key(wrd: str, num: int):  # При изменении этой функции, не забыть поменять key_to_wrd
+    return str(num // 10) + str(num % 10) + wrd
+
+
+# Перевести ключ для словаря в слово
+def key_to_wrd(key: str):  # При изменении этой функции, не забыть поменять wrd_to_key
+    return key[2:]
+
+
+# Выбрать окончание слова в зависимости от количественного числительного
+def set_postfix(n: int, wrd_forms: tuple[str, str, str]):
+    if 5 <= (n % 100) <= 20:
+        return wrd_forms[2]  # Пример: 5 яблок
+    elif n % 10 == 1:
+        return wrd_forms[0]  # Пример: 1 яблоко
+    elif 1 < n % 10 < 5:
+        return wrd_forms[1]  # Пример: 2 яблока
+    else:
+        return wrd_forms[2]  # Пример: 0 яблок
+
+
 # Получить название файла со словарём по названию словаря
 def dct_filename(savename: str):
     return f'{savename}.txt'
+
+
+""" Основные функции """
+
+
+# Добавить категорию
+def add_ctg(window_parent, categories: dict[str, list[str]], dct: Dictionary):
+    # Ввод новой категории
+    window_entry = PopupEntryW(window_parent, 'Введите название новой категории',
+                               check_answer_function=lambda wnd, val: check_ctg(wnd, tuple(categories.keys()), val))
+    closed, new_ctg = window_entry.open()
+    if closed:
+        return False
+    new_ctg = encode_special_combinations(new_ctg)
+
+    # Ввод первого значения категории
+    has_changes, new_val = add_ctg_val(window_parent, (),
+                                       'Необходимо добавить хотя бы одно значение для категории')
+    if not new_val:
+        return False
+    new_val = encode_special_combinations(new_val)
+
+    # Обновление категорий
+    dct.add_ctg()
+    categories[new_ctg] = []
+    categories[new_ctg] += [new_val]
+    return True
+
+
+# Переименовать категорию
+def rename_ctg(window_parent, categories: dict[str, list[str]], dct: Dictionary):
+    ctg_names = [ctg_name for ctg_name in categories.keys()]
+    window_choose = PopupChooseW(window_parent, ctg_names, default_value=ctg_names[0], btn_text='Переименовать',
+                                 combo_width=width(ctg_names, 5, 100))  # Выбор категории, которую нужно переименовать
+    closed, old_name = window_choose.open()
+    if closed:
+        return False
+
+    # Ввод нового названия категории
+    window_entry = PopupEntryW(window_parent, 'Введите новое название категории',
+                               check_answer_function=lambda wnd, val: check_ctg(wnd, tuple(categories.keys()), val))
+    closed, new_name = window_entry.open()
+    if closed:
+        return False
+    new_name = encode_special_combinations(new_name)
+
+    # обновление категорий
+    # dct.rename_ctg(index)
+    categories[new_name] = categories[old_name]
+    categories.pop(old_name)
+    return True
+
+
+# Удалить категорию
+def delete_ctg(window_parent, categories: dict[str, list[str]], dct: Dictionary):
+    ctg_names = [ctg_name for ctg_name in categories.keys()]
+    window_choose = PopupChooseW(window_parent, ctg_names, default_value=ctg_names[0], btn_text='Удалить',
+                                 combo_width=width(ctg_names, 5, 100))  # Выбор категории, которую нужно удалить
+    closed, selected_ctg_name = window_choose.open()
+    if closed:
+        return False
+    window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие эту категорию, будут удалены!\n'
+                                               'Хотите продолжить?')  # Подтверждение действия
+    answer = window_dia.open()
+    if answer:
+        pos = ctg_names.index(selected_ctg_name)
+        categories.pop(selected_ctg_name)
+        dct.delete_ctg(pos)
+        return True
+    return False
+
+
+# Добавить значение категории
+def add_ctg_val(window_parent, values: list[str] | tuple[str, ...], text='Введите новое значение категории'):
+    # Ввод нового значения
+    window_entry = PopupEntryW(window_parent, text,
+                               check_answer_function=lambda wnd, val: check_ctg_val(wnd, values, val))
+    closed, new_val = window_entry.open()
+    if closed:
+        return False, None
+    new_val = encode_special_combinations(new_val)
+
+    return True, new_val
+
+
+# Переименовать значение категории
+def rename_ctg_val(window_parent, values: list[str] | tuple[str, ...], pos: int, dct: Dictionary):
+    window_choose = PopupChooseW(window_parent, values, default_value=values[0],
+                                 combo_width=width(values, 5, 100))  # Выбор значения, которое нужно переименовать
+    closed, old_val = window_choose.open()
+    if closed:
+        return False
+
+    # Ввод нового значения
+    window_entry = PopupEntryW(window_parent, 'Введите новое значение категории',
+                               check_answer_function=lambda wnd, val: check_ctg_val(wnd, values, val))
+    closed, new_val = window_entry.open()
+    if closed:
+        return False
+    new_val = encode_special_combinations(new_val)
+
+    dct.rename_forms_with_val(pos, old_val, new_val)  # Переименовывание значения во всех словоформах, его содержащих
+    index = values.index(old_val)
+    values[index] = new_val
+    return True
+
+
+# Удалить значение категории
+def delete_ctg_val(window_parent, values: list[str] | tuple[str, ...], dct: Dictionary):
+    window_choose = PopupChooseW(window_parent, values, default_value=values[0],
+                                 combo_width=width(values, 5, 100))  # Выбор значения, которое нужно удалить
+    closed, val = window_choose.open()
+    if closed:
+        return False
+    window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие это значение категории, будут удалены!\n'
+                                               'Хотите продолжить?')  # Подтверждение действия
+    answer = window_dia.open()
+    if answer:
+        index = values.index(val)
+        values.pop(index)
+        dct.delete_forms_with_val(index, val)  # Удаление всех словоформ, содержащих это значение категории
+        return True
+    return False
+
+
+""" Загрузка/сохранение/обновление """
 
 
 # Проверить наличие обновлений программы
@@ -1753,7 +1747,7 @@ def save_settings_if_has_changes(window_parent):
     window_dia = PopupDialogueW(window_parent, 'Хотите сохранить изменения настроек?', 'Да', 'Нет')
     answer = window_dia.open()
     if answer:
-        save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_typo, th)
+        save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th)
         save_local_settings(_0_global_min_good_score_perc, _0_global_categories,
                             dct_filename(_0_global_dct_savename))
         PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
@@ -1777,7 +1771,7 @@ def save_dct_if_has_progress(window_parent, dct: Dictionary, filename: str, has_
             print('\nПрогресс успешно сохранён')
 
 
-""" Графический интерфейс """
+""" Графический интерфейс - вспомогательные функции """
 
 
 # Вывести текст на виджет
@@ -1798,6 +1792,9 @@ def btn_disable(btn: ttk.Button):
 # Включить кнопку (т. к. в ttk нельзя убрать уродливую тень текста на выключенных кнопках, пришлось делать по-своему)
 def btn_enable(btn: ttk.Button, command):
     btn.configure(command=command, style='Default.TButton')
+
+
+""" Графический интерфейс - функции валидации """
 
 
 # Ввод только целых чисел от 0 до max_val
@@ -1822,11 +1819,14 @@ def validate_special_combination_val(value: str):
 
 # При выборе второго метода учёбы нельзя добавить словоформы
 def validate_order_and_forms(value: str, check_forms: ttk.Checkbutton):
-    if value == VALUES_ORDER[1]:
+    if value == VALUES_LEARN_METHOD[1]:
         check_forms['state'] = 'disabled'
     else:
         check_forms['state'] = 'normal'
     return True
+
+
+""" Графический интерфейс - всплывающие окна """
 
 
 # Всплывающее окно с сообщением
@@ -2075,6 +2075,9 @@ class PopupImgW(tk.Toplevel):
         self.wait_window()
 
         return self.closed
+
+
+""" Графический интерфейс - вспомогательные окна """
 
 
 # Окно ввода специальной комбинации
@@ -2611,6 +2614,9 @@ class ParticularMatchesW(tk.Toplevel):
 
         self.grab_set()
         self.wait_window()
+
+
+""" Графический интерфейс - основные окна """
 
 
 # Окно настроек категорий
@@ -3651,20 +3657,20 @@ class ChooseLearnModeW(tk.Toplevel):
 
         self.res = None
 
-        self.var_order = tk.StringVar(value=VALUES_ORDER[0])  # Метод учёбы
+        self.var_order = tk.StringVar(value=VALUES_LEARN_METHOD[0])  # Метод учёбы
         self.var_forms = tk.BooleanVar(value=True)  # Со всеми ли словоформами
-        self.var_words = tk.StringVar(value=VALUES_WORDS[0])  # Способ подбора слов
+        self.var_words = tk.StringVar(value=VALUES_LEARN_WORDS[0])  # Способ подбора слов
 
         self.lbl_header = ttk.Label(self, text='Выберите способ учёбы', style='Default.TLabel')
         self.frame_main = ttk.Frame(self, style='Default.TFrame')
         # {
         self.lbl_order = ttk.Label(self.frame_main, text='Метод:', style='Default.TLabel')
-        self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=VALUES_ORDER,
+        self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=VALUES_LEARN_METHOD,
                                         validate='focusin', width=30, state='readonly', style='.TCombobox')
         self.lbl_forms = ttk.Label(self.frame_main, text='Все словоформы:', style='Default.TLabel')
         self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='.TCheckbutton')
         self.lbl_words = ttk.Label(self.frame_main, text='Подбор слов:', style='Default.TLabel')
-        self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=VALUES_WORDS,
+        self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=VALUES_LEARN_WORDS,
                                         width=30, state='readonly', style='.TCombobox')
         # }
         self.btn_start = ttk.Button(self, text='Учить', command=self.start, takefocus=False, style='Default.TButton')
@@ -3710,7 +3716,7 @@ class ChooseLearnModeW(tk.Toplevel):
 
 # Окно изучения слов
 class LearnW(tk.Toplevel):
-    def __init__(self, parent, conf: list | tuple):
+    def __init__(self, parent, learn_method: str, with_forms: bool, words: str):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Learn')
         self.resizable(width=False, height=False)
@@ -3722,12 +3728,14 @@ class LearnW(tk.Toplevel):
         self.count_all = 0
         self.count_correct = 0
         self.used_words = set()  # Слова (формы), которые уже были угаданы
-        self.conf = conf  # Режим изучения слов: [метод, со всеми ли словоформами, подбор слов]
+        self.learn_method = learn_method  # Метод изучения слов
+        self.with_forms = with_forms  # Со всеми ли словоформами
+        self.words = words  # Способ подбора слов
 
         self.var_input = tk.StringVar()
 
         self.lbl_global_rating = ttk.Label(self, text=f'Ваш общий рейтинг по словарю: '
-                                                     f'{round(_0_global_dct.count_rating() * 100)}%',
+                                                      f'{round(_0_global_dct.count_rating() * 100)}%',
                                            style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
@@ -3759,7 +3767,7 @@ class LearnW(tk.Toplevel):
         self.tip_btn_notes = ttip.Hovertip(self.btn_notes, 'Срабатывает при нажатии на Tab;\n'
                                                            'Если сносок нет, то ничего не выведется',
                                            hover_delay=700)
-        if conf[0] == VALUES_ORDER[0]:
+        if learn_method == VALUES_LEARN_METHOD[0]:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
         else:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
@@ -3777,31 +3785,27 @@ class LearnW(tk.Toplevel):
     def start(self):
         global _0_global_has_progress
 
-        order = self.conf[0]
-        forms = self.conf[1]
-        words = self.conf[2]
-
-        if order == VALUES_ORDER[0]:
-            if forms:
-                if words == VALUES_WORDS[0]:
+        if self.learn_method == VALUES_LEARN_METHOD[0]:
+            if self.with_forms:
+                if self.words == VALUES_LEARN_WORDS[0]:
                     _0_global_has_progress = self.choose_f(_0_global_dct) or _0_global_has_progress
-                elif words == VALUES_WORDS[1]:
+                elif self.words == VALUES_LEARN_WORDS[1]:
                     _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or\
                                              _0_global_has_progress
                 else:
                     _0_global_has_progress = self.choose_f_fav(_0_global_dct) or _0_global_has_progress
             else:
-                if words == VALUES_WORDS[0]:
+                if self.words == VALUES_LEARN_WORDS[0]:
                     _0_global_has_progress = self.choose(_0_global_dct) or _0_global_has_progress
-                elif words == VALUES_WORDS[1]:
+                elif self.words == VALUES_LEARN_WORDS[1]:
                     _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or\
                                              _0_global_has_progress
                 else:
                     _0_global_has_progress = self.choose_fav(_0_global_dct) or _0_global_has_progress
         else:
-            if words == VALUES_WORDS[0]:
+            if self.words == VALUES_LEARN_WORDS[0]:
                 _0_global_has_progress = self.choose_t(_0_global_dct) or _0_global_has_progress
-            elif words == VALUES_WORDS[1]:
+            elif self.words == VALUES_LEARN_WORDS[1]:
                 _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or\
                                          _0_global_has_progress
             else:
@@ -3811,42 +3815,38 @@ class LearnW(tk.Toplevel):
     def input(self):
         global _0_global_has_progress
 
-        order = self.conf[0]
-        forms = self.conf[1]
-        words = self.conf[2]
-
         answer = encode_special_combinations(self.entry_input.get())  # Вывод пользовательского ответа
         if answer != '':
             self.outp(answer)
 
-        if order == VALUES_ORDER[1]:
+        if self.learn_method == VALUES_LEARN_METHOD[1]:
             self.check_tr()
-        elif forms and self.rnd_f != -1:
+        elif self.with_forms and self.rnd_f != -1:
             self.check_form()
         else:
             self.check_wrd()
 
-        if order == VALUES_ORDER[0]:
-            if forms:
-                if words == VALUES_WORDS[0]:
+        if self.learn_method == VALUES_LEARN_METHOD[0]:
+            if self.with_forms:
+                if self.words == VALUES_LEARN_WORDS[0]:
                     _0_global_has_progress = self.choose_f(_0_global_dct) or _0_global_has_progress
-                elif words == VALUES_WORDS[1]:
+                elif self.words == VALUES_LEARN_WORDS[1]:
                     _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or\
                                              _0_global_has_progress
                 else:
                     _0_global_has_progress = self.choose_f_fav(_0_global_dct) or _0_global_has_progress
             else:
-                if words == VALUES_WORDS[0]:
+                if self.words == VALUES_LEARN_WORDS[0]:
                     _0_global_has_progress = self.choose(_0_global_dct) or _0_global_has_progress
-                elif words == VALUES_WORDS[1]:
+                elif self.words == VALUES_LEARN_WORDS[1]:
                     _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or\
                                              _0_global_has_progress
                 else:
                     _0_global_has_progress = self.choose_fav(_0_global_dct) or _0_global_has_progress
         else:
-            if words == VALUES_WORDS[0]:
+            if self.words == VALUES_LEARN_WORDS[0]:
                 _0_global_has_progress = self.choose_t(_0_global_dct) or _0_global_has_progress
-            elif words == VALUES_WORDS[1]:
+            elif self.words == VALUES_LEARN_WORDS[1]:
                 _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or\
                                          _0_global_has_progress
             else:
@@ -3894,7 +3894,7 @@ class LearnW(tk.Toplevel):
             self.outp(f'Неверно. Правильный ответ: "{entry.wrd}"\n')
             if not entry.fav:
                 window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
-                                          entry.wrd, bool(_0_global_typo))
+                                          entry.wrd, bool(_0_global_with_typo))
                 answer = window.open()
                 if answer != 'typo':
                     entry.incorrect()
@@ -3922,7 +3922,7 @@ class LearnW(tk.Toplevel):
             self.outp(f'Неверно. Правильный ответ: "{entry.forms[self.current_form]}"\n')
             if not entry.fav:
                 window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
-                                          entry.forms[self.current_form], bool(_0_global_typo))
+                                          entry.forms[self.current_form], bool(_0_global_with_typo))
                 answer = window.open()
                 if answer != 'typo':
                     entry.incorrect()
@@ -3950,7 +3950,7 @@ class LearnW(tk.Toplevel):
             self.outp(f'Неверно. Правильный ответ: "{tpl(entry.tr)}"\n')
             if not entry.fav:
                 window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
-                                          tpl(entry.tr), bool(_0_global_typo))
+                                          tpl(entry.tr), bool(_0_global_with_typo))
                 answer = window.open()
                 if answer != 'typo':
                     entry.incorrect()
@@ -4726,7 +4726,7 @@ class SettingsW(tk.Toplevel):
 
         self.var_mgsp = tk.StringVar(value=str(_0_global_min_good_score_perc))
         self.var_show_updates = tk.BooleanVar(value=bool(_0_global_show_updates))
-        self.var_show_typo_button = tk.BooleanVar(value=bool(_0_global_typo))
+        self.var_show_typo_button = tk.BooleanVar(value=bool(_0_global_with_typo))
         self.var_theme = tk.StringVar(value=th)
 
         # Только целые числа от 0 до 100
@@ -4910,9 +4910,9 @@ class SettingsW(tk.Toplevel):
 
     # Показывать/скрывать кнопку "Опечатка" при неверном ответе в учёбе
     def set_show_typo_button(self):
-        global _0_global_typo
+        global _0_global_with_typo
 
-        _0_global_typo = int(self.var_show_typo_button.get())  # 0 или 1
+        _0_global_with_typo = int(self.var_show_typo_button.get())  # 0 или 1
 
     # Установить выбранную тему
     def set_theme(self):
@@ -5106,7 +5106,7 @@ class SettingsW(tk.Toplevel):
     def has_changes(self):
         return self.has_local_changes() or\
             int(self.var_show_updates.get()) != _0_global_show_updates or\
-            int(self.var_show_typo_button.get()) != _0_global_typo or\
+            int(self.var_show_typo_button.get()) != _0_global_with_typo or\
             self.var_theme.get() != th
 
     # Вывод существующих словарей
@@ -5193,7 +5193,7 @@ class SettingsW(tk.Toplevel):
 
         save_local_settings(_0_global_min_good_score_perc, _0_global_categories,
                             dct_filename(_0_global_dct_savename))
-        save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_typo, th)
+        save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th)
 
         if self.has_local_changes():
             save_dct(_0_global_dct, dct_filename(_0_global_dct_savename))
@@ -5309,7 +5309,7 @@ class MainW(tk.Tk):
         res = ChooseLearnModeW(self).open()
         if not res:
             return
-        LearnW(self, res).open()
+        LearnW(self, res[0], res[1], res[2]).open()
 
     # Нажатие на кнопку "Найти статью"
     def search(self):
@@ -5337,12 +5337,12 @@ class MainW(tk.Tk):
 
     # Нажатие на кнопку "Открыть настройки"
     def settings(self):
-        global _0_global_dct_savename, _0_global_show_updates, _0_global_typo, th,\
+        global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,\
             _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations
 
         SettingsW(self).open()
 
-        _0_global_dct_savename, _0_global_show_updates, _0_global_typo, th =\
+        _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th =\
             upload_global_settings()  # Обновляем глобальные настройки
         _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations =\
             upload_local_settings(_0_global_dct_savename)  # Обновляем локальные настройки
@@ -5612,7 +5612,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                           {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                           {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
       f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
@@ -5622,7 +5622,7 @@ _0_global_has_progress = False
 
 upload_themes(THEMES)  # Загружаем дополнительные темы
 upload_custom_theme()  # Загружаем пользовательскую тему
-_0_global_dct_savename, _0_global_show_updates, _0_global_typo, th =\
+_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th =\
     upload_global_settings()  # Загружаем глобальные настройки
 upload_theme_img(th)  # Загружаем изображения для выбранной темы
 root = MainW()  # Создаём графический интерфейс
@@ -5635,7 +5635,22 @@ _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinati
 _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
 root.mainloop()
 
-# int -> bool
 # pos -> ctg
 # 000wrd -> (wrd, 0)
-# LearnW > conf
+
+"""
+    Про формы и категории:
+
+    'чашка' - СЛОВО
+
+    'чашка'   - начальная ФОРМА СЛОВА 'чашка'   (ед. число, им. падеж)
+    'чашками' -           ФОРМА СЛОВА 'чашка' (множ. число, тв. падеж)
+
+      'ед. число, им. падеж' - ШАБЛОН ФОРМЫ 'чашка'
+    'множ. число, тв. падеж' - ШАБЛОН ФОРМЫ 'чашками'
+
+    'число' и 'падеж' - КАТЕГОРИИ слов
+
+    'ед. число' и 'множ. число' - ЗНАЧЕНИЯ категории 'число'
+    'им. падеж' и   'тв. падеж' - ЗНАЧЕНИЯ категории 'падеж'
+"""
