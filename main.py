@@ -12,13 +12,14 @@ import webbrowser  # Для открытия веб-страницы
 import urllib.request as urllib2  # Для проверки наличия обновлений
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
+import typing
 
 """ Информация о программе """
 
-PROGRAM_NAME = 'Dictionary'
-PROGRAM_VERSION = 'v7.0.0_PRE-198'
-PROGRAM_DATE = '1.2.2023'
-PROGRAM_TIME = '23:36 (UTC+3)'
+PROGRAM_NAME = 'Dictionary Manager'
+PROGRAM_VERSION = 'v7.0.0-Alpha'
+PROGRAM_DATE = '2.2.2023'
+PROGRAM_TIME = '3:59 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -185,14 +186,14 @@ if CUSTOM_THEME_DIR not in os.listdir(RESOURCES_PATH):
 if IMAGES_DIR not in os.listdir(RESOURCES_PATH):
     os.mkdir(IMAGES_PATH)
 
-# Если временный файл не удалён, то он удаляется
-if TMP_FN in os.listdir(RESOURCES_PATH):
-    os.remove(TMP_PATH)
-
 if THEMES[1] not in os.listdir(ADDITIONAL_THEMES_PATH):
     os.mkdir(os.path.join(ADDITIONAL_THEMES_PATH, THEMES[1]))
 if THEMES[2] not in os.listdir(ADDITIONAL_THEMES_PATH):
     os.mkdir(os.path.join(ADDITIONAL_THEMES_PATH, THEMES[2]))
+
+# Если временный файл не удалён, то он удаляется
+if TMP_FN in os.listdir(RESOURCES_PATH):
+    os.remove(TMP_PATH)
 
 # Изображения
 IMG_NAMES = ['ok', 'cancel',
@@ -212,24 +213,27 @@ img_about = os.path.join(IMAGES_PATH, 'about.png')
 img_about_mgsp = os.path.join(IMAGES_PATH, 'about_mgsp.png')
 img_about_typo = os.path.join(IMAGES_PATH, 'about_typo.png')
 
+# Название репозитория на GitHub
+REPOSITORY_NAME = 'DictionaryManager'
+
+# Ссылка на репозиторий программы на GitHub
+URL_GITHUB = f'https://github.com/Anenokil/{REPOSITORY_NAME}'
+# Ссылка на релизы программы
+URL_RELEASES = f'https://github.com/Anenokil/{REPOSITORY_NAME}/releases'
+# Ссылка на файл с названием последней версии
+URL_LAST_VERSION = f'https://raw.githubusercontent.com/Anenokil/{REPOSITORY_NAME}/master/ver'
+# Ссылка для установки последней версии
+URL_DOWNLOAD_ZIP = f'https://github.com/Anenokil/{REPOSITORY_NAME}/archive/refs/heads/master.zip'
+
 # Папки и файлы для установки обновлений
-NEW_VERSION_DIR = f'{PROGRAM_NAME}-master'
+NEW_VERSION_DIR = f'{REPOSITORY_NAME}-master'
 NEW_VERSION_PATH = os.path.join(MAIN_PATH, NEW_VERSION_DIR)  # Временная папка с обновлением
 NEW_VERSION_ZIP = f'{NEW_VERSION_DIR}.zip'
 NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с обновлением
 
-# Ссылка на репозиторий программы на GitHub
-URL_GITHUB = f'https://github.com/Anenokil/{PROGRAM_NAME}'
-# Ссылка на релизы программы
-URL_RELEASES = f'https://github.com/Anenokil/{PROGRAM_NAME}/releases'
-# Ссылка на файл с названием последней версии
-URL_LAST_VERSION = f'https://raw.githubusercontent.com/Anenokil/{PROGRAM_NAME}/master/ver'
-# Ссылка для установки последней версии
-URL_DOWNLOAD_ZIP = f'https://github.com/Anenokil/{PROGRAM_NAME}/archive/refs/heads/master.zip'
-
 """ Другое """
 
-FORMS_SEPARATOR = '@'  # Разделитель для записи форм в файл локальных настроек
+CATEGORY_SEPARATOR = '@'  # Разделитель для записи значений категории в файл локальных настроек
 SPECIAL_COMBINATION_OPENING_SYMBOL = '#'  # Открывающий символ специальных комбинаций
 
 VALUES_ORDER = ('Угадывать слово по переводу', 'Угадывать перевод по слову')  # Варианты метода учёбы
@@ -238,7 +242,7 @@ VALUES_WORDS = ('Все слова', 'Все слова (чаще сложные
 MAX_SAME_WORDS = 100  # Максимальное количество статей с одинаковым словом
 
 """
-    Про формы:
+    Про формы и категории:
     
     'чашка' - СЛОВО
 
@@ -248,13 +252,21 @@ MAX_SAME_WORDS = 100  # Максимальное количество стате
       'ед. число, им. падеж' - ШАБЛОН ФОРМЫ 'чашка'
     'множ. число, тв. падеж' - ШАБЛОН ФОРМЫ 'чашками'
     
-    'число' и 'падеж' - ПАРАМЕТРЫ форм
+    'число' и 'падеж' - КАТЕГОРИИ слов
     
-    'ед. число' и 'множ. число' - ЗНАЧЕНИЯ ПАРАМЕТРА 'число'
-    'им. падеж' и   'тв. падеж' - ЗНАЧЕНИЯ ПАРАМЕТРА 'падеж'
+    'ед. число' и 'множ. число' - ЗНАЧЕНИЯ категории 'число'
+    'им. падеж' и   'тв. падеж' - ЗНАЧЕНИЯ категории 'падеж'
 """
 
 """ Функции проверки """
+
+
+# Проверить строку на непустоту
+def check_not_void(window_parent, value: str, msg_if_void: str):
+    if value == '':
+        warning(window_parent, msg_if_void)
+        return False
+    return True
 
 
 # Проверить корректность названия словаря
@@ -268,41 +280,8 @@ def check_dct_savename(window_parent, savename: str):
     return True
 
 
-# Проверить корректность названия параметра словоформ
-def check_frm_parameter(window_parent, parameters, new_parameter):
-    if new_parameter == '':
-        warning(window_parent, 'Название параметра должно содержать хотя бы один символ!')
-        return False
-    if new_parameter in parameters:  # Если уже есть параметр с таким названием
-        warning(window_parent, f'Параметр "{new_parameter}" уже существует!')
-        return False
-    return True
-
-
-# Проверить корректность значения параметра словоформ
-def check_frm_par_val(window_parent, values, new_val):
-    if new_val == '':
-        warning(window_parent, 'Значение параметра должно содержать хотя бы один символ!')
-        return False
-    if new_val in values:
-        warning(window_parent, f'Значение "{new_val}" уже существует!')
-        return False
-    if FORMS_SEPARATOR in new_val:
-        warning(window_parent, f'Недопустимый символ: {FORMS_SEPARATOR}!')
-        return False
-    return True
-
-
-# Проверить строку на непустоту
-def check_not_void(window_parent, value, msg_if_void):
-    if value == '':
-        warning(window_parent, msg_if_void)
-        return False
-    return True
-
-
 # Проверить корректность изменённого слова
-def check_wrd_edit(window_parent, old_wrd, new_wrd):
+def check_wrd_edit(window_parent, old_wrd: str, new_wrd: str):
     if new_wrd == '':
         warning(window_parent, 'Слово должно содержать хотя бы один символ!')
         return False
@@ -313,7 +292,7 @@ def check_wrd_edit(window_parent, old_wrd, new_wrd):
 
 
 # Проверить корректность перевода
-def check_tr(window_parent, translations, new_tr, wrd):
+def check_tr(window_parent, translations: list[str] | tuple[str, ...], new_tr: str, wrd: str):
     if new_tr == '':
         warning(window_parent, 'Перевод должен содержать хотя бы один символ!')
         return False
@@ -324,12 +303,37 @@ def check_tr(window_parent, translations, new_tr, wrd):
 
 
 # Проверить корректность сноски
-def check_note(window_parent, notes, new_note, wrd):
+def check_note(window_parent, notes: list[str] | tuple[str, ...], new_note: str, wrd: str):
     if new_note == '':
         warning(window_parent, 'Сноска должна содержать хотя бы один символ!')
         return False
     if new_note in notes:
         warning(window_parent, f'У слова "{wrd}" уже есть такая сноска!')
+        return False
+    return True
+
+
+# Проверить корректность названия категории
+def check_ctg(window_parent, categories: list[str] | tuple[str, ...], new_ctg: str):
+    if new_ctg == '':
+        warning(window_parent, 'Название категории должно содержать хотя бы один символ!')
+        return False
+    if new_ctg in categories:  # Если уже есть категория с таким названием
+        warning(window_parent, f'Категория "{new_ctg}" уже существует!')
+        return False
+    return True
+
+
+# Проверить корректность значения категории
+def check_ctg_val(window_parent, values: list[str] | tuple[str, ...], new_val: str):
+    if new_val == '':
+        warning(window_parent, 'Значение категории должно содержать хотя бы один символ!')
+        return False
+    if new_val in values:
+        warning(window_parent, f'Значение "{new_val}" уже существует!')
+        return False
+    if CATEGORY_SEPARATOR in new_val:
+        warning(window_parent, f'Недопустимый символ: {CATEGORY_SEPARATOR}!')
         return False
     return True
 
@@ -347,7 +351,7 @@ def height(text: str, len_str: int):
 
 
 # Вычислить ширину моноширинного поля, в которое должно помещаться каждое из данных значений
-def width(values: tuple | list, min_width: int, max_width: int):
+def width(values: tuple[str, ...] | list[str], min_width: int, max_width: int):
     assert min_width >= 0
     assert max_width >= 0
     assert max_width >= min_width
@@ -449,26 +453,93 @@ def tpl(input_tuple: tuple | list):
     return res
 
 
-# Преобразовать кортеж в строку (для сохранения значений параметров форм в файл локальных настроек)
+# Преобразовать кортеж в строку (для сохранения значений категории в файл локальных настроек)
 def decode_tpl(input_tuple: tuple | list):
     if not input_tuple:  # input_tuple == () или input_tuple == ('')
         return ''
     res = input_tuple[0]
     for i in range(1, len(input_tuple)):
-        res += f'{FORMS_SEPARATOR}{input_tuple[i]}'
+        res += f'{CATEGORY_SEPARATOR}{input_tuple[i]}'
     return res
 
 
-# Преобразовать строку в кортеж (для чтения значений параметров форм из файла локальных настроек)
+# Преобразовать строку в кортеж (для чтения значений категории из файла локальных настроек)
 def encode_tpl(line: str):
-    return tuple(line.split(FORMS_SEPARATOR))
+    return tuple(line.split(CATEGORY_SEPARATOR))
 
 
-# Добавить значение параметра словоформ
-def add_frm_param_val(window_parent, values, text='Введите новое значение параметра'):
+# Добавить категорию
+def add_ctg(window_parent, categories, dct):
+    # Ввод новой категории
+    window_entry = PopupEntryW(window_parent, 'Введите название новой категории',
+                               check_answer_function=lambda wnd, val: check_ctg(wnd, categories.keys(), val))
+    closed, new_ctg = window_entry.open()
+    if closed:
+        return False
+    new_ctg = encode_special_combinations(new_ctg)
+
+    # Ввод первого значения категории
+    has_changes, new_val = add_ctg_val(window_parent, (),
+                                       'Необходимо добавить хотя бы одно значение для категории')
+    if not new_val:
+        return False
+    new_val = encode_special_combinations(new_val)
+
+    # Обновление категорий
+    dct.add_ctg()
+    categories[new_ctg] = []
+    categories[new_ctg] += [new_val]
+    return True
+
+
+# Переименовать категорию
+def rename_ctg(window_parent, categories, dct):
+    ctg_names = [ctg_name for ctg_name in categories.keys()]
+    window_choose = PopupChooseW(window_parent, ctg_names, default_value=ctg_names[0], btn_text='Переименовать',
+                                 combo_width=width(ctg_names, 5, 100))  # Выбор категории, которую нужно переименовать
+    closed, old_name = window_choose.open()
+    if closed:
+        return False
+
+    # Ввод нового названия категории
+    window_entry = PopupEntryW(window_parent, 'Введите новое название категории',
+                               check_answer_function=lambda wnd, val: check_ctg(wnd, categories.keys(), val))
+    closed, new_name = window_entry.open()
+    if closed:
+        return False
+    new_name = encode_special_combinations(new_name)
+
+    # обновление категорий
+    # dct.rename_ctg(index)
+    categories[new_name] = categories[old_name]
+    categories.pop(old_name)
+    return True
+
+
+# Удалить категорию
+def delete_ctg(window_parent, categories, dct):
+    ctg_names = [ctg_name for ctg_name in categories.keys()]
+    window_choose = PopupChooseW(window_parent, ctg_names, default_value=ctg_names[0], btn_text='Удалить',
+                                 combo_width=width(ctg_names, 5, 100))  # Выбор категории, которую нужно удалить
+    closed, selected_ctg_name = window_choose.open()
+    if closed:
+        return False
+    window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие эту категорию, будут удалены!\n'
+                                               'Хотите продолжить?')  # Подтверждение действия
+    answer = window_dia.open()
+    if answer:
+        pos = ctg_names.index(selected_ctg_name)
+        categories.pop(selected_ctg_name)
+        dct.delete_ctg(pos)
+        return True
+    return False
+
+
+# Добавить значение категории
+def add_ctg_val(window_parent, values: list[str] | tuple[str, ...], text='Введите новое значение категории'):
     # Ввод нового значения
     window_entry = PopupEntryW(window_parent, text,
-                               check_answer_function=lambda wnd, val: check_frm_par_val(wnd, values, val))
+                               check_answer_function=lambda wnd, val: check_ctg_val(wnd, values, val))
     closed, new_val = window_entry.open()
     if closed:
         return False, None
@@ -477,8 +548,8 @@ def add_frm_param_val(window_parent, values, text='Введите новое з�
     return True, new_val
 
 
-# Переименовать значение параметра словоформ
-def rename_frm_param_val(window_parent, values, pos, dct):
+# Переименовать значение категории
+def rename_ctg_val(window_parent, values: list[str] | tuple[str, ...], pos: int, dct):
     window_choose = PopupChooseW(window_parent, values, default_value=values[0],
                                  combo_width=width(values, 5, 100))  # Выбор значения, которое нужно переименовать
     closed, old_val = window_choose.open()
@@ -486,8 +557,8 @@ def rename_frm_param_val(window_parent, values, pos, dct):
         return False
 
     # Ввод нового значения
-    window_entry = PopupEntryW(window_parent, 'Введите новое значения параметра',
-                               check_answer_function=lambda wnd, val: check_frm_par_val(wnd, values, val))
+    window_entry = PopupEntryW(window_parent, 'Введите новое значение категории',
+                               check_answer_function=lambda wnd, val: check_ctg_val(wnd, values, val))
     closed, new_val = window_entry.open()
     if closed:
         return False
@@ -499,87 +570,20 @@ def rename_frm_param_val(window_parent, values, pos, dct):
     return True
 
 
-# Удалить значение параметра словоформ
-def delete_frm_param_val(window_parent, values, dct):
+# Удалить значение категории
+def delete_ctg_val(window_parent, values: list[str] | tuple[str, ...], dct):
     window_choose = PopupChooseW(window_parent, values, default_value=values[0],
                                  combo_width=width(values, 5, 100))  # Выбор значения, которое нужно удалить
     closed, val = window_choose.open()
     if closed:
         return False
-    window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие это значение параметра, будут удалены!\n'
+    window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие это значение категории, будут удалены!\n'
                                                'Хотите продолжить?')  # Подтверждение действия
     answer = window_dia.open()
     if answer:
         index = values.index(val)
         values.pop(index)
-        dct.delete_forms_with_val(index, val)  # Удаление всех словоформ, содержащих это значение параметра
-        return True
-    return False
-
-
-# Добавить параметр словоформ
-def add_frm_param(window_parent, parameters, dct):
-    # Ввод нового параметра
-    window_entry = PopupEntryW(window_parent, 'Введите название нового параметра',
-                               check_answer_function=lambda wnd, val: check_frm_parameter(wnd, parameters.keys(), val))
-    closed, new_par = window_entry.open()
-    if closed:
-        return False
-    new_par = encode_special_combinations(new_par)
-
-    # Ввод первого значения параметра
-    has_changes, new_val = add_frm_param_val(window_parent, (),
-                                             'Необходимо добавить хотя бы одно значение для параметра')
-    if not new_val:
-        return False
-    new_val = encode_special_combinations(new_val)
-
-    # Обновление параметров
-    dct.add_forms_param()
-    parameters[new_par] = []
-    parameters[new_par] += [new_val]
-    return True
-
-
-# Переименовать параметр словоформ
-def rename_frm_param(window_parent, parameters, dct):
-    par_names = [par_name for par_name in parameters.keys()]
-    window_choose = PopupChooseW(window_parent, par_names, default_value=par_names[0], btn_text='Переименовать',
-                                 combo_width=width(par_names, 5, 100))  # Выбор параметра, который нужно переименовать
-    closed, old_name = window_choose.open()
-    if closed:
-        return False
-
-    # Ввод нового названия параметра
-    window_entry = PopupEntryW(window_parent, 'Введите новое название параметра',
-                               check_answer_function=lambda wnd, val: check_frm_parameter(wnd, parameters.keys(), val))
-    closed, new_name = window_entry.open()
-    if closed:
-        return False
-    new_name = encode_special_combinations(new_name)
-
-    # обновление параметров
-    # dct.rename_forms_param(index)
-    parameters[new_name] = parameters[old_name]
-    parameters.pop(old_name)
-    return True
-
-
-# Удалить параметр словоформ
-def delete_frm_param(window_parent, parameters, dct):
-    par_names = [par_name for par_name in parameters.keys()]
-    window_choose = PopupChooseW(window_parent, par_names, default_value=par_names[0], btn_text='Удалить',
-                                 combo_width=width(par_names, 5, 100))  # Выбор параметра, который нужно удалить
-    closed, selected_par_name = window_choose.open()
-    if closed:
-        return False
-    window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие этот параметр, будут удалены!\n'
-                                               'Хотите продолжить?')  # Подтверждение действия
-    answer = window_dia.open()
-    if answer:
-        pos = par_names.index(selected_par_name)
-        parameters.pop(selected_par_name)
-        dct.delete_forms_param(pos)
+        dct.delete_forms_with_val(index, val)  # Удаление всех словоформ, содержащих это значение категории
         return True
     return False
 
@@ -641,7 +645,7 @@ class Entry(object):
             res += f'\n> {self.notes[i]}'
         return res
 
-    # Записать формы в строку
+    # Записать словоформы в строку
     def frm_to_str(self):
         if self.count_f == 0:
             return ''
@@ -652,7 +656,7 @@ class Entry(object):
         return res
 
     # Напечатать перевод
-    def tr_print(self, output_widget, end='\n'):
+    def tr_print(self, output_widget: tk.Entry | ttk.Entry | tk.Text, end='\n'):
         if self.count_t != 0:
             outp(output_widget, self.tr[0], end='')
             for i in range(1, self.count_t):
@@ -660,17 +664,17 @@ class Entry(object):
         outp(output_widget, '', end=end)
 
     # Напечатать сноски
-    def notes_print(self, output_widget, tab=0):
+    def notes_print(self, output_widget: tk.Entry | ttk.Entry | tk.Text, tab=0):
         for i in range(self.count_n):
             outp(output_widget, ' ' * tab + f'> {self.notes[i]}')
 
     # Напечатать словоформы
-    def frm_print(self, output_widget, tab=0):
+    def frm_print(self, output_widget: tk.Entry | ttk.Entry | tk.Text, tab=0):
         for key in self.forms.keys():
             outp(output_widget, ' ' * tab + f'[{tpl(key)}] {self.forms[key]}')
 
     # Напечатать статистику
-    def stat_print(self, output_widget, end='\n'):
+    def stat_print(self, output_widget: tk.Entry | ttk.Entry | tk.Text, end='\n'):
         if self.last_att == -1:
             outp(output_widget, '[-:  0%]', end=end)
         else:
@@ -679,7 +683,7 @@ class Entry(object):
             outp(output_widget, f'[{self.last_att}:{tab}{score}]', end=end)
 
     # Служебный метод для print_briefly и print_briefly_with_forms
-    def _print_briefly(self, output_widget):
+    def _print_briefly(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
         if self.fav:
             outp(output_widget, '(*)', end=' ')
         else:
@@ -689,34 +693,34 @@ class Entry(object):
         self.tr_print(output_widget)
 
     # Напечатать статью - кратко
-    def print_briefly(self, output_widget):
+    def print_briefly(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
         self._print_briefly(output_widget)
         self.notes_print(output_widget, tab=13)
 
-    # Напечатать статью - кратко с формами
-    def print_briefly_with_forms(self, output_widget):
+    # Напечатать статью - кратко со словоформами
+    def print_briefly_with_forms(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
         self._print_briefly(output_widget)
         self.frm_print(output_widget, tab=13)
         self.notes_print(output_widget, tab=13)
 
     # Напечатать статью - слово со статистикой
-    def print_wrd_with_stat(self, output_widget):
+    def print_wrd_with_stat(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
         outp(output_widget, self.wrd, end=' ')
         self.stat_print(output_widget)
 
     # Напечатать статью - перевод со статистикой
-    def print_tr_with_stat(self, output_widget):
+    def print_tr_with_stat(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
         self.tr_print(output_widget, end=' ')
         self.stat_print(output_widget)
 
-    # Напечатать статью - перевод с формой и со статистикой
-    def print_tr_and_frm_with_stat(self, output_widget, frm_key):
+    # Напечатать статью - перевод со словоформой и со статистикой
+    def print_tr_and_frm_with_stat(self, output_widget: tk.Entry | ttk.Entry | tk.Text, frm_key: tuple | list):
         self.tr_print(output_widget, end=' ')
         outp(output_widget, f'({tpl(frm_key)})', end=' ')
         self.stat_print(output_widget)
 
     # Напечатать статью - со всей информацией
-    def print_all(self, output_widget):
+    def print_all(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
         outp(output_widget, f'       Слово: {self.wrd}')
         outp(output_widget, '     Перевод: ', end='')
         self.tr_print(output_widget)
@@ -752,12 +756,12 @@ class Entry(object):
             self.count_t += 1
 
     # Добавить сноску
-    def add_note(self, new_note):
+    def add_note(self, new_note: str):
         self.notes += [new_note]
         self.count_n += 1
 
     # Добавить словоформу
-    def add_frm(self, frm_key, new_frm):
+    def add_frm(self, frm_key: tuple | list, new_frm: str):
         if frm_key not in self.forms.keys():
             self.forms[frm_key] = new_frm
             self.count_f += 1
@@ -767,7 +771,7 @@ class Entry(object):
         keys = [key for key in self.forms.keys()]
         variants = [f'[{tpl(key)}] {self.forms[key]}' for key in keys]
 
-        window_choose = PopupChooseW(window_parent, variants, 'Выберите форму, которую хотите удалить',
+        window_choose = PopupChooseW(window_parent, variants, 'Выберите словоформу, которую хотите удалить',
                                      default_value=variants[0], combo_width=width(variants, 5, 100))
         closed, answer = window_choose.open()
         if closed:
@@ -782,7 +786,7 @@ class Entry(object):
         keys = [key for key in self.forms.keys()]
         variants = [f'[{tpl(key)}] {self.forms[key]}' for key in keys]
 
-        window_choose = PopupChooseW(window_parent, variants, 'Выберите форму, которую хотите изменить',
+        window_choose = PopupChooseW(window_parent, variants, 'Выберите словоформу, которую хотите изменить',
                                      default_value=variants[0], combo_width=width(variants, 5, 100))
         closed, answer = window_choose.open()
         if closed:
@@ -792,7 +796,7 @@ class Entry(object):
 
         window_entry = PopupEntryW(window_parent, 'Введите форму слова',
                                    check_answer_function=lambda wnd, val:
-                                   check_not_void(wnd, val, 'Форма должна содержать хотя бы один символ!'))
+                                   check_not_void(wnd, val, 'Словоформа должна содержать хотя бы один символ!'))
         closed, new_frm = window_entry.open()
         if closed:
             return
@@ -823,31 +827,31 @@ class Entry(object):
         else:
             self.last_att += 1
 
-    # Удалить данное значение параметра у всех форм слова
-    def delete_forms_with_val(self, pos, frm_val):
+    # Удалить данное значение категории у всех словоформ
+    def delete_forms_with_val(self, pos: int, ctg_val: str):
         to_delete = []
         for key in self.forms.keys():
-            if key[pos] == frm_val:
+            if key[pos] == ctg_val:
                 to_delete += [key]
                 self.count_f -= 1
         for key in to_delete:
             self.forms.pop(key)
 
-    # Переименовать данное значение параметра у всех форм слова
-    def rename_forms_with_val(self, pos, frm_val, new_frm_val):
+    # Переименовать данное значение категории у всех словоформ
+    def rename_forms_with_val(self, pos: int, old_ctg_val: str, new_ctg_val: str):
         to_rename = []
         for key in self.forms.keys():
-            if key[pos] == frm_val:
+            if key[pos] == old_ctg_val:
                 to_rename += [key]
         for key in to_rename:
             lst = list(key)
-            lst[pos] = new_frm_val
+            lst[pos] = new_ctg_val
             lst = tuple(lst)
             self.forms[lst] = self.forms[key]
             self.forms.pop(key)
 
-    # Добавить новый параметр ко всем формам слова
-    def add_forms_param(self):
+    # Добавить новую категорию ко всем словоформам
+    def add_ctg(self):
         keys = list(self.forms.keys())
         for key in keys:
             new_key = list(key)
@@ -856,8 +860,8 @@ class Entry(object):
             self.forms[new_key] = self.forms[key]
             self.forms.pop(key)
 
-    # Удалить данный параметр у всех форм слова
-    def delete_forms_param(self, pos):
+    # Удалить данную категорию у всех словоформ
+    def delete_ctg(self, pos: int):
         to_delete = []
         to_edit = []
         for key in self.forms.keys():
@@ -875,11 +879,11 @@ class Entry(object):
         for key in to_delete:
             self.forms.pop(key)
 
-    # Переименовать данный параметр у всех форм слова
-    """ def rename_forms_param(self, _pos): """
+    # Переименовать данную категорию у всех словоформ
+    """ def rename_ctg(self, pos: int): """
 
     # Сохранить статью в файл
-    def save(self, file):
+    def save(self, file: typing.TextIO):
         file.write(f'w{self.wrd}\n')
         file.write(f'{self.all_att}:{self.correct_att}:{self.last_att}\n')
         file.write(f'{self.tr[0]}\n')
@@ -935,12 +939,12 @@ class Dictionary(object):
         return f'< {self.count_w} {w} | {self.count_w + self.count_f} {f} | {self.count_t} {t} >'
 
     # Напечатать словарь
-    def print(self, output_widget):
+    def print(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
         for entry in self.d.values():
             entry.print_briefly(output_widget)
 
-    # Напечатать словарь (со всеми формами)
-    def print_with_forms(self, output_widget):
+    # Напечатать словарь (со всеми словоформами)
+    def print_with_forms(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
         for entry in self.d.values():
             entry.print_briefly_with_forms(output_widget)
 
@@ -954,7 +958,7 @@ class Dictionary(object):
                f'{count_t}/{self.count_t} {t} >'
 
     # Напечатать словарь (только избранные слова)
-    def print_fav(self, output_widget):
+    def print_fav(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
         count_w = 0
         count_t = 0
         count_f = 0
@@ -966,8 +970,8 @@ class Dictionary(object):
                 count_f += entry.count_f
         return count_w, count_t, count_f
 
-    # Напечатать словарь (только избранные слова, со всеми формами)
-    def print_fav_with_forms(self, output_widget):
+    # Напечатать словарь (только избранные слова, со всеми словоформами)
+    def print_fav_with_forms(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
         count_w = 0
         count_t = 0
         count_f = 0
@@ -980,7 +984,7 @@ class Dictionary(object):
         return count_w, count_t, count_f
 
     # Напечатать статьи, в которых слова содержат данную строку
-    def print_words_with_str(self, output_widget, search_wrd: str):
+    def print_words_with_str(self, output_widget: tk.Entry | ttk.Entry | tk.Text, search_wrd: str):
         is_found = False
         for key in self.d.keys():
             wrd = key_to_wrd(key)
@@ -995,7 +999,7 @@ class Dictionary(object):
             outp(output_widget, 'Частичных совпадений не найдено', end='')
 
     # Напечатать статьи, в которых переводы содержат данную строку
-    def print_translations_with_str(self, output_widget, search_tr: str):
+    def print_translations_with_str(self, output_widget: tk.Entry | ttk.Entry | tk.Text, search_tr: str):
         is_found = False
         for entry in self.d.values():
             is_first_in_line = True
@@ -1026,23 +1030,23 @@ class Dictionary(object):
         return answer
 
     # Добавить перевод к статье
-    def add_tr(self, key, tr: str):
+    def add_tr(self, key: str, tr: str):
         self.count_t -= self.d[key].count_t
         self.d[key].add_tr(tr)
         self.count_t += self.d[key].count_t
 
     # Добавить сноску к статье
-    def add_note(self, key, note: str):
+    def add_note(self, key: str, note: str):
         self.d[key].add_note(note)
 
     # Добавить словоформу к статье
-    def add_frm(self, key, frm_key, frm):
+    def add_frm(self, key: str, frm_key: tuple | list, frm: str):
         self.count_f -= self.d[key].count_f
         self.d[key].add_frm(frm_key, frm)
         self.count_f += self.d[key].count_f
 
     # Изменить слово в статье
-    def edit_wrd(self, window_parent, key, new_wrd: str):
+    def edit_wrd(self, window_parent, key: str, new_wrd: str):
         if wrd_to_key(new_wrd, 0) in self.d.keys():  # Если в словаре уже есть статья с таким словом
             window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                    'Что вы хотите сделать?',
@@ -1060,13 +1064,13 @@ class Dictionary(object):
                 self.count_f -= self.d[key].count_f
                 self.count_f -= self.d[new_key].count_f
 
-                for _tr in self.d[key].tr:
-                    self.d[new_key].add_tr(_tr)
+                for tr in self.d[key].tr:
+                    self.d[new_key].add_tr(tr)
                 for note in self.d[key].notes:
                     self.d[new_key].add_note(note)
-                for _frm_key in self.d[key].forms.keys():
-                    frm = self.d[key].forms[_frm_key]
-                    self.d[new_key].add_form(_frm_key, frm, False)
+                for frm_key in self.d[key].forms.keys():
+                    frm = self.d[key].forms[frm_key]
+                    self.d[new_key].add_form(frm_key, frm, False)
                 if self.d[key].fav:
                     self.d[new_key].fav = True
                 self.d[new_key].merge_stat(self.d[key].all_att, self.d[key].correct_att, self.d[key].last_att)
@@ -1099,11 +1103,11 @@ class Dictionary(object):
             return new_key
 
     # Изменить словоформу в статье
-    def edit_frm_with_choose(self, window_parent, key):
+    def edit_frm_with_choose(self, window_parent, key: str):
         self.d[key].edit_frm_with_choose(window_parent)
 
     # Удалить перевод в статье
-    def delete_tr_with_choose(self, window_parent, key):
+    def delete_tr_with_choose(self, window_parent, key: str):
         self.count_t -= self.d[key].count_t
         window_choose = PopupChooseW(window_parent, self.d[key].tr, 'Выберите, какой перевод хотите удалить',
                                      default_value=self.d[key].tr[0], combo_width=width(self.d[key].tr, 5, 100))
@@ -1115,7 +1119,7 @@ class Dictionary(object):
         self.count_t += self.d[key].count_t
 
     # Удалить описание в статье
-    def delete_note_with_choose(self, window_parent, key):
+    def delete_note_with_choose(self, window_parent, key: str):
         window_choose = PopupChooseW(window_parent, self.d[key].notes, 'Выберите, какую сноску хотите удалить',
                                      default_value=self.d[key].notes[0], combo_width=width(self.d[key].notes, 5, 100))
         closed, note = window_choose.open()
@@ -1125,9 +1129,9 @@ class Dictionary(object):
         self.d[key].count_n -= 1
 
     # Удалить словоформу в статье
-    def delete_frm_with_choose(self, window, key):
+    def delete_frm_with_choose(self, window_parent, key: str):
         self.count_f -= self.d[key].count_f
-        self.d[key].delete_frm_with_choose(window)
+        self.d[key].delete_frm_with_choose(window_parent)
         self.count_f += self.d[key].count_f
 
     # Добавить статью в словарь (для пользователя)
@@ -1177,40 +1181,40 @@ class Dictionary(object):
             i += 1
 
     # Удалить статью
-    def delete_entry(self, key):
+    def delete_entry(self, key: str):
         self.count_w -= 1
         self.count_t -= self.d[key].count_t
         self.count_f -= self.d[key].count_f
         self.d.pop(key)
 
-    # Удалить данное значение параметра у всех форм
-    def delete_forms_with_val(self, pos, frm_val):
+    # Удалить данное значение категории у всех словоформ
+    def delete_forms_with_val(self, pos: int, ctg_val: str):
         for entry in self.d.values():
             self.count_f -= entry.count_f
-            entry.delete_forms_with_val(pos, frm_val)
+            entry.delete_forms_with_val(pos, ctg_val)
             self.count_f += entry.count_f
 
-    # Переименовать данное значение параметра у всех форм
-    def rename_forms_with_val(self, pos, frm_val, new_frm_val):
+    # Переименовать данное значение категории у всех словоформ
+    def rename_forms_with_val(self, pos: int, old_ctg_val: str, new_ctg_val: str):
         for entry in self.d.values():
-            entry.rename_forms_with_val(pos, frm_val, new_frm_val)
+            entry.rename_forms_with_val(pos, old_ctg_val, new_ctg_val)
 
-    # Добавить данный параметр ко всем словоформам
-    def add_forms_param(self):
+    # Добавить данную категорию ко всем словоформам
+    def add_ctg(self):
         for entry in self.d.values():
-            entry.add_forms_param()
+            entry.add_ctg()
 
-    # Удалить данный параметр у всех словоформ
-    def delete_forms_param(self, pos):
+    # Удалить данную категорию у всех словоформ
+    def delete_ctg(self, pos: int):
         for entry in self.d.values():
             self.count_f -= entry.count_f
-            entry.delete_forms_param(pos)
+            entry.delete_ctg(pos)
             self.count_f += entry.count_f
 
-    # Переименовать данный параметр у всех словоформ
-    """def rename_forms_param(self, pos):
+    # Переименовать данную категорию у всех словоформ
+    """def rename_ctg(self, pos: int):
         for entry in self.d.values():
-            entry.rename_frm_param(pos)"""
+            entry.rename_ctg(pos)"""
 
     # Подсчитать среднюю долю правильных ответов
     def count_rating(self):
@@ -1243,13 +1247,6 @@ class Dictionary(object):
             if r <= 0:
                 return key
 
-    # Сохранить словарь в файл
-    def save(self, filepath: str):
-        with open(filepath, 'w', encoding='utf-8') as file:
-            file.write(f'v{SAVES_VERSION}\n')
-            for entry in self.d.values():
-                entry.save(file)
-
     # Прочитать словарь из файла
     def read(self, filepath: str):
         with open(filepath, 'r', encoding='utf-8') as file:
@@ -1273,6 +1270,13 @@ class Dictionary(object):
                 elif line[0] == '*':
                     self.d[key].fav = True
 
+    # Сохранить словарь в файл
+    def save(self, filepath: str):
+        with open(filepath, 'w', encoding='utf-8') as file:
+            file.write(f'v{SAVES_VERSION}\n')
+            for entry in self.d.values():
+                entry.save(file)
+
 
 # Получить название файла со словарём по названию словаря
 def dct_filename(savename: str):
@@ -1293,7 +1297,7 @@ def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
         else:
             print(f'Доступна новая версия: {last_version}')
             if show_updates:
-                window_last_version = UpdateAvailableW(window_parent, last_version)
+                window_last_version = NewVersionAvailableW(window_parent, last_version)
     except Exception as exc:
         print(f'Ошибка: невозможно проверить наличие обновлений!\n'
               f'{exc}')
@@ -1518,7 +1522,7 @@ def upgrade_local_settings_1_to_2(local_settings_path: str):
             if i % 2 == 1:
                 local_settings_file.write(encode_special_combinations(lines[i]))
             else:
-                values = lines[i].strip().split(FORMS_SEPARATOR)
+                values = lines[i].strip().split(CATEGORY_SEPARATOR)
                 values = [encode_special_combinations(i) for i in values]
                 local_settings_file.write(decode_tpl(values) + '\n')
 
@@ -1537,7 +1541,7 @@ def upgrade_local_settings(local_settings_path: str):
 def upload_local_settings(savename: str, upgrade=True):
     filename = dct_filename(savename)
     local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
-    form_parameters = {}
+    categories = {}
     special_combinations = {}
     try:
         open(local_settings_path, 'r', encoding='utf-8')
@@ -1547,15 +1551,15 @@ def upload_local_settings(savename: str, upgrade=True):
                                       f'67\n'  # МППУ
                                       f'aäAÄoöOÖuüUÜsßSẞ\n'  # Специальные комбинации
                                       f'Число\n'
-                                      f'ед.ч.{FORMS_SEPARATOR}мн.ч.\n'
+                                      f'ед.ч.{CATEGORY_SEPARATOR}мн.ч.\n'
                                       f'Род\n'
-                                      f'м.р.{FORMS_SEPARATOR}ж.р.{FORMS_SEPARATOR}ср.р.\n'
+                                      f'м.р.{CATEGORY_SEPARATOR}ж.р.{CATEGORY_SEPARATOR}ср.р.\n'
                                       f'Падеж\n'
-                                      f'им.п.{FORMS_SEPARATOR}род.п.{FORMS_SEPARATOR}дат.п.{FORMS_SEPARATOR}вин.п.\n'
+                                      f'им.п.{CATEGORY_SEPARATOR}род.п.{CATEGORY_SEPARATOR}дат.п.{CATEGORY_SEPARATOR}вин.п.\n'
                                       f'Лицо\n'
-                                      f'1 л.{FORMS_SEPARATOR}2 л.{FORMS_SEPARATOR}3 л.\n'
+                                      f'1 л.{CATEGORY_SEPARATOR}2 л.{CATEGORY_SEPARATOR}3 л.\n'
                                       f'Время\n'
-                                      f'пр.вр.{FORMS_SEPARATOR}н.вр.{FORMS_SEPARATOR}буд.вр.')
+                                      f'пр.вр.{CATEGORY_SEPARATOR}н.вр.{CATEGORY_SEPARATOR}буд.вр.')
     else:
         if upgrade:
             upgrade_local_settings(local_settings_path)
@@ -1577,9 +1581,9 @@ def upload_local_settings(savename: str, upgrade=True):
             key = local_settings_file.readline().strip()
             if not key:
                 break
-            value = local_settings_file.readline().strip().split(FORMS_SEPARATOR)
-            form_parameters[key] = value
-    return min_good_score_perc, form_parameters, special_combinations
+            value = local_settings_file.readline().strip().split(CATEGORY_SEPARATOR)
+            categories[key] = value
+    return min_good_score_perc, categories, special_combinations
 
 
 # Обновить сохранение словаря с 0 до 2 версии
@@ -1727,7 +1731,7 @@ def save_dct_name():
 
 
 # Сохранить локальные настройки (настройки словаря)
-def save_local_settings(min_good_score_perc: int, form_parameters: dict[str, list[str]], filename: str):
+def save_local_settings(min_good_score_perc: int, categories: dict[str, list[str]], filename: str):
     local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
         local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n'
@@ -1736,11 +1740,11 @@ def save_local_settings(min_good_score_perc: int, form_parameters: dict[str, lis
             val = _0_global_special_combinations[key]
             local_settings_file.write(f'{key}{val}')
         local_settings_file.write('\n')
-        for key in form_parameters.keys():
+        for key in categories.keys():
             local_settings_file.write(f'{key}\n')
-            local_settings_file.write(form_parameters[key][0])
-            for i in range(1, len(form_parameters[key])):
-                local_settings_file.write(f'{FORMS_SEPARATOR}{form_parameters[key][i]}')
+            local_settings_file.write(categories[key][0])
+            for i in range(1, len(categories[key])):
+                local_settings_file.write(f'{CATEGORY_SEPARATOR}{categories[key][i]}')
             local_settings_file.write('\n')
 
 
@@ -1750,7 +1754,7 @@ def save_settings_if_has_changes(window_parent):
     answer = window_dia.open()
     if answer:
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_typo, th)
-        save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters,
+        save_local_settings(_0_global_min_good_score_perc, _0_global_categories,
                             dct_filename(_0_global_dct_savename))
         PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
         print('\nНастройки успешно сохранены')
@@ -1777,7 +1781,7 @@ def save_dct_if_has_progress(window_parent, dct: Dictionary, filename: str, has_
 
 
 # Вывести текст на виджет
-def outp(output_widget, text='', end='\n', mode=tk.END):
+def outp(output_widget: tk.Entry | ttk.Entry | tk.Text, text='', end='\n', mode=tk.END):
     output_widget.insert(mode, f'{text}{end}')
 
 
@@ -1832,7 +1836,6 @@ class PopupMsgW(tk.Toplevel):
         self.title(title)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.closed = True  # Закрыто ли окно крестиком
 
         self.lbl_msg = ttk.Label(self, text=msg, justify='center', style='Default.TLabel')
@@ -1865,9 +1868,9 @@ class PopupMsgW(tk.Toplevel):
 class PopupDialogueW(tk.Toplevel):
     def __init__(self, parent, msg='Вы уверены?', btn_left='Да', btn_right='Отмена',
                  st_left='Yes', st_right='No',  # Стили левой и правой кнопок
-                 val_left: object = True,  # Значение, возвращаемое при нажатии на левую кнопку
-                 val_right: object = False,  # Значение, возвращаемое при нажатии на правую кнопку
-                 val_on_close: object = False,  # Значение, возвращаемое при закрытии окна крестиком
+                 val_left: typing.Any = True,  # Значение, возвращаемое при нажатии на левую кнопку
+                 val_right: typing.Any = False,  # Значение, возвращаемое при нажатии на правую кнопку
+                 val_on_close: typing.Any = False,  # Значение, возвращаемое при закрытии окна крестиком
                  set_focus_on_btn='left',  # Какая кнопка срабатывает при нажатии кнопки enter
                  title=PROGRAM_NAME):
         ALLOWED_ST_VALUES = ['Default', 'Yes', 'No']  # Проверка корректности параметров
@@ -1880,7 +1883,6 @@ class PopupDialogueW(tk.Toplevel):
         self.title(title)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.set_focus_on_btn = set_focus_on_btn
         self.answer = val_on_close  # Значение, возвращаемое методом self.open
         self.val_left = val_left
@@ -1934,7 +1936,6 @@ class PopupEntryW(tk.Toplevel):
         self.title(title)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
         self.if_correct_function = if_correct_function  # Функция, вызываемая при корректном ответе
         self.if_incorrect_function = if_incorrect_function  # Функция, вызываемая при некорректном ответе
@@ -1988,7 +1989,6 @@ class PopupChooseW(tk.Toplevel):
         self.title(title)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.closed = True  # Закрыто ли окно крестиком
 
         self.var_answer = tk.StringVar(value=default_value)
@@ -2032,7 +2032,6 @@ class PopupImgW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.closed = True  # Закрыто ли окно крестиком
 
         try:
@@ -2042,7 +2041,7 @@ class PopupImgW(tk.Toplevel):
                                                 'Недостающие изображения можно скачать здесь:',
                                      justify='center', style='Default.TLabel')
 
-            self.txt_img_not_found = tk.Text(self, height=1, width=40, relief='sunken', borderwidth=1,
+            self.txt_img_not_found = tk.Text(self, height=1, width=47, relief='sunken', borderwidth=1,
                                              font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
                                              selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                              highlightbackground=ST_BORDERCOLOR[th])
@@ -2085,7 +2084,6 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.closed = True  # Закрыто ли окно крестиком
 
         self.var_key = tk.StringVar()
@@ -2146,7 +2144,6 @@ class ChooseNoteW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.closed = True  # Закрыто ли окно крестиком
         self.vals_count = -1  # Количество вариантов для выбора (вычисляется в self.print_variants)
         self.wrd = wrd
@@ -2233,7 +2230,6 @@ class IncorrectAnswerW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.with_typo = with_typo
         self.answer = 'no'  # Значение, возвращаемое методом self.open
 
@@ -2292,7 +2288,7 @@ class IncorrectAnswerW(tk.Toplevel):
 
 
 # Окно уведомления о выходе новой версии
-class UpdateAvailableW(tk.Toplevel):
+class NewVersionAvailableW(tk.Toplevel):
     def __init__(self, parent, last_version: str):
         super().__init__(parent)
         self.title('New version available')
@@ -2306,7 +2302,7 @@ class UpdateAvailableW(tk.Toplevel):
                                  justify='center', style='Default.TLabel')
         self.frame_url = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.entry_url = ttk.Entry(self.frame_url, textvariable=self.var_url, state='readonly', width=40,
+        self.entry_url = ttk.Entry(self.frame_url, textvariable=self.var_url, state='readonly', width=45,
                                    justify='center', style='.TEntry')
         self.btn_open = ttk.Button(self.frame_url, text='Открыть ссылку', command=self.open_github,
                                    takefocus=False, style='Default.TButton')
@@ -2393,39 +2389,38 @@ class UpdateAvailableW(tk.Toplevel):
 
 # Окно создания шаблона словоформы
 class CreateFormTemplateW(tk.Toplevel):
-    def __init__(self, parent, key, combo_width=20):
+    def __init__(self, parent, key: str, combo_width=20):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.closed = True  # Закрыто ли окно крестиком
-        self.parameters = list(_0_global_form_parameters.keys())  # Список параметров словоформ
-        self.par_values = list(_0_global_form_parameters[self.parameters[0]])  # Список значений выбранного параметра
+        self.categories = list(_0_global_categories.keys())  # Список категорий
+        self.ctg_values = list(_0_global_categories[self.categories[0]])  # Список значений выбранной категории
         self.template = []  # Шаблон словоформы
-        for _ in range(len(self.parameters)):
+        for _ in range(len(self.categories)):
             self.template += ['']
         self.void_template = self.template.copy()  # Пустой шаблон (для сравнения на пустоту)
         self.key = key
 
-        self.var_template = tk.StringVar(value='Текущий шаблон формы: ""')
-        self.var_par = tk.StringVar(value=self.parameters[0])
-        self.var_val = tk.StringVar(value=self.par_values[0])
+        self.var_template = tk.StringVar(value='Текущий шаблон словоформы: ""')
+        self.var_ctg = tk.StringVar(value=self.categories[0])
+        self.var_val = tk.StringVar(value=self.ctg_values[0])
 
-        self.vcmd_par = (self.register(lambda value: self.refresh_vals()), '%P')
+        self.vcmd_ctg = (self.register(lambda value: self.refresh_vals()), '%P')
 
         self.lbl_template = ttk.Label(self, textvariable=self.var_template, justify='center', style='Default.TLabel')
-        self.lbl_choose_par = ttk.Label(self, text='Выберите параметр:', justify='center', style='Default.TLabel')
-        self.combo_par = ttk.Combobox(self, textvariable=self.var_par, values=self.parameters, width=combo_width,
-                                      font='TkFixedFont', validate='focusin', validatecommand=self.vcmd_par,
+        self.lbl_choose_ctg = ttk.Label(self, text='Выберите категорию:', justify='center', style='Default.TLabel')
+        self.combo_ctg = ttk.Combobox(self, textvariable=self.var_ctg, values=self.categories, width=combo_width,
+                                      font='TkFixedFont', validate='focusin', validatecommand=self.vcmd_ctg,
                                       state='readonly', style='.TCombobox')
-        self.lbl_choose_val = ttk.Label(self, text='Задайте значение параметра:', justify='center',
+        self.lbl_choose_val = ttk.Label(self, text='Задайте значение категории:', justify='center',
                                         style='Default.TLabel')
         self.frame_val = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.combo_val = ttk.Combobox(self.frame_val, textvariable=self.var_val, values=self.par_values,
-                                      width=width(self.par_values, 5, 100),
+        self.combo_val = ttk.Combobox(self.frame_val, textvariable=self.var_val, values=self.ctg_values,
+                                      width=width(self.ctg_values, 5, 100),
                                       font='TkFixedFont', state='readonly', style='.TCombobox')
         try:
             self.img_choose = tk.PhotoImage(file=img_ok)
@@ -2450,8 +2445,8 @@ class CreateFormTemplateW(tk.Toplevel):
                                    takefocus=False, style='Default.TButton')
 
         self.lbl_template.grid(  row=0, columnspan=2, padx=6,      pady=6)
-        self.lbl_choose_par.grid(row=1, column=0,     padx=(6, 1), pady=1, sticky='E')
-        self.combo_par.grid(     row=1, column=1,     padx=(0, 6), pady=1, sticky='W')
+        self.lbl_choose_ctg.grid(row=1, column=0,     padx=(6, 1), pady=1, sticky='E')
+        self.combo_ctg.grid(     row=1, column=1,     padx=(0, 6), pady=1, sticky='W')
         self.lbl_choose_val.grid(row=2, column=0,     padx=(6, 1), pady=1, sticky='E')
         self.frame_val.grid(     row=2, column=1,     padx=(0, 6), pady=1, sticky='W')
         # {
@@ -2465,52 +2460,52 @@ class CreateFormTemplateW(tk.Toplevel):
 
         btn_disable(self.btn_done)
 
-    # Выбрать параметр и задать ему значение
+    # Выбрать категорию и задать ей значение
     def choose(self):
-        par = self.var_par.get()
-        if par == '':
+        ctg = self.var_ctg.get()
+        if ctg == '':
             return
-        index = self.parameters.index(par)
+        index = self.categories.index(ctg)
 
         val = self.var_val.get()
         if val == '':
             return
         self.template[index] = val
 
-        self.var_template.set(f'Текущий шаблон формы: "{tpl(self.template)}"')
+        self.var_template.set(f'Текущий шаблон словоформы: "{tpl(self.template)}"')
 
         if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
             btn_disable(self.btn_done)
         else:
             btn_enable(self.btn_done, self.done)
 
-        # В combobox значением по умолчанию становится первый ещё не заданный параметр
+        # В combobox значением по умолчанию становится первая ещё не заданная категория
         for i in range(len(self.template)):
             if self.template[i] == '':
-                self.var_par.set(self.parameters[i])
+                self.var_ctg.set(self.categories[i])
                 break
         self.refresh_vals()
 
-    # Не указывать значение параметра
+    # Не указывать значение категории
     def set_none(self):
-        par = self.var_par.get()
-        if par == '':
+        ctg = self.var_ctg.get()
+        if ctg == '':
             return
-        index = self.parameters.index(par)
+        index = self.categories.index(ctg)
 
         self.template[index] = ''
 
-        self.var_template.set(f'Текущий шаблон формы: "{tpl(self.template)}"')
+        self.var_template.set(f'Текущий шаблон словоформы: "{tpl(self.template)}"')
 
         if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
             btn_disable(self.btn_done)
         else:
             btn_enable(self.btn_done, self.done)
 
-        # В combobox значением по умолчанию становится первый ещё не заданный параметр
+        # В combobox значением по умолчанию становится первая ещё не заданная категория
         for i in range(len(self.template)):
             if self.template[i] == '':
-                self.var_par.set(self.parameters[i])
+                self.var_ctg.set(self.categories[i])
                 break
         self.refresh_vals()
 
@@ -2522,12 +2517,12 @@ class CreateFormTemplateW(tk.Toplevel):
         self.closed = False
         self.destroy()
 
-    # Обновить combobox со значениями параметра после выбора параметра
+    # Обновить combobox со значениями категории после выбора категории
     def refresh_vals(self):
-        self.par_values = list(_0_global_form_parameters[self.var_par.get()])
-        self.var_val = tk.StringVar(value=self.par_values[0])
-        self.combo_val.configure(textvariable=self.var_val, values=self.par_values,
-                                 width=width(self.par_values, 5, 100))
+        self.ctg_values = list(_0_global_categories[self.var_ctg.get()])
+        self.var_val = tk.StringVar(value=self.ctg_values[0])
+        self.combo_val.configure(textvariable=self.var_val, values=self.ctg_values,
+                                 width=width(self.ctg_values, 5, 100))
         return True
 
     # Установить фокус
@@ -2558,8 +2553,6 @@ class ParticularMatchesW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Similar')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
-
-        self.parent = parent
 
         self.var_wrd = tk.StringVar(value=wrd)
 
@@ -2620,42 +2613,41 @@ class ParticularMatchesW(tk.Toplevel):
         self.wait_window()
 
 
-# Окно настроек словоформ
-class FormsSettingsW(tk.Toplevel):
+# Окно настроек категорий
+class CategoriesSettingsW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.has_changes = False
 
-        self.var_par = tk.StringVar()
+        self.var_ctg = tk.StringVar()
 
-        self.lbl_form_par = ttk.Label(self, text='Существующие параметры форм:',
-                                      justify='center', style='Default.TLabel')
+        self.lbl_categories = ttk.Label(self, text='Существующие категории слов:',
+                                        justify='center', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.txt_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                    bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
-                                    selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                    relief=ST_RELIEF_TEXT[th])
+        self.txt_categories = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
+                                      bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
+                                      selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                      relief=ST_RELIEF_TEXT[th])
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.btn_add = ttk.Button(self.frame_buttons, text='Добавить параметр форм', command=self.add,
+        self.btn_add = ttk.Button(self.frame_buttons, text='Добавить категорию', command=self.add,
                                   takefocus=False, style='Default.TButton')
-        self.btn_rename = ttk.Button(self.frame_buttons, text='Переименовать параметр форм', command=self.rename,
+        self.btn_rename = ttk.Button(self.frame_buttons, text='Переименовать категорию', command=self.rename,
                                      takefocus=False, style='Default.TButton')
-        self.btn_delete = ttk.Button(self.frame_buttons, text='Удалить параметр форм', command=self.delete,
+        self.btn_delete = ttk.Button(self.frame_buttons, text='Удалить категорию', command=self.delete,
                                      takefocus=False, style='Default.TButton')
-        self.btn_values = ttk.Button(self.frame_buttons, text='Изменить значения параметра форм', command=self.values,
+        self.btn_values = ttk.Button(self.frame_buttons, text='Изменить значения категории', command=self.values,
                                      takefocus=False, style='Default.TButton')
         # }
 
-        self.lbl_form_par.grid( row=0,            column=0, padx=(6, 0), pady=(6, 0))
-        self.txt_form_par.grid( row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(    row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.frame_buttons.grid(row=0, rowspan=2, column=2, padx=6,      pady=6)
+        self.lbl_categories.grid(row=0,            column=0, padx=(6, 0), pady=(6, 0))
+        self.txt_categories.grid(row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(     row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.frame_buttons.grid( row=0, rowspan=2, column=2, padx=6,      pady=6)
         # {
         self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
         self.btn_rename.grid(row=1, padx=6, pady=3)
@@ -2663,47 +2655,47 @@ class FormsSettingsW(tk.Toplevel):
         self.btn_values.grid(row=3, padx=6, pady=(3, 6))
         # }
 
-        self.scrollbar.config(command=self.txt_form_par.yview)
+        self.scrollbar.config(command=self.txt_categories.yview)
 
         self.refresh()
 
-    # Добавить параметр
+    # Добавить категорию
     def add(self):
-        self.has_changes = add_frm_param(self, _0_global_form_parameters, _0_global_dct) or self.has_changes
+        self.has_changes = add_ctg(self, _0_global_categories, _0_global_dct) or self.has_changes
         self.refresh()
 
-    # Переименовать параметр
+    # Переименовать категорию
     def rename(self):
-        self.has_changes = rename_frm_param(self, _0_global_form_parameters, _0_global_dct) or self.has_changes
+        self.has_changes = rename_ctg(self, _0_global_categories, _0_global_dct) or self.has_changes
         self.refresh()
 
-    # Удалить параметр
+    # Удалить категорию
     def delete(self):
-        self.has_changes = delete_frm_param(self, _0_global_form_parameters, _0_global_dct) or self.has_changes
+        self.has_changes = delete_ctg(self, _0_global_categories, _0_global_dct) or self.has_changes
         self.refresh()
 
-    # Перейти к настройкам значения параметра
+    # Перейти к настройкам значений категории
     def values(self):
-        keys = [_key for _key in _0_global_form_parameters.keys()]
-        window = PopupChooseW(self, keys, 'Какой параметр форм вы хотите изменить?',
+        keys = [_key for _key in _0_global_categories.keys()]
+        window = PopupChooseW(self, keys, 'Какую категорию вы хотите изменить?',
                               default_value=keys[0], combo_width=width(keys, 5, 100))
         closed, key = window.open()
         if closed:
             return
-        self.has_changes = FormsParameterSettingsW(self, key).open() or self.has_changes
+        self.has_changes = CategoryValuesSettingsW(self, key).open() or self.has_changes
 
-    # Напечатать существующие параметры форм
-    def print_form_par_list(self):
-        self.txt_form_par['state'] = 'normal'
-        self.txt_form_par.delete(1.0, tk.END)
-        for key in _0_global_form_parameters.keys():
-            self.txt_form_par.insert(tk.END, f'{key}\n')
-        self.txt_form_par['state'] = 'disabled'
+    # Напечатать существующие категории
+    def print_categories(self):
+        self.txt_categories['state'] = 'normal'
+        self.txt_categories.delete(1.0, tk.END)
+        for key in _0_global_categories.keys():
+            self.txt_categories.insert(tk.END, f'{key}\n')
+        self.txt_categories['state'] = 'disabled'
 
     # Обновить отображаемую информацию
     def refresh(self):
-        self.print_form_par_list()
-        if _0_global_form_parameters:
+        self.print_categories()
+        if _0_global_categories:
             btn_enable(self.btn_rename, self.rename)
             btn_enable(self.btn_delete, self.delete)
             btn_enable(self.btn_values, self.values)
@@ -2726,86 +2718,85 @@ class FormsSettingsW(tk.Toplevel):
         return self.has_changes
 
 
-# Окно настроек параметра словоформ
-class FormsParameterSettingsW(tk.Toplevel):
-    def __init__(self, parent, parameter: str):
+# Окно настроек значений категории
+class CategoryValuesSettingsW(tk.Toplevel):
+    def __init__(self, parent, ctg: str):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
-        self.parameter = parameter  # Название изменяемого параметра
-        self.par_vals = _0_global_form_parameters[self.parameter]  # Значения изменяемого параметра
+        self.ctg = ctg  # Название изменяемой категории
+        self.ctg_values = _0_global_categories[self.ctg]  # Значения изменяемой категории
 
         self.has_changes = False
 
-        self.var_par = tk.StringVar()
+        self.var_ctg = tk.StringVar()
 
-        self.lbl_par_val = ttk.Label(self, text=f'Существующие значения параметра\n'
-                                                f'"{parameter}":',
-                                     justify='center', style='Default.TLabel')
+        self.lbl_ctg_values = ttk.Label(self, text=f'Существующие значения категории\n'
+                                                   f'"{ctg}":',
+                                        justify='center', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.txt_par_val = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                   bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
-                                   selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                   relief=ST_RELIEF_TEXT[th])
+        self.txt_ctg_values = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
+                                      bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
+                                      selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                      relief=ST_RELIEF_TEXT[th])
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.btn_add = ttk.Button(self.frame_buttons, text='Добавить значение параметра', command=self.add,
+        self.btn_add = ttk.Button(self.frame_buttons, text='Добавить значение', command=self.add,
                                   takefocus=False, style='Default.TButton')
-        self.btn_rename = ttk.Button(self.frame_buttons, text='Переименовать значение параметра', command=self.rename,
+        self.btn_rename = ttk.Button(self.frame_buttons, text='Переименовать значение', command=self.rename,
                                      takefocus=False, style='Default.TButton')
-        self.btn_delete = ttk.Button(self.frame_buttons, text='Удалить значение параметра', command=self.delete,
+        self.btn_delete = ttk.Button(self.frame_buttons, text='Удалить значение', command=self.delete,
                                      takefocus=False, style='Default.TButton')
         # }
 
-        self.lbl_par_val.grid(  row=0,            column=0, padx=(6, 0), pady=(6, 0))
-        self.txt_par_val.grid(  row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(    row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.frame_buttons.grid(row=0, rowspan=2, column=2, padx=6,      pady=6)
+        self.lbl_ctg_values.grid(row=0,            column=0, padx=(6, 0), pady=(6, 0))
+        self.txt_ctg_values.grid(row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(     row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.frame_buttons.grid( row=0, rowspan=2, column=2, padx=6,      pady=6)
         # {
         self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
         self.btn_rename.grid(row=1, padx=6, pady=3)
         self.btn_delete.grid(row=2, padx=6, pady=3)
         # }
 
-        self.scrollbar.config(command=self.txt_par_val.yview)
+        self.scrollbar.config(command=self.txt_ctg_values.yview)
 
         self.refresh()
 
-    # Добавить значение параметра
+    # Добавить значение категории
     def add(self):
-        has_changes, new_val = add_frm_param_val(self, self.par_vals)
+        has_changes, new_val = add_ctg_val(self, self.ctg_values)
         self.has_changes = self.has_changes or has_changes
         if not new_val:
             return
-        self.par_vals += [new_val]
+        self.ctg_values += [new_val]
         self.refresh()
 
-    # Переименовать значение параметра
+    # Переименовать значение категории
     def rename(self):
-        index = tuple(_0_global_form_parameters).index(self.parameter)
-        self.has_changes = rename_frm_param_val(self, self.par_vals, index, _0_global_dct) or self.has_changes
+        index = tuple(_0_global_categories).index(self.ctg)
+        self.has_changes = rename_ctg_val(self, self.ctg_values, index, _0_global_dct) or self.has_changes
         self.refresh()
 
-    # Удалить значение параметра
+    # Удалить значение категории
     def delete(self):
-        self.has_changes = delete_frm_param_val(self, self.par_vals, _0_global_dct) or self.has_changes
+        self.has_changes = delete_ctg_val(self, self.ctg_values, _0_global_dct) or self.has_changes
         self.refresh()
 
-    # Напечатать существующие параметры форм
-    def print_par_val_list(self):
-        self.txt_par_val['state'] = 'normal'
-        self.txt_par_val.delete(1.0, tk.END)
-        for key in self.par_vals:
-            self.txt_par_val.insert(tk.END, f'{key}\n')
-        self.txt_par_val['state'] = 'disabled'
+    # Напечатать существующие значения категории
+    def print_ctg_values(self):
+        self.txt_ctg_values['state'] = 'normal'
+        self.txt_ctg_values.delete(1.0, tk.END)
+        for key in self.ctg_values:
+            self.txt_ctg_values.insert(tk.END, f'{key}\n')
+        self.txt_ctg_values['state'] = 'disabled'
 
     # Обновить отображаемую информацию
     def refresh(self):
-        self.print_par_val_list()
-        if len(self.par_vals) == 1:
+        self.print_ctg_values()
+        if len(self.ctg_values) == 1:
             btn_disable(self.btn_delete)
         else:
             btn_enable(self.btn_delete, self.delete)
@@ -2832,17 +2823,15 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.has_changes = False
 
-        self.var_par = tk.StringVar()
-
-        self.lbl_form_par = ttk.Label(self, text='Существующие комбинации:', justify='center', style='Default.TLabel')
+        self.lbl_combinations = ttk.Label(self, text='Существующие комбинации:', justify='center',
+                                          style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.txt_form_par = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                    bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
-                                    selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                    relief=ST_RELIEF_TEXT[th])
+        self.txt_combinations = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
+                                        bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
+                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                        relief=ST_RELIEF_TEXT[th])
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.btn_add = ttk.Button(self.frame_buttons, text='Добавить комбинацию', command=self.add,
@@ -2851,16 +2840,16 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
                                      takefocus=False, style='Default.TButton')
         # }
 
-        self.lbl_form_par.grid( row=0,            column=0, padx=(6, 0), pady=(6, 0))
-        self.txt_form_par.grid( row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(    row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.frame_buttons.grid(row=0, rowspan=2, column=2, padx=6,      pady=6)
+        self.lbl_combinations.grid(row=0,            column=0, padx=(6, 0), pady=(6, 0))
+        self.txt_combinations.grid(row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
+        self.scrollbar.grid(       row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.frame_buttons.grid(   row=0, rowspan=2, column=2, padx=6,      pady=6)
         # {
         self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
         self.btn_delete.grid(row=1, padx=6, pady=(3, 6))
         # }
 
-        self.scrollbar.config(command=self.txt_form_par.yview)
+        self.scrollbar.config(command=self.txt_combinations.yview)
 
         self.refresh()
 
@@ -2891,15 +2880,15 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
 
     # Напечатать существующие комбинации
     def print_combinations(self):
-        self.txt_form_par['state'] = 'normal'
-        self.txt_form_par.delete(1.0, tk.END)
+        self.txt_combinations['state'] = 'normal'
+        self.txt_combinations.delete(1.0, tk.END)
 
         combinations = [special_combination(key) for key in _0_global_special_combinations]
         for combination in combinations:
-            self.txt_form_par.insert(tk.END, f'{combination}\n')
-        self.txt_form_par.insert(tk.END, '## -> #')
+            self.txt_combinations.insert(tk.END, f'{combination}\n')
+        self.txt_combinations.insert(tk.END, '## -> #')
 
-        self.txt_form_par['state'] = 'disabled'
+        self.txt_combinations['state'] = 'disabled'
 
     # Обновить отображаемую информацию
     def refresh(self):
@@ -3573,8 +3562,6 @@ class PrintW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
-
         self.var_fav = tk.BooleanVar(value=False)
         self.var_forms = tk.BooleanVar(value=True)
         self.var_info = tk.StringVar()
@@ -3662,7 +3649,6 @@ class ChooseLearnModeW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.res = None
 
         self.var_order = tk.StringVar(value=VALUES_ORDER[0])  # Метод учёбы
@@ -3724,20 +3710,19 @@ class ChooseLearnModeW(tk.Toplevel):
 
 # Окно изучения слов
 class LearnW(tk.Toplevel):
-    def __init__(self, parent, conf):
+    def __init__(self, parent, conf: list | tuple):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Learn')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.current_key = None
         self.current_form = None
         self.rnd_f = None  # Вспомогательная переменная для выбора случайного слова
         self.count_all = 0
         self.count_correct = 0
         self.used_words = set()  # Слова (формы), которые уже были угаданы
-        self.conf = conf  # Режим изучения слов: [метод, все формы, подбор слов]
+        self.conf = conf  # Режим изучения слов: [метод, со всеми ли словоформами, подбор слов]
 
         self.var_input = tk.StringVar()
 
@@ -4177,8 +4162,6 @@ class SearchW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
-
         self.var_wrd = tk.StringVar(value=wrd)
 
         self.frame_main = ttk.Frame(self, style='Default.TFrame')
@@ -4280,13 +4263,12 @@ class SearchW(tk.Toplevel):
 
 # Окно изменения статьи
 class EditW(tk.Toplevel):
-    def __init__(self, parent, key):
+    def __init__(self, parent, key: str):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Edit an entry')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.key = key
         self.line_width = 35
         self.max_height_w = 3
@@ -4585,14 +4567,14 @@ class EditW(tk.Toplevel):
     def frm_add(self):
         global _0_global_has_progress
 
-        if not _0_global_form_parameters:
-            warning(self, 'Отсутствуют параметры форм!\n'
+        if not _0_global_categories:
+            warning(self, 'Отсутствуют категории слов!\n'
                           'Чтобы их добавить, перейдите в\n'
-                          'Настройки/Настройки словаря/Настройки словоформ')
+                          'Настройки/Настройки словаря/Грамматические категории')
             return
 
         window_template = CreateFormTemplateW(self, self.key,
-                                              combo_width=width(tuple(_0_global_form_parameters.keys()),
+                                              combo_width=width(tuple(_0_global_categories.keys()),
                                                                 5, 100))  # Создание шаблона словоформы
         frm_key = window_template.open()
         if not frm_key:
@@ -4669,7 +4651,6 @@ class AddW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.parent = parent
         self.key = None
 
         self.var_wrd = tk.StringVar(value=wrd)
@@ -4738,10 +4719,10 @@ class SettingsW(tk.Toplevel):
 
         self.parent = parent
         self.current_tab = 1  # Текущая вкладка (1 или 2)
-        self.has_forms_changes = False
+        self.has_ctg_changes = False
         self.has_spec_comb_changes = False
         self.backup_dct = copy.deepcopy(_0_global_dct)
-        self.backup_fp = copy.deepcopy(_0_global_form_parameters)
+        self.backup_fp = copy.deepcopy(_0_global_categories)
 
         self.var_mgsp = tk.StringVar(value=str(_0_global_min_good_score_perc))
         self.var_show_updates = tk.BooleanVar(value=bool(_0_global_show_updates))
@@ -4771,7 +4752,7 @@ class SettingsW(tk.Toplevel):
         self.entry_mgsp = ttk.Entry(self.frame_mgsp, textvariable=self.var_mgsp, width=5,
                                     validate='key', validatecommand=self.vcmd, style='.TEntry')
         # } }
-        self.btn_forms = ttk.Button(self.tab_local, text='Настройки словоформ', command=self.forms,
+        self.btn_forms = ttk.Button(self.tab_local, text='Грамматические категории', command=self.categories,
                                     takefocus=False, style='Default.TButton')
         #
         self.btn_special_combinations = ttk.Button(self.tab_local, text='Специальные комбинации',
@@ -4834,7 +4815,7 @@ class SettingsW(tk.Toplevel):
         self.lbl_themes_note = ttk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
                                                                  f'Актуальные темы можно скачать здесь:',
                                          justify='left', style='Default.TLabel')
-        self.txt_themes_note = tk.Text(self.frame_themes, height=1, width=40, relief='sunken', borderwidth=1,
+        self.txt_themes_note = tk.Text(self.frame_themes, height=1, width=47, relief='sunken', borderwidth=1,
                                        font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                        highlightbackground=ST_BORDERCOLOR[th])
@@ -4913,9 +4894,9 @@ class SettingsW(tk.Toplevel):
         else:
             _0_global_min_good_score_perc = int(val)
 
-    # Настройки словоформ
-    def forms(self):
-        self.has_forms_changes = FormsSettingsW(self).open() or self.has_forms_changes
+    # Настройки категорий
+    def categories(self):
+        self.has_ctg_changes = CategoriesSettingsW(self).open() or self.has_ctg_changes
 
     # Настройки специальных комбинаций
     def special_combinations(self):
@@ -4980,7 +4961,7 @@ class SettingsW(tk.Toplevel):
     # Открыть словарь
     def dct_open(self):
         global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc,\
-            _0_global_form_parameters, _0_global_special_combinations, _0_global_has_progress
+            _0_global_categories, _0_global_special_combinations, _0_global_has_progress
 
         saves_list = []
         for file_name in os.listdir(SAVES_PATH):
@@ -5005,26 +4986,26 @@ class SettingsW(tk.Toplevel):
         if not savename:
             self.destroy()  # Если была попытка открыть повреждённый словарь, то при сохранении настроек, текущий словарь стёрся бы
             return
-        _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
+        _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations =\
             upload_local_settings(savename)
         _0_global_dct_savename = savename
         save_dct_name()
 
         self.backup_dct = copy.deepcopy(_0_global_dct)
-        self.backup_fp = copy.deepcopy(_0_global_form_parameters)
+        self.backup_fp = copy.deepcopy(_0_global_categories)
 
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
 
-        _0_global_has_progress = False
-        self.has_forms_changes = False
+        self.has_ctg_changes = False
         self.has_spec_comb_changes = False
+        _0_global_has_progress = False
 
         self.refresh()
 
     # Создать словарь
     def dct_create(self):
         global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc,\
-            _0_global_form_parameters, _0_global_special_combinations, _0_global_has_progress
+            _0_global_categories, _0_global_special_combinations, _0_global_has_progress
 
         window = PopupEntryW(self, 'Введите название нового словаря', check_answer_function=check_dct_savename)
         closed, savename = window.open()
@@ -5038,17 +5019,17 @@ class SettingsW(tk.Toplevel):
         _0_global_dct_savename = savename
         save_dct_name()
         _0_global_dct = Dictionary()
-        _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
+        _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations =\
             create_dct(_0_global_dct, savename)
 
         self.backup_dct = copy.deepcopy(_0_global_dct)
-        self.backup_fp = copy.deepcopy(_0_global_form_parameters)
+        self.backup_fp = copy.deepcopy(_0_global_categories)
 
         self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
 
-        _0_global_has_progress = False
-        self.has_forms_changes = False
+        self.has_ctg_changes = False
         self.has_spec_comb_changes = False
+        _0_global_has_progress = False
 
         self.refresh()
 
@@ -5117,7 +5098,7 @@ class SettingsW(tk.Toplevel):
 
     # Были ли изменения локальных настроек
     def has_local_changes(self):
-        return self.has_forms_changes or\
+        return self.has_ctg_changes or\
             self.has_spec_comb_changes or\
             int('0' + self.var_mgsp.get()) != _0_global_min_good_score_perc  # Если self.var_mgsp.get() == '', то 0
 
@@ -5208,18 +5189,17 @@ class SettingsW(tk.Toplevel):
         self.set_theme()
 
         self.backup_dct = copy.deepcopy(_0_global_dct)
-        self.backup_fp = copy.deepcopy(_0_global_form_parameters)
+        self.backup_fp = copy.deepcopy(_0_global_categories)
 
-        save_local_settings(_0_global_min_good_score_perc, _0_global_form_parameters,
+        save_local_settings(_0_global_min_good_score_perc, _0_global_categories,
                             dct_filename(_0_global_dct_savename))
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_typo, th)
 
         if self.has_local_changes():
             save_dct(_0_global_dct, dct_filename(_0_global_dct_savename))
 
-        self.has_forms_changes = False
+        self.has_ctg_changes = False
         self.has_spec_comb_changes = False
-
         _0_global_has_progress = False
 
     # Закрыть настройки без сохранения
@@ -5233,7 +5213,7 @@ class SettingsW(tk.Toplevel):
         self.destroy()
 
     def open(self):
-        global _0_global_dct, _0_global_form_parameters
+        global _0_global_dct, _0_global_categories
 
         self.set_focus()
 
@@ -5241,7 +5221,7 @@ class SettingsW(tk.Toplevel):
         self.wait_window()
 
         _0_global_dct = copy.deepcopy(self.backup_dct)
-        _0_global_form_parameters = copy.deepcopy(self.backup_fp)
+        _0_global_categories = copy.deepcopy(self.backup_fp)
 
 
 # Главное окно
@@ -5358,13 +5338,13 @@ class MainW(tk.Tk):
     # Нажатие на кнопку "Открыть настройки"
     def settings(self):
         global _0_global_dct_savename, _0_global_show_updates, _0_global_typo, th,\
-            _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations
+            _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations
 
         SettingsW(self).open()
 
         _0_global_dct_savename, _0_global_show_updates, _0_global_typo, th =\
             upload_global_settings()  # Обновляем глобальные настройки
-        _0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
+        _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations =\
             upload_local_settings(_0_global_dct_savename)  # Обновляем локальные настройки
 
     # Нажатие на кнопку "Проверить обновления"
@@ -5632,8 +5612,8 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
+      f'                           {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
@@ -5650,17 +5630,12 @@ _0_global_dct_savename = upload_dct(root, _0_global_dct, _0_global_dct_savename,
                                     'Завершить работу')  # Загружаем словарь
 if not _0_global_dct_savename:
     exit(101)
-_0_global_min_good_score_perc, _0_global_form_parameters, _0_global_special_combinations =\
+_0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations =\
     upload_local_settings(_0_global_dct_savename)  # Загружаем локальные настройки
 _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
 root.mainloop()
 
-# Открывать программу после обновления
-# Сделать установщик отдельной программой: os.system(f'"{os.path.join(MAIN_PATH, exe_file_name)}"')
-# Принимать несколько ответов при угадывании слова
-# Добавить изменение статьи по переводу
-# Поиск статьи по словоформе
-
-# Неразрешимые проблемы:
-# wait_window
-# Combobox.Listbox
+# int -> bool
+# pos -> ctg
+# 000wrd -> (wrd, 0)
+# LearnW > conf
