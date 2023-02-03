@@ -17,9 +17,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.0-Delta'
-PROGRAM_DATE = '2.2.2023'
-PROGRAM_TIME = '21:23 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0-Epsilon'
+PROGRAM_DATE = '3.2.2023'
+PROGRAM_TIME = '3:37 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -710,7 +710,7 @@ class Dictionary(object):
         self.d[key].add_note(note)
 
     # Добавить словоформу к статье
-    def add_frm(self, key: tuple[str, int], frm_key: tuple | list, frm: str):
+    def add_frm(self, key: tuple[str, int], frm_key: tuple[str, ...] | list[str], frm: str):
         self.count_f -= self.d[key].count_f
         self.d[key].add_frm(frm_key, frm)
         self.count_f += self.d[key].count_f
@@ -2153,6 +2153,15 @@ class ChooseNoteW(tk.Toplevel):
 
         self.tip_entry = ttip.Hovertip(self.entry_input, f'Введите номер от 0 до {self.vals_count}', hover_delay=800)
 
+    # Выбор одной статьи из нескольких
+    def choose(self):
+        answer = self.var_input.get()
+        if answer != '':
+            index = int(answer)
+            self.answer = wrd_to_key(self.wrd, index)
+        self.closed = False
+        self.destroy()
+
     # Вывод вариантов статей
     def print_variants(self):
         self.txt_words['state'] = 'normal'
@@ -2166,15 +2175,6 @@ class ChooseNoteW(tk.Toplevel):
             _0_global_dct.d[key].print_all(self.txt_words)
             i += 1
         self.txt_words['state'] = 'disabled'
-
-    # Выбор одной статьи из нескольких
-    def choose(self):
-        answer = self.var_input.get()
-        if answer != '':
-            index = int(answer)
-            self.answer = wrd_to_key(self.wrd, index)
-        self.closed = False
-        self.destroy()
 
     # Установить фокус
     def set_focus(self):
@@ -2302,9 +2302,11 @@ class NewVersionAvailableW(tk.Toplevel):
 
     # Скачать и установить обновление
     def download_and_install(self):
-        try:  # Загрузка
+        # Загрузка
+        try:
+            # Скачиваем архив с обновлением
             print('\nDownload an archive...', end='')
-            wget.download(URL_DOWNLOAD_ZIP, out=os.path.dirname(__file__))  # Скачиваем архив с обновлением
+            wget.download(URL_DOWNLOAD_ZIP, out=MAIN_PATH)
         except Exception as exc:
             print(f'Не удалось загрузить обновление!\n'
                   f'{exc}')
@@ -2312,11 +2314,12 @@ class NewVersionAvailableW(tk.Toplevel):
                           f'{exc}')
             self.destroy()
             return
-        try:  # Установка
+        # Установка
+        try:
             # Распаковываем архив во временную папку
             print('\nExtracting the archive...')
             with zipfile.ZipFile(NEW_VERSION_ZIP_PATH, 'r') as zip_file:
-                zip_file.extractall(os.path.dirname(__file__))
+                zip_file.extractall(MAIN_PATH)
             # Удаляем архив
             print('Delete the archive...')
             os.remove(NEW_VERSION_ZIP_PATH)
@@ -2337,7 +2340,7 @@ class NewVersionAvailableW(tk.Toplevel):
             for filename in os.listdir(os.path.join(NEW_VERSION_PATH, RESOURCES_DIR, IMAGES_DIR)):
                 os.replace(os.path.join(NEW_VERSION_PATH, RESOURCES_DIR, IMAGES_DIR, filename),
                            os.path.join(IMAGES_PATH, filename))
-            for filename in ['ver', 'README.txt', 'README.md', 'main.py']:
+            for filename in ['README.txt', 'README.md', 'main.py']:
                 os.replace(os.path.join(NEW_VERSION_PATH, filename),
                            os.path.join(MAIN_PATH, filename))
             # Удаляем временную папку
@@ -3132,24 +3135,6 @@ class CustomThemeSettingsW(tk.Toplevel):
 
         self.read()
 
-    # Выбрать цвет
-    def choose_color(self, n: int):
-        el = STYLE_ELEMENTS[n]
-        hx = self.custom_styles[el]
-
-        (rgb, new_hx) = colorchooser.askcolor(hx)
-        if not new_hx:
-            return
-
-        self.buttons[n].config(bg=new_hx, activebackground=new_hx)
-        self.custom_styles[el] = new_hx
-
-        self.set_demo_styles()
-
-        if new_hx != hx:
-            self.history += [(el, hx, new_hx)]
-            self.history_undo.clear()
-
     # Взять за основу уже существующую тему
     def set_theme(self):
         theme_name = self.var_theme.get()
@@ -3189,24 +3174,23 @@ class CustomThemeSettingsW(tk.Toplevel):
 
         self.refresh_images()
 
-    # Загрузить пользовательскую тему
-    def read(self):
-        filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
-        with open(filepath, 'r', encoding='utf-8') as file:
-            version = file.readline().strip()  # Версия темы
-            if version != f'{REQUIRED_THEME_VERSION}':
-                upgrade_theme(filepath)
-            for i in range(len(STYLE_ELEMENTS)):
-                el = STYLE_ELEMENTS[i]
-                self.custom_styles[el] = file.readline().strip()
-                if el == 'RELIEF_FRAME':
-                    self.var_relief_frame.set(self.custom_styles[el])
-                elif el == 'RELIEF_TEXT':
-                    self.var_relief_text.set(self.custom_styles[el])
-                else:
-                    self.buttons[i].config(bg=self.custom_styles[el], activebackground=self.custom_styles[el])
+    # Выбрать цвет
+    def choose_color(self, n: int):
+        el = STYLE_ELEMENTS[n]
+        hx = self.custom_styles[el]
+
+        (rgb, new_hx) = colorchooser.askcolor(hx)
+        if not new_hx:
+            return
+
+        self.buttons[n].config(bg=new_hx, activebackground=new_hx)
+        self.custom_styles[el] = new_hx
 
         self.set_demo_styles()
+
+        if new_hx != hx:
+            self.history += [(el, hx, new_hx)]
+            self.history_undo.clear()
 
     # Сохранить пользовательскую тему
     def save(self):
@@ -3312,7 +3296,28 @@ class CustomThemeSettingsW(tk.Toplevel):
 
             self.set_demo_styles()
 
-    # Обновить демонстрацию
+    # Загрузить пользовательскую тему
+    def read(self):
+        filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
+        with open(filepath, 'r', encoding='utf-8') as file:
+            version = file.readline().strip()  # Версия темы
+            if version != f'{REQUIRED_THEME_VERSION}':
+                upgrade_theme(filepath)
+            for i in range(len(STYLE_ELEMENTS)):
+                el = STYLE_ELEMENTS[i]
+
+                self.custom_styles[el] = file.readline().strip()
+
+                if el == 'RELIEF_FRAME':
+                    self.var_relief_frame.set(self.custom_styles[el])
+                elif el == 'RELIEF_TEXT':
+                    self.var_relief_text.set(self.custom_styles[el])
+                else:
+                    self.buttons[i].config(bg=self.custom_styles[el], activebackground=self.custom_styles[el])
+
+        self.set_demo_styles()
+
+    # Обновить стили в демонстрации
     def set_demo_styles(self):
         self.custom_styles['RELIEF_FRAME'] = self.var_relief_frame.get()
         self.custom_styles['RELIEF_TEXT'] = self.var_relief_text.get()
@@ -3612,11 +3617,6 @@ class PrintW(tk.Toplevel):
         self.txt_dct.yview_moveto(1.0)
         self.txt_dct['state'] = 'disabled'
 
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
     # Добавить все статьи в избранное
     def fav_all(self):
         window = PopupDialogueW(self, 'Вы действительно хотите добавить все статьи в избранное?')
@@ -3634,6 +3634,11 @@ class PrintW(tk.Toplevel):
             return
         _0_global_dct.unfav_all()
         self.print()
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
     def open(self):
         self.set_focus()
@@ -3693,7 +3698,7 @@ class ChooseLearnModeW(tk.Toplevel):
         self.vcmd_order = (self.register(validate_order_and_forms), '%P')
         self.combo_order['validatecommand'] = self.vcmd_order
 
-    # Учить слова
+    # Начать учить слова
     def start(self):
         order = self.var_order.get()
         forms = self.var_forms.get()
@@ -3776,6 +3781,24 @@ class LearnW(tk.Toplevel):
 
         self.start()
 
+    # Просмотр сносок
+    def show_notes(self):
+        self.txt_dct['state'] = 'normal'
+        entry = _0_global_dct.d[self.current_key]
+        entry.notes_print(self.txt_dct)
+        self.txt_dct.yview_moveto(1.0)
+        self.txt_dct['state'] = 'disabled'
+        btn_disable(self.btn_notes)
+
+    # Завершение учёбы
+    def stop(self):
+        self.frame_main.grid_remove()
+        self.btn_stop.grid_remove()
+        btn_disable(self.btn_input)
+
+        PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
+        self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}')
+
     # Печать в текстовое поле
     def outp(self, msg='', end='\n'):
         self.txt_dct['state'] = 'normal'
@@ -3857,24 +3880,6 @@ class LearnW(tk.Toplevel):
         btn_enable(self.btn_notes, self.show_notes)
         self.entry_input.delete(0, tk.END)
         self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {round(_0_global_dct.count_rating() * 100)}%'
-
-    # Просмотр сносок
-    def show_notes(self):
-        self.txt_dct['state'] = 'normal'
-        entry = _0_global_dct.d[self.current_key]
-        entry.notes_print(self.txt_dct)
-        self.txt_dct.yview_moveto(1.0)
-        self.txt_dct['state'] = 'disabled'
-        btn_disable(self.btn_notes)
-
-    # Завершение учёбы
-    def stop(self):
-        self.frame_main.grid_remove()
-        self.btn_stop.grid_remove()
-        btn_disable(self.btn_input)
-
-        PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
-        self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}')
 
     # Проверка введённого слова
     def check_wrd(self):
@@ -4439,64 +4444,6 @@ class EditW(tk.Toplevel):
 
         self.refresh()
 
-    # Обновить поля
-    def refresh(self):
-        height_w = max(min(height(_0_global_dct.d[self.dct_key].wrd,            self.line_width), self.max_height_w), 1)
-        height_t = max(min(height(_0_global_dct.d[self.dct_key].tr_to_str(),    self.line_width), self.max_height_t), 1)
-        height_n = max(min(height(_0_global_dct.d[self.dct_key].notes_to_str(), self.line_width), self.max_height_n), 1)
-        height_f = max(min(height(_0_global_dct.d[self.dct_key].frm_to_str(),   self.line_width), self.max_height_f), 1)
-
-        self.txt_wrd  ['height'] = height_w
-        self.txt_tr   ['height'] = height_t
-        self.txt_notes['height'] = height_n
-        self.txt_frm  ['height'] = height_f
-
-        self.txt_wrd['state'] = 'normal'
-        self.txt_wrd.delete(1.0, tk.END)
-        self.txt_wrd.insert(tk.END, _0_global_dct.d[self.dct_key].wrd)
-        self.txt_wrd['state'] = 'disabled'
-
-        self.txt_tr['state'] = 'normal'
-        self.txt_tr.delete(1.0, tk.END)
-        self.txt_tr.insert(tk.END, _0_global_dct.d[self.dct_key].tr_to_str())
-        self.txt_tr['state'] = 'disabled'
-
-        self.txt_notes['state'] = 'normal'
-        self.txt_notes.delete(1.0, tk.END)
-        self.txt_notes.insert(tk.END, _0_global_dct.d[self.dct_key].notes_to_str())
-        self.txt_notes['state'] = 'disabled'
-
-        self.txt_frm['state'] = 'normal'
-        self.txt_frm.delete(1.0, tk.END)
-        self.txt_frm.insert(tk.END, _0_global_dct.d[self.dct_key].frm_to_str())
-        self.txt_frm['state'] = 'disabled'
-
-        self.btn_tr_del.grid(     row=0, column=1, padx=(1, 0), pady=0)
-        self.btn_note_del.grid(  row=0, column=1, padx=(1, 0), pady=0)
-        self.btn_frm_del.grid(    row=0, column=1, padx=(1, 1), pady=0)
-        self.btn_frm_edt.grid(    row=0, column=2, padx=(1, 0), pady=0)
-        self.scrollbar_wrd.grid(  row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
-        self.scrollbar_tr.grid(   row=1, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
-        self.scrollbar_notes.grid(row=2, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
-        self.scrollbar_frm.grid(  row=3, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
-
-        if _0_global_dct.d[self.dct_key].count_t < 2:
-            self.btn_tr_del.grid_remove()
-        if _0_global_dct.d[self.dct_key].count_n < 1:
-            self.btn_note_del.grid_remove()
-        if _0_global_dct.d[self.dct_key].count_f < 1:
-            self.btn_frm_del.grid_remove()
-            self.btn_frm_edt.grid_remove()
-
-        if height_w < self.max_height_w:
-            self.scrollbar_wrd.grid_remove()
-        if height_t < self.max_height_t:
-            self.scrollbar_tr.grid_remove()
-        if height_n < self.max_height_n:
-            self.scrollbar_notes.grid_remove()
-        if height_f < self.max_height_f:
-            self.scrollbar_frm.grid_remove()
-
     # Изменить слово
     def wrd_edt(self):
         global _0_global_has_progress
@@ -4679,6 +4626,64 @@ class EditW(tk.Toplevel):
     def back(self):
         self.destroy()
 
+    # Обновить поля
+    def refresh(self):
+        height_w = max(min(height(_0_global_dct.d[self.dct_key].wrd,            self.line_width), self.max_height_w), 1)
+        height_t = max(min(height(_0_global_dct.d[self.dct_key].tr_to_str(),    self.line_width), self.max_height_t), 1)
+        height_n = max(min(height(_0_global_dct.d[self.dct_key].notes_to_str(), self.line_width), self.max_height_n), 1)
+        height_f = max(min(height(_0_global_dct.d[self.dct_key].frm_to_str(),   self.line_width), self.max_height_f), 1)
+
+        self.txt_wrd  ['height'] = height_w
+        self.txt_tr   ['height'] = height_t
+        self.txt_notes['height'] = height_n
+        self.txt_frm  ['height'] = height_f
+
+        self.txt_wrd['state'] = 'normal'
+        self.txt_wrd.delete(1.0, tk.END)
+        self.txt_wrd.insert(tk.END, _0_global_dct.d[self.dct_key].wrd)
+        self.txt_wrd['state'] = 'disabled'
+
+        self.txt_tr['state'] = 'normal'
+        self.txt_tr.delete(1.0, tk.END)
+        self.txt_tr.insert(tk.END, _0_global_dct.d[self.dct_key].tr_to_str())
+        self.txt_tr['state'] = 'disabled'
+
+        self.txt_notes['state'] = 'normal'
+        self.txt_notes.delete(1.0, tk.END)
+        self.txt_notes.insert(tk.END, _0_global_dct.d[self.dct_key].notes_to_str())
+        self.txt_notes['state'] = 'disabled'
+
+        self.txt_frm['state'] = 'normal'
+        self.txt_frm.delete(1.0, tk.END)
+        self.txt_frm.insert(tk.END, _0_global_dct.d[self.dct_key].frm_to_str())
+        self.txt_frm['state'] = 'disabled'
+
+        self.btn_tr_del.grid(     row=0, column=1, padx=(1, 0), pady=0)
+        self.btn_note_del.grid(  row=0, column=1, padx=(1, 0), pady=0)
+        self.btn_frm_del.grid(    row=0, column=1, padx=(1, 1), pady=0)
+        self.btn_frm_edt.grid(    row=0, column=2, padx=(1, 0), pady=0)
+        self.scrollbar_wrd.grid(  row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
+        self.scrollbar_tr.grid(   row=1, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
+        self.scrollbar_notes.grid(row=2, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
+        self.scrollbar_frm.grid(  row=3, column=2, padx=(0, 1), pady=(0, 3), sticky='NSW')
+
+        if _0_global_dct.d[self.dct_key].count_t < 2:
+            self.btn_tr_del.grid_remove()
+        if _0_global_dct.d[self.dct_key].count_n < 1:
+            self.btn_note_del.grid_remove()
+        if _0_global_dct.d[self.dct_key].count_f < 1:
+            self.btn_frm_del.grid_remove()
+            self.btn_frm_edt.grid_remove()
+
+        if height_w < self.max_height_w:
+            self.scrollbar_wrd.grid_remove()
+        if height_t < self.max_height_t:
+            self.scrollbar_tr.grid_remove()
+        if height_n < self.max_height_n:
+            self.scrollbar_notes.grid_remove()
+        if height_f < self.max_height_f:
+            self.scrollbar_frm.grid_remove()
+
     # Установить фокус
     def set_focus(self):
         self.focus_set()
@@ -4737,13 +4742,6 @@ class AddW(tk.Toplevel):
         self.entry_wrd['validatecommand'] = self.vcmd_wrd
         self.entry_tr['validatecommand'] = self.vcmd_tr
 
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.entry_wrd.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_add.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
     # Добавление статьи
     def add(self):
         global _0_global_has_progress
@@ -4756,6 +4754,13 @@ class AddW(tk.Toplevel):
 
         _0_global_has_progress = True
         self.destroy()
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.entry_wrd.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_add.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
 
     def open(self):
         self.set_focus()
@@ -4809,11 +4814,11 @@ class SettingsW(tk.Toplevel):
         self.entry_mgsp = ttk.Entry(self.frame_mgsp, textvariable=self.var_mgsp, width=5,
                                     validate='key', validatecommand=self.vcmd, style='Default.TEntry')
         # } }
-        self.btn_forms = ttk.Button(self.tab_local, text='Грамматические категории', command=self.categories,
+        self.btn_forms = ttk.Button(self.tab_local, text='Грамматические категории', command=self.categories_settings,
                                     takefocus=False, style='Default.TButton')
         #
         self.btn_special_combinations = ttk.Button(self.tab_local, text='Специальные комбинации',
-                                                   command=self.special_combinations,
+                                                   command=self.special_combinations_settings,
                                                    takefocus=False, style='Default.TButton')
         self.lbl_save_warn = ttk.Label(self.tab_local,
                                        text='При сохранении настроек словаря, сохраняется и сам словарь!',
@@ -4941,79 +4946,28 @@ class SettingsW(tk.Toplevel):
 
         self.print_dct_list()
 
-    # Изменить значение MGSP
-    def set_mgsp(self):
-        global _0_global_min_good_score_perc
-
-        val = self.var_mgsp.get()
-        if val == '':
-            _0_global_min_good_score_perc = 0
-        else:
-            _0_global_min_good_score_perc = int(val)
+    # Справка о МППУ
+    def about_mgsp(self):
+        PopupImgW(self, img_about_mgsp, 'Статьи, у которых процент угадывания ниже этого значения,\n'
+                                        'будут считаться более сложными.\n'
+                                        'При выборе режима учёбы "Все слова (чаще сложные)"\n'
+                                        'такие слова будут чаще попадаться.').open()
 
     # Настройки категорий
-    def categories(self):
+    def categories_settings(self):
         self.has_ctg_changes = CategoriesSettingsW(self).open() or self.has_ctg_changes
 
     # Настройки специальных комбинаций
-    def special_combinations(self):
+    def special_combinations_settings(self):
         self.has_spec_comb_changes = SpecialCombinationsSettingsW(self).open() or self.has_spec_comb_changes
 
-    # Разрешить/запретить сообщать о новых версиях
-    def set_show_updates(self):
-        global _0_global_show_updates
-
-        _0_global_show_updates = int(self.var_show_updates.get())  # 0 или 1
-
-    # Показывать/скрывать кнопку "Опечатка" при неверном ответе в учёбе
-    def set_show_typo_button(self):
-        global _0_global_with_typo
-
-        _0_global_with_typo = int(self.var_show_typo_button.get())  # 0 или 1
-
-    # Установить выбранную тему
-    def set_theme(self):
-        global th
-
-        th = self.var_theme.get()
-
-        self.parent.set_ttk_styles()  # Установка ttk-стилей
-        upload_theme_img(th)  # Загрузка изображений темы
-
-        # Установка изображений
-        try:
-            self.img_about = tk.PhotoImage(file=img_about)
-        except:
-            self.btn_about_mgsp.configure(text='?', compound='text', style='Default.TButton')
-            self.btn_about_typo.configure(text='?', compound='text', style='Default.TButton')
-        else:
-            self.btn_about_mgsp.configure(image=self.img_about, compound='image', style='Image.TButton')
-            self.btn_about_typo.configure(image=self.img_about, compound='image', style='Image.TButton')
-
-        # Установка некоторых стилей для окна настроек
-        self.configure(bg=ST_BG[th])
-        self.txt_dcts.configure(relief=ST_RELIEF_TEXT[th], bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                highlightbackground=ST_BORDERCOLOR[th])
-        self.txt_themes_note.configure(font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
-                                       selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                       highlightbackground=ST_BORDERCOLOR[th])
-
-        # Установка фона для главного окна
-        self.parent.configure(bg=ST_BG[th])
-
-        # Установка фона для окна уведомления об обновлении
-        try:
-            _0_global_window_last_version.configure(bg=ST_BG[th])
-        except:  # Если окно обновления не открыто
-            pass
-
-    # Задать пользовательскую тему
-    def custom_theme(self):
-        CustomThemeSettingsW(self).open()
-        upload_custom_theme()
-        if th == CUSTOM_TH:
-            self.set_theme()
+    # Справка о кнопке "Опечатка"
+    def about_typo(self):
+        PopupImgW(self, img_about_typo, 'Если функция включена, то\n'
+                                        'когда вы неверно отвечаете при учёбе,\n'
+                                        'появляется кнопка "Просто опечатка".\n'
+                                        'При её нажатии, ошибка не засчитывается.\n'
+                                        'Срабатывает при нажатии на Tab.').open()
 
     # Открыть словарь
     def dct_open(self):
@@ -5153,97 +5107,21 @@ class SettingsW(tk.Toplevel):
 
         self.print_dct_list()
 
-    # Были ли изменения локальных настроек
-    def has_local_changes(self):
-        return self.has_ctg_changes or\
-            self.has_spec_comb_changes or\
-            int('0' + self.var_mgsp.get()) != _0_global_min_good_score_perc  # Если self.var_mgsp.get() == '', то 0
-
-    # Были ли изменения настроек
-    def has_changes(self):
-        return self.has_local_changes() or\
-            int(self.var_show_updates.get()) != _0_global_show_updates or\
-            int(self.var_show_typo_button.get()) != _0_global_with_typo or\
-            self.var_theme.get() != th
-
-    # Вывод существующих словарей
-    def print_dct_list(self):
-        self.txt_dcts['state'] = 'normal'
-        self.txt_dcts.delete(1.0, tk.END)
-
-        has_only_one_dct = True
-        for filename in os.listdir(SAVES_PATH):
-            base_name, ext = os.path.splitext(filename)
-            if ext == '.txt':
-                if base_name == _0_global_dct_savename:
-                    self.txt_dcts.insert(tk.END, f'"{base_name}" (ОТКРЫТ)\n')
-                else:
-                    self.txt_dcts.insert(tk.END, f'"{base_name}"\n')
-                    has_only_one_dct = False
-        self.txt_dcts['state'] = 'disabled'
-
-        if has_only_one_dct:
-            btn_disable(self.btn_dct_open)
-            btn_disable(self.btn_dct_delete)
-        else:
-            btn_enable(self.btn_dct_open, self.dct_open)
-            btn_enable(self.btn_dct_delete, self.dct_delete)
-
-    # Справка о МППУ
-    def about_mgsp(self):
-        PopupImgW(self, img_about_mgsp, 'Статьи, у которых процент угадывания ниже этого значения,\n'
-                                        'будут считаться более сложными.\n'
-                                        'При выборе режима учёбы "Все слова (чаще сложные)"\n'
-                                        'такие слова будут чаще попадаться.').open()
-
-    # Справка о кнопке "Опечатка"
-    def about_typo(self):
-        PopupImgW(self, img_about_typo, 'Если функция включена, то\n'
-                                        'когда вы неверно отвечаете при учёбе,\n'
-                                        'появляется кнопка "Просто опечатка".\n'
-                                        'При её нажатии, ошибка не засчитывается.\n'
-                                        'Срабатывает при нажатии на Tab.').open()
-
-    # Изменить размер окна в зависимости от открытой вкладки
-    def resize_tabs(self):
-        if self.current_tab == 1:
-            self.frame_show_updates.grid(    row=0, padx=0, pady=0)
-            self.frame_show_typo_button.grid(row=0, padx=0, pady=0)
-            self.frame_dcts.grid(            row=0, padx=0, pady=0)
-            self.frame_themes.grid(          row=0, padx=0, pady=0)
-
-            self.frame_dcts.grid_remove()
-            self.frame_themes.grid_remove()
-
-            self.current_tab = 2
-        else:
-            self.frame_show_updates.grid(    row=0, padx=6, pady=6)
-            self.frame_show_typo_button.grid(row=1, padx=6, pady=6)
-            self.frame_dcts.grid(            row=2, padx=6, pady=6)
-            self.frame_themes.grid(          row=3, padx=6, pady=6)
-
-            self.current_tab = 1
-
-    # Обновить список словарей
-    def refresh(self):
-        self.var_mgsp.set(str(_0_global_min_good_score_perc))
-        self.print_dct_list()
-
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.entry_mgsp.focus_set()
-        self.bind('<Escape>', lambda event=None: self.btn_close.invoke())
-        self.tabs.bind('<<NotebookTabChanged>>', lambda event=None: self.resize_tabs())
+    # Задать пользовательскую тему
+    def custom_theme(self):
+        CustomThemeSettingsW(self).open()
+        upload_custom_theme()
+        if th == CUSTOM_TH:
+            self.save_theme()
 
     # Сохранить настройки
     def save(self):
         global _0_global_has_progress
 
-        self.set_mgsp()
-        self.set_show_updates()
-        self.set_show_typo_button()
-        self.set_theme()
+        self.save_mgsp()
+        self.save_show_updates()
+        self.save_show_typo_button()
+        self.save_theme()
 
         self.backup_dct = copy.deepcopy(_0_global_dct)
         self.backup_fp = copy.deepcopy(_0_global_categories)
@@ -5268,6 +5146,133 @@ class SettingsW(tk.Toplevel):
             if not answer:
                 return
         self.destroy()
+
+    # Вывод существующих словарей
+    def print_dct_list(self):
+        self.txt_dcts['state'] = 'normal'
+        self.txt_dcts.delete(1.0, tk.END)
+
+        has_only_one_dct = True
+        for filename in os.listdir(SAVES_PATH):
+            base_name, ext = os.path.splitext(filename)
+            if ext == '.txt':
+                if base_name == _0_global_dct_savename:
+                    self.txt_dcts.insert(tk.END, f'"{base_name}" (ОТКРЫТ)\n')
+                else:
+                    self.txt_dcts.insert(tk.END, f'"{base_name}"\n')
+                    has_only_one_dct = False
+        self.txt_dcts['state'] = 'disabled'
+
+        if has_only_one_dct:
+            btn_disable(self.btn_dct_open)
+            btn_disable(self.btn_dct_delete)
+        else:
+            btn_enable(self.btn_dct_open, self.dct_open)
+            btn_enable(self.btn_dct_delete, self.dct_delete)
+
+    # Обновить настройки при открытии другого словаря
+    def refresh(self):
+        self.var_mgsp.set(str(_0_global_min_good_score_perc))
+        self.print_dct_list()
+
+    # Сохранить значение МППУ
+    def save_mgsp(self):
+        global _0_global_min_good_score_perc
+
+        val = self.var_mgsp.get()
+        if val == '':
+            _0_global_min_good_score_perc = 0
+        else:
+            _0_global_min_good_score_perc = int(val)
+
+    # Разрешить/запретить сообщать о новых версиях
+    def save_show_updates(self):
+        global _0_global_show_updates
+
+        _0_global_show_updates = int(self.var_show_updates.get())  # 0 или 1
+
+    # Показывать/скрывать кнопку "Опечатка" при неверном ответе в учёбе
+    def save_show_typo_button(self):
+        global _0_global_with_typo
+
+        _0_global_with_typo = int(self.var_show_typo_button.get())  # 0 или 1
+
+    # Установить выбранную тему
+    def save_theme(self):
+        global th
+
+        th = self.var_theme.get()
+
+        self.parent.set_ttk_styles()  # Установка ttk-стилей
+        upload_theme_img(th)  # Загрузка изображений темы
+
+        # Установка изображений
+        try:
+            self.img_about = tk.PhotoImage(file=img_about)
+        except:
+            self.btn_about_mgsp.configure(text='?', compound='text', style='Default.TButton')
+            self.btn_about_typo.configure(text='?', compound='text', style='Default.TButton')
+        else:
+            self.btn_about_mgsp.configure(image=self.img_about, compound='image', style='Image.TButton')
+            self.btn_about_typo.configure(image=self.img_about, compound='image', style='Image.TButton')
+
+        # Установка некоторых стилей для окна настроек
+        self.configure(bg=ST_BG[th])
+        self.txt_dcts.configure(relief=ST_RELIEF_TEXT[th], bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                highlightbackground=ST_BORDERCOLOR[th])
+        self.txt_themes_note.configure(font='StdFont 10', bg=ST_BG[th], fg=ST_FG[th],
+                                       selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                       highlightbackground=ST_BORDERCOLOR[th])
+
+        # Установка фона для главного окна
+        self.parent.configure(bg=ST_BG[th])
+
+        # Установка фона для окна уведомления об обновлении
+        try:
+            _0_global_window_last_version.configure(bg=ST_BG[th])
+        except:  # Если окно обновления не открыто
+            pass
+
+    # Были ли изменения локальных настроек
+    def has_local_changes(self):
+        return self.has_ctg_changes or\
+            self.has_spec_comb_changes or\
+            int(f'0{self.var_mgsp.get()}') != _0_global_min_good_score_perc  # Если self.var_mgsp.get() == '', то 0
+
+    # Были ли изменения настроек
+    def has_changes(self):
+        return self.has_local_changes() or\
+            int(self.var_show_updates.get()) != _0_global_show_updates or\
+            int(self.var_show_typo_button.get()) != _0_global_with_typo or\
+            self.var_theme.get() != th
+
+    # Изменить размер окна в зависимости от открытой вкладки
+    def resize_tabs(self):
+        if self.current_tab == 1:
+            self.frame_show_updates.grid(    row=0, padx=0, pady=0)
+            self.frame_show_typo_button.grid(row=0, padx=0, pady=0)
+            self.frame_dcts.grid(            row=0, padx=0, pady=0)
+            self.frame_themes.grid(          row=0, padx=0, pady=0)
+
+            self.frame_dcts.grid_remove()
+            self.frame_themes.grid_remove()
+
+            self.current_tab = 2
+        else:
+            self.frame_show_updates.grid(    row=0, padx=6, pady=6)
+            self.frame_show_typo_button.grid(row=1, padx=6, pady=6)
+            self.frame_dcts.grid(            row=2, padx=6, pady=6)
+            self.frame_themes.grid(          row=3, padx=6, pady=6)
+
+            self.current_tab = 1
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.entry_mgsp.focus_set()
+        self.bind('<Escape>', lambda event=None: self.btn_close.invoke())
+        self.tabs.bind('<<NotebookTabChanged>>', lambda event=None: self.resize_tabs())
 
     def open(self):
         global _0_global_dct, _0_global_categories
@@ -5357,7 +5362,7 @@ class MainW(tk.Tk):
 
         self.set_focus()
 
-    # Нажатие на кнопку "Печатать словарь"
+    # Нажатие на кнопку "Напечатать словарь"
     def print(self):
         PrintW(self).open()
 
@@ -5392,7 +5397,7 @@ class MainW(tk.Tk):
             return
         EditW(self, key).open()
 
-    # Нажатие на кнопку "Открыть настройки"
+    # Нажатие на кнопку "Настройки"
     def settings(self):
         global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,\
             _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations
@@ -5415,6 +5420,21 @@ class MainW(tk.Tk):
             pass
         # Открываем новое уведомление об обновлении
         _0_global_window_last_version = check_updates(self, bool(_0_global_show_updates), True)
+
+    # Нажатие на кнопку "Сохранить словарь"
+    def save(self):
+        global _0_global_has_progress
+
+        save_dct(_0_global_dct, dct_filename(_0_global_dct_savename))
+        PopupMsgW(self, 'Прогресс успешно сохранён').open()
+        print('\nПрогресс успешно сохранён')
+
+        _0_global_has_progress = False
+
+    # Нажатие на кнопку "Закрыть программу"
+    def close(self):
+        save_dct_if_has_progress(self, _0_global_dct, dct_filename(_0_global_dct_savename), _0_global_has_progress)
+        self.quit()
 
     # Установить ttk-стили
     def set_ttk_styles(self):
@@ -5649,28 +5669,13 @@ class MainW(tk.Tk):
         self.entry_word.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_search.invoke())
 
-    # Сохранить словарь
-    def save(self):
-        global _0_global_has_progress
-
-        save_dct(_0_global_dct, dct_filename(_0_global_dct_savename))
-        PopupMsgW(self, 'Прогресс успешно сохранён').open()
-        print('\nПрогресс успешно сохранён')
-
-        _0_global_has_progress = False
-
-    # Закрытие программы
-    def close(self):
-        save_dct_if_has_progress(self, _0_global_dct, dct_filename(_0_global_dct_savename), _0_global_has_progress)
-        self.quit()
-
 
 # Вывод информации о программе
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                           {PROGRAM_NAME} {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
+      f'                          {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
@@ -5708,5 +5713,3 @@ root.mainloop()
     'ед. число' и 'множ. число' - ЗНАЧЕНИЯ категории 'число'
     'им. падеж' и   'тв. падеж' - ЗНАЧЕНИЯ категории 'падеж'
 """
-
-# AddW - если пустое поле
