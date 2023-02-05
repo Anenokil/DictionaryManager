@@ -7,6 +7,7 @@ import tkinter as tk
 from tkinter import colorchooser
 import tkinter.ttk as ttk
 import idlelib.tooltip as ttip  # Всплывающие подсказки
+from tkinter.filedialog import askdirectory
 import re  # Несколько разделителей в split
 import webbrowser  # Для открытия веб-страницы
 import urllib.request as urllib2  # Для проверки наличия обновлений
@@ -17,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.0-Epsilon'
-PROGRAM_DATE = '3.2.2023'
-PROGRAM_TIME = '3:37 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.0-Zeta'
+PROGRAM_DATE = '6.2.2023'
+PROGRAM_TIME = '0:36 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -531,6 +532,19 @@ class Entry(object):
         if self.fav:
             file.write('*\n')
 
+    # Распечатать статью в файл
+    def print_out(self, file: typing.TextIO):
+        file.write(f'|{self.wrd} - {self.tr[0]}')
+        for i in range(1, self.count_t):
+            file.write(f', {self.tr[i]}')
+        file.write('\n')
+        for note in self.notes:
+            file.write(f'| > {note}\n')
+        for frm_template in self.forms.keys():
+            file.write(f'| [{tpl(frm_template)}] {self.forms[frm_template]}\n')
+        if self.fav:
+            file.write('| <Fav>\n')
+
 
 # Словарь
 class Dictionary(object):
@@ -884,6 +898,13 @@ class Dictionary(object):
             file.write(f'v{SAVES_VERSION}\n')
             for entry in self.d.values():
                 entry.save(file)
+
+    # Распечатать словарь в файл
+    def print_out(self, filepath: str):
+        with open(filepath, 'w', encoding='utf-8') as file:
+            for entry in self.d.values():
+                entry.print_out(file)
+                file.write('\n')
 
 
 """ Функции проверки """
@@ -3567,6 +3588,8 @@ class PrintW(tk.Toplevel):
                                       takefocus=False, style='Default.TButton')
         self.btn_unfav_all = ttk.Button(self.frame_buttons, text='Убрать всё из избранного', command=self.unfav_all,
                                         takefocus=False, style='Default.TButton')
+        self.btn_print_out = ttk.Button(self.frame_buttons, text='Распечатать словарь в файл', command=self.print_out,
+                                        takefocus=False, style='Default.TButton')
 
         self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
         self.frame_main.grid(  row=1, columnspan=2, padx=6, pady=(0, 4))
@@ -3582,8 +3605,9 @@ class PrintW(tk.Toplevel):
         self.lbl_info.grid(     row=4, columnspan=2, padx=6,      pady=(0, 6))
         self.frame_buttons.grid(row=5, columnspan=2, padx=6,      pady=(0, 6))
         # {
-        self.btn_fav_all.grid(  row=0, column=0, padx=(0, 6), pady=0)
-        self.btn_unfav_all.grid(row=0, column=1, padx=0,      pady=0)
+        self.btn_fav_all.grid(  row=0, column=0,     padx=(0, 6), pady=(0, 6))
+        self.btn_unfav_all.grid(row=0, column=1,     padx=0,      pady=(0, 6))
+        self.btn_print_out.grid(row=1, columnspan=2, padx=0,      pady=0)
         # }
 
         self.scrollbar_x.config(command=self.txt_dct.xview, orient='horizontal')
@@ -3617,7 +3641,7 @@ class PrintW(tk.Toplevel):
         self.txt_dct.yview_moveto(1.0)
         self.txt_dct['state'] = 'disabled'
 
-    # Добавить все статьи в избранное
+    # Нажатие на кнопку "Добавить все статьи в избранное"
     def fav_all(self):
         window = PopupDialogueW(self, 'Вы действительно хотите добавить все статьи в избранное?')
         answer = window.open()
@@ -3626,7 +3650,7 @@ class PrintW(tk.Toplevel):
         _0_global_dct.fav_all()
         self.print()
 
-    # Убрать все статьи из избранного
+    # Нажатие на кнопку "Убрать все статьи из избранного"
     def unfav_all(self):
         window = PopupDialogueW(self, 'Вы действительно хотите убрать все статьи из избранного?')
         answer = window.open()
@@ -3634,6 +3658,14 @@ class PrintW(tk.Toplevel):
             return
         _0_global_dct.unfav_all()
         self.print()
+
+    # Нажатие на кнопку "Распечатать словарь в файл"
+    def print_out(self):
+        folder = askdirectory(initialdir=MAIN_PATH, title='В какую папку сохранить файл?')
+        if not folder:
+            return
+        filename = f'Распечатка_{_0_global_dct_savename}.txt'
+        _0_global_dct.print_out(os.path.join(folder, filename))
 
     # Установить фокус
     def set_focus(self):
@@ -5478,7 +5510,7 @@ class MainW(tk.Tk):
                                    background=ST_BG[th],
                                    foreground=ST_FG_WARN[th])
 
-        # Стиль entry
+        # Стиль entry "default"
         self.st_entry = ttk.Style()
         self.st_entry.theme_use('alt')
         self.st_entry.configure('Default.TEntry',
@@ -5575,14 +5607,14 @@ class MainW(tk.Tk):
                                           ('active', ST_FG[th]),
                                           ('!active', ST_FG[th])])
 
-        # Стиль checkbutton
+        # Стиль checkbutton "default"
         self.st_check = ttk.Style()
         self.st_check.theme_use('alt')
         self.st_check.map('Default.TCheckbutton',
                           background=[('active', ST_CHECK_BG_SEL[th]),
                                       ('!active', ST_BG[th])])
 
-        # Стиль combobox
+        # Стиль combobox "default"
         self.st_combo = ttk.Style()
         self.st_combo.theme_use('alt')
         self.st_combo.configure('Default.TCombobox',
@@ -5630,7 +5662,7 @@ class MainW(tk.Tk):
                                         ('pressed', ST_SCROLL_FG_SEL[th]),
                                         ('!pressed', ST_SCROLL_FG[th])])
 
-        # Стиль notebook
+        # Стиль notebook "default"
         self.st_note = ttk.Style()
         self.st_note.theme_use('alt')
         self.st_note.map('Default.TNotebook',
@@ -5674,7 +5706,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                          {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                           {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
       f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
