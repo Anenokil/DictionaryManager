@@ -1,10 +1,10 @@
-resources\images\about.png
-resources\images\about_mgsp.png
+resources/images/about.png
+resources/images/about_mgsp.png
 resources/images/about_typo.png
 resources/images/add.png
 resources/images/cancel.png
-resources\images/delete.png
-resources/images\edit.png
+resources/images/delete.png
+resources/images/edit.png
 resources/images/ok.png
 resources/images/redo.png
 resources/images/undo.png
