@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.0-Zeta'
+PROGRAM_VERSION = 'v7.0.0'
 PROGRAM_DATE = '6.2.2023'
-PROGRAM_TIME = '0:36 (UTC+3)'
+PROGRAM_TIME = '21:01 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -223,6 +223,8 @@ URL_GITHUB = f'https://github.com/Anenokil/{REPOSITORY_NAME}'
 URL_RELEASES = f'https://github.com/Anenokil/{REPOSITORY_NAME}/releases'
 # Ссылка на файл с названием последней версии
 URL_LAST_VERSION = f'https://raw.githubusercontent.com/Anenokil/{REPOSITORY_NAME}/master/ver'
+# Ссылка на файл со списком обновляемых файлов
+URL_UPDATE_FILES = f'https://raw.githubusercontent.com/Anenokil/{REPOSITORY_NAME}/master/update_files'
 # Ссылка для установки последней версии
 URL_DOWNLOAD_ZIP = f'https://github.com/Anenokil/{REPOSITORY_NAME}/archive/refs/heads/master.zip'
 
@@ -2323,6 +2325,17 @@ class NewVersionAvailableW(tk.Toplevel):
 
     # Скачать и установить обновление
     def download_and_install(self):
+        # Загрузка списка обновляемых файлов
+        try:
+            data = urllib2.urlopen(URL_UPDATE_FILES)
+            update_files = [str(filename.decode('utf-8')).strip() for filename in data.readlines()]
+        except Exception as exc:
+            print(f'Не удалось получить данные!\n'
+                  f'{exc}')
+            warning(self, f'Не удалось получить данные!\n'
+                          f'{exc}')
+            self.destroy()
+            return
         # Загрузка
         try:
             # Скачиваем архив с обновлением
@@ -2358,10 +2371,7 @@ class NewVersionAvailableW(tk.Toplevel):
                     print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
             # Из временной папки достаём файлы новой версии
             print('Set new files...')
-            for filename in os.listdir(os.path.join(NEW_VERSION_PATH, RESOURCES_DIR, IMAGES_DIR)):
-                os.replace(os.path.join(NEW_VERSION_PATH, RESOURCES_DIR, IMAGES_DIR, filename),
-                           os.path.join(IMAGES_PATH, filename))
-            for filename in ['README.txt', 'README.md', 'main.py']:
+            for filename in update_files:
                 os.replace(os.path.join(NEW_VERSION_PATH, filename),
                            os.path.join(MAIN_PATH, filename))
             # Удаляем временную папку
@@ -5706,8 +5716,8 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                           {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                                {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
