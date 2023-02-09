@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.0'
-PROGRAM_DATE = '6.2.2023'
-PROGRAM_TIME = '21:01 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.1'
+PROGRAM_DATE = '7.2.2023'
+PROGRAM_TIME = '14:20 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -1852,7 +1852,7 @@ class PopupMsgW(tk.Toplevel):
 
 # Всплывающее окно с сообщением и двумя кнопками
 class PopupDialogueW(tk.Toplevel):
-    def __init__(self, parent, msg='Вы уверены?', btn_left='Да', btn_right='Отмена',
+    def __init__(self, parent, msg='Вы уверены?', btn_left_text='Да', btn_right_text='Отмена',
                  st_left='Yes', st_right='No',  # Стили левой и правой кнопок
                  val_left: typing.Any = True,  # Значение, возвращаемое при нажатии на левую кнопку
                  val_right: typing.Any = False,  # Значение, возвращаемое при нажатии на правую кнопку
@@ -1881,8 +1881,8 @@ class PopupDialogueW(tk.Toplevel):
         self.st_right = f'{st_right}.TButton'
 
         self.lbl_msg = ttk.Label(self, text=msg, justify='center', style='Default.TLabel')
-        self.btn_left = ttk.Button(self, text=btn_left, command=self.left, takefocus=False, style=self.st_left)
-        self.btn_right = ttk.Button(self, text=btn_right, command=self.right, takefocus=False, style=self.st_right)
+        self.btn_left = ttk.Button(self, text=btn_left_text, command=self.left, takefocus=False, style=self.st_left)
+        self.btn_right = ttk.Button(self, text=btn_right_text, command=self.right, takefocus=False, style=self.st_right)
 
         self.lbl_msg.grid(  row=0, columnspan=2, padx=6,       pady=4)
         self.btn_left.grid( row=1, column=0,     padx=(6, 10), pady=4, sticky='E')
@@ -2284,13 +2284,13 @@ class IncorrectAnswerW(tk.Toplevel):
 class NewVersionAvailableW(tk.Toplevel):
     def __init__(self, parent, last_version: str):
         super().__init__(parent)
-        self.title('New version available')
+        self.title('A new version is available')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
         self.var_url = tk.StringVar(value=URL_GITHUB)  # Ссылка, для загрузки новой версии
 
-        self.lbl_msg = ttk.Label(self, text=f'Доступна новая версия программы\n'
+        self.lbl_msg = ttk.Label(self, text=f'Доступна новая версия программы:\n'
                                             f'{last_version}',
                                  justify='center', style='Default.TLabel')
         self.frame_url = ttk.Frame(self, style='Invis.TFrame')
@@ -2339,7 +2339,7 @@ class NewVersionAvailableW(tk.Toplevel):
         # Загрузка
         try:
             # Скачиваем архив с обновлением
-            print('\nDownload an archive...', end='')
+            print('\nЗагрузка архива...', end='')
             wget.download(URL_DOWNLOAD_ZIP, out=MAIN_PATH)
         except Exception as exc:
             print(f'Не удалось загрузить обновление!\n'
@@ -2351,14 +2351,14 @@ class NewVersionAvailableW(tk.Toplevel):
         # Установка
         try:
             # Распаковываем архив во временную папку
-            print('\nExtracting the archive...')
+            print('\nРаспаковка архива...')
             with zipfile.ZipFile(NEW_VERSION_ZIP_PATH, 'r') as zip_file:
                 zip_file.extractall(MAIN_PATH)
             # Удаляем архив
-            print('Delete the archive...')
+            print('Удаление архива...')
             os.remove(NEW_VERSION_ZIP_PATH)
             # Удаляем файлы текущей версии
-            print('Delete old files...')
+            print('Удаление старых файлов...')
             for filename in os.listdir(IMAGES_PATH):
                 try:
                     os.remove(os.path.join(IMAGES_PATH, filename))
@@ -2370,12 +2370,12 @@ class NewVersionAvailableW(tk.Toplevel):
                 except FileNotFoundError:
                     print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
             # Из временной папки достаём файлы новой версии
-            print('Set new files...')
+            print('Установка новых файлов...')
             for filename in update_files:
                 os.replace(os.path.join(NEW_VERSION_PATH, filename),
                            os.path.join(MAIN_PATH, filename))
             # Удаляем временную папку
-            print('Delete tmp folder...')
+            print('Удаление временной папки...')
             shutil.rmtree(NEW_VERSION_PATH)
         except Exception as exc:
             print(f'Не удалось установить обновление!\n'
@@ -2385,8 +2385,8 @@ class NewVersionAvailableW(tk.Toplevel):
             self.destroy()
             return
         else:
-            print('Done!')
-            PopupMsgW(self, 'Обновление успешно установлено\n'
+            print('Обновление успешно установлено!')
+            PopupMsgW(self, 'Обновление успешно установлено!\n'
                             'Программа закроется').open()
             exit(777)
 
@@ -5372,7 +5372,7 @@ class MainW(tk.Tk):
                                     takefocus=False, style='No.TButton')
         # }
         self.lbl_footer = ttk.Label(self, text=f'{PROGRAM_VERSION}\n'
-                                               f'{PROGRAM_DATE}  -  {PROGRAM_TIME}',
+                                               f'{PROGRAM_DATE}  {PROGRAM_TIME}',
                                     justify='center', style='Footer.TLabel')
 
         self.frame_head.grid(row=0, padx=16, pady=16)
