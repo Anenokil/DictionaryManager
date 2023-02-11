@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.2_PRE-1'
+PROGRAM_VERSION = 'v7.0.2_PRE-2'
 PROGRAM_DATE = '11.2.2023'
-PROGRAM_TIME = '4:37 (UTC+3)'
+PROGRAM_TIME = '4:45 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -3948,6 +3948,8 @@ class LearnW(tk.Toplevel):
                     entry.incorrect()
                 if answer == 'yes':
                     entry.fav = True
+            else:
+                entry.incorrect()
             self.count_all += 1
 
     # Проверка введённой словоформы
@@ -3976,6 +3978,8 @@ class LearnW(tk.Toplevel):
                     entry.incorrect()
                 if answer == 'yes':
                     entry.fav = True
+            else:
+                entry.incorrect()
             self.count_all += 1
 
     # Проверка введённого перевода
@@ -4004,6 +4008,8 @@ class LearnW(tk.Toplevel):
                     entry.incorrect()
                 if answer == 'yes':
                     entry.fav = True
+            else:
+                entry.incorrect()
             self.count_all += 1
 
     # Выбор слова - все
