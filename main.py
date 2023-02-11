@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.1'
-PROGRAM_DATE = '7.2.2023'
-PROGRAM_TIME = '14:20 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.2_PRE-1'
+PROGRAM_DATE = '11.2.2023'
+PROGRAM_TIME = '4:37 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -2414,7 +2414,6 @@ class CreateFormTemplateW(tk.Toplevel):
 
         self.vcmd_ctg = (self.register(lambda value: self.refresh_vals()), '%P')
 
-        self.lbl_template = ttk.Label(self, textvariable=self.var_template, justify='center', style='Default.TLabel')
         self.lbl_choose_ctg = ttk.Label(self, text='Выберите категорию:', justify='center', style='Default.TLabel')
         self.combo_ctg = ttk.Combobox(self, textvariable=self.var_ctg, values=self.categories, width=combo_width,
                                       font='TkFixedFont', validate='focusin', validatecommand=self.vcmd_ctg,
@@ -2445,20 +2444,21 @@ class CreateFormTemplateW(tk.Toplevel):
                                        takefocus=False, style='Image.TButton')
             self.tip_btn_none = ttip.Hovertip(self.btn_none, 'Не указывать/неприменимо', hover_delay=500)
         # }
+        self.lbl_template = ttk.Label(self, textvariable=self.var_template, justify='center', style='Default.TLabel')
         self.btn_done = ttk.Button(self, text='Закончить с шаблоном и ввести форму слова', command=self.done,
                                    takefocus=False, style='Default.TButton')
 
-        self.lbl_template.grid(  row=0, columnspan=2, padx=6,      pady=6)
-        self.lbl_choose_ctg.grid(row=1, column=0,     padx=(6, 1), pady=1, sticky='E')
-        self.combo_ctg.grid(     row=1, column=1,     padx=(0, 6), pady=1, sticky='W')
-        self.lbl_choose_val.grid(row=2, column=0,     padx=(6, 1), pady=1, sticky='E')
-        self.frame_val.grid(     row=2, column=1,     padx=(0, 6), pady=1, sticky='W')
+        self.lbl_choose_ctg.grid(row=0, column=0, padx=(6, 1), pady=(6, 1), sticky='E')
+        self.combo_ctg.grid(     row=0, column=1, padx=(0, 6), pady=(6, 1), sticky='W')
+        self.lbl_choose_val.grid(row=1, column=0, padx=(6, 1), pady=1,      sticky='E')
+        self.frame_val.grid(     row=1, column=1, padx=(0, 6), pady=1,      sticky='W')
         # {
         self.combo_val.grid( row=0, column=0, padx=0,      pady=0)
         self.btn_choose.grid(row=0, column=1, padx=(3, 0), pady=0)
         self.btn_none.grid(  row=0, column=2, padx=0,      pady=0)
         # }
-        self.btn_done.grid(row=3, columnspan=2, padx=6, pady=6)
+        self.lbl_template.grid(row=2, columnspan=2, padx=6, pady=1)
+        self.btn_done.grid(    row=3, columnspan=2, padx=6, pady=6)
 
         self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
 
@@ -3783,8 +3783,7 @@ class LearnW(tk.Toplevel):
 
         self.var_input = tk.StringVar()
 
-        self.lbl_global_rating = ttk.Label(self, text=f'Ваш общий рейтинг по словарю: '
-                                                      f'{round(_0_global_dct.count_rating() * 100)}%',
+        self.lbl_global_rating = ttk.Label(self, text=f'Ваш общий рейтинг по словарю: {self.get_percent()}%',
                                            style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
@@ -3921,7 +3920,7 @@ class LearnW(tk.Toplevel):
 
         btn_enable(self.btn_notes, self.show_notes)
         self.entry_input.delete(0, tk.END)
-        self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {round(_0_global_dct.count_rating() * 100)}%'
+        self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {self.get_percent()}%'
 
     # Проверка введённого слова
     def check_wrd(self):
@@ -4188,6 +4187,10 @@ class LearnW(tk.Toplevel):
         self.txt_dct['state'] = 'disabled'
 
         return True
+
+    # Получить глобальный процент угадываний
+    def get_percent(self):
+        return format(_0_global_dct.count_rating() * 100, '.1f')
 
     # Установить фокус
     def set_focus(self):
@@ -5716,7 +5719,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                           {PROGRAM_NAME} {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
