@@ -18,20 +18,22 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.2_patch-1'
-PROGRAM_DATE = '12.2.2023'
-PROGRAM_TIME = '16:29 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.2_patch-2'
+PROGRAM_DATE = '13.2.2023'
+PROGRAM_TIME = '2:24 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
 GLOBAL_SETTINGS_VERSION = 2  # Актуальная версия глобальных настроек
 REQUIRED_THEME_VERSION = 5  # Актуальная версия тем
 
-""" Темы """
+""" Шрифты """
 
 FONTSIZE_MIN = 8
 FONTSIZE_MAX = 16
 FONTSIZE_DEF = 10
+
+""" Темы """
 
 CUSTOM_TH = '</custom\\>'  # Название пользовательской темы
 THEMES = [CUSTOM_TH, 'light', 'dark']  # Названия тем
@@ -3619,7 +3621,7 @@ class PrintW(tk.Toplevel):
         self.scrollbar_y = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', wrap='none',
                                xscrollcommand=self.scrollbar_x.set, yscrollcommand=self.scrollbar_y.set,
-                               font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                               font='TkFixedFont', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
         self.lbl_info = ttk.Label(self, textvariable=self.var_info, style='Default.TLabel')
@@ -4262,13 +4264,13 @@ class SearchW(tk.Toplevel):
         self.lbl_wrd = ttk.Label(self, text='Поиск по слову', style='Default.TLabel')
         self.scrollbar_wrd = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
-                               font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                               font='TkFixedFont', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
         self.lbl_tr = ttk.Label(self, text='Поиск по переводу', style='Default.TLabel')
         self.scrollbar_tr = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
-                              font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                              font='TkFixedFont', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                               relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
 
@@ -5838,7 +5840,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development presents\n'
       f'                          {PROGRAM_NAME} {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
