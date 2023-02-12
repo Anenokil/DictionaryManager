@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.2'
+PROGRAM_VERSION = 'v7.0.2_patch-1'
 PROGRAM_DATE = '12.2.2023'
-PROGRAM_TIME = '16:25 (UTC+3)'
+PROGRAM_TIME = '16:29 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -4971,12 +4971,22 @@ class SettingsW(tk.Toplevel):
         self.frame_fontsize = ttk.Frame(self.tab_global, style='Default.TFrame')
         # { {
         self.lbl_fontsize = ttk.Label(self.frame_fontsize, text='Размер шрифта', style='Default.TLabel')
-        self.img_plus = tk.PhotoImage(file=img_add)
-        self.btn_fontsize_plus = ttk.Button(self.frame_fontsize, image=self.img_plus, command=self.fontsize_plus,
-                                            takefocus=False, width=2, state='normal', style='Image.TButton')
-        self.img_minus = tk.PhotoImage(file=img_delete)
-        self.btn_fontsize_minus = ttk.Button(self.frame_fontsize, image=self.img_minus, command=self.fontsize_minus,
-                                             takefocus=False, width=2, state='normal', style='Image.TButton')
+        try:
+            self.img_plus = tk.PhotoImage(file=img_add)
+        except:
+            self.btn_fontsize_plus = ttk.Button(self.frame_fontsize, text='+', command=self.fontsize_plus,
+                                                takefocus=False, width=2, state='normal', style='Default.TButton')
+        else:
+            self.btn_fontsize_plus = ttk.Button(self.frame_fontsize, image=self.img_plus, command=self.fontsize_plus,
+                                                takefocus=False, width=2, state='normal', style='Image.TButton')
+        try:
+            self.img_minus = tk.PhotoImage(file=img_delete)
+        except:
+            self.btn_fontsize_minus = ttk.Button(self.frame_fontsize, text='-', command=self.fontsize_minus,
+                                                 takefocus=False, width=2, state='normal', style='Default.TButton')
+        else:
+            self.btn_fontsize_minus = ttk.Button(self.frame_fontsize, image=self.img_minus, command=self.fontsize_minus,
+                                                 takefocus=False, width=2, state='normal', style='Image.TButton')
         # } }
         # }
         self.btn_save = ttk.Button(self, text='Сохранить изменения', command=self.save,
@@ -5827,7 +5837,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                          {PROGRAM_NAME} {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
