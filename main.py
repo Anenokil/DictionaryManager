@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.2_patch-2'
+PROGRAM_VERSION = 'v7.0.3'
 PROGRAM_DATE = '13.2.2023'
-PROGRAM_TIME = '2:24 (UTC+3)'
+PROGRAM_TIME = '5:01 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -3954,10 +3954,11 @@ class LearnW(tk.Toplevel):
         self.entry_input.delete(0, tk.END)
         self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {self.get_percent()}%'
 
-    # Проверка введённого слова
-    def check_wrd(self):
-        entry = _0_global_dct.d[self.current_key]
-        if encode_special_combinations(self.entry_input.get()) == entry.wrd:
+    # Проверка введённого ответа
+    def check_answer(self, correct_answer: str, is_correct: bool,
+                     current_key: tuple[str, int], current_form: tuple[str, ...] | None = None):
+        entry = _0_global_dct.d[current_key]
+        if is_correct:
             entry.correct()
             self.outp('Верно\n')
             if entry.fav:
@@ -3969,80 +3970,57 @@ class LearnW(tk.Toplevel):
                     entry.fav = False
             self.count_all += 1
             self.count_correct += 1
-            self.used_words.add(self.current_key)
+            if current_form:
+                self.used_words.add((current_key, current_form))
+            else:
+                self.used_words.add(current_key)
         else:
-            self.outp(f'Неверно. Правильный ответ: "{entry.wrd}"\n')
-            if not entry.fav:
+            self.outp(f'Неверно. Правильный ответ: "{correct_answer}"\n')
+            if entry.fav:
+                if bool(_0_global_with_typo):
+                    window = PopupDialogueW(self, msg=f'Неверно.\n'
+                                                      f'Ваш ответ: {encode_special_combinations(self.entry_input.get())}\n'
+                                                      f'Правильный ответ: {correct_answer}',
+                                            btn_left_text='Ясно', btn_right_text='Просто опечатка',
+                                            st_left='Default', st_right='Default',
+                                            val_left='ok', val_right='typo')
+                    answer = window.open()
+                    if answer != 'typo':
+                        entry.incorrect()
+                        self.count_all += 1
+                else:
+                    entry.incorrect()
+                    self.count_all += 1
+            else:
                 window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
-                                          entry.wrd, bool(_0_global_with_typo))
+                                          correct_answer, bool(_0_global_with_typo))
                 answer = window.open()
                 if answer != 'typo':
                     entry.incorrect()
+                    self.count_all += 1
                 if answer == 'yes':
                     entry.fav = True
-            else:
-                entry.incorrect()
-            self.count_all += 1
+
+    # Проверка введённого слова
+    def check_wrd(self):
+        entry = _0_global_dct.d[self.current_key]
+        self.check_answer(entry.wrd,
+                          encode_special_combinations(self.entry_input.get()) == entry.wrd,
+                          self.current_key)
 
     # Проверка введённой словоформы
     def check_form(self):
         entry = _0_global_dct.d[self.current_key]
-        if encode_special_combinations(self.entry_input.get()) == entry.forms[self.current_form]:
-            entry.correct()
-            self.outp('Верно\n')
-            if entry.fav:
-                window = PopupDialogueW(self, 'Верно.\n'
-                                              'Оставить слово в избранном?',
-                                        'Да', 'Нет', val_on_close=True)
-                answer = window.open()
-                if not answer:
-                    entry.fav = False
-            self.count_all += 1
-            self.count_correct += 1
-            self.used_words.add((self.current_key, self.current_form))
-        else:
-            self.outp(f'Неверно. Правильный ответ: "{entry.forms[self.current_form]}"\n')
-            if not entry.fav:
-                window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
-                                          entry.forms[self.current_form], bool(_0_global_with_typo))
-                answer = window.open()
-                if answer != 'typo':
-                    entry.incorrect()
-                if answer == 'yes':
-                    entry.fav = True
-            else:
-                entry.incorrect()
-            self.count_all += 1
+        self.check_answer(entry.forms[self.current_form],
+                          encode_special_combinations(self.entry_input.get()) == entry.forms[self.current_form],
+                          self.current_key, self.current_form)
 
     # Проверка введённого перевода
     def check_tr(self):
         entry = _0_global_dct.d[self.current_key]
-        if encode_special_combinations(self.entry_input.get()) in entry.tr:
-            entry.correct()
-            self.outp('Верно\n')
-            if entry.fav:
-                window = PopupDialogueW(self, 'Верно.\n'
-                                              'Оставить слово в избранном?',
-                                        'Да', 'Нет', val_on_close=True)
-                answer = window.open()
-                if not answer:
-                    entry.fav = False
-            self.count_all += 1
-            self.count_correct += 1
-            self.used_words.add(self.current_key)
-        else:
-            self.outp(f'Неверно. Правильный ответ: "{tpl(entry.tr)}"\n')
-            if not entry.fav:
-                window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
-                                          tpl(entry.tr), bool(_0_global_with_typo))
-                answer = window.open()
-                if answer != 'typo':
-                    entry.incorrect()
-                if answer == 'yes':
-                    entry.fav = True
-            else:
-                entry.incorrect()
-            self.count_all += 1
+        self.check_answer(tpl(entry.tr),
+                          encode_special_combinations(self.entry_input.get()) in entry.tr,
+                          self.current_key)
 
     # Выбор слова - все
     def choose(self, dct: Dictionary):
@@ -5839,7 +5817,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                          {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
