@@ -18,12 +18,12 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.4'
+PROGRAM_VERSION = 'v7.0.5-PRE-1'
 PROGRAM_DATE = '15.2.2023'
-PROGRAM_TIME = '16:18 (UTC+3)'
+PROGRAM_TIME = '18:30 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
-LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
+LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
 GLOBAL_SETTINGS_VERSION = 2  # Актуальная версия глобальных настроек
 REQUIRED_THEME_VERSION = 5  # Актуальная версия тем
 
@@ -1510,8 +1510,8 @@ def upload_global_settings():
     return dct_savename, show_updates, typo, theme, fontsize
 
 
-# Обновить локальные настройки с 0 до 2 версии
-def upgrade_local_settings_0_to_2(local_settings_path: str):
+# Обновить локальные настройки с 0 до 3 версии
+def upgrade_local_settings_0_to_3(local_settings_path: str):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         lines = local_settings_file.readlines()
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
@@ -1521,14 +1521,14 @@ def upgrade_local_settings_0_to_2(local_settings_path: str):
         for i in range(1, len(lines)):
             local_settings_file.write(lines[i])
 
-    upgrade_local_settings_1_to_2(local_settings_path)
+    upgrade_local_settings_1_to_3(local_settings_path)
 
 
-# Обновить локальные настройки с 1 до 2 версии
-def upgrade_local_settings_1_to_2(local_settings_path: str):
+# Обновить локальные настройки с 1 до 3 версии
+def upgrade_local_settings_1_to_3(local_settings_path: str):
     global _0_global_special_combinations
 
-    _, _, _0_global_special_combinations = upload_local_settings(_0_global_dct_savename, upgrade=False)
+    _, _, _0_global_special_combinations, _ = upload_local_settings(_0_global_dct_savename, upgrade=False)
 
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         lines = local_settings_file.readlines()
@@ -1544,15 +1544,32 @@ def upgrade_local_settings_1_to_2(local_settings_path: str):
                 values = [encode_special_combinations(i) for i in values]
                 local_settings_file.write(decode_tpl(values) + '\n')
 
+    upgrade_local_settings_2_to_3(local_settings_path)
+
+
+# Обновить локальные настройки со 2 до 3 версии
+def upgrade_local_settings_2_to_3(local_settings_path: str):
+    with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
+        lines = local_settings_file.readlines()
+    with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
+        local_settings_file.write('v3\n')
+        local_settings_file.write(lines[1])
+        local_settings_file.write(lines[2])
+        local_settings_file.write('1\n')
+        for i in range(3, len(lines)):
+            local_settings_file.write(lines[i])
+
 
 # Обновить локальные настройки старой версии до актуальной версии
 def upgrade_local_settings(local_settings_path: str):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         first_line = local_settings_file.readline()
         if first_line[0] != 'v':  # Версия 0
-            upgrade_local_settings_0_to_2(local_settings_path)
+            upgrade_local_settings_0_to_3(local_settings_path)
         elif first_line[0:2] == 'v1':  # Версия 1
-            upgrade_local_settings_1_to_2(local_settings_path)
+            upgrade_local_settings_1_to_3(local_settings_path)
+        elif first_line[0:2] == 'v2':  # Версия 2
+            upgrade_local_settings_2_to_3(local_settings_path)
 
 
 # Загрузить локальные настройки (настройки словаря)
@@ -1568,6 +1585,7 @@ def upload_local_settings(savename: str, upgrade=True):
             local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n'  # Версия локальных настроек
                                       f'67\n'  # МППУ
                                       f'aäAÄoöOÖuüUÜsßSẞ\n'  # Специальные комбинации
+                                      f'1\n'  # Учитывать ли регистр букв при учёбе
                                       f'Число\n'
                                       f'ед.ч.{CATEGORY_SEPARATOR}мн.ч.\n'
                                       f'Род\n'
@@ -1594,6 +1612,11 @@ def upload_local_settings(savename: str, upgrade=True):
         line_special_combinations = local_settings_file.readline()
         for i in range(len(line_special_combinations) // 2):
             special_combinations[line_special_combinations[2 * i]] = line_special_combinations[2 * i + 1]
+        # Учитывать ли регистр букв при учёбе
+        try:
+            check_register = int(local_settings_file.readline().strip())
+        except (ValueError, TypeError):
+            check_register = 1
         # Словоформы
         while True:
             key = local_settings_file.readline().strip()
@@ -1601,7 +1624,7 @@ def upload_local_settings(savename: str, upgrade=True):
                 break
             value = local_settings_file.readline().strip().split(CATEGORY_SEPARATOR)
             categories[key] = value
-    return min_good_score_perc, categories, special_combinations
+    return min_good_score_perc, categories, special_combinations, check_register
 
 
 # Обновить сохранение словаря с 0 до 2 версии
@@ -1631,7 +1654,7 @@ def upgrade_dct_save_0_to_2(path: str):
 def upgrade_dct_save_1_to_2(path: str):
     global _0_global_special_combinations
 
-    _, _, _0_global_special_combinations = upload_local_settings(_0_global_dct_savename, upgrade=False)
+    _, _, _0_global_special_combinations, _ = upload_local_settings(_0_global_dct_savename)
 
     with open(path, 'r', encoding='utf-8') as dct_save:
         with open(TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
@@ -1750,15 +1773,16 @@ def save_dct_name():
 
 
 # Сохранить локальные настройки (настройки словаря)
-def save_local_settings(min_good_score_perc: int, categories: dict[str, list[str]], filename: str):
+def save_local_settings(min_good_score_perc: int, check_register: int, categories: dict[str, list[str]], filename: str):
     local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
-        local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n'
-                                  f'{min_good_score_perc}\n')
+        local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n')
+        local_settings_file.write(f'{min_good_score_perc}\n')
         for key in _0_global_special_combinations:
             val = _0_global_special_combinations[key]
             local_settings_file.write(f'{key}{val}')
         local_settings_file.write('\n')
+        local_settings_file.write(f'{check_register}\n')
         for key in categories.keys():
             local_settings_file.write(f'{key}\n')
             local_settings_file.write(categories[key][0])
@@ -1774,7 +1798,7 @@ def save_settings_if_has_changes(window_parent):
     if answer:
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
                              _0_global_fontsize)
-        save_local_settings(_0_global_min_good_score_perc, _0_global_categories,
+        save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_categories,
                             dct_filename(_0_global_dct_savename))
         PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
         print('\nНастройки успешно сохранены')
@@ -4004,23 +4028,29 @@ class LearnW(tk.Toplevel):
     # Проверка введённого слова
     def check_wrd(self):
         entry = _0_global_dct.d[self.current_key]
-        self.check_answer(entry.wrd,
-                          encode_special_combinations(self.entry_input.get()) == entry.wrd,
-                          self.current_key)
+        if _0_global_check_register:
+            is_correct = encode_special_combinations(self.entry_input.get()) == entry.wrd
+        else:
+            is_correct = encode_special_combinations(self.entry_input.get()).lower() == entry.wrd.lower()
+        self.check_answer(entry.wrd, is_correct, self.current_key)
 
     # Проверка введённой словоформы
     def check_form(self):
         entry = _0_global_dct.d[self.current_key]
-        self.check_answer(entry.forms[self.current_form],
-                          encode_special_combinations(self.entry_input.get()) == entry.forms[self.current_form],
-                          self.current_key, self.current_form)
+        if _0_global_check_register:
+            is_correct = encode_special_combinations(self.entry_input.get()) == entry.forms[self.current_form]
+        else:
+            is_correct = encode_special_combinations(self.entry_input.get()).lower() == entry.forms[self.current_form].lower()
+        self.check_answer(entry.forms[self.current_form], is_correct, self.current_key, self.current_form)
 
     # Проверка введённого перевода
     def check_tr(self):
         entry = _0_global_dct.d[self.current_key]
-        self.check_answer(tpl(entry.tr),
-                          encode_special_combinations(self.entry_input.get()) in entry.tr,
-                          self.current_key)
+        if _0_global_check_register:
+            is_correct = encode_special_combinations(self.entry_input.get()) in entry.tr
+        else:
+            is_correct = encode_special_combinations(self.entry_input.get()).lower() in [tr.lower() for tr in entry.tr]
+        self.check_answer(tpl(entry.tr), is_correct, self.current_key)
 
     # Выбор слова - все
     def choose(self, dct: Dictionary):
@@ -4849,6 +4879,7 @@ class SettingsW(tk.Toplevel):
         self.backup_fp = copy.deepcopy(_0_global_categories)
 
         self.var_mgsp = tk.StringVar(value=str(_0_global_min_good_score_perc))
+        self.var_check_register = tk.BooleanVar(value=bool(_0_global_check_register))
         self.var_show_updates = tk.BooleanVar(value=bool(_0_global_show_updates))
         self.var_show_typo_button = tk.BooleanVar(value=bool(_0_global_with_typo))
         self.var_theme = tk.StringVar(value=th)
@@ -4876,6 +4907,13 @@ class SettingsW(tk.Toplevel):
                                   style='Default.TLabel')
         self.entry_mgsp = ttk.Entry(self.frame_mgsp, textvariable=self.var_mgsp, width=5,
                                     validate='key', validatecommand=self.vcmd, style='Default.TEntry')
+        # } }
+        self.frame_check_register = ttk.Frame(self.tab_local, style='Default.TFrame')
+        # { {
+        self.lbl_check_register = ttk.Label(self.frame_check_register, text='Учитывать регистр букв при проверке:',
+                                            style='Default.TLabel')
+        self.check_check_register = ttk.Checkbutton(self.frame_check_register, variable=self.var_check_register,
+                                                    style='Default.TCheckbutton')
         # } }
         self.btn_forms = ttk.Button(self.tab_local, text='Грамматические категории', command=self.categories_settings,
                                     takefocus=False, style='Default.TButton')
@@ -4984,9 +5022,14 @@ class SettingsW(tk.Toplevel):
         self.lbl_mgsp.grid(      row=0, column=1, padx=(3, 3), pady=6, sticky='E')
         self.entry_mgsp.grid(    row=0, column=2, padx=(0, 6), pady=6, sticky='W')
         # }
-        self.btn_forms.grid(               row=1, padx=6, pady=(0, 6))
-        self.btn_special_combinations.grid(row=2, padx=6, pady=(0, 6))
-        self.lbl_save_warn.grid(           row=3, padx=6, pady=(0, 6), sticky='S')
+        self.frame_check_register.grid(row=1, padx=6, pady=6)
+        # {
+        self.lbl_check_register.grid(  row=0, column=0, padx=(6, 1), pady=6, sticky='E')
+        self.check_check_register.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
+        # }
+        self.btn_forms.grid(               row=2, padx=6, pady=6)
+        self.btn_special_combinations.grid(row=3, padx=6, pady=(0, 6))
+        self.lbl_save_warn.grid(           row=4, padx=6, pady=(0, 6), sticky='S')
         #
         self.frame_show_updates.grid(row=0, padx=6, pady=6)
         # {
@@ -5062,7 +5105,7 @@ class SettingsW(tk.Toplevel):
     # Открыть словарь
     def dct_open(self):
         global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc,\
-            _0_global_categories, _0_global_special_combinations, _0_global_has_progress
+            _0_global_categories, _0_global_special_combinations, _0_global_check_register, _0_global_has_progress
 
         saves_list = []
         for file_name in os.listdir(SAVES_PATH):
@@ -5087,7 +5130,7 @@ class SettingsW(tk.Toplevel):
         if not savename:
             self.destroy()  # Если была попытка открыть повреждённый словарь, то при сохранении настроек, текущий словарь стёрся бы
             return
-        _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations =\
+        _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations, _0_global_check_register =\
             upload_local_settings(savename)
         _0_global_dct_savename = savename
         save_dct_name()
@@ -5106,7 +5149,7 @@ class SettingsW(tk.Toplevel):
     # Создать словарь
     def dct_create(self):
         global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc,\
-            _0_global_categories, _0_global_special_combinations, _0_global_has_progress
+            _0_global_categories, _0_global_special_combinations, _0_global_check_register, _0_global_has_progress
 
         window = PopupEntryW(self, 'Введите название нового словаря', check_answer_function=check_dct_savename)
         closed, savename = window.open()
@@ -5120,7 +5163,7 @@ class SettingsW(tk.Toplevel):
         _0_global_dct_savename = savename
         save_dct_name()
         _0_global_dct = Dictionary()
-        _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations =\
+        _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations, _0_global_check_register =\
             create_dct(_0_global_dct, savename)
 
         self.backup_dct = copy.deepcopy(_0_global_dct)
@@ -5245,6 +5288,7 @@ class SettingsW(tk.Toplevel):
         global _0_global_has_progress
 
         self.save_mgsp()
+        self.save_check_register()
         self.save_show_updates()
         self.save_show_typo_button()
         self.save_theme()
@@ -5252,7 +5296,7 @@ class SettingsW(tk.Toplevel):
         self.backup_dct = copy.deepcopy(_0_global_dct)
         self.backup_fp = copy.deepcopy(_0_global_categories)
 
-        save_local_settings(_0_global_min_good_score_perc, _0_global_categories,
+        save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_categories,
                             dct_filename(_0_global_dct_savename))
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
                              _0_global_fontsize)
@@ -5324,6 +5368,12 @@ class SettingsW(tk.Toplevel):
         else:
             _0_global_min_good_score_perc = int(val)
 
+    # Учитывать/не учитывать регистр букв при проверке введённого ответа при учёбе
+    def save_check_register(self):
+        global _0_global_check_register
+
+        _0_global_check_register = int(self.var_check_register.get())  # 0 или 1
+
     # Разрешить/запретить сообщать о новых версиях
     def save_show_updates(self):
         global _0_global_show_updates
@@ -5377,6 +5427,7 @@ class SettingsW(tk.Toplevel):
     def has_local_changes(self):
         return self.has_ctg_changes or\
             self.has_spec_comb_changes or\
+            int(self.var_check_register.get()) != _0_global_check_register or\
             int(f'0{self.var_mgsp.get()}') != _0_global_min_good_score_perc  # Если self.var_mgsp.get() == '', то 0
 
     # Были ли изменения настроек
@@ -5540,13 +5591,14 @@ class MainW(tk.Tk):
     # Нажатие на кнопку "Настройки"
     def settings(self):
         global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_fontsize,\
-            _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations
+            _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations,\
+            _0_global_check_register
 
         SettingsW(self).open()
 
         _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_fontsize =\
             upload_global_settings()  # Обновляем глобальные настройки
-        _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations =\
+        _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations, _0_global_check_register =\
             upload_local_settings(_0_global_dct_savename)  # Обновляем локальные настройки
 
         self.set_ttk_styles()  # Установка ttk-стилей
@@ -5818,8 +5870,8 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
+      f'                           {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
@@ -5836,7 +5888,7 @@ _0_global_dct_savename = upload_dct(root, _0_global_dct, _0_global_dct_savename,
                                     'Завершить работу')  # Загружаем словарь
 if not _0_global_dct_savename:
     exit(101)
-_0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations =\
+_0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations, _0_global_check_register =\
     upload_local_settings(_0_global_dct_savename)  # Загружаем локальные настройки
 _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
 root.mainloop()
