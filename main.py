@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.3'
-PROGRAM_DATE = '13.2.2023'
-PROGRAM_TIME = '5:01 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.4'
+PROGRAM_DATE = '15.2.2023'
+PROGRAM_TIME = '16:18 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 2  # Актуальная версия локальных настроек
@@ -1950,7 +1950,7 @@ class PopupDialogueW(tk.Toplevel):
 
 # Всплывающее окно с полем ввода
 class PopupEntryW(tk.Toplevel):
-    def __init__(self, parent, msg='Введите строку', btn_text='Подтвердить', entry_width=30,
+    def __init__(self, parent, msg='Введите строку', btn_text='Подтвердить', entry_width=30, default_value='',
                  check_answer_function=None, if_correct_function=None, if_incorrect_function=None, title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
@@ -1961,7 +1961,7 @@ class PopupEntryW(tk.Toplevel):
         self.if_incorrect_function = if_incorrect_function  # Функция, вызываемая при некорректном ответе
         self.closed = True  # Закрыто ли окно крестиком
 
-        self.var_text = tk.StringVar()
+        self.var_text = tk.StringVar(value=default_value)
 
         self.lbl_msg = ttk.Label(self, text=f'{msg}:', justify='center', style='Default.TLabel')
         self.entry_inp = ttk.Entry(self, textvariable=self.var_text, width=entry_width, style='Default.TEntry')
@@ -4509,7 +4509,7 @@ class EditW(tk.Toplevel):
     def wrd_edt(self):
         global _0_global_has_progress
 
-        window = PopupEntryW(self, 'Введите новое слово',
+        window = PopupEntryW(self, 'Введите новое слово', default_value=_0_global_dct.d[self.dct_key].wrd,
                              check_answer_function=lambda wnd, val: check_wrd_edit(wnd, key_to_wrd(self.dct_key), val))
         closed, new_wrd = window.open()
         if closed:
@@ -4636,6 +4636,7 @@ class EditW(tk.Toplevel):
         selected_key = frm_keys[index]
 
         window_entry = PopupEntryW(self, 'Введите форму слова',
+                                   default_value=_0_global_dct.d[self.dct_key].forms[selected_key],
                                    check_answer_function=lambda wnd, val:
                                    check_not_void(wnd, val, 'Словоформа должна содержать хотя бы один символ!'))
         closed, new_frm = window_entry.open()
