@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.5'
-PROGRAM_DATE = '15.2.2023'
-PROGRAM_TIME = '19:07 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.6-PRE'
+PROGRAM_DATE = '16.2.2023'
+PROGRAM_TIME = '2:40 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1509,6 +1509,23 @@ def upload_global_settings():
     return dct_savename, show_updates, typo, theme, fontsize
 
 
+# Сохранить глобальные настройки (настройки программы)
+def save_global_settings(dct_savename: str, show_updates: int, typo: int, theme: str, fontsize: int):
+    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
+        global_settings_file.write(f'v{GLOBAL_SETTINGS_VERSION}\n'
+                                   f'{dct_savename}\n'
+                                   f'{show_updates}\n'
+                                   f'{typo}\n'
+                                   f'{theme}\n'
+                                   f'{fontsize}')
+
+
+# Сохранить название открытого словаря
+def save_dct_name():
+    _, tmp_show_updates, tmp_typo, tmp_th, tmp_fontsize = upload_global_settings()
+    save_global_settings(_0_global_dct_savename, tmp_show_updates, tmp_typo, tmp_th, tmp_fontsize)
+
+
 # Обновить локальные настройки с 0 до 3 версии
 def upgrade_local_settings_0_to_3(local_settings_path: str):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
@@ -1624,6 +1641,38 @@ def upload_local_settings(savename: str, upgrade=True):
             value = local_settings_file.readline().strip().split(CATEGORY_SEPARATOR)
             categories[key] = value
     return min_good_score_perc, categories, special_combinations, check_register
+
+
+# Сохранить локальные настройки (настройки словаря)
+def save_local_settings(min_good_score_perc: int, check_register: int, categories: dict[str, list[str]], filename: str):
+    local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
+    with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
+        local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n')
+        local_settings_file.write(f'{min_good_score_perc}\n')
+        for key in _0_global_special_combinations:
+            val = _0_global_special_combinations[key]
+            local_settings_file.write(f'{key}{val}')
+        local_settings_file.write('\n')
+        local_settings_file.write(f'{check_register}\n')
+        for key in categories.keys():
+            local_settings_file.write(f'{key}\n')
+            local_settings_file.write(categories[key][0])
+            for i in range(1, len(categories[key])):
+                local_settings_file.write(f'{CATEGORY_SEPARATOR}{categories[key][i]}')
+            local_settings_file.write('\n')
+
+
+# Предложить сохранение настроек, если есть изменения
+def save_settings_if_has_changes(window_parent):
+    window_dia = PopupDialogueW(window_parent, 'Хотите сохранить изменения настроек?', 'Да', 'Нет')
+    answer = window_dia.open()
+    if answer:
+        save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
+                             _0_global_fontsize)
+        save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_categories,
+                            dct_filename(_0_global_dct_savename))
+        PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
+        print('\nНастройки успешно сохранены')
 
 
 # Обновить сохранение словаря с 0 до 2 версии
@@ -1752,55 +1801,6 @@ def create_dct(dct: Dictionary, savename: str):
     dct.read(filepath)
     print(f'\nСловарь "{savename}" успешно создан и открыт')
     return upload_local_settings(savename)
-
-
-# Сохранить глобальные настройки (настройки программы)
-def save_global_settings(dct_savename: str, show_updates: int, typo: int, theme: str, fontsize: int):
-    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
-        global_settings_file.write(f'v{GLOBAL_SETTINGS_VERSION}\n'
-                                   f'{dct_savename}\n'
-                                   f'{show_updates}\n'
-                                   f'{typo}\n'
-                                   f'{theme}\n'
-                                   f'{fontsize}')
-
-
-# Сохранить название открытого словаря
-def save_dct_name():
-    _, tmp_show_updates, tmp_typo, tmp_th, tmp_fontsize = upload_global_settings()
-    save_global_settings(_0_global_dct_savename, tmp_show_updates, tmp_typo, tmp_th, tmp_fontsize)
-
-
-# Сохранить локальные настройки (настройки словаря)
-def save_local_settings(min_good_score_perc: int, check_register: int, categories: dict[str, list[str]], filename: str):
-    local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
-    with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
-        local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n')
-        local_settings_file.write(f'{min_good_score_perc}\n')
-        for key in _0_global_special_combinations:
-            val = _0_global_special_combinations[key]
-            local_settings_file.write(f'{key}{val}')
-        local_settings_file.write('\n')
-        local_settings_file.write(f'{check_register}\n')
-        for key in categories.keys():
-            local_settings_file.write(f'{key}\n')
-            local_settings_file.write(categories[key][0])
-            for i in range(1, len(categories[key])):
-                local_settings_file.write(f'{CATEGORY_SEPARATOR}{categories[key][i]}')
-            local_settings_file.write('\n')
-
-
-# Предложить сохранение настроек, если есть изменения
-def save_settings_if_has_changes(window_parent):
-    window_dia = PopupDialogueW(window_parent, 'Хотите сохранить изменения настроек?', 'Да', 'Нет')
-    answer = window_dia.open()
-    if answer:
-        save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
-                             _0_global_fontsize)
-        save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_categories,
-                            dct_filename(_0_global_dct_savename))
-        PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
-        print('\nНастройки успешно сохранены')
 
 
 # Сохранить словарь
@@ -3618,11 +3618,11 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.wait_window()
 
 
-# Окно печати словаря
+# Окно отображения словаря
 class PrintW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Print')
+        self.title(f'{PROGRAM_NAME} - Dictionary')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -5496,7 +5496,7 @@ class MainW(tk.Tk):
         # }
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.btn_print = ttk.Button(self.frame_buttons, text='Напечатать словарь', command=self.print,
+        self.btn_print = ttk.Button(self.frame_buttons, text='Просмотреть словарь', command=self.print,
                                     takefocus=False, style='Default.TButton')
         self.btn_learn = ttk.Button(self.frame_buttons, text='Учить слова', command=self.learn,
                                     takefocus=False, style='Default.TButton')
@@ -5552,7 +5552,7 @@ class MainW(tk.Tk):
 
         self.set_focus()
 
-    # Нажатие на кнопку "Напечатать словарь"
+    # Нажатие на кнопку "Просмотреть словарь"
     def print(self):
         PrintW(self).open()
 
@@ -5869,8 +5869,8 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                            {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
