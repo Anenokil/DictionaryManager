@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.5-PRE-1'
+PROGRAM_VERSION = 'v7.0.5'
 PROGRAM_DATE = '15.2.2023'
-PROGRAM_TIME = '18:30 (UTC+3)'
+PROGRAM_TIME = '19:07 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1180,7 +1180,7 @@ def add_ctg(window_parent, categories: dict[str, list[str]], dct: Dictionary):
 
 
 # Переименовать категорию
-def rename_ctg(window_parent, categories: dict[str, list[str]], dct: Dictionary):
+def rename_ctg(window_parent, categories: dict[str, list[str]]):
     ctg_names = [ctg_name for ctg_name in categories.keys()]
     window_choose = PopupChooseW(window_parent, ctg_names, default_value=ctg_names[0], btn_text='Переименовать',
                                  combo_width=width(ctg_names, 5, 100))  # Выбор категории, которую нужно переименовать
@@ -1197,7 +1197,6 @@ def rename_ctg(window_parent, categories: dict[str, list[str]], dct: Dictionary)
     new_name = encode_special_combinations(new_name)
 
     # обновление категорий
-    # dct.rename_ctg(index)
     categories[new_name] = categories[old_name]
     categories.pop(old_name)
     return True
@@ -2728,7 +2727,7 @@ class CategoriesSettingsW(tk.Toplevel):
 
     # Переименовать категорию
     def rename(self):
-        self.has_changes = rename_ctg(self, _0_global_categories, _0_global_dct) or self.has_changes
+        self.has_changes = rename_ctg(self, _0_global_categories) or self.has_changes
         self.refresh()
 
     # Удалить категорию
@@ -5870,7 +5869,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                           {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
