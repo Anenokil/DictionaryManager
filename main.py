@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.6'
+PROGRAM_VERSION = 'v7.0.7a'
 PROGRAM_DATE = '16.2.2023'
-PROGRAM_TIME = '4:34 (UTC+3)'
+PROGRAM_TIME = '19:20 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -346,6 +346,28 @@ class Entry(object):
             tab = ' ' * (4 - len(score))
             outp(output_widget, f'[{self.last_att}:{tab}{score}]', end=end)
 
+    # ---
+    def print_brieflyx(self):
+        res = ''
+        if self.fav:
+            res += '(*) '
+        else:
+            res += '    '
+        if self.last_att == -1:  # Если ещё не было попыток
+            res += '[-:  0%] '
+        else:
+            score = '{:.0%}'.format(self.score)
+            tab = ' ' * (4 - len(score))
+            res += f'[{self.last_att}:{tab}{score}] '
+        res += f'{self.wrd}: '
+        if self.count_t != 0:
+            res += self.tr[0]
+            for i in range(1, self.count_t):
+                res += f', {self.tr[i]}'
+        for i in range(self.count_n):
+            res += '\n' + ' ' * 13 + f'> {self.notes[i]}'
+        return res
+
     # Служебный метод для print_briefly и print_briefly_with_forms
     def _print_briefly(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
         if self.fav:
@@ -591,6 +613,18 @@ class Dictionary(object):
         return f'< {count_w}/{self.count_w} {w} | ' \
                f'{count_w + count_f}/{self.count_w + self.count_f} {f} | ' \
                f'{count_t}/{self.count_t} {t} >'
+
+    # Подсчитать количество избранных статей
+    def count_fav(self):
+        count_w = 0
+        count_t = 0
+        count_f = 0
+        for entry in self.d.values():
+            if entry.fav:
+                count_w += 1
+                count_t += entry.count_t
+                count_f += entry.count_f
+        return count_w, count_t, count_f
 
     # Напечатать словарь (только избранные слова)
     def print_fav(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
@@ -3678,21 +3712,46 @@ class PrintW(tk.Toplevel):
         self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, command=self.print,
                                            style='Default.TCheckbutton')
         # }
-        self.scrollbar_x = ttk.Scrollbar(self, style='Horizontal.TScrollbar')
         self.scrollbar_y = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', wrap='none',
-                               xscrollcommand=self.scrollbar_x.set, yscrollcommand=self.scrollbar_y.set,
-                               font='TkFixedFont', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                               relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
+        self.frame_canvas = ttk.Frame(self, style='Default.TFrame')
+        self.canvas = tk.Canvas(self.frame_canvas, bd=0, highlightthickness=0, height=500, width=100,
+                                yscrollcommand=self.scrollbar_y.set)
+
+        self.interior = ttk.Frame(self.canvas, style='Invis.TFrame')
+        interior_id = self.canvas.create_window(0, 0, window=self.interior, anchor=tk.NW)
+
+        def _configure_interior(event):
+            self.canvas.config(scrollregion=(0, 0, self.interior.winfo_reqwidth(), self.interior.winfo_reqheight()))
+            if self.interior.winfo_reqwidth() != self.canvas.winfo_width():
+                self.canvas.config(width=self.interior.winfo_reqwidth())
+
+        self.interior.bind('<Configure>', _configure_interior)
+
+        def _configure_canvas(event):
+            if self.interior.winfo_reqwidth() != self.canvas.winfo_width():
+                self.canvas.itemconfigure(interior_id, width=self.canvas.winfo_width())
+
+        self.canvas.bind('<Configure>', _configure_canvas)
+
+        self.keys = [key for key in _0_global_dct.d.keys()]
+        self.buttons = [ttk.Button(self.interior, takefocus=False, style='Flat.TButton')
+                        for i in range(_0_global_dct.count_w)]
+
+        for i in range(_0_global_dct.count_w):
+            self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_brieflyx(),
+                                      command=lambda i=i: self.edit_note(i))
+            self.buttons[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+        #
         self.lbl_info = ttk.Label(self, textvariable=self.var_info, style='Default.TLabel')
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
+        # {
         self.btn_fav_all = ttk.Button(self.frame_buttons, text='Добавить всё в избранное', command=self.fav_all,
                                       takefocus=False, style='Default.TButton')
         self.btn_unfav_all = ttk.Button(self.frame_buttons, text='Убрать всё из избранного', command=self.unfav_all,
                                         takefocus=False, style='Default.TButton')
         self.btn_print_out = ttk.Button(self.frame_buttons, text='Распечатать словарь в файл', command=self.print_out,
                                         takefocus=False, style='Default.TButton')
+        # }
 
         self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
         self.frame_main.grid(  row=1, columnspan=2, padx=6, pady=(0, 4))
@@ -3702,47 +3761,44 @@ class PrintW(tk.Toplevel):
         self.lbl_forms.grid(  row=0, column=2, padx=(6, 1), pady=6, sticky='E')
         self.check_forms.grid(row=0, column=3, padx=(0, 6), pady=6, sticky='W')
         # }
-        self.txt_dct.grid(      row=2, column=0,     padx=(6, 0), pady=0,      sticky='NSEW')
-        self.scrollbar_x.grid(  row=3, column=0,     padx=(6, 0), pady=0,      sticky='NWE')
-        self.scrollbar_y.grid(  row=2, column=1,     padx=(0, 6), pady=0,      sticky='NSW')
-        self.lbl_info.grid(     row=4, columnspan=2, padx=6,      pady=(0, 6))
-        self.frame_buttons.grid(row=5, columnspan=2, padx=6,      pady=(0, 6))
+        self.frame_canvas.grid(row=2, column=0, padx=(6, 0), pady=0, sticky='NSEW')
+        # {
+        self.canvas.grid(row=0, column=0, padx=1, pady=1)
+        # }
+        self.scrollbar_y.grid(  row=2, column=1,     padx=(0, 6), pady=0,      sticky='WSN')
+        self.lbl_info.grid(     row=3, columnspan=2, padx=6,      pady=(0, 6))
+        self.frame_buttons.grid(row=4, columnspan=2, padx=6,      pady=(0, 6))
         # {
         self.btn_fav_all.grid(  row=0, column=0,     padx=(0, 6), pady=(0, 6))
         self.btn_unfav_all.grid(row=0, column=1,     padx=0,      pady=(0, 6))
         self.btn_print_out.grid(row=1, columnspan=2, padx=0,      pady=0)
         # }
 
-        self.scrollbar_x.config(command=self.txt_dct.xview, orient='horizontal')
-        self.scrollbar_y.config(command=self.txt_dct.yview, orient='vertical')
+        self.scrollbar_y.config(command=self.canvas.yview, orient='vertical')
 
-        self.tip_text = ttip.Hovertip(self.txt_dct, '(*) [1;  60%] word: слово\n'
-                                                    '----------------------------------\n'
-                                                    '(*) - избранное\n'
-                                                    '1 - количество ответов после\n'
-                                                    '      последнего верного ответа\n'
-                                                    '60% - доля верных ответов')
+        self.tip_text = ttip.Hovertip(self.canvas, '(*) [1;  60%] word: слово\n'
+                                                   '----------------------------------\n'
+                                                   '(*) - избранное\n'
+                                                   '1 - количество ответов после\n'
+                                                   '      последнего верного ответа\n'
+                                                   '60% - доля верных ответов')
+
+        self.print()
+
+    # Изменить статью
+    def edit_note(self, index):
+        EditW(self, self.keys[index]).open()
 
         self.print()
 
     # Напечатать словарь
     def print(self):
-        self.txt_dct['state'] = 'normal'
-        self.txt_dct.delete(1.0, tk.END)
         if self.var_fav.get():
-            if self.var_forms.get():
-                w, t, f = _0_global_dct.print_fav_with_forms(self.txt_dct)
-            else:
-                w, t, f = _0_global_dct.print_fav(self.txt_dct)
+            w, t, f = _0_global_dct.count_fav()
             self.var_info.set(_0_global_dct.dct_info_fav(w, t, f))
         else:
-            if self.var_forms.get():
-                _0_global_dct.print_with_forms(self.txt_dct)
-            else:
-                _0_global_dct.print(self.txt_dct)
             self.var_info.set(_0_global_dct.dct_info())
-        self.txt_dct.yview_moveto(1.0)
-        self.txt_dct['state'] = 'disabled'
+        self.canvas.yview_moveto(1.0)
 
     # Нажатие на кнопку "Добавить все статьи в избранное"
     def fav_all(self):
@@ -3751,6 +3807,7 @@ class PrintW(tk.Toplevel):
         if not answer:
             return
         _0_global_dct.fav_all()
+
         self.print()
 
     # Нажатие на кнопку "Убрать все статьи из избранного"
@@ -3760,6 +3817,7 @@ class PrintW(tk.Toplevel):
         if not answer:
             return
         _0_global_dct.unfav_all()
+
         self.print()
 
     # Нажатие на кнопку "Распечатать словарь в файл"
@@ -5850,6 +5908,23 @@ class MainW(tk.Tk):
                                           ('active', ST_FG[th]),
                                           ('!active', ST_FG[th])])
 
+        # Стиль button "flat"
+        self.st_btn_flat = ttk.Style()
+        self.st_btn_flat.theme_use('alt')
+        self.st_btn_flat.configure('Flat.TButton',
+                                   font='TkFixedFont',
+                                   borderwidth=0)
+        self.st_btn_flat.map('Flat.TButton',
+                             relief=[('pressed', 'flat'),
+                                     ('active', 'flat'),
+                                     ('!active', 'flat')],
+                             background=[('pressed', ST_BG[th]),
+                                         ('active', ST_BG[th]),
+                                         ('!active', ST_BG_FIELDS[th])],
+                             foreground=[('pressed', ST_FG[th]),
+                                         ('active', ST_FG[th]),
+                                         ('!active', ST_FG[th])])
+
         # Стиль checkbutton "default"
         self.st_check = ttk.Style()
         self.st_check.theme_use('alt')
@@ -5951,8 +6026,8 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
+      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
