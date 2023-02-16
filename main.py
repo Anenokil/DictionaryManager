@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.6-PRE'
+PROGRAM_VERSION = 'v7.0.6'
 PROGRAM_DATE = '16.2.2023'
-PROGRAM_TIME = '2:40 (UTC+3)'
+PROGRAM_TIME = '4:34 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -670,7 +670,7 @@ class Dictionary(object):
             window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                    'Что вы хотите сделать?',
                                     'Добавить к существующей статье', 'Создать новую статью',
-                                    set_focus_on_btn='none', st_left='Default', st_right='Default',
+                                    set_enter_on_btn='none', st_left='Default', st_right='Default',
                                     val_left='l', val_right='r', val_on_close='c')
             answer = window.open()
             if answer == 'l':  # Добавить к существующей статье
@@ -760,7 +760,7 @@ class Dictionary(object):
                 window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                        'Что вы хотите сделать?',
                                         'Добавить к существующей статье', 'Создать новую статью',
-                                        set_focus_on_btn='none', st_left='Default', st_right='Default',
+                                        set_enter_on_btn='none', st_left='Default', st_right='Default',
                                         val_left='l', val_right='r', val_on_close='c')
                 answer = window.open()
                 if answer == 'l':  # Добавить к существующей статье
@@ -1285,9 +1285,9 @@ def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
         data = urllib2.urlopen(URL_LAST_VERSION)
         last_version = str(data.readline().decode('utf-8')).strip()
         if PROGRAM_VERSION == last_version:
-            print('Установлена последняя доступная версия')
+            print('Установлена последняя доступная версия программы')
             if show_updates and show_if_no_updates:
-                window_last_version = PopupMsgW(window_parent, 'Установлена последняя доступная версия')
+                window_last_version = PopupMsgW(window_parent, 'Установлена последняя доступная версия программы')
         else:
             print(f'Доступна новая версия: {last_version}')
             if show_updates:
@@ -1465,6 +1465,9 @@ def upgrade_global_settings():
         upgrade_global_settings_0_to_2()
     elif lines[0][0:2] == 'v1':  # Версия 1
         upgrade_global_settings_1_to_2()
+    elif lines[0][0:2] != f'v{GLOBAL_SETTINGS_VERSION}':
+        print(f'Неизвестная версия глобальных настроек: {lines[0].strip()}!\n'
+              f'Проверьте наличие обновлений программы')
 
 
 # Загрузить глобальные настройки (настройки программы)
@@ -1474,7 +1477,7 @@ def upload_global_settings():
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
         with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
             global_settings_file.write(f'v{GLOBAL_SETTINGS_VERSION}\n'
-                                       f'words\n'
+                                       f'dct\n'
                                        f'1\n'
                                        f'0\n'
                                        f'{DEFAULT_TH}\n'
@@ -1586,6 +1589,9 @@ def upgrade_local_settings(local_settings_path: str):
             upgrade_local_settings_1_to_3(local_settings_path)
         elif first_line[0:2] == 'v2':  # Версия 2
             upgrade_local_settings_2_to_3(local_settings_path)
+        elif first_line[0:2] != f'v{LOCAL_SETTINGS_VERSION}':
+            print(f'Неизвестная версия локальных настроек: {first_line.strip()}!\n'
+                  f'Проверьте наличие обновлений программы')
 
 
 # Загрузить локальные настройки (настройки словаря)
@@ -1751,6 +1757,9 @@ def upgrade_dct_save(path: str):
         upgrade_dct_save_0_to_2(path)
     elif first_line[0:2] == 'v1':  # Версия 1
         upgrade_dct_save_1_to_2(path)
+    elif first_line[0:2] != f'v{SAVES_VERSION}':
+        print(f'Неизвестная версия словаря: {first_line.strip()}!\n'
+              f'Проверьте наличие обновлений программы')
 
 
 # Загрузить словарь (с обновлением и обработкой исключений)
@@ -1772,7 +1781,7 @@ def upload_dct(window_parent, dct: Dictionary, savename: str, btn_close_text: st
         while True:
             window_dia = PopupDialogueW(window_parent, f'Файл со словарём "{savename}" повреждён или некорректен!\n'
                                                        f'Хотите открыть другой словарь?',
-                                        'Да', btn_close_text, set_focus_on_btn='none', title='Warning')
+                                        'Да', btn_close_text, set_enter_on_btn='none', title='Warning')
             answer = window_dia.open()
             if answer:
                 window_entry = PopupEntryW(window_parent, 'Введите название словаря\n'
@@ -1818,6 +1827,34 @@ def save_dct_if_has_progress(window_parent, dct: Dictionary, filename: str, has_
             save_dct(dct, filename)
             PopupMsgW(window_parent, 'Прогресс успешно сохранён').open()
             print('\nПрогресс успешно сохранён')
+
+
+# Экспортировать словарь
+def dct_export(savename: str, dst_path: str):
+    filename = dct_filename(savename)
+
+    dst_dir = os.path.join(dst_path, savename)
+    src_save_path = os.path.join(SAVES_PATH, filename)
+    dst_save_path = os.path.join(dst_dir, 'save.txt')
+    src_local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
+    dst_local_settings_path = os.path.join(dst_dir, 'local_settings.txt')
+
+    os.mkdir(dst_dir)
+    shutil.copyfile(src_save_path, dst_save_path)
+    shutil.copyfile(src_local_settings_path, dst_local_settings_path)
+
+
+# Импортировать словарь
+def dct_import(savename: str, src_path: str):
+    filename = dct_filename(savename)
+
+    src_save_path = os.path.join(src_path, 'save.txt')
+    dst_save_path = os.path.join(SAVES_PATH, filename)
+    src_local_settings_path = os.path.join(src_path, 'local_settings.txt')
+    dst_local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
+
+    shutil.copyfile(src_save_path, dst_save_path)
+    shutil.copyfile(src_local_settings_path, dst_local_settings_path)
 
 
 """ Графический интерфейс - вспомогательные функции """
@@ -1907,11 +1944,12 @@ class PopupMsgW(tk.Toplevel):
 # Всплывающее окно с сообщением и двумя кнопками
 class PopupDialogueW(tk.Toplevel):
     def __init__(self, parent, msg='Вы уверены?', btn_left_text='Да', btn_right_text='Отмена',
-                 st_left='Yes', st_right='No',  # Стили левой и правой кнопок
+                 st_left: typing.Literal['Default', 'Yes', 'No'] = 'Yes',
+                 st_right: typing.Literal['Default', 'Yes', 'No'] = 'No',  # Стили левой и правой кнопок
                  val_left: typing.Any = True,  # Значение, возвращаемое при нажатии на левую кнопку
                  val_right: typing.Any = False,  # Значение, возвращаемое при нажатии на правую кнопку
                  val_on_close: typing.Any = False,  # Значение, возвращаемое при закрытии окна крестиком
-                 set_focus_on_btn='left',  # Какая кнопка срабатывает при нажатии кнопки enter
+                 set_enter_on_btn: typing.Literal['left', 'right', 'none'] = 'left',  # Какая кнопка срабатывает при нажатии кнопки enter
                  title=PROGRAM_NAME):
         ALLOWED_ST_VALUES = ['Default', 'Yes', 'No']  # Проверка корректности параметров
         assert st_left in ALLOWED_ST_VALUES, f'Bad value: st_left\n' \
@@ -1919,14 +1957,14 @@ class PopupDialogueW(tk.Toplevel):
         assert st_right in ALLOWED_ST_VALUES, f'Bad value: st_right\n' \
                                               f'Allowed values: {ALLOWED_ST_VALUES}'
         ALLOWED_FOCUS_VALUES = ['left', 'right', 'none']  # Проверка корректности параметров
-        assert set_focus_on_btn in ALLOWED_FOCUS_VALUES, f'Bad value: set_focus_on_btn\n' \
+        assert set_enter_on_btn in ALLOWED_FOCUS_VALUES, f'Bad value: set_enter_on_btn\n' \
                                                          f'Allowed values: {ALLOWED_FOCUS_VALUES}'
 
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
 
-        self.set_focus_on_btn = set_focus_on_btn
+        self.set_enter_on_btn = set_enter_on_btn
         self.answer = val_on_close  # Значение, возвращаемое методом self.open
         self.val_left = val_left
         self.val_right = val_right
@@ -1955,10 +1993,10 @@ class PopupDialogueW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        if self.set_focus_on_btn == 'left':
+        if self.set_enter_on_btn == 'left':
             self.bind('<Return>', lambda event=None: self.btn_left.invoke())
             self.bind('<Escape>', lambda event=None: self.btn_right.invoke())
-        elif self.set_focus_on_btn == 'right':
+        elif self.set_enter_on_btn == 'right':
             self.bind('<Return>', lambda event=None: self.btn_right.invoke())
             self.bind('<Escape>', lambda event=None: self.btn_left.invoke())
 
@@ -3618,7 +3656,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.wait_window()
 
 
-# Окно отображения словаря
+# Окно просмотра словаря
 class PrintW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
@@ -4706,7 +4744,7 @@ class EditW(tk.Toplevel):
     def delete(self):
         global _0_global_has_progress
 
-        window = PopupDialogueW(self, 'Вы уверены, что хотите удалить эту статью?', set_focus_on_btn='none')
+        window = PopupDialogueW(self, 'Вы уверены, что хотите удалить эту статью?', set_enter_on_btn='none')
         answer = window.open()
         if answer:
             _0_global_dct.delete_entry(self.dct_key)
@@ -4965,8 +5003,12 @@ class SettingsW(tk.Toplevel):
                                          takefocus=False, style='Default.TButton')
         self.btn_dct_delete = ttk.Button(self.frame_dct_buttons, text='Удалить словарь', command=self.dct_delete,
                                          takefocus=False, style='Default.TButton')
+        self.btn_dct_export = ttk.Button(self.frame_dct_buttons, text='Экспортировать словарь', command=self.dct_export,
+                                         takefocus=False, style='Default.TButton')
+        self.btn_dct_import = ttk.Button(self.frame_dct_buttons, text='Импортировать словарь', command=self.dct_import,
+                                         takefocus=False, style='Default.TButton')
         # } } }
-        self.lbl_dcts_warn = ttk.Label(self.frame_dcts, text='Настройки словарей сохраняются сразу!',
+        self.lbl_dcts_warn = ttk.Label(self.frame_dcts, text='Изменения словарей сохраняются сразу!',
                                        style='Warn.TLabel')
         # } }
         self.frame_themes = ttk.Frame(self.tab_global, style='Default.TFrame')
@@ -5027,8 +5069,8 @@ class SettingsW(tk.Toplevel):
         self.check_check_register.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
         # }
         self.btn_forms.grid(               row=2, padx=6, pady=6)
-        self.btn_special_combinations.grid(row=3, padx=6, pady=(0, 6))
-        self.lbl_save_warn.grid(           row=4, padx=6, pady=(0, 6), sticky='S')
+        self.btn_special_combinations.grid(row=3, padx=6, pady=6)
+        self.lbl_save_warn.grid(           row=4, padx=6, pady=6, sticky='S')
         #
         self.frame_show_updates.grid(row=0, padx=6, pady=6)
         # {
@@ -5046,12 +5088,14 @@ class SettingsW(tk.Toplevel):
         self.lbl_dcts.grid(         row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
         self.txt_dcts.grid(         row=1, rowspan=2, column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
         self.scrollbar.grid(        row=1, rowspan=2, column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.frame_dct_buttons.grid(row=1,            column=2,               padx=6,      pady=6)
+        self.frame_dct_buttons.grid(row=1,            column=2,               padx=1,      pady=1)
         # { {
         self.btn_dct_open.grid(  row=0, column=0, padx=6, pady=6, sticky='WE')
         self.btn_dct_create.grid(row=0, column=1, padx=6, pady=6, sticky='WE')
         self.btn_dct_rename.grid(row=1, column=0, padx=6, pady=6, sticky='WE')
         self.btn_dct_delete.grid(row=1, column=1, padx=6, pady=6, sticky='WE')
+        self.btn_dct_export.grid(row=2, column=0, padx=6, pady=6, sticky='WE')
+        self.btn_dct_import.grid(row=2, column=1, padx=6, pady=6, sticky='WE')
         # } }
         self.lbl_dcts_warn.grid(row=2, column=2, padx=6, pady=6, sticky='N')
         # }
@@ -5227,7 +5271,7 @@ class SettingsW(tk.Toplevel):
 
         window_confirm = PopupDialogueW(self, f'Словарь "{savename}" будет безвозвратно удалён!\n'
                                               f'Хотите продолжить?',
-                                        set_focus_on_btn='none')
+                                        set_enter_on_btn='none')
         answer = window_confirm.open()
         if not answer:
             return
@@ -5238,6 +5282,44 @@ class SettingsW(tk.Toplevel):
         PopupMsgW(self, f'Словарь "{savename}" успешно удалён').open()
 
         self.print_dct_list()
+
+    # Экспортировать словарь
+    def dct_export(self):
+        saves_count = 0
+        saves_list = []
+        for file_name in os.listdir(SAVES_PATH):
+            base_name, ext = os.path.splitext(file_name)
+            if ext == '.txt':
+                saves_list += [base_name]
+                saves_count += 1
+        window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите экспортировать',
+                                     default_value=saves_list[0], combo_width=width(saves_list, 5, 100))
+        closed, savename = window_choose.open()
+        if closed:
+            return
+
+        dst_path = askdirectory(title='Выберите папку для сохранения')
+        if dst_path == '':
+            return
+
+        dct_export(savename, dst_path)
+
+    # Импортировать словарь
+    def dct_import(self):
+        src_path = askdirectory(title='Выберите папку сохранения')
+        if src_path == '':
+            return
+
+        default_savename = re.split(r'[\\/]', src_path)[-1]
+        window = PopupEntryW(self, 'Введите название для словаря', default_value=default_savename,
+                             check_answer_function=check_dct_savename)
+        closed, savename = window.open()
+        if closed:
+            return
+
+        dct_import(savename, src_path)
+
+        self.refresh()
 
     # Задать пользовательскую тему
     def custom_theme(self):
@@ -5869,7 +5951,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                            {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
