@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.7a'
-PROGRAM_DATE = '16.2.2023'
-PROGRAM_TIME = '19:20 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.7b'
+PROGRAM_DATE = '17.2.2023'
+PROGRAM_TIME = '1:00 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -320,121 +320,112 @@ class Entry(object):
         return res
 
     # Напечатать переводы
-    def tr_print(self, output_widget: tk.Entry | ttk.Entry | tk.Text, end='\n'):
-        if self.count_t != 0:
-            outp(output_widget, self.tr[0], end='')
-            for i in range(1, self.count_t):
-                outp(output_widget, f', {self.tr[i]}', end='')
-        outp(output_widget, '', end=end)
-
-    # Напечатать сноски
-    def notes_print(self, output_widget: tk.Entry | ttk.Entry | tk.Text, tab=0):
-        for i in range(self.count_n):
-            outp(output_widget, ' ' * tab + f'> {self.notes[i]}')
-
-    # Напечатать словоформы
-    def frm_print(self, output_widget: tk.Entry | ttk.Entry | tk.Text, tab=0):
-        for key in self.forms.keys():
-            outp(output_widget, ' ' * tab + f'[{tpl(key)}] {self.forms[key]}')
-
-    # Напечатать статистику
-    def stat_print(self, output_widget: tk.Entry | ttk.Entry | tk.Text, end='\n'):
-        if self.last_att == -1:  # Если ещё не было попыток
-            outp(output_widget, '[-:  0%]', end=end)
-        else:
-            score = '{:.0%}'.format(self.score)
-            tab = ' ' * (4 - len(score))
-            outp(output_widget, f'[{self.last_att}:{tab}{score}]', end=end)
-
-    # ---
-    def print_brieflyx(self):
+    def tr_print(self):
         res = ''
-        if self.fav:
-            res += '(*) '
-        else:
-            res += '    '
-        if self.last_att == -1:  # Если ещё не было попыток
-            res += '[-:  0%] '
-        else:
-            score = '{:.0%}'.format(self.score)
-            tab = ' ' * (4 - len(score))
-            res += f'[{self.last_att}:{tab}{score}] '
-        res += f'{self.wrd}: '
         if self.count_t != 0:
             res += self.tr[0]
             for i in range(1, self.count_t):
                 res += f', {self.tr[i]}'
-        for i in range(self.count_n):
-            res += '\n' + ' ' * 13 + f'> {self.notes[i]}'
+        return res
+
+    # Напечатать сноски
+    def notes_print(self, tab=0):
+        res = ''
+        if self.count_n != 0:
+            res += ' ' * tab + f'> {self.notes[0]}'
+            for i in range(1, self.count_n):
+                res += '\n' + ' ' * tab + f'> {self.notes[i]}'
+        return res
+
+    # Напечатать словоформы
+    def frm_print(self, tab=0):
+        res = ''
+        keys = tuple(self.forms.keys())
+        if self.count_f != 0:
+            res += ' ' * tab + f'[{tpl(keys[0])}] {self.forms[keys[0]]}'
+            for i in range(1, len(keys)):
+                res += '\n' + ' ' * tab + f'[{tpl(keys[i])}] {self.forms[keys[i]]}'
+        return res
+
+    # Напечатать статистику
+    def stat_print(self):
+        if self.last_att == -1:  # Если ещё не было попыток
+            res = '[-:  0%]'
+        else:
+            score = '{:.0%}'.format(self.score)
+            tab = ' ' * (4 - len(score))
+            res = f'[{self.last_att}:{tab}{score}]'
         return res
 
     # Служебный метод для print_briefly и print_briefly_with_forms
-    def _print_briefly(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
+    def _print_briefly(self):
         if self.fav:
-            outp(output_widget, '(*)', end=' ')
+            res = '(*)'
         else:
-            outp(output_widget, '   ', end=' ')
-        self.stat_print(output_widget, end=' ')
-        outp(output_widget, f'{self.wrd}: ', end='')
-        self.tr_print(output_widget)
+            res = '   '
+        res += f' {self.stat_print()} {self.wrd}: {self.tr_print()}'
+        return res
 
     # Напечатать статью - кратко
-    def print_briefly(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
-        self._print_briefly(output_widget)
-        self.notes_print(output_widget, tab=13)
+    def print_briefly(self):
+        res = self._print_briefly()
+        if self.count_n != 0:
+            res += f'\n{self.notes_print(tab=13)}'
+        return res
 
     # Напечатать статью - кратко со словоформами
-    def print_briefly_with_forms(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
-        self._print_briefly(output_widget)
-        self.frm_print(output_widget, tab=13)
-        self.notes_print(output_widget, tab=13)
+    def print_briefly_with_forms(self):
+        res = self._print_briefly()
+        if self.count_f != 0:
+            res += f'\n{self.frm_print(tab=13)}'
+        if self.count_n != 0:
+            res += f'\n{self.notes_print(tab=13)}'
+        return res
 
     # Напечатать статью - слово со статистикой
-    def print_wrd_with_stat(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
-        outp(output_widget, self.wrd, end=' ')
-        self.stat_print(output_widget)
+    def print_wrd_with_stat(self):
+        res = f'{self.wrd} {self.stat_print()}'
+        return res
 
     # Напечатать статью - перевод со статистикой
-    def print_tr_with_stat(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
-        self.tr_print(output_widget, end=' ')
-        self.stat_print(output_widget)
+    def print_tr_with_stat(self):
+        res = f'{self.tr_print()} {self.stat_print()}'
+        return res
 
     # Напечатать статью - перевод со словоформой и со статистикой
-    def print_tr_and_frm_with_stat(self, output_widget: tk.Entry | ttk.Entry | tk.Text,
-                                   frm_key: tuple[str, ...] | list[str]):
-        self.tr_print(output_widget, end=' ')
-        outp(output_widget, f'({tpl(frm_key)})', end=' ')
-        self.stat_print(output_widget)
+    def print_tr_and_frm_with_stat(self, frm_key: tuple[str, ...] | list[str]):
+        res = f'{self.tr_print()} ({tpl(frm_key)}) {self.stat_print()}'
+        return res
 
     # Напечатать статью - со всей информацией
-    def print_all(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
-        outp(output_widget, f'       Слово: {self.wrd}')
-        outp(output_widget, '     Перевод: ', end='')
-        self.tr_print(output_widget)
-        outp(output_widget, ' Формы слова: ', end='')
+    def print_all(self):
+        res = ''
+        res += f'       Слово: {self.wrd}\n'
+        res += f'     Перевод: {self.tr_print()}\n'
+        res += f' Формы слова: '
         if self.count_f == 0:
-            outp(output_widget, '-')
+            res += '-\n'
         else:
             keys = [key for key in self.forms.keys()]
-            outp(output_widget, f'[{tpl(keys[0])}] {self.forms[keys[0]]}')
+            res += f'[{tpl(keys[0])}] {self.forms[keys[0]]}\n'
             for i in range(1, self.count_f):
-                outp(output_widget,
-                     f'              [{tpl(keys[i])}] {self.forms[keys[i]]}')
-        outp(output_widget, '      Сноски: ', end='')
+                res += f'              [{tpl(keys[i])}] {self.forms[keys[i]]}\n'
+        res += '      Сноски: '
         if self.count_n == 0:
-            outp(output_widget, '-')
+            res += '-\n'
         else:
-            outp(output_widget, f'> {self.notes[0]}')
+            res += f'> {self.notes[0]}\n'
             for i in range(1, self.count_n):
-                outp(output_widget, f'              > {self.notes[i]}')
-        outp(output_widget, f'   Избранное: {self.fav}')
+                res += f'              > {self.notes[i]}\n'
+        res += f'   Избранное: {self.fav}\n'
         if self.last_att == -1:
-            outp(output_widget, '  Статистика: 1) Последних неверных ответов: -')
-            outp(output_widget, '              2) Доля верных ответов: 0')
+            res += '  Статистика: 1) Последних неверных ответов: -\n'
+            res += '              2) Доля верных ответов: 0'
         else:
-            outp(output_widget, f'  Статистика: 1) Последних неверных ответов: {self.last_att}')
-            outp(output_widget, f'              2) Доля верных ответов: '
-                 f'{self.correct_att}/{self.all_att} = ' + '{:.0%}'.format(self.score))
+            res += f'  Статистика: 1) Последних неверных ответов: {self.last_att}\n'
+            res += f'              2) Доля верных ответов: '
+            res += f'{self.correct_att}/{self.all_att} = ' + '{:.0%}'.format(self.score)
+        return res
 
     # Добавить перевод
     def add_tr(self, new_tr: str):
@@ -598,12 +589,12 @@ class Dictionary(object):
     # Напечатать словарь
     def print(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
         for entry in self.d.values():
-            entry.print_briefly(output_widget)
+            outp(output_widget, entry.print_briefly())
 
     # Напечатать словарь (со всеми словоформами)
     def print_with_forms(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
         for entry in self.d.values():
-            entry.print_briefly_with_forms(output_widget)
+            outp(output_widget, entry.print_briefly_with_forms())
 
     # Вывести информацию о количестве избранных статей в словаре
     def dct_info_fav(self, count_w: int, count_t: int, count_f: int):
@@ -621,32 +612,6 @@ class Dictionary(object):
         count_f = 0
         for entry in self.d.values():
             if entry.fav:
-                count_w += 1
-                count_t += entry.count_t
-                count_f += entry.count_f
-        return count_w, count_t, count_f
-
-    # Напечатать словарь (только избранные слова)
-    def print_fav(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
-        count_w = 0
-        count_t = 0
-        count_f = 0
-        for entry in self.d.values():
-            if entry.fav:
-                entry.print_briefly(output_widget)
-                count_w += 1
-                count_t += entry.count_t
-                count_f += entry.count_f
-        return count_w, count_t, count_f
-
-    # Напечатать словарь (только избранные слова, со всеми словоформами)
-    def print_fav_with_forms(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
-        count_w = 0
-        count_t = 0
-        count_f = 0
-        for entry in self.d.values():
-            if entry.fav:
-                entry.print_briefly_with_forms(output_widget)
                 count_w += 1
                 count_t += entry.count_t
                 count_f += entry.count_f
@@ -2314,14 +2279,16 @@ class ChooseNoteW(tk.Toplevel):
     # Вывод вариантов статей
     def print_variants(self):
         self.txt_words['state'] = 'normal'
-        i = 0
+        outp(self.txt_words, '(0)')
+        outp(self.txt_words, _0_global_dct.d[wrd_to_key(self.wrd, 0)].print_all(), end='')
+        i = 1
         while True:
             key = wrd_to_key(self.wrd, i)
             if key not in _0_global_dct.d.keys():
                 self.vals_count = i - 1
                 break
-            outp(self.txt_words, f'\n({i})')
-            _0_global_dct.d[key].print_all(self.txt_words)
+            outp(self.txt_words, f'\n\n({i})')
+            outp(self.txt_words, _0_global_dct.d[key].print_all(), end='')
             i += 1
         self.txt_words['state'] = 'disabled'
 
@@ -3738,7 +3705,7 @@ class PrintW(tk.Toplevel):
                         for i in range(_0_global_dct.count_w)]
 
         for i in range(_0_global_dct.count_w):
-            self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_brieflyx(),
+            self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly(),
                                       command=lambda i=i: self.edit_note(i))
             self.buttons[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
         #
@@ -3977,7 +3944,7 @@ class LearnW(tk.Toplevel):
     def show_notes(self):
         self.txt_dct['state'] = 'normal'
         entry = _0_global_dct.d[self.current_key]
-        entry.notes_print(self.txt_dct)
+        outp(self.txt_dct, entry.notes_print())
         self.txt_dct.yview_moveto(1.0)
         self.txt_dct['state'] = 'disabled'
         btn_disable(self.btn_notes)
@@ -4158,7 +4125,7 @@ class LearnW(tk.Toplevel):
                 break
 
         self.txt_dct['state'] = 'normal'
-        dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+        outp(self.txt_dct, dct.d[self.current_key].print_tr_with_stat())
         self.txt_dct['state'] = 'disabled'
 
         return True
@@ -4177,7 +4144,7 @@ class LearnW(tk.Toplevel):
                 break
 
         self.txt_dct['state'] = 'normal'
-        dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+        outp(self.txt_dct, dct.d[self.current_key].print_tr_with_stat())
         self.txt_dct['state'] = 'disabled'
 
         return True
@@ -4193,7 +4160,7 @@ class LearnW(tk.Toplevel):
                 break
 
         self.txt_dct['state'] = 'normal'
-        dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+        outp(self.txt_dct, dct.d[self.current_key].print_tr_with_stat())
         self.txt_dct['state'] = 'disabled'
 
         return True
@@ -4210,14 +4177,14 @@ class LearnW(tk.Toplevel):
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
                     self.txt_dct['state'] = 'normal'
-                    dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+                    outp(self.txt_dct, dct.d[self.current_key].print_tr_with_stat())
                     self.txt_dct['state'] = 'disabled'
                     break
             else:
                 self.current_form = list(dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
                     self.txt_dct['state'] = 'normal'
-                    dct.d[self.current_key].print_tr_and_frm_with_stat(self.txt_dct, self.current_form)
+                    outp(self.txt_dct, dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
                     self.txt_dct['state'] = 'disabled'
                     break
 
@@ -4240,14 +4207,14 @@ class LearnW(tk.Toplevel):
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
                     self.txt_dct['state'] = 'normal'
-                    dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+                    outp(self.txt_dct, dct.d[self.current_key].print_tr_with_stat())
                     self.txt_dct['state'] = 'disabled'
                     break
             else:
                 self.current_form = list(dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
                     self.txt_dct['state'] = 'normal'
-                    dct.d[self.current_key].print_tr_and_frm_with_stat(self.txt_dct, self.current_form)
+                    outp(self.txt_dct, dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
                     self.txt_dct['state'] = 'disabled'
                     break
 
@@ -4265,14 +4232,14 @@ class LearnW(tk.Toplevel):
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
                     self.txt_dct['state'] = 'normal'
-                    dct.d[self.current_key].print_tr_with_stat(self.txt_dct)
+                    outp(self.txt_dct, dct.d[self.current_key].print_tr_with_stat())
                     self.txt_dct['state'] = 'disabled'
                     break
             else:
                 self.current_form = list(dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
                     self.txt_dct['state'] = 'normal'
-                    dct.d[self.current_key].print_tr_and_frm_with_stat(self.txt_dct, self.current_form)
+                    outp(self.txt_dct, dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
                     self.txt_dct['state'] = 'disabled'
                     break
 
@@ -4289,7 +4256,7 @@ class LearnW(tk.Toplevel):
                 break
 
         self.txt_dct['state'] = 'normal'
-        dct.d[self.current_key].print_wrd_with_stat(self.txt_dct)
+        outp(self.txt_dct, dct.d[self.current_key].print_wrd_with_stat())
         self.txt_dct['state'] = 'disabled'
 
         return True
@@ -4308,7 +4275,7 @@ class LearnW(tk.Toplevel):
                 break
 
         self.txt_dct['state'] = 'normal'
-        dct.d[self.current_key].print_wrd_with_stat(self.txt_dct)
+        outp(self.txt_dct, dct.d[self.current_key].print_wrd_with_stat())
         self.txt_dct['state'] = 'disabled'
 
         return True
@@ -4324,7 +4291,7 @@ class LearnW(tk.Toplevel):
                 break
 
         self.txt_dct['state'] = 'normal'
-        dct.d[self.current_key].print_wrd_with_stat(self.txt_dct)
+        outp(self.txt_dct, dct.d[self.current_key].print_wrd_with_stat())
         self.txt_dct['state'] = 'disabled'
 
         return True
@@ -4407,13 +4374,15 @@ class SearchW(tk.Toplevel):
         if wrd_to_key(search_wrd, 0) not in _0_global_dct.d.keys():
             outp(self.txt_wrd, f'Слово "{search_wrd}" отсутствует в словаре', end='')
         else:
-            i = 0
+            outp(self.txt_wrd, '(1)')
+            outp(self.txt_wrd, _0_global_dct.d[wrd_to_key(search_wrd, 0)].print_all(), end='')
+            i = 1
             while True:
                 key = wrd_to_key(search_wrd, i)
                 if key not in _0_global_dct.d.keys():
                     break
-                outp(self.txt_wrd)
-                _0_global_dct.d[key].print_all(self.txt_wrd)
+                outp(self.txt_wrd, f'\n\n({i + 1})')
+                outp(self.txt_wrd, _0_global_dct.d[key].print_all(), end='')
                 i += 1
 
         outp(self.txt_wrd, '\n\nЧастичное совпадение:')
@@ -4428,13 +4397,16 @@ class SearchW(tk.Toplevel):
         self.txt_tr.delete(1.0, tk.END)
 
         outp(self.txt_tr, 'Полное совпадение:')
-        is_found = False
+        i = 0
         for entry in _0_global_dct.d.values():
             if search_tr in entry.tr:
-                is_found = True
-                outp(self.txt_tr)
-                entry.print_all(self.txt_tr)
-        if not is_found:
+                if i == 0:
+                    outp(self.txt_tr, f'({i + 1})')
+                else:
+                    outp(self.txt_tr, f'\n\n({i + 1})')
+                outp(self.txt_tr, entry.print_all(), end='')
+                i += 1
+        if i == 0:
             outp(self.txt_tr, f'Слово с переводом "{search_tr}" отсутствует в словаре', end='')
 
         outp(self.txt_tr, '\n\nЧастичное совпадение:')
@@ -6027,7 +5999,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development presents\n'
       f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
