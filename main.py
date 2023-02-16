@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.7b'
+PROGRAM_VERSION = 'v7.0.7с'
 PROGRAM_DATE = '17.2.2023'
-PROGRAM_TIME = '1:00 (UTC+3)'
+PROGRAM_TIME = '2:52 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -345,6 +345,22 @@ class Entry(object):
             res += ' ' * tab + f'[{tpl(keys[0])}] {self.forms[keys[0]]}'
             for i in range(1, len(keys)):
                 res += '\n' + ' ' * tab + f'[{tpl(keys[i])}] {self.forms[keys[i]]}'
+        return res
+
+    # Напечатать количество ошибок после последнего верного ответа
+    def last_att_print(self):
+        if self.last_att == -1:  # Если ещё не было попыток
+            res = '-'
+        else:
+            res = self.last_att
+        return res
+
+    # Напечатать процент верных ответов
+    def percent_print(self):
+        if self.last_att == -1:  # Если ещё не было попыток
+            res = '0'
+        else:
+            res = '{:.0%}'.format(self.score)
         return res
 
     # Напечатать статистику
@@ -3701,13 +3717,17 @@ class PrintW(tk.Toplevel):
         self.canvas.bind('<Configure>', _configure_canvas)
 
         self.keys = [key for key in _0_global_dct.d.keys()]
-        self.buttons = [ttk.Button(self.interior, takefocus=False, style='Flat.TButton')
+        self.buttons = [ttk.Button(self.interior, text=_0_global_dct.d[self.keys[i]].print_briefly_with_forms(),
+                                   command=lambda i=i: self.edit_note(i), takefocus=False, style='Flat.TButton')
                         for i in range(_0_global_dct.count_w)]
-
         for i in range(_0_global_dct.count_w):
-            self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly(),
-                                      command=lambda i=i: self.edit_note(i))
             self.buttons[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+        self.tips = [ttip.Hovertip(self.buttons[i],
+                                   f'Количество ответов после\n'
+                                   f'   последнего верного ответа: {_0_global_dct.d[self.keys[i]].last_att_print()}\n'
+                                   f'Доля верных ответов: {_0_global_dct.d[self.keys[i]].percent_print()}',
+                                   hover_delay=666)
+                     for i in range(_0_global_dct.count_w)]
         #
         self.lbl_info = ttk.Label(self, textvariable=self.var_info, style='Default.TLabel')
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
@@ -3743,14 +3763,7 @@ class PrintW(tk.Toplevel):
 
         self.scrollbar_y.config(command=self.canvas.yview, orient='vertical')
 
-        self.tip_text = ttip.Hovertip(self.canvas, '(*) [1;  60%] word: слово\n'
-                                                   '----------------------------------\n'
-                                                   '(*) - избранное\n'
-                                                   '1 - количество ответов после\n'
-                                                   '      последнего верного ответа\n'
-                                                   '60% - доля верных ответов')
-
-        self.print()
+        self.var_info.set(_0_global_dct.dct_info())
 
     # Изменить статью
     def edit_note(self, index):
@@ -3760,12 +3773,45 @@ class PrintW(tk.Toplevel):
 
     # Напечатать словарь
     def print(self):
+        # Удаляем старые кнопки
+        for btn in self.buttons:
+            btn.destroy()
+        for tip in self.tips:
+            tip.__del__()
+        self.keys = None
+
+        # Выбираем нужные статьи и выводим информацию
         if self.var_fav.get():
+            self.keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
+
             w, t, f = _0_global_dct.count_fav()
             self.var_info.set(_0_global_dct.dct_info_fav(w, t, f))
         else:
+            self.keys = [key for key in _0_global_dct.d.keys()]
+
             self.var_info.set(_0_global_dct.dct_info())
-        self.canvas.yview_moveto(1.0)
+
+        # Создаём новые кнопки
+        self.buttons = [ttk.Button(self.interior, command=lambda i=i: self.edit_note(i),
+                                   takefocus=False, style='Flat.TButton')
+                        for i in range(len(self.keys))]
+        # Выводим текст на кнопки
+        if self.var_forms.get():
+            for i in range(len(self.keys)):
+                self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly_with_forms())
+        else:
+            for i in range(len(self.keys)):
+                self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly())
+        # Расставляем кнопки
+        for i in range(len(self.keys)):
+            self.buttons[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+        # Создаём подсказки
+        self.tips = [ttip.Hovertip(self.buttons[i],
+                                   f'Количество ответов после\n'
+                                   f'   последнего верного ответа: {_0_global_dct.d[self.keys[i]].last_att_print()}\n'
+                                   f'Доля верных ответов: {_0_global_dct.d[self.keys[i]].percent_print()}',
+                                   hover_delay=666)
+                     for i in range(len(self.keys))]
 
     # Нажатие на кнопку "Добавить все статьи в избранное"
     def fav_all(self):
