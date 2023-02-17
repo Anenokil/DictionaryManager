@@ -11,7 +11,7 @@ import idlelib.tooltip as ttip  # Всплывающие подсказки
 from tkinter.filedialog import askdirectory
 import re  # Несколько разделителей в split
 import webbrowser  # Для открытия веб-страницы
-import urllib.request as urllib2  # Для проверки наличия обновлений
+import requests  # Для проверки наличия обновлений
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
 import typing  # Аннотации
@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.10'
+PROGRAM_VERSION = 'v7.0.11'
 PROGRAM_DATE = '17.2.2023'
-PROGRAM_TIME = '18:41 (UTC+3)'
+PROGRAM_TIME = '19:44 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -529,9 +529,6 @@ class Entry(object):
         for key in to_delete:
             self.forms.pop(key)
 
-    # Переименовать данную категорию у всех словоформ
-    """ def rename_ctg(self, pos: int): """
-
     # Объединить статистику при объединении двух статей
     def merge_stat(self, all_att: int, correct_att: int, last_att: int):
         self.all_att += all_att
@@ -846,11 +843,6 @@ class Dictionary(object):
             self.count_f -= entry.count_f
             entry.delete_ctg(pos)
             self.count_f += entry.count_f
-
-    # Переименовать данную категорию у всех словоформ
-    """def rename_ctg(self, pos: int):
-        for entry in self.d.values():
-            entry.rename_ctg(pos)"""
 
     # Подсчитать среднюю долю правильных ответов
     def count_rating(self):
@@ -1315,8 +1307,8 @@ def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
     print('\nПроверка наличия обновлений...')
     window_last_version = None
     try:
-        data = urllib2.urlopen(URL_LAST_VERSION)
-        last_version = str(data.readline().decode('utf-8')).strip()
+        data = requests.get(URL_LAST_VERSION, verify=False).text
+        last_version = data.strip()
         if PROGRAM_VERSION == last_version:
             print('Установлена последняя доступная версия программы')
             if show_updates and show_if_no_updates:
@@ -1913,6 +1905,29 @@ def btn_enable(btn: ttk.Button, command, style='Default'):
     btn.configure(command=command, style=f'{style}.TButton')
 
 
+""" Графический интерфейс - функции валидации """
+
+
+# Ввод только целых чисел от 0 до max_val
+def validate_int_max(value: str, max_val: int):
+    return value == '' or value.isnumeric() and int(value) <= max_val
+
+
+# Ввод только целых чисел от 0 до 100
+def validate_percent(value: str):
+    return validate_int_max(value, 100)
+
+
+# Валидация ключа специальной комбинации
+def validate_special_combination_key(value: str):
+    return len(value) <= 1 and value != SPECIAL_COMBINATION_OPENING_SYMBOL
+
+
+# Валидация значения специальной комбинации
+def validate_special_combination_val(value: str):
+    return len(value) <= 1
+
+
 """ Графический интерфейс - прокручиваемый фрейм """
 
 
@@ -1928,15 +1943,19 @@ class ScrollFrame(tk.Frame):
         self.canvas.pack(     side='left',  fill='both', expand=True)
         self.scrollbar_y.pack(side='right', fill='y')
 
-        self.canvas.configure(yscrollcommand=self.scrollbar_y.set)  # attach scrollbar action to scroll of canvas
+        self.canvas.configure(yscrollcommand=self.scrollbar_y.set)
         self.canvas_window = self.canvas.create_window((4, 4), window=self.frame_canvas, anchor='nw',
                                                        tags='self.frame_canvas')
 
-        self.frame_canvas.bind('<Configure>', self.on_frame_configure)  # bind an event whenever the size of the frame_canvas frame changes.
-        self.canvas.bind('<Configure>', self.on_canvas_configure)  # bind an event whenever the size of the canvas frame changes.
+        # Когда размер фрейма изменяется, соответственно изменяется и область прокрутки
+        self.frame_canvas.bind('<Configure>',self.on_frame_configure)
+        # Когда размер холста изменяется, соответственно изменяется и область окна
+        self.canvas.bind('<Configure>', self.on_canvas_configure)
 
-        self.frame_canvas.bind('<Enter>', self.on_enter)  # bind wheel events when the cursor enters the control
-        self.frame_canvas.bind('<Leave>', self.on_leave)  # unbind wheel events when the cursor leaves the control
+        # Привязать колёсико мышки, когда курсор попадает на элемент управления
+        self.frame_canvas.bind('<Enter>', self.on_enter)
+        # Отвязать колёсико мышки, когда курсор покидает элемент управления
+        self.frame_canvas.bind('<Leave>', self.on_leave)
 
         self.on_frame_configure(None)
 
@@ -1976,29 +1995,6 @@ class ScrollFrame(tk.Frame):
             self.canvas.unbind_all('<Button-5>')
         else:
             self.canvas.unbind_all('<MouseWheel>')
-
-
-""" Графический интерфейс - функции валидации """
-
-
-# Ввод только целых чисел от 0 до max_val
-def validate_int_max(value: str, max_val: int):
-    return value == '' or value.isnumeric() and int(value) <= max_val
-
-
-# Ввод только целых чисел от 0 до 100
-def validate_percent(value: str):
-    return validate_int_max(value, 100)
-
-
-# Валидация ключа специальной комбинации
-def validate_special_combination_key(value: str):
-    return len(value) <= 1 and value != SPECIAL_COMBINATION_OPENING_SYMBOL
-
-
-# Валидация значения специальной комбинации
-def validate_special_combination_val(value: str):
-    return len(value) <= 1
 
 
 """ Графический интерфейс - всплывающие окна """
@@ -2519,8 +2515,8 @@ class NewVersionAvailableW(tk.Toplevel):
     def download_and_install(self):
         # Загрузка списка обновляемых файлов
         try:
-            data = urllib2.urlopen(URL_UPDATE_FILES)
-            update_files = [str(filename.decode('utf-8')).strip() for filename in data.readlines()]
+            data = requests.get(URL_UPDATE_FILES, verify=False).text
+            update_files = [filename.strip() for filename in data.split('\n')]
         except Exception as exc:
             print(f'Не удалось получить данные!\n'
                   f'{exc}')
