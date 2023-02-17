@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.7с'
+PROGRAM_VERSION = 'v7.0.7d'
 PROGRAM_DATE = '17.2.2023'
-PROGRAM_TIME = '2:52 (UTC+3)'
+PROGRAM_TIME = '4:24 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -383,20 +383,20 @@ class Entry(object):
         return res
 
     # Напечатать статью - кратко
-    def print_briefly(self):
+    def print_briefly(self, len_str):
         res = self._print_briefly()
         if self.count_n != 0:
             res += f'\n{self.notes_print(tab=13)}'
-        return res
+        return split_text(res, len_str, tab=13)
 
     # Напечатать статью - кратко со словоформами
-    def print_briefly_with_forms(self):
+    def print_briefly_with_forms(self, len_str):
         res = self._print_briefly()
         if self.count_f != 0:
             res += f'\n{self.frm_print(tab=13)}'
         if self.count_n != 0:
             res += f'\n{self.notes_print(tab=13)}'
-        return res
+        return split_text(res, len_str, tab=13)
 
     # Напечатать статью - слово со статистикой
     def print_wrd_with_stat(self):
@@ -601,16 +601,6 @@ class Dictionary(object):
         f = set_postfix(self.count_w + self.count_f, ('словоформа', 'словоформы', 'словоформ'))
         t = set_postfix(self.count_t, ('перевод', 'перевода', 'переводов'))
         return f'< {self.count_w} {w} | {self.count_w + self.count_f} {f} | {self.count_t} {t} >'
-
-    # Напечатать словарь
-    def print(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
-        for entry in self.d.values():
-            outp(output_widget, entry.print_briefly())
-
-    # Напечатать словарь (со всеми словоформами)
-    def print_with_forms(self, output_widget: tk.Entry | ttk.Entry | tk.Text):
-        for entry in self.d.values():
-            outp(output_widget, entry.print_briefly_with_forms())
 
     # Вывести информацию о количестве избранных статей в словаре
     def dct_info_fav(self, count_w: int, count_t: int, count_f: int):
@@ -1013,6 +1003,16 @@ def check_ctg_val(window_parent, values: list[str] | tuple[str, ...], new_val: s
 """ Вспомогательные функции """
 
 
+# Вычислить ширину моноширинного поля, в которое должно помещаться каждое из данных значений
+def width(values: tuple[str, ...] | list[str], min_width: int, max_width: int):
+    assert min_width >= 0
+    assert max_width >= 0
+    assert max_width >= min_width
+
+    max_len_of_vals = max(len(val) for val in values)
+    return min(max(max_len_of_vals, min_width), max_width)
+
+
 # Вычислить количество строк, необходимых для записи данного текста
 # в многострочное текстовое поле при данной длине строки
 def height(text: str, len_str: int):
@@ -1022,14 +1022,31 @@ def height(text: str, len_str: int):
     return sum(math.ceil(len(segment) / len_str) for segment in segments)
 
 
-# Вычислить ширину моноширинного поля, в которое должно помещаться каждое из данных значений
-def width(values: tuple[str, ...] | list[str], min_width: int, max_width: int):
-    assert min_width >= 0
-    assert max_width >= 0
-    assert max_width >= min_width
+# Разделить текст на части, длина которых не превышает заданное значение
+def split_text(text: str, len_str: int, tab: int = 0):
+    assert len_str > 0
+    assert tab < len_str
 
-    max_len_of_vals = max(len(val) for val in values)
-    return min(max(max_len_of_vals, min_width), max_width)
+    res = ''
+    while len(text) > len_str:
+        segment = text[:len_str+1]
+        pos = segment.find('\n')
+        if pos == -1:
+            segment = f'{text[:len_str]}\n'
+            text = ' ' * tab + text[len_str:]
+        elif pos == len_str:
+            text = text[pos+1:]
+        else:
+            segment = text[:pos+1]
+            text = text[pos+1:]
+        res += segment
+    while '\n' in text:
+        pos = text.find('\n')
+        res += text[:pos+1]
+        text = text[pos+1:]
+    if text != '':
+        res += text + ' ' * (len_str - len(text))
+    return res
 
 
 # Преобразовать специальную комбинацию в читаемый вид (для отображения в настройках)
@@ -3697,8 +3714,8 @@ class PrintW(tk.Toplevel):
         # }
         self.scrollbar_y = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.frame_canvas = ttk.Frame(self, style='Default.TFrame')
-        self.canvas = tk.Canvas(self.frame_canvas, bd=0, highlightthickness=0, height=500, width=100,
-                                yscrollcommand=self.scrollbar_y.set)
+        self.canvas = tk.Canvas(self.frame_canvas, bg=ST_BG_FIELDS[th], bd=0, highlightthickness=0, height=500,
+                                width=100, yscrollcommand=self.scrollbar_y.set)
 
         self.interior = ttk.Frame(self.canvas, style='Invis.TFrame')
         interior_id = self.canvas.create_window(0, 0, window=self.interior, anchor=tk.NW)
@@ -3717,7 +3734,7 @@ class PrintW(tk.Toplevel):
         self.canvas.bind('<Configure>', _configure_canvas)
 
         self.keys = [key for key in _0_global_dct.d.keys()]
-        self.buttons = [ttk.Button(self.interior, text=_0_global_dct.d[self.keys[i]].print_briefly_with_forms(),
+        self.buttons = [ttk.Button(self.interior, text=_0_global_dct.d[self.keys[i]].print_briefly_with_forms(75),
                                    command=lambda i=i: self.edit_note(i), takefocus=False, style='Flat.TButton')
                         for i in range(_0_global_dct.count_w)]
         for i in range(_0_global_dct.count_w):
@@ -3778,7 +3795,6 @@ class PrintW(tk.Toplevel):
             btn.destroy()
         for tip in self.tips:
             tip.__del__()
-        self.keys = None
 
         # Выбираем нужные статьи и выводим информацию
         if self.var_fav.get():
@@ -3798,10 +3814,10 @@ class PrintW(tk.Toplevel):
         # Выводим текст на кнопки
         if self.var_forms.get():
             for i in range(len(self.keys)):
-                self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly_with_forms())
+                self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly_with_forms(75))
         else:
             for i in range(len(self.keys)):
-                self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly())
+                self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly(75))
         # Расставляем кнопки
         for i in range(len(self.keys)):
             self.buttons[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
