@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.7'
+PROGRAM_VERSION = 'v7.0.8'
 PROGRAM_DATE = '17.2.2023'
-PROGRAM_TIME = '4:32 (UTC+3)'
+PROGRAM_TIME = '4:46 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -5577,6 +5577,18 @@ class SettingsW(tk.Toplevel):
         else:
             self.btn_about_mgsp.configure(image=self.img_about, compound='image', style='Image.TButton')
             self.btn_about_typo.configure(image=self.img_about, compound='image', style='Image.TButton')
+        try:
+            self.img_plus = tk.PhotoImage(file=img_add)
+        except:
+            self.btn_fontsize_plus.configure(text='+', compound='text', style='Default.TButton')
+        else:
+            self.btn_fontsize_plus.configure(image=self.img_plus, compound='image', style='Image.TButton')
+        try:
+            self.img_minus = tk.PhotoImage(file=img_delete)
+        except:
+            self.btn_fontsize_minus.configure(text='-', compound='text', style='Default.TButton')
+        else:
+            self.btn_fontsize_minus.configure(image=self.img_minus, compound='image', style='Image.TButton')
 
         # Установка некоторых стилей для окна настроек
         self.configure(bg=ST_BG[th])
