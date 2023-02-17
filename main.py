@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.7d'
+PROGRAM_VERSION = 'v7.0.7'
 PROGRAM_DATE = '17.2.2023'
-PROGRAM_TIME = '4:24 (UTC+3)'
+PROGRAM_TIME = '4:32 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -536,7 +536,7 @@ class Entry(object):
         self.all_att += all_att
         self.correct_att += correct_att
         self.score = self.correct_att / self.all_att if (self.all_att != 0) else 0
-        self.last_att += last_att
+        self.last_att += last_att if last_att != -1 else 0
 
     # Обновить статистику, если совершена верная попытка
     def correct(self):
@@ -6060,7 +6060,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
