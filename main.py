@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.12'
+PROGRAM_VERSION = 'v7.0.13'
 PROGRAM_DATE = '17.2.2023'
-PROGRAM_TIME = '20:22 (UTC+3)'
+PROGRAM_TIME = '21:31 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -2583,7 +2583,7 @@ class NewVersionAvailableW(tk.Toplevel):
 
 
 # Окно создания шаблона словоформы
-class CreateFormTemplateW(tk.Toplevel):
+class CreateFormW(tk.Toplevel):
     def __init__(self, parent, key: tuple[str, int], combo_width=20):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
@@ -2599,9 +2599,10 @@ class CreateFormTemplateW(tk.Toplevel):
         self.void_template = self.template.copy()  # Пустой шаблон (для сравнения на пустоту)
         self.key = key
 
-        self.var_template = tk.StringVar(value='Текущий шаблон словоформы: ""')
         self.var_ctg = tk.StringVar(value=self.categories[0])
         self.var_val = tk.StringVar(value=self.ctg_values[0])
+        self.var_template = tk.StringVar(value='Текущий шаблон словоформы: ""')
+        self.var_form = tk.StringVar(value=_0_global_dct.d[self.key].wrd)
 
         self.vcmd_ctg = (self.register(lambda value: self.refresh_vals()), '%P')
 
@@ -2636,8 +2637,12 @@ class CreateFormTemplateW(tk.Toplevel):
             self.tip_btn_none = ttip.Hovertip(self.btn_none, 'Не указывать/неприменимо', hover_delay=500)
         # }
         self.lbl_template = ttk.Label(self, textvariable=self.var_template, justify='center', style='Default.TLabel')
-        self.btn_done = ttk.Button(self, text='Закончить с шаблоном и ввести форму слова', command=self.done,
-                                   takefocus=False, style='Default.TButton')
+        self.frame_form = ttk.Frame(self, style='Invis.TFrame')
+        # {
+        self.lbl_form = ttk.Label(self.frame_form, text='Форма:', justify='left', style='Default.TLabel')
+        self.entry_form = ttk.Entry(self.frame_form, textvariable=self.var_form, style='Default.TEntry')
+        # }
+        self.btn_save = ttk.Button(self, text='Добавить', command=self.save, takefocus=False, style='Default.TButton')
 
         self.lbl_choose_ctg.grid(row=0, column=0, padx=(6, 1), pady=(6, 1), sticky='E')
         self.combo_ctg.grid(     row=0, column=1, padx=(0, 6), pady=(6, 1), sticky='W')
@@ -2649,11 +2654,16 @@ class CreateFormTemplateW(tk.Toplevel):
         self.btn_none.grid(  row=0, column=2, padx=0,      pady=0)
         # }
         self.lbl_template.grid(row=2, columnspan=2, padx=6, pady=1)
-        self.btn_done.grid(    row=3, columnspan=2, padx=6, pady=6)
+        self.frame_form.grid(  row=3, columnspan=2, padx=6, pady=6)
+        # {
+        self.lbl_form.grid(  row=0, column=0, padx=(0, 1), pady=0, sticky='E')
+        self.entry_form.grid(row=0, column=1, padx=0,      pady=0, sticky='W')
+        # }
+        self.btn_save.grid(row=4, columnspan=2, padx=6, pady=6)
 
         self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
 
-        btn_disable(self.btn_done)
+        btn_disable(self.btn_save)
 
     # Выбрать категорию и задать ей значение
     def choose(self):
@@ -2670,9 +2680,9 @@ class CreateFormTemplateW(tk.Toplevel):
         self.var_template.set(f'Текущий шаблон словоформы: "{tpl(self.template)}"')
 
         if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
-            btn_disable(self.btn_done)
+            btn_disable(self.btn_save)
         else:
-            btn_enable(self.btn_done, self.done)
+            btn_enable(self.btn_save, self.save)
 
         # В combobox значением по умолчанию становится первая ещё не заданная категория
         for i in range(len(self.template)):
@@ -2693,9 +2703,9 @@ class CreateFormTemplateW(tk.Toplevel):
         self.var_template.set(f'Текущий шаблон словоформы: "{tpl(self.template)}"')
 
         if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
-            btn_disable(self.btn_done)
+            btn_disable(self.btn_save)
         else:
-            btn_enable(self.btn_done, self.done)
+            btn_enable(self.btn_save, self.save)
 
         # В combobox значением по умолчанию становится первая ещё не заданная категория
         for i in range(len(self.template)):
@@ -2704,10 +2714,13 @@ class CreateFormTemplateW(tk.Toplevel):
                 break
         self.refresh_vals()
 
-    # Закончить с шаблоном
-    def done(self):
+    # Сохранить словоформу
+    def save(self):
         if tuple(self.template) in _0_global_dct.d[self.key].forms.keys():
             warning(self, f'У слова "{key_to_wrd(self.key)}" уже есть форма с таким шаблоном!')
+            return
+        if self.var_form.get() == '':
+            warning(self, 'Словоформа должна содержать хотя бы один символ!')
             return
         self.closed = False
         self.destroy()
@@ -2723,6 +2736,7 @@ class CreateFormTemplateW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+        self.entry_form.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
@@ -2733,12 +2747,12 @@ class CreateFormTemplateW(tk.Toplevel):
         self.wait_window()
 
         if self.closed:
-            return None
+            return None, None
         if self.template == self.void_template:
-            return None
+            return None, None
         if tuple(self.template) in _0_global_dct.d[self.key].forms.keys():
-            return None
-        return tuple(self.template)
+            return None, None
+        return tuple(self.template), self.var_form.get()
 
 
 # Окно вывода похожих статей для редактирования
@@ -4789,18 +4803,10 @@ class EditW(tk.Toplevel):
                           'Настройки/Настройки словаря/Грамматические категории')
             return
 
-        window_template = CreateFormTemplateW(self, self.dct_key,
-                                              combo_width=width(tuple(_0_global_categories.keys()),
-                                                                5, 100))  # Создание шаблона словоформы
-        frm_key = window_template.open()
+        window_form = CreateFormW(self, self.dct_key, combo_width=width(tuple(_0_global_categories.keys()),
+                                                                        5, 100))  # Создание шаблона словоформы
+        frm_key, frm = window_form.open()
         if not frm_key:
-            return
-
-        window_form = PopupEntryW(self, 'Введите форму слова',
-                                  check_answer_function=lambda wnd, val:
-                                  check_not_void(wnd, val, 'Форма должна содержать хотя бы один символ!'))
-        closed, frm = window_form.open()
-        if closed:
             return
         frm = encode_special_combinations(frm)
 
