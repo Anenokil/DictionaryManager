@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.14'
-PROGRAM_DATE = '17.2.2023'
-PROGRAM_TIME = '21:34 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.15a'
+PROGRAM_DATE = '18.2.2023'
+PROGRAM_TIME = '0:51 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -4046,60 +4046,23 @@ class LearnW(tk.Toplevel):
 
         self.start()
 
-    # Просмотр сносок
-    def show_notes(self):
-        self.txt_dct['state'] = 'normal'
         entry = _0_global_dct.d[self.current_key]
-        outp(self.txt_dct, entry.notes_print())
-        self.txt_dct.yview_moveto(1.0)
-        self.txt_dct['state'] = 'disabled'
-        btn_disable(self.btn_notes)
-
-    # Завершение учёбы
-    def stop(self):
-        self.frame_main.grid_remove()
-        self.btn_stop.grid_remove()
-        btn_disable(self.btn_input)
-
-        PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
-        self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}')
+        if entry.count_n == 0:
+            btn_disable(self.btn_notes)
 
     # Печать в текстовое поле
     def outp(self, msg='', end='\n'):
         self.txt_dct['state'] = 'normal'
-        self.txt_dct.insert(tk.END, msg + end)
+        self.txt_dct.insert(tk.END, f'{msg}{end}')
         self.txt_dct.yview_moveto(1.0)
         self.txt_dct['state'] = 'disabled'
 
-    # Начать учить слова
-    def start(self):
-        global _0_global_has_progress
-
-        if self.learn_method == VALUES_LEARN_METHOD[0]:
-            if self.with_forms:
-                if self.words == VALUES_LEARN_WORDS[0]:
-                    _0_global_has_progress = self.choose_f(_0_global_dct) or _0_global_has_progress
-                elif self.words == VALUES_LEARN_WORDS[1]:
-                    _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or\
-                                             _0_global_has_progress
-                else:
-                    _0_global_has_progress = self.choose_f_fav(_0_global_dct) or _0_global_has_progress
-            else:
-                if self.words == VALUES_LEARN_WORDS[0]:
-                    _0_global_has_progress = self.choose(_0_global_dct) or _0_global_has_progress
-                elif self.words == VALUES_LEARN_WORDS[1]:
-                    _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or\
-                                             _0_global_has_progress
-                else:
-                    _0_global_has_progress = self.choose_fav(_0_global_dct) or _0_global_has_progress
-        else:
-            if self.words == VALUES_LEARN_WORDS[0]:
-                _0_global_has_progress = self.choose_t(_0_global_dct) or _0_global_has_progress
-            elif self.words == VALUES_LEARN_WORDS[1]:
-                _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or\
-                                         _0_global_has_progress
-            else:
-                _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
+    # Просмотр сносок
+    def show_notes(self):
+        entry = _0_global_dct.d[self.current_key]
+        if entry.count_n != 0:
+            self.outp(entry.notes_print())
+        btn_disable(self.btn_notes)
 
     # Ввод ответа и переход к следующему слову
     def input(self):
@@ -4142,9 +4105,51 @@ class LearnW(tk.Toplevel):
             else:
                 _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
 
-        btn_enable(self.btn_notes, self.show_notes)
+        entry = _0_global_dct.d[self.current_key]
+        if entry.count_n != 0:
+            btn_enable(self.btn_notes, self.show_notes)
+
         self.entry_input.delete(0, tk.END)
         self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {self.get_percent()}%'
+
+    # Завершение учёбы
+    def stop(self):
+        self.frame_main.grid_remove()
+        self.btn_stop.grid_remove()
+        btn_disable(self.btn_input)
+
+        PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
+        self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}', end='')
+
+    # Начать учить слова
+    def start(self):
+        global _0_global_has_progress
+
+        if self.learn_method == VALUES_LEARN_METHOD[0]:
+            if self.with_forms:
+                if self.words == VALUES_LEARN_WORDS[0]:
+                    _0_global_has_progress = self.choose_f(_0_global_dct) or _0_global_has_progress
+                elif self.words == VALUES_LEARN_WORDS[1]:
+                    _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or\
+                                             _0_global_has_progress
+                else:
+                    _0_global_has_progress = self.choose_f_fav(_0_global_dct) or _0_global_has_progress
+            else:
+                if self.words == VALUES_LEARN_WORDS[0]:
+                    _0_global_has_progress = self.choose(_0_global_dct) or _0_global_has_progress
+                elif self.words == VALUES_LEARN_WORDS[1]:
+                    _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or\
+                                             _0_global_has_progress
+                else:
+                    _0_global_has_progress = self.choose_fav(_0_global_dct) or _0_global_has_progress
+        else:
+            if self.words == VALUES_LEARN_WORDS[0]:
+                _0_global_has_progress = self.choose_t(_0_global_dct) or _0_global_has_progress
+            elif self.words == VALUES_LEARN_WORDS[1]:
+                _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or\
+                                         _0_global_has_progress
+            else:
+                _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
 
     # Проверка введённого ответа
     def check_answer(self, correct_answer: str, is_correct: bool,
@@ -4230,9 +4235,7 @@ class LearnW(tk.Toplevel):
             if self.current_key not in self.used_words:
                 break
 
-        self.txt_dct['state'] = 'normal'
-        outp(self.txt_dct, dct.d[self.current_key].print_tr_with_stat())
-        self.txt_dct['state'] = 'disabled'
+        self.outp(dct.d[self.current_key].print_tr_with_stat())
 
         return True
 
@@ -4249,9 +4252,7 @@ class LearnW(tk.Toplevel):
             if self.current_key not in self.used_words:
                 break
 
-        self.txt_dct['state'] = 'normal'
-        outp(self.txt_dct, dct.d[self.current_key].print_tr_with_stat())
-        self.txt_dct['state'] = 'disabled'
+        self.outp(dct.d[self.current_key].print_tr_with_stat())
 
         return True
 
@@ -4265,9 +4266,7 @@ class LearnW(tk.Toplevel):
             if self.current_key not in self.used_words:
                 break
 
-        self.txt_dct['state'] = 'normal'
-        outp(self.txt_dct, dct.d[self.current_key].print_tr_with_stat())
-        self.txt_dct['state'] = 'disabled'
+        self.outp(dct.d[self.current_key].print_tr_with_stat())
 
         return True
 
@@ -4282,16 +4281,12 @@ class LearnW(tk.Toplevel):
             if self.rnd_f == -1:
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
-                    self.txt_dct['state'] = 'normal'
-                    outp(self.txt_dct, dct.d[self.current_key].print_tr_with_stat())
-                    self.txt_dct['state'] = 'disabled'
+                    self.outp(dct.d[self.current_key].print_tr_with_stat())
                     break
             else:
                 self.current_form = list(dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
-                    self.txt_dct['state'] = 'normal'
-                    outp(self.txt_dct, dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
-                    self.txt_dct['state'] = 'disabled'
+                    self.outp(dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
                     break
 
         return True
@@ -4312,16 +4307,12 @@ class LearnW(tk.Toplevel):
             if self.rnd_f == -1:
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
-                    self.txt_dct['state'] = 'normal'
-                    outp(self.txt_dct, dct.d[self.current_key].print_tr_with_stat())
-                    self.txt_dct['state'] = 'disabled'
+                    self.outp(dct.d[self.current_key].print_tr_with_stat())
                     break
             else:
                 self.current_form = list(dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
-                    self.txt_dct['state'] = 'normal'
-                    outp(self.txt_dct, dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
-                    self.txt_dct['state'] = 'disabled'
+                    self.outp(dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
                     break
 
         return True
@@ -4337,16 +4328,12 @@ class LearnW(tk.Toplevel):
             if self.rnd_f == -1:
                 self.current_form = self.current_key
                 if self.current_key not in self.used_words:
-                    self.txt_dct['state'] = 'normal'
-                    outp(self.txt_dct, dct.d[self.current_key].print_tr_with_stat())
-                    self.txt_dct['state'] = 'disabled'
+                    self.outp(dct.d[self.current_key].print_tr_with_stat())
                     break
             else:
                 self.current_form = list(dct.d[self.current_key].forms.keys())[self.rnd_f]
                 if (self.current_key, self.current_form) not in self.used_words:
-                    self.txt_dct['state'] = 'normal'
-                    outp(self.txt_dct, dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
-                    self.txt_dct['state'] = 'disabled'
+                    self.outp(dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
                     break
 
         return True
@@ -4361,9 +4348,7 @@ class LearnW(tk.Toplevel):
             if self.current_key not in self.used_words:
                 break
 
-        self.txt_dct['state'] = 'normal'
-        outp(self.txt_dct, dct.d[self.current_key].print_wrd_with_stat())
-        self.txt_dct['state'] = 'disabled'
+        self.outp(dct.d[self.current_key].print_wrd_with_stat())
 
         return True
 
@@ -4380,9 +4365,7 @@ class LearnW(tk.Toplevel):
             if self.current_key not in self.used_words:
                 break
 
-        self.txt_dct['state'] = 'normal'
-        outp(self.txt_dct, dct.d[self.current_key].print_wrd_with_stat())
-        self.txt_dct['state'] = 'disabled'
+        self.outp(dct.d[self.current_key].print_wrd_with_stat())
 
         return True
 
@@ -4396,9 +4379,7 @@ class LearnW(tk.Toplevel):
             if self.current_key not in self.used_words:
                 break
 
-        self.txt_dct['state'] = 'normal'
-        outp(self.txt_dct, dct.d[self.current_key].print_wrd_with_stat())
-        self.txt_dct['state'] = 'disabled'
+        self.outp(dct.d[self.current_key].print_wrd_with_stat())
 
         return True
 
@@ -6109,8 +6090,8 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                             {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
