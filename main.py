@@ -1,5 +1,6 @@
 import copy
 import os
+import platform
 import shutil
 import random
 import math
@@ -18,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.9'
+PROGRAM_VERSION = 'v7.0.10'
 PROGRAM_DATE = '17.2.2023'
-PROGRAM_TIME = '5:30 (UTC+3)'
+PROGRAM_TIME = '18:41 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1912,6 +1913,71 @@ def btn_enable(btn: ttk.Button, command, style='Default'):
     btn.configure(command=command, style=f'{style}.TButton')
 
 
+""" Графический интерфейс - прокручиваемый фрейм """
+
+
+# Виджет - прокручиваемый фрейм
+class ScrollFrame(tk.Frame):
+    def __init__(self, parent, height, width):
+        super().__init__(parent)
+
+        self.canvas = tk.Canvas(self, bg=ST_BG_FIELDS[th], bd=0, highlightthickness=0, height=height, width=width)
+        self.frame_canvas = ttk.Frame(self.canvas, style='Default.TFrame')
+        self.scrollbar_y = ttk.Scrollbar(self, command=self.canvas.yview, style='Vertical.TScrollbar')
+
+        self.canvas.pack(     side='left',  fill='both', expand=True)
+        self.scrollbar_y.pack(side='right', fill='y')
+
+        self.canvas.configure(yscrollcommand=self.scrollbar_y.set)  # attach scrollbar action to scroll of canvas
+        self.canvas_window = self.canvas.create_window((4, 4), window=self.frame_canvas, anchor='nw',
+                                                       tags='self.frame_canvas')
+
+        self.frame_canvas.bind('<Configure>', self.on_frame_configure)  # bind an event whenever the size of the frame_canvas frame changes.
+        self.canvas.bind('<Configure>', self.on_canvas_configure)  # bind an event whenever the size of the canvas frame changes.
+
+        self.frame_canvas.bind('<Enter>', self.on_enter)  # bind wheel events when the cursor enters the control
+        self.frame_canvas.bind('<Leave>', self.on_leave)  # unbind wheel events when the cursor leaves the control
+
+        self.on_frame_configure(None)
+
+    # Когда размер фрейма изменяется, соответственно изменяется и область прокрутки
+    def on_frame_configure(self, event):
+        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+
+    # Когда размер холста изменяется, соответственно изменяется и область окна
+    def on_canvas_configure(self, event):
+        canvas_width = event.width
+        self.canvas.itemconfig(self.canvas_window, width=canvas_width)
+
+    # Обработка событий колёсика мышки
+    def on_mouse_wheel(self, event):
+        if platform.system() == 'Windows':
+            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), 'units')
+        elif platform.system() == 'Darwin':
+            self.canvas.yview_scroll(int(-1 * event.delta), 'units')
+        else:
+            if event.num == 4:
+                self.canvas.yview_scroll(-1, 'units')
+            elif event.num == 5:
+                self.canvas.yview_scroll(1, 'units')
+
+    # Привязать колёсико мышки, когда курсор попадает на элемент управления
+    def on_enter(self, event):
+        if platform.system() == 'Linux':
+            self.canvas.bind_all('<Button-4>', self.on_mouse_wheel)
+            self.canvas.bind_all('<Button-5>', self.on_mouse_wheel)
+        else:
+            self.canvas.bind_all('<MouseWheel>', self.on_mouse_wheel)
+
+    # Отвязать колёсико мышки, когда курсор покидает элемент управления
+    def on_leave(self, event):
+        if platform.system() == 'Linux':
+            self.canvas.unbind_all('<Button-4>')
+            self.canvas.unbind_all('<Button-5>')
+        else:
+            self.canvas.unbind_all('<MouseWheel>')
+
+
 """ Графический интерфейс - функции валидации """
 
 
@@ -3092,35 +3158,12 @@ class CustomThemeSettingsW(tk.Toplevel):
                                          takefocus=False, style='Default.TButton')
         # }
         # Прокручиваемая область с настройками
-        self.vscrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.frame_canvas = ttk.Frame(self, style='Default.TFrame')
-        self.canvas = tk.Canvas(self.frame_canvas, bd=0, highlightthickness=0, height=400,
-                                yscrollcommand=self.vscrollbar.set)
-
-        self.vscrollbar.config(command=self.canvas.yview)
-        self.canvas.xview_moveto(0)
-        self.canvas.yview_moveto(0)
-
-        self.interior = ttk.Frame(self.canvas, style='Invis.TFrame')
-        interior_id = self.canvas.create_window(0, 0, window=self.interior, anchor=tk.NW)
-
-        def _configure_interior(event):
-            self.canvas.config(scrollregion=(0, 0, self.interior.winfo_reqwidth(), self.interior.winfo_reqheight()))
-            if self.interior.winfo_reqwidth() != self.canvas.winfo_width():
-                self.canvas.config(width=self.interior.winfo_reqwidth())
-
-        self.interior.bind('<Configure>', _configure_interior)
-
-        def _configure_canvas(event):
-            if self.interior.winfo_reqwidth() != self.canvas.winfo_width():
-                self.canvas.itemconfigure(interior_id, width=self.canvas.winfo_width())
-
-        self.canvas.bind('<Configure>', _configure_canvas)
-        #
+        self.scrolled_frame = ScrollFrame(self, 400, 500)
+        # {
         # Выбор цветов
-        self.labels = [ttk.Label(self.interior, style='Default.TLabel')
+        self.labels = [ttk.Label(self.scrolled_frame.frame_canvas, style='Default.TLabel')
                        for _ in range(len(STYLE_ELEMENTS))]
-        self.buttons = [tk.Button(self.interior, relief='solid', overrelief='raised',
+        self.buttons = [tk.Button(self.scrolled_frame.frame_canvas, relief='solid', overrelief='raised',
                                   borderwidth=1, width=18, takefocus=False)
                         for i in range(len(STYLE_ELEMENTS))]
         # Получается по 2 лишних экземпляра каждого виджета (но пусть будет так)
@@ -3142,7 +3185,6 @@ class CustomThemeSettingsW(tk.Toplevel):
                 else:
                     self.labels[i].grid(pady=(0, 3))
                     self.buttons[i].grid(pady=(0, 3))
-        #
 
         # Выбор стиля рамок
         def _choose_relief(elem, value):
@@ -3155,18 +3197,20 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.vcmd_relief_frame = (self.register(lambda value: _choose_relief('RELIEF_FRAME', value)), '%P')
         self.vcmd_relief_text = (self.register(lambda value: _choose_relief('RELIEF_TEXT', value)), '%P')
 
-        self.lbl_relief_frame = ttk.Label(self.interior, text='Стиль рамок фреймов:', style='Default.TLabel')
-        self.combo_relief_frame = ttk.Combobox(self.interior, textvariable=self.var_relief_frame, width=19,
+        self.lbl_relief_frame = ttk.Label(self.scrolled_frame.frame_canvas, text='Стиль рамок фреймов:',
+                                          style='Default.TLabel')
+        self.combo_relief_frame = ttk.Combobox(self.scrolled_frame.frame_canvas, textvariable=self.var_relief_frame,
                                                values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
-                                               validate='focus', validatecommand=self.vcmd_relief_frame,
+                                               width=19, validate='focus', validatecommand=self.vcmd_relief_frame,
                                                state='readonly', style='Default.TCombobox')
 
-        self.lbl_relief_text = ttk.Label(self.interior, text='Стиль рамок текстовых полей:', style='Default.TLabel')
-        self.combo_relief_text = ttk.Combobox(self.interior, textvariable=self.var_relief_text, width=19,
+        self.lbl_relief_text = ttk.Label(self.scrolled_frame.frame_canvas, text='Стиль рамок текстовых полей:',
+                                         style='Default.TLabel')
+        self.combo_relief_text = ttk.Combobox(self.scrolled_frame.frame_canvas, textvariable=self.var_relief_text,
                                               values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
-                                              validate='focus', validatecommand=self.vcmd_relief_text,
+                                              width=19, validate='focus', validatecommand=self.vcmd_relief_text,
                                               state='readonly', style='Default.TCombobox')
-        #
+        # }
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.btn_save = ttk.Button(self.frame_buttons, text='Сохранить', command=self.save, takefocus=False,
@@ -3253,18 +3297,14 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.combo_set_images.grid(row=1, column=1, padx=(0, 3), pady=0)
         self.btn_set_images.grid(  row=1, column=2, padx=(0, 0), pady=0,      sticky='W')
         # }
-        self.frame_canvas.grid(row=1, column=0, padx=(6, 0), pady=6, sticky='ESN')
+        self.scrolled_frame.grid(row=1, columnspan=2, padx=6, pady=6)
         # {
-        self.canvas.grid(row=0, column=0, padx=1, pady=1)
-        # { {
         self.lbl_relief_frame.grid(  row=9,  column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_relief_frame.grid(row=9,  column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_relief_text.grid(   row=10, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_relief_text.grid( row=10, column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
-        # } }
         # }
-        self.vscrollbar.grid(   row=1, column=1,               padx=(0, 6), pady=6,     sticky='WSN')
-        self.frame_buttons.grid(row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
+        self.frame_buttons.grid(row=2, column=0, columnspan=2, padx=6, pady=(0, 6))
         # {
         self.btn_save.grid(     row=0, column=0, padx=(0, 36), pady=0)
         self.frame_history.grid(row=0, column=1, padx=0,       pady=0)
@@ -3350,7 +3390,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         el = STYLE_ELEMENTS[n]
         hx = self.custom_styles[el]
 
-        (rgb, new_hx) = colorchooser.askcolor(hx)
+        rgb, new_hx = colorchooser.askcolor(hx)
         if not new_hx:
             return
 
@@ -3725,29 +3765,11 @@ class PrintW(tk.Toplevel):
         self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, command=self.print,
                                            style='Default.TCheckbutton')
         # }
-        self.scrollbar_y = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.frame_canvas = ttk.Frame(self, style='Default.TFrame')
-        self.canvas = tk.Canvas(self.frame_canvas, bg=ST_BG_FIELDS[th], bd=0, highlightthickness=0, height=500,
-                                width=100, yscrollcommand=self.scrollbar_y.set)
-
-        self.interior = ttk.Frame(self.canvas, style='Invis.TFrame')
-        interior_id = self.canvas.create_window(0, 0, window=self.interior, anchor=tk.NW)
-
-        def _configure_interior(event):
-            self.canvas.config(scrollregion=(0, 0, self.interior.winfo_reqwidth(), self.interior.winfo_reqheight()))
-            if self.interior.winfo_reqwidth() != self.canvas.winfo_width():
-                self.canvas.config(width=self.interior.winfo_reqwidth())
-
-        self.interior.bind('<Configure>', _configure_interior)
-
-        def _configure_canvas(event):
-            if self.interior.winfo_reqwidth() != self.canvas.winfo_width():
-                self.canvas.itemconfigure(interior_id, width=self.canvas.winfo_width())
-
-        self.canvas.bind('<Configure>', _configure_canvas)
-
+        self.scrolled_frame = ScrollFrame(self, 500, 604)
+        # {
         self.keys = [key for key in _0_global_dct.d.keys()]
-        self.buttons = [ttk.Button(self.interior, text=_0_global_dct.d[self.keys[i]].print_briefly_with_forms(75),
+        self.buttons = [ttk.Button(self.scrolled_frame.frame_canvas,
+                                   text=_0_global_dct.d[self.keys[i]].print_briefly_with_forms(75),
                                    command=lambda i=i: self.edit_note(i), takefocus=False, style='Flat.TButton')
                         for i in range(_0_global_dct.count_w)]
         for i in range(_0_global_dct.count_w):
@@ -3758,7 +3780,7 @@ class PrintW(tk.Toplevel):
                                    f'Доля верных ответов: {_0_global_dct.d[self.keys[i]].percent_print()}',
                                    hover_delay=666)
                      for i in range(_0_global_dct.count_w)]
-        #
+        # }
         self.lbl_info = ttk.Label(self, textvariable=self.var_info, style='Default.TLabel')
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
@@ -3778,20 +3800,14 @@ class PrintW(tk.Toplevel):
         self.lbl_forms.grid(  row=0, column=2, padx=(6, 1), pady=6, sticky='E')
         self.check_forms.grid(row=0, column=3, padx=(0, 6), pady=6, sticky='W')
         # }
-        self.frame_canvas.grid(row=2, column=0, padx=(6, 0), pady=0, sticky='NSEW')
-        # {
-        self.canvas.grid(row=0, column=0, padx=1, pady=1)
-        # }
-        self.scrollbar_y.grid(  row=2, column=1,     padx=(0, 6), pady=0,      sticky='WSN')
-        self.lbl_info.grid(     row=3, columnspan=2, padx=6,      pady=(0, 6))
-        self.frame_buttons.grid(row=4, columnspan=2, padx=6,      pady=(0, 6))
+        self.scrolled_frame.grid(row=2, columnspan=2, padx=6, pady=6)
+        self.lbl_info.grid(      row=3, columnspan=2, padx=6, pady=(0, 6))
+        self.frame_buttons.grid( row=4, columnspan=2, padx=6, pady=(0, 6))
         # {
         self.btn_fav_all.grid(  row=0, column=0,     padx=(0, 6), pady=(0, 6))
         self.btn_unfav_all.grid(row=0, column=1,     padx=0,      pady=(0, 6))
         self.btn_print_out.grid(row=1, columnspan=2, padx=0,      pady=0)
         # }
-
-        self.scrollbar_y.config(command=self.canvas.yview, orient='vertical')
 
         self.var_info.set(_0_global_dct.dct_info())
 
@@ -3821,7 +3837,7 @@ class PrintW(tk.Toplevel):
             self.var_info.set(_0_global_dct.dct_info())
 
         # Создаём новые кнопки
-        self.buttons = [ttk.Button(self.interior, command=lambda i=i: self.edit_note(i),
+        self.buttons = [ttk.Button(self.scrolled_frame.frame_canvas, command=lambda i=i: self.edit_note(i),
                                    takefocus=False, style='Flat.TButton')
                         for i in range(len(self.keys))]
         # Выводим текст на кнопки
@@ -3841,6 +3857,8 @@ class PrintW(tk.Toplevel):
                                    f'Доля верных ответов: {_0_global_dct.d[self.keys[i]].percent_print()}',
                                    hover_delay=666)
                      for i in range(len(self.keys))]
+
+        self.scrolled_frame.canvas.yview_moveto(0.0)
 
     # Нажатие на кнопку "Добавить все статьи в избранное"
     def fav_all(self):
@@ -6086,8 +6104,8 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                              {PROGRAM_NAME} {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
+      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
