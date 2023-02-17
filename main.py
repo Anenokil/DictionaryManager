@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.11'
+PROGRAM_VERSION = 'v7.0.12'
 PROGRAM_DATE = '17.2.2023'
-PROGRAM_TIME = '19:44 (UTC+3)'
+PROGRAM_TIME = '20:22 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -2513,8 +2513,11 @@ class NewVersionAvailableW(tk.Toplevel):
 
     # Скачать и установить обновление
     def download_and_install(self):
+        save_dct_if_has_progress(self, _0_global_dct, dct_filename(_0_global_dct_savename), _0_global_has_progress)
+
         # Загрузка списка обновляемых файлов
         try:
+            print('\nЧтение данных...')
             data = requests.get(URL_UPDATE_FILES, verify=False).text
             update_files = [filename.strip() for filename in data.split('\n')]
         except Exception as exc:
@@ -2527,10 +2530,10 @@ class NewVersionAvailableW(tk.Toplevel):
         # Загрузка
         try:
             # Скачиваем архив с обновлением
-            print('\nЗагрузка архива...', end='')
+            print('Загрузка архива...', end='')
             wget.download(URL_DOWNLOAD_ZIP, out=MAIN_PATH)
         except Exception as exc:
-            print(f'Не удалось загрузить обновление!\n'
+            print(f'\nНе удалось загрузить обновление!\n'
                   f'{exc}')
             warning(self, f'Не удалось загрузить обновление!\n'
                           f'{exc}')
