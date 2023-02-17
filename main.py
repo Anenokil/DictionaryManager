@@ -18,9 +18,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.8'
+PROGRAM_VERSION = 'v7.0.9'
 PROGRAM_DATE = '17.2.2023'
-PROGRAM_TIME = '4:46 (UTC+3)'
+PROGRAM_TIME = '5:30 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -2281,7 +2281,7 @@ class ChooseNoteW(tk.Toplevel):
         # }
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_words = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
-                                 font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                                 font='TkFixedFont', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                  highlightbackground=ST_BORDERCOLOR[th], relief=ST_RELIEF_TEXT[th],
                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
 
@@ -2692,13 +2692,13 @@ class ParticularMatchesW(tk.Toplevel):
         self.lbl_wrd = ttk.Label(self, text=f'Слова, содержащие "{wrd}"', justify='center', style='Default.TLabel')
         self.scrollbar_wrd = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
-                               font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                               font='TkFixedFont', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
         self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{wrd}"', justify='center', style='Default.TLabel')
         self.scrollbar_tr = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
-                              font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                              font='TkFixedFont', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                               relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
 
@@ -2728,6 +2728,19 @@ class ParticularMatchesW(tk.Toplevel):
         search_tr = self.var_wrd.get()
         self.txt_tr['state'] = 'normal'
         self.txt_tr.delete(1.0, tk.END)
+
+        outp(self.txt_tr, 'Полное совпадение:')
+        i = 0
+        for entry in _0_global_dct.d.values():
+            if search_tr in entry.tr:
+                if i != 0:
+                    outp(self.txt_tr, '\n')
+                outp(self.txt_tr, entry.print_all(), end='')
+                i += 1
+        if i == 0:
+            outp(self.txt_tr, f'Слово с переводом "{search_tr}" отсутствует в словаре', end='')
+        outp(self.txt_tr, '\n\nЧастичное совпадение:')
+
         _0_global_dct.print_translations_with_str(self.txt_tr, search_tr)
         self.txt_tr['state'] = 'disabled'
 
@@ -3740,8 +3753,8 @@ class PrintW(tk.Toplevel):
         for i in range(_0_global_dct.count_w):
             self.buttons[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
         self.tips = [ttip.Hovertip(self.buttons[i],
-                                   f'Количество ответов после\n'
-                                   f'   последнего верного ответа: {_0_global_dct.d[self.keys[i]].last_att_print()}\n'
+                                   f'Количество ответов после последнего верного ответа: '
+                                   f'{_0_global_dct.d[self.keys[i]].last_att_print()}\n'
                                    f'Доля верных ответов: {_0_global_dct.d[self.keys[i]].percent_print()}',
                                    hover_delay=666)
                      for i in range(_0_global_dct.count_w)]
@@ -3823,8 +3836,8 @@ class PrintW(tk.Toplevel):
             self.buttons[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
         # Создаём подсказки
         self.tips = [ttip.Hovertip(self.buttons[i],
-                                   f'Количество ответов после\n'
-                                   f'   последнего верного ответа: {_0_global_dct.d[self.keys[i]].last_att_print()}\n'
+                                   f'Количество ответов после последнего верного ответа: '
+                                   f'{_0_global_dct.d[self.keys[i]].last_att_print()}\n'
                                    f'Доля верных ответов: {_0_global_dct.d[self.keys[i]].percent_print()}',
                                    hover_delay=666)
                      for i in range(len(self.keys))]
@@ -5039,7 +5052,8 @@ class SettingsW(tk.Toplevel):
         # } }
         self.frame_check_register = ttk.Frame(self.tab_local, style='Default.TFrame')
         # { {
-        self.lbl_check_register = ttk.Label(self.frame_check_register, text='Учитывать регистр букв при проверке:',
+        self.lbl_check_register = ttk.Label(self.frame_check_register,
+                                            text='Учитывать регистр букв при проверке ответа во время учёбы:',
                                             style='Default.TLabel')
         self.check_check_register = ttk.Checkbutton(self.frame_check_register, variable=self.var_check_register,
                                                     style='Default.TCheckbutton')
