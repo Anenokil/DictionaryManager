@@ -11,7 +11,7 @@ import idlelib.tooltip as ttip  # Всплывающие подсказки
 from tkinter.filedialog import askdirectory
 import re  # Несколько разделителей в split
 import webbrowser  # Для открытия веб-страницы
-import requests  # Для проверки наличия обновлений
+import urllib.request as urllib2  # Для проверки наличия обновлений
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
 import typing  # Аннотации
@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.13'
+PROGRAM_VERSION = 'v7.0.14'
 PROGRAM_DATE = '17.2.2023'
-PROGRAM_TIME = '21:31 (UTC+3)'
+PROGRAM_TIME = '21:34 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1307,8 +1307,8 @@ def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
     print('\nПроверка наличия обновлений...')
     window_last_version = None
     try:
-        data = requests.get(URL_LAST_VERSION, verify=False).text
-        last_version = data.strip()
+        data = urllib2.urlopen(URL_LAST_VERSION)
+        last_version = str(data.readline().decode('utf-8')).strip()
         if PROGRAM_VERSION == last_version:
             print('Установлена последняя доступная версия программы')
             if show_updates and show_if_no_updates:
@@ -1933,7 +1933,7 @@ def validate_special_combination_val(value: str):
 
 # Виджет - прокручиваемый фрейм
 class ScrollFrame(tk.Frame):
-    def __init__(self, parent, height, width):
+    def __init__(self, parent, height: int, width: int):
         super().__init__(parent)
 
         self.canvas = tk.Canvas(self, bg=ST_BG_FIELDS[th], bd=0, highlightthickness=0, height=height, width=width)
@@ -2518,8 +2518,8 @@ class NewVersionAvailableW(tk.Toplevel):
         # Загрузка списка обновляемых файлов
         try:
             print('\nЧтение данных...')
-            data = requests.get(URL_UPDATE_FILES, verify=False).text
-            update_files = [filename.strip() for filename in data.split('\n')]
+            data = urllib2.urlopen(URL_UPDATE_FILES)
+            update_files = [str(filename.decode('utf-8')).strip() for filename in data.readlines()]
         except Exception as exc:
             print(f'Не удалось получить данные!\n'
                   f'{exc}')
