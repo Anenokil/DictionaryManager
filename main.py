@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.15b'
-PROGRAM_DATE = '18.2.2023'
-PROGRAM_TIME = '23:55 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.15c'
+PROGRAM_DATE = '19.2.2023'
+PROGRAM_TIME = '1:39 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -436,10 +436,10 @@ class Entry(object):
                 res += f'             > {self.notes[i]}\n'
         res += f'  Избранное: {self.fav}\n'
         if self.last_att == -1:
-            res += ' Статистика: 1) Последних неверных ответов: -\n'
+            res += ' Статистика: 1) Прошло ответов после последнего верного: -\n'
             res += '             2) Доля верных ответов: 0'
         else:
-            res += f' Статистика: 1) Последних неверных ответов: {self.last_att}\n'
+            res += f' Статистика: 1) Прошло ответов после последнего верного: {self.last_att}\n'
             res += f'             2) Доля верных ответов: '
             res += f'{self.correct_att}/{self.all_att} = ' + '{:.0%}'.format(self.score)
         return split_text(res, len_str, tab=tab)
@@ -2752,72 +2752,120 @@ class CreateFormW(tk.Toplevel):
 
 # Окно вывода похожих статей для редактирования
 class ParticularMatchesW(tk.Toplevel):
-    def __init__(self, parent, wrd: str):
+    def __init__(self, parent, query: str):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Similar')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.var_wrd = tk.StringVar(value=wrd)
+        self.var_query = tk.StringVar(value=query)
 
-        self.lbl_header = ttk.Label(self, text=f'Слово "{wrd}" отсутствует в словаре\n'
+        self.lbl_header = ttk.Label(self, text=f'Слово "{query}" отсутствует в словаре\n'
                                                f'Возможно вы искали:',
                                     justify='center', style='Default.TLabel')
-        self.lbl_wrd = ttk.Label(self, text=f'Слова, содержащие "{wrd}"', justify='center', style='Default.TLabel')
-        self.scrollbar_wrd = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.txt_wrd = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_wrd.set,
-                               font='TkFixedFont', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                               relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
-        self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{wrd}"', justify='center', style='Default.TLabel')
-        self.scrollbar_tr = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.txt_tr = tk.Text(self, width=50, height=30, state='disabled', yscrollcommand=self.scrollbar_tr.set,
-                              font='TkFixedFont', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                              selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                              relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
+        self.lbl_wrd = ttk.Label(self, text=f'Слова, содержащие "{query}"', justify='center', style='Default.TLabel')
+        self.scrolled_frame_wrd = ScrollFrame(self, 500, 404)
+        # {
+        self.widgets_wrd = []
+        # }
+        self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{query}"', justify='center', style='Default.TLabel')
+        self.scrolled_frame_tr = ScrollFrame(self, 500, 404)
+        # {
+        self.widgets_tr = []
+        # }
 
-        self.lbl_header.grid(   row=0, column=0, columnspan=4, padx=6,      pady=(6, 3))
-        self.lbl_wrd.grid(      row=1, column=0, columnspan=2, padx=(6, 3), pady=(0, 3))
-        self.lbl_tr.grid(       row=1, column=2, columnspan=2, padx=(3, 6), pady=(0, 3))
-        self.txt_wrd.grid(      row=2, column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar_wrd.grid(row=2, column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.scrollbar_tr.grid( row=2, column=2,               padx=(6, 0), pady=(0, 6), sticky='NSE')
-        self.txt_tr.grid(       row=2, column=3,               padx=(0, 6), pady=(0, 6), sticky='NSEW')
+        self.lbl_header.grid(        row=0, column=0, columnspan=2, padx=6,      pady=(6, 3))
+        self.lbl_wrd.grid(           row=1, column=0,               padx=(6, 3), pady=(0, 3))
+        self.lbl_tr.grid(            row=1, column=1,               padx=(3, 6), pady=(0, 3))
+        self.scrolled_frame_wrd.grid(row=2, column=0,               padx=6,      pady=(0, 6))
+        self.scrolled_frame_tr.grid( row=2, column=1,               padx=6,      pady=(0, 6))
 
-        self.scrollbar_wrd.config(command=self.txt_wrd.yview)
-        self.scrollbar_tr.config( command=self.txt_tr.yview)
+        self.search()
+
+    # Изменить статью
+    def edit_note(self, key):
+        EditW(self, key).open()
 
         self.search()
 
     # Поиск статей
     def search(self):
-        # Поиск по слову
-        search_wrd = self.var_wrd.get()
-        self.txt_wrd['state'] = 'normal'
-        self.txt_wrd.delete(1.0, tk.END)
-        outp(self.txt_wrd, 'Частичное совпадение:')
-        outp(self.txt_wrd, decode_tpl(tuple(s[1] for s in _0_global_dct.get_words_with_content(search_wrd)), separator='\n'))
-        self.txt_wrd['state'] = 'disabled'
+        self.search_wrd()
+        self.search_tr()
 
-        # Поиск по переводу
-        search_tr = self.var_wrd.get()
-        self.txt_tr['state'] = 'normal'
-        self.txt_tr.delete(1.0, tk.END)
+    # Поиск статей по слову
+    def search_wrd(self):
+        # Удаляем старые виджеты
+        for wdg in self.widgets_wrd:
+            wdg.destroy()
+        self.widgets_wrd = []
 
-        outp(self.txt_tr, 'Полное совпадение:')
-        i = 0
-        for entry in _0_global_dct.d.values():
+        search_wrd = encode_special_combinations(self.var_query.get())
+
+        self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
+                                       text=split_text(f'Частичное совпадение:', 50, 0), style='Flat.TLabel')]
+        particular_matches = _0_global_dct.get_words_with_content(search_wrd)
+        if particular_matches:
+            for (key, text) in particular_matches:
+                self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
+                                                text=split_text(text, 50, 5),
+                                                command=lambda key=key: self.edit_note(key),
+                                                takefocus=False, style='Flat.TButton')]
+        else:
+            self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
+                                           text=split_text(f'Частичных совпадений не найдено', 50, 0),
+                                           style='Flat.TLabel')]
+
+        for i in range(len(self.widgets_wrd)):
+            self.widgets_wrd[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+
+        self.scrolled_frame_wrd.canvas.yview_moveto(0.0)
+
+    # Поиск статей по переводу
+    def search_tr(self):
+        # Удаляем старые виджеты
+        for wdg in self.widgets_tr:
+            wdg.destroy()
+        self.widgets_tr = []
+
+        search_tr = encode_special_combinations(self.var_query.get())
+
+        self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
+                                      text=split_text('Полное совпадение:', 50, 0),
+                                      style='Flat.TLabel')]
+        count = 0
+        for key in _0_global_dct.d.keys():
+            entry = _0_global_dct.d[key]
             if search_tr in entry.tr:
-                if i != 0:
-                    outp(self.txt_tr, '\n')
-                outp(self.txt_tr, entry.print_all(), end='')
-                i += 1
-        if i == 0:
-            outp(self.txt_tr, f'Слово с переводом "{search_tr}" отсутствует в словаре', end='')
-        outp(self.txt_tr, '\n\nЧастичное совпадение:')
+                self.widgets_tr += [ttk.Button(self.scrolled_frame_tr.frame_canvas,
+                                               text=entry.print_all(50, 13),
+                                               command=lambda key=key: self.edit_note(key),
+                                               takefocus=False, style='Flat.TButton')]
+                count += 1
+        if count == 0:
+            self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
+                                          text=split_text(f'Слово с переводом "{search_tr}" отсутствует в словаре',
+                                                          50, 0),
+                                          style='Flat.TLabel')]
 
-        outp(self.txt_tr, decode_tpl(tuple(s[1] for s in _0_global_dct.get_translations_with_content(search_tr)), separator='\n'))
-        self.txt_tr['state'] = 'disabled'
+        self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
+                                      text=split_text(f'Частичное совпадение:', 50, 0), style='Flat.TLabel')]
+        particular_matches = _0_global_dct.get_translations_with_content(search_tr)
+        if particular_matches:
+            for (key, text) in particular_matches:
+                self.widgets_tr += [ttk.Button(self.scrolled_frame_tr.frame_canvas,
+                                               text=split_text(text, 50, 5),
+                                               command=lambda key=key: self.edit_note(key),
+                                               takefocus=False, style='Flat.TButton')]
+        else:
+            self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
+                                          text=split_text(f'Частичных совпадений не найдено', 50, 0),
+                                          style='Flat.TLabel')]
+
+        for i in range(len(self.widgets_tr)):
+            self.widgets_tr[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+
+        self.scrolled_frame_tr.canvas.yview_moveto(0.0)
 
     # Установить фокус
     def set_focus(self):
@@ -6139,7 +6187,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development presents\n'
       f'                             {PROGRAM_NAME} {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
