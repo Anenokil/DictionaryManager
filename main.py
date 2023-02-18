@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.15c'
+PROGRAM_VERSION = 'v7.0.15'
 PROGRAM_DATE = '19.2.2023'
-PROGRAM_TIME = '1:39 (UTC+3)'
+PROGRAM_TIME = '2:19 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1966,9 +1966,9 @@ class ScrollFrame(tk.Frame):
     # Обработка событий колёсика мышки
     def on_mouse_wheel(self, event):
         if platform.system() == 'Windows':
-            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), 'units')
+            self.canvas.yview_scroll(max(int(-1 * (event.delta / 120)), 0), 'units')
         elif platform.system() == 'Darwin':
-            self.canvas.yview_scroll(int(-1 * event.delta), 'units')
+            self.canvas.yview_scroll(max(int(-1 * event.delta), 0), 'units')
         else:
             if event.num == 4:
                 self.canvas.yview_scroll(-1, 'units')
@@ -2790,8 +2790,8 @@ class ParticularMatchesW(tk.Toplevel):
 
     # Поиск статей
     def search(self):
-        self.search_wrd()
-        self.search_tr()
+        self.search_wrd()  # Поиск статей по слову
+        self.search_tr()  # Поиск статей по переводу
 
     # Поиск статей по слову
     def search_wrd(self):
@@ -2800,8 +2800,10 @@ class ParticularMatchesW(tk.Toplevel):
             wdg.destroy()
         self.widgets_wrd = []
 
+        # Искомое слово
         search_wrd = encode_special_combinations(self.var_query.get())
 
+        # Частичное совпадение
         self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
                                        text=split_text(f'Частичное совпадение:', 50, 0), style='Flat.TLabel')]
         particular_matches = _0_global_dct.get_words_with_content(search_wrd)
@@ -2828,8 +2830,10 @@ class ParticularMatchesW(tk.Toplevel):
             wdg.destroy()
         self.widgets_tr = []
 
+        # Искомый перевод
         search_tr = encode_special_combinations(self.var_query.get())
 
+        # Полное совпадение
         self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
                                       text=split_text('Полное совпадение:', 50, 0),
                                       style='Flat.TLabel')]
@@ -2848,6 +2852,7 @@ class ParticularMatchesW(tk.Toplevel):
                                                           50, 0),
                                           style='Flat.TLabel')]
 
+        # Частичное совпадение
         self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
                                       text=split_text(f'Частичное совпадение:', 50, 0), style='Flat.TLabel')]
         particular_matches = _0_global_dct.get_translations_with_content(search_tr)
@@ -4494,8 +4499,8 @@ class SearchW(tk.Toplevel):
 
     # Поиск статей
     def search(self):
-        self.search_wrd()
-        self.search_tr()
+        self.search_wrd()  # Поиск статей по слову
+        self.search_tr()  # Поиск статей по переводу
 
     # Поиск статей по слову
     def search_wrd(self):
@@ -4504,8 +4509,10 @@ class SearchW(tk.Toplevel):
             wdg.destroy()
         self.widgets_wrd = []
 
+        # Искомое слово
         search_wrd = encode_special_combinations(self.var_query.get())
 
+        # Полное совпадение
         self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
                                        text=split_text('Полное совпадение:', 50, 0),
                                        style='Flat.TLabel')]
@@ -4524,6 +4531,7 @@ class SearchW(tk.Toplevel):
                                            text=split_text(f'Слово "{search_wrd}" отсутствует в словаре', 50, 0),
                                            style='Flat.TLabel')]
 
+        # Частичное совпадение
         self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
                                        text=split_text(f'Частичное совпадение:', 50, 0), style='Flat.TLabel')]
         particular_matches = _0_global_dct.get_words_with_content(search_wrd)
@@ -4550,8 +4558,10 @@ class SearchW(tk.Toplevel):
             wdg.destroy()
         self.widgets_tr = []
 
+        # Искомый перевод
         search_tr = encode_special_combinations(self.var_query.get())
 
+        # Полное совпадение
         self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
                                       text=split_text('Полное совпадение:', 50, 0),
                                       style='Flat.TLabel')]
@@ -4570,6 +4580,7 @@ class SearchW(tk.Toplevel):
                                                           50, 0),
                                           style='Flat.TLabel')]
 
+        # Частичное совпадение
         self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
                                       text=split_text(f'Частичное совпадение:', 50, 0), style='Flat.TLabel')]
         particular_matches = _0_global_dct.get_translations_with_content(search_tr)
@@ -6186,7 +6197,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                             {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
