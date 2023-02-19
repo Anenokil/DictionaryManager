@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.15-patch-1'
+PROGRAM_VERSION = 'v7.0.15-patch-2'
 PROGRAM_DATE = '19.2.2023'
-PROGRAM_TIME = '3:15 (UTC+3)'
+PROGRAM_TIME = '3:43 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -2313,7 +2313,7 @@ class EnterSpecialCombinationW(tk.Toplevel):
 class ChooseOneOfSimilarNotesW(tk.Toplevel):
     def __init__(self, parent, query: str):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME}')
+        self.title(f'{PROGRAM_NAME} - Similar')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -2329,31 +2329,19 @@ class ChooseOneOfSimilarNotesW(tk.Toplevel):
         self.lbl_header.grid(        row=0, column=0, padx=(6, 3), pady=(6, 3))
         self.scrolled_frame_wrd.grid(row=1, column=0, padx=6,      pady=(0, 6))
 
-        self.search()
+        self.print()
 
-    # Изменить статью
+    # Выбрать статью из предложенных вариантов
     def choose_note(self, key):
         self.answer = key
         self.destroy()
 
-    # Поиск статей
-    def search(self):
-        self.search_by_wrd()  # Поиск статей по слову
-
-    # Поиск статей по слову
-    def search_by_wrd(self):
-        # Удаляем старые виджеты
-        for wdg in self.widgets_wrd:
-            wdg.destroy()
-        self.widgets_wrd = []
-
-        # Искомое слово
-        search_wrd = self.search_wrd
-
-        # Полное совпадение
+    # Вывод вариантов
+    def print(self):
+        # Вывод вариантов
         count = 0
         while True:
-            key = wrd_to_key(search_wrd, count)
+            key = wrd_to_key(self.search_wrd, count)
             if key not in _0_global_dct.d.keys():
                 break
             self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
@@ -2362,6 +2350,7 @@ class ChooseOneOfSimilarNotesW(tk.Toplevel):
                                             takefocus=False, style='Flat.TButton')]
             count += 1
 
+        # Расположение виджетов
         for i in range(len(self.widgets_wrd)):
             self.widgets_wrd[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
 
@@ -2733,25 +2722,27 @@ class CreateFormW(tk.Toplevel):
         return tuple(self.template), self.var_form.get()
 
 
-# Окно вывода похожих статей для редактирования
+# Окно вывода похожих статей для редактирования, если нет точного совпадения
 class ParticularMatchesW(tk.Toplevel):
     def __init__(self, parent, query: str):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Similar')
+        self.title(f'{PROGRAM_NAME} - There is no such entry')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.var_query = tk.StringVar(value=query)
+        self.query = query
 
-        self.lbl_header = ttk.Label(self, text=f'Слово "{query}" отсутствует в словаре\n'
+        self.lbl_header = ttk.Label(self, text=f'Слово "{self.query}" отсутствует в словаре\n'
                                                f'Возможно вы искали:',
                                     justify='center', style='Default.TLabel')
-        self.lbl_wrd = ttk.Label(self, text=f'Слова, содержащие "{query}"', justify='center', style='Default.TLabel')
+        self.lbl_wrd = ttk.Label(self, text=f'Слова, содержащие "{self.query}"', justify='center',
+                                 style='Default.TLabel')
         self.scrolled_frame_wrd = ScrollFrame(self, 500, 404)
         # {
         self.widgets_wrd = []
         # }
-        self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{query}"', justify='center', style='Default.TLabel')
+        self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{self.query}"', justify='center',
+                                style='Default.TLabel')
         self.scrolled_frame_tr = ScrollFrame(self, 500, 404)
         # {
         self.widgets_tr = []
@@ -2763,33 +2754,28 @@ class ParticularMatchesW(tk.Toplevel):
         self.scrolled_frame_wrd.grid(row=2, column=0,               padx=6,      pady=(0, 6))
         self.scrolled_frame_tr.grid( row=2, column=1,               padx=6,      pady=(0, 6))
 
-        self.search()
+        self.print()
 
     # Изменить статью
     def edit_note(self, key):
         EditW(self, key).open()
 
-        self.search()
+        self.destroy()
 
-    # Поиск статей
-    def search(self):
+    # Вывод статей
+    def print(self):
         self.search_wrd()  # Поиск статей по слову
         self.search_tr()  # Поиск статей по переводу
 
     # Поиск статей по слову
     def search_wrd(self):
-        # Удаляем старые виджеты
-        for wdg in self.widgets_wrd:
-            wdg.destroy()
-        self.widgets_wrd = []
-
         # Искомое слово
-        search_wrd = encode_special_combinations(self.var_query.get())
+        query = encode_special_combinations(self.query)
 
         # Частичное совпадение
         self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
-                                       text=split_text(f'Частичное совпадение:', 50, 0), style='Flat.TLabel')]
-        particular_matches = _0_global_dct.get_words_with_content(search_wrd)
+                                       text=split_text('Частичное совпадение:', 50, 0), style='Flat.TLabel')]
+        particular_matches = _0_global_dct.get_words_with_content(query)
         if particular_matches:
             for (key, text) in particular_matches:
                 self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
@@ -2798,9 +2784,10 @@ class ParticularMatchesW(tk.Toplevel):
                                                 takefocus=False, style='Flat.TButton')]
         else:
             self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
-                                           text=split_text(f'Частичных совпадений не найдено', 50, 0),
+                                           text=split_text('Частичных совпадений не найдено', 50, 0),
                                            style='Flat.TLabel')]
 
+        # Расположение виджетов
         for i in range(len(self.widgets_wrd)):
             self.widgets_wrd[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
 
@@ -2808,13 +2795,8 @@ class ParticularMatchesW(tk.Toplevel):
 
     # Поиск статей по переводу
     def search_tr(self):
-        # Удаляем старые виджеты
-        for wdg in self.widgets_tr:
-            wdg.destroy()
-        self.widgets_tr = []
-
         # Искомый перевод
-        search_tr = encode_special_combinations(self.var_query.get())
+        query = encode_special_combinations(self.query)
 
         # Полное совпадение
         self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
@@ -2823,7 +2805,7 @@ class ParticularMatchesW(tk.Toplevel):
         count = 0
         for key in _0_global_dct.d.keys():
             entry = _0_global_dct.d[key]
-            if search_tr in entry.tr:
+            if query in entry.tr:
                 self.widgets_tr += [ttk.Button(self.scrolled_frame_tr.frame_canvas,
                                                text=entry.print_all(50, 13),
                                                command=lambda key=key: self.edit_note(key),
@@ -2831,14 +2813,14 @@ class ParticularMatchesW(tk.Toplevel):
                 count += 1
         if count == 0:
             self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
-                                          text=split_text(f'Слово с переводом "{search_tr}" отсутствует в словаре',
+                                          text=split_text(f'Слово с переводом "{query}" отсутствует в словаре',
                                                           50, 0),
                                           style='Flat.TLabel')]
 
         # Частичное совпадение
         self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
-                                      text=split_text(f'Частичное совпадение:', 50, 0), style='Flat.TLabel')]
-        particular_matches = _0_global_dct.get_translations_with_content(search_tr)
+                                      text=split_text('\nЧастичное совпадение:', 50, 0), style='Flat.TLabel')]
+        particular_matches = _0_global_dct.get_translations_with_content(query)
         if particular_matches:
             for (key, text) in particular_matches:
                 self.widgets_tr += [ttk.Button(self.scrolled_frame_tr.frame_canvas,
@@ -2847,9 +2829,10 @@ class ParticularMatchesW(tk.Toplevel):
                                                takefocus=False, style='Flat.TButton')]
         else:
             self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
-                                          text=split_text(f'Частичных совпадений не найдено', 50, 0),
+                                          text=split_text('Частичных совпадений не найдено', 50, 0),
                                           style='Flat.TLabel')]
 
+        # Расположение виджетов
         for i in range(len(self.widgets_tr)):
             self.widgets_tr[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
 
@@ -4516,7 +4499,7 @@ class SearchW(tk.Toplevel):
 
         # Частичное совпадение
         self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
-                                       text=split_text(f'Частичное совпадение:', 50, 0), style='Flat.TLabel')]
+                                       text=split_text('Частичное совпадение:', 50, 0), style='Flat.TLabel')]
         particular_matches = _0_global_dct.get_words_with_content(search_wrd)
         if particular_matches:
             for (key, text) in particular_matches:
@@ -4526,9 +4509,10 @@ class SearchW(tk.Toplevel):
                                                 takefocus=False, style='Flat.TButton')]
         else:
             self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
-                                           text=split_text(f'Частичных совпадений не найдено', 50, 0),
+                                           text=split_text('Частичных совпадений не найдено', 50, 0),
                                            style='Flat.TLabel')]
 
+        # Расположение виджетов
         for i in range(len(self.widgets_wrd)):
             self.widgets_wrd[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
 
@@ -4565,7 +4549,7 @@ class SearchW(tk.Toplevel):
 
         # Частичное совпадение
         self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
-                                      text=split_text(f'Частичное совпадение:', 50, 0), style='Flat.TLabel')]
+                                      text=split_text('Частичное совпадение:', 50, 0), style='Flat.TLabel')]
         particular_matches = _0_global_dct.get_translations_with_content(search_tr)
         if particular_matches:
             for (key, text) in particular_matches:
@@ -4575,9 +4559,10 @@ class SearchW(tk.Toplevel):
                                                takefocus=False, style='Flat.TButton')]
         else:
             self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
-                                          text=split_text(f'Частичных совпадений не найдено', 50, 0),
+                                          text=split_text('Частичных совпадений не найдено', 50, 0),
                                           style='Flat.TLabel')]
 
+        # Расположение виджетов
         for i in range(len(self.widgets_tr)):
             self.widgets_tr[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
 
