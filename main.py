@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.16B'
+PROGRAM_VERSION = 'v7.0.16C'
 PROGRAM_DATE = '19.2.2023'
-PROGRAM_TIME = '4:58 (UTC+3)'
+PROGRAM_TIME = '5:17 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1973,15 +1973,16 @@ class ScrollFrame(tk.Frame):
 
     # Обработка событий колёсика мышки
     def on_mouse_wheel(self, event):
-        if platform.system() == 'Windows':
-            self.canvas.yview_scroll(max(int(-1 * (event.delta / 120)), 0), 'units')
-        elif platform.system() == 'Darwin':
-            self.canvas.yview_scroll(max(int(-1 * event.delta), 0), 'units')
-        else:
-            if event.num == 4:
-                self.canvas.yview_scroll(-1, 'units')
-            elif event.num == 5:
-                self.canvas.yview_scroll(1, 'units')
+        if not (self.canvas.yview()[0] == 0.0 and event.delta > 0):
+            if platform.system() == 'Windows':
+                self.canvas.yview_scroll(int(-1 * (event.delta / 120)), 'units')
+            elif platform.system() == 'Darwin':
+                self.canvas.yview_scroll(int(-1 * event.delta), 'units')
+            else:
+                if event.num == 4:
+                    self.canvas.yview_scroll(-1, 'units')
+                elif event.num == 5:
+                    self.canvas.yview_scroll(1, 'units')
 
     # Привязать колёсико мышки, когда курсор попадает на элемент управления
     def on_enter(self, event):
@@ -6208,7 +6209,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                             {PROGRAM_NAME} {PROGRAM_VERSION}\n'
+      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
