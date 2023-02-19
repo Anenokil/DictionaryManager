@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.16'
+PROGRAM_VERSION = 'v7.0.17-A'
 PROGRAM_DATE = '19.2.2023'
-PROGRAM_TIME = '22:47 (UTC+3)'
+PROGRAM_TIME = '23:39 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -359,19 +359,17 @@ class Entry(object):
     # Напечатать процент верных ответов
     def percent_print(self):
         if self.last_att == -1:  # Если ещё не было попыток
-            res = '0'
+            res = '-'
         else:
             res = '{:.0%}'.format(self.score)
         return res
 
     # Напечатать статистику
     def stat_print(self):
-        if self.last_att == -1:  # Если ещё не было попыток
-            res = '[-:  0%]'
-        else:
-            score = '{:.0%}'.format(self.score)
-            tab = ' ' * (4 - len(score))
-            res = f'[{self.last_att}:{tab}{score}]'
+        last_att = self.last_att_print()
+        percent = self.percent_print()
+        tab = ' ' * (4 - len(percent))
+        res = f'[{last_att}:{tab}{percent}]'
         return res
 
     # Добавить в избранное
@@ -600,7 +598,7 @@ class Dictionary(object):
     # self.count_t - количество переводов в словаре
     # self.count_f - количество неначальных словоформ в словаре
     def __init__(self):
-        self.d = {}
+        self.d: dict[tuple[str, int], Entry] = {}
         self.count_w = 0
         self.count_t = 0
         self.count_f = 0
@@ -699,7 +697,7 @@ class Dictionary(object):
                     self.d[new_key].add_note(note)
                 for frm_key in self.d[key].forms.keys():
                     frm = self.d[key].forms[frm_key]
-                    self.d[new_key].add_form(frm_key, frm, False)
+                    self.d[new_key].add_frm(frm_key, frm)
                 if self.d[key].fav:
                     self.d[new_key].fav = True
                 self.d[new_key].merge_stat(self.d[key].all_att, self.d[key].correct_att, self.d[key].last_att)
@@ -4105,9 +4103,10 @@ class LearnW(tk.Toplevel):
 
         self.start()
 
-        entry = _0_global_dct.d[self.current_key]
-        if entry.count_n == 0:
-            btn_disable(self.btn_notes)
+        if self.current_key:
+            entry = _0_global_dct.d[self.current_key]
+            if entry.count_n == 0:
+                btn_disable(self.btn_notes)
 
     # Печать в текстовое поле
     def outp(self, msg='', end='\n'):
@@ -6237,7 +6236,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                            {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
