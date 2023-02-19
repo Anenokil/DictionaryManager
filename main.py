@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.15'
+PROGRAM_VERSION = 'v7.0.15-patch-1'
 PROGRAM_DATE = '19.2.2023'
-PROGRAM_TIME = '2:19 (UTC+3)'
+PROGRAM_TIME = '3:15 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -656,7 +656,7 @@ class Dictionary(object):
     def choose_one_of_similar_entries(self, window_parent, wrd: str):
         if wrd_to_key(wrd, 1) not in self.d.keys():  # Если статья только одна, то возвращает её ключ
             return wrd_to_key(wrd, 0)
-        window_note = ChooseNoteW(window_parent, wrd)
+        window_note = ChooseOneOfSimilarNotesW(window_parent, wrd)
         closed, answer = window_note.open()
         if closed:
             return None
@@ -2310,83 +2310,66 @@ class EnterSpecialCombinationW(tk.Toplevel):
 
 
 # Окно выбора одной статьи из нескольких с одинаковыми словами
-class ChooseNoteW(tk.Toplevel):
-    def __init__(self, parent, wrd: str):
+class ChooseOneOfSimilarNotesW(tk.Toplevel):
+    def __init__(self, parent, query: str):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME}')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.closed = True  # Закрыто ли окно крестиком
-        self.vals_count = -1  # Количество вариантов для выбора (вычисляется в self.print_variants)
-        self.wrd = wrd
+        self.search_wrd = query
         self.answer = None
 
-        self.var_input = tk.StringVar()
-
-        # Ввод номеров ограниченных количеством вариантов
-        self.vcmd_max = (self.register(lambda value: validate_int_max(value, self.vals_count)), '%P')
-
-        self.frame_main = ttk.Frame(self, style='Invis.TFrame')
+        self.lbl_header = ttk.Label(self, text='Выберите одну из статей', justify='center', style='Default.TLabel')
+        self.scrolled_frame_wrd = ScrollFrame(self, 500, 604)
         # {
-        self.lbl_input = ttk.Label(self.frame_main, text='Выберите одну из статей:',
-                                   justify='center', style='Default.TLabel')
-        self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=5,
-                                     validate='key', validatecommand=self.vcmd_max, style='Default.TEntry')
-        self.btn_choose = ttk.Button(self.frame_main, text='Выбор', command=self.choose,
-                                     takefocus=False, style='Default.TButton')
+        self.widgets_wrd = []
         # }
-        self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.txt_words = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
-                                 font='TkFixedFont', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                                 highlightbackground=ST_BORDERCOLOR[th], relief=ST_RELIEF_TEXT[th],
-                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
 
-        self.frame_main.grid(row=0, columnspan=2, padx=6, pady=6)
-        # {
-        self.lbl_input.grid(  row=0, column=0, padx=(6, 1), pady=6, sticky='E')
-        self.entry_input.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
-        self.btn_choose.grid( row=0, column=2, padx=6,      pady=6)
-        # }
-        self.txt_words.grid(row=1, column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
+        self.lbl_header.grid(        row=0, column=0, padx=(6, 3), pady=(6, 3))
+        self.scrolled_frame_wrd.grid(row=1, column=0, padx=6,      pady=(0, 6))
 
-        self.scrollbar.config(command=self.txt_words.yview)
+        self.search()
 
-        self.print_variants()
-
-        self.tip_entry = ttip.Hovertip(self.entry_input, f'Введите номер от 0 до {self.vals_count}', hover_delay=800)
-
-    # Выбор одной статьи из нескольких
-    def choose(self):
-        answer = self.var_input.get()
-        if answer != '':
-            index = int(answer)
-            self.answer = wrd_to_key(self.wrd, index)
-        self.closed = False
+    # Изменить статью
+    def choose_note(self, key):
+        self.answer = key
         self.destroy()
 
-    # Вывод вариантов статей
-    def print_variants(self):
-        self.txt_words['state'] = 'normal'
-        outp(self.txt_words, '(0)')
-        outp(self.txt_words, _0_global_dct.d[wrd_to_key(self.wrd, 0)].print_all(), end='')
-        i = 1
+    # Поиск статей
+    def search(self):
+        self.search_by_wrd()  # Поиск статей по слову
+
+    # Поиск статей по слову
+    def search_by_wrd(self):
+        # Удаляем старые виджеты
+        for wdg in self.widgets_wrd:
+            wdg.destroy()
+        self.widgets_wrd = []
+
+        # Искомое слово
+        search_wrd = self.search_wrd
+
+        # Полное совпадение
+        count = 0
         while True:
-            key = wrd_to_key(self.wrd, i)
+            key = wrd_to_key(search_wrd, count)
             if key not in _0_global_dct.d.keys():
-                self.vals_count = i - 1
                 break
-            outp(self.txt_words, f'\n\n({i})')
-            outp(self.txt_words, _0_global_dct.d[key].print_all(), end='')
-            i += 1
-        self.txt_words['state'] = 'disabled'
+            self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
+                                            text=_0_global_dct.d[key].print_all(75, 13),
+                                            command=lambda key=key: self.choose_note(key),
+                                            takefocus=False, style='Flat.TButton')]
+            count += 1
+
+        for i in range(len(self.widgets_wrd)):
+            self.widgets_wrd[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+
+        self.scrolled_frame_wrd.canvas.yview_moveto(0.0)
 
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        self.entry_input.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
     def open(self):
@@ -2395,7 +2378,7 @@ class ChooseNoteW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        return self.closed, self.answer
+        return self.answer
 
 
 # Окно с сообщением о неверном ответе
@@ -6197,7 +6180,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                         {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
