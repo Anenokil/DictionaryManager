@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.16C'
+PROGRAM_VERSION = 'v7.0.16'
 PROGRAM_DATE = '19.2.2023'
-PROGRAM_TIME = '5:17 (UTC+3)'
+PROGRAM_TIME = '22:47 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -373,6 +373,18 @@ class Entry(object):
             tab = ' ' * (4 - len(score))
             res = f'[{self.last_att}:{tab}{score}]'
         return res
+
+    # Добавить в избранное
+    def add_to_fav(self):
+        self.fav = True
+
+    # Убрать из избранного
+    def remove_from_fav(self):
+        self.fav = False
+
+    # Изменить статус избранного
+    def change_fav(self):
+        self.fav = not self.fav
 
     # Служебный метод для print_briefly и print_briefly_with_forms
     def _print_briefly(self):
@@ -808,12 +820,12 @@ class Dictionary(object):
     # Добавить все статьи в избранное
     def fav_all(self):
         for note in self.d.values():
-            note.fav = True
+            note.add_to_fav()
 
     # Убрать все статьи из избранного
     def unfav_all(self):
         for note in self.d.values():
-            note.fav = False
+            note.remove_from_fav()
 
     # Удалить данное значение категории у всех словоформ
     def delete_forms_with_val(self, pos: int, ctg_val: str):
@@ -891,7 +903,7 @@ class Dictionary(object):
                     frm_key = encode_tpl(line[1:])
                     self.add_frm(key, frm_key, file.readline().strip())
                 elif line[0] == '*':
-                    self.d[key].fav = True
+                    self.d[key].add_to_fav()
 
     # Сохранить словарь в файл
     def save(self, filepath: str):
@@ -1940,7 +1952,9 @@ class ScrollFrame(tk.Frame):
         super().__init__(parent)
 
         self.canvas = tk.Canvas(self, bg=ST_BG_FIELDS[th], bd=0, highlightthickness=0, height=height, width=width)
+        # {
         self.frame_canvas = ttk.Frame(self.canvas, style='Default.TFrame')
+        # }
         self.scrollbar_y = ttk.Scrollbar(self, command=self.canvas.yview, style='Vertical.TScrollbar')
 
         self.canvas.pack(     side='left',  fill='both', expand=True)
@@ -1951,7 +1965,7 @@ class ScrollFrame(tk.Frame):
                                                        tags='self.frame_canvas')
 
         # Когда размер фрейма изменяется, соответственно изменяется и область прокрутки
-        self.frame_canvas.bind('<Configure>',self.on_frame_configure)
+        self.frame_canvas.bind('<Configure>', self.on_frame_configure)
         # Когда размер холста изменяется, соответственно изменяется и область окна
         self.canvas.bind('<Configure>', self.on_canvas_configure)
 
@@ -1968,8 +1982,7 @@ class ScrollFrame(tk.Frame):
 
     # Когда размер холста изменяется, соответственно изменяется и область окна
     def on_canvas_configure(self, event):
-        canvas_width = event.width
-        self.canvas.itemconfig(self.canvas_window, width=canvas_width)
+        self.canvas.itemconfig(self.canvas_window, width=event.width)
 
     # Обработка событий колёсика мышки
     def on_mouse_wheel(self, event):
@@ -3820,6 +3833,8 @@ class PrintW(tk.Toplevel):
                         for i in range(_0_global_dct.count_w)]
         for i in range(_0_global_dct.count_w):
             self.buttons[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            #self.buttons[i].bind('<Control-F>', lambda i=i: _0_global_dct.d[self.keys[i]].add_to_fav())
+            #self.buttons[i].bind('<Control-f>', lambda i=i: _0_global_dct.d[self.keys[i]].add_to_fav())
         self.tips = [ttip.Hovertip(self.buttons[i],
                                    f'Количество ответов после последнего верного ответа: '
                                    f'{_0_global_dct.d[self.keys[i]].last_att_print()}\n'
@@ -3857,14 +3872,22 @@ class PrintW(tk.Toplevel):
 
         self.var_info.set(_0_global_dct.dct_info())
 
+        self.bind('<Up>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
+        self.bind('<Control-U>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
+        self.bind('<Control-u>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
+
+        self.bind('<Down>', lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
+        self.bind('<Control-D>', lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
+        self.bind('<Control-d>', lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
+
     # Изменить статью
     def edit_note(self, index):
         EditW(self, self.keys[index]).open()
 
-        self.print()
+        self.print(True)
 
     # Напечатать словарь
-    def print(self):
+    def print(self, move_scroll: bool):
         # Удаляем старые кнопки
         for btn in self.buttons:
             btn.destroy()
@@ -3896,6 +3919,8 @@ class PrintW(tk.Toplevel):
         # Расставляем кнопки
         for i in range(len(self.keys)):
             self.buttons[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            #self.buttons[i].bind('<Control-F>', lambda i=i: _0_global_dct.d[self.keys[i]].add_to_fav())
+            #self.buttons[i].bind('<Control-f>', lambda i=i: _0_global_dct.d[self.keys[i]].add_to_fav())
         # Создаём подсказки
         self.tips = [ttip.Hovertip(self.buttons[i],
                                    f'Количество ответов после последнего верного ответа: '
@@ -3904,7 +3929,8 @@ class PrintW(tk.Toplevel):
                                    hover_delay=666)
                      for i in range(len(self.keys))]
 
-        self.scrolled_frame.canvas.yview_moveto(0.0)
+        if move_scroll:
+            self.scrolled_frame.canvas.yview_moveto(0.0)
 
     # Нажатие на кнопку "Добавить все статьи в избранное"
     def fav_all(self):
@@ -3914,7 +3940,7 @@ class PrintW(tk.Toplevel):
             return
         _0_global_dct.fav_all()
 
-        self.print()
+        self.print(False)
 
     # Нажатие на кнопку "Убрать все статьи из избранного"
     def unfav_all(self):
@@ -3924,7 +3950,7 @@ class PrintW(tk.Toplevel):
             return
         _0_global_dct.unfav_all()
 
-        self.print()
+        self.print(False)
 
     # Нажатие на кнопку "Распечатать словарь в файл"
     def print_out(self):
@@ -4139,7 +4165,9 @@ class LearnW(tk.Toplevel):
                 _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
 
         entry = _0_global_dct.d[self.current_key]
-        if entry.count_n != 0:
+        if entry.count_n == 0:
+            btn_disable(self.btn_notes)
+        else:
             btn_enable(self.btn_notes, self.show_notes)
 
         self.entry_input.delete(0, tk.END)
@@ -6210,7 +6238,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development presents\n'
       f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
+      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
