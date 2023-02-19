@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.15-patch-2'
+PROGRAM_VERSION = 'v7.0.16A'
 PROGRAM_DATE = '19.2.2023'
-PROGRAM_TIME = '3:43 (UTC+3)'
+PROGRAM_TIME = '4:36 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1011,7 +1011,7 @@ def height(text: str, len_str: int):
 
 
 # Разделить текст на части, длина которых не превышает заданное значение
-def split_text(text: str, len_str: int, tab: int = 0):
+def split_text(text: str, len_str: int, tab: int = 0, align_left: bool = True):
     assert len_str > 0
     assert tab < len_str
 
@@ -1025,15 +1025,23 @@ def split_text(text: str, len_str: int, tab: int = 0):
         elif pos == len_str:
             text = text[pos+1:]
         else:
-            segment = text[:pos] + ' ' * (len_str - pos) + '\n'
+            segment = text[:pos]
+            if align_left:
+                segment += ' ' * (len_str - pos)
+            segment += '\n'
             text = text[pos+1:]
         res += segment
     while '\n' in text:
         pos = text.find('\n')
-        res += text[:pos] + ' ' * (len_str - pos) + '\n'
+        res += text[:pos]
+        if align_left:
+            res += ' ' * (len_str - pos) + '\n'
+        res += '\n'
         text = text[pos+1:]
     if text != '':
-        res += text + ' ' * (len_str - len(text))
+        res += text
+        if align_left:
+            res += ' ' * (len_str - len(text))
     return res
 
 
@@ -3783,7 +3791,10 @@ class PrintW(tk.Toplevel):
         self.var_forms = tk.BooleanVar(value=True)
         self.var_info = tk.StringVar()
 
-        self.lbl_dct_name = ttk.Label(self, text=f'Открыт словарь "{_0_global_dct_savename}"', style='Default.TLabel')
+        self.lbl_dct_name = ttk.Label(self,
+                                      text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
+                                                      40, align_left=False),
+                                      justify='center', style='Default.TLabel')
         self.frame_main = ttk.Frame(self, style='Default.TFrame')
         # {
         self.lbl_fav = ttk.Label(self.frame_main, text='Только избранные:', style='Default.TLabel')
@@ -5103,7 +5114,9 @@ class SettingsW(tk.Toplevel):
 
         self.tabs = ttk.Notebook(self, style='Default.TNotebook')
         self.tab_local = ttk.Frame(self.tabs, style='Invis.TFrame')
-        self.lbl_dct_name = ttk.Label(self, text=f'Открыт словарь "{_0_global_dct_savename}"', style='Default.TLabel')
+        self.lbl_dct_name = ttk.Label(self, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
+                                                            30, align_left=False),
+                                      justify='center', style='Default.TLabel')
         self.tabs.add(self.tab_local, text='Настройки словаря')
         # {
         self.frame_mgsp = ttk.Frame(self.tab_local, style='Default.TFrame')
@@ -5358,7 +5371,8 @@ class SettingsW(tk.Toplevel):
         self.backup_dct = copy.deepcopy(_0_global_dct)
         self.backup_fp = copy.deepcopy(_0_global_categories)
 
-        self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
+        # Обновляем надписи с названием открытого словаря
+        self.refresh_open_dct_name(savename)
 
         self.has_ctg_changes = False
         self.has_spec_comb_changes = False
@@ -5389,7 +5403,8 @@ class SettingsW(tk.Toplevel):
         self.backup_dct = copy.deepcopy(_0_global_dct)
         self.backup_fp = copy.deepcopy(_0_global_categories)
 
-        self.lbl_dct_name['text'] = f'Открыт словарь "{savename}"'
+        # Обновляем надписи с названием открытого словаря
+        self.refresh_open_dct_name(savename)
 
         self.has_ctg_changes = False
         self.has_spec_comb_changes = False
@@ -5426,7 +5441,8 @@ class SettingsW(tk.Toplevel):
         if _0_global_dct_savename == old_savename:
             _0_global_dct_savename = new_savename
             save_dct_name()
-            self.lbl_dct_name['text'] = f'Открыт словарь "{new_savename}"'
+            # Обновляем надписи с названием открытого словаря
+            self.refresh_open_dct_name(new_savename)
         print(f'Словарь "{old_savename}" успешно переименован в "{new_savename}"')
 
         self.print_dct_list()
@@ -5708,6 +5724,12 @@ class SettingsW(tk.Toplevel):
             self.var_theme.get() != th or\
             int(self.var_fontsize.get()) != _0_global_fontsize
 
+    # Обновить надписи с названием открытого словаря
+    def refresh_open_dct_name(self, savename):
+        self.lbl_dct_name.config(text=split_text(f'Открыт словарь "{savename}"', 30, align_left=False))
+        self.parent.lbl_dct_name.config(text=f'Открыт словарь\n'
+                                             f'"{split_text(savename, 20, align_left=False)}"')
+
     # Изменить размер окна в зависимости от открытой вкладки
     def resize_tabs(self):
         if self.current_tab == 1:
@@ -5765,6 +5787,13 @@ class MainW(tk.Tk):
         self.lbl_header = ttk.Label(self.frame_head, text='Anenokil development presents', style='Header.TLabel')
         self.lbl_logo = ttk.Label(self.frame_head, text=PROGRAM_NAME, style='Logo.TLabel')
         # }
+        self.frame_dct_name = ttk.Frame(self, style='Default.TFrame')
+        # {
+        self.lbl_dct_name = ttk.Label(self.frame_dct_name,
+                                      text=f'Открыт словарь\n'
+                                           f'"{split_text(_0_global_dct_savename, 20, align_left=False)}"',
+                                      justify='center', style='Default.TLabel')
+        # }
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.btn_print = ttk.Button(self.frame_buttons, text='Просмотреть словарь', command=self.print,
@@ -5799,7 +5828,11 @@ class MainW(tk.Tk):
         self.lbl_header.grid(row=0, padx=0, pady=0)
         self.lbl_logo.grid(  row=1, padx=0, pady=0)
         # }
-        self.frame_buttons.grid(row=1, padx=6, pady=(0, 6))
+        self.frame_dct_name.grid(row=1, padx=6, pady=(0, 12))
+        # {
+        self.lbl_dct_name.grid(padx=1, pady=1)
+        # }
+        self.frame_buttons.grid(row=2, padx=6, pady=(0, 6))
         # {
         self.btn_print.grid( row=0, padx=0, pady=(0, 3))
         self.btn_learn.grid( row=1, padx=0, pady=(3, 3))
@@ -5815,7 +5848,7 @@ class MainW(tk.Tk):
         self.btn_save.grid(         row=5, padx=0, pady=(3, 3))
         self.btn_close.grid(        row=6, padx=0, pady=(3, 0))
         # }
-        self.lbl_footer.grid(row=2, padx=6, pady=3)
+        self.lbl_footer.grid(row=3, padx=6, pady=3)
 
         self.tip_entry = ttip.Hovertip(self.entry_word, 'Введите слово, которое хотите\n'
                                                         'найти/изменить/добавить',
@@ -5870,6 +5903,10 @@ class MainW(tk.Tk):
             upload_global_settings()  # Обновляем глобальные настройки
         _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations, _0_global_check_register =\
             upload_local_settings(_0_global_dct_savename)  # Обновляем локальные настройки
+
+        # Обновляем надпись с названием открытого словаря
+        self.lbl_dct_name.config(text=f'Открыт словарь\n'
+                                      f'"{split_text(_0_global_dct_savename, 20, align_left=False)}"')
 
         self.set_ttk_styles()  # Установка ttk-стилей
 
@@ -6165,7 +6202,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                         {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                             {PROGRAM_NAME} {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
