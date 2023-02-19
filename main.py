@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.16A'
+PROGRAM_VERSION = 'v7.0.16B'
 PROGRAM_DATE = '19.2.2023'
-PROGRAM_TIME = '4:36 (UTC+3)'
+PROGRAM_TIME = '4:58 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1035,7 +1035,7 @@ def split_text(text: str, len_str: int, tab: int = 0, align_left: bool = True):
         pos = text.find('\n')
         res += text[:pos]
         if align_left:
-            res += ' ' * (len_str - pos) + '\n'
+            res += ' ' * (len_str - pos)
         res += '\n'
         text = text[pos+1:]
     if text != '':
@@ -2012,7 +2012,8 @@ class PopupMsgW(tk.Toplevel):
 
         self.closed = True  # Закрыто ли окно крестиком
 
-        self.lbl_msg = ttk.Label(self, text=msg, justify='center', style='Default.TLabel')
+        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, align_left=False), justify='center',
+                                 style='Default.TLabel')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Default.TButton')
 
         self.lbl_msg.grid(row=0, column=0, padx=6, pady=4)
@@ -2069,7 +2070,8 @@ class PopupDialogueW(tk.Toplevel):
         self.st_left = f'{st_left}.TButton'
         self.st_right = f'{st_right}.TButton'
 
-        self.lbl_msg = ttk.Label(self, text=msg, justify='center', style='Default.TLabel')
+        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, align_left=False), justify='center',
+                                 style='Default.TLabel')
         self.btn_left = ttk.Button(self, text=btn_left_text, command=self.left, takefocus=False, style=self.st_left)
         self.btn_right = ttk.Button(self, text=btn_right_text, command=self.right, takefocus=False, style=self.st_right)
 
@@ -2121,7 +2123,8 @@ class PopupEntryW(tk.Toplevel):
 
         self.var_text = tk.StringVar(value=default_value)
 
-        self.lbl_msg = ttk.Label(self, text=f'{msg}:', justify='center', style='Default.TLabel')
+        self.lbl_msg = ttk.Label(self, text=split_text(f'{msg}:', 45, align_left=False), justify='center',
+                                 style='Default.TLabel')
         self.entry_inp = ttk.Entry(self, textvariable=self.var_text, width=entry_width, style='Default.TEntry')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
 
@@ -2171,7 +2174,8 @@ class PopupChooseW(tk.Toplevel):
 
         self.var_answer = tk.StringVar(value=default_value)
 
-        self.lbl_msg = ttk.Label(self, text=msg, justify='center', style='Default.TLabel')
+        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, align_left=False), justify='center',
+                                 style='Default.TLabel')
         self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values, width=combo_width,
                                        font='TkFixedFont', state='readonly', style='Default.TCombobox')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
@@ -2228,7 +2232,8 @@ class PopupImgW(tk.Toplevel):
             self.txt_img_not_found.grid(row=1, column=0, padx=6, pady=(0, 16))
         else:
             self.lbl_img = ttk.Label(self, image=self.img, style='Default.TLabel')
-        self.lbl_msg = ttk.Label(self, text=msg, justify='center', style='Default.TLabel')
+        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, align_left=False), justify='center',
+                                 style='Default.TLabel')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Default.TButton')
 
         self.lbl_img.grid(row=0, column=0, padx=6, pady=(4, 0))
@@ -2389,10 +2394,11 @@ class IncorrectAnswerW(tk.Toplevel):
         self.with_typo = with_typo
         self.answer = 'no'  # Значение, возвращаемое методом self.open
 
-        self.lbl_msg = ttk.Label(self, text=f'Неверно.\n'
-                                            f'Ваш ответ: {user_answer}\n'
-                                            f'Правильный ответ: {correct_answer}\n'
-                                            f'Хотите добавить слово в избранное?',
+        self.lbl_msg = ttk.Label(self, text=split_text(f'Неверно.\n'
+                                                       f'Ваш ответ: {user_answer}\n'
+                                                       f'Правильный ответ: {correct_answer}\n'
+                                                       f'Хотите добавить слово в избранное?',
+                                                       45, 5, align_left=False),
                                  justify='center', style='Default.TLabel')
         self.btn_yes = ttk.Button(self, text='Да', command=self.yes, takefocus=False, style='Yes.TButton')
         self.btn_no = ttk.Button(self, text='Нет', command=self.no, takefocus=False, style='No.TButton')
