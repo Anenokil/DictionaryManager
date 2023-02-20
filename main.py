@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.17-A'
-PROGRAM_DATE = '19.2.2023'
-PROGRAM_TIME = '23:39 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.17-B'
+PROGRAM_DATE = '20.2.2023'
+PROGRAM_TIME = '18:51 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -3817,9 +3817,9 @@ class PrintW(tk.Toplevel):
         # {
         self.lbl_fav = ttk.Label(self.frame_main, text='Только избранные:', style='Default.TLabel')
         self.lbl_forms = ttk.Label(self.frame_main, text='Все формы:', style='Default.TLabel')
-        self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=self.print,
+        self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=lambda: self.print(True),
                                          style='Default.TCheckbutton')
-        self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, command=self.print,
+        self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, command=lambda: self.print(True),
                                            style='Default.TCheckbutton')
         # }
         self.scrolled_frame = ScrollFrame(self, 500, 604)
