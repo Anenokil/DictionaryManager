@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.17-B'
-PROGRAM_DATE = '20.2.2023'
-PROGRAM_TIME = '18:51 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.17'
+PROGRAM_DATE = '21.2.2023'
+PROGRAM_TIME = '3:33 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1883,14 +1883,26 @@ def dct_export(savename: str, dst_path: str):
 
 
 # Импортировать словарь
-def dct_import(savename: str, src_path: str):
+def dct_import(window_parent, savename: str, src_path: str):
+    save_filename = 'save.txt'
+    local_settings_filename = 'local_settings.txt'
+
     filename = dct_filename(savename)
 
-    src_save_path = os.path.join(src_path, 'save.txt')
+    src_save_path = os.path.join(src_path, save_filename)
     dst_save_path = os.path.join(SAVES_PATH, filename)
-    src_local_settings_path = os.path.join(src_path, 'local_settings.txt')
+    src_local_settings_path = os.path.join(src_path, local_settings_filename)
     dst_local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
 
+    if save_filename not in os.listdir(src_save_path):
+        warning(window_parent, f'Ошибка импорта сохранения!\n'
+                               f'Отсутствует файл "{save_filename}"')
+        return
+    if local_settings_filename not in os.listdir(src_local_settings_path):
+        warning(window_parent, f'Ошибка импорта сохранения!\n'
+                               f'Отсутствует файл "{local_settings_filename}"')
+        return
+    
     shutil.copyfile(src_save_path, dst_save_path)
     shutil.copyfile(src_local_settings_path, dst_local_settings_path)
 
@@ -5544,7 +5556,7 @@ class SettingsW(tk.Toplevel):
         if closed:
             return
 
-        dct_import(savename, src_path)
+        dct_import(self, savename, src_path)
 
         self.refresh()
 
@@ -6236,8 +6248,8 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                            {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
