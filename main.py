@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.17'
+PROGRAM_VERSION = 'v7.0.18-0'
 PROGRAM_DATE = '21.2.2023'
-PROGRAM_TIME = '3:33 (UTC+3)'
+PROGRAM_TIME = '3:48 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1953,10 +1953,10 @@ def validate_special_combination_val(value: str):
     return len(value) <= 1
 
 
-""" Графический интерфейс - прокручиваемый фрейм """
+""" Графический интерфейс - виджеты """
 
 
-# Виджет - прокручиваемый фрейм
+# Прокручиваемый фрейм
 class ScrollFrame(tk.Frame):
     def __init__(self, parent, height: int, width: int):
         super().__init__(parent)
@@ -2284,9 +2284,6 @@ class PopupImgW(tk.Toplevel):
         return self.closed
 
 
-""" Графический интерфейс - вспомогательные окна """
-
-
 # Окно ввода специальной комбинации
 class EnterSpecialCombinationW(tk.Toplevel):
     def __init__(self, parent):
@@ -2346,249 +2343,8 @@ class EnterSpecialCombinationW(tk.Toplevel):
         return self.closed, self.var_key.get(), self.var_val.get()
 
 
-# Окно выбора одной статьи из нескольких с одинаковыми словами
-class ChooseOneOfSimilarNotesW(tk.Toplevel):
-    def __init__(self, parent, query: str):
-        super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Similar')
-        self.resizable(width=False, height=False)
-        self.configure(bg=ST_BG[th])
-
-        self.search_wrd = query
-        self.answer = None
-
-        self.lbl_header = ttk.Label(self, text='Выберите одну из статей', justify='center', style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, 500, 604)
-        # {
-        self.widgets_wrd = []
-        # }
-
-        self.lbl_header.grid(        row=0, column=0, padx=(6, 3), pady=(6, 3))
-        self.scrolled_frame_wrd.grid(row=1, column=0, padx=6,      pady=(0, 6))
-
-        self.print()
-
-    # Выбрать статью из предложенных вариантов
-    def choose_note(self, key):
-        self.answer = key
-        self.destroy()
-
-    # Вывод вариантов
-    def print(self):
-        # Вывод вариантов
-        count = 0
-        while True:
-            key = wrd_to_key(self.search_wrd, count)
-            if key not in _0_global_dct.d.keys():
-                break
-            self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
-                                            text=_0_global_dct.d[key].print_all(75, 13),
-                                            command=lambda key=key: self.choose_note(key),
-                                            takefocus=False, style='Flat.TButton')]
-            count += 1
-
-        # Расположение виджетов
-        for i in range(len(self.widgets_wrd)):
-            self.widgets_wrd[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-
-        self.scrolled_frame_wrd.canvas.yview_moveto(0.0)
-
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-    def open(self):
-        self.set_focus()
-
-        self.grab_set()
-        self.wait_window()
-
-        return self.answer
-
-
-# Окно с сообщением о неверном ответе
-class IncorrectAnswerW(tk.Toplevel):
-    def __init__(self, parent, user_answer: str, correct_answer: str, with_typo: bool):
-        super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Incorrect answer')
-        self.resizable(width=False, height=False)
-        self.configure(bg=ST_BG[th])
-
-        self.with_typo = with_typo
-        self.answer = 'no'  # Значение, возвращаемое методом self.open
-
-        self.lbl_msg = ttk.Label(self, text=split_text(f'Неверно.\n'
-                                                       f'Ваш ответ: {user_answer}\n'
-                                                       f'Правильный ответ: {correct_answer}\n'
-                                                       f'Хотите добавить слово в избранное?',
-                                                       45, 5, align_left=False),
-                                 justify='center', style='Default.TLabel')
-        self.btn_yes = ttk.Button(self, text='Да', command=self.yes, takefocus=False, style='Yes.TButton')
-        self.btn_no = ttk.Button(self, text='Нет', command=self.no, takefocus=False, style='No.TButton')
-        self.btn_typo = ttk.Button(self, text='Просто опечатка', command=self.typo,
-                                   takefocus=False, style='Default.TButton')
-
-        if with_typo:
-            self.lbl_msg.grid( row=0, column=0, columnspan=3, padx=6, pady=4)
-            self.btn_yes.grid( row=1, column=0,               padx=6, pady=4, sticky='E')
-            self.btn_no.grid(  row=1, column=1,               padx=6, pady=4)
-            self.btn_typo.grid(row=1, column=2,               padx=6, pady=4, sticky='W')
-
-            self.tip_btn_notes = ttip.Hovertip(self.btn_typo, 'Срабатывает при нажатии на Tab', hover_delay=700)
-        else:
-            self.lbl_msg.grid(row=0, column=0, columnspan=2, padx=6, pady=4)
-            self.btn_yes.grid(row=1, column=0,               padx=6, pady=4, sticky='E')
-            self.btn_no.grid( row=1, column=1,               padx=6, pady=4, sticky='W')
-
-    # Нажатие на кнопку "Да"
-    def yes(self):
-        self.answer = 'yes'
-        self.destroy()
-
-    # Нажатие на кнопку "Нет"
-    def no(self):
-        self.answer = 'no'
-        self.destroy()
-
-    # Нажатие на кнопку "Опечатка"
-    def typo(self):
-        self.answer = 'typo'
-        self.destroy()
-
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_yes.invoke())
-        self.bind('<Escape>', lambda event=None: self.btn_no.invoke())
-        if self.with_typo:
-            self.bind('<Tab>', lambda event=None: self.btn_typo.invoke())
-
-    def open(self):
-        self.set_focus()
-
-        self.grab_set()
-        self.wait_window()
-
-        return self.answer
-
-
-# Окно уведомления о выходе новой версии
-class NewVersionAvailableW(tk.Toplevel):
-    def __init__(self, parent, last_version: str):
-        super().__init__(parent)
-        self.title('A new version is available')
-        self.resizable(width=False, height=False)
-        self.configure(bg=ST_BG[th])
-
-        self.var_url = tk.StringVar(value=URL_GITHUB)  # Ссылка, для загрузки новой версии
-
-        self.lbl_msg = ttk.Label(self, text=f'Доступна новая версия программы:\n'
-                                            f'{last_version}',
-                                 justify='center', style='Default.TLabel')
-        self.frame_url = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.entry_url = ttk.Entry(self.frame_url, textvariable=self.var_url, state='readonly', width=45,
-                                   justify='center', style='Default.TEntry')
-        self.btn_open = ttk.Button(self.frame_url, text='Открыть ссылку', command=self.open_github,
-                                   takefocus=False, style='Default.TButton')
-        # }
-        self.btn_update = ttk.Button(self, text='Обновить', command=self.download_and_install,
-                                     takefocus=False, style='Yes.TButton')
-        self.btn_close = ttk.Button(self, text='Закрыть', command=self.destroy, takefocus=False, style='No.TButton')
-
-        self.lbl_msg.grid(  row=1, columnspan=2, padx=6, pady=(4, 0))
-        self.frame_url.grid(row=2, columnspan=2, padx=6, pady=(0, 4))
-        # {
-        self.entry_url.grid(row=0, column=0, padx=(0, 3), pady=0)
-        self.btn_open.grid( row=0, column=1, padx=0,      pady=0)
-        # }
-        self.btn_update.grid(row=3, column=0, padx=6, pady=4)
-        self.btn_close.grid( row=3, column=1, padx=6, pady=4)
-
-    # Открыть репозиторий проекта на GitHub
-    def open_github(self):
-        try:
-            webbrowser.open(URL_GITHUB)
-        except Exception as exc:
-            print(f'Не удалось открыть страницу!\n'
-                  f'{exc}')
-            warning(self, f'Не удалось открыть страницу!\n'
-                          f'{exc}')
-
-    # Скачать и установить обновление
-    def download_and_install(self):
-        save_dct_if_has_progress(self, _0_global_dct, dct_filename(_0_global_dct_savename), _0_global_has_progress)
-
-        # Загрузка списка обновляемых файлов
-        try:
-            print('\nЧтение данных...')
-            data = urllib2.urlopen(URL_UPDATE_FILES)
-            update_files = [str(filename.decode('utf-8')).strip() for filename in data.readlines()]
-        except Exception as exc:
-            print(f'Не удалось получить данные!\n'
-                  f'{exc}')
-            warning(self, f'Не удалось получить данные!\n'
-                          f'{exc}')
-            self.destroy()
-            return
-        # Загрузка
-        try:
-            # Скачиваем архив с обновлением
-            print('Загрузка архива...', end='')
-            wget.download(URL_DOWNLOAD_ZIP, out=MAIN_PATH)
-        except Exception as exc:
-            print(f'\nНе удалось загрузить обновление!\n'
-                  f'{exc}')
-            warning(self, f'Не удалось загрузить обновление!\n'
-                          f'{exc}')
-            self.destroy()
-            return
-        # Установка
-        try:
-            # Распаковываем архив во временную папку
-            print('\nРаспаковка архива...')
-            with zipfile.ZipFile(NEW_VERSION_ZIP_PATH, 'r') as zip_file:
-                zip_file.extractall(MAIN_PATH)
-            # Удаляем архив
-            print('Удаление архива...')
-            os.remove(NEW_VERSION_ZIP_PATH)
-            # Удаляем файлы текущей версии
-            print('Удаление старых файлов...')
-            for filename in os.listdir(IMAGES_PATH):
-                try:
-                    os.remove(os.path.join(IMAGES_PATH, filename))
-                except FileNotFoundError:
-                    print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
-            for filename in ['ver', 'README.txt', 'README.md', 'main.py']:
-                try:
-                    os.remove(os.path.join(MAIN_PATH, filename))
-                except FileNotFoundError:
-                    print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
-            # Из временной папки достаём файлы новой версии
-            print('Установка новых файлов...')
-            for filename in update_files:
-                os.replace(os.path.join(NEW_VERSION_PATH, filename),
-                           os.path.join(MAIN_PATH, filename))
-            # Удаляем временную папку
-            print('Удаление временной папки...')
-            shutil.rmtree(NEW_VERSION_PATH)
-        except Exception as exc:
-            print(f'Не удалось установить обновление!\n'
-                  f'{exc}')
-            warning(self, f'Не удалось установить обновление!\n'
-                          f'{exc}')
-            self.destroy()
-            return
-        else:
-            print('Обновление успешно установлено!')
-            PopupMsgW(self, 'Обновление успешно установлено!\n'
-                            'Программа закроется').open()
-            exit(777)
-
-
 # Окно создания шаблона словоформы
-class CreateFormW(tk.Toplevel):
+class AddFormW(tk.Toplevel):
     def __init__(self, parent, key: tuple[str, int], combo_width=20):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
@@ -2760,6 +2516,149 @@ class CreateFormW(tk.Toplevel):
         return tuple(self.template), self.var_form.get()
 
 
+""" Графический интерфейс - второстепенные окна """
+
+
+# Окно выбора режима перед изучением слов
+class ChooseLearnModeW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Learn')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[th])
+
+        self.res = None
+
+        self.var_order = tk.StringVar(value=VALUES_LEARN_METHOD[0])  # Метод учёбы
+        self.var_forms = tk.BooleanVar(value=True)  # Со всеми ли словоформами
+        self.var_words = tk.StringVar(value=VALUES_LEARN_WORDS[0])  # Способ подбора слов
+
+        self.lbl_header = ttk.Label(self, text='Выберите способ учёбы', style='Default.TLabel')
+        self.frame_main = ttk.Frame(self, style='Default.TFrame')
+        # {
+        self.lbl_order = ttk.Label(self.frame_main, text='Метод:', style='Default.TLabel')
+        self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=VALUES_LEARN_METHOD,
+                                        validate='focusin', width=30, state='readonly', style='Default.TCombobox')
+        self.lbl_forms = ttk.Label(self.frame_main, text='Все словоформы:', style='Default.TLabel')
+        self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='Default.TCheckbutton')
+        self.lbl_words = ttk.Label(self.frame_main, text='Подбор слов:', style='Default.TLabel')
+        self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=VALUES_LEARN_WORDS,
+                                        width=30, state='readonly', style='Default.TCombobox')
+        # }
+        self.btn_start = ttk.Button(self, text='Учить', command=self.start, takefocus=False, style='Default.TButton')
+
+        self.lbl_header.grid(row=0, column=0, padx=6, pady=(6, 3))
+        self.frame_main.grid(row=1, column=0, padx=6, pady=(0, 3))
+        # {
+        self.lbl_order.grid(  row=1, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
+        self.combo_order.grid(row=1, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
+        self.lbl_forms.grid(  row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.check_forms.grid(row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+        self.lbl_words.grid(  row=3, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.combo_words.grid(row=3, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        # }
+        self.btn_start.grid(row=2, column=0, padx=6, pady=(0, 6))
+
+        # При выборе второго метода учёбы нельзя добавить словоформы
+        def validate_order_and_forms(value: str):
+            if value == VALUES_LEARN_METHOD[1]:
+                self.check_forms['state'] = 'disabled'
+            else:
+                self.check_forms['state'] = 'normal'
+            return True
+
+        self.vcmd_order = (self.register(validate_order_and_forms), '%P')
+        self.combo_order['validatecommand'] = self.vcmd_order
+
+    # Начать учить слова
+    def start(self):
+        order = self.var_order.get()
+        forms = self.var_forms.get()
+        words = self.var_words.get()
+        self.res = (order, forms, words)
+        self.destroy()
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_start.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.res
+
+
+# Окно с сообщением о неверном ответе
+class IncorrectAnswerW(tk.Toplevel):
+    def __init__(self, parent, user_answer: str, correct_answer: str, with_typo: bool):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Incorrect answer')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[th])
+
+        self.with_typo = with_typo
+        self.answer = 'no'  # Значение, возвращаемое методом self.open
+
+        self.lbl_msg = ttk.Label(self, text=split_text(f'Неверно.\n'
+                                                       f'Ваш ответ: {user_answer}\n'
+                                                       f'Правильный ответ: {correct_answer}\n'
+                                                       f'Хотите добавить слово в избранное?',
+                                                       45, 5, align_left=False),
+                                 justify='center', style='Default.TLabel')
+        self.btn_yes = ttk.Button(self, text='Да', command=self.yes, takefocus=False, style='Yes.TButton')
+        self.btn_no = ttk.Button(self, text='Нет', command=self.no, takefocus=False, style='No.TButton')
+        self.btn_typo = ttk.Button(self, text='Просто опечатка', command=self.typo,
+                                   takefocus=False, style='Default.TButton')
+
+        if with_typo:
+            self.lbl_msg.grid( row=0, column=0, columnspan=3, padx=6, pady=4)
+            self.btn_yes.grid( row=1, column=0,               padx=6, pady=4, sticky='E')
+            self.btn_no.grid(  row=1, column=1,               padx=6, pady=4)
+            self.btn_typo.grid(row=1, column=2,               padx=6, pady=4, sticky='W')
+
+            self.tip_btn_notes = ttip.Hovertip(self.btn_typo, 'Срабатывает при нажатии на Tab', hover_delay=700)
+        else:
+            self.lbl_msg.grid(row=0, column=0, columnspan=2, padx=6, pady=4)
+            self.btn_yes.grid(row=1, column=0,               padx=6, pady=4, sticky='E')
+            self.btn_no.grid( row=1, column=1,               padx=6, pady=4, sticky='W')
+
+    # Нажатие на кнопку "Да"
+    def yes(self):
+        self.answer = 'yes'
+        self.destroy()
+
+    # Нажатие на кнопку "Нет"
+    def no(self):
+        self.answer = 'no'
+        self.destroy()
+
+    # Нажатие на кнопку "Опечатка"
+    def typo(self):
+        self.answer = 'typo'
+        self.destroy()
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_yes.invoke())
+        self.bind('<Escape>', lambda event=None: self.btn_no.invoke())
+        if self.with_typo:
+            self.bind('<Tab>', lambda event=None: self.btn_typo.invoke())
+
+    def open(self):
+        self.set_focus()
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.answer
+
+
 # Окно вывода похожих статей для редактирования, если нет точного совпадения
 class ParticularMatchesW(tk.Toplevel):
     def __init__(self, parent, query: str):
@@ -2888,7 +2787,65 @@ class ParticularMatchesW(tk.Toplevel):
         self.wait_window()
 
 
-""" Графический интерфейс - основные окна """
+# Окно выбора одной статьи из нескольких с одинаковыми словами
+class ChooseOneOfSimilarNotesW(tk.Toplevel):
+    def __init__(self, parent, query: str):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Similar')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[th])
+
+        self.search_wrd = query
+        self.answer = None
+
+        self.lbl_header = ttk.Label(self, text='Выберите одну из статей', justify='center', style='Default.TLabel')
+        self.scrolled_frame_wrd = ScrollFrame(self, 500, 604)
+        # {
+        self.widgets_wrd = []
+        # }
+
+        self.lbl_header.grid(        row=0, column=0, padx=(6, 3), pady=(6, 3))
+        self.scrolled_frame_wrd.grid(row=1, column=0, padx=6,      pady=(0, 6))
+
+        self.print()
+
+    # Выбрать статью из предложенных вариантов
+    def choose_note(self, key):
+        self.answer = key
+        self.destroy()
+
+    # Вывод вариантов
+    def print(self):
+        # Вывод вариантов
+        count = 0
+        while True:
+            key = wrd_to_key(self.search_wrd, count)
+            if key not in _0_global_dct.d.keys():
+                break
+            self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
+                                            text=_0_global_dct.d[key].print_all(75, 13),
+                                            command=lambda key=key: self.choose_note(key),
+                                            takefocus=False, style='Flat.TButton')]
+            count += 1
+
+        # Расположение виджетов
+        for i in range(len(self.widgets_wrd)):
+            self.widgets_wrd[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+
+        self.scrolled_frame_wrd.canvas.yview_moveto(0.0)
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.answer
 
 
 # Окно настроек категорий
@@ -3809,6 +3766,123 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.wait_window()
 
 
+# Окно уведомления о выходе новой версии
+class NewVersionAvailableW(tk.Toplevel):
+    def __init__(self, parent, last_version: str):
+        super().__init__(parent)
+        self.title('A new version is available')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[th])
+
+        self.var_url = tk.StringVar(value=URL_GITHUB)  # Ссылка, для загрузки новой версии
+
+        self.lbl_msg = ttk.Label(self, text=f'Доступна новая версия программы:\n'
+                                            f'{last_version}',
+                                 justify='center', style='Default.TLabel')
+        self.frame_url = ttk.Frame(self, style='Invis.TFrame')
+        # {
+        self.entry_url = ttk.Entry(self.frame_url, textvariable=self.var_url, state='readonly', width=45,
+                                   justify='center', style='Default.TEntry')
+        self.btn_open = ttk.Button(self.frame_url, text='Открыть ссылку', command=self.open_github,
+                                   takefocus=False, style='Default.TButton')
+        # }
+        self.btn_update = ttk.Button(self, text='Обновить', command=self.download_and_install,
+                                     takefocus=False, style='Yes.TButton')
+        self.btn_close = ttk.Button(self, text='Закрыть', command=self.destroy, takefocus=False, style='No.TButton')
+
+        self.lbl_msg.grid(  row=1, columnspan=2, padx=6, pady=(4, 0))
+        self.frame_url.grid(row=2, columnspan=2, padx=6, pady=(0, 4))
+        # {
+        self.entry_url.grid(row=0, column=0, padx=(0, 3), pady=0)
+        self.btn_open.grid( row=0, column=1, padx=0,      pady=0)
+        # }
+        self.btn_update.grid(row=3, column=0, padx=6, pady=4)
+        self.btn_close.grid( row=3, column=1, padx=6, pady=4)
+
+    # Открыть репозиторий проекта на GitHub
+    def open_github(self):
+        try:
+            webbrowser.open(URL_GITHUB)
+        except Exception as exc:
+            print(f'Не удалось открыть страницу!\n'
+                  f'{exc}')
+            warning(self, f'Не удалось открыть страницу!\n'
+                          f'{exc}')
+
+    # Скачать и установить обновление
+    def download_and_install(self):
+        save_dct_if_has_progress(self, _0_global_dct, dct_filename(_0_global_dct_savename), _0_global_has_progress)
+
+        # Загрузка списка обновляемых файлов
+        try:
+            print('\nЧтение данных...')
+            data = urllib2.urlopen(URL_UPDATE_FILES)
+            update_files = [str(filename.decode('utf-8')).strip() for filename in data.readlines()]
+        except Exception as exc:
+            print(f'Не удалось получить данные!\n'
+                  f'{exc}')
+            warning(self, f'Не удалось получить данные!\n'
+                          f'{exc}')
+            self.destroy()
+            return
+        # Загрузка
+        try:
+            # Скачиваем архив с обновлением
+            print('Загрузка архива...', end='')
+            wget.download(URL_DOWNLOAD_ZIP, out=MAIN_PATH)
+        except Exception as exc:
+            print(f'\nНе удалось загрузить обновление!\n'
+                  f'{exc}')
+            warning(self, f'Не удалось загрузить обновление!\n'
+                          f'{exc}')
+            self.destroy()
+            return
+        # Установка
+        try:
+            # Распаковываем архив во временную папку
+            print('\nРаспаковка архива...')
+            with zipfile.ZipFile(NEW_VERSION_ZIP_PATH, 'r') as zip_file:
+                zip_file.extractall(MAIN_PATH)
+            # Удаляем архив
+            print('Удаление архива...')
+            os.remove(NEW_VERSION_ZIP_PATH)
+            # Удаляем файлы текущей версии
+            print('Удаление старых файлов...')
+            for filename in os.listdir(IMAGES_PATH):
+                try:
+                    os.remove(os.path.join(IMAGES_PATH, filename))
+                except FileNotFoundError:
+                    print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
+            for filename in ['ver', 'README.txt', 'README.md', 'main.py']:
+                try:
+                    os.remove(os.path.join(MAIN_PATH, filename))
+                except FileNotFoundError:
+                    print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
+            # Из временной папки достаём файлы новой версии
+            print('Установка новых файлов...')
+            for filename in update_files:
+                os.replace(os.path.join(NEW_VERSION_PATH, filename),
+                           os.path.join(MAIN_PATH, filename))
+            # Удаляем временную папку
+            print('Удаление временной папки...')
+            shutil.rmtree(NEW_VERSION_PATH)
+        except Exception as exc:
+            print(f'Не удалось установить обновление!\n'
+                  f'{exc}')
+            warning(self, f'Не удалось установить обновление!\n'
+                          f'{exc}')
+            self.destroy()
+            return
+        else:
+            print('Обновление успешно установлено!')
+            PopupMsgW(self, 'Обновление успешно установлено!\n'
+                            'Программа закроется').open()
+            exit(777)
+
+
+""" Графический интерфейс - основные окна """
+
+
 # Окно просмотра словаря
 class PrintW(tk.Toplevel):
     def __init__(self, parent):
@@ -3980,80 +4054,6 @@ class PrintW(tk.Toplevel):
 
         self.grab_set()
         self.wait_window()
-
-
-# Окно выбора режима перед изучением слов
-class ChooseLearnModeW(tk.Toplevel):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Learn')
-        self.resizable(width=False, height=False)
-        self.configure(bg=ST_BG[th])
-
-        self.res = None
-
-        self.var_order = tk.StringVar(value=VALUES_LEARN_METHOD[0])  # Метод учёбы
-        self.var_forms = tk.BooleanVar(value=True)  # Со всеми ли словоформами
-        self.var_words = tk.StringVar(value=VALUES_LEARN_WORDS[0])  # Способ подбора слов
-
-        self.lbl_header = ttk.Label(self, text='Выберите способ учёбы', style='Default.TLabel')
-        self.frame_main = ttk.Frame(self, style='Default.TFrame')
-        # {
-        self.lbl_order = ttk.Label(self.frame_main, text='Метод:', style='Default.TLabel')
-        self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=VALUES_LEARN_METHOD,
-                                        validate='focusin', width=30, state='readonly', style='Default.TCombobox')
-        self.lbl_forms = ttk.Label(self.frame_main, text='Все словоформы:', style='Default.TLabel')
-        self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='Default.TCheckbutton')
-        self.lbl_words = ttk.Label(self.frame_main, text='Подбор слов:', style='Default.TLabel')
-        self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=VALUES_LEARN_WORDS,
-                                        width=30, state='readonly', style='Default.TCombobox')
-        # }
-        self.btn_start = ttk.Button(self, text='Учить', command=self.start, takefocus=False, style='Default.TButton')
-
-        self.lbl_header.grid(row=0, column=0, padx=6, pady=(6, 3))
-        self.frame_main.grid(row=1, column=0, padx=6, pady=(0, 3))
-        # {
-        self.lbl_order.grid(  row=1, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
-        self.combo_order.grid(row=1, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
-        self.lbl_forms.grid(  row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
-        self.check_forms.grid(row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
-        self.lbl_words.grid(  row=3, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.combo_words.grid(row=3, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
-        # }
-        self.btn_start.grid(row=2, column=0, padx=6, pady=(0, 6))
-
-        # При выборе второго метода учёбы нельзя добавить словоформы
-        def validate_order_and_forms(value: str):
-            if value == VALUES_LEARN_METHOD[1]:
-                self.check_forms['state'] = 'disabled'
-            else:
-                self.check_forms['state'] = 'normal'
-            return True
-
-        self.vcmd_order = (self.register(validate_order_and_forms), '%P')
-        self.combo_order['validatecommand'] = self.vcmd_order
-
-    # Начать учить слова
-    def start(self):
-        order = self.var_order.get()
-        forms = self.var_forms.get()
-        words = self.var_words.get()
-        self.res = (order, forms, words)
-        self.destroy()
-
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_start.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-    def open(self):
-        self.set_focus()
-
-        self.grab_set()
-        self.wait_window()
-
-        return self.res
 
 
 # Окно изучения слов
@@ -4908,8 +4908,8 @@ class EditW(tk.Toplevel):
                           'Настройки/Настройки словаря/Грамматические категории')
             return
 
-        window_form = CreateFormW(self, self.dct_key, combo_width=width(tuple(_0_global_categories.keys()),
-                                                                        5, 100))  # Создание шаблона словоформы
+        window_form = AddFormW(self, self.dct_key, combo_width=width(tuple(_0_global_categories.keys()),
+                                                                           5, 100))  # Создание словоформы
         frm_key, frm = window_form.open()
         if not frm_key:
             return
@@ -6248,7 +6248,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                            {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
