@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.19-patch-2'
+PROGRAM_VERSION = 'v7.0.19-patch-3'
 PROGRAM_DATE = '22.2.2023'
-PROGRAM_TIME = '1:00 (UTC+3)'
+PROGRAM_TIME = '1:06 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -2569,9 +2569,11 @@ class ChooseLearnModeW(tk.Toplevel):
         # При выборе второго метода учёбы нельзя добавить словоформы
         def validate_order_and_forms(value: str):
             if value == VALUES_LEARN_METHOD[1]:
-                self.check_forms['state'] = 'disabled'
+                self.lbl_forms.grid_remove()
+                self.check_forms.grid_remove()
             else:
-                self.check_forms['state'] = 'normal'
+                self.lbl_forms.grid(  row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+                self.check_forms.grid(row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
             return True
 
         self.vcmd_order = (self.register(validate_order_and_forms), '%P')
@@ -2580,7 +2582,10 @@ class ChooseLearnModeW(tk.Toplevel):
     # Начать учить слова
     def start(self):
         order = self.var_order.get()
-        forms = self.var_forms.get()
+        if order == VALUES_LEARN_METHOD[0]:
+            forms = self.var_forms.get()
+        else:
+            forms = False
         words = self.var_words.get()
         self.res = (order, forms, words)
         self.destroy()
@@ -2591,7 +2596,7 @@ class ChooseLearnModeW(tk.Toplevel):
         self.bind('<Return>', lambda event=None: self.btn_start.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
-    def open(self):
+    def open(self) -> tuple[str, bool, str]:
         self.set_focus()
 
         self.grab_set()
