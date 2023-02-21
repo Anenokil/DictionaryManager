@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.19-patch-1'
+PROGRAM_VERSION = 'v7.0.19-patch-2'
 PROGRAM_DATE = '22.2.2023'
-PROGRAM_TIME = '0:08 (UTC+3)'
+PROGRAM_TIME = '1:00 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -5201,22 +5201,22 @@ class SettingsW(tk.Toplevel):
         self.print_dct_list()
         self.refresh_fontsize_buttons()
 
-    # Справка о МППУ
+    # Справка о МППУ (срабатывает при нажатии на кнопку)
     def about_mgsp(self):
         PopupImgW(self, img_about_mgsp, 'Статьи, у которых процент угадывания ниже этого значения,\n'
                                         'будут считаться более сложными.\n'
                                         'При выборе режима учёбы "Чаще сложные"\n'
                                         'такие слова будут чаще попадаться.').open()
 
-    # Настройки категорий
+    # Настройки грамматических категорий (срабатывает при нажатии на кнопку)
     def categories_settings(self):
         self.has_ctg_changes = CategoriesSettingsW(self).open() or self.has_ctg_changes
 
-    # Настройки специальных комбинаций
+    # Настройки специальных комбинаций (срабатывает при нажатии на кнопку)
     def special_combinations_settings(self):
         self.has_spec_comb_changes = SpecialCombinationsSettingsW(self).open() or self.has_spec_comb_changes
 
-    # Справка о кнопке "Опечатка"
+    # Справка о кнопке "Опечатка" (срабатывает при нажатии на кнопку)
     def about_typo(self):
         PopupImgW(self, img_about_typo, 'Если функция включена, то\n'
                                         'когда вы неверно отвечаете при учёбе,\n'
@@ -5224,7 +5224,7 @@ class SettingsW(tk.Toplevel):
                                         'При её нажатии, ошибка не засчитывается.\n'
                                         'Срабатывает при нажатии на Tab.').open()
 
-    # Открыть словарь
+    # Открыть словарь (срабатывает при нажатии на кнопку)
     def dct_open(self):
         global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc,\
             _0_global_categories, _0_global_special_combinations, _0_global_check_register, _0_global_has_progress
@@ -5269,7 +5269,7 @@ class SettingsW(tk.Toplevel):
 
         self.refresh()
 
-    # Создать словарь
+    # Создать словарь (срабатывает при нажатии на кнопку)
     def dct_create(self):
         global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc,\
             _0_global_categories, _0_global_special_combinations, _0_global_check_register, _0_global_has_progress
@@ -5301,7 +5301,7 @@ class SettingsW(tk.Toplevel):
 
         self.refresh()
 
-    # Переименовать словарь
+    # Переименовать словарь (срабатывает при нажатии на кнопку)
     def dct_rename(self):
         global _0_global_dct_savename
 
@@ -5336,7 +5336,7 @@ class SettingsW(tk.Toplevel):
 
         self.print_dct_list()
 
-    # Удалить словарь
+    # Удалить словарь (срабатывает при нажатии на кнопку)
     def dct_delete(self):
         saves_list = []
         for filename in os.listdir(SAVES_PATH):
@@ -5365,7 +5365,7 @@ class SettingsW(tk.Toplevel):
 
         self.print_dct_list()
 
-    # Экспортировать словарь
+    # Экспортировать словарь (срабатывает при нажатии на кнопку)
     def dct_export(self):
         saves_count = 0
         saves_list = []
@@ -5386,7 +5386,7 @@ class SettingsW(tk.Toplevel):
 
         dct_export(savename, dst_path)
 
-    # Импортировать словарь
+    # Импортировать словарь (срабатывает при нажатии на кнопку)
     def dct_import(self):
         src_path = askdirectory(title='Выберите папку сохранения')
         if src_path == '':
@@ -5403,14 +5403,14 @@ class SettingsW(tk.Toplevel):
 
         self.refresh()
 
-    # Задать пользовательскую тему
+    # Задать пользовательскую тему (срабатывает при нажатии на кнопку)
     def custom_theme(self):
         CustomThemeSettingsW(self).open()
         upload_custom_theme()
         if th == CUSTOM_TH:
-            self.save_theme()
+            self.set_theme()
 
-    # Увеличить шрифт
+    # Увеличить шрифт (срабатывает при нажатии на кнопку)
     def fontsize_plus(self):
         global _0_global_fontsize
 
@@ -5428,7 +5428,7 @@ class SettingsW(tk.Toplevel):
 
         self.refresh_fontsize_buttons()
 
-    # Уменьшить шрифт
+    # Уменьшить шрифт (срабатывает при нажатии на кнопку)
     def fontsize_minus(self):
         global _0_global_fontsize
 
@@ -5446,32 +5446,50 @@ class SettingsW(tk.Toplevel):
 
         self.refresh_fontsize_buttons()
 
-    # Сохранить настройки
+    # Сохранить настройки (срабатывает при нажатии на кнопку)
     def save(self):
-        global _0_global_has_progress
+        global _0_global_min_good_score_perc, _0_global_check_register, _0_global_show_updates, _0_global_with_typo,\
+            _0_global_has_progress
 
-        self.save_mgsp()
-        self.save_check_register()
-        self.save_show_updates()
-        self.save_show_typo_button()
-        self.save_theme()
+        # Сохранить значение МППУ
+        val = self.var_mgsp.get()
+        if val == '':
+            _0_global_min_good_score_perc = 0
+        else:
+            _0_global_min_good_score_perc = int(val)
 
+        # Учитывать/не учитывать регистр букв при проверке введённого ответа при учёбе
+        _0_global_check_register = int(self.var_check_register.get())  # 0 или 1
+
+        # Разрешить/запретить сообщать о новых версиях
+        _0_global_show_updates = int(self.var_show_updates.get())  # 0 или 1
+
+        # Показывать/скрывать кнопку "Опечатка" при неверном ответе в учёбе
+        _0_global_with_typo = int(self.var_show_typo_button.get())  # 0 или 1
+
+        # Установка выбранной темы
+        self.set_theme()
+
+        # Обновление бэкапов сохранения
         self.backup_dct = copy.deepcopy(_0_global_dct)
         self.backup_fp = copy.deepcopy(_0_global_categories)
 
+        # Сохранение настроек в файлы
         save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_categories,
                             dct_filename(_0_global_dct_savename))
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
                              _0_global_fontsize)
 
+        # Сохранение словаря, если были изменения локальных настроек
         if self.has_local_changes():
             save_dct(_0_global_dct, dct_filename(_0_global_dct_savename))
 
+        # Обнуление переменных, показывающих наличие изменений
         self.has_ctg_changes = False
         self.has_spec_comb_changes = False
         _0_global_has_progress = False
 
-    # Закрыть настройки без сохранения
+    # Закрыть настройки без сохранения (срабатывает при нажатии на кнопку)
     def close(self):
         if self.has_changes():
             window = PopupDialogueW(self, 'У вас есть несохранённые изменения?\n'
@@ -5481,7 +5499,7 @@ class SettingsW(tk.Toplevel):
                 return
         self.destroy()
 
-    # Вывод существующих словарей
+    # Вывод списка существующих словарей в текстовое поле
     def print_dct_list(self):
         self.txt_dcts['state'] = 'normal'
         self.txt_dcts.delete(1.0, tk.END)
@@ -5506,11 +5524,13 @@ class SettingsW(tk.Toplevel):
 
     # Обновить кнопки изменения размера шрифта
     def refresh_fontsize_buttons(self):
+        # Если размер шрифта минимальный, то кнопка минуса становится неактивной
         if _0_global_fontsize == FONTSIZE_MIN:
             btn_disable(self.btn_fontsize_minus)
         else:
             btn_enable(self.btn_fontsize_minus, self.fontsize_minus, style='Image')
 
+        # Если размер шрифта максимальный, то кнопка плюса становится неактивной
         if _0_global_fontsize == FONTSIZE_MAX:
             btn_disable(self.btn_fontsize_plus)
         else:
@@ -5519,38 +5539,11 @@ class SettingsW(tk.Toplevel):
     # Обновить настройки при открытии другого словаря
     def refresh(self):
         self.var_mgsp.set(str(_0_global_min_good_score_perc))
+        self.var_check_register.set(bool(_0_global_check_register))
         self.print_dct_list()
 
-    # Сохранить значение МППУ
-    def save_mgsp(self):
-        global _0_global_min_good_score_perc
-
-        val = self.var_mgsp.get()
-        if val == '':
-            _0_global_min_good_score_perc = 0
-        else:
-            _0_global_min_good_score_perc = int(val)
-
-    # Учитывать/не учитывать регистр букв при проверке введённого ответа при учёбе
-    def save_check_register(self):
-        global _0_global_check_register
-
-        _0_global_check_register = int(self.var_check_register.get())  # 0 или 1
-
-    # Разрешить/запретить сообщать о новых версиях
-    def save_show_updates(self):
-        global _0_global_show_updates
-
-        _0_global_show_updates = int(self.var_show_updates.get())  # 0 или 1
-
-    # Показывать/скрывать кнопку "Опечатка" при неверном ответе в учёбе
-    def save_show_typo_button(self):
-        global _0_global_with_typo
-
-        _0_global_with_typo = int(self.var_show_typo_button.get())  # 0 или 1
-
     # Установить выбранную тему
-    def save_theme(self):
+    def set_theme(self):
         global th
 
         th = self.var_theme.get()
