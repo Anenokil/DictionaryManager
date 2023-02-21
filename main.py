@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.19-patch-3'
+PROGRAM_VERSION = 'v7.0.20'
 PROGRAM_DATE = '22.2.2023'
-PROGRAM_TIME = '1:06 (UTC+3)'
+PROGRAM_TIME = '2:57 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -246,9 +246,10 @@ NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с
 CATEGORY_SEPARATOR = '@'  # Разделитель для записи значений категории в файл локальных настроек
 SPECIAL_COMBINATION_OPENING_SYMBOL = '#'  # Открывающий символ специальных комбинаций
 
-VALUES_LEARN_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову')  # Варианты метода учёбы
-VALUES_LEARN_WORDS = ('Все слова', 'Все слова (чаще сложные)',
-                      'Только избранные', 'Только избранные (чаще сложные)')  # Варианты подбора слов для учёбы
+LEARN_VALUES_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову')  # Варианты метода учёбы
+LEARN_VALUES_WORDS = ('Все слова', 'Больше избранных (рекоменд.)',
+                      'Только избранные', '15 случайных слов')  # Варианты подбора слов для учёбы
+LEARN_VALUES_ORDER = ('Случайный порядок', 'В первую очередь сложные')  # Варианты порядка следования слов при учёбе
 
 """ Объекты """
 
@@ -621,7 +622,7 @@ class Dictionary(object):
                f'{count_t}/{self.count_t} {t} >'
 
     # Подсчитать количество избранных статей
-    def count_fav(self):
+    def count_fav_info(self):
         count_w = 0
         count_t = 0
         count_f = 0
@@ -2534,33 +2535,39 @@ class ChooseLearnModeW(tk.Toplevel):
 
         self.res = None
 
-        self.var_order = tk.StringVar(value=VALUES_LEARN_METHOD[0])  # Метод учёбы
+        self.var_method = tk.StringVar(value=LEARN_VALUES_METHOD[0])  # Метод изучения слов
         self.var_forms = tk.BooleanVar(value=True)  # Со всеми ли словоформами
-        self.var_words = tk.StringVar(value=VALUES_LEARN_WORDS[0])  # Способ подбора слов
+        self.var_words = tk.StringVar(value=LEARN_VALUES_WORDS[1])  # Способ подбора слов
+        self.var_order = tk.StringVar(value=LEARN_VALUES_ORDER[0])  # Порядок следования слов
 
         self.lbl_header = ttk.Label(self, text='Выберите способ учёбы', style='Default.TLabel')
         self.frame_main = ttk.Frame(self, style='Default.TFrame')
         # {
-        self.lbl_order = ttk.Label(self.frame_main, text='Метод:', style='Default.TLabel')
-        self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=VALUES_LEARN_METHOD,
-                                        validate='focusin', width=34, state='readonly', style='Default.TCombobox')
+        self.lbl_method = ttk.Label(self.frame_main, text='Метод:', style='Default.TLabel')
+        self.combo_method = ttk.Combobox(self.frame_main, textvariable=self.var_method, values=LEARN_VALUES_METHOD,
+                                         validate='focusin', width=37, state='readonly', style='Default.TCombobox')
         self.lbl_forms = ttk.Label(self.frame_main, text='Все словоформы:', style='Default.TLabel')
         self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='Default.TCheckbutton')
-        self.lbl_words = ttk.Label(self.frame_main, text='Подбор слов:', style='Default.TLabel')
-        self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=VALUES_LEARN_WORDS,
-                                        width=39, state='readonly', style='Default.TCombobox')
+        self.lbl_words = ttk.Label(self.frame_main, text='Набор слов:', style='Default.TLabel')
+        self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=LEARN_VALUES_WORDS,
+                                        width=37, state='readonly', style='Default.TCombobox')
+        self.lbl_order = ttk.Label(self.frame_main, text='Порядок слов:', style='Default.TLabel')
+        self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=LEARN_VALUES_ORDER,
+                                        width=37, state='readonly', style='Default.TCombobox')
         # }
         self.btn_start = ttk.Button(self, text='Учить', command=self.start, takefocus=False, style='Default.TButton')
 
         self.lbl_header.grid(row=0, column=0, padx=6, pady=(6, 3))
         self.frame_main.grid(row=1, column=0, padx=6, pady=(0, 3))
         # {
-        self.lbl_order.grid(  row=1, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
-        self.combo_order.grid(row=1, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
-        self.lbl_forms.grid(  row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
-        self.check_forms.grid(row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
-        self.lbl_words.grid(  row=3, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.combo_words.grid(row=3, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_method.grid(  row=1, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
+        self.combo_method.grid(row=1, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
+        self.lbl_forms.grid(   row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.check_forms.grid( row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+        self.lbl_words.grid(   row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.combo_words.grid( row=3, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+        self.lbl_order.grid(   row=4, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.combo_order.grid( row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
         # }
         self.btn_start.grid(row=2, column=0, padx=6, pady=(0, 6))
 
@@ -2568,7 +2575,7 @@ class ChooseLearnModeW(tk.Toplevel):
 
         # При выборе второго метода учёбы нельзя добавить словоформы
         def validate_order_and_forms(value: str):
-            if value == VALUES_LEARN_METHOD[1]:
+            if value == LEARN_VALUES_METHOD[1]:
                 self.lbl_forms.grid_remove()
                 self.check_forms.grid_remove()
             else:
@@ -2581,13 +2588,14 @@ class ChooseLearnModeW(tk.Toplevel):
 
     # Начать учить слова
     def start(self):
-        order = self.var_order.get()
-        if order == VALUES_LEARN_METHOD[0]:
+        method = self.var_method.get()
+        if method == LEARN_VALUES_METHOD[0]:
             forms = self.var_forms.get()
         else:
             forms = False
         words = self.var_words.get()
-        self.res = (order, forms, words)
+        order = self.var_order.get()
+        self.res = (method, forms, words, order)
         self.destroy()
 
     # Установить фокус
@@ -2596,7 +2604,7 @@ class ChooseLearnModeW(tk.Toplevel):
         self.bind('<Return>', lambda event=None: self.btn_start.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
-    def open(self) -> tuple[str, bool, str]:
+    def open(self) -> tuple[str, bool, str, str]:
         self.set_focus()
 
         self.grab_set()
@@ -3994,7 +4002,7 @@ class PrintW(tk.Toplevel):
         if self.var_fav.get():
             self.keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
 
-            w, t, f = _0_global_dct.count_fav()
+            w, t, f = _0_global_dct.count_fav_info()
             self.var_info.set(_0_global_dct.dct_info_fav(w, t, f))
         else:
             self.keys = [key for key in _0_global_dct.d.keys()]
@@ -4070,7 +4078,7 @@ class PrintW(tk.Toplevel):
 
 # Окно изучения слов
 class LearnW(tk.Toplevel):
-    def __init__(self, parent, learn_method: str, with_forms: bool, words: str):
+    def __init__(self, parent, parameters: tuple[str, bool, str, str]):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Learn')
         self.resizable(width=False, height=False)
@@ -4080,27 +4088,53 @@ class LearnW(tk.Toplevel):
         self.current_form = None  # Текущая форма (если начальная, то None)
         self.count_all = 0  # Счётчик всех ответов
         self.count_correct = 0  # Счётчик верных ответов
-        self.learn_method = learn_method  # Метод изучения слов
-        self.with_forms = with_forms  # Со всеми ли словоформами
-        self.words = words  # Способ подбора слов
+        self.learn_method = parameters[0]  # Метод изучения слов
+        self.with_forms = parameters[1]  # Со всеми ли словоформами
+        self.words = parameters[2]  # Способ подбора слов
+        self.order = parameters[3]  # Порядок следования слов
         self.pool = set()  # Список слов для изучения
 
-        if self.words in (VALUES_LEARN_WORDS[0], VALUES_LEARN_WORDS[1]):
+        if self.words == LEARN_VALUES_WORDS[0]:  # Учить все слова
             for key in _0_global_dct.d.keys():
                 self.pool.add((key, None))
-            if self.with_forms and learn_method == VALUES_LEARN_METHOD[0]:
+            if self.with_forms:
                 for key in _0_global_dct.d.keys():
                     for frm in _0_global_dct.d[key].forms.keys():
                         self.pool.add((key, frm))
-        else:
+        elif self.words == LEARN_VALUES_WORDS[1]:  # Учить преимущественно избранные слова
             for key in _0_global_dct.d.keys():
                 if _0_global_dct.d[key].fav:
                     self.pool.add((key, None))
-            if self.with_forms and learn_method == VALUES_LEARN_METHOD[0]:
+                else:
+                    rnd = random.randint(1, 4 * (_0_global_dct.count_w - _0_global_dct.count_fav_info()[0]))
+                    if rnd <= _0_global_dct.count_fav_info()[0]:
+                        self.pool.add((key, None))
+            if self.with_forms:
+                for key in _0_global_dct.d.keys():
+                    for frm in _0_global_dct.d[key].forms.keys():
+                        if _0_global_dct.d[key].fav:
+                            self.pool.add((key, frm))
+                        else:
+                            rnd = random.randint(1, 4 * (_0_global_dct.count_f - _0_global_dct.count_fav_info()[2]))
+                            if rnd <= _0_global_dct.count_fav_info()[2]:
+                                self.pool.add((key, frm))
+        elif self.words == LEARN_VALUES_WORDS[2]:  # Учить только избранные слова
+            for key in _0_global_dct.d.keys():
+                if _0_global_dct.d[key].fav:
+                    self.pool.add((key, None))
+            if self.with_forms:
                 for key in _0_global_dct.d.keys():
                     if _0_global_dct.d[key].fav:
                         for frm in _0_global_dct.d[key].forms.keys():
                             self.pool.add((key, frm))
+        else:  # Учить 15 случайных слов
+            keys = random.sample(tuple(_0_global_dct.d.keys()), min(15, _0_global_dct.count_w))
+            for key in keys:
+                self.pool.add((key, None))
+            if self.with_forms:
+                for key in keys:
+                    for frm in _0_global_dct.d[key].forms.keys():
+                        self.pool.add((key, frm))
 
         self.var_input = tk.StringVar()
 
@@ -4136,13 +4170,10 @@ class LearnW(tk.Toplevel):
         self.tip_btn_notes = ttip.Hovertip(self.btn_notes, 'Срабатывает при нажатии на Tab;\n'
                                                            'Если сносок нет, то ничего не выведется',
                                            hover_delay=700)
-        if learn_method == VALUES_LEARN_METHOD[0]:
+        if self.learn_method == LEARN_VALUES_METHOD[0]:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
         else:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
-
-        if not self.pool:
-            self.stop()
 
         self.choose()
 
@@ -4167,7 +4198,7 @@ class LearnW(tk.Toplevel):
             self.outp(answer)
 
         # Проверка пользовательского ответа
-        if self.learn_method == VALUES_LEARN_METHOD[1]:
+        if self.learn_method == LEARN_VALUES_METHOD[1]:
             self.check_tr()
         elif self.with_forms and self.current_form:
             self.check_form()
@@ -4289,13 +4320,13 @@ class LearnW(tk.Toplevel):
             _0_global_has_progress = True
 
         # Выбор слова
-        if self.words in (VALUES_LEARN_WORDS[0], VALUES_LEARN_WORDS[2]):
+        if self.words == LEARN_VALUES_ORDER[0]:
             self.current_key, self.current_form = random.choice(tuple(self.pool))
         else:
             self.current_key, self.current_form = random_hard(_0_global_dct, self.pool, _0_global_min_good_score_perc)
 
         # Вывод слова в журнал
-        if self.learn_method == VALUES_LEARN_METHOD[0]:
+        if self.learn_method == LEARN_VALUES_METHOD[0]:
             if self.with_forms and self.current_form:
                 self.outp(_0_global_dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
             else:
@@ -5210,7 +5241,7 @@ class SettingsW(tk.Toplevel):
     def about_mgsp(self):
         PopupImgW(self, img_about_mgsp, 'Статьи, у которых процент угадывания ниже этого значения,\n'
                                         'будут считаться более сложными.\n'
-                                        'При выборе режима учёбы "Чаще сложные"\n'
+                                        'При выборе режима учёбы "В первую очередь сложные"\n'
                                         'такие слова будут чаще попадаться.').open()
 
     # Настройки грамматических категорий (срабатывает при нажатии на кнопку)
@@ -5752,7 +5783,7 @@ class MainW(tk.Tk):
         res = ChooseLearnModeW(self).open()
         if not res:
             return
-        LearnW(self, res[0], res[1], res[2]).open()
+        LearnW(self, res).open()
 
     # Нажатие на кнопку "Найти статью"
     def search(self):
@@ -6089,7 +6120,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                         {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
