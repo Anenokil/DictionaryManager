@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.18-2'
+PROGRAM_VERSION = 'v7.0.18'
 PROGRAM_DATE = '21.2.2023'
-PROGRAM_TIME = '18:00 (UTC+3)'
+PROGRAM_TIME = '18:15 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -4254,40 +4254,30 @@ class LearnW(tk.Toplevel):
     def choose(self):
         global _0_global_has_progress
 
+        # Функция выбора слова
+        if self.words in (VALUES_LEARN_WORDS[0], VALUES_LEARN_WORDS[2]):
+            def random_function():
+                return random.choice(list(_0_global_dct.d.keys()))
+        else:
+            def random_function():
+                return _0_global_dct.random_hard(_0_global_min_good_score_perc)
+
         if self.learn_method == VALUES_LEARN_METHOD[0]:
             if self.with_forms:
-                if self.words == VALUES_LEARN_WORDS[0]:
-                    has_progress = self.choose_f(_0_global_dct, lambda: random.choice(list(_0_global_dct.d.keys())))
-                elif self.words == VALUES_LEARN_WORDS[1]:
-                    has_progress = self.choose_f(_0_global_dct,
-                                                 lambda: _0_global_dct.random_hard(_0_global_min_good_score_perc))
-                elif self.words == VALUES_LEARN_WORDS[2]:
-                    has_progress = self.choose_f_fav(_0_global_dct, lambda: random.choice(list(_0_global_dct.d.keys())))
+                if self.words in (VALUES_LEARN_WORDS[0], VALUES_LEARN_WORDS[1]):
+                    has_progress = self.choose_f(_0_global_dct, random_function)
                 else:
-                    has_progress = self.choose_f_fav(_0_global_dct,
-                                                     lambda: _0_global_dct.random_hard(_0_global_min_good_score_perc))
+                    has_progress = self.choose_f_fav(_0_global_dct, random_function)
             else:
-                if self.words == VALUES_LEARN_WORDS[0]:
-                    has_progress = self.choose_w(_0_global_dct, lambda: random.choice(list(_0_global_dct.d.keys())))
-                elif self.words == VALUES_LEARN_WORDS[1]:
-                    has_progress = self.choose_w(_0_global_dct,
-                                                 lambda: _0_global_dct.random_hard(_0_global_min_good_score_perc))
-                elif self.words == VALUES_LEARN_WORDS[2]:
-                    has_progress = self.choose_w_fav(_0_global_dct, lambda: random.choice(list(_0_global_dct.d.keys())))
+                if self.words in (VALUES_LEARN_WORDS[0], VALUES_LEARN_WORDS[1]):
+                    has_progress = self.choose_w(_0_global_dct, random_function)
                 else:
-                    has_progress = self.choose_w_fav(_0_global_dct,
-                                                     lambda: _0_global_dct.random_hard(_0_global_min_good_score_perc))
+                    has_progress = self.choose_w_fav(_0_global_dct, random_function)
         else:
-            if self.words == VALUES_LEARN_WORDS[0]:
-                has_progress = self.choose_t(_0_global_dct, lambda: random.choice(list(_0_global_dct.d.keys())))
-            elif self.words == VALUES_LEARN_WORDS[1]:
-                has_progress = self.choose_t(_0_global_dct,
-                                             lambda: _0_global_dct.random_hard(_0_global_min_good_score_perc))
-            elif self.words == VALUES_LEARN_WORDS[2]:
-                has_progress = self.choose_t_fav(_0_global_dct, lambda: random.choice(list(_0_global_dct.d.keys())))
+            if self.words in (VALUES_LEARN_WORDS[0], VALUES_LEARN_WORDS[1]):
+                has_progress = self.choose_t(_0_global_dct, random_function)
             else:
-                has_progress = self.choose_t_fav(_0_global_dct,
-                                                 lambda: _0_global_dct.random_hard(_0_global_min_good_score_perc))
+                has_progress = self.choose_t_fav(_0_global_dct, random_function)
 
         _0_global_has_progress = _0_global_has_progress or has_progress
 
@@ -5307,7 +5297,7 @@ class SettingsW(tk.Toplevel):
     def about_mgsp(self):
         PopupImgW(self, img_about_mgsp, 'Статьи, у которых процент угадывания ниже этого значения,\n'
                                         'будут считаться более сложными.\n'
-                                        'При выборе режима учёбы "Все слова (чаще сложные)"\n'
+                                        'При выборе режима учёбы "Чаще сложные"\n'
                                         'такие слова будут чаще попадаться.').open()
 
     # Настройки категорий
@@ -6193,7 +6183,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                            {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
