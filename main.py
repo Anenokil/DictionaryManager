@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.19'
-PROGRAM_DATE = '21.2.2023'
-PROGRAM_TIME = '23:40 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.19-patch-1'
+PROGRAM_DATE = '22.2.2023'
+PROGRAM_TIME = '0:08 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -2543,7 +2543,7 @@ class ChooseLearnModeW(tk.Toplevel):
         # {
         self.lbl_order = ttk.Label(self.frame_main, text='Метод:', style='Default.TLabel')
         self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=VALUES_LEARN_METHOD,
-                                        validate='focusin', width=30, state='readonly', style='Default.TCombobox')
+                                        validate='focusin', width=34, state='readonly', style='Default.TCombobox')
         self.lbl_forms = ttk.Label(self.frame_main, text='Все словоформы:', style='Default.TLabel')
         self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='Default.TCheckbutton')
         self.lbl_words = ttk.Label(self.frame_main, text='Подбор слов:', style='Default.TLabel')
@@ -2563,6 +2563,8 @@ class ChooseLearnModeW(tk.Toplevel):
         self.combo_words.grid(row=3, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
         # }
         self.btn_start.grid(row=2, column=0, padx=6, pady=(0, 6))
+
+        self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
 
         # При выборе второго метода учёбы нельзя добавить словоформы
         def validate_order_and_forms(value: str):
@@ -6089,8 +6091,8 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                         {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
