@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.18-0'
+PROGRAM_VERSION = 'v7.0.18-1'
 PROGRAM_DATE = '21.2.2023'
-PROGRAM_TIME = '3:48 (UTC+3)'
+PROGRAM_TIME = '16:34 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1894,11 +1894,11 @@ def dct_import(window_parent, savename: str, src_path: str):
     src_local_settings_path = os.path.join(src_path, local_settings_filename)
     dst_local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
 
-    if save_filename not in os.listdir(src_save_path):
+    if save_filename not in os.listdir(src_path):
         warning(window_parent, f'Ошибка импорта сохранения!\n'
                                f'Отсутствует файл "{save_filename}"')
         return
-    if local_settings_filename not in os.listdir(src_local_settings_path):
+    if local_settings_filename not in os.listdir(src_path):
         warning(window_parent, f'Ошибка импорта сохранения!\n'
                                f'Отсутствует файл "{local_settings_filename}"')
         return
@@ -6249,7 +6249,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development presents\n'
       f'                            {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
+      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
