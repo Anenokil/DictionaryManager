@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.18-1'
+PROGRAM_VERSION = 'v7.0.18-2'
 PROGRAM_DATE = '21.2.2023'
-PROGRAM_TIME = '16:34 (UTC+3)'
+PROGRAM_TIME = '18:00 (UTC+3)'
 
 SAVES_VERSION = 2  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -247,7 +247,8 @@ CATEGORY_SEPARATOR = '@'  # Разделитель для записи знач�
 SPECIAL_COMBINATION_OPENING_SYMBOL = '#'  # Открывающий символ специальных комбинаций
 
 VALUES_LEARN_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову')  # Варианты метода учёбы
-VALUES_LEARN_WORDS = ('Все слова', 'Все слова (чаще сложные)', 'Только избранные')  # Варианты подбора слов для учёбы
+VALUES_LEARN_WORDS = ('Все слова', 'Все слова (чаще сложные)',
+                      'Только избранные', 'Только избранные (чаще сложные)')  # Варианты подбора слов для учёбы
 
 """ Объекты """
 
@@ -2543,7 +2544,7 @@ class ChooseLearnModeW(tk.Toplevel):
         self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='Default.TCheckbutton')
         self.lbl_words = ttk.Label(self.frame_main, text='Подбор слов:', style='Default.TLabel')
         self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=VALUES_LEARN_WORDS,
-                                        width=30, state='readonly', style='Default.TCombobox')
+                                        width=39, state='readonly', style='Default.TCombobox')
         # }
         self.btn_start = ttk.Button(self, text='Учить', command=self.start, takefocus=False, style='Default.TButton')
 
@@ -4067,8 +4068,8 @@ class LearnW(tk.Toplevel):
         self.current_key = None
         self.current_form = None
         self.rnd_f = None  # Вспомогательная переменная для выбора случайного слова
-        self.count_all = 0
-        self.count_correct = 0
+        self.count_all = 0  # Счётчик всех ответов
+        self.count_correct = 0  # Счётчик верных ответов
         self.used_words = set()  # Слова (формы), которые уже были угаданы
         self.learn_method = learn_method  # Метод изучения слов
         self.with_forms = with_forms  # Со всеми ли словоформами
@@ -4113,35 +4114,29 @@ class LearnW(tk.Toplevel):
         else:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
 
-        self.start()
+        self.choose()
 
         if self.current_key:
             entry = _0_global_dct.d[self.current_key]
             if entry.count_n == 0:
                 btn_disable(self.btn_notes)
 
-    # Печать в текстовое поле
+    # Печать в журнал
     def outp(self, msg='', end='\n'):
         self.txt_dct['state'] = 'normal'
         self.txt_dct.insert(tk.END, f'{msg}{end}')
         self.txt_dct.yview_moveto(1.0)
         self.txt_dct['state'] = 'disabled'
 
-    # Просмотр сносок
-    def show_notes(self):
-        entry = _0_global_dct.d[self.current_key]
-        if entry.count_n != 0:
-            self.outp(entry.notes_print())
-        btn_disable(self.btn_notes)
-
+    # Нажатие на кнопку "Ввод"
     # Ввод ответа и переход к следующему слову
     def input(self):
-        global _0_global_has_progress
-
-        answer = encode_special_combinations(self.entry_input.get())  # Вывод пользовательского ответа
+        # Вывод в журнал пользовательского ответа
+        answer = encode_special_combinations(self.entry_input.get())
         if answer != '':
             self.outp(answer)
 
+        # Проверка пользовательского ответа
         if self.learn_method == VALUES_LEARN_METHOD[1]:
             self.check_tr()
         elif self.with_forms and self.rnd_f != -1:
@@ -4149,41 +4144,29 @@ class LearnW(tk.Toplevel):
         else:
             self.check_wrd()
 
-        if self.learn_method == VALUES_LEARN_METHOD[0]:
-            if self.with_forms:
-                if self.words == VALUES_LEARN_WORDS[0]:
-                    _0_global_has_progress = self.choose_f(_0_global_dct) or _0_global_has_progress
-                elif self.words == VALUES_LEARN_WORDS[1]:
-                    _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or\
-                                             _0_global_has_progress
-                else:
-                    _0_global_has_progress = self.choose_f_fav(_0_global_dct) or _0_global_has_progress
-            else:
-                if self.words == VALUES_LEARN_WORDS[0]:
-                    _0_global_has_progress = self.choose(_0_global_dct) or _0_global_has_progress
-                elif self.words == VALUES_LEARN_WORDS[1]:
-                    _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or\
-                                             _0_global_has_progress
-                else:
-                    _0_global_has_progress = self.choose_fav(_0_global_dct) or _0_global_has_progress
-        else:
-            if self.words == VALUES_LEARN_WORDS[0]:
-                _0_global_has_progress = self.choose_t(_0_global_dct) or _0_global_has_progress
-            elif self.words == VALUES_LEARN_WORDS[1]:
-                _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or\
-                                         _0_global_has_progress
-            else:
-                _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
+        # Выбор нового слова для угадывания
+        self.choose()
 
+        # Обновление кнопки "Посмотреть сноски"
         entry = _0_global_dct.d[self.current_key]
         if entry.count_n == 0:
             btn_disable(self.btn_notes)
         else:
             btn_enable(self.btn_notes, self.show_notes)
-
+        # Очистка поля ввода
         self.entry_input.delete(0, tk.END)
+        # Обновление отображаемого рейтинга
         self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {self.get_percent()}%'
 
+    # Нажатие на кнопку "Посмотреть сноски"
+    # Просмотр сносок
+    def show_notes(self):
+        entry = _0_global_dct.d[self.current_key]
+        if entry.count_n != 0:
+            self.outp(entry.notes_print())
+        btn_disable(self.btn_notes)
+
+    # Нажатие на кнопку "Закончить"
     # Завершение учёбы
     def stop(self):
         self.frame_main.grid_remove()
@@ -4192,36 +4175,6 @@ class LearnW(tk.Toplevel):
 
         PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
         self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}', end='')
-
-    # Начать учить слова
-    def start(self):
-        global _0_global_has_progress
-
-        if self.learn_method == VALUES_LEARN_METHOD[0]:
-            if self.with_forms:
-                if self.words == VALUES_LEARN_WORDS[0]:
-                    _0_global_has_progress = self.choose_f(_0_global_dct) or _0_global_has_progress
-                elif self.words == VALUES_LEARN_WORDS[1]:
-                    _0_global_has_progress = self.choose_f_hard(_0_global_dct, _0_global_min_good_score_perc) or\
-                                             _0_global_has_progress
-                else:
-                    _0_global_has_progress = self.choose_f_fav(_0_global_dct) or _0_global_has_progress
-            else:
-                if self.words == VALUES_LEARN_WORDS[0]:
-                    _0_global_has_progress = self.choose(_0_global_dct) or _0_global_has_progress
-                elif self.words == VALUES_LEARN_WORDS[1]:
-                    _0_global_has_progress = self.choose_hard(_0_global_dct, _0_global_min_good_score_perc) or\
-                                             _0_global_has_progress
-                else:
-                    _0_global_has_progress = self.choose_fav(_0_global_dct) or _0_global_has_progress
-        else:
-            if self.words == VALUES_LEARN_WORDS[0]:
-                _0_global_has_progress = self.choose_t(_0_global_dct) or _0_global_has_progress
-            elif self.words == VALUES_LEARN_WORDS[1]:
-                _0_global_has_progress = self.choose_t_hard(_0_global_dct, _0_global_min_good_score_perc) or\
-                                         _0_global_has_progress
-            else:
-                _0_global_has_progress = self.choose_t_fav(_0_global_dct) or _0_global_has_progress
 
     # Проверка введённого ответа
     def check_answer(self, correct_answer: str, is_correct: bool,
@@ -4297,13 +4250,54 @@ class LearnW(tk.Toplevel):
             is_correct = encode_special_combinations(self.entry_input.get()).lower() in [tr.lower() for tr in entry.tr]
         self.check_answer(tpl(entry.tr), is_correct, self.current_key)
 
-    # Выбор слова - все
-    def choose(self, dct: Dictionary):
+    # Выбор слова для угадывания
+    def choose(self):
+        global _0_global_has_progress
+
+        if self.learn_method == VALUES_LEARN_METHOD[0]:
+            if self.with_forms:
+                if self.words == VALUES_LEARN_WORDS[0]:
+                    has_progress = self.choose_f(_0_global_dct, lambda: random.choice(list(_0_global_dct.d.keys())))
+                elif self.words == VALUES_LEARN_WORDS[1]:
+                    has_progress = self.choose_f(_0_global_dct,
+                                                 lambda: _0_global_dct.random_hard(_0_global_min_good_score_perc))
+                elif self.words == VALUES_LEARN_WORDS[2]:
+                    has_progress = self.choose_f_fav(_0_global_dct, lambda: random.choice(list(_0_global_dct.d.keys())))
+                else:
+                    has_progress = self.choose_f_fav(_0_global_dct,
+                                                     lambda: _0_global_dct.random_hard(_0_global_min_good_score_perc))
+            else:
+                if self.words == VALUES_LEARN_WORDS[0]:
+                    has_progress = self.choose_w(_0_global_dct, lambda: random.choice(list(_0_global_dct.d.keys())))
+                elif self.words == VALUES_LEARN_WORDS[1]:
+                    has_progress = self.choose_w(_0_global_dct,
+                                                 lambda: _0_global_dct.random_hard(_0_global_min_good_score_perc))
+                elif self.words == VALUES_LEARN_WORDS[2]:
+                    has_progress = self.choose_w_fav(_0_global_dct, lambda: random.choice(list(_0_global_dct.d.keys())))
+                else:
+                    has_progress = self.choose_w_fav(_0_global_dct,
+                                                     lambda: _0_global_dct.random_hard(_0_global_min_good_score_perc))
+        else:
+            if self.words == VALUES_LEARN_WORDS[0]:
+                has_progress = self.choose_t(_0_global_dct, lambda: random.choice(list(_0_global_dct.d.keys())))
+            elif self.words == VALUES_LEARN_WORDS[1]:
+                has_progress = self.choose_t(_0_global_dct,
+                                             lambda: _0_global_dct.random_hard(_0_global_min_good_score_perc))
+            elif self.words == VALUES_LEARN_WORDS[2]:
+                has_progress = self.choose_t_fav(_0_global_dct, lambda: random.choice(list(_0_global_dct.d.keys())))
+            else:
+                has_progress = self.choose_t_fav(_0_global_dct,
+                                                 lambda: _0_global_dct.random_hard(_0_global_min_good_score_perc))
+
+        _0_global_has_progress = _0_global_has_progress or has_progress
+
+    # Выбор слова - из всех
+    def choose_w(self, dct: Dictionary, random_function):
         if len(self.used_words) == dct.count_w:
             self.stop()
             return
         while True:
-            self.current_key = random.choice(list(dct.d.keys()))
+            self.current_key = random_function()
             if self.current_key not in self.used_words:
                 break
 
@@ -4311,13 +4305,13 @@ class LearnW(tk.Toplevel):
 
         return True
 
-    # Выбор слова - избранные
-    def choose_fav(self, dct: Dictionary):
+    # Выбор слова - только из избранных
+    def choose_w_fav(self, dct: Dictionary, random_function):
         while True:
             if len(self.used_words) == dct.count_w:
                 self.stop()
                 return
-            self.current_key = random.choice(list(dct.d.keys()))
+            self.current_key = random_function()
             if not dct.d[self.current_key].fav:
                 self.used_words.add(self.current_key)
                 continue
@@ -4328,27 +4322,13 @@ class LearnW(tk.Toplevel):
 
         return True
 
-    # Выбор слова - все, сначала сложные
-    def choose_hard(self, dct: Dictionary, min_good_score_perc: int):
-        if len(self.used_words) == dct.count_w:
-            self.stop()
-            return
-        while True:
-            self.current_key = dct.random_hard(min_good_score_perc)
-            if self.current_key not in self.used_words:
-                break
-
-        self.outp(dct.d[self.current_key].print_tr_with_stat())
-
-        return True
-
-    # Выбор словоформы - все
-    def choose_f(self, dct: Dictionary):
+    # Выбор словоформы - из всех
+    def choose_f(self, dct: Dictionary, random_function):
         if len(self.used_words) == dct.count_w + dct.count_f:
             self.stop()
             return
         while True:
-            self.current_key = random.choice(list(dct.d.keys()))
+            self.current_key = random_function()
             self.rnd_f = random.randint(-1, dct.d[self.current_key].count_f - 1)
             if self.rnd_f == -1:
                 self.current_form = self.current_key
@@ -4363,13 +4343,13 @@ class LearnW(tk.Toplevel):
 
         return True
 
-    # Выбор словоформы - избранные
-    def choose_f_fav(self, dct: Dictionary):
+    # Выбор словоформы - только из избранных
+    def choose_f_fav(self, dct: Dictionary, random_function):
         while True:
             if len(self.used_words) == dct.count_w + dct.count_f:
                 self.stop()
                 return
-            self.current_key = random.choice(list(dct.d.keys()))
+            self.current_key = random_function()
             if not dct.d[self.current_key].fav:
                 self.used_words.add(self.current_key)
                 for frm in dct.d[self.current_key].forms.keys():
@@ -4389,34 +4369,13 @@ class LearnW(tk.Toplevel):
 
         return True
 
-    # Выбор словоформы - все, сначала сложные
-    def choose_f_hard(self, dct: Dictionary, min_good_score_perc: int):
-        if len(self.used_words) == dct.count_w + dct.count_f:
-            self.stop()
-            return
-        while True:
-            self.current_key = dct.random_hard(min_good_score_perc)
-            self.rnd_f = random.randint(-1, dct.d[self.current_key].count_f - 1)
-            if self.rnd_f == -1:
-                self.current_form = self.current_key
-                if self.current_key not in self.used_words:
-                    self.outp(dct.d[self.current_key].print_tr_with_stat())
-                    break
-            else:
-                self.current_form = list(dct.d[self.current_key].forms.keys())[self.rnd_f]
-                if (self.current_key, self.current_form) not in self.used_words:
-                    self.outp(dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
-                    break
-
-        return True
-
-    # Выбор перевода - все
-    def choose_t(self, dct: Dictionary):
+    # Выбор перевода - из всех
+    def choose_t(self, dct: Dictionary, random_function):
         if len(self.used_words) == dct.count_w:
             self.stop()
             return
         while True:
-            self.current_key = random.choice(list(dct.d.keys()))
+            self.current_key = random_function()
             if self.current_key not in self.used_words:
                 break
 
@@ -4424,30 +4383,16 @@ class LearnW(tk.Toplevel):
 
         return True
 
-    # Выбор перевода - избранные
-    def choose_t_fav(self, dct: Dictionary):
+    # Выбор перевода - только из избранных
+    def choose_t_fav(self, dct: Dictionary, random_function):
         while True:
             if len(self.used_words) == dct.count_w:
                 self.stop()
                 return
-            self.current_key = random.choice(list(dct.d.keys()))
+            self.current_key = random_function()
             if not dct.d[self.current_key].fav:
                 self.used_words.add(self.current_key)
                 continue
-            if self.current_key not in self.used_words:
-                break
-
-        self.outp(dct.d[self.current_key].print_wrd_with_stat())
-
-        return True
-
-    # Выбор перевода - все, сначала сложные
-    def choose_t_hard(self, dct: Dictionary, min_good_score_perc: int):
-        if len(self.used_words) == dct.count_w:
-            self.stop()
-            return
-        while True:
-            self.current_key = dct.random_hard(min_good_score_perc)
             if self.current_key not in self.used_words:
                 break
 
