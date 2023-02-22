@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.24_PRE-2'
+PROGRAM_VERSION = 'v7.0.24_PRE-3'
 PROGRAM_DATE = '23.2.2023'
-PROGRAM_TIME = '0:42 (UTC+3)'
+PROGRAM_TIME = '1:04 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -6254,13 +6254,20 @@ class MainW(tk.Tk):
 
 
 # Вывод информации о программе
-print(f'=====================================================================================\n'
-      f'\n'
-      f'                            Anenokil development presents\n'
-      f'                          {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
-      f'\n'
-      f'=====================================================================================')
+CONSOLE_LOGO_FRAME_WIDTH = 85
+CONSOLE_LOGO_1_LINE = 'Anenokil development presents'
+CONSOLE_LOGO_2_LINE = PROGRAM_NAME + ' ' * (1 + (len(PROGRAM_NAME) + len(PROGRAM_VERSION)) % 2) + PROGRAM_VERSION
+CONSOLE_LOGO_3_LINE = PROGRAM_DATE + ' ' * (1 + (len(PROGRAM_DATE) + len(PROGRAM_TIME)) % 2) + PROGRAM_TIME
+CONSOLE_LOGO_1_LINE_TAB = (CONSOLE_LOGO_FRAME_WIDTH - len(CONSOLE_LOGO_1_LINE)) // 2
+CONSOLE_LOGO_2_LINE_TAB = (CONSOLE_LOGO_FRAME_WIDTH - len(CONSOLE_LOGO_2_LINE)) // 2
+CONSOLE_LOGO_3_LINE_TAB = (CONSOLE_LOGO_FRAME_WIDTH - len(CONSOLE_LOGO_3_LINE)) // 2
+print('=' * CONSOLE_LOGO_FRAME_WIDTH)
+print()
+print(' ' * CONSOLE_LOGO_1_LINE_TAB + CONSOLE_LOGO_1_LINE)
+print(' ' * CONSOLE_LOGO_2_LINE_TAB + CONSOLE_LOGO_2_LINE)
+print(' ' * CONSOLE_LOGO_3_LINE_TAB + CONSOLE_LOGO_3_LINE)
+print()
+print('=' * CONSOLE_LOGO_FRAME_WIDTH)
 
 _0_global_dct = Dictionary()
 _0_global_has_progress = False
