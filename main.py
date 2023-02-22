@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.24_PRE-1'
+PROGRAM_VERSION = 'v7.0.24_PRE-2'
 PROGRAM_DATE = '23.2.2023'
-PROGRAM_TIME = '0:19 (UTC+3)'
+PROGRAM_TIME = '0:42 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -4120,11 +4120,29 @@ class PrintW(tk.Toplevel):
         if move_scroll:
             self.scrolled_frame.canvas.yview_moveto(0.0)
 
+    # Обновить одну из кнопок журнала
+    def refresh_one_button(self, index):
+        # Выводим текст на кнопку
+        if self.var_forms.get():
+            self.buttons[index].configure(text=_0_global_dct.d[self.keys[index]].print_briefly_with_forms(75))
+        else:
+            self.buttons[index].configure(text=_0_global_dct.d[self.keys[index]].print_briefly(75))
+
+    # Обновить все кнопки журнала
+    def refresh_all_buttons(self):
+        # Выводим текст на кнопки
+        if self.var_forms.get():
+            for i in range(len(self.keys)):
+                self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly_with_forms(75))
+        else:
+            for i in range(len(self.keys)):
+                self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly(75))
+
     # Добавить одну статью в избранное
     def fav_one(self, index):
         _0_global_dct.d[self.keys[index]].change_fav()
 
-        self.print(False)
+        self.refresh_one_button(index)
 
     # Нажатие на кнопку "Добавить все статьи в избранное"
     def fav_all(self):
@@ -4134,7 +4152,7 @@ class PrintW(tk.Toplevel):
             return
         _0_global_dct.fav_all()
 
-        self.print(False)
+        self.refresh_all_buttons()
 
     # Нажатие на кнопку "Убрать все статьи из избранного"
     def unfav_all(self):
@@ -4144,7 +4162,7 @@ class PrintW(tk.Toplevel):
             return
         _0_global_dct.unfav_all()
 
-        self.print(False)
+        self.refresh_all_buttons()
 
     # Нажатие на кнопку "Распечатать словарь в файл"
     def print_out(self):
