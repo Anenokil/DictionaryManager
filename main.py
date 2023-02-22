@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.23'
+PROGRAM_VERSION = 'v7.0.23-patch-1'
 PROGRAM_DATE = '22.2.2023'
-PROGRAM_TIME = '22:51 (UTC+3)'
+PROGRAM_TIME = '23:01 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -4145,8 +4145,9 @@ class LearnW(tk.Toplevel):
         self.with_forms = parameters[1]  # Со всеми ли словоформами
         self.words = parameters[2]  # Способ подбора слов
         self.order = parameters[3]  # Порядок следования слов
-        self.pool = set()  # Список слов для изучения
+        self.pool = set()  # Набор слов для изучения
 
+        # Формируем пул слов, которые будут использоваться при учёбе
         if self.learn_method == LEARN_VALUES_METHOD[2]:
             all_keys = []
             for key in _0_global_dct.d.keys():
@@ -4198,10 +4199,13 @@ class LearnW(tk.Toplevel):
                     for frm in _0_global_dct.d[key].forms.keys():
                         self.pool.add((key, frm))
 
+        self.len_of_pool = len(self.pool)  # Количество изучаемых слов
+
         self.var_input = tk.StringVar()
 
         self.lbl_global_rating = ttk.Label(self, text=f'Ваш общий рейтинг по словарю: {self.get_percent()}%',
                                            style='Default.TLabel')
+        self.lbl_count = ttk.Label(self, text=f'Отвечено: 0/{self.len_of_pool}', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
                                font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
@@ -4218,20 +4222,19 @@ class LearnW(tk.Toplevel):
         # }
         self.btn_stop = ttk.Button(self, text='Закончить', command=self.stop, takefocus=False, style='No.TButton')
 
-        self.lbl_global_rating.grid(row=0, columnspan=2, padx=6,      pady=6)
-        self.txt_dct.grid(          row=1, column=0,     padx=(6, 0), pady=6, sticky='NSWE')
-        self.scrollbar.grid(        row=1, column=1,     padx=(0, 6), pady=6, sticky='NSW')
-        self.frame_main.grid(       row=2, columnspan=2, padx=6,      pady=6)
+        self.lbl_global_rating.grid(row=0, columnspan=2, padx=6,      pady=(6, 3))
+        self.lbl_count.grid(        row=1, columnspan=2, padx=6,      pady=(0, 6))
+        self.txt_dct.grid(          row=2, column=0,     padx=(6, 0), pady=6, sticky='NSWE')
+        self.scrollbar.grid(        row=2, column=1,     padx=(0, 6), pady=6, sticky='NSW')
+        self.frame_main.grid(       row=3, columnspan=2, padx=6,      pady=6)
         # {
         self.btn_input.grid(  row=0, column=0, padx=(0, 3), pady=0, sticky='E')
         self.entry_input.grid(row=0, column=1, padx=(0, 3), pady=0, sticky='W')
         self.btn_notes.grid(  row=0, column=2, padx=0,      pady=0, sticky='W')
         # }
-        self.btn_stop.grid(row=3, columnspan=2, padx=6, pady=6)
+        self.btn_stop.grid(row=4, columnspan=2, padx=6, pady=6)
 
-        self.tip_btn_notes = ttip.Hovertip(self.btn_notes, 'Срабатывает при нажатии на Tab;\n'
-                                                           'Если сносок нет, то ничего не выведется',
-                                           hover_delay=700)
+        self.tip_btn_notes = ttip.Hovertip(self.btn_notes, 'Срабатывает при нажатии на Tab', hover_delay=700)
         if self.learn_method == LEARN_VALUES_METHOD[0]:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
         elif self.learn_method == LEARN_VALUES_METHOD[1]:
@@ -4284,6 +4287,7 @@ class LearnW(tk.Toplevel):
         self.entry_input.delete(0, tk.END)
         # Обновление отображаемого рейтинга
         self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {self.get_percent()}%'
+        self.lbl_count['text'] = f'Отвечено: {self.count_correct}/{self.len_of_pool}'
 
     # Нажатие на кнопку "Посмотреть сноски"
     # Просмотр сносок
@@ -6198,7 +6202,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                         {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
