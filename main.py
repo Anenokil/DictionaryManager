@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.24_PRE-3'
+PROGRAM_VERSION = 'v7.0.24'
 PROGRAM_DATE = '23.2.2023'
-PROGRAM_TIME = '1:04 (UTC+3)'
+PROGRAM_TIME = '2:04 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -2093,14 +2093,15 @@ class ScrollFrame(tk.Frame):
 
 # Всплывающее окно с сообщением
 class PopupMsgW(tk.Toplevel):
-    def __init__(self, parent, msg: str, btn_text='Ясно', title=PROGRAM_NAME):
+    def __init__(self, parent, msg: str, btn_text='Ясно', msg_max_width=60,
+                 msg_justify: typing.Literal['left', 'center', 'right'] = 'center', title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
 
         self.closed = True  # Закрыто ли окно крестиком
 
-        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, align_left=False), justify='center',
+        self.lbl_msg = ttk.Label(self, text=split_text(msg, msg_max_width, align_left=False), justify=msg_justify,
                                  style='Default.TLabel')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Default.TButton')
 
@@ -3976,6 +3977,14 @@ class PrintW(tk.Toplevel):
         self.lbl_dct_name = ttk.Label(self, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
                                                             40, align_left=False),
                                       justify='center', style='Default.TLabel')
+        try:
+            self.img_about = tk.PhotoImage(file=img_about)
+        except:
+            self.btn_about_mgsp = ttk.Button(self, text='?', command=self.about_window,
+                                             width=2, takefocus=False, style='Default.TButton')
+        else:
+            self.btn_about_mgsp = ttk.Button(self, image=self.img_about, command=self.about_window,
+                                             width=2, takefocus=False, style='Image.TButton')
         self.frame_main = ttk.Frame(self, style='Default.TFrame')
         # {
         self.lbl_fav = ttk.Label(self.frame_main, text='Только избранные:', style='Default.TLabel')
@@ -4011,8 +4020,9 @@ class PrintW(tk.Toplevel):
                                         takefocus=False, style='Default.TButton')
         # }
 
-        self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
-        self.frame_main.grid(  row=1, columnspan=2, padx=6, pady=(0, 4))
+        self.lbl_dct_name.grid(  row=0, column=0,     padx=6,      pady=(6, 4), sticky='E')
+        self.btn_about_mgsp.grid(row=0, column=1,     padx=(0, 6), pady=(6, 4), sticky='W')
+        self.frame_main.grid(    row=1, columnspan=2, padx=6,      pady=(0, 4))
         # {
         self.lbl_fav.grid(    row=0, column=0, padx=(6, 1), pady=6, sticky='E')
         self.check_fav.grid(  row=0, column=1, padx=(0, 6), pady=6, sticky='W')
@@ -4171,6 +4181,13 @@ class PrintW(tk.Toplevel):
             return
         filename = f'Распечатка_{_0_global_dct_savename}.txt'
         _0_global_dct.print_out(os.path.join(folder, filename))
+
+    # Нажатие на кнопку "Справка" (картинка с вопросом)
+    def about_window(self):
+        PopupMsgW(self, '* Чтобы добавить статью в избранное, наведите на неё мышку и нажмите Ctrl+F\n'
+                        '* Чтобы прокрутить в самый вниз, нажмите Ctrl+D\n'
+                        '* Чтобы прокрутить в самый вверх, нажмите Ctrl+U',
+                  msg_justify='left').open()
 
     # Установить фокус
     def set_focus(self):
