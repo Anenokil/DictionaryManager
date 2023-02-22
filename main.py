@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.22'
+PROGRAM_VERSION = 'v7.0.22-patch-1'
 PROGRAM_DATE = '22.2.2023'
-PROGRAM_TIME = '17:28 (UTC+3)'
+PROGRAM_TIME = '18:15 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -3963,9 +3963,8 @@ class PrintW(tk.Toplevel):
         self.var_forms = tk.BooleanVar(value=True)
         self.var_info = tk.StringVar()
 
-        self.lbl_dct_name = ttk.Label(self,
-                                      text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
-                                                      40, align_left=False),
+        self.lbl_dct_name = ttk.Label(self, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
+                                                            40, align_left=False),
                                       justify='center', style='Default.TLabel')
         self.frame_main = ttk.Frame(self, style='Default.TFrame')
         # {
@@ -3985,8 +3984,6 @@ class PrintW(tk.Toplevel):
                         for i in range(_0_global_dct.count_w)]
         for i in range(_0_global_dct.count_w):
             self.buttons[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            #self.buttons[i].bind('<Control-F>', lambda i=i: _0_global_dct.d[self.keys[i]].add_to_fav())
-            #self.buttons[i].bind('<Control-f>', lambda i=i: _0_global_dct.d[self.keys[i]].add_to_fav())
         self.tips = [ttip.Hovertip(self.buttons[i],
                                    f'Верных ответов подряд: '
                                    f'{_0_global_dct.d[self.keys[i]].correct_att_in_a_row_print()}\n'
@@ -4071,8 +4068,6 @@ class PrintW(tk.Toplevel):
         # Расставляем кнопки
         for i in range(len(self.keys)):
             self.buttons[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            #self.buttons[i].bind('<Control-F>', lambda i=i: _0_global_dct.d[self.keys[i]].add_to_fav())
-            #self.buttons[i].bind('<Control-f>', lambda i=i: _0_global_dct.d[self.keys[i]].add_to_fav())
         # Создаём подсказки
         self.tips = [ttip.Hovertip(self.buttons[i],
                                    f'Верных ответов подряд: '
@@ -6169,7 +6164,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                         {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
