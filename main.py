@@ -19,11 +19,11 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.20'
+PROGRAM_VERSION = 'v7.0.21'
 PROGRAM_DATE = '22.2.2023'
-PROGRAM_TIME = '2:57 (UTC+3)'
+PROGRAM_TIME = '17:11 (UTC+3)'
 
-SAVES_VERSION = 2  # Актуальная версия сохранений словарей
+SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
 GLOBAL_SETTINGS_VERSION = 2  # Актуальная версия глобальных настроек
 REQUIRED_THEME_VERSION = 5  # Актуальная версия тем
@@ -267,13 +267,13 @@ class Entry(object):
     # self.all_att - количество всех попыток
     # self.correct_att - количество удачных попыток
     # self.score - доля удачных попыток
-    # self.last_att - количество последних неудачных попыток (-1 - значит, что ещё не было попыток)
+    # self.correct_att_in_a_row - количество последних удачных попыток подряд
     def __init__(self,
                  wrd: str,
                  tr: str | list[str],
                  notes: str | list[str] | None = None,
                  forms: dict[tuple[str, ...], str] | None = None,
-                 fav=False, all_att=0, correct_att=0, last_att=-1):
+                 fav=False, all_att=0, correct_att=0, correct_att_in_a_row=0):
         self.wrd = wrd
         self.tr = tr.copy() if (type(tr) == list) else [tr]
         if notes is None:
@@ -292,7 +292,7 @@ class Entry(object):
         self.all_att = all_att
         self.correct_att = correct_att
         self.score = correct_att / all_att if (all_att != 0) else 0
-        self.last_att = last_att
+        self.correct_att_in_a_row = correct_att_in_a_row
 
     # Преобразовать переводы в читаемый вид
     def tr_to_str(self):
@@ -351,16 +351,16 @@ class Entry(object):
         return res
 
     # Напечатать количество ошибок после последнего верного ответа
-    def last_att_print(self):
-        if self.last_att == -1:  # Если ещё не было попыток
+    def correct_att_in_a_row_print(self):
+        if self.all_att == 0:  # Если ещё не было попыток
             res = '-'
         else:
-            res = self.last_att
+            res = self.correct_att_in_a_row
         return res
 
     # Напечатать процент верных ответов
     def percent_print(self):
-        if self.last_att == -1:  # Если ещё не было попыток
+        if self.all_att == 0:  # Если ещё не было попыток
             res = '-'
         else:
             res = '{:.0%}'.format(self.score)
@@ -368,10 +368,10 @@ class Entry(object):
 
     # Напечатать статистику
     def stat_print(self):
-        last_att = self.last_att_print()
+        correct_att_in_a_row = self.correct_att_in_a_row_print()
         percent = self.percent_print()
         tab = ' ' * (4 - len(percent))
-        res = f'[{last_att}:{tab}{percent}]'
+        res = f'[{correct_att_in_a_row}:{tab}{percent}]'
         return res
 
     # Добавить в избранное
@@ -447,11 +447,11 @@ class Entry(object):
             for i in range(1, self.count_n):
                 res += f'             > {self.notes[i]}\n'
         res += f'  Избранное: {self.fav}\n'
-        if self.last_att == -1:
-            res += ' Статистика: 1) Прошло ответов после последнего верного: -\n'
-            res += '             2) Доля верных ответов: 0'
+        if self.all_att == 0:  # Если ещё не было попыток
+            res += ' Статистика: 1) Верных ответов подряд: -\n'
+            res += '             2) Доля верных ответов: -'
         else:
-            res += f' Статистика: 1) Прошло ответов после последнего верного: {self.last_att}\n'
+            res += f' Статистика: 1) Верных ответов подряд: {self.correct_att_in_a_row}\n'
             res += f'             2) Доля верных ответов: '
             res += f'{self.correct_att}/{self.all_att} = ' + '{:.0%}'.format(self.score)
         return split_text(res, len_str, tab=tab)
@@ -542,32 +542,29 @@ class Entry(object):
             self.forms.pop(key)
 
     # Объединить статистику при объединении двух статей
-    def merge_stat(self, all_att: int, correct_att: int, last_att: int):
+    def merge_stat(self, all_att: int, correct_att: int, correct_att_in_a_row: int):
         self.all_att += all_att
         self.correct_att += correct_att
         self.score = self.correct_att / self.all_att if (self.all_att != 0) else 0
-        self.last_att += last_att if last_att != -1 else 0
+        self.correct_att_in_a_row += correct_att_in_a_row
 
     # Обновить статистику, если совершена верная попытка
     def correct(self):
         self.all_att += 1
         self.correct_att += 1
         self.score = self.correct_att / self.all_att
-        self.last_att = 0
+        self.correct_att_in_a_row += 1
 
     # Обновить статистику, если совершена неверная попытка
     def incorrect(self):
         self.all_att += 1
         self.score = self.correct_att / self.all_att
-        if self.last_att == -1:
-            self.last_att = 1
-        else:
-            self.last_att += 1
+        self.correct_att_in_a_row = 0
 
     # Сохранить статью в файл
     def save(self, file: typing.TextIO):
         file.write(f'w{self.wrd}\n')
-        file.write(f'{self.all_att}:{self.correct_att}:{self.last_att}\n')
+        file.write(f'{self.all_att}:{self.correct_att}:{self.correct_att_in_a_row}\n')
         file.write(f'{self.tr[0]}\n')
         for i in range(1, self.count_t):
             file.write(f't{self.tr[i]}\n')
@@ -702,7 +699,8 @@ class Dictionary(object):
                     self.d[new_key].add_frm(frm_key, frm)
                 if self.d[key].fav:
                     self.d[new_key].fav = True
-                self.d[new_key].merge_stat(self.d[key].all_att, self.d[key].correct_att, self.d[key].last_att)
+                self.d[new_key].merge_stat(self.d[key].all_att, self.d[key].correct_att,
+                                           self.d[key].correct_att_in_a_row)
 
                 self.count_w -= 1
                 self.count_t += self.d[new_key].count_t
@@ -717,7 +715,7 @@ class Dictionary(object):
                     if new_key not in self.d.keys():
                         self.d[new_key] = Entry(new_wrd, self.d[key].tr, self.d[key].notes, self.d[key].forms,
                                                 self.d[key].fav, self.d[key].all_att, self.d[key].correct_att,
-                                                self.d[key].last_att)
+                                                self.d[key].correct_att_in_a_row)
                         self.d.pop(key)
                         return new_key
                     i += 1
@@ -727,7 +725,7 @@ class Dictionary(object):
             new_key = wrd_to_key(new_wrd, 0)
             self.d[new_key] = Entry(new_wrd, self.d[key].tr, self.d[key].notes, self.d[key].forms,
                                     self.d[key].fav, self.d[key].all_att, self.d[key].correct_att,
-                                    self.d[key].last_att)
+                                    self.d[key].correct_att_in_a_row)
             self.d.pop(key)
             return new_key
 
@@ -799,12 +797,13 @@ class Dictionary(object):
             return key
 
     # Добавить статью в словарь (при чтении файла)
-    def load_entry(self, wrd: str, tr: str, all_att: int, correct_att: int, last_att: int):
+    def load_entry(self, wrd: str, tr: str, all_att: int, correct_att: int, correct_att_in_a_row: int):
         i = 0
         while True:
             key = wrd_to_key(wrd, i)
             if key not in self.d.keys():
-                self.d[key] = Entry(wrd, [tr], all_att=all_att, correct_att=correct_att, last_att=last_att)
+                self.d[key] = Entry(wrd, [tr], all_att=all_att, correct_att=correct_att,
+                                    correct_att_in_a_row=correct_att_in_a_row)
                 self.count_w += 1
                 self.count_t += 1
                 return key
@@ -872,9 +871,9 @@ class Dictionary(object):
                     break
                 elif line[0] == 'w':
                     wrd = line[1:]
-                    all_att, correct_att, last_att = (int(el) for el in file.readline().strip().split(':'))
+                    all_att, correct_att, correct_att_in_a_row = (int(el) for el in file.readline().strip().split(':'))
                     tr = file.readline().strip()
-                    key = self.load_entry(wrd, tr, all_att, correct_att, last_att)
+                    key = self.load_entry(wrd, tr, all_att, correct_att, correct_att_in_a_row)
                 elif line[0] == 't':
                     self.add_tr(key, line[1:])
                 elif line[0] == 'n':
@@ -1179,8 +1178,8 @@ def random_hard(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple[
     for (key, frm) in pool:
         entry = dct.d[key]
         summ += (100 - round(100 * entry.score)) * 7 + 1
-        if entry.all_att < 5:
-            summ += (5 - entry.all_att) * 20
+        summ += 100 // (entry.all_att + 1)
+        summ += 100 // (entry.correct_att_in_a_row + 1)
         if 100 * entry.score < min_good_score_perc:
             summ += 100
 
@@ -1188,8 +1187,8 @@ def random_hard(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple[
     for (key, frm) in pool:
         entry = dct.d[key]
         r -= (100 - round(100 * entry.score)) * 7 + 1
-        if entry.all_att < 5:
-            r -= (5 - entry.all_att) * 20
+        r -= 100 // (entry.all_att + 1)
+        r -= 100 // (entry.correct_att_in_a_row + 1)
         if 100 * entry.score < min_good_score_perc:
             r -= 100
         if r <= 0:
@@ -1725,8 +1724,8 @@ def save_settings_if_has_changes(window_parent):
         print('\nНастройки успешно сохранены')
 
 
-# Обновить сохранение словаря с 0 до 2 версии
-def upgrade_dct_save_0_to_2(path: str):
+# Обновить сохранение словаря с 0 до 3 версии
+def upgrade_dct_save_0_to_3(path: str):
     with open(path, 'r', encoding='utf-8') as dct_save:
         with open(TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             dct_save_tmp.write('v1\n')
@@ -1745,11 +1744,11 @@ def upgrade_dct_save_0_to_2(path: str):
     if TMP_FN in os.listdir(RESOURCES_PATH):
         os.remove(TMP_PATH)
 
-    upgrade_dct_save_1_to_2(path)
+    upgrade_dct_save_1_to_3(path)
 
 
-# Обновить сохранение словаря с 1 до 2 версии
-def upgrade_dct_save_1_to_2(path: str):
+# Обновить сохранение словаря с 1 до 3 версии
+def upgrade_dct_save_1_to_3(path: str):
     global _0_global_special_combinations
 
     _, _, _0_global_special_combinations, _ = upload_local_settings(_0_global_dct_savename)
@@ -1790,6 +1789,53 @@ def upgrade_dct_save_1_to_2(path: str):
     if TMP_FN in os.listdir(RESOURCES_PATH):
         os.remove(TMP_PATH)
 
+    upgrade_dct_save_2_to_3(path)
+
+
+# Обновить сохранение словаря с 2 до 3 версии
+def upgrade_dct_save_2_to_3(path: str):
+    global _0_global_special_combinations
+
+    _, _, _0_global_special_combinations, _ = upload_local_settings(_0_global_dct_savename)
+
+    with open(path, 'r', encoding='utf-8') as dct_save:
+        with open(TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+            dct_save.readline()
+            dct_save_tmp.write('v3\n')  # Версия сохранения словаря
+            while True:
+                line = dct_save.readline()
+                if not line:
+                    break
+                elif line[0] == 'w':
+                    dct_save_tmp.write(line)
+                    line = dct_save.readline()
+                    a, b, c = line.strip().split(':')
+                    if c == '0':
+                        dct_save_tmp.write(f'{a}:{b}:1\n')
+                    else:
+                        dct_save_tmp.write(f'{a}:{b}:0\n')
+                    line = dct_save.readline()
+                    dct_save_tmp.write(line)
+                elif line[0] == 't':
+                    dct_save_tmp.write(line)
+                elif line[0] == 'd':
+                    dct_save_tmp.write(line)
+                elif line[0] == 'f':
+                    dct_save_tmp.write(line)
+                    line = dct_save.readline()
+                    dct_save_tmp.write(line)
+                elif line[0] == '*':
+                    dct_save_tmp.write(line)
+    with open(TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
+        with open(path, 'w', encoding='utf-8') as dct_save:
+            while True:
+                line = dct_save_tmp.readline()
+                if not line:
+                    break
+                dct_save.write(line)
+    if TMP_FN in os.listdir(RESOURCES_PATH):
+        os.remove(TMP_PATH)
+
 
 # Обновить сохранение словаря старой версии до актуальной версии
 def upgrade_dct_save(path: str):
@@ -1798,9 +1844,11 @@ def upgrade_dct_save(path: str):
     if first_line == '':  # Если сохранение пустое
         return
     if first_line[0] == 'w':  # Версия 0
-        upgrade_dct_save_0_to_2(path)
+        upgrade_dct_save_0_to_3(path)
     elif first_line[0:2] == 'v1':  # Версия 1
-        upgrade_dct_save_1_to_2(path)
+        upgrade_dct_save_1_to_3(path)
+    elif first_line[0:2] == 'v2':  # Версия 2
+        upgrade_dct_save_2_to_3(path)
     elif first_line[0:2] != f'v{SAVES_VERSION}':
         print(f'Неизвестная версия словаря: {first_line.strip()}!\n'
               f'Проверьте наличие обновлений программы')
@@ -3940,8 +3988,8 @@ class PrintW(tk.Toplevel):
             #self.buttons[i].bind('<Control-F>', lambda i=i: _0_global_dct.d[self.keys[i]].add_to_fav())
             #self.buttons[i].bind('<Control-f>', lambda i=i: _0_global_dct.d[self.keys[i]].add_to_fav())
         self.tips = [ttip.Hovertip(self.buttons[i],
-                                   f'Количество ответов после последнего верного ответа: '
-                                   f'{_0_global_dct.d[self.keys[i]].last_att_print()}\n'
+                                   f'Верных ответов подряд: '
+                                   f'{_0_global_dct.d[self.keys[i]].correct_att_in_a_row_print()}\n'
                                    f'Доля верных ответов: {_0_global_dct.d[self.keys[i]].percent_print()}',
                                    hover_delay=666)
                      for i in range(_0_global_dct.count_w)]
@@ -4027,8 +4075,8 @@ class PrintW(tk.Toplevel):
             #self.buttons[i].bind('<Control-f>', lambda i=i: _0_global_dct.d[self.keys[i]].add_to_fav())
         # Создаём подсказки
         self.tips = [ttip.Hovertip(self.buttons[i],
-                                   f'Количество ответов после последнего верного ответа: '
-                                   f'{_0_global_dct.d[self.keys[i]].last_att_print()}\n'
+                                   f'Верных ответов подряд: '
+                                   f'{_0_global_dct.d[self.keys[i]].correct_att_in_a_row_print()}\n'
                                    f'Доля верных ответов: {_0_global_dct.d[self.keys[i]].percent_print()}',
                                    hover_delay=666)
                      for i in range(len(self.keys))]
@@ -6121,7 +6169,7 @@ print(f'========================================================================
       f'\n'
       f'                            Anenokil development presents\n'
       f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
+      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
