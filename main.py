@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.21'
+PROGRAM_VERSION = 'v7.0.22'
 PROGRAM_DATE = '22.2.2023'
-PROGRAM_TIME = '17:11 (UTC+3)'
+PROGRAM_TIME = '17:28 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -2577,7 +2577,7 @@ class AddFormW(tk.Toplevel):
 class ChooseLearnModeW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Learn')
+        self.title(f'{PROGRAM_NAME} - Выбор режима')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -2665,7 +2665,7 @@ class ChooseLearnModeW(tk.Toplevel):
 class IncorrectAnswerW(tk.Toplevel):
     def __init__(self, parent, user_answer: str, correct_answer: str, with_typo: bool):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Incorrect answer')
+        self.title(f'{PROGRAM_NAME} - Неверно')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -2731,7 +2731,7 @@ class IncorrectAnswerW(tk.Toplevel):
 class ParticularMatchesW(tk.Toplevel):
     def __init__(self, parent, query: str):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - There is no such entry')
+        self.title(f'{PROGRAM_NAME} - Такой статьи не найдено')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -2859,7 +2859,7 @@ class ParticularMatchesW(tk.Toplevel):
 class ChooseOneOfSimilarNotesW(tk.Toplevel):
     def __init__(self, parent, query: str):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Similar')
+        self.title(f'{PROGRAM_NAME} - Найдено несколько схожих статей')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -3219,7 +3219,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
 class CustomThemeSettingsW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Custom theme settings')
+        self.title(f'{PROGRAM_NAME} - Настройки пользовательской темы')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -3838,7 +3838,7 @@ class CustomThemeSettingsW(tk.Toplevel):
 class NewVersionAvailableW(tk.Toplevel):
     def __init__(self, parent, last_version: str):
         super().__init__(parent)
-        self.title('A new version is available')
+        self.title('Доступна новая версия')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -3955,7 +3955,7 @@ class NewVersionAvailableW(tk.Toplevel):
 class PrintW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Dictionary')
+        self.title(f'{PROGRAM_NAME} - Просмотр словаря')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -4128,7 +4128,7 @@ class PrintW(tk.Toplevel):
 class LearnW(tk.Toplevel):
     def __init__(self, parent, parameters: tuple[str, bool, str, str]):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Learn')
+        self.title(f'{PROGRAM_NAME} - Учёба')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -4404,7 +4404,7 @@ class LearnW(tk.Toplevel):
 class SearchW(tk.Toplevel):
     def __init__(self, parent, query: str):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Search')
+        self.title(f'{PROGRAM_NAME} - Поиск')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -4570,7 +4570,7 @@ class SearchW(tk.Toplevel):
 class EditW(tk.Toplevel):
     def __init__(self, parent, key: tuple[str, int]):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Edit an entry')
+        self.title(f'{PROGRAM_NAME} - Изменение статьи')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -4990,7 +4990,7 @@ class EditW(tk.Toplevel):
 class AddW(tk.Toplevel):
     def __init__(self, parent, wrd: str):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Add an entry')
+        self.title(f'{PROGRAM_NAME} - Добавление статьи')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -5064,7 +5064,7 @@ class AddW(tk.Toplevel):
 class SettingsW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Settings')
+        self.title(f'{PROGRAM_NAME} - Настройки')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -5402,7 +5402,8 @@ class SettingsW(tk.Toplevel):
         if closed:
             return
 
-        window_rename = PopupEntryW(self, 'Введите название нового словаря', check_answer_function=check_dct_savename)
+        window_rename = PopupEntryW(self, 'Введите название нового словаря', default_value=old_savename,
+                                    check_answer_function=check_dct_savename)
         closed, new_savename = window_rename.open()
         if closed:
             return
