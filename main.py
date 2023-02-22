@@ -19,7 +19,7 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.22-patch-3'
+PROGRAM_VERSION = 'v7.0.22-patch-4'
 PROGRAM_DATE = '22.2.2023'
 PROGRAM_TIME = '20:34 (UTC+3)'
 
@@ -1812,10 +1812,12 @@ def upgrade_dct_save_2_to_3(path: str):
                     a, b, c = line.strip().split(':')
                     if a == b:
                         dct_save_tmp.write(f'{a}:{b}:{b}\n')
+                    elif c == '-1':
+                        dct_save_tmp.write(f'{a}:{b}:0\n')
                     elif c == '0':
                         dct_save_tmp.write(f'{a}:{b}:1\n')
                     else:
-                        dct_save_tmp.write(f'{a}:{b}:0\n')
+                        dct_save_tmp.write(f'{a}:{b}:-{c}\n')
                     line = dct_save.readline()
                     dct_save_tmp.write(line)
                 elif line[0] == 't':
