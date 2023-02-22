@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.22-patch-1'
+PROGRAM_VERSION = 'v7.0.22-patch-2'
 PROGRAM_DATE = '22.2.2023'
-PROGRAM_TIME = '18:15 (UTC+3)'
+PROGRAM_TIME = '18:34 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1818,7 +1818,7 @@ def upgrade_dct_save_2_to_3(path: str):
                     dct_save_tmp.write(line)
                 elif line[0] == 't':
                     dct_save_tmp.write(line)
-                elif line[0] == 'd':
+                elif line[0] == 'n':
                     dct_save_tmp.write(line)
                 elif line[0] == 'f':
                     dct_save_tmp.write(line)
