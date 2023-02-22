@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.22-patch-5'
+PROGRAM_VERSION = 'v7.0.23'
 PROGRAM_DATE = '22.2.2023'
-PROGRAM_TIME = '20:58 (UTC+3)'
+PROGRAM_TIME = '22:51 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -246,7 +246,8 @@ NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с
 CATEGORY_SEPARATOR = '@'  # Разделитель для записи значений категории в файл локальных настроек
 SPECIAL_COMBINATION_OPENING_SYMBOL = '#'  # Открывающий символ специальных комбинаций
 
-LEARN_VALUES_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову')  # Варианты метода учёбы
+LEARN_VALUES_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову',
+                       'Der-Die-Das (для немецкого)')  # Варианты метода учёбы
 LEARN_VALUES_WORDS = ('Все слова', 'Больше избранных (рекоменд.)',
                       'Только избранные', '15 случайных слов')  # Варианты подбора слов для учёбы
 LEARN_VALUES_ORDER = ('Случайный порядок', 'В первую очередь сложные')  # Варианты порядка следования слов при учёбе
@@ -1186,7 +1187,6 @@ def random_hard(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple[
         entry = dct.d[key]
         summ += (100 - round(100 * entry.score)) * 7 + 1
         summ += 100 // (entry.all_att + 1)
-        summ += 100 // (entry.correct_att_in_a_row + 1)
         if 100 * entry.score < min_good_score_perc:
             summ += 100
 
@@ -1195,7 +1195,6 @@ def random_hard(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple[
         entry = dct.d[key]
         r -= (100 - round(100 * entry.score)) * 7 + 1
         r -= 100 // (entry.all_att + 1)
-        r -= 100 // (entry.correct_att_in_a_row + 1)
         if 100 * entry.score < min_good_score_perc:
             r -= 100
         if r <= 0:
@@ -2632,18 +2631,18 @@ class ChooseLearnModeW(tk.Toplevel):
 
         self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
 
-        # При выборе второго метода учёбы нельзя добавить словоформы
-        def validate_order_and_forms(value: str):
-            if value == LEARN_VALUES_METHOD[1]:
-                self.lbl_forms.grid_remove()
-                self.check_forms.grid_remove()
-            else:
+        # При выборе второго или третьего метода учёбы нельзя добавить словоформы
+        def validate_method_and_forms(value: str):
+            if value == LEARN_VALUES_METHOD[0]:
                 self.lbl_forms.grid(  row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
                 self.check_forms.grid(row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+            else:
+                self.lbl_forms.grid_remove()
+                self.check_forms.grid_remove()
             return True
 
-        self.vcmd_order = (self.register(validate_order_and_forms), '%P')
-        self.combo_order['validatecommand'] = self.vcmd_order
+        self.vcmd_method = (self.register(validate_method_and_forms), '%P')
+        self.combo_method['validatecommand'] = self.vcmd_method
 
     # Начать учить слова
     def start(self):
@@ -4148,15 +4147,24 @@ class LearnW(tk.Toplevel):
         self.order = parameters[3]  # Порядок следования слов
         self.pool = set()  # Список слов для изучения
 
-        if self.words == LEARN_VALUES_WORDS[0]:  # Учить все слова
+        if self.learn_method == LEARN_VALUES_METHOD[2]:
+            all_keys = []
             for key in _0_global_dct.d.keys():
+                wrd = _0_global_dct.d[key].wrd
+                if len(wrd) > 4 and wrd[0:4].lower() in ('der ', 'die ', 'das '):
+                    all_keys += [key]
+        else:
+            all_keys = tuple(_0_global_dct.d.keys())
+        #
+        if self.words == LEARN_VALUES_WORDS[0]:  # Учить все слова
+            for key in all_keys:
                 self.pool.add((key, None))
             if self.with_forms:
-                for key in _0_global_dct.d.keys():
+                for key in all_keys:
                     for frm in _0_global_dct.d[key].forms.keys():
                         self.pool.add((key, frm))
         elif self.words == LEARN_VALUES_WORDS[1]:  # Учить преимущественно избранные слова
-            for key in _0_global_dct.d.keys():
+            for key in all_keys:
                 if _0_global_dct.d[key].fav:
                     self.pool.add((key, None))
                 else:
@@ -4164,7 +4172,7 @@ class LearnW(tk.Toplevel):
                     if rnd <= _0_global_dct.count_fav_info()[0]:
                         self.pool.add((key, None))
             if self.with_forms:
-                for key in _0_global_dct.d.keys():
+                for key in all_keys:
                     for frm in _0_global_dct.d[key].forms.keys():
                         if _0_global_dct.d[key].fav:
                             self.pool.add((key, frm))
@@ -4173,16 +4181,16 @@ class LearnW(tk.Toplevel):
                             if rnd <= _0_global_dct.count_fav_info()[2]:
                                 self.pool.add((key, frm))
         elif self.words == LEARN_VALUES_WORDS[2]:  # Учить только избранные слова
-            for key in _0_global_dct.d.keys():
+            for key in all_keys:
                 if _0_global_dct.d[key].fav:
                     self.pool.add((key, None))
             if self.with_forms:
-                for key in _0_global_dct.d.keys():
+                for key in all_keys:
                     if _0_global_dct.d[key].fav:
                         for frm in _0_global_dct.d[key].forms.keys():
                             self.pool.add((key, frm))
         else:  # Учить 15 случайных слов
-            keys = random.sample(tuple(_0_global_dct.d.keys()), min(15, _0_global_dct.count_w))
+            keys = random.sample(all_keys, min(len(all_keys), 15))
             for key in keys:
                 self.pool.add((key, None))
             if self.with_forms:
@@ -4226,8 +4234,10 @@ class LearnW(tk.Toplevel):
                                            hover_delay=700)
         if self.learn_method == LEARN_VALUES_METHOD[0]:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
-        else:
+        elif self.learn_method == LEARN_VALUES_METHOD[1]:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
+        else:
+            self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите артикль', hover_delay=1000)
 
         self.choose()
 
@@ -4254,6 +4264,8 @@ class LearnW(tk.Toplevel):
         # Проверка пользовательского ответа
         if self.learn_method == LEARN_VALUES_METHOD[1]:
             self.check_tr()
+        elif self.learn_method == LEARN_VALUES_METHOD[2]:
+            self.check_article()
         elif self.with_forms and self.current_form:
             self.check_form()
         else:
@@ -4362,6 +4374,15 @@ class LearnW(tk.Toplevel):
             is_correct = encode_special_combinations(self.entry_input.get()).lower() in [tr.lower() for tr in entry.tr]
         self.check_answer(tpl(entry.tr), is_correct, self.current_key)
 
+    # Проверка введённого артикля
+    def check_article(self):
+        entry = _0_global_dct.d[self.current_key]
+        if _0_global_check_register:
+            is_correct = encode_special_combinations(self.entry_input.get()) == entry.wrd[0:3]
+        else:
+            is_correct = encode_special_combinations(self.entry_input.get()).lower() == entry.wrd[0:3].lower()
+        self.check_answer(entry.wrd[0:3], is_correct, self.current_key)
+
     # Выбор слова для угадывания
     def choose(self):
         global _0_global_has_progress
@@ -4385,8 +4406,10 @@ class LearnW(tk.Toplevel):
                 self.outp(_0_global_dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
             else:
                 self.outp(_0_global_dct.d[self.current_key].print_tr_with_stat())
-        else:
+        elif self.learn_method == LEARN_VALUES_METHOD[1]:
             self.outp(_0_global_dct.d[self.current_key].print_wrd_with_stat())
+        else:
+            self.outp(_0_global_dct.d[self.current_key].print_wrd_with_stat()[4:])
 
     # Получить глобальный процент угадываний
     def get_percent(self):
@@ -6175,7 +6198,7 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                         {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                             {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
       f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
