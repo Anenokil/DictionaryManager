@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.23-patch-1'
-PROGRAM_DATE = '22.2.2023'
-PROGRAM_TIME = '23:01 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.24_PRE-1'
+PROGRAM_DATE = '23.2.2023'
+PROGRAM_TIME = '0:19 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -3988,12 +3988,11 @@ class PrintW(tk.Toplevel):
         self.scrolled_frame = ScrollFrame(self, 500, 604)
         # {
         self.keys = [key for key in _0_global_dct.d.keys()]
-        self.buttons = [ttk.Button(self.scrolled_frame.frame_canvas,
-                                   text=_0_global_dct.d[self.keys[i]].print_briefly_with_forms(75),
+        self.frames = [ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
+                       for i in range(_0_global_dct.count_w)]
+        self.buttons = [ttk.Button(self.frames[i], text=_0_global_dct.d[self.keys[i]].print_briefly_with_forms(75),
                                    command=lambda i=i: self.edit_note(i), takefocus=False, style='Flat.TButton')
                         for i in range(_0_global_dct.count_w)]
-        for i in range(_0_global_dct.count_w):
-            self.buttons[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
         self.tips = [ttip.Hovertip(self.buttons[i],
                                    f'Верных ответов подряд: '
                                    f'{_0_global_dct.d[self.keys[i]].correct_att_in_a_row_print()}\n'
@@ -4021,15 +4020,25 @@ class PrintW(tk.Toplevel):
         self.check_forms.grid(row=0, column=3, padx=(0, 6), pady=6, sticky='W')
         # }
         self.scrolled_frame.grid(row=2, columnspan=2, padx=6, pady=6)
-        self.lbl_info.grid(      row=3, columnspan=2, padx=6, pady=(0, 6))
-        self.frame_buttons.grid( row=4, columnspan=2, padx=6, pady=(0, 6))
+        # {
+        for i in range(_0_global_dct.count_w):
+            self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            # { {
+            self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
+            # } }
+        # }
+        self.lbl_info.grid(     row=3, columnspan=2, padx=6, pady=(0, 6))
+        self.frame_buttons.grid(row=4, columnspan=2, padx=6, pady=(0, 6))
         # {
         self.btn_fav_all.grid(  row=0, column=0,     padx=(0, 6), pady=(0, 6))
         self.btn_unfav_all.grid(row=0, column=1,     padx=0,      pady=(0, 6))
         self.btn_print_out.grid(row=1, columnspan=2, padx=0,      pady=0)
         # }
 
-        self.var_info.set(_0_global_dct.dct_info())
+        for i in range(_0_global_dct.count_w):
+            self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
+            self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav_one(i))
+            self.frames[i].bind('<Control-f>', lambda event, i=i: self.fav_one(i))
 
         self.bind('<Up>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
         self.bind('<Control-U>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
@@ -4039,6 +4048,8 @@ class PrintW(tk.Toplevel):
         self.bind('<Control-D>', lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
         self.bind('<Control-d>', lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
 
+        self.var_info.set(_0_global_dct.dct_info())
+
     # Изменить статью
     def edit_note(self, index):
         EditW(self, self.keys[index]).open()
@@ -4047,13 +4058,22 @@ class PrintW(tk.Toplevel):
 
     # Напечатать словарь
     def print(self, move_scroll: bool):
+        # Отвязываем старые привязанные события
+        for i in range(_0_global_dct.count_w):
+            self.frames[i].unbind('<Enter>')
+            self.frames[i].unbind('<Control-F>')
+            self.frames[i].unbind('<Control-f>')
         # Удаляем старые кнопки
         for btn in self.buttons:
             btn.destroy()
+        # Удаляем старые фреймы
+        for fr in self.frames:
+            fr.destroy()
+        # Удаляем старые подсказки
         for tip in self.tips:
             tip.__del__()
 
-        # Выбираем нужные статьи и выводим информацию
+        # Выбираем нужные статьи и выводим информацию о количестве статей
         if self.var_fav.get():
             self.keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
 
@@ -4064,9 +4084,12 @@ class PrintW(tk.Toplevel):
 
             self.var_info.set(_0_global_dct.dct_info())
 
+        # Создаём новые фреймы
+        self.frames = [ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
+                       for i in range(_0_global_dct.count_w)]
         # Создаём новые кнопки
-        self.buttons = [ttk.Button(self.scrolled_frame.frame_canvas, command=lambda i=i: self.edit_note(i),
-                                   takefocus=False, style='Flat.TButton')
+        self.buttons = [ttk.Button(self.frames[i], command=lambda i=i: self.edit_note(i), takefocus=False,
+                                   style='Flat.TButton')
                         for i in range(len(self.keys))]
         # Выводим текст на кнопки
         if self.var_forms.get():
@@ -4075,9 +4098,12 @@ class PrintW(tk.Toplevel):
         else:
             for i in range(len(self.keys)):
                 self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly(75))
-        # Расставляем кнопки
+        # Расставляем фреймы и кнопки
         for i in range(len(self.keys)):
-            self.buttons[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            # {
+            self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
+            # }
         # Создаём подсказки
         self.tips = [ttip.Hovertip(self.buttons[i],
                                    f'Верных ответов подряд: '
@@ -4085,9 +4111,20 @@ class PrintW(tk.Toplevel):
                                    f'Доля верных ответов: {_0_global_dct.d[self.keys[i]].percent_print()}',
                                    hover_delay=666)
                      for i in range(len(self.keys))]
+        # Привязываем события
+        for i in range(_0_global_dct.count_w):
+            self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
+            self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav_one(i))
+            self.frames[i].bind('<Control-f>', lambda event, i=i: self.fav_one(i))
 
         if move_scroll:
             self.scrolled_frame.canvas.yview_moveto(0.0)
+
+    # Добавить одну статью в избранное
+    def fav_one(self, index):
+        _0_global_dct.d[self.keys[index]].change_fav()
+
+        self.print(False)
 
     # Нажатие на кнопку "Добавить все статьи в избранное"
     def fav_all(self):
@@ -6202,8 +6239,8 @@ class MainW(tk.Tk):
 print(f'=====================================================================================\n'
       f'\n'
       f'                            Anenokil development presents\n'
-      f'                         {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
-      f'                               {PROGRAM_DATE} {PROGRAM_TIME}\n'
+      f'                          {PROGRAM_NAME}  {PROGRAM_VERSION}\n'
+      f'                               {PROGRAM_DATE}  {PROGRAM_TIME}\n'
       f'\n'
       f'=====================================================================================')
 
