@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.22-patch-4'
+PROGRAM_VERSION = 'v7.0.22-patch-5'
 PROGRAM_DATE = '22.2.2023'
-PROGRAM_TIME = '20:34 (UTC+3)'
+PROGRAM_TIME = '20:58 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -370,8 +370,9 @@ class Entry(object):
     def stat_print(self):
         correct_att_in_a_row = self.correct_att_in_a_row_print()
         percent = self.percent_print()
-        tab = ' ' * (4 - len(percent))
-        res = f'[{correct_att_in_a_row}:{tab}{percent}]'
+        tab_correct = ' ' * (3 - len(str(correct_att_in_a_row)))
+        tab_percent = ' ' * (4 - len(percent))
+        res = f'[{tab_correct}{correct_att_in_a_row}:{tab_percent}{percent}]'
         return res
 
     # Добавить в избранное
@@ -399,17 +400,17 @@ class Entry(object):
     def print_briefly(self, len_str):
         res = self._print_briefly()
         if self.count_n != 0:
-            res += f'\n{self.notes_print(tab=13)}'
-        return split_text(res, len_str, tab=13)
+            res += f'\n{self.notes_print(tab=15)}'
+        return split_text(res, len_str, tab=15)
 
     # Напечатать статью - кратко со словоформами
     def print_briefly_with_forms(self, len_str):
         res = self._print_briefly()
         if self.count_f != 0:
-            res += f'\n{self.frm_print(tab=13)}'
+            res += f'\n{self.frm_print(tab=15)}'
         if self.count_n != 0:
-            res += f'\n{self.notes_print(tab=13)}'
-        return split_text(res, len_str, tab=13)
+            res += f'\n{self.notes_print(tab=15)}'
+        return split_text(res, len_str, tab=15)
 
     # Напечатать статью - слово со статистикой
     def print_wrd_with_stat(self):
@@ -553,13 +554,19 @@ class Entry(object):
         self.all_att += 1
         self.correct_att += 1
         self.score = self.correct_att / self.all_att
-        self.correct_att_in_a_row += 1
+        if self.correct_att_in_a_row < 0:
+            self.correct_att_in_a_row = 0
+        else:
+            self.correct_att_in_a_row += 1
 
     # Обновить статистику, если совершена неверная попытка
     def incorrect(self):
         self.all_att += 1
         self.score = self.correct_att / self.all_att
-        self.correct_att_in_a_row = 0
+        if self.correct_att_in_a_row > 0:
+            self.correct_att_in_a_row = 0
+        else:
+            self.correct_att_in_a_row -= 1
 
     # Сохранить статью в файл
     def save(self, file: typing.TextIO):
