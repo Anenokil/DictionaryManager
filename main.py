@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.24'
+PROGRAM_VERSION = 'v7.0.25'
 PROGRAM_DATE = '23.2.2023'
-PROGRAM_TIME = '2:04 (UTC+3)'
+PROGRAM_TIME = '3:28 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1994,6 +1994,17 @@ def btn_enable(btn: ttk.Button, command, style='Default'):
     btn.configure(command=command, style=f'{style}.TButton')
 
 
+# Установить изображение на кнопку
+# Если изображение отсутствует, его замещает текст
+def set_image(btn: ttk.Button, img: tk.PhotoImage, img_name: str, text_if_no_img: str):
+    try:
+        img.configure(file=img_name)
+    except:
+        btn.configure(text=text_if_no_img, compound='text', style='Default.TButton')
+    else:
+        btn.configure(image=img, compound='image', style='Image.TButton')
+
+
 """ Графический интерфейс - функции валидации """
 
 
@@ -2430,6 +2441,9 @@ class AddFormW(tk.Toplevel):
         self.var_template = tk.StringVar(value='Текущий шаблон словоформы: ""')
         self.var_form = tk.StringVar(value=_0_global_dct.d[self.key].wrd)
 
+        self.img_ok = tk.PhotoImage()
+        self.img_none = tk.PhotoImage()
+
         self.vcmd_ctg = (self.register(lambda value: self.refresh_vals()), '%P')
 
         self.lbl_choose_ctg = ttk.Label(self, text='Выберите категорию:', justify='center', style='Default.TLabel')
@@ -2443,23 +2457,13 @@ class AddFormW(tk.Toplevel):
         self.combo_val = ttk.Combobox(self.frame_val, textvariable=self.var_val, values=self.ctg_values,
                                       width=width(self.ctg_values, 5, 100),
                                       font='TkFixedFont', state='readonly', style='Default.TCombobox')
-        try:
-            self.img_choose = tk.PhotoImage(file=img_ok)
-        except:
-            self.btn_choose = ttk.Button(self.frame_val, text='Задать значение', command=self.choose,
-                                         takefocus=False, style='Default.TButton')
-        else:
-            self.btn_choose = ttk.Button(self.frame_val, image=self.img_choose, command=self.choose,
-                                         takefocus=False, style='Image.TButton')
+        self.btn_choose = ttk.Button(self.frame_val, command=self.choose, takefocus=False)
+        set_image(self.btn_choose, self.img_ok, img_ok, 'Задать значение')
+        if self.btn_choose['style'] == 'Image.TButton':
             self.tip_btn_choose = ttip.Hovertip(self.btn_choose, 'Задать значение', hover_delay=500)
-        try:
-            self.img_none = tk.PhotoImage(file=img_cancel)
-        except:
-            self.btn_none = ttk.Button(self.frame_val, text='Не указывать/неприменимо', command=self.set_none,
-                                       takefocus=False, style='Default.TButton')
-        else:
-            self.btn_none = ttk.Button(self.frame_val, image=self.img_none, command=self.set_none,
-                                       takefocus=False, style='Image.TButton')
+        self.btn_none = ttk.Button(self.frame_val, command=self.set_none, takefocus=False)
+        set_image(self.btn_none, self.img_none, img_cancel, 'Не указывать/неприменимо')
+        if self.btn_none['style'] == 'Image.TButton':
             self.tip_btn_none = ttip.Hovertip(self.btn_none, 'Не указывать/неприменимо', hover_delay=500)
         # }
         self.lbl_template = ttk.Label(self, textvariable=self.var_template, justify='center', style='Default.TLabel')
@@ -3244,6 +3248,9 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.var_relief_frame = tk.StringVar()
         self.var_relief_text = tk.StringVar()
 
+        self.img_undo = tk.PhotoImage()
+        self.img_redo = tk.PhotoImage()
+
         self.frame_themes = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.lbl_set_theme = ttk.Label(self.frame_themes, text='Взять за основу уже существующую тему:',
@@ -3319,22 +3326,10 @@ class CustomThemeSettingsW(tk.Toplevel):
                                    style='Yes.TButton')
         self.frame_history = ttk.Frame(self.frame_buttons, style='Invis.TFrame')
         # { {
-        try:
-            self.img_undo = tk.PhotoImage(file=img_undo)
-        except:
-            self.btn_undo = ttk.Button(self.frame_history, text='<<', width=2, command=self.undo,
-                                       takefocus=False, style='Default.TButton')
-        else:
-            self.btn_undo = ttk.Button(self.frame_history, image=self.img_undo, width=2, command=self.undo,
-                                       takefocus=False, style='Image.TButton')
-        try:
-            self.img_redo = tk.PhotoImage(file=img_redo)
-        except:
-            self.btn_redo = ttk.Button(self.frame_history, text='>>', width=2, command=self.redo,
-                                       takefocus=False, style='Default.TButton')
-        else:
-            self.btn_redo = ttk.Button(self.frame_history, image=self.img_redo, width=2, command=self.redo,
-                                       takefocus=False, style='Image.TButton')
+        self.btn_undo = ttk.Button(self.frame_history, width=2, command=self.undo, takefocus=False)
+        set_image(self.btn_undo, self.img_undo, img_undo, '<<')
+        self.btn_redo = ttk.Button(self.frame_history, width=2, command=self.redo, takefocus=False)
+        set_image(self.btn_redo, self.img_redo, img_redo, '>>')
         # } }
         # }
         self.frame_demonstration = ttk.Frame(self, style='Window.TFrame', relief='solid')
@@ -3974,17 +3969,13 @@ class PrintW(tk.Toplevel):
         self.var_forms = tk.BooleanVar(value=True)
         self.var_info = tk.StringVar()
 
+        self.img_about = tk.PhotoImage()
+
         self.lbl_dct_name = ttk.Label(self, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
                                                             40, align_left=False),
                                       justify='center', style='Default.TLabel')
-        try:
-            self.img_about = tk.PhotoImage(file=img_about)
-        except:
-            self.btn_about_mgsp = ttk.Button(self, text='?', command=self.about_window,
-                                             width=2, takefocus=False, style='Default.TButton')
-        else:
-            self.btn_about_mgsp = ttk.Button(self, image=self.img_about, command=self.about_window,
-                                             width=2, takefocus=False, style='Image.TButton')
+        self.btn_about_mgsp = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
+        set_image(self.btn_about_mgsp, self.img_about, img_about, '?')
         self.frame_main = ttk.Frame(self, style='Default.TFrame')
         # {
         self.lbl_fav = ttk.Label(self.frame_main, text='Только избранные:', style='Default.TLabel')
@@ -4689,6 +4680,10 @@ class EditW(tk.Toplevel):
         self.var_wrd = tk.StringVar(value=_0_global_dct.d[key].wrd)
         self.var_fav = tk.BooleanVar(value=_0_global_dct.d[key].fav)
 
+        self.img_edit = tk.PhotoImage()
+        self.img_add = tk.PhotoImage()
+        self.img_delete = tk.PhotoImage()
+
         self.frame_main = ttk.Frame(self, style='Default.TFrame')
         # {
         self.lbl_wrd = ttk.Label(self.frame_main, text='Слово:', style='Default.TLabel')
@@ -4698,16 +4693,10 @@ class EditW(tk.Toplevel):
                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                highlightbackground=ST_BORDERCOLOR[th])
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
-        try:
-            self.img_edit = tk.PhotoImage(file=img_edit)
-            self.btn_wrd_edt = ttk.Button(self.frame_main, image=self.img_edit, command=self.wrd_edt,
-                                          takefocus=False, style='Image.TButton')
-        except:
-            self.btn_wrd_edt = ttk.Button(self.frame_main, text='изм.', command=self.wrd_edt, width=4,
-                                          takefocus=False, style='Default.TButton')
-        else:
+        self.btn_wrd_edt = ttk.Button(self.frame_main, command=self.wrd_edt, width=4, takefocus=False)
+        set_image(self.btn_wrd_edt, self.img_edit, img_edit, 'изм.')
+        if self.btn_wrd_edt['style'] == 'Image.TButton':
             self.tip_btn_wrd_edt = ttip.Hovertip(self.btn_wrd_edt, 'Изменить слово', hover_delay=500)
-        #
         self.lbl_tr = ttk.Label(self.frame_main, text='Перевод:', style='Default.TLabel')
         self.scrollbar_tr = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_tr = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_tr.set,
@@ -4717,23 +4706,13 @@ class EditW(tk.Toplevel):
         self.scrollbar_tr.config(command=self.txt_tr.yview)
         self.frame_btns_tr = ttk.Frame(self.frame_main, style='Invis.TFrame')
         # { {
-        try:
-            self.img_add = tk.PhotoImage(file=img_add)
-            self.btn_tr_add = ttk.Button(self.frame_btns_tr, image=self.img_add, command=self.tr_add,
-                                         takefocus=False, style='Image.TButton')
-        except:
-            self.btn_tr_add = ttk.Button(self.frame_btns_tr, text='+', command=self.tr_add, width=2,
-                                         takefocus=False, style='Default.TButton')
-        else:
+        self.btn_tr_add = ttk.Button(self.frame_btns_tr, command=self.tr_add, width=2, takefocus=False)
+        set_image(self.btn_tr_add, self.img_add, img_add, '+')
+        if self.btn_tr_add['style'] == 'Image.TButton':
             self.tip_btn_tr_add = ttip.Hovertip(self.btn_tr_add, 'Добавить перевод', hover_delay=500)
-        try:
-            self.img_delete = tk.PhotoImage(file=img_delete)
-            self.btn_tr_del = ttk.Button(self.frame_btns_tr, image=self.img_delete, command=self.tr_del,
-                                         takefocus=False, style='Image.TButton')
-        except:
-            self.btn_tr_del = ttk.Button(self.frame_btns_tr, text='-', command=self.tr_del, width=2,
-                                         takefocus=False, style='Default.TButton')
-        else:
+        self.btn_tr_del = ttk.Button(self.frame_btns_tr, command=self.tr_del, width=2, takefocus=False)
+        set_image(self.btn_tr_del, self.img_delete, img_delete, '-')
+        if self.btn_tr_del['style'] == 'Image.TButton':
             self.tip_btn_tr_del = ttip.Hovertip(self.btn_tr_del, 'Удалить перевод', hover_delay=500)
         # } }
         self.lbl_notes = ttk.Label(self.frame_main, text='Сноски:', style='Default.TLabel')
@@ -4745,21 +4724,13 @@ class EditW(tk.Toplevel):
         self.scrollbar_notes.config(command=self.txt_notes.yview)
         self.frame_btns_notes = ttk.Frame(self.frame_main, style='Invis.TFrame')
         # { {
-        try:
-            self.btn_note_add = ttk.Button(self.frame_btns_notes, image=self.img_add, command=self.note_add,
-                                            takefocus=False, style='Image.TButton')
-        except:
-            self.btn_note_add = ttk.Button(self.frame_btns_notes, text='+', command=self.note_add, width=2,
-                                            takefocus=False, style='Default.TButton')
-        else:
+        self.btn_note_add = ttk.Button(self.frame_btns_notes, command=self.note_add, width=2, takefocus=False)
+        set_image(self.btn_note_add, self.img_add, img_add, '+')
+        if self.btn_note_add['style'] == 'Image.TButton':
             self.tip_btn_note_add = ttip.Hovertip(self.btn_note_add, 'Добавить сноску', hover_delay=500)
-        try:
-            self.btn_note_del = ttk.Button(self.frame_btns_notes, image=self.img_delete, command=self.note_del,
-                                            takefocus=False, style='Image.TButton')
-        except:
-            self.btn_note_del = ttk.Button(self.frame_btns_notes, text='-', command=self.note_del, width=2,
-                                            takefocus=False, style='Default.TButton')
-        else:
+        self.btn_note_del = ttk.Button(self.frame_btns_notes, command=self.note_del, width=2, takefocus=False)
+        set_image(self.btn_note_del, self.img_delete, img_delete, '-')
+        if self.btn_note_del['style'] == 'Image.TButton':
             self.tip_btn_note_del = ttip.Hovertip(self.btn_note_del, 'Удалить сноску', hover_delay=500)
         # } }
         self.lbl_frm = ttk.Label(self.frame_main, text='Формы слова:', style='Default.TLabel')
@@ -4771,40 +4742,27 @@ class EditW(tk.Toplevel):
         self.scrollbar_frm.config(command=self.txt_frm.yview)
         self.frame_btns_frm = ttk.Frame(self.frame_main, style='Invis.TFrame')
         # { {
-        try:
-            self.btn_frm_add = ttk.Button(self.frame_btns_frm, image=self.img_add, command=self.frm_add,
-                                          takefocus=False, style='Image.TButton')
-        except:
-            self.btn_frm_add = ttk.Button(self.frame_btns_frm, text='+', command=self.frm_add, width=2,
-                                          takefocus=False, style='Default.TButton')
-        else:
+        self.btn_frm_add = ttk.Button(self.frame_btns_frm, command=self.frm_add, width=2, takefocus=False)
+        set_image(self.btn_frm_add, self.img_add, img_add, '+')
+        if self.btn_frm_add['style'] == 'Image.TButton':
             self.tip_btn_frm_add = ttip.Hovertip(self.btn_frm_add, 'Добавить словоформу', hover_delay=500)
-        try:
-            self.btn_frm_del = ttk.Button(self.frame_btns_frm, image=self.img_delete, command=self.frm_del,
-                                          takefocus=False, style='Image.TButton')
-        except:
-            self.btn_frm_del = ttk.Button(self.frame_btns_frm, text='-', command=self.frm_del, width=2,
-                                          takefocus=False, style='Default.TButton')
-        else:
+        self.btn_frm_del = ttk.Button(self.frame_btns_frm, command=self.frm_del, width=2, takefocus=False)
+        set_image(self.btn_frm_del, self.img_delete, img_delete, '-')
+        if self.btn_frm_del['style'] == 'Image.TButton':
             self.tip_btn_frm_del = ttip.Hovertip(self.btn_frm_del, 'Удалить словоформу', hover_delay=500)
-        try:
-            self.btn_frm_edt = ttk.Button(self.frame_btns_frm, image=self.img_edit, command=self.frm_edt,
-                                          takefocus=False, style='Image.TButton')
-        except:
-            self.btn_frm_edt = ttk.Button(self.frame_btns_frm, text='изм.', command=self.frm_edt, width=4,
-                                          takefocus=False, style='Default.TButton')
-        else:
+        self.btn_frm_edt = ttk.Button(self.frame_btns_frm, command=self.frm_edt, width=4, takefocus=False)
+        set_image(self.btn_frm_edt, self.img_edit, img_edit, 'изм.')
+        if self.btn_frm_edt['style'] == 'Image.TButton':
             self.tip_btn_frm_edt = ttip.Hovertip(self.btn_frm_edt, 'Изменить словоформу', hover_delay=500)
         # } }
         self.lbl_fav = ttk.Label(self.frame_main, text='Избранное:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=self.set_fav,
                                          style='Default.TCheckbutton')
         # }
-        self.btn_back = ttk.Button(self, text='Закончить', command=self.back,
-                                   takefocus=False, style='Default.TButton')
+        self.btn_back = ttk.Button(self, text='Закончить', command=self.back, takefocus=False, style='Default.TButton')
         self.btn_delete = ttk.Button(self, text='Удалить статью', command=self.delete,
                                      takefocus=False, style='No.TButton')
-        #
+
         self.frame_main.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
         # {
         self.lbl_wrd.grid(      row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
@@ -5187,6 +5145,10 @@ class SettingsW(tk.Toplevel):
         self.var_theme = tk.StringVar(value=th)
         self.var_fontsize = tk.StringVar(value=str(_0_global_fontsize))
 
+        self.img_about = tk.PhotoImage()
+        self.img_plus = tk.PhotoImage()
+        self.img_minus = tk.PhotoImage()
+
         # Только целые числа от 0 до 100
         self.vcmd = (self.register(validate_percent), '%P')
 
@@ -5199,14 +5161,8 @@ class SettingsW(tk.Toplevel):
         # {
         self.frame_mgsp = ttk.Frame(self.tab_local, style='Default.TFrame')
         # { {
-        try:
-            self.img_about = tk.PhotoImage(file=img_about)
-        except:
-            self.btn_about_mgsp = ttk.Button(self.frame_mgsp, text='?', command=self.about_mgsp,
-                                             width=2, takefocus=False, style='Default.TButton')
-        else:
-            self.btn_about_mgsp = ttk.Button(self.frame_mgsp, image=self.img_about, command=self.about_mgsp,
-                                             width=2, takefocus=False, style='Image.TButton')
+        self.btn_about_mgsp = ttk.Button(self.frame_mgsp, command=self.about_mgsp, width=2, takefocus=False)
+        set_image(self.btn_about_mgsp, self.img_about, img_about, '?')
         self.lbl_mgsp = ttk.Label(self.frame_mgsp, text='Минимальный приемлемый процент угадываний слова:',
                                   style='Default.TLabel')
         self.entry_mgsp = ttk.Entry(self.frame_mgsp, textvariable=self.var_mgsp, width=5,
@@ -5242,12 +5198,8 @@ class SettingsW(tk.Toplevel):
         # } }
         self.frame_show_typo_button = ttk.Frame(self.tab_global, style='Default.TFrame')
         # { {
-        try:
-            self.btn_about_typo = ttk.Button(self.frame_show_typo_button, image=self.img_about,
-                                             width=2, command=self.about_typo, takefocus=False, style='Image.TButton')
-        except:
-            self.btn_about_typo = ttk.Button(self.frame_show_typo_button, text='?', command=self.about_typo,
-                                             width=2, takefocus=False, style='Default.TButton')
+        self.btn_about_typo = ttk.Button(self.frame_show_typo_button, command=self.about_typo, width=2, takefocus=False)
+        set_image(self.btn_about_typo, self.img_about, img_about, '?')
         self.lbl_show_typo_button = ttk.Label(self.frame_show_typo_button, text='Показывать кнопку "Опечатка":',
                                               style='Default.TLabel')
         self.check_show_typo_button = ttk.Checkbutton(self.frame_show_typo_button, variable=self.var_show_typo_button,
@@ -5299,22 +5251,12 @@ class SettingsW(tk.Toplevel):
         self.frame_fontsize = ttk.Frame(self.tab_global, style='Default.TFrame')
         # { {
         self.lbl_fontsize = ttk.Label(self.frame_fontsize, text='Размер шрифта', style='Default.TLabel')
-        try:
-            self.img_plus = tk.PhotoImage(file=img_add)
-        except:
-            self.btn_fontsize_plus = ttk.Button(self.frame_fontsize, text='+', command=self.fontsize_plus,
-                                                takefocus=False, width=2, state='normal', style='Default.TButton')
-        else:
-            self.btn_fontsize_plus = ttk.Button(self.frame_fontsize, image=self.img_plus, command=self.fontsize_plus,
-                                                takefocus=False, width=2, state='normal', style='Image.TButton')
-        try:
-            self.img_minus = tk.PhotoImage(file=img_delete)
-        except:
-            self.btn_fontsize_minus = ttk.Button(self.frame_fontsize, text='-', command=self.fontsize_minus,
-                                                 takefocus=False, width=2, state='normal', style='Default.TButton')
-        else:
-            self.btn_fontsize_minus = ttk.Button(self.frame_fontsize, image=self.img_minus, command=self.fontsize_minus,
-                                                 takefocus=False, width=2, state='normal', style='Image.TButton')
+        self.btn_fontsize_plus = ttk.Button(self.frame_fontsize, command=self.fontsize_plus,
+                                            width=2, state='normal', takefocus=False)
+        set_image(self.btn_fontsize_plus, self.img_plus, img_add, '+')
+        self.btn_fontsize_minus = ttk.Button(self.frame_fontsize, command=self.fontsize_minus,
+                                             width=2, state='normal', takefocus=False)
+        set_image(self.btn_fontsize_minus, self.img_minus, img_delete, '-')
         # } }
         # }
         self.btn_save = ttk.Button(self, text='Сохранить изменения', command=self.save,
@@ -5742,26 +5684,10 @@ class SettingsW(tk.Toplevel):
         upload_theme_img(th)  # Загрузка изображений темы
 
         # Установка изображений
-        try:
-            self.img_about = tk.PhotoImage(file=img_about)
-        except:
-            self.btn_about_mgsp.configure(text='?', compound='text', style='Default.TButton')
-            self.btn_about_typo.configure(text='?', compound='text', style='Default.TButton')
-        else:
-            self.btn_about_mgsp.configure(image=self.img_about, compound='image', style='Image.TButton')
-            self.btn_about_typo.configure(image=self.img_about, compound='image', style='Image.TButton')
-        try:
-            self.img_plus = tk.PhotoImage(file=img_add)
-        except:
-            self.btn_fontsize_plus.configure(text='+', compound='text', style='Default.TButton')
-        else:
-            self.btn_fontsize_plus.configure(image=self.img_plus, compound='image', style='Image.TButton')
-        try:
-            self.img_minus = tk.PhotoImage(file=img_delete)
-        except:
-            self.btn_fontsize_minus.configure(text='-', compound='text', style='Default.TButton')
-        else:
-            self.btn_fontsize_minus.configure(image=self.img_minus, compound='image', style='Image.TButton')
+        set_image(self.btn_about_mgsp, self.img_about, img_about, '?')
+        set_image(self.btn_about_typo, self.img_about, img_about, '?')
+        set_image(self.btn_fontsize_plus, self.img_plus, img_add, '+')
+        set_image(self.btn_fontsize_minus, self.img_minus, img_delete, '-')
 
         # Установка некоторых стилей для окна настроек
         self.configure(bg=ST_BG[th])
