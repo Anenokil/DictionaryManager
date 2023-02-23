@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.25-patch-1'
+PROGRAM_VERSION = 'v7.0.25-patch-2'
 PROGRAM_DATE = '23.2.2023'
-PROGRAM_TIME = '3:54 (UTC+3)'
+PROGRAM_TIME = '19:17 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -4176,8 +4176,8 @@ class PrintW(tk.Toplevel):
     # Нажатие на кнопку "Справка" (картинка с вопросом)
     def about_window(self):
         PopupMsgW(self, '* Чтобы добавить статью в избранное, наведите на неё мышку и нажмите Ctrl+F\n'
-                        '* Чтобы прокрутить в самый вниз, нажмите Ctrl+D\n'
-                        '* Чтобы прокрутить в самый вверх, нажмите Ctrl+U',
+                        '* Чтобы прокрутить в самый низ, нажмите Ctrl+D\n'
+                        '* Чтобы прокрутить в самый верх, нажмите Ctrl+U',
                   msg_justify='left').open()
 
     # Установить фокус
