@@ -19,7 +19,7 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.25'
+PROGRAM_VERSION = 'v7.0.25-patch-1'
 PROGRAM_DATE = '23.2.2023'
 PROGRAM_TIME = '3:28 (UTC+3)'
 
@@ -556,7 +556,7 @@ class Entry(object):
         self.correct_att += 1
         self.score = self.correct_att / self.all_att
         if self.correct_att_in_a_row < 0:
-            self.correct_att_in_a_row = 0
+            self.correct_att_in_a_row = 1
         else:
             self.correct_att_in_a_row += 1
 
@@ -565,7 +565,7 @@ class Entry(object):
         self.all_att += 1
         self.score = self.correct_att / self.all_att
         if self.correct_att_in_a_row > 0:
-            self.correct_att_in_a_row = 0
+            self.correct_att_in_a_row = -1
         else:
             self.correct_att_in_a_row -= 1
 
