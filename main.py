@@ -21,7 +21,7 @@ import typing  # Аннотации
 PROGRAM_NAME = 'Dictionary Manager'
 PROGRAM_VERSION = 'v7.0.25-patch-1'
 PROGRAM_DATE = '23.2.2023'
-PROGRAM_TIME = '3:28 (UTC+3)'
+PROGRAM_TIME = '3:54 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
