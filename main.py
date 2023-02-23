@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.25-patch-2'
+PROGRAM_VERSION = 'v7.0.26'
 PROGRAM_DATE = '23.2.2023'
-PROGRAM_TIME = '19:17 (UTC+3)'
+PROGRAM_TIME = '23:09 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1888,6 +1888,7 @@ def upload_dct(window_parent, dct: Dictionary, savename: str, btn_close_text: st
             if answer:
                 window_entry = PopupEntryW(window_parent, 'Введите название словаря\n'
                                                           '(если он ещё не существует, то будет создан пустой словарь)',
+                                           validate_function=validate_savename,
                                            check_answer_function=lambda wnd, val:
                                            check_not_void(wnd, val,
                                                           'Название словаря должно содержать хотя бы один символ!'))
@@ -2026,6 +2027,16 @@ def validate_special_combination_key(value: str):
 # Валидация значения специальной комбинации
 def validate_special_combination_val(value: str):
     return len(value) <= 1
+
+
+# Валидация названия словаря
+def validate_savename(value: str):
+    if len(value) > 99:
+        return False
+    for symbol in value:
+        if symbol in '/|\\<>:*"?':
+            return False
+    return True
 
 
 """ Графический интерфейс - виджеты """
@@ -2210,7 +2221,8 @@ class PopupDialogueW(tk.Toplevel):
 
 # Всплывающее окно с полем ввода
 class PopupEntryW(tk.Toplevel):
-    def __init__(self, parent, msg='Введите строку', btn_text='Подтвердить', entry_width=30, default_value='',
+    def __init__(self, parent, msg='Введите строку', btn_text='Подтвердить',
+                 entry_width=30, default_value='', validate_function=None,
                  check_answer_function=None, if_correct_function=None, if_incorrect_function=None, title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
@@ -2231,6 +2243,10 @@ class PopupEntryW(tk.Toplevel):
         self.lbl_msg.grid(  row=0, padx=6, pady=(6, 3))
         self.entry_inp.grid(row=1, padx=6, pady=(0, 6))
         self.btn_ok.grid(   row=2, padx=6, pady=(0, 6))
+
+        if validate_function:
+            self.vcmd = (self.register(validate_function), '%P')
+            self.entry_inp.configure(validate='key', validatecommand=self.vcmd)
 
     # Нажатие на кнопку
     def ok(self):
@@ -4052,7 +4068,7 @@ class PrintW(tk.Toplevel):
         self.var_info.set(_0_global_dct.dct_info())
 
     # Изменить статью
-    def edit_note(self, index):
+    def edit_note(self, index: int):
         EditW(self, self.keys[index]).open()
 
         self.print(True)
@@ -4122,7 +4138,7 @@ class PrintW(tk.Toplevel):
             self.scrolled_frame.canvas.yview_moveto(0.0)
 
     # Обновить одну из кнопок журнала
-    def refresh_one_button(self, index):
+    def refresh_one_button(self, index: int):
         # Выводим текст на кнопку
         if self.var_forms.get():
             self.buttons[index].configure(text=_0_global_dct.d[self.keys[index]].print_briefly_with_forms(75))
@@ -4140,7 +4156,7 @@ class PrintW(tk.Toplevel):
                 self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly(75))
 
     # Добавить одну статью в избранное
-    def fav_one(self, index):
+    def fav_one(self, index: int):
         _0_global_dct.d[self.keys[index]].change_fav()
 
         self.refresh_one_button(index)
@@ -5405,7 +5421,8 @@ class SettingsW(tk.Toplevel):
         global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc,\
             _0_global_categories, _0_global_special_combinations, _0_global_check_register, _0_global_has_progress
 
-        window = PopupEntryW(self, 'Введите название нового словаря', check_answer_function=check_dct_savename)
+        window = PopupEntryW(self, 'Введите название нового словаря', validate_function=validate_savename,
+                             check_answer_function=check_dct_savename)
         closed, savename = window.open()
         if closed:
             return
@@ -5450,7 +5467,7 @@ class SettingsW(tk.Toplevel):
             return
 
         window_rename = PopupEntryW(self, 'Введите название нового словаря', default_value=old_savename,
-                                    check_answer_function=check_dct_savename)
+                                    validate_function=validate_savename, check_answer_function=check_dct_savename)
         closed, new_savename = window_rename.open()
         if closed:
             return
@@ -5526,7 +5543,7 @@ class SettingsW(tk.Toplevel):
 
         default_savename = re.split(r'[\\/]', src_path)[-1]
         window = PopupEntryW(self, 'Введите название для словаря', default_value=default_savename,
-                             check_answer_function=check_dct_savename)
+                             validate_function=validate_savename, check_answer_function=check_dct_savename)
         closed, savename = window.open()
         if closed:
             return
