@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.26'
-PROGRAM_DATE = '23.2.2023'
-PROGRAM_TIME = '23:09 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.27'
+PROGRAM_DATE = '24.2.2023'
+PROGRAM_TIME = '22:16 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1009,38 +1009,82 @@ def height(text: str, len_str: int):
     return sum(math.ceil(len(segment) / len_str) for segment in segments)
 
 
+# Разделить строку на слова
+def split_line(line: str) -> list[str, str]:
+    len_line = len(line)
+    res = []
+
+    i = 0
+    while i < len_line and not line[i].isalnum():
+        i += 1
+    if i != 0:
+        res += [['', line[0:i]]]
+
+    while i < len_line:
+        word = ''
+        separator = ''
+        while i < len_line and line[i].isalnum():
+            word += line[i]
+            i += 1
+        while i < len_line and not line[i].isalnum():
+            separator += line[i]
+            i += 1
+        res += [[word, separator]]
+
+    return res
+
+
 # Разделить текст на части, длина которых не превышает заданное значение
-def split_text(text: str, len_str: int, tab: int = 0, align_left: bool = True):
+def split_text(text: str, len_str: int, tab: int = 0, add_right_spaces: bool = True):
     assert len_str > 0
+    assert tab >= 0
     assert tab < len_str
 
     res = ''
-    while len(text) > len_str:
-        segment = text[:len_str+1]
-        pos = segment.find('\n')
-        if pos == -1:
-            segment = f'{text[:len_str]}\n'
-            text = ' ' * tab + text[len_str:]
-        elif pos == len_str:
-            text = text[pos+1:]
+    lines = text.split('\n')
+    for i in range(len(lines)):
+        line = lines[i]
+        if len(line) <= len_str:
+            res += line
+            if add_right_spaces:
+                res += ' ' * (len_str - len(line))
         else:
-            segment = text[:pos]
-            if align_left:
-                segment += ' ' * (len_str - pos)
-            segment += '\n'
-            text = text[pos+1:]
-        res += segment
-    while '\n' in text:
-        pos = text.find('\n')
-        res += text[:pos]
-        if align_left:
-            res += ' ' * (len_str - pos)
-        res += '\n'
-        text = text[pos+1:]
-    if text != '':
-        res += text
-        if align_left:
-            res += ' ' * (len_str - len(text))
+            current_len = 0
+            words = split_line(line)
+            tabulate = False
+            for (word, separator) in words:
+                len_word = len(word)
+                if len_word > len_str or (tabulate and tab + len_word > len_str):
+                    tmp = len_str - current_len
+                    res += word[0:tmp]
+                    res += ''.join(['\n' + ' ' * tab + word[i:i+len_str-tab] for i in range(tmp, len_word, len_str-tab)])
+                    current_len = tab + (len_word - tmp) % (len_str - tab)
+                    tabulate = True
+                elif len_word + current_len > len_str:
+                    if add_right_spaces:
+                        res += ' ' * (len_str - current_len)
+                    res += '\n'
+                    res += ' ' * tab
+                    res += word
+                    current_len = tab + len_word
+                    tabulate = True
+                else:
+                    res += word
+                    current_len += len_word
+                for char in separator:
+                    if current_len < len_str:
+                        res += char
+                        current_len += 1
+                    else:
+                        tabulate = True
+                        res += '\n'
+                        res += ' ' * tab
+                        res += char
+                        current_len = tab + 1
+            if add_right_spaces:
+                res += ' ' * (len_str - current_len)
+        if i != len(lines) - 1:
+            res += '\n'
     return res
 
 
@@ -2123,7 +2167,7 @@ class PopupMsgW(tk.Toplevel):
 
         self.closed = True  # Закрыто ли окно крестиком
 
-        self.lbl_msg = ttk.Label(self, text=split_text(msg, msg_max_width, align_left=False), justify=msg_justify,
+        self.lbl_msg = ttk.Label(self, text=split_text(msg, msg_max_width, add_right_spaces=False), justify=msg_justify,
                                  style='Default.TLabel')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Default.TButton')
 
@@ -2181,7 +2225,7 @@ class PopupDialogueW(tk.Toplevel):
         self.st_left = f'{st_left}.TButton'
         self.st_right = f'{st_right}.TButton'
 
-        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, align_left=False), justify='center',
+        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, add_right_spaces=False), justify='center',
                                  style='Default.TLabel')
         self.btn_left = ttk.Button(self, text=btn_left_text, command=self.left, takefocus=False, style=self.st_left)
         self.btn_right = ttk.Button(self, text=btn_right_text, command=self.right, takefocus=False, style=self.st_right)
@@ -2235,7 +2279,7 @@ class PopupEntryW(tk.Toplevel):
 
         self.var_text = tk.StringVar(value=default_value)
 
-        self.lbl_msg = ttk.Label(self, text=split_text(f'{msg}:', 45, align_left=False), justify='center',
+        self.lbl_msg = ttk.Label(self, text=split_text(f'{msg}:', 45, add_right_spaces=False), justify='center',
                                  style='Default.TLabel')
         self.entry_inp = ttk.Entry(self, textvariable=self.var_text, width=entry_width, style='Default.TEntry')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
@@ -2290,7 +2334,7 @@ class PopupChooseW(tk.Toplevel):
 
         self.var_answer = tk.StringVar(value=default_value)
 
-        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, align_left=False), justify='center',
+        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, add_right_spaces=False), justify='center',
                                  style='Default.TLabel')
         self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values, width=combo_width,
                                        font='TkFixedFont', state='readonly', style='Default.TCombobox')
@@ -2348,7 +2392,7 @@ class PopupImgW(tk.Toplevel):
             self.txt_img_not_found.grid(row=1, column=0, padx=6, pady=(0, 16))
         else:
             self.lbl_img = ttk.Label(self, image=self.img, style='Default.TLabel')
-        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, align_left=False), justify='center',
+        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, add_right_spaces=False), justify='center',
                                  style='Default.TLabel')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Default.TButton')
 
@@ -2707,7 +2751,7 @@ class IncorrectAnswerW(tk.Toplevel):
                                                        f'Ваш ответ: {user_answer}\n'
                                                        f'Правильный ответ: {correct_answer}\n'
                                                        f'Хотите добавить слово в избранное?',
-                                                       45, 5, align_left=False),
+                                                       45, 5, add_right_spaces=False),
                                  justify='center', style='Default.TLabel')
         self.btn_yes = ttk.Button(self, text='Да', command=self.yes, takefocus=False, style='Yes.TButton')
         self.btn_no = ttk.Button(self, text='Нет', command=self.no, takefocus=False, style='No.TButton')
@@ -2849,8 +2893,7 @@ class ParticularMatchesW(tk.Toplevel):
                 count += 1
         if count == 0:
             self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
-                                          text=split_text(f'Слово с переводом "{query}" отсутствует в словаре',
-                                                          50, 0),
+                                          text=split_text(f'Слово с переводом "{query}" отсутствует в словаре', 50, 0),
                                           style='Flat.TLabel')]
 
         # Частичное совпадение
@@ -3295,7 +3338,7 @@ class CustomThemeSettingsW(tk.Toplevel):
 
         for i in range(len(STYLE_ELEMENTS)):
             el = STYLE_ELEMENTS[i]
-            if el not in ['RELIEF_FRAME', 'RELIEF_TEXT']:
+            if el not in ('RELIEF_FRAME', 'RELIEF_TEXT'):
                 self.labels[i].configure(text=f'{STYLE_NAMES[el]}:')
                 self.buttons[i].configure(command=lambda i=i: self.choose_color(i))
 
@@ -3943,7 +3986,7 @@ class NewVersionAvailableW(tk.Toplevel):
                     os.remove(os.path.join(IMAGES_PATH, filename))
                 except FileNotFoundError:
                     print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
-            for filename in ['ver', 'README.txt', 'README.md', 'main.py']:
+            for filename in ('ver', 'README.txt', 'README.md', 'main.py'):
                 try:
                     os.remove(os.path.join(MAIN_PATH, filename))
                 except FileNotFoundError:
@@ -3988,7 +4031,7 @@ class PrintW(tk.Toplevel):
         self.img_about = tk.PhotoImage()
 
         self.lbl_dct_name = ttk.Label(self, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
-                                                            40, align_left=False),
+                                                            40, add_right_spaces=False),
                                       justify='center', style='Default.TLabel')
         self.btn_about_mgsp = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
         set_image(self.btn_about_mgsp, self.img_about, img_about, '?')
@@ -4454,7 +4497,7 @@ class LearnW(tk.Toplevel):
         if _0_global_check_register:
             is_correct = encode_special_combinations(self.entry_input.get()) in entry.tr
         else:
-            is_correct = encode_special_combinations(self.entry_input.get()).lower() in [tr.lower() for tr in entry.tr]
+            is_correct = encode_special_combinations(self.entry_input.get()).lower() in (tr.lower() for tr in entry.tr)
         self.check_answer(tpl(entry.tr), is_correct, self.current_key)
 
     # Проверка введённого артикля
@@ -5171,7 +5214,7 @@ class SettingsW(tk.Toplevel):
         self.tabs = ttk.Notebook(self, style='Default.TNotebook')
         self.tab_local = ttk.Frame(self.tabs, style='Invis.TFrame')
         self.lbl_dct_name = ttk.Label(self, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
-                                                            30, align_left=False),
+                                                            30, add_right_spaces=False),
                                       justify='center', style='Default.TLabel')
         self.tabs.add(self.tab_local, text='Настройки словаря')
         # {
@@ -5741,9 +5784,9 @@ class SettingsW(tk.Toplevel):
 
     # Обновить надписи с названием открытого словаря
     def refresh_open_dct_name(self, savename):
-        self.lbl_dct_name.config(text=split_text(f'Открыт словарь "{savename}"', 30, align_left=False))
+        self.lbl_dct_name.config(text=split_text(f'Открыт словарь "{savename}"', 30, add_right_spaces=False))
         self.parent.lbl_dct_name.config(text=f'Открыт словарь\n'
-                                             f'"{split_text(savename, 20, align_left=False)}"')
+                                             f'"{split_text(savename, 20, add_right_spaces=False)}"')
 
     # Изменить размер окна в зависимости от открытой вкладки
     def resize_tabs(self):
@@ -5806,7 +5849,7 @@ class MainW(tk.Tk):
         # {
         self.lbl_dct_name = ttk.Label(self.frame_dct_name,
                                       text=f'Открыт словарь\n'
-                                           f'"{split_text(_0_global_dct_savename, 20, align_left=False)}"',
+                                           f'"{split_text(_0_global_dct_savename, 20, add_right_spaces=False)}"',
                                       justify='center', style='Default.TLabel')
         # }
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
@@ -5921,7 +5964,7 @@ class MainW(tk.Tk):
 
         # Обновляем надпись с названием открытого словаря
         self.lbl_dct_name.config(text=f'Открыт словарь\n'
-                                      f'"{split_text(_0_global_dct_savename, 20, align_left=False)}"')
+                                      f'"{split_text(_0_global_dct_savename, 20, add_right_spaces=False)}"')
 
         self.set_ttk_styles()  # Установка ttk-стилей
 
