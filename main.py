@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.27'
+PROGRAM_VERSION = 'v7.0.28'
 PROGRAM_DATE = '24.2.2023'
-PROGRAM_TIME = '22:16 (UTC+3)'
+PROGRAM_TIME = '22:58 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -4114,7 +4114,7 @@ class PrintW(tk.Toplevel):
     def edit_note(self, index: int):
         EditW(self, self.keys[index]).open()
 
-        self.print(True)
+        self.print(False)
 
     # Напечатать словарь
     def print(self, move_scroll: bool):
