@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.29'
+PROGRAM_VERSION = 'v7.0.29-1'
 PROGRAM_DATE = '25.2.2023'
-PROGRAM_TIME = '0:12 (UTC+3)'
+PROGRAM_TIME = '0:29 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -249,7 +249,8 @@ SPECIAL_COMBINATION_OPENING_SYMBOL = '#'  # Открывающий символ 
 LEARN_VALUES_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову',
                        'Der-Die-Das (для немецкого)')  # Варианты метода учёбы
 LEARN_VALUES_WORDS = ('Все слова', 'Больше избранных (рекоменд.)', 'Только избранные',
-                      'Только неотвеченные', '15 случайных слов')  # Варианты подбора слов для учёбы
+                      'Только неотвеченные', '15 случайных слов',
+                      '15 случайных избранных слов')  # Варианты подбора слов для учёбы
 LEARN_VALUES_ORDER = ('Случайный порядок', 'В первую очередь сложные')  # Варианты порядка следования слов при учёбе
 
 """ Объекты """
@@ -4343,7 +4344,16 @@ class LearnW(tk.Toplevel):
                     if _0_global_dct.d[key].correct_att == 0:
                         for frm in _0_global_dct.d[key].forms.keys():
                             self.pool.add((key, frm))
-        else:  # Учить 15 случайных слов
+        elif self.words == LEARN_VALUES_WORDS[3]:  # Учить 15 случайных слов
+            keys = random.sample(all_keys, min(len(all_keys), 15))
+            for key in keys:
+                self.pool.add((key, None))
+            if self.with_forms:
+                for key in keys:
+                    for frm in _0_global_dct.d[key].forms.keys():
+                        self.pool.add((key, frm))
+        else:  # Учить 15 случайных избранных слов
+            all_keys = tuple(key for key in all_keys if _0_global_dct.d[key].fav)
             keys = random.sample(all_keys, min(len(all_keys), 15))
             for key in keys:
                 self.pool.add((key, None))
