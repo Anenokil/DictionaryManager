@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.28'
+PROGRAM_VERSION = 'v7.0.28-1'
 PROGRAM_DATE = '24.2.2023'
-PROGRAM_TIME = '22:58 (UTC+3)'
+PROGRAM_TIME = '23:05 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -2088,8 +2088,13 @@ def validate_savename(value: str):
 
 # Прокручиваемый фрейм
 class ScrollFrame(tk.Frame):
-    def __init__(self, parent, height: int, width: int):
+    def __init__(self, parent, height: int, width: int, scrollbar_position: typing.Literal['left', 'right'] = 'right'):
         super().__init__(parent)
+
+        if scrollbar_position == 'right':
+            canvas_position = 'left'
+        else:
+            canvas_position = 'right'
 
         self.canvas = tk.Canvas(self, bg=ST_BG_FIELDS[th], bd=0, highlightthickness=0, height=height, width=width)
         # {
@@ -2097,8 +2102,8 @@ class ScrollFrame(tk.Frame):
         # }
         self.scrollbar_y = ttk.Scrollbar(self, command=self.canvas.yview, style='Vertical.TScrollbar')
 
-        self.canvas.pack(     side='left',  fill='both', expand=True)
-        self.scrollbar_y.pack(side='right', fill='y')
+        self.canvas.pack(     side=canvas_position,    fill='both', expand=True)
+        self.scrollbar_y.pack(side=scrollbar_position, fill='y')
 
         self.canvas.configure(yscrollcommand=self.scrollbar_y.set)
         self.canvas_window = self.canvas.create_window((4, 4), window=self.frame_canvas, anchor='nw',
@@ -2823,7 +2828,7 @@ class ParticularMatchesW(tk.Toplevel):
         # }
         self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{self.query}"', justify='center',
                                 style='Default.TLabel')
-        self.scrolled_frame_tr = ScrollFrame(self, 500, 404)
+        self.scrolled_frame_tr = ScrollFrame(self, 500, 404, scrollbar_position='left')
         # {
         self.widgets_tr = []
         # }
@@ -4578,7 +4583,7 @@ class SearchW(tk.Toplevel):
         self.widgets_wrd = []
         # }
         self.lbl_tr = ttk.Label(self, text='Поиск по переводу', style='Default.TLabel')
-        self.scrolled_frame_tr = ScrollFrame(self, 500, 404)
+        self.scrolled_frame_tr = ScrollFrame(self, 500, 404, scrollbar_position='left')
         # {
         self.widgets_tr = []
         # }
