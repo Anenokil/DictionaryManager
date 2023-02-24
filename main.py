@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.28-1'
+PROGRAM_VERSION = 'v7.0.28-2'
 PROGRAM_DATE = '24.2.2023'
-PROGRAM_TIME = '23:05 (UTC+3)'
+PROGRAM_TIME = '23:46 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
@@ -1035,55 +1035,72 @@ def split_line(line: str) -> list[str, str]:
 
 
 # Разделить текст на части, длина которых не превышает заданное значение
-def split_text(text: str, len_str: int, tab: int = 0, add_right_spaces: bool = True):
-    assert len_str > 0
+def split_text(text: str, max_str_len: int, tab: int = 0, add_right_spaces: bool = True):
+    assert max_str_len > 0
     assert tab >= 0
-    assert tab < len_str
+    assert tab < max_str_len
 
     res = ''
-    lines = text.split('\n')
-    for i in range(len(lines)):
+    lines = text.split('\n')  # Строки
+    count_lines = len(lines)  # Количество строк
+    for i in range(count_lines):
         line = lines[i]
-        if len(line) <= len_str:
+        len_line = len(line)
+        # Если ширина строки соответствует требованиям, то просто записываем эту строку
+        if len_line <= max_str_len:
             res += line
+            # Если нужно, дополняем строку пробелами до максимальной длины
             if add_right_spaces:
-                res += ' ' * (len_str - len(line))
+                res += ' ' * (max_str_len - len_line)
         else:
             current_len = 0
-            words = split_line(line)
             tabulate = False
+            words = split_line(line)
             for (word, separator) in words:
                 len_word = len(word)
-                if len_word > len_str or (tabulate and tab + len_word > len_str):
-                    tmp = len_str - current_len
+                len_separator = len(separator)
+
+                # Если слово превышает максимальную длину строки, то разбиваем его на части
+                if len_word > max_str_len or (tabulate and tab + len_word > max_str_len):
+                    tmp = max_str_len - current_len
                     res += word[0:tmp]
-                    res += ''.join(['\n' + ' ' * tab + word[i:i+len_str-tab] for i in range(tmp, len_word, len_str-tab)])
-                    current_len = tab + (len_word - tmp) % (len_str - tab)
+                    res += ''.join(['\n' + ' ' * tab + word[i:i+max_str_len-tab]
+                                    for i in range(tmp, len_word, max_str_len-tab)])
+                    current_len = tab + (len_word - tmp) % (max_str_len - tab)
                     tabulate = True
-                elif len_word + current_len > len_str:
+                # Если слово не вмещается в данную строку, но может вместиться в следующую,
+                # то записываем его в следующую
+                elif len_word + current_len > max_str_len:
+                    # Если нужно, дополняем строку пробелами до максимальной длины
                     if add_right_spaces:
-                        res += ' ' * (len_str - current_len)
+                        res += ' ' * (max_str_len - current_len)
                     res += '\n'
                     res += ' ' * tab
                     res += word
                     current_len = tab + len_word
                     tabulate = True
+                # Если слово вмещается в данную строку, то просто записываем его
                 else:
                     res += word
                     current_len += len_word
-                for char in separator:
-                    if current_len < len_str:
-                        res += char
-                        current_len += 1
-                    else:
-                        tabulate = True
-                        res += '\n'
-                        res += ' ' * tab
-                        res += char
-                        current_len = tab + 1
+
+                # Если разделитель целиком не вмещается в данную строку, то разделяем его на части
+                if current_len + len_separator > max_str_len:
+                    tmp = max_str_len - current_len
+                    res += separator[0:tmp]
+                    res += ''.join(['\n' + ' ' * tab + separator[i:i+max_str_len-tab]
+                                    for i in range(tmp, len_separator, max_str_len-tab)])
+                    current_len = tab + (len_separator - tmp) % (max_str_len - tab)
+                    tabulate = True
+                # Если разделитель вмещается в данную строку целиком, то просто записываем его
+                else:
+                    res += separator
+                    current_len += len_separator
+            # Если нужно, дополняем строку пробелами до максимальной длины
             if add_right_spaces:
-                res += ' ' * (len_str - current_len)
-        if i != len(lines) - 1:
+                res += ' ' * (max_str_len - current_len)
+        # Если строка не последняя, то добавляем перенос строки
+        if i != count_lines - 1:
             res += '\n'
     return res
 
@@ -2092,9 +2109,9 @@ class ScrollFrame(tk.Frame):
         super().__init__(parent)
 
         if scrollbar_position == 'right':
-            canvas_position = 'left'
+            canvas_position: typing.Literal['left', 'right'] = 'left'
         else:
-            canvas_position = 'right'
+            canvas_position: typing.Literal['left', 'right'] = 'right'
 
         self.canvas = tk.Canvas(self, bg=ST_BG_FIELDS[th], bd=0, highlightthickness=0, height=height, width=width)
         # {
