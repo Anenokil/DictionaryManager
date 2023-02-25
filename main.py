@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.30-PRE-3'
+PROGRAM_VERSION = 'v7.0.30'
 PROGRAM_DATE = '25.2.2023'
-PROGRAM_TIME = '4:02 (UTC+3)'
+PROGRAM_TIME = '4:24 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -243,8 +243,10 @@ NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с
 
 """ Другие константы """
 
-CATEGORY_SEPARATOR = '@'  # Разделитель для записи значений категории в файл локальных настроек
-SPECIAL_COMBINATION_OPENING_SYMBOL = '#'  # Открывающий символ специальных комбинаций
+# Разделитель для записи значений категории в файл локальных настроек
+CATEGORY_SEPARATOR = '@'
+# Открывающие символы специальных комбинаций
+SPECIAL_COMBINATIONS_OPENING_SYMBOLS = ('^', '~', '`', '"', '_', ':', '\'', '*', '/', '\\', '|', '#', '$', '%', '&')
 
 LEARN_VALUES_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову',
                        'Der-Die-Das (для немецкого)')  # Варианты метода учёбы
@@ -1126,8 +1128,8 @@ def encode_special_combinations(text: str):
             else:  # Если нет такой комбинации
                 encoded_text += f'{opening_symbol}{symbol}'
             opening_symbol = None
-        elif symbol == SPECIAL_COMBINATION_OPENING_SYMBOL:  # Если встречен открывающий символ специальной комбинации
-            opening_symbol = SPECIAL_COMBINATION_OPENING_SYMBOL
+        elif symbol in SPECIAL_COMBINATIONS_OPENING_SYMBOLS:  # Если встречен открывающий символ специальной комбинации
+            opening_symbol = symbol
         else:  # Если встречен обычный символ
             encoded_text += symbol
     if opening_symbol:  # Если текст завершается открывающим символом специальной комбинации
@@ -2104,9 +2106,14 @@ def validate_percent(value: str):
     return validate_int_max(value, 100)
 
 
-# Валидация ключа специальной комбинации
-def validate_special_combination_key(value: str):
-    return len(value) <= 1 and value != SPECIAL_COMBINATION_OPENING_SYMBOL
+# Валидация открывающего символа специальной комбинации
+def validate_special_combination_opening_symbol(value: str):
+    return value == '' or value in SPECIAL_COMBINATIONS_OPENING_SYMBOLS
+
+
+# Валидация ключевого символа специальной комбинации
+def validate_special_combination_key_symbol(value: str):
+    return len(value) <= 1 and value not in SPECIAL_COMBINATIONS_OPENING_SYMBOLS
 
 
 # Валидация значения специальной комбинации
@@ -2475,19 +2482,23 @@ class EnterSpecialCombinationW(tk.Toplevel):
 
         self.closed = True  # Закрыто ли окно крестиком
 
-        self.var_key = tk.StringVar()
+        self.var_opening_symbol = tk.StringVar(value=SPECIAL_COMBINATIONS_OPENING_SYMBOLS[0])
+        self.var_key_symbol = tk.StringVar()
         self.var_val = tk.StringVar()
 
-        self.vcmd_key = (self.register(validate_special_combination_key), '%P')
+        self.vcmd_opening_symbol = (self.register(validate_special_combination_opening_symbol), '%P')
+        self.vcmd_key_symbol = (self.register(validate_special_combination_key_symbol), '%P')
         self.vcmd_val = (self.register(validate_special_combination_val), '%P')
 
         self.lbl_msg = ttk.Label(self, text='Задайте комбинацию', justify='center', style='Default.TLabel')
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.lbl_opening_symbol = ttk.Label(self.frame_main, text=SPECIAL_COMBINATION_OPENING_SYMBOL,
-                                            justify='right', style='Default.TLabel')
-        self.entry_key_symbol = ttk.Entry(self.frame_main, textvariable=self.var_key, width=2, justify='right',
-                                          validate='key', validatecommand=self.vcmd_key, style='Default.TEntry')
+        self.combo_opening_symbol = ttk.Combobox(self.frame_main, textvariable=self.var_opening_symbol,
+                                                 values=SPECIAL_COMBINATIONS_OPENING_SYMBOLS,
+                                                 validate='all', validatecommand=self.vcmd_opening_symbol,
+                                                 width=3, state='normal', style='Default.TCombobox')
+        self.entry_key_symbol = ttk.Entry(self.frame_main, textvariable=self.var_key_symbol, width=2, justify='right',
+                                          validate='key', validatecommand=self.vcmd_key_symbol, style='Default.TEntry')
         self.lbl_arrow = ttk.Label(self.frame_main, text='->', justify='center', style='Default.TLabel')
         self.entry_val = ttk.Entry(self.frame_main, textvariable=self.var_val, width=2,
                                    validate='key', validatecommand=self.vcmd_val, style='Default.TEntry')
@@ -2497,10 +2508,10 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.lbl_msg.grid(   row=0, padx=6, pady=(6, 3))
         self.frame_main.grid(row=1, padx=6, pady=0)
         # {
-        self.lbl_opening_symbol.grid(row=0, column=0, padx=0, pady=0)
-        self.entry_key_symbol.grid(  row=0, column=1, padx=0, pady=0)
-        self.lbl_arrow.grid(         row=0, column=2, padx=2, pady=0)
-        self.entry_val.grid(         row=0, column=3, padx=0, pady=0)
+        self.combo_opening_symbol.grid(row=0, column=0, padx=0, pady=0)
+        self.entry_key_symbol.grid(    row=0, column=1, padx=0, pady=0)
+        self.lbl_arrow.grid(           row=0, column=2, padx=2, pady=0)
+        self.entry_val.grid(           row=0, column=3, padx=0, pady=0)
         # }
         self.btn_ok.grid(row=2, padx=6, pady=6)
 
@@ -2522,7 +2533,7 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        return self.closed, (SPECIAL_COMBINATION_OPENING_SYMBOL, self.var_key.get()), self.var_val.get()
+        return self.closed, (self.var_opening_symbol.get(), self.var_key_symbol.get()), self.var_val.get()
 
 
 # Окно создания шаблона словоформы
@@ -3309,7 +3320,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         combinations = [special_combination(key) for key in _0_global_special_combinations]
         for combination in combinations:
             self.txt_combinations.insert(tk.END, f'{combination}\n')
-        self.txt_combinations.insert(tk.END, '## -> #')
+        self.txt_combinations.insert(tk.END, '## -> #, %% -> % и т. д.')
 
         self.txt_combinations['state'] = 'disabled'
 
