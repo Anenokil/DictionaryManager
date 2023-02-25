@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.30-PRE-1'
+PROGRAM_VERSION = 'v7.0.30-PRE-2'
 PROGRAM_DATE = '25.2.2023'
-PROGRAM_TIME = '3:25 (UTC+3)'
+PROGRAM_TIME = '3:30 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -1788,7 +1788,7 @@ def save_local_settings(min_good_score_perc: int, check_register: int, categorie
         local_settings_file.write(f'{min_good_score_perc}\n')
         for key in _0_global_special_combinations:
             val = _0_global_special_combinations[key]
-            local_settings_file.write(f'{key}{val}')
+            local_settings_file.write(f'{SPECIAL_COMBINATION_OPENING_SYMBOL}{key}{val}')
         local_settings_file.write('\n')
         local_settings_file.write(f'{check_register}\n')
         for key in categories.keys():
