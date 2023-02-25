@@ -19,12 +19,12 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.29-1'
+PROGRAM_VERSION = 'v7.0.30-PRE-1'
 PROGRAM_DATE = '25.2.2023'
-PROGRAM_TIME = '0:29 (UTC+3)'
+PROGRAM_TIME = '3:25 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
-LOCAL_SETTINGS_VERSION = 3  # Актуальная версия локальных настроек
+LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
 GLOBAL_SETTINGS_VERSION = 2  # Актуальная версия глобальных настроек
 REQUIRED_THEME_VERSION = 5  # Актуальная версия тем
 
@@ -1640,8 +1640,8 @@ def save_dct_name():
     save_global_settings(_0_global_dct_savename, tmp_show_updates, tmp_typo, tmp_th, tmp_fontsize)
 
 
-# Обновить локальные настройки с 0 до 3 версии
-def upgrade_local_settings_0_to_3(local_settings_path: str):
+# Обновить локальные настройки с 0 до 4 версии
+def upgrade_local_settings_0_to_4(local_settings_path: str):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         lines = local_settings_file.readlines()
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
@@ -1651,11 +1651,11 @@ def upgrade_local_settings_0_to_3(local_settings_path: str):
         for i in range(1, len(lines)):
             local_settings_file.write(lines[i])
 
-    upgrade_local_settings_1_to_3(local_settings_path)
+    upgrade_local_settings_1_to_4(local_settings_path)
 
 
-# Обновить локальные настройки с 1 до 3 версии
-def upgrade_local_settings_1_to_3(local_settings_path: str):
+# Обновить локальные настройки с 1 до 4 версии
+def upgrade_local_settings_1_to_4(local_settings_path: str):
     global _0_global_special_combinations
 
     _, _, _0_global_special_combinations, _ = upload_local_settings(_0_global_dct_savename, upgrade=False)
@@ -1674,11 +1674,11 @@ def upgrade_local_settings_1_to_3(local_settings_path: str):
                 values = [encode_special_combinations(i) for i in values]
                 local_settings_file.write(decode_tpl(values) + '\n')
 
-    upgrade_local_settings_2_to_3(local_settings_path)
+    upgrade_local_settings_2_to_4(local_settings_path)
 
 
-# Обновить локальные настройки со 2 до 3 версии
-def upgrade_local_settings_2_to_3(local_settings_path: str):
+# Обновить локальные настройки со 2 до 4 версии
+def upgrade_local_settings_2_to_4(local_settings_path: str):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         lines = local_settings_file.readlines()
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
@@ -1689,17 +1689,37 @@ def upgrade_local_settings_2_to_3(local_settings_path: str):
         for i in range(3, len(lines)):
             local_settings_file.write(lines[i])
 
+    upgrade_local_settings_3_to_4(local_settings_path)
+
+
+# Обновить локальные настройки со 3 до 4 версии
+def upgrade_local_settings_3_to_4(local_settings_path: str):
+    with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
+        lines = local_settings_file.readlines()
+    with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
+        local_settings_file.write('v4\n')
+        local_settings_file.write(lines[1])
+        line = lines[2].strip()
+        if line != '':
+            line = '#' + '#'.join(line[i:i+2] for i in range(0, len(line), 2))
+        local_settings_file.write(f'{line}\n')
+        local_settings_file.write(lines[3])
+        for i in range(4, len(lines)):
+            local_settings_file.write(lines[i])
+
 
 # Обновить локальные настройки старой версии до актуальной версии
 def upgrade_local_settings(local_settings_path: str):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         first_line = local_settings_file.readline()
         if first_line[0] != 'v':  # Версия 0
-            upgrade_local_settings_0_to_3(local_settings_path)
+            upgrade_local_settings_0_to_4(local_settings_path)
         elif first_line[0:2] == 'v1':  # Версия 1
-            upgrade_local_settings_1_to_3(local_settings_path)
+            upgrade_local_settings_1_to_4(local_settings_path)
         elif first_line[0:2] == 'v2':  # Версия 2
-            upgrade_local_settings_2_to_3(local_settings_path)
+            upgrade_local_settings_2_to_4(local_settings_path)
+        elif first_line[0:2] == 'v3':  # Версия 3
+            upgrade_local_settings_3_to_4(local_settings_path)
         elif first_line[0:2] != f'v{LOCAL_SETTINGS_VERSION}':
             print(f'Неизвестная версия локальных настроек: {first_line.strip()}!\n'
                   f'Проверьте наличие обновлений программы')
@@ -1717,7 +1737,7 @@ def upload_local_settings(savename: str, upgrade=True):
         with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
             local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n'  # Версия локальных настроек
                                       f'67\n'  # МППУ
-                                      f'aäAÄoöOÖuüUÜsßSẞ\n'  # Специальные комбинации
+                                      f'#aä#AÄ#oö#OÖ#uü#UÜ#sß#Sẞ\n'  # Специальные комбинации
                                       f'1\n'  # Учитывать ли регистр букв при учёбе
                                       f'Число\n'
                                       f'ед.ч.{CATEGORY_SEPARATOR}мн.ч.\n'
@@ -1743,14 +1763,14 @@ def upload_local_settings(savename: str, upgrade=True):
             min_good_score_perc = 67
         # Специальные комбинации
         line_special_combinations = local_settings_file.readline()
-        for i in range(len(line_special_combinations) // 2):
-            special_combinations[line_special_combinations[2 * i]] = line_special_combinations[2 * i + 1]
+        for i in range(len(line_special_combinations) // 3):
+            special_combinations[line_special_combinations[2 * i + 1]] = line_special_combinations[2 * i + 2]
         # Учитывать ли регистр букв при учёбе
         try:
             check_register = int(local_settings_file.readline().strip())
         except (ValueError, TypeError):
             check_register = 1
-        # Словоформы
+        # Грамматические категории
         while True:
             key = local_settings_file.readline().strip()
             if not key:
