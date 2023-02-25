@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.30-patch-1'
+PROGRAM_VERSION = 'v7.0.30-patch-2'
 PROGRAM_DATE = '25.2.2023'
-PROGRAM_TIME = '4:26 (UTC+3)'
+PROGRAM_TIME = '4:29 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -3291,7 +3291,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
     def add(self):
         window = EnterSpecialCombinationW(self)
         closed, key, val = window.open()
-        if closed or key[1] == '' or val == '':
+        if closed or key[0] == '' or key[1] == '' or val == '':
             return
         if key in _0_global_special_combinations.keys():
             warning(self, f'Комбинация {key[0]}{key[1]} уже существует!')
