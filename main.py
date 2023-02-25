@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.30'
+PROGRAM_VERSION = 'v7.0.30-patch-1'
 PROGRAM_DATE = '25.2.2023'
-PROGRAM_TIME = '4:24 (UTC+3)'
+PROGRAM_TIME = '4:26 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -246,7 +246,7 @@ NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с
 # Разделитель для записи значений категории в файл локальных настроек
 CATEGORY_SEPARATOR = '@'
 # Открывающие символы специальных комбинаций
-SPECIAL_COMBINATIONS_OPENING_SYMBOLS = ('^', '~', '`', '"', '_', ':', '\'', '*', '/', '\\', '|', '#', '$', '%', '&')
+SPECIAL_COMBINATIONS_OPENING_SYMBOLS = ('^', '~', '`', '\'', '"', '*', '_', ':', '/', '\\', '|', '#', '$', '%', '&')
 
 LEARN_VALUES_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову',
                        'Der-Die-Das (для немецкого)')  # Варианты метода учёбы
