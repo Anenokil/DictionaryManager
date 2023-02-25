@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.30-PRE-2'
+PROGRAM_VERSION = 'v7.0.30-PRE-3'
 PROGRAM_DATE = '25.2.2023'
-PROGRAM_TIME = '3:30 (UTC+3)'
+PROGRAM_TIME = '4:02 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -1107,31 +1107,31 @@ def split_text(text: str, max_str_len: int, tab: int = 0, add_right_spaces: bool
 
 
 # Преобразовать специальную комбинацию в читаемый вид (для отображения в настройках)
-def special_combination(key: str):
-    val = _0_global_special_combinations[key]
-    return f'{SPECIAL_COMBINATION_OPENING_SYMBOL}{key} -> {val}'
+def special_combination(key: tuple[str, str]):
+    value = _0_global_special_combinations[key]
+    return f'{key[0]}{key[1]} -> {value}'
 
 
 # Преобразовать в тексте специальные комбинации в соответствующие символы
 def encode_special_combinations(text: str):
     encoded_text = ''
 
-    is_special_combination_open = False  # Встречен ли открывающий символ специальной комбинации
+    opening_symbol = None  # Встречен ли открывающий символ специальной комбинации
     for symbol in text:
-        if is_special_combination_open:
-            if symbol in _0_global_special_combinations.keys():  # Если есть комбинация с этим символом
-                encoded_text += _0_global_special_combinations[symbol]
-            elif symbol == SPECIAL_COMBINATION_OPENING_SYMBOL:  # Если встречено два открывающих символа подряд
-                encoded_text += SPECIAL_COMBINATION_OPENING_SYMBOL  # (## -> #)
-            else:  # Если нет комбинации с этим символом
-                encoded_text += f'{SPECIAL_COMBINATION_OPENING_SYMBOL}{symbol}'
-            is_special_combination_open = False
+        if opening_symbol:
+            if (opening_symbol, symbol) in _0_global_special_combinations.keys():  # Если есть такая комбинация
+                encoded_text += _0_global_special_combinations[(opening_symbol, symbol)]
+            elif symbol == opening_symbol:  # Если встречено два открывающих символа подряд
+                encoded_text += opening_symbol  # (## -> #)
+            else:  # Если нет такой комбинации
+                encoded_text += f'{opening_symbol}{symbol}'
+            opening_symbol = None
         elif symbol == SPECIAL_COMBINATION_OPENING_SYMBOL:  # Если встречен открывающий символ специальной комбинации
-            is_special_combination_open = True
+            opening_symbol = SPECIAL_COMBINATION_OPENING_SYMBOL
         else:  # Если встречен обычный символ
             encoded_text += symbol
-    if is_special_combination_open:  # Если текст завершается открывающим символом специальной комбинации
-        encoded_text += SPECIAL_COMBINATION_OPENING_SYMBOL
+    if opening_symbol:  # Если текст завершается открывающим символом специальной комбинации
+        encoded_text += opening_symbol
 
     return encoded_text
 
@@ -1763,8 +1763,11 @@ def upload_local_settings(savename: str, upgrade=True):
             min_good_score_perc = 67
         # Специальные комбинации
         line_special_combinations = local_settings_file.readline()
-        for i in range(len(line_special_combinations) // 3):
-            special_combinations[line_special_combinations[2 * i + 1]] = line_special_combinations[2 * i + 2]
+        for i in range(0, len(line_special_combinations) - 1, 3):
+            opening_symbol = line_special_combinations[i]
+            key_symbol = line_special_combinations[i + 1]
+            value = line_special_combinations[i + 2]
+            special_combinations[(opening_symbol, key_symbol)] = value
         # Учитывать ли регистр букв при учёбе
         try:
             check_register = int(local_settings_file.readline().strip())
@@ -1788,7 +1791,7 @@ def save_local_settings(min_good_score_perc: int, check_register: int, categorie
         local_settings_file.write(f'{min_good_score_perc}\n')
         for key in _0_global_special_combinations:
             val = _0_global_special_combinations[key]
-            local_settings_file.write(f'{SPECIAL_COMBINATION_OPENING_SYMBOL}{key}{val}')
+            local_settings_file.write(f'{key[0]}{key[1]}{val}')
         local_settings_file.write('\n')
         local_settings_file.write(f'{check_register}\n')
         for key in categories.keys():
@@ -2481,11 +2484,11 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.lbl_msg = ttk.Label(self, text='Задайте комбинацию', justify='center', style='Default.TLabel')
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.lbl_1 = ttk.Label(self.frame_main, text=SPECIAL_COMBINATION_OPENING_SYMBOL,
-                               justify='right', style='Default.TLabel')
-        self.entry_key = ttk.Entry(self.frame_main, textvariable=self.var_key, width=2, justify='right',
-                                   validate='key', validatecommand=self.vcmd_key, style='Default.TEntry')
-        self.lbl_2 = ttk.Label(self.frame_main, text='->', justify='center', style='Default.TLabel')
+        self.lbl_opening_symbol = ttk.Label(self.frame_main, text=SPECIAL_COMBINATION_OPENING_SYMBOL,
+                                            justify='right', style='Default.TLabel')
+        self.entry_key_symbol = ttk.Entry(self.frame_main, textvariable=self.var_key, width=2, justify='right',
+                                          validate='key', validatecommand=self.vcmd_key, style='Default.TEntry')
+        self.lbl_arrow = ttk.Label(self.frame_main, text='->', justify='center', style='Default.TLabel')
         self.entry_val = ttk.Entry(self.frame_main, textvariable=self.var_val, width=2,
                                    validate='key', validatecommand=self.vcmd_val, style='Default.TEntry')
         # }
@@ -2494,10 +2497,10 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.lbl_msg.grid(   row=0, padx=6, pady=(6, 3))
         self.frame_main.grid(row=1, padx=6, pady=0)
         # {
-        self.lbl_1.grid(    row=0, column=0, padx=0, pady=0)
-        self.entry_key.grid(row=0, column=1, padx=0, pady=0)
-        self.lbl_2.grid(    row=0, column=2, padx=2, pady=0)
-        self.entry_val.grid(row=0, column=3, padx=0, pady=0)
+        self.lbl_opening_symbol.grid(row=0, column=0, padx=0, pady=0)
+        self.entry_key_symbol.grid(  row=0, column=1, padx=0, pady=0)
+        self.lbl_arrow.grid(         row=0, column=2, padx=2, pady=0)
+        self.entry_val.grid(         row=0, column=3, padx=0, pady=0)
         # }
         self.btn_ok.grid(row=2, padx=6, pady=6)
 
@@ -2509,7 +2512,7 @@ class EnterSpecialCombinationW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        self.entry_key.focus_set()
+        self.entry_key_symbol.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
@@ -2519,7 +2522,7 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        return self.closed, self.var_key.get(), self.var_val.get()
+        return self.closed, (SPECIAL_COMBINATION_OPENING_SYMBOL, self.var_key.get()), self.var_val.get()
 
 
 # Окно создания шаблона словоформы
@@ -3277,10 +3280,10 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
     def add(self):
         window = EnterSpecialCombinationW(self)
         closed, key, val = window.open()
-        if closed or key == '' or val == '':
+        if closed or key[1] == '' or val == '':
             return
         if key in _0_global_special_combinations.keys():
-            warning(self, f'Комбинация #{key} уже существует!')
+            warning(self, f'Комбинация {key[0]}{key[1]} уже существует!')
             return
         _0_global_special_combinations[key] = val
         self.refresh()
@@ -3293,7 +3296,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         closed, choose = window.open()
         if closed:
             return
-        chosen_key = choose[1]
+        chosen_key = (choose[0], choose[1])
         _0_global_special_combinations.pop(chosen_key)
         self.refresh()
         self.has_changes = True
