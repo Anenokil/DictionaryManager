@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.31'
+PROGRAM_VERSION = 'v7.0.31-patch-1'
 PROGRAM_DATE = '26.2.2023'
-PROGRAM_TIME = '18:29 (UTC+3)'
+PROGRAM_TIME = '19:11 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -34,8 +34,10 @@ SCALE_MIN = 8
 SCALE_MAX = 16
 SCALE_DEF = 10
 
-SCALE_PRINTW_FIELD_WIDTH = (532, 604, 682, 757, 757, 832, 907, 980, 1057)
-SCALE_SEARCHW_FIELD_WIDTH = (356, 404, 457, 508, 508, 557, 607, 657, 707)
+SCALE_WIDE_FRAME_WIDTH =         (532, 604, 682, 757, 757, 832, 907, 980, 1057)
+SCALE_NARROW_FRAME_WIDTH =       (356, 404, 457, 508, 508, 557, 607, 657, 707)
+SCALE_CUSTOM_THEME_FRAME_WIDTH = (410, 440, 455, 495, 517, 543, 590, 615, 643)
+SCALE_CUSTOM_THEME_COMBO_WIDTH = ( 16,  16,  14,  12,  11,  11,  10,   9,   8)
 
 """ Темы """
 
@@ -2878,13 +2880,13 @@ class ParticularMatchesW(tk.Toplevel):
                                     justify='center', style='Default.TLabel')
         self.lbl_wrd = ttk.Label(self, text=f'Слова, содержащие "{self.query}"', justify='center',
                                  style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, 500, SCALE_SEARCHW_FIELD_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_wrd = ScrollFrame(self, 500, SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         self.widgets_wrd = []
         # }
         self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{self.query}"', justify='center',
                                 style='Default.TLabel')
-        self.scrolled_frame_tr = ScrollFrame(self, 500, SCALE_SEARCHW_FIELD_WIDTH[_0_global_scale - SCALE_MIN],
+        self.scrolled_frame_tr = ScrollFrame(self, 500, SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN],
                                              scrollbar_position='left')
         # {
         self.widgets_tr = []
@@ -3003,7 +3005,7 @@ class ChooseOneOfSimilarNotesW(tk.Toplevel):
         self.answer = None
 
         self.lbl_header = ttk.Label(self, text='Выберите одну из статей', justify='center', style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, 500, SCALE_PRINTW_FIELD_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_wrd = ScrollFrame(self, 500, SCALE_WIDE_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         self.widgets_wrd = []
         # }
@@ -3390,7 +3392,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                                          takefocus=False, style='Default.TButton')
         # }
         # Прокручиваемая область с настройками
-        self.scrolled_frame = ScrollFrame(self, 400, 500)
+        self.scrolled_frame = ScrollFrame(self, 400, SCALE_CUSTOM_THEME_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         # Выбор цветов
         self.labels = [ttk.Label(self.scrolled_frame.frame_canvas, style='Default.TLabel')
@@ -3433,7 +3435,8 @@ class CustomThemeSettingsW(tk.Toplevel):
                                           style='Default.TLabel')
         self.combo_relief_frame = ttk.Combobox(self.scrolled_frame.frame_canvas, textvariable=self.var_relief_frame,
                                                values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
-                                               width=19, validate='focus', validatecommand=self.vcmd_relief_frame,
+                                               width=SCALE_CUSTOM_THEME_COMBO_WIDTH[_0_global_scale - SCALE_MIN],
+                                               validate='focus', validatecommand=self.vcmd_relief_frame,
                                                state='readonly', style='Default.TCombobox',
                                                font=('DejaVu Sans Mono', _0_global_scale))
 
@@ -3441,7 +3444,8 @@ class CustomThemeSettingsW(tk.Toplevel):
                                          style='Default.TLabel')
         self.combo_relief_text = ttk.Combobox(self.scrolled_frame.frame_canvas, textvariable=self.var_relief_text,
                                               values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
-                                              width=19, validate='focus', validatecommand=self.vcmd_relief_text,
+                                              width=SCALE_CUSTOM_THEME_COMBO_WIDTH[_0_global_scale - SCALE_MIN],
+                                              validate='focus', validatecommand=self.vcmd_relief_text,
                                               state='readonly', style='Default.TCombobox',
                                               font=('DejaVu Sans Mono', _0_global_scale))
         # }
@@ -4110,7 +4114,7 @@ class PrintW(tk.Toplevel):
         self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, command=lambda: self.print(True),
                                            style='Default.TCheckbutton')
         # }
-        self.scrolled_frame = ScrollFrame(self, 500, SCALE_PRINTW_FIELD_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame = ScrollFrame(self, 500, SCALE_WIDE_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         self.keys = [key for key in _0_global_dct.d.keys()]
         self.frames = [ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
@@ -4657,12 +4661,12 @@ class SearchW(tk.Toplevel):
                                      takefocus=False, style='Default.TButton')
         # }
         self.lbl_wrd = ttk.Label(self, text='Поиск по слову', style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, 500, SCALE_SEARCHW_FIELD_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_wrd = ScrollFrame(self, 500, SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         self.widgets_wrd = []
         # }
         self.lbl_tr = ttk.Label(self, text='Поиск по переводу', style='Default.TLabel')
-        self.scrolled_frame_tr = ScrollFrame(self, 500, SCALE_SEARCHW_FIELD_WIDTH[_0_global_scale - SCALE_MIN],
+        self.scrolled_frame_tr = ScrollFrame(self, 500, SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN],
                                              scrollbar_position='left')
         # {
         self.widgets_tr = []
@@ -5379,7 +5383,7 @@ class SettingsW(tk.Toplevel):
         # { {
         self.lbl_themes = ttk.Label(self.frame_themes, text='Тема:', style='Default.TLabel')
         self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
-                                         state='readonly', style='Default.TCombobox',
+                                         state='readonly', width=16, style='Default.TCombobox',
                                          font=('DejaVu Sans Mono', _0_global_scale))
         self.lbl_themes_note = ttk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
                                                                  f'Актуальные темы можно скачать здесь:',
@@ -5687,6 +5691,7 @@ class SettingsW(tk.Toplevel):
         upload_custom_theme()
         if th == CUSTOM_TH:
             self.set_theme()
+        self.refresh_scale_buttons()
 
     # Увеличить масштаб (срабатывает при нажатии на кнопку)
     def scale_plus(self):
