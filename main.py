@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.31-patch-2'
+PROGRAM_VERSION = 'v7.0.31-patch-3'
 PROGRAM_DATE = '26.2.2023'
-PROGRAM_TIME = '21:02 (UTC+3)'
+PROGRAM_TIME = '22:33 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -34,10 +34,10 @@ SCALE_MIN = 8
 SCALE_MAX = 16
 SCALE_DEF = 10
 
-SCALE_WIDE_FRAME_WIDTH =         (532, 604, 682, 757, 757, 832, 907, 980, 1057)
-SCALE_NARROW_FRAME_WIDTH =       (356, 404, 457, 508, 508, 557, 607, 657, 707)
-SCALE_CUSTOM_THEME_FRAME_WIDTH = (410, 440, 455, 495, 517, 543, 590, 615, 643)
-SCALE_CUSTOM_THEME_COMBO_WIDTH = ( 16,  16,  14,  12,  11,  11,  10,   9,   8)
+SCALE_WIDE_FRAME_WIDTH         = (532, 604, 682, 757, 757, 832, 907, 980, 1057)
+SCALE_NARROW_FRAME_WIDTH       = (356, 404, 457, 508, 508, 557, 607, 657,  707)
+SCALE_CUSTOM_THEME_FRAME_WIDTH = (410, 440, 455, 495, 517, 543, 590, 615,  643)
+SCALE_CUSTOM_THEME_COMBO_WIDTH = ( 16,  16,  14,  12,  11,  11,  10,   9,    8)
 
 """ Темы """
 
@@ -2723,7 +2723,7 @@ class ChooseLearnModeW(tk.Toplevel):
         self.var_method = tk.StringVar(value=LEARN_VALUES_METHOD[0])  # Метод изучения слов
         self.var_forms = tk.BooleanVar(value=True)  # Со всеми ли словоформами
         self.var_words = tk.StringVar(value=LEARN_VALUES_WORDS[1])  # Способ подбора слов
-        self.var_order = tk.StringVar(value=LEARN_VALUES_ORDER[0])  # Порядок следования слов
+        self.var_order = tk.StringVar(value=LEARN_VALUES_ORDER[1])  # Порядок следования слов
 
         self.lbl_header = ttk.Label(self, text='Выберите способ учёбы', style='Default.TLabel')
         self.frame_main = ttk.Frame(self, style='Default.TFrame')
