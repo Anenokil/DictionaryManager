@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.31-patch-1'
+PROGRAM_VERSION = 'v7.0.31-patch-2'
 PROGRAM_DATE = '26.2.2023'
-PROGRAM_TIME = '19:11 (UTC+3)'
+PROGRAM_TIME = '21:02 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -2730,17 +2730,17 @@ class ChooseLearnModeW(tk.Toplevel):
         # {
         self.lbl_method = ttk.Label(self.frame_main, text='Метод:', style='Default.TLabel')
         self.combo_method = ttk.Combobox(self.frame_main, textvariable=self.var_method, values=LEARN_VALUES_METHOD,
-                                         validate='focusin', width=37, state='readonly', style='Default.TCombobox',
+                                         validate='focusin', width=30, state='readonly', style='Default.TCombobox',
                                          font=('DejaVu Sans Mono', _0_global_scale))
         self.lbl_forms = ttk.Label(self.frame_main, text='Все словоформы:', style='Default.TLabel')
         self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='Default.TCheckbutton')
         self.lbl_words = ttk.Label(self.frame_main, text='Набор слов:', style='Default.TLabel')
         self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=LEARN_VALUES_WORDS,
-                                        width=37, state='readonly', style='Default.TCombobox',
+                                        width=30, state='readonly', style='Default.TCombobox',
                                         font=('DejaVu Sans Mono', _0_global_scale))
         self.lbl_order = ttk.Label(self.frame_main, text='Порядок слов:', style='Default.TLabel')
         self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=LEARN_VALUES_ORDER,
-                                        width=37, state='readonly', style='Default.TCombobox',
+                                        width=30, state='readonly', style='Default.TCombobox',
                                         font=('DejaVu Sans Mono', _0_global_scale))
         # }
         self.btn_start = ttk.Button(self, text='Учить', command=self.start, takefocus=False, style='Default.TButton')
