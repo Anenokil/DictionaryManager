@@ -19,20 +19,23 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.30-patch-2'
-PROGRAM_DATE = '25.2.2023'
-PROGRAM_TIME = '4:29 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.31'
+PROGRAM_DATE = '26.2.2023'
+PROGRAM_TIME = '18:29 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
 GLOBAL_SETTINGS_VERSION = 2  # Актуальная версия глобальных настроек
 REQUIRED_THEME_VERSION = 5  # Актуальная версия тем
 
-""" Шрифты """
+""" Масштаб """
 
-FONTSIZE_MIN = 8
-FONTSIZE_MAX = 16
-FONTSIZE_DEF = 10
+SCALE_MIN = 8
+SCALE_MAX = 16
+SCALE_DEF = 10
+
+SCALE_PRINTW_FIELD_WIDTH = (532, 604, 682, 757, 757, 832, 907, 980, 1057)
+SCALE_SEARCHW_FIELD_WIDTH = (356, 404, 457, 508, 508, 557, 607, 657, 707)
 
 """ Темы """
 
@@ -677,8 +680,8 @@ class Dictionary(object):
         if wrd_to_key(wrd, 1) not in self.d.keys():  # Если статья только одна, то возвращает её ключ
             return wrd_to_key(wrd, 0)
         window_note = ChooseOneOfSimilarNotesW(window_parent, wrd)
-        closed, answer = window_note.open()
-        if closed:
+        answer = window_note.open()
+        if not answer:
             return None
         return answer
 
@@ -1594,7 +1597,7 @@ def upload_global_settings():
                                        f'1\n'
                                        f'0\n'
                                        f'{DEFAULT_TH}\n'
-                                       f'{FONTSIZE_DEF}')
+                                       f'{SCALE_DEF}')
     else:
         upgrade_global_settings()
 
@@ -1621,7 +1624,7 @@ def upload_global_settings():
         try:
             fontsize = int(global_settings_file.readline().strip())
         except (ValueError, TypeError):
-            fontsize = FONTSIZE_DEF
+            fontsize = SCALE_DEF
     return dct_savename, show_updates, typo, theme, fontsize
 
 
@@ -1810,7 +1813,7 @@ def save_settings_if_has_changes(window_parent):
     answer = window_dia.open()
     if answer:
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
-                             _0_global_fontsize)
+                             _0_global_scale)
         save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_categories,
                             dct_filename(_0_global_dct_savename))
         PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
@@ -2390,14 +2393,13 @@ class PopupChooseW(tk.Toplevel):
         self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, add_right_spaces=False), justify='center',
                                  style='Default.TLabel')
         self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values, width=combo_width,
-                                       font='TkFixedFont', state='readonly', style='Default.TCombobox')
+                                       state='readonly', style='Default.TCombobox',
+                                       font=('DejaVu Sans Mono', _0_global_scale))
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
 
         self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
         self.combo_vals.grid(row=1, padx=6, pady=1)
         self.btn_ok.grid(    row=2, padx=6, pady=4)
-
-        self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
 
     # Нажатие на кнопку
     def ok(self):
@@ -2437,7 +2439,7 @@ class PopupImgW(tk.Toplevel):
                                      justify='center', style='Default.TLabel')
 
             self.txt_img_not_found = tk.Text(self, height=1, width=47, relief='sunken', borderwidth=1,
-                                             font=('StdFont', _0_global_fontsize), bg=ST_BG[th], fg=ST_FG[th],
+                                             font=('StdFont', _0_global_scale), bg=ST_BG[th], fg=ST_FG[th],
                                              selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                              highlightbackground=ST_BORDERCOLOR[th])
             self.txt_img_not_found.insert(tk.END, f'{URL_RELEASES}')
@@ -2496,7 +2498,8 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.combo_opening_symbol = ttk.Combobox(self.frame_main, textvariable=self.var_opening_symbol,
                                                  values=SPECIAL_COMBINATIONS_OPENING_SYMBOLS,
                                                  validate='all', validatecommand=self.vcmd_opening_symbol,
-                                                 width=3, state='normal', style='Default.TCombobox')
+                                                 width=3, state='normal', style='Default.TCombobox',
+                                                 font=('DejaVu Sans Mono', _0_global_scale))
         self.entry_key_symbol = ttk.Entry(self.frame_main, textvariable=self.var_key_symbol, width=2, justify='right',
                                           validate='key', validatecommand=self.vcmd_key_symbol, style='Default.TEntry')
         self.lbl_arrow = ttk.Label(self.frame_main, text='->', justify='center', style='Default.TLabel')
@@ -2565,15 +2568,17 @@ class AddFormW(tk.Toplevel):
 
         self.lbl_choose_ctg = ttk.Label(self, text='Выберите категорию:', justify='center', style='Default.TLabel')
         self.combo_ctg = ttk.Combobox(self, textvariable=self.var_ctg, values=self.categories, width=combo_width,
-                                      font='TkFixedFont', validate='focusin', validatecommand=self.vcmd_ctg,
-                                      state='readonly', style='Default.TCombobox')
+                                      validate='focusin', validatecommand=self.vcmd_ctg,
+                                      state='readonly', style='Default.TCombobox',
+                                      font=('DejaVu Sans Mono', _0_global_scale))
         self.lbl_choose_val = ttk.Label(self, text='Задайте значение категории:', justify='center',
                                         style='Default.TLabel')
         self.frame_val = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.combo_val = ttk.Combobox(self.frame_val, textvariable=self.var_val, values=self.ctg_values,
                                       width=width(self.ctg_values, 5, 100),
-                                      font='TkFixedFont', state='readonly', style='Default.TCombobox')
+                                      state='readonly', style='Default.TCombobox',
+                                      font=('DejaVu Sans Mono', _0_global_scale))
         self.btn_choose = ttk.Button(self.frame_val, command=self.choose, takefocus=False)
         set_image(self.btn_choose, self.img_ok, img_ok, 'Задать значение')
         if self.btn_choose['style'] == 'Image.TButton':
@@ -2607,8 +2612,6 @@ class AddFormW(tk.Toplevel):
         self.entry_form.grid(row=0, column=1, padx=0,      pady=0, sticky='W')
         # }
         self.btn_save.grid(row=4, columnspan=2, padx=6, pady=6)
-
-        self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
 
         btn_disable(self.btn_save)
 
@@ -2725,15 +2728,18 @@ class ChooseLearnModeW(tk.Toplevel):
         # {
         self.lbl_method = ttk.Label(self.frame_main, text='Метод:', style='Default.TLabel')
         self.combo_method = ttk.Combobox(self.frame_main, textvariable=self.var_method, values=LEARN_VALUES_METHOD,
-                                         validate='focusin', width=37, state='readonly', style='Default.TCombobox')
+                                         validate='focusin', width=37, state='readonly', style='Default.TCombobox',
+                                         font=('DejaVu Sans Mono', _0_global_scale))
         self.lbl_forms = ttk.Label(self.frame_main, text='Все словоформы:', style='Default.TLabel')
         self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='Default.TCheckbutton')
         self.lbl_words = ttk.Label(self.frame_main, text='Набор слов:', style='Default.TLabel')
         self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=LEARN_VALUES_WORDS,
-                                        width=37, state='readonly', style='Default.TCombobox')
+                                        width=37, state='readonly', style='Default.TCombobox',
+                                        font=('DejaVu Sans Mono', _0_global_scale))
         self.lbl_order = ttk.Label(self.frame_main, text='Порядок слов:', style='Default.TLabel')
         self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=LEARN_VALUES_ORDER,
-                                        width=37, state='readonly', style='Default.TCombobox')
+                                        width=37, state='readonly', style='Default.TCombobox',
+                                        font=('DejaVu Sans Mono', _0_global_scale))
         # }
         self.btn_start = ttk.Button(self, text='Учить', command=self.start, takefocus=False, style='Default.TButton')
 
@@ -2750,8 +2756,6 @@ class ChooseLearnModeW(tk.Toplevel):
         self.combo_order.grid( row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
         # }
         self.btn_start.grid(row=2, column=0, padx=6, pady=(0, 6))
-
-        self.option_add('*TCombobox*Listbox*Font', 'TkFixedFont')  # Моноширинный шрифт в списке combobox
 
         # При выборе второго или третьего метода учёбы нельзя добавить словоформы
         def validate_method_and_forms(value: str):
@@ -2874,13 +2878,14 @@ class ParticularMatchesW(tk.Toplevel):
                                     justify='center', style='Default.TLabel')
         self.lbl_wrd = ttk.Label(self, text=f'Слова, содержащие "{self.query}"', justify='center',
                                  style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, 500, 404)
+        self.scrolled_frame_wrd = ScrollFrame(self, 500, SCALE_SEARCHW_FIELD_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         self.widgets_wrd = []
         # }
         self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{self.query}"', justify='center',
                                 style='Default.TLabel')
-        self.scrolled_frame_tr = ScrollFrame(self, 500, 404, scrollbar_position='left')
+        self.scrolled_frame_tr = ScrollFrame(self, 500, SCALE_SEARCHW_FIELD_WIDTH[_0_global_scale - SCALE_MIN],
+                                             scrollbar_position='left')
         # {
         self.widgets_tr = []
         # }
@@ -2998,7 +3003,7 @@ class ChooseOneOfSimilarNotesW(tk.Toplevel):
         self.answer = None
 
         self.lbl_header = ttk.Label(self, text='Выберите одну из статей', justify='center', style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, 500, 604)
+        self.scrolled_frame_wrd = ScrollFrame(self, 500, SCALE_PRINTW_FIELD_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         self.widgets_wrd = []
         # }
@@ -3063,7 +3068,7 @@ class CategoriesSettingsW(tk.Toplevel):
                                         justify='center', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_categories = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                      font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                                      font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                       selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                       relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
@@ -3172,7 +3177,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
                                         justify='center', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_ctg_values = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                      font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                                      font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                       selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                       relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
@@ -3263,7 +3268,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
                                           style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_combinations = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                        font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                                        font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                         selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                         relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
@@ -3372,13 +3377,15 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.lbl_set_theme = ttk.Label(self.frame_themes, text='Взять за основу уже существующую тему:',
                                        style='Default.TLabel')
         self.combo_set_theme = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES[1:],
-                                            state='readonly', style='Default.TCombobox')
+                                            state='readonly', style='Default.TCombobox',
+                                            font=('DejaVu Sans Mono', _0_global_scale))
         self.btn_set_theme = ttk.Button(self.frame_themes, text='Выбрать', width=8, command=self.set_theme,
                                         takefocus=False, style='Default.TButton')
         self.lbl_set_images = ttk.Label(self.frame_themes, text='Использовать изображения из темы:',
                                         style='Default.TLabel')
         self.combo_set_images = ttk.Combobox(self.frame_themes, textvariable=self.var_images, values=THEMES[1:],
-                                             state='readonly', style='Default.TCombobox')
+                                             state='readonly', style='Default.TCombobox',
+                                             font=('DejaVu Sans Mono', _0_global_scale))
         self.btn_set_images = ttk.Button(self.frame_themes, text='Выбрать', width=8, command=self.set_images,
                                          takefocus=False, style='Default.TButton')
         # }
@@ -3427,14 +3434,16 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.combo_relief_frame = ttk.Combobox(self.scrolled_frame.frame_canvas, textvariable=self.var_relief_frame,
                                                values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
                                                width=19, validate='focus', validatecommand=self.vcmd_relief_frame,
-                                               state='readonly', style='Default.TCombobox')
+                                               state='readonly', style='Default.TCombobox',
+                                               font=('DejaVu Sans Mono', _0_global_scale))
 
         self.lbl_relief_text = ttk.Label(self.scrolled_frame.frame_canvas, text='Стиль рамок текстовых полей:',
                                          style='Default.TLabel')
         self.combo_relief_text = ttk.Combobox(self.scrolled_frame.frame_canvas, textvariable=self.var_relief_text,
                                               values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
                                               width=19, validate='focus', validatecommand=self.vcmd_relief_text,
-                                              state='readonly', style='Default.TCombobox')
+                                              state='readonly', style='Default.TCombobox',
+                                              font=('DejaVu Sans Mono', _0_global_scale))
         # }
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
@@ -3466,7 +3475,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                                      style='DemoYes.TButton')
         self.btn_demo_n = ttk.Button(self.frame_demonstration, text='Нет', takefocus=False, style='DemoNo.TButton')
         self.entry_demo = ttk.Entry(self.frame_demonstration, style='DemoDefault.TEntry', width=21)
-        self.txt_demo = tk.Text(self.frame_demonstration, font=('StdFont', _0_global_fontsize), width=12, height=4,
+        self.txt_demo = tk.Text(self.frame_demonstration, font=('StdFont', _0_global_scale), width=12, height=4,
                                 state='normal')
         self.scroll_demo = ttk.Scrollbar(self.frame_demonstration, command=self.txt_demo.yview,
                                          style='Demo.Vertical.TScrollbar')
@@ -4101,7 +4110,7 @@ class PrintW(tk.Toplevel):
         self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, command=lambda: self.print(True),
                                            style='Default.TCheckbutton')
         # }
-        self.scrolled_frame = ScrollFrame(self, 500, 604)
+        self.scrolled_frame = ScrollFrame(self, 500, SCALE_PRINTW_FIELD_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         self.keys = [key for key in _0_global_dct.d.keys()]
         self.frames = [ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
@@ -4405,7 +4414,7 @@ class LearnW(tk.Toplevel):
         self.lbl_count = ttk.Label(self, text=f'Отвечено: 0/{self.len_of_pool}', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
-                               font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                               font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
         self.scrollbar.config(command=self.txt_dct.yview)
@@ -4648,12 +4657,13 @@ class SearchW(tk.Toplevel):
                                      takefocus=False, style='Default.TButton')
         # }
         self.lbl_wrd = ttk.Label(self, text='Поиск по слову', style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, 500, 404)
+        self.scrolled_frame_wrd = ScrollFrame(self, 500, SCALE_SEARCHW_FIELD_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         self.widgets_wrd = []
         # }
         self.lbl_tr = ttk.Label(self, text='Поиск по переводу', style='Default.TLabel')
-        self.scrolled_frame_tr = ScrollFrame(self, 500, 404, scrollbar_position='left')
+        self.scrolled_frame_tr = ScrollFrame(self, 500, SCALE_SEARCHW_FIELD_WIDTH[_0_global_scale - SCALE_MIN],
+                                             scrollbar_position='left')
         # {
         self.widgets_tr = []
         # }
@@ -4823,8 +4833,8 @@ class EditW(tk.Toplevel):
         self.lbl_wrd = ttk.Label(self.frame_main, text='Слово:', style='Default.TLabel')
         self.scrollbar_wrd = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_wrd = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_wrd.set,
-                               font=('StdFont', _0_global_fontsize), relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                               font=('DejaVu Sans Mono', _0_global_scale + 1), relief='solid', bg=ST_BG_FIELDS[th],
+                               fg=ST_FG[th], selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                highlightbackground=ST_BORDERCOLOR[th])
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
         self.btn_wrd_edt = ttk.Button(self.frame_main, command=self.wrd_edt, width=4, takefocus=False)
@@ -4834,8 +4844,8 @@ class EditW(tk.Toplevel):
         self.lbl_tr = ttk.Label(self.frame_main, text='Перевод:', style='Default.TLabel')
         self.scrollbar_tr = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_tr = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_tr.set,
-                              font=('StdFont', _0_global_fontsize), relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                              selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                              font=('DejaVu Sans Mono', _0_global_scale + 1), relief='solid', bg=ST_BG_FIELDS[th],
+                              fg=ST_FG[th], selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                               highlightbackground=ST_BORDERCOLOR[th])
         self.scrollbar_tr.config(command=self.txt_tr.yview)
         self.frame_btns_tr = ttk.Frame(self.frame_main, style='Invis.TFrame')
@@ -4852,7 +4862,7 @@ class EditW(tk.Toplevel):
         self.lbl_notes = ttk.Label(self.frame_main, text='Сноски:', style='Default.TLabel')
         self.scrollbar_notes = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_notes = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_notes.set,
-                                 font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                                 font=('DejaVu Sans Mono', _0_global_scale + 1), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                  selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                  highlightbackground=ST_BORDERCOLOR[th], relief='solid')
         self.scrollbar_notes.config(command=self.txt_notes.yview)
@@ -4870,8 +4880,8 @@ class EditW(tk.Toplevel):
         self.lbl_frm = ttk.Label(self.frame_main, text='Формы слова:', style='Default.TLabel')
         self.scrollbar_frm = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_frm = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_frm.set,
-                               font=('StdFont', _0_global_fontsize), relief='solid', bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                               font=('DejaVu Sans Mono', _0_global_scale + 1), relief='solid', bg=ST_BG_FIELDS[th],
+                               fg=ST_FG[th], selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                highlightbackground=ST_BORDERCOLOR[th])
         self.scrollbar_frm.config(command=self.txt_frm.yview)
         self.frame_btns_frm = ttk.Frame(self.frame_main, style='Invis.TFrame')
@@ -5277,7 +5287,7 @@ class SettingsW(tk.Toplevel):
         self.var_show_updates = tk.BooleanVar(value=bool(_0_global_show_updates))
         self.var_show_typo_button = tk.BooleanVar(value=bool(_0_global_with_typo))
         self.var_theme = tk.StringVar(value=th)
-        self.var_fontsize = tk.StringVar(value=str(_0_global_fontsize))
+        self.var_scale = tk.StringVar(value=str(_0_global_scale))
 
         self.img_about = tk.PhotoImage()
         self.img_plus = tk.PhotoImage()
@@ -5344,7 +5354,7 @@ class SettingsW(tk.Toplevel):
         self.lbl_dcts = ttk.Label(self.frame_dcts, text='Существующие словари:', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self.frame_dcts, style='Vertical.TScrollbar')
         self.txt_dcts = tk.Text(self.frame_dcts, width=27, height=6, state='disabled', relief=ST_RELIEF_TEXT[th],
-                                yscrollcommand=self.scrollbar.set, font=('StdFont', _0_global_fontsize),
+                                yscrollcommand=self.scrollbar.set, font=('StdFont', _0_global_scale),
                                 bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
         self.frame_dct_buttons = ttk.Frame(self.frame_dcts, style='Invis.TFrame')
@@ -5368,13 +5378,14 @@ class SettingsW(tk.Toplevel):
         self.frame_themes = ttk.Frame(self.tab_global, style='Default.TFrame')
         # { {
         self.lbl_themes = ttk.Label(self.frame_themes, text='Тема:', style='Default.TLabel')
-        self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES, width=21,
-                                         state='readonly', style='Default.TCombobox')
+        self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
+                                         state='readonly', style='Default.TCombobox',
+                                         font=('DejaVu Sans Mono', _0_global_scale))
         self.lbl_themes_note = ttk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
                                                                  f'Актуальные темы можно скачать здесь:',
                                          justify='left', style='Default.TLabel')
         self.txt_themes_note = tk.Text(self.frame_themes, height=1, width=47, relief='sunken', borderwidth=1,
-                                       font=('StdFont', _0_global_fontsize), bg=ST_BG[th], fg=ST_FG[th],
+                                       font=('StdFont', _0_global_scale), bg=ST_BG[th], fg=ST_FG[th],
                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                        highlightbackground=ST_BORDERCOLOR[th])
         self.txt_themes_note.insert(tk.END, URL_RELEASES)
@@ -5382,15 +5393,15 @@ class SettingsW(tk.Toplevel):
         self.btn_custom_theme = ttk.Button(self.frame_themes, text='Собственная тема', command=self.custom_theme,
                                            takefocus=False, style='Default.TButton')
         # } }
-        self.frame_fontsize = ttk.Frame(self.tab_global, style='Default.TFrame')
+        self.frame_scale = ttk.Frame(self.tab_global, style='Default.TFrame')
         # { {
-        self.lbl_fontsize = ttk.Label(self.frame_fontsize, text='Размер шрифта', style='Default.TLabel')
-        self.btn_fontsize_plus = ttk.Button(self.frame_fontsize, command=self.fontsize_plus,
-                                            width=2, state='normal', takefocus=False)
-        set_image(self.btn_fontsize_plus, self.img_plus, img_add, '+')
-        self.btn_fontsize_minus = ttk.Button(self.frame_fontsize, command=self.fontsize_minus,
-                                             width=2, state='normal', takefocus=False)
-        set_image(self.btn_fontsize_minus, self.img_minus, img_delete, '-')
+        self.btn_scale_minus = ttk.Button(self.frame_scale, command=self.scale_minus,
+                                          width=2, state='normal', takefocus=False)
+        set_image(self.btn_scale_minus, self.img_minus, img_delete, '-')
+        self.lbl_scale = ttk.Label(self.frame_scale, text='Масштаб', style='Default.TLabel')
+        self.btn_scale_plus = ttk.Button(self.frame_scale, command=self.scale_plus,
+                                         width=2, state='normal', takefocus=False)
+        set_image(self.btn_scale_plus, self.img_plus, img_add, '+')
         # } }
         # }
         self.btn_save = ttk.Button(self, text='Сохранить изменения', command=self.save,
@@ -5451,11 +5462,11 @@ class SettingsW(tk.Toplevel):
         self.btn_custom_theme.grid(row=1, column=1, padx=0,       pady=(0, 6), sticky='W')
         self.txt_themes_note.grid( row=1, column=2, padx=(6, 12), pady=(0, 6), sticky='W')
         # }
-        self.frame_fontsize.grid(row=4, padx=6, pady=6)
+        self.frame_scale.grid(row=4, padx=6, pady=6)
         # {
-        self.lbl_fontsize.grid(      row=0, column=0, padx=(6, 3), pady=6)
-        self.btn_fontsize_plus.grid( row=0, column=1, padx=(0, 3), pady=6)
-        self.btn_fontsize_minus.grid(row=0, column=2, padx=(0, 6), pady=6)
+        self.btn_scale_minus.grid(row=0, column=0, padx=(6, 3), pady=6)
+        self.lbl_scale.grid(      row=0, column=1, padx=(3, 3), pady=6)
+        self.btn_scale_plus.grid( row=0, column=2, padx=(3, 6), pady=6)
         # }
         #
         self.btn_save.grid( row=4, column=0, padx=(6, 3), pady=(0, 6))
@@ -5464,7 +5475,7 @@ class SettingsW(tk.Toplevel):
         self.scrollbar.config(command=self.txt_dcts.yview)
 
         self.print_dct_list()
-        self.refresh_fontsize_buttons()
+        self.refresh_scale_buttons()
 
     # Справка о МППУ (срабатывает при нажатии на кнопку)
     def about_mgsp(self):
@@ -5677,41 +5688,43 @@ class SettingsW(tk.Toplevel):
         if th == CUSTOM_TH:
             self.set_theme()
 
-    # Увеличить шрифт (срабатывает при нажатии на кнопку)
-    def fontsize_plus(self):
-        global _0_global_fontsize
+    # Увеличить масштаб (срабатывает при нажатии на кнопку)
+    def scale_plus(self):
+        global _0_global_scale
 
-        _0_global_fontsize += 1
-
-        self.parent.set_ttk_styles()  # Установка ttk-стилей
-
-        # Установка некоторых стилей для окна настроек
-        self.txt_dcts.configure(font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                highlightbackground=ST_BORDERCOLOR[th], relief=ST_RELIEF_TEXT[th])
-        self.txt_themes_note.configure(font=('StdFont', _0_global_fontsize), bg=ST_BG[th], fg=ST_FG[th],
-                                       selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                       highlightbackground=ST_BORDERCOLOR[th])
-
-        self.refresh_fontsize_buttons()
-
-    # Уменьшить шрифт (срабатывает при нажатии на кнопку)
-    def fontsize_minus(self):
-        global _0_global_fontsize
-
-        _0_global_fontsize -= 1
+        _0_global_scale += 1
 
         self.parent.set_ttk_styles()  # Установка ttk-стилей
 
         # Установка некоторых стилей для окна настроек
-        self.txt_dcts.configure(font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+        self.txt_dcts.configure(font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                 highlightbackground=ST_BORDERCOLOR[th], relief=ST_RELIEF_TEXT[th])
-        self.txt_themes_note.configure(font=('StdFont', _0_global_fontsize), bg=ST_BG[th], fg=ST_FG[th],
+        self.txt_themes_note.configure(font=('StdFont', _0_global_scale), bg=ST_BG[th], fg=ST_FG[th],
                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                        highlightbackground=ST_BORDERCOLOR[th])
+        self.combo_themes.configure(font=('DejaVu Sans Mono', _0_global_scale))
 
-        self.refresh_fontsize_buttons()
+        self.refresh_scale_buttons()
+
+    # Уменьшить масштаб (срабатывает при нажатии на кнопку)
+    def scale_minus(self):
+        global _0_global_scale
+
+        _0_global_scale -= 1
+
+        self.parent.set_ttk_styles()  # Установка ttk-стилей
+
+        # Установка некоторых стилей для окна настроек
+        self.txt_dcts.configure(font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                highlightbackground=ST_BORDERCOLOR[th], relief=ST_RELIEF_TEXT[th])
+        self.txt_themes_note.configure(font=('StdFont', _0_global_scale), bg=ST_BG[th], fg=ST_FG[th],
+                                       selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                                       highlightbackground=ST_BORDERCOLOR[th])
+        self.combo_themes.configure(font=('DejaVu Sans Mono', _0_global_scale))
+
+        self.refresh_scale_buttons()
 
     # Сохранить настройки (срабатывает при нажатии на кнопку)
     def save(self):
@@ -5745,7 +5758,7 @@ class SettingsW(tk.Toplevel):
         save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_categories,
                             dct_filename(_0_global_dct_savename))
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
-                             _0_global_fontsize)
+                             _0_global_scale)
 
         # Сохранение словаря, если были изменения локальных настроек
         if self.has_local_changes():
@@ -5755,6 +5768,9 @@ class SettingsW(tk.Toplevel):
         self.has_ctg_changes = False
         self.has_spec_comb_changes = False
         _0_global_has_progress = False
+
+        # Обновить кнопки изменения масштаба
+        self.refresh_scale_buttons()
 
     # Закрыть настройки без сохранения (срабатывает при нажатии на кнопку)
     def close(self):
@@ -5789,19 +5805,19 @@ class SettingsW(tk.Toplevel):
             btn_enable(self.btn_dct_open, self.dct_open)
             btn_enable(self.btn_dct_delete, self.dct_delete)
 
-    # Обновить кнопки изменения размера шрифта
-    def refresh_fontsize_buttons(self):
-        # Если размер шрифта минимальный, то кнопка минуса становится неактивной
-        if _0_global_fontsize == FONTSIZE_MIN:
-            btn_disable(self.btn_fontsize_minus)
+    # Обновить кнопки изменения масштаба
+    def refresh_scale_buttons(self):
+        # Если масштаб минимальный, то кнопка минуса становится неактивной
+        if _0_global_scale == SCALE_MIN:
+            btn_disable(self.btn_scale_minus)
         else:
-            btn_enable(self.btn_fontsize_minus, self.fontsize_minus, style='Image')
+            btn_enable(self.btn_scale_minus, self.scale_minus, style='Image')
 
-        # Если размер шрифта максимальный, то кнопка плюса становится неактивной
-        if _0_global_fontsize == FONTSIZE_MAX:
-            btn_disable(self.btn_fontsize_plus)
+        # Если масштаб максимальный, то кнопка плюса становится неактивной
+        if _0_global_scale == SCALE_MAX:
+            btn_disable(self.btn_scale_plus)
         else:
-            btn_enable(self.btn_fontsize_plus, self.fontsize_plus, style='Image')
+            btn_enable(self.btn_scale_plus, self.scale_plus, style='Image')
 
     # Обновить настройки при открытии другого словаря
     def refresh(self):
@@ -5821,15 +5837,15 @@ class SettingsW(tk.Toplevel):
         # Установка изображений
         set_image(self.btn_about_mgsp, self.img_about, img_about, '?')
         set_image(self.btn_about_typo, self.img_about, img_about, '?')
-        set_image(self.btn_fontsize_plus, self.img_plus, img_add, '+')
-        set_image(self.btn_fontsize_minus, self.img_minus, img_delete, '-')
+        set_image(self.btn_scale_plus, self.img_plus, img_add, '+')
+        set_image(self.btn_scale_minus, self.img_minus, img_delete, '-')
 
         # Установка некоторых стилей для окна настроек
         self.configure(bg=ST_BG[th])
-        self.txt_dcts.configure(font=('StdFont', _0_global_fontsize), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+        self.txt_dcts.configure(font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
                                 selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                 highlightbackground=ST_BORDERCOLOR[th], relief=ST_RELIEF_TEXT[th])
-        self.txt_themes_note.configure(font=('StdFont', _0_global_fontsize), bg=ST_BG[th], fg=ST_FG[th],
+        self.txt_themes_note.configure(font=('StdFont', _0_global_scale), bg=ST_BG[th], fg=ST_FG[th],
                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                        highlightbackground=ST_BORDERCOLOR[th])
 
@@ -5855,7 +5871,7 @@ class SettingsW(tk.Toplevel):
             int(self.var_show_updates.get()) != _0_global_show_updates or\
             int(self.var_show_typo_button.get()) != _0_global_with_typo or\
             self.var_theme.get() != th or\
-            int(self.var_fontsize.get()) != _0_global_fontsize
+            int(self.var_scale.get()) != _0_global_scale
 
     # Обновить надписи с названием открытого словаря
     def refresh_open_dct_name(self, savename):
@@ -6026,13 +6042,13 @@ class MainW(tk.Tk):
 
     # Нажатие на кнопку "Настройки"
     def settings(self):
-        global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_fontsize,\
+        global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale,\
             _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations,\
             _0_global_check_register
 
         SettingsW(self).open()
 
-        _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_fontsize =\
+        _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale =\
             upload_global_settings()  # Обновляем глобальные настройки
         _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations, _0_global_check_register =\
             upload_local_settings(_0_global_dct_savename)  # Обновляем локальные настройки
@@ -6076,7 +6092,7 @@ class MainW(tk.Tk):
         self.st_lbl_default = ttk.Style()
         self.st_lbl_default.theme_use('alt')
         self.st_lbl_default.configure('Default.TLabel',
-                                      font=('StdFont', _0_global_fontsize),
+                                      font=('StdFont', _0_global_scale),
                                       background=ST_BG[th],
                                       foreground=ST_FG[th])
 
@@ -6084,7 +6100,7 @@ class MainW(tk.Tk):
         self.st_lbl_header = ttk.Style()
         self.st_lbl_header.theme_use('alt')
         self.st_lbl_header.configure('Header.TLabel',
-                                     font=('StdFont', _0_global_fontsize + 5),
+                                     font=('StdFont', _0_global_scale + 5),
                                      background=ST_BG[th],
                                      foreground=ST_FG[th])
 
@@ -6092,7 +6108,7 @@ class MainW(tk.Tk):
         self.st_lbl_logo = ttk.Style()
         self.st_lbl_logo.theme_use('alt')
         self.st_lbl_logo.configure('Logo.TLabel',
-                                   font=('Times', _0_global_fontsize + 11),
+                                   font=('Times', _0_global_scale + 11),
                                    background=ST_BG[th],
                                    foreground=ST_FG_LOGO[th])
 
@@ -6100,7 +6116,7 @@ class MainW(tk.Tk):
         self.st_lbl_footer = ttk.Style()
         self.st_lbl_footer.theme_use('alt')
         self.st_lbl_footer.configure('Footer.TLabel',
-                                     font=('StdFont', _0_global_fontsize - 2),
+                                     font=('StdFont', _0_global_scale - 2),
                                      background=ST_BG[th],
                                      foreground=ST_FG_FOOTER[th])
 
@@ -6108,7 +6124,7 @@ class MainW(tk.Tk):
         self.st_lbl_warn = ttk.Style()
         self.st_lbl_warn.theme_use('alt')
         self.st_lbl_warn.configure('Warn.TLabel',
-                                   font=('StdFont', _0_global_fontsize),
+                                   font=('StdFont', _0_global_scale),
                                    background=ST_BG[th],
                                    foreground=ST_FG_WARN[th])
 
@@ -6116,7 +6132,7 @@ class MainW(tk.Tk):
         self.st_lbl_flat = ttk.Style()
         self.st_lbl_flat.theme_use('alt')
         self.st_lbl_flat.configure('Flat.TLabel',
-                                   font='TkFixedFont',
+                                   font=('DejaVu Sans Mono', _0_global_scale + 1),
                                    background=ST_BG_FIELDS[th],
                                    foreground=ST_FG[th])
 
@@ -6124,7 +6140,7 @@ class MainW(tk.Tk):
         self.st_entry = ttk.Style()
         self.st_entry.theme_use('alt')
         self.st_entry.configure('Default.TEntry',
-                                font=('StdFont', _0_global_fontsize))
+                                font=('StdFont', _0_global_scale))
         self.st_entry.map('Default.TEntry',
                           fieldbackground=[('readonly', ST_BG[th]),
                                            ('!readonly', ST_BG_FIELDS[th])],
@@ -6139,7 +6155,7 @@ class MainW(tk.Tk):
         self.st_btn_default = ttk.Style()
         self.st_btn_default.theme_use('alt')
         self.st_btn_default.configure('Default.TButton',
-                                      font=('StdFont', _0_global_fontsize + 2),
+                                      font=('StdFont', _0_global_scale + 2),
                                       borderwidth=1)
         self.st_btn_default.map('Default.TButton',
                                 relief=[('pressed', 'sunken'),
@@ -6156,7 +6172,7 @@ class MainW(tk.Tk):
         self.st_btn_disabled = ttk.Style()
         self.st_btn_disabled.theme_use('alt')
         self.st_btn_disabled.configure('Disabled.TButton',
-                                       font=('StdFont', _0_global_fontsize + 2),
+                                       font=('StdFont', _0_global_scale + 2),
                                        borderwidth=1)
         self.st_btn_disabled.map('Disabled.TButton',
                                  relief=[('active', 'raised'),
@@ -6170,7 +6186,7 @@ class MainW(tk.Tk):
         self.st_btn_yes = ttk.Style()
         self.st_btn_yes.theme_use('alt')
         self.st_btn_yes.configure('Yes.TButton',
-                                  font=('StdFont', _0_global_fontsize + 2),
+                                  font=('StdFont', _0_global_scale + 2),
                                   borderwidth=1)
         self.st_btn_yes.map('Yes.TButton',
                             relief=[('pressed', 'sunken'),
@@ -6187,7 +6203,7 @@ class MainW(tk.Tk):
         self.st_btn_no = ttk.Style()
         self.st_btn_no.theme_use('alt')
         self.st_btn_no.configure('No.TButton',
-                                 font=('StdFont', _0_global_fontsize + 2),
+                                 font=('StdFont', _0_global_scale + 2),
                                  borderwidth=1)
         self.st_btn_no.map('No.TButton',
                            relief=[('pressed', 'sunken'),
@@ -6204,7 +6220,7 @@ class MainW(tk.Tk):
         self.st_btn_image = ttk.Style()
         self.st_btn_image.theme_use('alt')
         self.st_btn_image.configure('Image.TButton',
-                                    font=('StdFont', _0_global_fontsize + 2),
+                                    font=('StdFont', _0_global_scale + 2),
                                     borderwidth=0)
         self.st_btn_image.map('Image.TButton',
                               relief=[('pressed', 'flat'),
@@ -6221,7 +6237,7 @@ class MainW(tk.Tk):
         self.st_btn_flat = ttk.Style()
         self.st_btn_flat.theme_use('alt')
         self.st_btn_flat.configure('Flat.TButton',
-                                   font='TkFixedFont',
+                                   font=('DejaVu Sans Mono', _0_global_scale + 1),
                                    borderwidth=0)
         self.st_btn_flat.map('Flat.TButton',
                              relief=[('pressed', 'flat'),
@@ -6245,7 +6261,7 @@ class MainW(tk.Tk):
         self.st_combo = ttk.Style()
         self.st_combo.theme_use('alt')
         self.st_combo.configure('Default.TCombobox',
-                                font=('StdFont', _0_global_fontsize))
+                                font=('DejaVu Sans Mono', _0_global_scale))
         self.st_combo.map('Default.TCombobox',
                           background=[('readonly', ST_BTN_BG[th]),
                                       ('!readonly', ST_BTN_BG[th])],
@@ -6261,7 +6277,7 @@ class MainW(tk.Tk):
                                             ('!readonly', ST_FG[th])])
 
         # Стиль всплывающего списка combobox
-        self.option_add('*TCombobox*Listbox*Font', ('StdFont', _0_global_fontsize))
+        self.option_add('*TCombobox*Listbox*Font', ('DejaVu Sans Mono', _0_global_scale))
         self.option_add('*TCombobox*Listbox*Background', ST_BG_FIELDS[th])
         self.option_add('*TCombobox*Listbox*Foreground', ST_FG[th])
         self.option_add('*TCombobox*Listbox*selectBackground', ST_SELECT_BG[th])
@@ -6293,7 +6309,7 @@ class MainW(tk.Tk):
         self.st_note = ttk.Style()
         self.st_note.theme_use('alt')
         self.st_note.configure('Default.TNotebook',
-                               font=('StdFont', _0_global_fontsize))
+                               font=('StdFont', _0_global_scale))
         self.st_note.map('Default.TNotebook',
                          troughcolor=[('active', ST_BG[th]),
                                       ('!active', ST_BG[th])],
@@ -6352,7 +6368,7 @@ _0_global_has_progress = False
 
 upload_themes(THEMES)  # Загружаем дополнительные темы
 upload_custom_theme()  # Загружаем пользовательскую тему
-_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_fontsize =\
+_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale =\
     upload_global_settings()  # Загружаем глобальные настройки
 upload_theme_img(th)  # Загружаем изображения для выбранной темы
 root = MainW()  # Создаём графический интерфейс
