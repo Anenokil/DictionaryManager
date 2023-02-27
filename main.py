@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-2'
+PROGRAM_VERSION = 'v7.1.0-PRE-3'
 PROGRAM_DATE = '27.2.2023'
-PROGRAM_TIME = '18:38 (UTC+3)'
+PROGRAM_TIME = '18:43 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -365,6 +365,10 @@ class Entry(object):
     def correct_att_in_a_row_print(self):
         if self.all_att == 0:  # Если ещё не было попыток
             res = '-'
+        elif self.correct_att_in_a_row > 999:
+            res = '+∞'
+        elif self.correct_att_in_a_row < -99:
+            res = '-∞'
         else:
             res = self.correct_att_in_a_row
         return res
