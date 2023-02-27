@@ -19,13 +19,13 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.31-patch-4'
+PROGRAM_VERSION = 'v7.1.0-PRE-1'
 PROGRAM_DATE = '27.2.2023'
-PROGRAM_TIME = '4:35 (UTC+3)'
+PROGRAM_TIME = '6:37 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
-GLOBAL_SETTINGS_VERSION = 2  # Актуальная версия глобальных настроек
+GLOBAL_SETTINGS_VERSION = 3  # Актуальная версия глобальных настроек
 REQUIRED_THEME_VERSION = 5  # Актуальная версия тем
 
 """ Масштаб """
@@ -172,8 +172,11 @@ RESOURCES_DIR = 'resources'  # Папка с ресурсами
 RESOURCES_PATH = os.path.join(MAIN_PATH, RESOURCES_DIR)
 SAVES_DIR = 'saves'  # Папка с сохранениями
 SAVES_PATH = os.path.join(RESOURCES_PATH, SAVES_DIR)
-LOCAL_SETTINGS_DIR = 'local_settings'  # Папка с локальными настройками (настройки словаря)
-LOCAL_SETTINGS_PATH = os.path.join(RESOURCES_PATH, LOCAL_SETTINGS_DIR)
+# {
+DICTIONARY_SAVE_FN = 'dct.txt'  # Файл с сохранением словаря
+LOCAL_SETTINGS_FN = 'local_settings.txt'  # Файл с локальными настройками (настройки словаря)
+LOCAL_AUTO_SETTINGS_FN = 'local_settings_auto.txt'  # Файл с автоматически сохраняющимися, локальными настройками
+# }
 GLOBAL_SETTINGS_FN = 'global_settings.txt'  # Файл с глобальными настройками (настройки программы)
 GLOBAL_SETTINGS_PATH = os.path.join(RESOURCES_PATH, GLOBAL_SETTINGS_FN)
 ADDITIONAL_THEMES_DIR = 'themes'  # Папка с дополнительными темами
@@ -190,8 +193,6 @@ if RESOURCES_DIR not in os.listdir(MAIN_PATH):
     os.mkdir(RESOURCES_PATH)
 if SAVES_DIR not in os.listdir(RESOURCES_PATH):
     os.mkdir(SAVES_PATH)
-if LOCAL_SETTINGS_DIR not in os.listdir(RESOURCES_PATH):
-    os.mkdir(LOCAL_SETTINGS_PATH)
 if ADDITIONAL_THEMES_DIR not in os.listdir(RESOURCES_PATH):
     os.mkdir(ADDITIONAL_THEMES_PATH)
 if CUSTOM_THEME_DIR not in os.listdir(RESOURCES_PATH):
@@ -931,8 +932,8 @@ def check_dct_savename(window_parent, savename: str):
     if savename == '':
         warning(window_parent, 'Название должно содержать хотя бы один символ!')
         return False
-    if dct_filename(savename) in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
-        warning(window_parent, 'Файл с таким названием уже существует!')
+    if savename in os.listdir(SAVES_PATH):  # Если уже есть сохранение с таким названием
+        warning(window_parent, 'Словарь с таким названием уже существует!')
         return False
     return True
 
@@ -1243,11 +1244,6 @@ def set_postfix(n: int, wrd_forms: tuple[str, str, str]):
         return wrd_forms[2]  # Пример: 0 яблок
 
 
-# Получить название файла со словарём по названию словаря
-def dct_filename(savename: str):
-    return f'{savename}.txt'
-
-
 # Выбрать случайное слово с учётом сложности
 def random_hard(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple[tuple[str, int], tuple[str, ...]]],
                 min_good_score_perc: int) -> tuple[tuple[str, int], None] | tuple[tuple[str, int], tuple[str, ...]]:
@@ -1419,6 +1415,37 @@ def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
     return window_last_version
 
 
+# Обновить структуру папки с ресурсами
+def upgrade_resources():
+    old_local_settings_dir = 'local_settings'
+    old_local_settings_path = os.path.join(RESOURCES_PATH, old_local_settings_dir)
+    # Удаляем лишние папки, если они есть
+    for dir_or_filename in os.listdir(SAVES_PATH):
+        path = os.path.join(SAVES_PATH, dir_or_filename)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+    # Перемещаем файлы
+    for filename in os.listdir(SAVES_PATH):
+        base_name, ext = os.path.splitext(filename)
+        if ext == '.txt':
+            dir_name = os.path.join(SAVES_PATH, base_name)
+            # Создаём папку сохранения
+            os.mkdir(dir_name)
+            # Перемещаем в неё файл с сохранением словаря
+            os.replace(os.path.join(SAVES_PATH, filename),
+                       os.path.join(dir_name, DICTIONARY_SAVE_FN))
+            # Перемещаем в неё файл с локальными настройками
+            if old_local_settings_dir in os.listdir(RESOURCES_PATH):
+                if filename in os.listdir(old_local_settings_path):
+                    os.replace(os.path.join(old_local_settings_path, filename),
+                               os.path.join(dir_name, LOCAL_SETTINGS_FN))
+            # Создаём файл автосохраняемых локальных настроек
+            open(os.path.join(dir_name, LOCAL_AUTO_SETTINGS_FN), 'w', encoding='utf-8')
+    # Удаляем старую папку локальных настроек
+    if old_local_settings_dir in os.listdir(RESOURCES_PATH):
+        shutil.rmtree(old_local_settings_path)
+
+
 # Обновить тему с 4 до 5 версии
 def upgrade_theme_4_to_5(filepath: str):
     with open(filepath, 'r', encoding='utf-8') as file:
@@ -1548,8 +1575,8 @@ def upload_theme_img(theme: str):
         img_about_typo = images
 
 
-# Обновить глобальные настройки с 0 до 2 версии
-def upgrade_global_settings_0_to_2():
+# Обновить глобальные настройки с 0 до 3 версии
+def upgrade_global_settings_0_to_3():
     with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
         lines = global_settings_file.readlines()
     with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
@@ -1559,11 +1586,11 @@ def upgrade_global_settings_0_to_2():
         global_settings_file.write('0\n')  # Добавлять ли кнопку "Опечатка" при неверном ответе в учёбе
         global_settings_file.write(lines[2])  # Установленная тема
 
-    upgrade_global_settings_1_to_2()
+    upgrade_global_settings_1_to_3()
 
 
-# Обновить глобальные настройки с 1 до 2 версии
-def upgrade_global_settings_1_to_2():
+# Обновить глобальные настройки с 1 до 3 версии
+def upgrade_global_settings_1_to_3():
     with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
         lines = global_settings_file.readlines()
     with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
@@ -1574,15 +1601,30 @@ def upgrade_global_settings_1_to_2():
         global_settings_file.write(lines[4].strip())  # Установленная тема
         global_settings_file.write('\n10')  # Размер шрифта
 
+    upgrade_global_settings_2_to_3()
+
+
+# Обновить глобальные настройки с 2 до 3 версии
+def upgrade_global_settings_2_to_3():
+    with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
+        lines = global_settings_file.readlines()
+    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
+        global_settings_file.write('v3\n')  # Версия глобальных настроек
+        global_settings_file.write('UPGRADE_REQUIRED\n')  # Версия глобальных настроек
+        for i in range(1, 6):
+            global_settings_file.write(lines[i])
+
 
 # Обновить глобальные настройки старой версии до актуальной версии
 def upgrade_global_settings():
     with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
         lines = global_settings_file.readlines()
     if len(lines) == 3:  # Версия 0
-        upgrade_global_settings_0_to_2()
+        upgrade_global_settings_0_to_3()
     elif lines[0][0:2] == 'v1':  # Версия 1
-        upgrade_global_settings_1_to_2()
+        upgrade_global_settings_1_to_3()
+    elif lines[0][0:2] == 'v2':  # Версия 2
+        upgrade_global_settings_2_to_3()
     elif lines[0][0:2] != f'v{GLOBAL_SETTINGS_VERSION}':
         print(f'Неизвестная версия глобальных настроек: {lines[0].strip()}!\n'
               f'Проверьте наличие обновлений программы')
@@ -1595,6 +1637,7 @@ def upload_global_settings():
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
         with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
             global_settings_file.write(f'v{GLOBAL_SETTINGS_VERSION}\n'
+                                       f'\n'
                                        f'dct\n'
                                        f'1\n'
                                        f'0\n'
@@ -1606,6 +1649,8 @@ def upload_global_settings():
     with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
         # Версия глобальных настроек
         global_settings_file.readline()
+        # Требуется ли обновление ресурсов
+        is_res_upgrade_required = global_settings_file.readline().strip() == 'UPGRADE_REQUIRED'
         # Название текущего словаря
         dct_savename = global_settings_file.readline().strip()
         # Уведомлять ли о выходе новых версий
@@ -1627,6 +1672,13 @@ def upload_global_settings():
             fontsize = int(global_settings_file.readline().strip())
         except (ValueError, TypeError):
             fontsize = SCALE_DEF
+
+    if is_res_upgrade_required:  # Если требуется обновление ресурсов
+        # Обновляем
+        upgrade_resources()
+        # Указываем в глобальных настройках, что обновление больше не требуется
+        save_global_settings(dct_savename, show_updates, typo, theme, fontsize)
+
     return dct_savename, show_updates, typo, theme, fontsize
 
 
@@ -1634,6 +1686,7 @@ def upload_global_settings():
 def save_global_settings(dct_savename: str, show_updates: int, typo: int, theme: str, fontsize: int):
     with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
         global_settings_file.write(f'v{GLOBAL_SETTINGS_VERSION}\n'
+                                   f'\n'
                                    f'{dct_savename}\n'
                                    f'{show_updates}\n'
                                    f'{typo}\n'
@@ -1734,8 +1787,7 @@ def upgrade_local_settings(local_settings_path: str):
 
 # Загрузить локальные настройки (настройки словаря)
 def upload_local_settings(savename: str, upgrade=True):
-    filename = dct_filename(savename)
-    local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
+    local_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_SETTINGS_FN)
     categories = {}
     special_combinations = {}
     try:
@@ -1791,8 +1843,8 @@ def upload_local_settings(savename: str, upgrade=True):
 
 
 # Сохранить локальные настройки (настройки словаря)
-def save_local_settings(min_good_score_perc: int, check_register: int, categories: dict[str, list[str]], filename: str):
-    local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
+def save_local_settings(min_good_score_perc: int, check_register: int, categories: dict[str, list[str]], savename: str):
+    local_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_SETTINGS_FN)
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
         local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n')
         local_settings_file.write(f'{min_good_score_perc}\n')
@@ -1817,7 +1869,7 @@ def save_settings_if_has_changes(window_parent):
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
                              _0_global_scale)
         save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_categories,
-                            dct_filename(_0_global_dct_savename))
+                            _0_global_dct_savename)
         PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
         print('\nНастройки успешно сохранены')
 
@@ -1958,15 +2010,13 @@ def upgrade_dct_save(path: str):
 
 # Загрузить словарь (с обновлением и обработкой исключений)
 def upload_dct(window_parent, dct: Dictionary, savename: str, btn_close_text: str):
-    filename = dct_filename(savename)
-    filepath = os.path.join(SAVES_PATH, filename)
+    filepath = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
     try:
         upgrade_dct_save(filepath)  # Если требуется, сохранение обновляется
         dct.read(filepath)  # Загрузка словаря
     except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
         print(f'\nСловарь "{savename}" не найден!')
-        open(filepath, 'w', encoding='utf-8').write(f'v{SAVES_VERSION}\n')
-        dct.read(filepath)
+        create_dct(dct, savename)
         print('Создан и загружен пустой словарь')
         return savename
     except Exception as exc:  # Если сохранение повреждено, то предлагается загрузить другое
@@ -1999,69 +2049,41 @@ def upload_dct(window_parent, dct: Dictionary, savename: str, btn_close_text: st
 
 # Создать и загрузить пустой словарь
 def create_dct(dct: Dictionary, savename: str):
-    filename = dct_filename(savename)
-    filepath = os.path.join(SAVES_PATH, filename)
+    folder_path = os.path.join(SAVES_PATH, savename)
+    filepath = os.path.join(folder_path, DICTIONARY_SAVE_FN)
+    os.mkdir(folder_path)
     open(filepath, 'w', encoding='utf-8').write(f'v{SAVES_VERSION}\n')
+    open(os.path.join(folder_path, LOCAL_AUTO_SETTINGS_FN), 'w', encoding='utf-8')
     dct.read(filepath)
-    print(f'\nСловарь "{savename}" успешно создан и открыт')
-    return upload_local_settings(savename)
 
 
 # Сохранить словарь
-def save_dct(dct: Dictionary, filename: str):
-    filepath = os.path.join(SAVES_PATH, filename)
+def save_dct(dct: Dictionary, savename: str):
+    filepath = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
     dct.save(filepath)
 
 
 # Предложить сохранение словаря, если есть изменения
-def save_dct_if_has_progress(window_parent, dct: Dictionary, filename: str, has_progress: bool):
+def save_dct_if_has_progress(window_parent, dct: Dictionary, savename: str, has_progress: bool):
     if has_progress:
         window_dia = PopupDialogueW(window_parent, 'Хотите сохранить свой прогресс?', 'Да', 'Нет')
         answer = window_dia.open()
         if answer:
-            save_dct(dct, filename)
+            save_dct(dct, savename)
             PopupMsgW(window_parent, 'Прогресс успешно сохранён').open()
             print('\nПрогресс успешно сохранён')
 
 
 # Экспортировать словарь
 def dct_export(savename: str, dst_path: str):
-    filename = dct_filename(savename)
-
-    dst_dir = os.path.join(dst_path, savename)
-    src_save_path = os.path.join(SAVES_PATH, filename)
-    dst_save_path = os.path.join(dst_dir, 'save.txt')
-    src_local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
-    dst_local_settings_path = os.path.join(dst_dir, 'local_settings.txt')
-
-    os.mkdir(dst_dir)
-    shutil.copyfile(src_save_path, dst_save_path)
-    shutil.copyfile(src_local_settings_path, dst_local_settings_path)
+    src_path = os.path.join(SAVES_PATH, savename)
+    shutil.copytree(src_path, os.path.join(dst_path, savename))
 
 
 # Импортировать словарь
-def dct_import(window_parent, savename: str, src_path: str):
-    save_filename = 'save.txt'
-    local_settings_filename = 'local_settings.txt'
-
-    filename = dct_filename(savename)
-
-    src_save_path = os.path.join(src_path, save_filename)
-    dst_save_path = os.path.join(SAVES_PATH, filename)
-    src_local_settings_path = os.path.join(src_path, local_settings_filename)
-    dst_local_settings_path = os.path.join(LOCAL_SETTINGS_PATH, filename)
-
-    if save_filename not in os.listdir(src_path):
-        warning(window_parent, f'Ошибка импорта сохранения!\n'
-                               f'Отсутствует файл "{save_filename}"')
-        return
-    if local_settings_filename not in os.listdir(src_path):
-        warning(window_parent, f'Ошибка импорта сохранения!\n'
-                               f'Отсутствует файл "{local_settings_filename}"')
-        return
-    
-    shutil.copyfile(src_save_path, dst_save_path)
-    shutil.copyfile(src_local_settings_path, dst_local_settings_path)
+def dct_import(savename: str, src_path: str):
+    dst_path = os.path.join(SAVES_PATH, savename)
+    shutil.copytree(src_path, dst_path)
 
 
 """ Графический интерфейс - вспомогательные функции """
@@ -4014,7 +4036,7 @@ class NewVersionAvailableW(tk.Toplevel):
 
     # Скачать и установить обновление
     def download_and_install(self):
-        save_dct_if_has_progress(self, _0_global_dct, dct_filename(_0_global_dct_savename), _0_global_has_progress)
+        save_dct_if_has_progress(self, _0_global_dct, _0_global_dct_savename, _0_global_has_progress)
 
         # Загрузка списка обновляемых файлов
         try:
@@ -5510,11 +5532,11 @@ class SettingsW(tk.Toplevel):
             _0_global_categories, _0_global_special_combinations, _0_global_check_register, _0_global_has_progress
 
         saves_list = []
-        for file_name in os.listdir(SAVES_PATH):
-            base_name, ext = os.path.splitext(file_name)
-            if ext == '.txt':
-                if base_name != _0_global_dct_savename:
-                    saves_list += [base_name]
+        for savename in os.listdir(SAVES_PATH):
+            path = os.path.join(SAVES_PATH, savename)
+            if os.path.isdir(path):
+                if savename != _0_global_dct_savename:
+                    saves_list += [savename]
 
         window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите открыть',
                               default_value=saves_list[0], combo_width=width(saves_list, 5, 100))
@@ -5525,7 +5547,7 @@ class SettingsW(tk.Toplevel):
         # Если есть прогресс, то предлагается его сохранить
         if self.has_local_changes():
             save_settings_if_has_changes(self)
-        save_dct_if_has_progress(self, _0_global_dct, dct_filename(_0_global_dct_savename), _0_global_has_progress)
+        save_dct_if_has_progress(self, _0_global_dct, _0_global_dct_savename, _0_global_has_progress)
 
         _0_global_dct = Dictionary()
         savename = upload_dct(self, _0_global_dct, savename, 'Отмена')
@@ -5562,13 +5584,16 @@ class SettingsW(tk.Toplevel):
 
         if self.has_local_changes():
             save_settings_if_has_changes(self)
-        save_dct_if_has_progress(self, _0_global_dct, dct_filename(_0_global_dct_savename), _0_global_has_progress)
+        save_dct_if_has_progress(self, _0_global_dct, _0_global_dct_savename, _0_global_has_progress)
 
+        _0_global_dct = Dictionary()
+        create_dct(_0_global_dct, savename)
+        _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations, _0_global_check_register =\
+            upload_local_settings(savename)
         _0_global_dct_savename = savename
         save_dct_name()
-        _0_global_dct = Dictionary()
-        _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations, _0_global_check_register =\
-            create_dct(_0_global_dct, savename)
+
+        print(f'\nСловарь "{savename}" успешно создан и открыт')
 
         self.backup_dct = copy.deepcopy(_0_global_dct)
         self.backup_fp = copy.deepcopy(_0_global_categories)
@@ -5588,10 +5613,10 @@ class SettingsW(tk.Toplevel):
 
         saves_count = 0
         saves_list = []
-        for file_name in os.listdir(SAVES_PATH):
-            base_name, ext = os.path.splitext(file_name)
-            if ext == '.txt':
-                saves_list += [base_name]
+        for savename in os.listdir(SAVES_PATH):
+            path = os.path.join(SAVES_PATH, savename)
+            if os.path.isdir(path):
+                saves_list += [savename]
                 saves_count += 1
         window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите переименовать',
                                      default_value=saves_list[0], combo_width=width(saves_list, 5, 100))
@@ -5605,10 +5630,7 @@ class SettingsW(tk.Toplevel):
         if closed:
             return
 
-        old_filename = dct_filename(old_savename)
-        new_filename = dct_filename(new_savename)
-        os.rename(os.path.join(SAVES_PATH, old_filename), os.path.join(SAVES_PATH, new_filename))
-        os.rename(os.path.join(LOCAL_SETTINGS_PATH, old_filename), os.path.join(LOCAL_SETTINGS_PATH, new_filename))
+        os.rename(os.path.join(SAVES_PATH, old_savename), os.path.join(SAVES_PATH, new_savename))
         if _0_global_dct_savename == old_savename:
             _0_global_dct_savename = new_savename
             save_dct_name()
@@ -5621,11 +5643,11 @@ class SettingsW(tk.Toplevel):
     # Удалить словарь (срабатывает при нажатии на кнопку)
     def dct_delete(self):
         saves_list = []
-        for filename in os.listdir(SAVES_PATH):
-            base_name, ext = os.path.splitext(filename)
-            if ext == '.txt':
-                if base_name != _0_global_dct_savename:
-                    saves_list += [base_name]
+        for savename in os.listdir(SAVES_PATH):
+            path = os.path.join(SAVES_PATH, savename)
+            if os.path.isdir(path):
+                if savename != _0_global_dct_savename:
+                    saves_list += [savename]
 
         window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите удалить',
                                      default_value=saves_list[0], combo_width=width(saves_list, 5, 100))
@@ -5640,9 +5662,7 @@ class SettingsW(tk.Toplevel):
         if not answer:
             return
 
-        filename = dct_filename(savename)
-        os.remove(os.path.join(SAVES_PATH, filename))
-        os.remove(os.path.join(LOCAL_SETTINGS_PATH, filename))
+        shutil.rmtree(os.path.join(SAVES_PATH, savename))
         PopupMsgW(self, f'Словарь "{savename}" успешно удалён').open()
 
         self.print_dct_list()
@@ -5651,10 +5671,10 @@ class SettingsW(tk.Toplevel):
     def dct_export(self):
         saves_count = 0
         saves_list = []
-        for file_name in os.listdir(SAVES_PATH):
-            base_name, ext = os.path.splitext(file_name)
-            if ext == '.txt':
-                saves_list += [base_name]
+        for savename in os.listdir(SAVES_PATH):
+            path = os.path.join(SAVES_PATH, savename)
+            if os.path.isdir(path):
+                saves_list += [savename]
                 saves_count += 1
         window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите экспортировать',
                                      default_value=saves_list[0], combo_width=width(saves_list, 5, 100))
@@ -5681,7 +5701,7 @@ class SettingsW(tk.Toplevel):
         if closed:
             return
 
-        dct_import(self, savename, src_path)
+        dct_import(savename, src_path)
 
         self.refresh()
 
@@ -5761,13 +5781,13 @@ class SettingsW(tk.Toplevel):
 
         # Сохранение настроек в файлы
         save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_categories,
-                            dct_filename(_0_global_dct_savename))
+                            _0_global_dct_savename)
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
                              _0_global_scale)
 
         # Сохранение словаря, если были изменения локальных настроек
         if self.has_local_changes():
-            save_dct(_0_global_dct, dct_filename(_0_global_dct_savename))
+            save_dct(_0_global_dct, _0_global_dct_savename)
 
         # Обнуление переменных, показывающих наличие изменений
         self.has_ctg_changes = False
@@ -5793,13 +5813,13 @@ class SettingsW(tk.Toplevel):
         self.txt_dcts.delete(1.0, tk.END)
 
         has_only_one_dct = True
-        for filename in os.listdir(SAVES_PATH):
-            base_name, ext = os.path.splitext(filename)
-            if ext == '.txt':
-                if base_name == _0_global_dct_savename:
-                    self.txt_dcts.insert(tk.END, f'"{base_name}" (ОТКРЫТ)\n')
+        for savename in os.listdir(SAVES_PATH):
+            path = os.path.join(SAVES_PATH, savename)
+            if os.path.isdir(path):
+                if savename == _0_global_dct_savename:
+                    self.txt_dcts.insert(tk.END, f'"{savename}" (ОТКРЫТ)\n')
                 else:
-                    self.txt_dcts.insert(tk.END, f'"{base_name}"\n')
+                    self.txt_dcts.insert(tk.END, f'"{savename}"\n')
                     has_only_one_dct = False
         self.txt_dcts['state'] = 'disabled'
 
@@ -5879,7 +5899,7 @@ class SettingsW(tk.Toplevel):
             int(self.var_scale.get()) != _0_global_scale
 
     # Обновить надписи с названием открытого словаря
-    def refresh_open_dct_name(self, savename):
+    def refresh_open_dct_name(self, savename: str):
         self.lbl_dct_name.config(text=split_text(f'Открыт словарь "{savename}"', 30, add_right_spaces=False))
         self.parent.lbl_dct_name.config(text=f'Открыт словарь\n'
                                              f'"{split_text(savename, 20, add_right_spaces=False)}"')
@@ -6080,7 +6100,7 @@ class MainW(tk.Tk):
     def save(self):
         global _0_global_has_progress
 
-        save_dct(_0_global_dct, dct_filename(_0_global_dct_savename))
+        save_dct(_0_global_dct, _0_global_dct_savename)
         PopupMsgW(self, 'Прогресс успешно сохранён').open()
         print('\nПрогресс успешно сохранён')
 
@@ -6088,7 +6108,7 @@ class MainW(tk.Tk):
 
     # Нажатие на кнопку "Закрыть программу"
     def close(self):
-        save_dct_if_has_progress(self, _0_global_dct, dct_filename(_0_global_dct_savename), _0_global_has_progress)
+        save_dct_if_has_progress(self, _0_global_dct, _0_global_dct_savename, _0_global_has_progress)
         self.quit()
 
     # Установить ttk-стили
