@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-3'
+PROGRAM_VERSION = 'v7.1.0-PRE-4'
 PROGRAM_DATE = '27.2.2023'
-PROGRAM_TIME = '18:43 (UTC+3)'
+PROGRAM_TIME = '20:12 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -1444,8 +1444,6 @@ def upgrade_resources():
                 if filename in os.listdir(old_local_settings_path):
                     os.replace(os.path.join(old_local_settings_path, filename),
                                os.path.join(dir_name, LOCAL_SETTINGS_FN))
-            # Создаём файл автосохраняемых локальных настроек
-            open(os.path.join(dir_name, LOCAL_AUTO_SETTINGS_FN), 'w', encoding='utf-8')
     # Удаляем старую папку локальных настроек
     if old_local_settings_dir in os.listdir(RESOURCES_PATH):
         shutil.rmtree(old_local_settings_path)
@@ -1885,6 +1883,9 @@ def upload_local_auto_settings(savename: str):
             learn_settings = tuple(int(el) for el in local_auto_settings_file.readline().strip().split())
         except (ValueError, TypeError):
             learn_settings = (0, 1, 1, 1)
+        else:
+            if len(learn_settings) != 4:
+                learn_settings = (0, 1, 1, 1)
     return learn_settings
 
 
