@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.0.31-patch-3'
-PROGRAM_DATE = '26.2.2023'
-PROGRAM_TIME = '22:33 (UTC+3)'
+PROGRAM_VERSION = 'v7.0.31-patch-4'
+PROGRAM_DATE = '27.2.2023'
+PROGRAM_TIME = '4:35 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -2477,236 +2477,6 @@ class PopupImgW(tk.Toplevel):
         return self.closed
 
 
-# Окно ввода специальной комбинации
-class EnterSpecialCombinationW(tk.Toplevel):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.configure(bg=ST_BG[th])
-
-        self.closed = True  # Закрыто ли окно крестиком
-
-        self.var_opening_symbol = tk.StringVar(value=SPECIAL_COMBINATIONS_OPENING_SYMBOLS[0])
-        self.var_key_symbol = tk.StringVar()
-        self.var_val = tk.StringVar()
-
-        self.vcmd_opening_symbol = (self.register(validate_special_combination_opening_symbol), '%P')
-        self.vcmd_key_symbol = (self.register(validate_special_combination_key_symbol), '%P')
-        self.vcmd_val = (self.register(validate_special_combination_val), '%P')
-
-        self.lbl_msg = ttk.Label(self, text='Задайте комбинацию', justify='center', style='Default.TLabel')
-        self.frame_main = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.combo_opening_symbol = ttk.Combobox(self.frame_main, textvariable=self.var_opening_symbol,
-                                                 values=SPECIAL_COMBINATIONS_OPENING_SYMBOLS,
-                                                 validate='all', validatecommand=self.vcmd_opening_symbol,
-                                                 width=3, state='normal', style='Default.TCombobox',
-                                                 font=('DejaVu Sans Mono', _0_global_scale))
-        self.entry_key_symbol = ttk.Entry(self.frame_main, textvariable=self.var_key_symbol, width=2, justify='right',
-                                          validate='key', validatecommand=self.vcmd_key_symbol, style='Default.TEntry')
-        self.lbl_arrow = ttk.Label(self.frame_main, text='->', justify='center', style='Default.TLabel')
-        self.entry_val = ttk.Entry(self.frame_main, textvariable=self.var_val, width=2,
-                                   validate='key', validatecommand=self.vcmd_val, style='Default.TEntry')
-        # }
-        self.btn_ok = ttk.Button(self, text='Подтвердить', command=self.ok, takefocus=False, style='Yes.TButton')
-
-        self.lbl_msg.grid(   row=0, padx=6, pady=(6, 3))
-        self.frame_main.grid(row=1, padx=6, pady=0)
-        # {
-        self.combo_opening_symbol.grid(row=0, column=0, padx=0, pady=0)
-        self.entry_key_symbol.grid(    row=0, column=1, padx=0, pady=0)
-        self.lbl_arrow.grid(           row=0, column=2, padx=2, pady=0)
-        self.entry_val.grid(           row=0, column=3, padx=0, pady=0)
-        # }
-        self.btn_ok.grid(row=2, padx=6, pady=6)
-
-    # Нажатие на кнопку
-    def ok(self):
-        self.closed = False
-        self.destroy()
-
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.entry_key_symbol.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-    def open(self):
-        self.set_focus()
-
-        self.grab_set()
-        self.wait_window()
-
-        return self.closed, (self.var_opening_symbol.get(), self.var_key_symbol.get()), self.var_val.get()
-
-
-# Окно создания шаблона словоформы
-class AddFormW(tk.Toplevel):
-    def __init__(self, parent, key: tuple[str, int], combo_width=20):
-        super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.resizable(width=False, height=False)
-        self.configure(bg=ST_BG[th])
-
-        self.closed = True  # Закрыто ли окно крестиком
-        self.categories = list(_0_global_categories.keys())  # Список категорий
-        self.ctg_values = list(_0_global_categories[self.categories[0]])  # Список значений выбранной категории
-        self.template = []  # Шаблон словоформы
-        for _ in range(len(self.categories)):
-            self.template += ['']
-        self.void_template = self.template.copy()  # Пустой шаблон (для сравнения на пустоту)
-        self.key = key
-
-        self.var_ctg = tk.StringVar(value=self.categories[0])
-        self.var_val = tk.StringVar(value=self.ctg_values[0])
-        self.var_template = tk.StringVar(value='Текущий шаблон словоформы: ""')
-        self.var_form = tk.StringVar(value=_0_global_dct.d[self.key].wrd)
-
-        self.img_ok = tk.PhotoImage()
-        self.img_none = tk.PhotoImage()
-
-        self.vcmd_ctg = (self.register(lambda value: self.refresh_vals()), '%P')
-
-        self.lbl_choose_ctg = ttk.Label(self, text='Выберите категорию:', justify='center', style='Default.TLabel')
-        self.combo_ctg = ttk.Combobox(self, textvariable=self.var_ctg, values=self.categories, width=combo_width,
-                                      validate='focusin', validatecommand=self.vcmd_ctg,
-                                      state='readonly', style='Default.TCombobox',
-                                      font=('DejaVu Sans Mono', _0_global_scale))
-        self.lbl_choose_val = ttk.Label(self, text='Задайте значение категории:', justify='center',
-                                        style='Default.TLabel')
-        self.frame_val = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.combo_val = ttk.Combobox(self.frame_val, textvariable=self.var_val, values=self.ctg_values,
-                                      width=width(self.ctg_values, 5, 100),
-                                      state='readonly', style='Default.TCombobox',
-                                      font=('DejaVu Sans Mono', _0_global_scale))
-        self.btn_choose = ttk.Button(self.frame_val, command=self.choose, takefocus=False)
-        set_image(self.btn_choose, self.img_ok, img_ok, 'Задать значение')
-        if self.btn_choose['style'] == 'Image.TButton':
-            self.tip_btn_choose = ttip.Hovertip(self.btn_choose, 'Задать значение', hover_delay=500)
-        self.btn_none = ttk.Button(self.frame_val, command=self.set_none, takefocus=False)
-        set_image(self.btn_none, self.img_none, img_cancel, 'Не указывать/неприменимо')
-        if self.btn_none['style'] == 'Image.TButton':
-            self.tip_btn_none = ttip.Hovertip(self.btn_none, 'Не указывать/неприменимо', hover_delay=500)
-        # }
-        self.lbl_template = ttk.Label(self, textvariable=self.var_template, justify='center', style='Default.TLabel')
-        self.frame_form = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.lbl_form = ttk.Label(self.frame_form, text='Форма:', justify='left', style='Default.TLabel')
-        self.entry_form = ttk.Entry(self.frame_form, textvariable=self.var_form, style='Default.TEntry')
-        # }
-        self.btn_save = ttk.Button(self, text='Добавить', command=self.save, takefocus=False, style='Default.TButton')
-
-        self.lbl_choose_ctg.grid(row=0, column=0, padx=(6, 1), pady=(6, 1), sticky='E')
-        self.combo_ctg.grid(     row=0, column=1, padx=(0, 6), pady=(6, 1), sticky='W')
-        self.lbl_choose_val.grid(row=1, column=0, padx=(6, 1), pady=1,      sticky='E')
-        self.frame_val.grid(     row=1, column=1, padx=(0, 6), pady=1,      sticky='W')
-        # {
-        self.combo_val.grid( row=0, column=0, padx=0,      pady=0)
-        self.btn_choose.grid(row=0, column=1, padx=(3, 0), pady=0)
-        self.btn_none.grid(  row=0, column=2, padx=0,      pady=0)
-        # }
-        self.lbl_template.grid(row=2, columnspan=2, padx=6, pady=1)
-        self.frame_form.grid(  row=3, columnspan=2, padx=6, pady=6)
-        # {
-        self.lbl_form.grid(  row=0, column=0, padx=(0, 1), pady=0, sticky='E')
-        self.entry_form.grid(row=0, column=1, padx=0,      pady=0, sticky='W')
-        # }
-        self.btn_save.grid(row=4, columnspan=2, padx=6, pady=6)
-
-        btn_disable(self.btn_save)
-
-    # Выбрать категорию и задать ей значение
-    def choose(self):
-        ctg = self.var_ctg.get()
-        if ctg == '':
-            return
-        index = self.categories.index(ctg)
-
-        val = self.var_val.get()
-        if val == '':
-            return
-        self.template[index] = val
-
-        self.var_template.set(f'Текущий шаблон словоформы: "{tpl(self.template)}"')
-
-        if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
-            btn_disable(self.btn_save)
-        else:
-            btn_enable(self.btn_save, self.save)
-
-        # В combobox значением по умолчанию становится первая ещё не заданная категория
-        for i in range(len(self.template)):
-            if self.template[i] == '':
-                self.var_ctg.set(self.categories[i])
-                break
-        self.refresh_vals()
-
-    # Не указывать значение категории
-    def set_none(self):
-        ctg = self.var_ctg.get()
-        if ctg == '':
-            return
-        index = self.categories.index(ctg)
-
-        self.template[index] = ''
-
-        self.var_template.set(f'Текущий шаблон словоформы: "{tpl(self.template)}"')
-
-        if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
-            btn_disable(self.btn_save)
-        else:
-            btn_enable(self.btn_save, self.save)
-
-        # В combobox значением по умолчанию становится первая ещё не заданная категория
-        for i in range(len(self.template)):
-            if self.template[i] == '':
-                self.var_ctg.set(self.categories[i])
-                break
-        self.refresh_vals()
-
-    # Сохранить словоформу
-    def save(self):
-        if tuple(self.template) in _0_global_dct.d[self.key].forms.keys():
-            warning(self, f'У слова "{key_to_wrd(self.key)}" уже есть форма с таким шаблоном!')
-            return
-        if self.var_form.get() == '':
-            warning(self, 'Словоформа должна содержать хотя бы один символ!')
-            return
-        self.closed = False
-        self.destroy()
-
-    # Обновить combobox со значениями категории после выбора категории
-    def refresh_vals(self):
-        self.ctg_values = list(_0_global_categories[self.var_ctg.get()])
-        self.var_val = tk.StringVar(value=self.ctg_values[0])
-        self.combo_val.configure(textvariable=self.var_val, values=self.ctg_values,
-                                 width=width(self.ctg_values, 5, 100))
-        return True
-
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.entry_form.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-    def open(self):
-        self.set_focus()
-
-        self.grab_set()
-        self.wait_window()
-
-        if self.closed:
-            return None, None
-        if self.template == self.void_template:
-            return None, None
-        if tuple(self.template) in _0_global_dct.d[self.key].forms.keys():
-            return None, None
-        return tuple(self.template), self.var_form.get()
-
-
 """ Графический интерфейс - второстепенные окна """
 
 
@@ -3054,6 +2824,172 @@ class ChooseOneOfSimilarNotesW(tk.Toplevel):
         return self.answer
 
 
+# Окно создания шаблона словоформы
+class AddFormW(tk.Toplevel):
+    def __init__(self, parent, key: tuple[str, int], combo_width=20):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[th])
+
+        self.closed = True  # Закрыто ли окно крестиком
+        self.categories = list(_0_global_categories.keys())  # Список категорий
+        self.ctg_values = list(_0_global_categories[self.categories[0]])  # Список значений выбранной категории
+        self.template = []  # Шаблон словоформы
+        for _ in range(len(self.categories)):
+            self.template += ['']
+        self.void_template = self.template.copy()  # Пустой шаблон (для сравнения на пустоту)
+        self.key = key
+
+        self.var_ctg = tk.StringVar(value=self.categories[0])
+        self.var_val = tk.StringVar(value=self.ctg_values[0])
+        self.var_template = tk.StringVar(value='Текущий шаблон словоформы: ""')
+        self.var_form = tk.StringVar(value=_0_global_dct.d[self.key].wrd)
+
+        self.img_ok = tk.PhotoImage()
+        self.img_none = tk.PhotoImage()
+
+        self.vcmd_ctg = (self.register(lambda value: self.refresh_vals()), '%P')
+
+        self.lbl_choose_ctg = ttk.Label(self, text='Выберите категорию:', justify='center', style='Default.TLabel')
+        self.combo_ctg = ttk.Combobox(self, textvariable=self.var_ctg, values=self.categories, width=combo_width,
+                                      validate='focusin', validatecommand=self.vcmd_ctg,
+                                      state='readonly', style='Default.TCombobox',
+                                      font=('DejaVu Sans Mono', _0_global_scale))
+        self.lbl_choose_val = ttk.Label(self, text='Задайте значение категории:', justify='center',
+                                        style='Default.TLabel')
+        self.frame_val = ttk.Frame(self, style='Invis.TFrame')
+        # {
+        self.combo_val = ttk.Combobox(self.frame_val, textvariable=self.var_val, values=self.ctg_values,
+                                      width=width(self.ctg_values, 5, 100),
+                                      state='readonly', style='Default.TCombobox',
+                                      font=('DejaVu Sans Mono', _0_global_scale))
+        self.btn_choose = ttk.Button(self.frame_val, command=self.choose, takefocus=False)
+        set_image(self.btn_choose, self.img_ok, img_ok, 'Задать значение')
+        if self.btn_choose['style'] == 'Image.TButton':
+            self.tip_btn_choose = ttip.Hovertip(self.btn_choose, 'Задать значение', hover_delay=500)
+        self.btn_none = ttk.Button(self.frame_val, command=self.set_none, takefocus=False)
+        set_image(self.btn_none, self.img_none, img_cancel, 'Не указывать/неприменимо')
+        if self.btn_none['style'] == 'Image.TButton':
+            self.tip_btn_none = ttip.Hovertip(self.btn_none, 'Не указывать/неприменимо', hover_delay=500)
+        # }
+        self.lbl_template = ttk.Label(self, textvariable=self.var_template, justify='center', style='Default.TLabel')
+        self.frame_form = ttk.Frame(self, style='Invis.TFrame')
+        # {
+        self.lbl_form = ttk.Label(self.frame_form, text='Форма:', justify='left', style='Default.TLabel')
+        self.entry_form = ttk.Entry(self.frame_form, textvariable=self.var_form, style='Default.TEntry')
+        # }
+        self.btn_save = ttk.Button(self, text='Добавить', command=self.save, takefocus=False, style='Default.TButton')
+
+        self.lbl_choose_ctg.grid(row=0, column=0, padx=(6, 1), pady=(6, 1), sticky='E')
+        self.combo_ctg.grid(     row=0, column=1, padx=(0, 6), pady=(6, 1), sticky='W')
+        self.lbl_choose_val.grid(row=1, column=0, padx=(6, 1), pady=1,      sticky='E')
+        self.frame_val.grid(     row=1, column=1, padx=(0, 6), pady=1,      sticky='W')
+        # {
+        self.combo_val.grid( row=0, column=0, padx=0,      pady=0)
+        self.btn_choose.grid(row=0, column=1, padx=(3, 0), pady=0)
+        self.btn_none.grid(  row=0, column=2, padx=0,      pady=0)
+        # }
+        self.lbl_template.grid(row=2, columnspan=2, padx=6, pady=1)
+        self.frame_form.grid(  row=3, columnspan=2, padx=6, pady=6)
+        # {
+        self.lbl_form.grid(  row=0, column=0, padx=(0, 1), pady=0, sticky='E')
+        self.entry_form.grid(row=0, column=1, padx=0,      pady=0, sticky='W')
+        # }
+        self.btn_save.grid(row=4, columnspan=2, padx=6, pady=6)
+
+        btn_disable(self.btn_save)
+
+    # Выбрать категорию и задать ей значение
+    def choose(self):
+        ctg = self.var_ctg.get()
+        if ctg == '':
+            return
+        index = self.categories.index(ctg)
+
+        val = self.var_val.get()
+        if val == '':
+            return
+        self.template[index] = val
+
+        self.var_template.set(f'Текущий шаблон словоформы: "{tpl(self.template)}"')
+
+        if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
+            btn_disable(self.btn_save)
+        else:
+            btn_enable(self.btn_save, self.save)
+
+        # В combobox значением по умолчанию становится первая ещё не заданная категория
+        for i in range(len(self.template)):
+            if self.template[i] == '':
+                self.var_ctg.set(self.categories[i])
+                break
+        self.refresh_vals()
+
+    # Не указывать значение категории
+    def set_none(self):
+        ctg = self.var_ctg.get()
+        if ctg == '':
+            return
+        index = self.categories.index(ctg)
+
+        self.template[index] = ''
+
+        self.var_template.set(f'Текущий шаблон словоформы: "{tpl(self.template)}"')
+
+        if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
+            btn_disable(self.btn_save)
+        else:
+            btn_enable(self.btn_save, self.save)
+
+        # В combobox значением по умолчанию становится первая ещё не заданная категория
+        for i in range(len(self.template)):
+            if self.template[i] == '':
+                self.var_ctg.set(self.categories[i])
+                break
+        self.refresh_vals()
+
+    # Сохранить словоформу
+    def save(self):
+        if tuple(self.template) in _0_global_dct.d[self.key].forms.keys():
+            warning(self, f'У слова "{key_to_wrd(self.key)}" уже есть форма с таким шаблоном!')
+            return
+        if self.var_form.get() == '':
+            warning(self, 'Словоформа должна содержать хотя бы один символ!')
+            return
+        self.closed = False
+        self.destroy()
+
+    # Обновить combobox со значениями категории после выбора категории
+    def refresh_vals(self):
+        self.ctg_values = list(_0_global_categories[self.var_ctg.get()])
+        self.var_val = tk.StringVar(value=self.ctg_values[0])
+        self.combo_val.configure(textvariable=self.var_val, values=self.ctg_values,
+                                 width=width(self.ctg_values, 5, 100))
+        return True
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.entry_form.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
+
+        self.grab_set()
+        self.wait_window()
+
+        if self.closed:
+            return None, None
+        if self.template == self.void_template:
+            return None, None
+        if tuple(self.template) in _0_global_dct.d[self.key].forms.keys():
+            return None, None
+        return tuple(self.template), self.var_form.get()
+
+
 # Окно настроек категорий
 class CategoriesSettingsW(tk.Toplevel):
     def __init__(self, parent):
@@ -3351,6 +3287,70 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.wait_window()
 
         return self.has_changes
+
+
+# Окно ввода специальной комбинации
+class EnterSpecialCombinationW(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title(PROGRAM_NAME)
+        self.configure(bg=ST_BG[th])
+
+        self.closed = True  # Закрыто ли окно крестиком
+
+        self.var_opening_symbol = tk.StringVar(value=SPECIAL_COMBINATIONS_OPENING_SYMBOLS[0])
+        self.var_key_symbol = tk.StringVar()
+        self.var_val = tk.StringVar()
+
+        self.vcmd_opening_symbol = (self.register(validate_special_combination_opening_symbol), '%P')
+        self.vcmd_key_symbol = (self.register(validate_special_combination_key_symbol), '%P')
+        self.vcmd_val = (self.register(validate_special_combination_val), '%P')
+
+        self.lbl_msg = ttk.Label(self, text='Задайте комбинацию', justify='center', style='Default.TLabel')
+        self.frame_main = ttk.Frame(self, style='Invis.TFrame')
+        # {
+        self.combo_opening_symbol = ttk.Combobox(self.frame_main, textvariable=self.var_opening_symbol,
+                                                 values=SPECIAL_COMBINATIONS_OPENING_SYMBOLS,
+                                                 validate='all', validatecommand=self.vcmd_opening_symbol,
+                                                 width=3, state='normal', style='Default.TCombobox',
+                                                 font=('DejaVu Sans Mono', _0_global_scale))
+        self.entry_key_symbol = ttk.Entry(self.frame_main, textvariable=self.var_key_symbol, width=2, justify='right',
+                                          validate='key', validatecommand=self.vcmd_key_symbol, style='Default.TEntry')
+        self.lbl_arrow = ttk.Label(self.frame_main, text='->', justify='center', style='Default.TLabel')
+        self.entry_val = ttk.Entry(self.frame_main, textvariable=self.var_val, width=2,
+                                   validate='key', validatecommand=self.vcmd_val, style='Default.TEntry')
+        # }
+        self.btn_ok = ttk.Button(self, text='Подтвердить', command=self.ok, takefocus=False, style='Yes.TButton')
+
+        self.lbl_msg.grid(   row=0, padx=6, pady=(6, 3))
+        self.frame_main.grid(row=1, padx=6, pady=0)
+        # {
+        self.combo_opening_symbol.grid(row=0, column=0, padx=0, pady=0)
+        self.entry_key_symbol.grid(    row=0, column=1, padx=0, pady=0)
+        self.lbl_arrow.grid(           row=0, column=2, padx=2, pady=0)
+        self.entry_val.grid(           row=0, column=3, padx=0, pady=0)
+        # }
+        self.btn_ok.grid(row=2, padx=6, pady=6)
+
+    # Нажатие на кнопку
+    def ok(self):
+        self.closed = False
+        self.destroy()
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.entry_key_symbol.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.closed, (self.var_opening_symbol.get(), self.var_key_symbol.get()), self.var_val.get()
 
 
 # Окно настроек пользовательской темы
