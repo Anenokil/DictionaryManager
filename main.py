@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-5'
+PROGRAM_VERSION = 'v7.1.0-PRE-6'
 PROGRAM_DATE = '28.2.2023'
-PROGRAM_TIME = '18:06 (UTC+3)'
+PROGRAM_TIME = '18:13 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -4467,7 +4467,7 @@ class LearnW(tk.Toplevel):
                     if _0_global_dct.d[key].correct_att == 0:
                         for frm in _0_global_dct.d[key].forms.keys():
                             self.pool.add((key, frm))
-        elif self.words == LEARN_VALUES_WORDS[3]:  # Учить 15 случайных слов
+        elif self.words == LEARN_VALUES_WORDS[4]:  # Учить 15 случайных слов
             keys = random.sample(all_keys, min(len(all_keys), 15))
             for key in keys:
                 self.pool.add((key, None))
