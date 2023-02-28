@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-4'
-PROGRAM_DATE = '27.2.2023'
-PROGRAM_TIME = '20:12 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.0-PRE-5'
+PROGRAM_DATE = '28.2.2023'
+PROGRAM_TIME = '18:06 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -4326,6 +4326,13 @@ class PrintW(tk.Toplevel):
             self.buttons[index].configure(text=_0_global_dct.d[self.keys[index]].print_briefly_with_forms(75))
         else:
             self.buttons[index].configure(text=_0_global_dct.d[self.keys[index]].print_briefly(75))
+
+        # Выводим информацию о количестве статей
+        if self.var_fav.get():
+            w, t, f = _0_global_dct.count_fav_info()
+            self.var_info.set(_0_global_dct.dct_info_fav(w, t, f))
+        else:
+            self.var_info.set(_0_global_dct.dct_info())
 
     # Обновить все кнопки журнала
     def refresh_all_buttons(self):
