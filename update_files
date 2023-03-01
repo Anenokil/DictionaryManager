@@ -8,7 +8,11 @@ resources/images/edit.png
 resources/images/ok.png
 resources/images/redo.png
 resources/images/undo.png
+resources/images/arrow_left.png
+resources/images/arrow_right.png
+resources/images/double_arrow_left.png
+resources/images/double_arrow_right.png
+resources/images/print_out.png
 README.txt
 README.md
 main.py
-ver

@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-6'
-PROGRAM_DATE = '28.2.2023'
-PROGRAM_TIME = '18:13 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.0-PRE-7.1'
+PROGRAM_DATE = '1.3.2023'
+PROGRAM_TIME = '17:22 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -225,6 +225,11 @@ img_edit = os.path.join(IMAGES_PATH, 'edit.png')
 img_undo = os.path.join(IMAGES_PATH, 'undo.png')
 img_redo = os.path.join(IMAGES_PATH, 'redo.png')
 img_about = os.path.join(IMAGES_PATH, 'about.png')
+img_arrow_left = os.path.join(IMAGES_PATH, 'arrow_left.png')
+img_arrow_right = os.path.join(IMAGES_PATH, 'arrow_right.png')
+img_double_arrow_left = os.path.join(IMAGES_PATH, 'double_arrow_left.png')
+img_double_arrow_right = os.path.join(IMAGES_PATH, 'double_arrow_right.png')
+img_print_out = os.path.join(IMAGES_PATH, 'print_out.png')
 img_about_mgsp = os.path.join(IMAGES_PATH, 'about_mgsp.png')
 img_about_typo = os.path.join(IMAGES_PATH, 'about_typo.png')
 
@@ -254,6 +259,9 @@ NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с
 CATEGORY_SEPARATOR = '@'
 # Открывающие символы специальных комбинаций
 SPECIAL_COMBINATIONS_OPENING_SYMBOLS = ('^', '~', '`', '\'', '"', '*', '_', ':', '/', '\\', '|', '#', '$', '%', '&')
+
+# Максимальное количество элементов на одной странице ScrolledFrame
+MAX_ELEMENTS_ON_ONE_PAGE = 200
 
 LEARN_VALUES_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову',
                        'Der-Die-Das (для немецкого)')  # Варианты метода учёбы
@@ -629,16 +637,16 @@ class Dictionary(object):
         w = set_postfix(self.count_w, ('слово', 'слова', 'слов'))
         f = set_postfix(self.count_w + self.count_f, ('словоформа', 'словоформы', 'словоформ'))
         t = set_postfix(self.count_t, ('перевод', 'перевода', 'переводов'))
-        return f'< {self.count_w} {w} | {self.count_w + self.count_f} {f} | {self.count_t} {t} >'
+        return f'[ {self.count_w} {w} | {self.count_w + self.count_f} {f} | {self.count_t} {t} ]'
 
     # Вывести информацию о количестве избранных статей в словаре
     def dct_info_fav(self, count_w: int, count_t: int, count_f: int):
         w = set_postfix(count_w, ('слово', 'слова', 'слов'))
         f = set_postfix(count_w + count_f, ('словоформа', 'словоформы', 'словоформ'))
         t = set_postfix(count_t, ('перевод', 'перевода', 'переводов'))
-        return f'< {count_w}/{self.count_w} {w} | ' \
+        return f'[ {count_w}/{self.count_w} {w} | ' \
                f'{count_w + count_f}/{self.count_w + self.count_f} {f} | ' \
-               f'{count_t}/{self.count_t} {t} >'
+               f'{count_t}/{self.count_t} {t} ]'
 
     # Подсчитать количество избранных статей
     def count_fav_info(self):
@@ -2161,13 +2169,13 @@ def set_image(btn: ttk.Button, img: tk.PhotoImage, img_name: str, text_if_no_img
 
 
 # Ввод только целых чисел от 0 до max_val
-def validate_int_max(value: str, max_val: int):
-    return value == '' or value.isnumeric() and int(value) <= max_val
+def validate_int_min_max(value: str, min_val: int, max_val: int):
+    return value == '' or value.isnumeric() and min_val <= int(value) <= max_val
 
 
 # Ввод только целых чисел от 0 до 100
 def validate_percent(value: str):
-    return validate_int_max(value, 100)
+    return validate_int_min_max(value, 0, 100)
 
 
 # Валидация открывающего символа специальной комбинации
@@ -2408,6 +2416,8 @@ class PopupEntryW(tk.Toplevel):
         if validate_function:
             self.vcmd = (self.register(validate_function), '%P')
             self.entry_inp.configure(validate='key', validatecommand=self.vcmd)
+
+        self.entry_inp.icursor(len(default_value))
 
     # Нажатие на кнопку
     def ok(self):
@@ -2968,6 +2978,8 @@ class AddFormW(tk.Toplevel):
         self.btn_save.grid(row=4, columnspan=2, padx=6, pady=6)
 
         btn_disable(self.btn_save)
+
+        self.entry_form.icursor(len(self.var_form.get()))
 
     # Выбрать категорию и задать ей значение
     def choose(self):
@@ -4163,81 +4175,130 @@ class PrintW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
+        self.current_page = 1  # Номер текущей страницы ScrolledFrame (начиная с 1)
+        self.start_index = 0  # Номер по порядку первого слова на текущей странице ScrolledFrame (начиная с 0)
+        self.count_pages = None  # Количество страниц ScrolledFrame
+        self.count_elements = None  # Количество элементов на всех страницах ScrolledFrame
+        self.count_elements_on_page = None  # Количество элементов на текущей странице ScrolledFrame
+
         self.var_fav = tk.BooleanVar(value=False)
         self.var_forms = tk.BooleanVar(value=True)
         self.var_info = tk.StringVar()
+        self.var_current_page = tk.StringVar(value=str(self.current_page))
 
         self.img_about = tk.PhotoImage()
+        self.img_arrow_left = tk.PhotoImage()
+        self.img_arrow_right = tk.PhotoImage()
+        self.img_double_arrow_left = tk.PhotoImage()
+        self.img_double_arrow_right = tk.PhotoImage()
+        self.img_print_out = tk.PhotoImage()
 
-        self.lbl_dct_name = ttk.Label(self, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
-                                                            40, add_right_spaces=False),
+        def validate_and_goto_page_number(value: str):
+            res = validate_int_min_max(value, 1, self.count_pages)
+            if res and value != '' and int(value) != self.current_page:
+                self.go_to_page_with_number(int(value))
+            return res
+        self.vcmd_page = (self.register(validate_and_goto_page_number), '%P')
+
+        self.keys = []
+        self.frames = []
+        self.buttons = []
+        self.tips = []
+
+        self.frame_header = ttk.Frame(self, style='Invis.TFrame')
+        # {
+        self.btn_about_window = ttk.Button(self.frame_header, command=self.about_window, width=2, takefocus=False)
+        set_image(self.btn_about_window, self.img_about, img_about, '?')
+        self.btn_print_out = ttk.Button(self.frame_header, command=self.print_out, takefocus=False)
+        set_image(self.btn_print_out, self.img_print_out, img_print_out, 'Распечатать')
+        self.lbl_dct_name = ttk.Label(self.frame_header, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
+                                                                         40, add_right_spaces=False),
                                       justify='center', style='Default.TLabel')
-        self.btn_about_mgsp = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
-        set_image(self.btn_about_mgsp, self.img_about, img_about, '?')
-        self.frame_main = ttk.Frame(self, style='Default.TFrame')
-        # {
-        self.lbl_fav = ttk.Label(self.frame_main, text='Только избранные:', style='Default.TLabel')
-        self.lbl_forms = ttk.Label(self.frame_main, text='Все формы:', style='Default.TLabel')
-        self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=lambda: self.print(True),
-                                         style='Default.TCheckbutton')
-        self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, command=lambda: self.print(True),
-                                           style='Default.TCheckbutton')
+        self.frame_parameters = ttk.Frame(self.frame_header, style='Default.TFrame')
+        # { {
+        self.lbl_fav = ttk.Label(self.frame_parameters, text='Только избранные:', style='Default.TLabel')
+        self.lbl_forms = ttk.Label(self.frame_parameters, text='Все словоформы:', style='Default.TLabel')
+        self.check_fav = ttk.Checkbutton(self.frame_parameters, variable=self.var_fav,
+                                         command=lambda: self.go_to_first_page(), style='Default.TCheckbutton')
+        self.check_forms = ttk.Checkbutton(self.frame_parameters, variable=self.var_forms,
+                                           command=lambda: self.go_to_last_page(), style='Default.TCheckbutton')
+        # } }
         # }
-        self.scrolled_frame = ScrollFrame(self, 500, SCALE_WIDE_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.keys = [key for key in _0_global_dct.d.keys()]
-        self.frames = [ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
-                       for i in range(_0_global_dct.count_w)]
-        self.buttons = [ttk.Button(self.frames[i], text=_0_global_dct.d[self.keys[i]].print_briefly_with_forms(75),
-                                   command=lambda i=i: self.edit_note(i), takefocus=False, style='Flat.TButton')
-                        for i in range(_0_global_dct.count_w)]
-        self.tips = [ttip.Hovertip(self.buttons[i],
-                                   f'Верных ответов подряд: '
-                                   f'{_0_global_dct.d[self.keys[i]].correct_att_in_a_row_print()}\n'
-                                   f'Доля верных ответов: {_0_global_dct.d[self.keys[i]].percent_print()}',
-                                   hover_delay=666)
-                     for i in range(_0_global_dct.count_w)]
+        self.lbl_info = ttk.Label(self.frame_main, textvariable=self.var_info, style='Default.TLabel')
+        self.scrolled_frame = ScrollFrame(self.frame_main, 500, SCALE_WIDE_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.frame_page_buttons = ttk.Frame(self.frame_main, style='Invis.TFrame')
+        # { {
+        self.btn_first_page = ttk.Button(self.frame_page_buttons, command=self.go_to_first_page, width=2, takefocus=False)
+        set_image(self.btn_first_page, self.img_double_arrow_left, img_double_arrow_left, '<<')
+        self.btn_prev_page = ttk.Button(self.frame_page_buttons, command=self.go_to_prev_page, width=2, takefocus=False)
+        set_image(self.btn_prev_page, self.img_arrow_left, img_arrow_left, '<')
+        self.frame_current_page = ttk.Frame(self.frame_page_buttons, style='Invis.TFrame')
+        # { { {
+        self.lbl_current_page_1 = ttk.Label(self.frame_current_page, text='Страница', style='Default.TLabel')
+        self.entry_current_page = ttk.Entry(self.frame_current_page, textvariable=self.var_current_page,
+                                            validate='key', validatecommand=self.vcmd_page,
+                                            justify='center', width=3, style='Default.TEntry')
+        self.lbl_current_page_2 = ttk.Label(self.frame_current_page, text='из 1', style='Default.TLabel')
+        # } } }
+        self.btn_next_page = ttk.Button(self.frame_page_buttons, command=self.go_to_next_page, width=2, takefocus=False)
+        set_image(self.btn_next_page, self.img_arrow_right, img_arrow_right, '>')
+        self.btn_last_page = ttk.Button(self.frame_page_buttons, command=self.go_to_last_page, width=2, takefocus=False)
+        set_image(self.btn_last_page, self.img_double_arrow_right, img_double_arrow_right, '>>')
+        # } }
         # }
-        self.lbl_info = ttk.Label(self, textvariable=self.var_info, style='Default.TLabel')
-        self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
+        self.frame_fav_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.btn_fav_all = ttk.Button(self.frame_buttons, text='Добавить всё в избранное', command=self.fav_all,
+        self.btn_fav_all = ttk.Button(self.frame_fav_buttons, text='Добавить всё в избранное', command=self.fav_all,
                                       takefocus=False, style='Default.TButton')
-        self.btn_unfav_all = ttk.Button(self.frame_buttons, text='Убрать всё из избранного', command=self.unfav_all,
-                                        takefocus=False, style='Default.TButton')
-        self.btn_print_out = ttk.Button(self.frame_buttons, text='Распечатать словарь в файл', command=self.print_out,
+        self.btn_unfav_all = ttk.Button(self.frame_fav_buttons, text='Убрать всё из избранного', command=self.unfav_all,
                                         takefocus=False, style='Default.TButton')
         # }
 
-        self.lbl_dct_name.grid(  row=0, column=0,     padx=6,      pady=(6, 4), sticky='E')
-        self.btn_about_mgsp.grid(row=0, column=1,     padx=(0, 6), pady=(6, 4), sticky='W')
-        self.frame_main.grid(    row=1, columnspan=2, padx=6,      pady=(0, 4))
+        self.frame_header.grid(row=0, column=0, padx=6, pady=(6, 0))
         # {
+        self.btn_about_window.grid(row=0, column=0, padx=0,      pady=0)
+        self.btn_print_out.grid(   row=0, column=1, padx=0,      pady=0)
+        self.lbl_dct_name.grid(    row=0, column=2, padx=0,      pady=0)
+        self.frame_parameters.grid(row=0, column=3, padx=(6, 0), pady=0)
+        # { {
         self.lbl_fav.grid(    row=0, column=0, padx=(6, 1), pady=6, sticky='E')
         self.check_fav.grid(  row=0, column=1, padx=(0, 6), pady=6, sticky='W')
         self.lbl_forms.grid(  row=0, column=2, padx=(6, 1), pady=6, sticky='E')
         self.check_forms.grid(row=0, column=3, padx=(0, 6), pady=6, sticky='W')
+        # } }
         # }
-        self.scrolled_frame.grid(row=2, columnspan=2, padx=6, pady=6)
+        self.frame_main.grid(row=1, column=0, padx=6, pady=6)
         # {
-        for i in range(_0_global_dct.count_w):
-            self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            # { {
-            self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
-            # } }
+        self.lbl_info.grid(          row=0, column=0, padx=6, pady=(0, 6))
+        self.scrolled_frame.grid(    row=1, column=0, padx=0, pady=(0, 6))
+        self.frame_page_buttons.grid(row=2, column=0, padx=0, pady=0)
+        # { {
+        self.btn_first_page.grid(    row=0, column=0, padx=3, pady=0)
+        self.btn_prev_page.grid(     row=0, column=1, padx=3, pady=0)
+        self.frame_current_page.grid(row=0, column=2, padx=3, pady=0)
+        # { { {
+        self.lbl_current_page_1.grid(row=0, column=0, padx=0, pady=0)
+        self.entry_current_page.grid(row=0, column=1, padx=0, pady=0)
+        self.lbl_current_page_2.grid(row=0, column=2, padx=0, pady=0)
+        # } } }
+        self.btn_next_page.grid(row=0, column=3, padx=3, pady=0)
+        self.btn_last_page.grid(row=0, column=4, padx=3, pady=0)
+        # } }
         # }
-        self.lbl_info.grid(     row=3, columnspan=2, padx=6, pady=(0, 6))
-        self.frame_buttons.grid(row=4, columnspan=2, padx=6, pady=(0, 6))
+        self.frame_fav_buttons.grid(row=3, column=0, padx=6, pady=(0, 6))
         # {
-        self.btn_fav_all.grid(  row=0, column=0,     padx=(0, 6), pady=(0, 6))
-        self.btn_unfav_all.grid(row=0, column=1,     padx=0,      pady=(0, 6))
-        self.btn_print_out.grid(row=1, columnspan=2, padx=0,      pady=0)
+        self.btn_fav_all.grid(  row=0, column=0, padx=(0, 6), pady=0)
+        self.btn_unfav_all.grid(row=0, column=1, padx=(0, 6), pady=0)
         # }
 
-        for i in range(_0_global_dct.count_w):
-            self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
-            self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav_one(i))
-            self.frames[i].bind('<Control-f>', lambda event, i=i: self.fav_one(i))
+        self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
+        self.tip_btn_print_out = ttip.Hovertip(self.btn_print_out, 'Распечатать словарь в файл', hover_delay=450)
+        self.tip_btn_first_page = ttip.Hovertip(self.btn_first_page, 'В начало', hover_delay=650)
+        self.tip_btn_prev_page = ttip.Hovertip(self.btn_prev_page, 'На предыдущую страницу', hover_delay=650)
+        self.tip_btn_next_page = ttip.Hovertip(self.btn_next_page, 'На следующую страницу', hover_delay=650)
+        self.tip_btn_last_page = ttip.Hovertip(self.btn_last_page, 'В конец', hover_delay=650)
 
         self.bind('<Up>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
         self.bind('<Control-U>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
@@ -4247,7 +4308,7 @@ class PrintW(tk.Toplevel):
         self.bind('<Control-D>', lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
         self.bind('<Control-d>', lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
 
-        self.var_info.set(_0_global_dct.dct_info())
+        self.print(True)  # Выводим статьи
 
     # Изменить статью
     def edit_note(self, index: int):
@@ -4257,20 +4318,18 @@ class PrintW(tk.Toplevel):
 
     # Напечатать словарь
     def print(self, move_scroll: bool):
-        # Отвязываем старые привязанные события
-        for i in range(_0_global_dct.count_w):
-            self.frames[i].unbind('<Enter>')
-            self.frames[i].unbind('<Control-F>')
-            self.frames[i].unbind('<Control-f>')
+        # Удаляем старые подсказки
+        for tip in self.tips:
+            tip.__del__()
         # Удаляем старые кнопки
         for btn in self.buttons:
             btn.destroy()
         # Удаляем старые фреймы
         for fr in self.frames:
+            fr.unbind('<Enter>')
+            fr.unbind('<Control-F>')
+            fr.unbind('<Control-f>')
             fr.destroy()
-        # Удаляем старые подсказки
-        for tip in self.tips:
-            tip.__del__()
 
         # Выбираем нужные статьи и выводим информацию о количестве статей
         if self.var_fav.get():
@@ -4283,22 +4342,44 @@ class PrintW(tk.Toplevel):
 
             self.var_info.set(_0_global_dct.dct_info())
 
+        # Вычисляем значения некоторых количественных переменных
+        self.count_elements = len(self.keys)
+        if self.count_elements == 0:
+            self.count_pages = 1
+        else:
+            self.count_pages = math.ceil(self.count_elements / MAX_ELEMENTS_ON_ONE_PAGE)
+        if self.current_page > self.count_pages:
+            self.current_page = self.count_pages
+            self.start_index = (self.count_pages - 1) * MAX_ELEMENTS_ON_ONE_PAGE
+        if self.current_page == self.count_pages:
+            if self.count_elements % MAX_ELEMENTS_ON_ONE_PAGE == 0 and self.count_elements != 0:
+                self.count_elements_on_page = MAX_ELEMENTS_ON_ONE_PAGE
+            else:
+                self.count_elements_on_page = self.count_elements % MAX_ELEMENTS_ON_ONE_PAGE
+        else:
+            self.count_elements_on_page = MAX_ELEMENTS_ON_ONE_PAGE
+        # Выводим номер страницы
+        self.var_current_page.set(str(self.current_page))
+        self.entry_current_page.icursor(len(str(self.current_page)))
+        self.lbl_current_page_2.configure(text=f'из {self.count_pages}')
+
         # Создаём новые фреймы
         self.frames = [ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
-                       for i in range(_0_global_dct.count_w)]
+                       for i in range(self.count_elements_on_page)]
         # Создаём новые кнопки
-        self.buttons = [ttk.Button(self.frames[i], command=lambda i=i: self.edit_note(i), takefocus=False,
-                                   style='Flat.TButton')
-                        for i in range(len(self.keys))]
+        self.buttons = [ttk.Button(self.frames[i], command=lambda i=i: self.edit_note(self.start_index + i),
+                                   takefocus=False, style='Flat.TButton')
+                        for i in range(self.count_elements_on_page)]
         # Выводим текст на кнопки
         if self.var_forms.get():
-            for i in range(len(self.keys)):
-                self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly_with_forms(75))
+            for i in range(self.count_elements_on_page):
+                self.buttons[i].configure(text=_0_global_dct.d[self.keys[self.start_index + i]].
+                                          print_briefly_with_forms(75))
         else:
-            for i in range(len(self.keys)):
-                self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly(75))
+            for i in range(self.count_elements_on_page):
+                self.buttons[i].configure(text=_0_global_dct.d[self.keys[self.start_index + i]].print_briefly(75))
         # Расставляем фреймы и кнопки
-        for i in range(len(self.keys)):
+        for i in range(self.count_elements_on_page):
             self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
             # {
             self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
@@ -4306,16 +4387,18 @@ class PrintW(tk.Toplevel):
         # Создаём подсказки
         self.tips = [ttip.Hovertip(self.buttons[i],
                                    f'Верных ответов подряд: '
-                                   f'{_0_global_dct.d[self.keys[i]].correct_att_in_a_row_print()}\n'
-                                   f'Доля верных ответов: {_0_global_dct.d[self.keys[i]].percent_print()}',
+                                   f'{_0_global_dct.d[self.keys[self.start_index + i]].correct_att_in_a_row_print()}\n'
+                                   f'Доля верных ответов: '
+                                   f'{_0_global_dct.d[self.keys[self.start_index + i]].percent_print()}',
                                    hover_delay=666)
-                     for i in range(len(self.keys))]
+                     for i in range(self.count_elements_on_page)]
         # Привязываем события
-        for i in range(_0_global_dct.count_w):
+        for i in range(self.count_elements_on_page):
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav_one(i))
             self.frames[i].bind('<Control-f>', lambda event, i=i: self.fav_one(i))
 
+        # Если требуется, прокручиваем вверх
         if move_scroll:
             self.scrolled_frame.canvas.yview_moveto(0.0)
 
@@ -4323,9 +4406,10 @@ class PrintW(tk.Toplevel):
     def refresh_one_button(self, index: int):
         # Выводим текст на кнопку
         if self.var_forms.get():
-            self.buttons[index].configure(text=_0_global_dct.d[self.keys[index]].print_briefly_with_forms(75))
+            self.buttons[index].configure(text=_0_global_dct.d[self.keys[self.start_index + index]].
+                                          print_briefly_with_forms(75))
         else:
-            self.buttons[index].configure(text=_0_global_dct.d[self.keys[index]].print_briefly(75))
+            self.buttons[index].configure(text=_0_global_dct.d[self.keys[self.start_index + index]].print_briefly(75))
 
         # Выводим информацию о количестве статей
         if self.var_fav.get():
@@ -4338,15 +4422,48 @@ class PrintW(tk.Toplevel):
     def refresh_all_buttons(self):
         # Выводим текст на кнопки
         if self.var_forms.get():
-            for i in range(len(self.keys)):
-                self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly_with_forms(75))
+            for i in range(self.count_elements_on_page):
+                self.buttons[i].configure(text=_0_global_dct.d[self.keys[self.start_index + i]].
+                                          print_briefly_with_forms(75))
         else:
-            for i in range(len(self.keys)):
-                self.buttons[i].configure(text=_0_global_dct.d[self.keys[i]].print_briefly(75))
+            for i in range(self.count_elements_on_page):
+                self.buttons[i].configure(text=_0_global_dct.d[self.keys[self.start_index + i]].print_briefly(75))
+
+    # Перейти на предыдущую страницу
+    def go_to_prev_page(self):
+        if self.current_page != 1:
+            self.current_page -= 1
+            self.start_index -= MAX_ELEMENTS_ON_ONE_PAGE
+            self.print(True)
+
+    # Перейти на следующую страницу
+    def go_to_next_page(self):
+        if self.current_page != self.count_pages:
+            self.current_page += 1
+            self.start_index += MAX_ELEMENTS_ON_ONE_PAGE
+            self.print(True)
+
+    # Перейти на первую страницу
+    def go_to_first_page(self):
+        self.current_page = 1
+        self.start_index = 0
+        self.print(True)
+
+    # Перейти на последнюю страницу
+    def go_to_last_page(self):
+        self.current_page = self.count_pages
+        self.start_index = (self.current_page - 1) * MAX_ELEMENTS_ON_ONE_PAGE
+        self.print(True)
+
+    # Перейти на страницу с заданным номером
+    def go_to_page_with_number(self, number: int):
+        self.current_page = number
+        self.start_index = (number - 1) * MAX_ELEMENTS_ON_ONE_PAGE
+        self.print(True)
 
     # Добавить одну статью в избранное
     def fav_one(self, index: int):
-        _0_global_dct.d[self.keys[index]].change_fav()
+        _0_global_dct.d[self.keys[self.start_index + index]].change_fav()
 
         self.refresh_one_button(index)
 
@@ -4358,7 +4475,7 @@ class PrintW(tk.Toplevel):
             return
         _0_global_dct.fav_all()
 
-        self.refresh_all_buttons()
+        self.print(False)
 
     # Нажатие на кнопку "Убрать все статьи из избранного"
     def unfav_all(self):
@@ -5317,6 +5434,8 @@ class AddW(tk.Toplevel):
         self.vcmd_tr = (self.register(lambda value: validate_entries(value, self.var_wrd.get())), '%P')
         self.entry_wrd['validatecommand'] = self.vcmd_wrd
         self.entry_tr['validatecommand'] = self.vcmd_tr
+
+        self.entry_wrd.icursor(len(self.var_wrd.get()))
 
     # Добавление статьи
     def add(self):
