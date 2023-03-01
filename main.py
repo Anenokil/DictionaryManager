@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-7.1'
+PROGRAM_VERSION = 'v7.1.0-PRE-7.2'
 PROGRAM_DATE = '1.3.2023'
-PROGRAM_TIME = '17:22 (UTC+3)'
+PROGRAM_TIME = '18:00 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -37,6 +37,7 @@ SCALE_DEF = 10
 
 SCALE_WIDE_FRAME_WIDTH         = (532, 604, 682, 757, 757, 832, 907, 980, 1057)
 SCALE_NARROW_FRAME_WIDTH       = (356, 404, 457, 508, 508, 557, 607, 657,  707)
+SCALE_FRAME_HEIGHT             = (400, 430, 460, 490, 520, 550, 580, 610,  640)
 SCALE_CUSTOM_THEME_FRAME_WIDTH = (410, 440, 455, 495, 517, 543, 590, 615,  643)
 SCALE_CUSTOM_THEME_COMBO_WIDTH = ( 16,  16,  14,  12,  11,  11,  10,   9,    8)
 
@@ -260,7 +261,7 @@ CATEGORY_SEPARATOR = '@'
 # Открывающие символы специальных комбинаций
 SPECIAL_COMBINATIONS_OPENING_SYMBOLS = ('^', '~', '`', '\'', '"', '*', '_', ':', '/', '\\', '|', '#', '$', '%', '&')
 
-# Максимальное количество элементов на одной странице ScrolledFrame
+# Максимальное количество элементов на одной странице ScrollFrame
 MAX_ELEMENTS_ON_ONE_PAGE = 200
 
 LEARN_VALUES_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову',
@@ -2729,13 +2730,15 @@ class ParticularMatchesW(tk.Toplevel):
                                     justify='center', style='Default.TLabel')
         self.lbl_wrd = ttk.Label(self, text=f'Слова, содержащие "{self.query}"', justify='center',
                                  style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, 500, SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_wrd = ScrollFrame(self, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
+                                              SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         self.widgets_wrd = []
         # }
         self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{self.query}"', justify='center',
                                 style='Default.TLabel')
-        self.scrolled_frame_tr = ScrollFrame(self, 500, SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN],
+        self.scrolled_frame_tr = ScrollFrame(self, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
+                                             SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN],
                                              scrollbar_position='left')
         # {
         self.widgets_tr = []
@@ -2854,7 +2857,8 @@ class ChooseOneOfSimilarNotesW(tk.Toplevel):
         self.answer = None
 
         self.lbl_header = ttk.Label(self, text='Выберите одну из статей', justify='center', style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, 500, SCALE_WIDE_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_wrd = ScrollFrame(self, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
+                                              SCALE_WIDE_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         self.widgets_wrd = []
         # }
@@ -3473,7 +3477,8 @@ class CustomThemeSettingsW(tk.Toplevel):
                                          takefocus=False, style='Default.TButton')
         # }
         # Прокручиваемая область с настройками
-        self.scrolled_frame = ScrollFrame(self, 400, SCALE_CUSTOM_THEME_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame = ScrollFrame(self, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
+                                          SCALE_CUSTOM_THEME_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         # Выбор цветов
         self.labels = [ttk.Label(self.scrolled_frame.frame_canvas, style='Default.TLabel')
@@ -4175,11 +4180,11 @@ class PrintW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.current_page = 1  # Номер текущей страницы ScrolledFrame (начиная с 1)
-        self.start_index = 0  # Номер по порядку первого слова на текущей странице ScrolledFrame (начиная с 0)
-        self.count_pages = None  # Количество страниц ScrolledFrame
-        self.count_elements = None  # Количество элементов на всех страницах ScrolledFrame
-        self.count_elements_on_page = None  # Количество элементов на текущей странице ScrolledFrame
+        self.current_page = 1  # Номер текущей страницы ScrollFrame (начиная с 1)
+        self.start_index = 0  # Номер по порядку первого слова на текущей странице ScrollFrame (начиная с 0)
+        self.count_pages = None  # Количество страниц ScrollFrame
+        self.count_elements = None  # Количество элементов на всех страницах ScrollFrame
+        self.count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
 
         self.var_fav = tk.BooleanVar(value=False)
         self.var_forms = tk.BooleanVar(value=True)
@@ -4227,7 +4232,8 @@ class PrintW(tk.Toplevel):
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.lbl_info = ttk.Label(self.frame_main, textvariable=self.var_info, style='Default.TLabel')
-        self.scrolled_frame = ScrollFrame(self.frame_main, 500, SCALE_WIDE_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame = ScrollFrame(self.frame_main, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
+                                          SCALE_WIDE_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.frame_page_buttons = ttk.Frame(self.frame_main, style='Invis.TFrame')
         # { {
         self.btn_first_page = ttk.Button(self.frame_page_buttons, command=self.go_to_first_page, width=2, takefocus=False)
@@ -4854,12 +4860,14 @@ class SearchW(tk.Toplevel):
                                      takefocus=False, style='Default.TButton')
         # }
         self.lbl_wrd = ttk.Label(self, text='Поиск по слову', style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, 500, SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_wrd = ScrollFrame(self, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
+                                              SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         self.widgets_wrd = []
         # }
         self.lbl_tr = ttk.Label(self, text='Поиск по переводу', style='Default.TLabel')
-        self.scrolled_frame_tr = ScrollFrame(self, 500, SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN],
+        self.scrolled_frame_tr = ScrollFrame(self, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
+                                             SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN],
                                              scrollbar_position='left')
         # {
         self.widgets_tr = []
