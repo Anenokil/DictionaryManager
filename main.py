@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-7.2'
+PROGRAM_VERSION = 'v7.1.0-PRE-7.3'
 PROGRAM_DATE = '1.3.2023'
-PROGRAM_TIME = '18:00 (UTC+3)'
+PROGRAM_TIME = '18:29 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -4286,7 +4286,7 @@ class PrintW(tk.Toplevel):
         self.frame_current_page.grid(row=0, column=2, padx=3, pady=0)
         # { { {
         self.lbl_current_page_1.grid(row=0, column=0, padx=0, pady=0)
-        self.entry_current_page.grid(row=0, column=1, padx=0, pady=0)
+        self.entry_current_page.grid(row=0, column=1, padx=3, pady=0)
         self.lbl_current_page_2.grid(row=0, column=2, padx=0, pady=0)
         # } } }
         self.btn_next_page.grid(row=0, column=3, padx=3, pady=0)
