@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-7.3'
-PROGRAM_DATE = '1.3.2023'
-PROGRAM_TIME = '18:29 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.0-PRE-7.4'
+PROGRAM_DATE = '2.3.2023'
+PROGRAM_TIME = '18:35 (UTC+3)'
 
 SAVES_VERSION = 3  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -4896,6 +4896,8 @@ class SearchW(tk.Toplevel):
     def search(self):
         self.search_wrd()  # Поиск статей по слову
         self.search_tr()  # Поиск статей по переводу
+
+        self.entry_input.icursor(len(self.var_query.get()))
 
     # Поиск статей по слову
     def search_wrd(self):
