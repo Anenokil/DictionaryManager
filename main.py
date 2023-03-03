@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-8.4'
+PROGRAM_VERSION = 'v7.1.0-PRE-8.5'
 PROGRAM_DATE = '3.3.2023'
-PROGRAM_TIME = '4:06 (UTC+3)'
+PROGRAM_TIME = '5:09 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -290,13 +290,13 @@ class Entry(object):
     # self.correct_att - количество удачных попыток
     # self.score - доля удачных попыток
     # self.correct_att_in_a_row - количество последних удачных попыток подряд
-    # self.last_answer_session - сессия, на которой было в последний раз отвечено это слово
+    # self.latest_answer_session - сессия, на которой было в последний раз отвечено это слово
     def __init__(self,
                  wrd: str,
                  tr: str | list[str],
                  notes: str | list[str] | None = None,
                  forms: dict[tuple[str, ...], str] | None = None,
-                 fav=False, all_att=0, correct_att=0, correct_att_in_a_row=0, last_answer_session=0):
+                 fav=False, all_att=0, correct_att=0, correct_att_in_a_row=0, latest_answer_session=0):
         self.wrd = wrd
         self.tr = tr.copy() if (type(tr) == list) else [tr]
         if notes is None:
@@ -316,7 +316,7 @@ class Entry(object):
         self.correct_att = correct_att
         self.score = correct_att / all_att if (all_att != 0) else 0
         self.correct_att_in_a_row = correct_att_in_a_row
-        self.last_answer_session = last_answer_session
+        self.latest_answer_session = latest_answer_session
 
     # Преобразовать переводы в читаемый вид
     def tr_to_str(self):
@@ -586,7 +586,7 @@ class Entry(object):
             self.correct_att_in_a_row = 1
         else:
             self.correct_att_in_a_row += 1
-        self.last_answer_session = session_number
+        self.latest_answer_session = session_number
 
     # Обновить статистику, если совершена неверная попытка
     def incorrect(self):
@@ -601,7 +601,7 @@ class Entry(object):
     def save(self, file: typing.TextIO):
         file.write(f'w{self.wrd}\n')
         file.write(f'{self.all_att}:{self.correct_att}:{self.correct_att_in_a_row}\n')
-        file.write(f'{self.last_answer_session}\n')
+        file.write(f'{self.latest_answer_session}\n')
         file.write(f'{self.tr[0]}\n')
         for i in range(1, self.count_t):
             file.write(f't{self.tr[i]}\n')
@@ -835,13 +835,13 @@ class Dictionary(object):
 
     # Добавить статью в словарь (при чтении файла)
     def load_entry(self, wrd: str, tr: str, all_att: int, correct_att: int, correct_att_in_a_row: int,
-                   last_answer_session: int):
+                   latest_answer_session: int):
         i = 0
         while True:
             key = wrd_to_key(wrd, i)
             if key not in self.d.keys():
                 self.d[key] = Entry(wrd, [tr], all_att=all_att, correct_att=correct_att,
-                                    correct_att_in_a_row=correct_att_in_a_row, last_answer_session=last_answer_session)
+                                    correct_att_in_a_row=correct_att_in_a_row, latest_answer_session=latest_answer_session)
                 self.count_w += 1
                 self.count_t += 1
                 return key
@@ -910,9 +910,9 @@ class Dictionary(object):
                 elif line[0] == 'w':
                     wrd = line[1:]
                     all_att, correct_att, correct_att_in_a_row = (int(el) for el in file.readline().strip().split(':'))
-                    last_answer_session = int(file.readline().strip())
+                    latest_answer_session = int(file.readline().strip())
                     tr = file.readline().strip()
-                    key = self.load_entry(wrd, tr, all_att, correct_att, correct_att_in_a_row, last_answer_session)
+                    key = self.load_entry(wrd, tr, all_att, correct_att, correct_att_in_a_row, latest_answer_session)
                 elif line[0] == 't':
                     self.add_tr(key, line[1:])
                 elif line[0] == 'n':
@@ -1276,7 +1276,7 @@ def random_smart(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple
         if 100 * entry.score < min_good_score_perc:
             score *= 1.5
         score += 100 // (entry.all_att + 1)
-        summ += score
+        summ += round(score)
 
     r = random.randint(1, summ)
     for (key, frm) in pool:
@@ -1285,7 +1285,7 @@ def random_smart(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple
         if 100 * entry.score < min_good_score_perc:
             score *= 1.5
         score += 100 // (entry.all_att + 1)
-        r -= score
+        r -= round(score)
         if r <= 0:
             return key, frm
 
@@ -4647,19 +4647,36 @@ class LearnW(tk.Toplevel):
             for key in all_keys:
                 if _0_global_dct.d[key].fav:
                     self.pool.add((key, None))
-                else:
-                    rnd = random.randint(1, 4 * (_0_global_dct.count_w - _0_global_dct.count_fav_info()[0]))
-                    if rnd <= _0_global_dct.count_fav_info()[0]:
-                        self.pool.add((key, None))
             if self.with_forms:
                 for key in all_keys:
-                    for frm in _0_global_dct.d[key].forms.keys():
-                        if _0_global_dct.d[key].fav:
+                    if _0_global_dct.d[key].fav:
+                        for frm in _0_global_dct.d[key].forms.keys():
                             self.pool.add((key, frm))
-                        else:
-                            rnd = random.randint(1, 4 * (_0_global_dct.count_f - _0_global_dct.count_fav_info()[2]))
-                            if rnd <= _0_global_dct.count_fav_info()[2]:
-                                self.pool.add((key, frm))
+
+            # Помимо всех избранных слов (пусть их количество N) добавим N // 4 остальных слов
+            # Выберем их из самых давно не отвечаемых слов (и только по одной словоформе для каждого из них)
+
+            # Отбираем слова, не являющиеся избранными
+            unfav_keys = list(k for k in all_keys if not _0_global_dct.d[k].fav)
+            # Сортируем по давности ответа
+            unfav_keys = sorted(unfav_keys, key=lambda k: _0_global_dct.d[k].latest_answer_session)
+            # Находим N // 4
+            count_unfav_keys = min(len(unfav_keys), _0_global_dct.count_fav_info()[0] // 4)
+            # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
+            latest_session = _0_global_dct.d[unfav_keys[count_unfav_keys-1]].latest_answer_session
+            # Оставляем только слова с номером сессии <= S
+            unfav_keys = list(k for k in unfav_keys if _0_global_dct.d[k].latest_answer_session <= latest_session)
+            # Перемешиваем их
+            random.shuffle(unfav_keys)
+            # И выбираем из них N // 4 слов
+            if self.with_forms:
+                for i in range(count_unfav_keys):
+                    key = unfav_keys[i]
+                    forms = tuple([None]) + tuple(_0_global_dct.d[key].forms.keys())
+                    self.pool.add((key, random.choice(forms)))
+            else:
+                for i in range(count_unfav_keys):
+                    self.pool.add((unfav_keys[i], None))
         elif self.words == LEARN_VALUES_WORDS[2]:  # Учить только избранные слова
             for key in all_keys:
                 if _0_global_dct.d[key].fav:
