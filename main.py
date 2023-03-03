@@ -19,9 +19,11 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-8.2'
-PROGRAM_DATE = '2.3.2023'
-PROGRAM_TIME = '19:29 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.0-PRE-8.3'
+PROGRAM_DATE = '3.3.2023'
+PROGRAM_TIME = '3:37 (UTC+3)'
+
+""" Версии ресурсов """
 
 SAVES_VERSION = 4  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
@@ -4892,7 +4894,7 @@ class LearnW(tk.Toplevel):
             _0_global_has_progress = True
 
         # Выбор слова
-        if self.words == LEARN_VALUES_ORDER[0]:
+        if self.order == LEARN_VALUES_ORDER[0]:
             self.current_key, self.current_form = random.choice(tuple(self.pool))
         else:
             self.current_key, self.current_form = random_hard(_0_global_dct, self.pool, _0_global_min_good_score_perc)
