@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-8.3'
+PROGRAM_VERSION = 'v7.1.0-PRE-8.4'
 PROGRAM_DATE = '3.3.2023'
-PROGRAM_TIME = '3:37 (UTC+3)'
+PROGRAM_TIME = '4:06 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -1267,23 +1267,25 @@ def set_postfix(n: int, wrd_forms: tuple[str, str, str]):
 
 
 # Выбрать случайное слово с учётом сложности
-def random_hard(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple[tuple[str, int], tuple[str, ...]]],
-                min_good_score_perc: int) -> tuple[tuple[str, int], None] | tuple[tuple[str, int], tuple[str, ...]]:
+def random_smart(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple[tuple[str, int], tuple[str, ...]]],
+                 min_good_score_perc: int) -> tuple[tuple[str, int], None] | tuple[tuple[str, int], tuple[str, ...]]:
     summ = 0
     for (key, frm) in pool:
         entry = dct.d[key]
-        summ += (100 - round(100 * entry.score)) * 7 + 1
-        summ += 100 // (entry.all_att + 1)
+        score = (100 - round(100 * entry.score)) + 1
         if 100 * entry.score < min_good_score_perc:
-            summ += 100
+            score *= 1.5
+        score += 100 // (entry.all_att + 1)
+        summ += score
 
     r = random.randint(1, summ)
     for (key, frm) in pool:
         entry = dct.d[key]
-        r -= (100 - round(100 * entry.score)) * 7 + 1
-        r -= 100 // (entry.all_att + 1)
+        score = (100 - round(100 * entry.score)) + 1
         if 100 * entry.score < min_good_score_perc:
-            r -= 100
+            score *= 1.5
+        score += 100 // (entry.all_att + 1)
+        r -= score
         if r <= 0:
             return key, frm
 
@@ -4897,7 +4899,7 @@ class LearnW(tk.Toplevel):
         if self.order == LEARN_VALUES_ORDER[0]:
             self.current_key, self.current_form = random.choice(tuple(self.pool))
         else:
-            self.current_key, self.current_form = random_hard(_0_global_dct, self.pool, _0_global_min_good_score_perc)
+            self.current_key, self.current_form = random_smart(_0_global_dct, self.pool, _0_global_min_good_score_perc)
 
         # Вывод слова в журнал
         if self.learn_method == LEARN_VALUES_METHOD[0]:
