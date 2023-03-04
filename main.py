@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-9'
-PROGRAM_DATE = '3.3.2023'
-PROGRAM_TIME = '9:09 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.0-PRE-10.1'
+PROGRAM_DATE = '4.3.2023'
+PROGRAM_TIME = '18:58 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -2802,136 +2802,6 @@ class IncorrectAnswerW(tk.Toplevel):
         self.wait_window()
 
         return self.answer
-
-
-# Окно вывода похожих статей для редактирования, если нет точного совпадения
-class ParticularMatchesW(tk.Toplevel):
-    def __init__(self, parent, query: str):
-        super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Такой статьи не найдено')
-        self.resizable(width=False, height=False)
-        self.configure(bg=ST_BG[th])
-
-        self.query = query
-
-        self.lbl_header = ttk.Label(self, text=f'Слово "{self.query}" отсутствует в словаре\n'
-                                               f'Возможно вы искали:',
-                                    justify='center', style='Default.TLabel')
-        self.lbl_wrd = ttk.Label(self, text=f'Слова, содержащие "{self.query}"', justify='center',
-                                 style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
-                                              SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
-        # {
-        self.widgets_wrd = []
-        # }
-        self.lbl_tr = ttk.Label(self, text=f'Переводы, содержащие "{self.query}"', justify='center',
-                                style='Default.TLabel')
-        self.scrolled_frame_tr = ScrollFrame(self, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
-                                             SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN],
-                                             scrollbar_position='left')
-        # {
-        self.widgets_tr = []
-        # }
-
-        self.lbl_header.grid(        row=0, column=0, columnspan=2, padx=6,      pady=(6, 3))
-        self.lbl_wrd.grid(           row=1, column=0,               padx=(6, 3), pady=(0, 3))
-        self.lbl_tr.grid(            row=1, column=1,               padx=(3, 6), pady=(0, 3))
-        self.scrolled_frame_wrd.grid(row=2, column=0,               padx=6,      pady=(0, 6))
-        self.scrolled_frame_tr.grid( row=2, column=1,               padx=6,      pady=(0, 6))
-
-        self.print()
-
-    # Изменить статью
-    def edit_note(self, key: tuple[str, int]):
-        EditW(self, key).open()
-
-        self.destroy()
-
-    # Вывод статей
-    def print(self):
-        self.search_wrd()  # Поиск статей по слову
-        self.search_tr()  # Поиск статей по переводу
-
-    # Поиск статей по слову
-    def search_wrd(self):
-        # Искомое слово
-        query = encode_special_combinations(self.query)
-
-        # Частичное совпадение
-        self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
-                                       text=split_text('Частичное совпадение:', 50, 0), style='Flat.TLabel')]
-        particular_matches = _0_global_dct.get_words_with_content(query)
-        if particular_matches:
-            for (key, text) in particular_matches:
-                self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
-                                                text=split_text(text, 50, 5),
-                                                command=lambda key=key: self.edit_note(key),
-                                                takefocus=False, style='Flat.TButton')]
-        else:
-            self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
-                                           text=split_text('Частичных совпадений не найдено', 50, 0),
-                                           style='Flat.TLabel')]
-
-        # Расположение виджетов
-        for i in range(len(self.widgets_wrd)):
-            self.widgets_wrd[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-
-        self.scrolled_frame_wrd.canvas.yview_moveto(0.0)
-
-    # Поиск статей по переводу
-    def search_tr(self):
-        # Искомый перевод
-        query = encode_special_combinations(self.query)
-
-        # Полное совпадение
-        self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
-                                      text=split_text('Полное совпадение:', 50, 0),
-                                      style='Flat.TLabel')]
-        count = 0
-        for key in _0_global_dct.d.keys():
-            entry = _0_global_dct.d[key]
-            if query in entry.tr:
-                self.widgets_tr += [ttk.Button(self.scrolled_frame_tr.frame_canvas,
-                                               text=entry.print_all(50, 13),
-                                               command=lambda key=key: self.edit_note(key),
-                                               takefocus=False, style='Flat.TButton')]
-                count += 1
-        if count == 0:
-            self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
-                                          text=split_text(f'Слово с переводом "{query}" отсутствует в словаре', 50, 0),
-                                          style='Flat.TLabel')]
-
-        # Частичное совпадение
-        self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
-                                      text=split_text('\nЧастичное совпадение:', 50, 0), style='Flat.TLabel')]
-        particular_matches = _0_global_dct.get_translations_with_content(query)
-        if particular_matches:
-            for (key, text) in particular_matches:
-                self.widgets_tr += [ttk.Button(self.scrolled_frame_tr.frame_canvas,
-                                               text=split_text(text, 50, 5),
-                                               command=lambda key=key: self.edit_note(key),
-                                               takefocus=False, style='Flat.TButton')]
-        else:
-            self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
-                                          text=split_text('Частичных совпадений не найдено', 50, 0),
-                                          style='Flat.TLabel')]
-
-        # Расположение виджетов
-        for i in range(len(self.widgets_tr)):
-            self.widgets_tr[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-
-        self.scrolled_frame_tr.canvas.yview_moveto(0.0)
-
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-    def open(self):
-        self.set_focus()
-
-        self.grab_set()
-        self.wait_window()
 
 
 # Окно выбора одной статьи из нескольких с одинаковыми словами
@@ -6271,8 +6141,6 @@ class MainW(tk.Tk):
         self.entry_word = ttk.Entry(self.frame_word, textvariable=self.var_word, width=30, style='Default.TEntry')
         self.btn_search = ttk.Button(self.frame_word, text='Найти статью', command=self.search,
                                      takefocus=False, style='Default.TButton')
-        self.btn_edit = ttk.Button(self.frame_word, text='Изменить статью', command=self.edit,
-                                   takefocus=False, style='Default.TButton')
         self.btn_add = ttk.Button(self.frame_word, text='Добавить статью', command=self.add,
                                   takefocus=False, style='Default.TButton')
         # } }
@@ -6306,8 +6174,7 @@ class MainW(tk.Tk):
         # { {
         self.entry_word.grid(row=0, padx=6, pady=(6, 3))
         self.btn_search.grid(row=1, padx=6, pady=(3, 3))
-        self.btn_edit.grid(  row=2, padx=6, pady=(3, 3))
-        self.btn_add.grid(   row=3, padx=6, pady=(3, 6))
+        self.btn_add.grid(   row=2, padx=6, pady=(3, 6))
         # } }
         self.btn_settings.grid(     row=3, padx=0, pady=(3, 3))
         self.btn_check_updates.grid(row=4, padx=0, pady=(3, 3))
@@ -6337,17 +6204,6 @@ class MainW(tk.Tk):
     def search(self):
         wrd = self.var_word.get()
         SearchW(self, wrd).open()
-
-    # Нажатие на кнопку "Изменить статью"
-    def edit(self):
-        wrd = encode_special_combinations(self.var_word.get())
-        if wrd_to_key(wrd, 0) not in _0_global_dct.d.keys():
-            ParticularMatchesW(self, wrd).open()  # Если такого слова нет, то выводятся частично совпадающие слова
-            return
-        key = _0_global_dct.choose_one_of_similar_entries(self, wrd)
-        if not key:
-            return None
-        EditW(self, key).open()
 
     # Нажатие на кнопку "Добавить статью"
     def add(self):
