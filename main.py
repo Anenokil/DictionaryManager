@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-8.5'
+PROGRAM_VERSION = 'v7.1.0-PRE-9'
 PROGRAM_DATE = '3.3.2023'
-PROGRAM_TIME = '5:09 (UTC+3)'
+PROGRAM_TIME = '9:09 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -217,6 +217,7 @@ if TMP_FN in os.listdir(RESOURCES_PATH):
 IMG_NAMES = ['ok', 'cancel',
              'add', 'delete', 'edit',
              'undo', 'redo',
+             'arrow_left', 'arrow_right', 'double_arrow_left', 'double_arrow_right', 'print_out',
              'about', 'about_mgsp', 'about_typo']
 ICON_NAMES = IMG_NAMES[:-2]
 
@@ -227,12 +228,12 @@ img_delete = os.path.join(IMAGES_PATH, 'delete.png')
 img_edit = os.path.join(IMAGES_PATH, 'edit.png')
 img_undo = os.path.join(IMAGES_PATH, 'undo.png')
 img_redo = os.path.join(IMAGES_PATH, 'redo.png')
-img_about = os.path.join(IMAGES_PATH, 'about.png')
 img_arrow_left = os.path.join(IMAGES_PATH, 'arrow_left.png')
 img_arrow_right = os.path.join(IMAGES_PATH, 'arrow_right.png')
 img_double_arrow_left = os.path.join(IMAGES_PATH, 'double_arrow_left.png')
 img_double_arrow_right = os.path.join(IMAGES_PATH, 'double_arrow_right.png')
 img_print_out = os.path.join(IMAGES_PATH, 'print_out.png')
+img_about = os.path.join(IMAGES_PATH, 'about.png')
 img_about_mgsp = os.path.join(IMAGES_PATH, 'about_mgsp.png')
 img_about_typo = os.path.join(IMAGES_PATH, 'about_typo.png')
 
@@ -1575,16 +1576,16 @@ def create_default_custom_theme():
 
 # Загрузить изображения для выбранной темы
 def upload_theme_img(theme: str):
-    global img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_about, img_about_mgsp,\
-        img_about_typo
+    global img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_arrow_left, img_arrow_right,\
+        img_double_arrow_left, img_double_arrow_right, img_print_out, img_about, img_about_mgsp, img_about_typo
 
     if theme == CUSTOM_TH:
         theme_dir = CUSTOM_THEME_PATH
     else:
         theme_dir = os.path.join(ADDITIONAL_THEMES_PATH, theme)
 
-    images = [img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_about, img_about_mgsp,
-              img_about_typo]
+    images = [img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_arrow_left, img_arrow_right,
+              img_double_arrow_left, img_double_arrow_right, img_print_out, img_about, img_about_mgsp, img_about_typo]
 
     for i in range(len(images)):
         file_name = f'{IMG_NAMES[i]}.png'
@@ -1593,8 +1594,8 @@ def upload_theme_img(theme: str):
         else:
             images[i] = os.path.join(IMAGES_PATH, file_name)
 
-    img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_about, img_about_mgsp,\
-        img_about_typo = images
+    img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_arrow_left, img_arrow_right,\
+        img_double_arrow_left, img_double_arrow_right, img_print_out, img_about, img_about_mgsp, img_about_typo = images
 
 
 # Обновить глобальные настройки с 0 до 3 версии
