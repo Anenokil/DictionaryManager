@@ -21,7 +21,7 @@ import typing  # Аннотации
 PROGRAM_NAME = 'Dictionary Manager'
 PROGRAM_VERSION = 'v7.1.0-PRE-10.7'
 PROGRAM_DATE = '6.3.2023'
-PROGRAM_TIME = '23:03 (UTC+3)'
+PROGRAM_TIME = '23:21 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -39,7 +39,7 @@ SCALE_DEF = 10
 
 SCALE_DEFAULT_FRAME_WIDTH      = (532, 604, 682, 757, 757, 832, 907, 980, 1057)
 SCALE_DEFAULT_FRAME_HEIGHT     = (400, 430, 460, 490, 520, 550, 580, 610,  640)
-SCALE_FRAME_DCTS_WIDTH         = (180, 205, 228, 253, 254, 280, 305, 328,  354)
+SCALE_FRAME_DCTS_WIDTH         = (250, 284, 318, 353, 354, 390, 424, 460,  495)
 SCALE_FRAME_DCTS_HEIGHT        = (120, 130, 140, 150, 160, 170, 180, 190,  200)
 SCALE_CUSTOM_THEME_FRAME_WIDTH = (410, 440, 455, 495, 517, 543, 590, 615,  643)
 SCALE_CUSTOM_THEME_COMBO_WIDTH = ( 16,  16,  14,  12,  11,  11,  10,   9,    8)
@@ -5771,7 +5771,8 @@ class SettingsW(tk.Toplevel):
         self.btn_dct_import = ttk.Button(self.frame_dct_buttons, text='Импортировать словарь', command=self.dct_import,
                                          takefocus=False, style='Default.TButton')
         # } } }
-        self.lbl_dcts_warn = ttk.Label(self.frame_dcts, text='Изменения словарей сохраняются сразу!',
+        self.lbl_dcts_warn = ttk.Label(self.frame_dcts, text='Изменения словарей\n'
+                                                             'сохраняются сразу!',
                                        style='Warn.TLabel')
         # } }
         self.frame_themes = ttk.Frame(self.tab_global, style='Default.TFrame')
@@ -5842,13 +5843,13 @@ class SettingsW(tk.Toplevel):
         self.lbl_dcts.grid(           row=0,            column=0, padx=6,      pady=(6, 0))
         self.btn_about_dcts.grid(     row=0,            column=1, padx=6,      pady=(6, 0))
         self.scrolled_frame_dcts.grid(row=1, rowspan=2, column=0, padx=(6, 0), pady=(0, 6))
-        self.frame_dct_buttons.grid(  row=1,            column=1, padx=6,      pady=6)
+        self.frame_dct_buttons.grid(  row=1,            column=1, padx=6,      pady=0)
         # { {
         self.btn_dct_create.grid(row=0, column=0, padx=0, pady=(0, 3), sticky='WE')
         self.btn_dct_export.grid(row=1, column=0, padx=0, pady=(3, 3), sticky='WE')
         self.btn_dct_import.grid(row=2, column=0, padx=0, pady=(3, 0), sticky='WE')
         # } }
-        self.lbl_dcts_warn.grid(row=2, column=1, padx=6, pady=6, sticky='S')
+        self.lbl_dcts_warn.grid(row=2, column=1, padx=6, pady=(0, 6))
         # }
         self.frame_themes.grid(row=3, padx=6, pady=6)
         # {
@@ -6188,9 +6189,9 @@ class SettingsW(tk.Toplevel):
         for i in range(dcts_count):
             savename = self.dcts_savenames[i]
             if savename == _0_global_dct_savename:
-                self.dcts_buttons[i].configure(text=split_text(f'"{savename}" (ОТКРЫТ)', 25))
+                self.dcts_buttons[i].configure(text=split_text(f'"{savename}" (ОТКРЫТ)', 35))
             else:
-                self.dcts_buttons[i].configure(text=split_text(f'"{savename}"', 25))
+                self.dcts_buttons[i].configure(text=split_text(f'"{savename}"', 35))
         # Расставляем фреймы и кнопки
         for i in range(dcts_count):
             self.dcts_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
