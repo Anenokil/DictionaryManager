@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-10.6'
+PROGRAM_VERSION = 'v7.1.0-PRE-10.7'
 PROGRAM_DATE = '6.3.2023'
-PROGRAM_TIME = '21:24 (UTC+3)'
+PROGRAM_TIME = '23:03 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -37,8 +37,10 @@ SCALE_MIN = 8
 SCALE_MAX = 16
 SCALE_DEF = 10
 
-SCALE_WIDE_FRAME_WIDTH         = (532, 604, 682, 757, 757, 832, 907, 980, 1057)
-SCALE_FRAME_HEIGHT             = (400, 430, 460, 490, 520, 550, 580, 610,  640)
+SCALE_DEFAULT_FRAME_WIDTH      = (532, 604, 682, 757, 757, 832, 907, 980, 1057)
+SCALE_DEFAULT_FRAME_HEIGHT     = (400, 430, 460, 490, 520, 550, 580, 610,  640)
+SCALE_FRAME_DCTS_WIDTH         = (180, 205, 228, 253, 254, 280, 305, 328,  354)
+SCALE_FRAME_DCTS_HEIGHT        = (120, 130, 140, 150, 160, 170, 180, 190,  200)
 SCALE_CUSTOM_THEME_FRAME_WIDTH = (410, 440, 455, 495, 517, 543, 590, 615,  643)
 SCALE_CUSTOM_THEME_COMBO_WIDTH = ( 16,  16,  14,  12,  11,  11,  10,   9,    8)
 
@@ -2409,6 +2411,10 @@ class ScrollFrame(tk.Frame):
         else:
             self.canvas.unbind_all('<MouseWheel>')
 
+    # Изменить размеры фрейма
+    def resize(self, height: int, width: int):
+        self.canvas.configure(height=height, width=width)
+
 
 """ Графический интерфейс - всплывающие окна """
 
@@ -2928,8 +2934,8 @@ class ChooseOneOfSimilarNotesW(tk.Toplevel):
         self.answer = None
 
         self.lbl_header = ttk.Label(self, text='Выберите одну из статей', justify='center', style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
-                                              SCALE_WIDE_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_wrd = ScrollFrame(self, SCALE_DEFAULT_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
+                                              SCALE_DEFAULT_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         self.widgets_wrd = []
         # }
@@ -3548,7 +3554,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                                          takefocus=False, style='Default.TButton')
         # }
         # Прокручиваемая область с настройками
-        self.scrolled_frame = ScrollFrame(self, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
+        self.scrolled_frame = ScrollFrame(self, SCALE_DEFAULT_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
                                           SCALE_CUSTOM_THEME_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         # {
         # Выбор цветов
@@ -4270,17 +4276,17 @@ class PrintW(tk.Toplevel):
         self.img_double_arrow_right = tk.PhotoImage()
         self.img_print_out = tk.PhotoImage()
 
+        self.keys = []
+        self.frames = []
+        self.buttons = []
+        self.tips = []
+
         def validate_and_goto_page_number(value: str):
             res = validate_int_min_max(value, 1, self.count_pages)
             if res and value != '' and int(value) != self.current_page:
                 self.go_to_page_with_number(int(value))
             return res
         self.vcmd_page = (self.register(validate_and_goto_page_number), '%P')
-
-        self.keys = []
-        self.frames = []
-        self.buttons = []
-        self.tips = []
 
         self.frame_header = ttk.Frame(self, style='Invis.TFrame')
         # {
@@ -4304,8 +4310,8 @@ class PrintW(tk.Toplevel):
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.lbl_info = ttk.Label(self.frame_main, textvariable=self.var_info, style='Default.TLabel')
-        self.scrolled_frame = ScrollFrame(self.frame_main, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
-                                          SCALE_WIDE_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame = ScrollFrame(self.frame_main, SCALE_DEFAULT_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
+                                          SCALE_DEFAULT_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.frame_page_buttons = ttk.Frame(self.frame_main, style='Invis.TFrame')
         # { {
         self.btn_first_page = ttk.Button(self.frame_page_buttons, command=self.go_to_first_page, width=2,
@@ -4390,7 +4396,7 @@ class PrintW(tk.Toplevel):
         self.print(True)  # Выводим статьи
 
     # Изменить статью
-    def edit_note(self, index: int):
+    def edit_entry(self, index: int):
         EditW(self, self.keys[index]).open()
 
         self.print(False)
@@ -4446,7 +4452,7 @@ class PrintW(tk.Toplevel):
         self.frames = [ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
                        for i in range(self.count_elements_on_page)]
         # Создаём новые кнопки
-        self.buttons = [ttk.Button(self.frames[i], command=lambda i=i: self.edit_note(self.start_index + i),
+        self.buttons = [ttk.Button(self.frames[i], command=lambda i=i: self.edit_entry(self.start_index + i),
                                    takefocus=False, style='Flat.TButton')
                         for i in range(self.count_elements_on_page)]
         # Выводим текст на кнопки
@@ -4942,8 +4948,6 @@ class SearchW(tk.Toplevel):
         self.current_page = 1  # Номер текущей страницы ScrollFrame (начиная с 1)
         self.start_index = 0  # Номер по порядку первого слова на текущей странице ScrollFrame (начиная с 0)
         self.count_pages = None  # Количество страниц ScrollFrame
-        self.count_full_matches = None  # Количество полных совпадений
-        self.count_particular_matches = None  # Количество частичных совпадений
         self.count_elements = None  # Количество элементов на всех страницах ScrollFrame
         self.count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
 
@@ -4958,17 +4962,16 @@ class SearchW(tk.Toplevel):
         self.img_double_arrow_left = tk.PhotoImage()
         self.img_double_arrow_right = tk.PhotoImage()
 
+        self.keys = []
+        self.frames = []
+        self.buttons = []
+
         def validate_and_goto_page_number(value: str):
             res = validate_int_min_max(value, 1, self.count_pages)
             if res and value != '' and int(value) != self.current_page:
                 self.go_to_page_with_number(int(value))
             return res
         self.vcmd_page = (self.register(validate_and_goto_page_number), '%P')
-
-        self.keys = []
-        self.frames = []
-        self.buttons = []
-        self.tips = []
 
         self.frame_header = ttk.Frame(self, style='Invis.TFrame')
         # {
@@ -4990,8 +4993,8 @@ class SearchW(tk.Toplevel):
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.lbl_info = ttk.Label(self.frame_main, textvariable=self.var_info, style='Default.TLabel')
-        self.scrolled_frame = ScrollFrame(self.frame_main, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
-                                          SCALE_WIDE_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame = ScrollFrame(self.frame_main, SCALE_DEFAULT_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
+                                          SCALE_DEFAULT_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.frame_page_buttons = ttk.Frame(self.frame_main, style='Invis.TFrame')
         # { {
         self.btn_first_page = ttk.Button(self.frame_page_buttons, command=self.go_to_first_page, width=2,
@@ -5067,16 +5070,13 @@ class SearchW(tk.Toplevel):
         self.search_only_fav, self.search_wrd, self.search_tr, self.search_frm, self.search_nt = window.open()
 
     # Изменить статью
-    def edit_note(self, key: tuple[str, int]):
+    def edit_entry(self, key: tuple[str, int]):
         EditW(self, key).open()
 
         self.print(False)
 
     # Нажатие на кнопку "Поиск"
     def print(self, move_scroll: bool):
-        # Удаляем старые подсказки
-        for tip in self.tips:
-            tip.__del__()
         # Удаляем старые кнопки
         for btn in self.buttons:
             btn.destroy()
@@ -5124,9 +5124,9 @@ class SearchW(tk.Toplevel):
         self.frames = [ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
                        for i in range(self.count_elements_on_page)]
         # Создаём новые кнопки
-        self.buttons = [ttk.Button(self.frames[i], takefocus=False,
-                                   command=lambda i=i: self.edit_note(self.keys[self.start_index + i]),
-                                   style='Flat.TButton')
+        self.buttons = [ttk.Button(self.frames[i],
+                                   command=lambda i=i: self.edit_entry(self.keys[self.start_index + i]),
+                                   takefocus=False, style='Flat.TButton')
                         for i in range(self.count_elements_on_page)]
         # Выводим текст на кнопки
         for i in range(self.count_elements_on_page):
@@ -5695,6 +5695,10 @@ class SettingsW(tk.Toplevel):
         self.img_plus = tk.PhotoImage()
         self.img_minus = tk.PhotoImage()
 
+        self.dcts_savenames = []
+        self.dcts_frames = []
+        self.dcts_buttons = []
+
         # Только целые числа от 0 до 100
         self.vcmd = (self.register(validate_percent), '%P')
 
@@ -5754,20 +5758,13 @@ class SettingsW(tk.Toplevel):
         self.frame_dcts = ttk.Frame(self.tab_global, style='Default.TFrame')
         # { {
         self.lbl_dcts = ttk.Label(self.frame_dcts, text='Существующие словари:', style='Default.TLabel')
-        self.scrollbar = ttk.Scrollbar(self.frame_dcts, style='Vertical.TScrollbar')
-        self.txt_dcts = tk.Text(self.frame_dcts, width=27, height=6, state='disabled', relief=ST_RELIEF_TEXT[th],
-                                yscrollcommand=self.scrollbar.set, font=('StdFont', _0_global_scale),
-                                bg=ST_BG_FIELDS[th], fg=ST_FG[th], highlightbackground=ST_BORDERCOLOR[th],
-                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th])
+        self.btn_about_dcts = ttk.Button(self.frame_dcts, command=self.about_dcts, width=2, takefocus=False)
+        set_image(self.btn_about_dcts, self.img_about, img_about, '?')
+        self.scrolled_frame_dcts = ScrollFrame(self.frame_dcts, SCALE_FRAME_DCTS_HEIGHT[_0_global_scale - SCALE_MIN],
+                                               SCALE_FRAME_DCTS_WIDTH[_0_global_scale - SCALE_MIN])
         self.frame_dct_buttons = ttk.Frame(self.frame_dcts, style='Invis.TFrame')
         # { { {
-        self.btn_dct_open = ttk.Button(self.frame_dct_buttons, text='Открыть словарь', command=self.dct_open,
-                                       takefocus=False, style='Default.TButton')
-        self.btn_dct_create = ttk.Button(self.frame_dct_buttons, text='Создать словарь', command=self.dct_create,
-                                         takefocus=False, style='Default.TButton')
-        self.btn_dct_rename = ttk.Button(self.frame_dct_buttons, text='Переименовать словарь', command=self.dct_rename,
-                                         takefocus=False, style='Default.TButton')
-        self.btn_dct_delete = ttk.Button(self.frame_dct_buttons, text='Удалить словарь', command=self.dct_delete,
+        self.btn_dct_create = ttk.Button(self.frame_dct_buttons, text='Новый словарь', command=self.dct_create,
                                          takefocus=False, style='Default.TButton')
         self.btn_dct_export = ttk.Button(self.frame_dct_buttons, text='Экспортировать словарь', command=self.dct_export,
                                          takefocus=False, style='Default.TButton')
@@ -5842,19 +5839,16 @@ class SettingsW(tk.Toplevel):
         # }
         self.frame_dcts.grid(row=2, padx=6, pady=6)
         # {
-        self.lbl_dcts.grid(         row=0,            column=0, columnspan=2, padx=6,      pady=(6, 0))
-        self.txt_dcts.grid(         row=1, rowspan=2, column=0,               padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(        row=1, rowspan=2, column=1,               padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.frame_dct_buttons.grid(row=1,            column=2,               padx=1,      pady=1)
+        self.lbl_dcts.grid(           row=0,            column=0, padx=6,      pady=(6, 0))
+        self.btn_about_dcts.grid(     row=0,            column=1, padx=6,      pady=(6, 0))
+        self.scrolled_frame_dcts.grid(row=1, rowspan=2, column=0, padx=(6, 0), pady=(0, 6))
+        self.frame_dct_buttons.grid(  row=1,            column=1, padx=6,      pady=6)
         # { {
-        self.btn_dct_open.grid(  row=0, column=0, padx=6, pady=6, sticky='WE')
-        self.btn_dct_create.grid(row=0, column=1, padx=6, pady=6, sticky='WE')
-        self.btn_dct_rename.grid(row=1, column=0, padx=6, pady=6, sticky='WE')
-        self.btn_dct_delete.grid(row=1, column=1, padx=6, pady=6, sticky='WE')
-        self.btn_dct_export.grid(row=2, column=0, padx=6, pady=6, sticky='WE')
-        self.btn_dct_import.grid(row=2, column=1, padx=6, pady=6, sticky='WE')
+        self.btn_dct_create.grid(row=0, column=0, padx=0, pady=(0, 3), sticky='WE')
+        self.btn_dct_export.grid(row=1, column=0, padx=0, pady=(3, 3), sticky='WE')
+        self.btn_dct_import.grid(row=2, column=0, padx=0, pady=(3, 0), sticky='WE')
         # } }
-        self.lbl_dcts_warn.grid(row=2, column=2, padx=6, pady=6, sticky='N')
+        self.lbl_dcts_warn.grid(row=2, column=1, padx=6, pady=6, sticky='S')
         # }
         self.frame_themes.grid(row=3, padx=6, pady=6)
         # {
@@ -5874,9 +5868,7 @@ class SettingsW(tk.Toplevel):
         self.btn_save.grid( row=4, column=0, padx=(6, 3), pady=(0, 6))
         self.btn_close.grid(row=4, column=1, padx=(0, 6), pady=(0, 6))
 
-        self.scrollbar.config(command=self.txt_dcts.yview)
-
-        self.print_dct_list()
+        self.print_dct_list(True)
         self.refresh_scale_buttons()
 
     # Справка о МППУ (срабатывает при нажатии на кнопку)
@@ -5902,22 +5894,20 @@ class SettingsW(tk.Toplevel):
                                         'При её нажатии, ошибка не засчитывается.\n'
                                         'Срабатывает при нажатии на Tab.').open()
 
-    # Открыть словарь (срабатывает при нажатии на кнопку)
-    def dct_open(self):
+    # Справка о словарях (срабатывает при нажатии на кнопку)
+    def about_dcts(self):
+        PopupMsgW(self, '* Чтобы открыть словарь, наведите на него мышку и нажмите ЛКМ\n'
+                        '* Чтобы переименовать словарь, наведите на него мышку и нажмите Ctrl+R\n'
+                        '* Чтобы удалить словарь, наведите на него мышку и нажмите Ctrl+D',
+                  msg_justify='left').open()
+
+    # Открыть словарь
+    def dct_open(self, savename: str):
         global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_categories,\
-            _0_global_special_combinations, _0_global_check_register, _0_global_has_progress, _0_global_learn_settings
+            _0_global_special_combinations, _0_global_check_register, _0_global_has_progress,\
+            _0_global_session_number, _0_global_search_settings, _0_global_learn_settings
 
-        saves_list = []
-        for savename in os.listdir(SAVES_PATH):
-            path = os.path.join(SAVES_PATH, savename)
-            if os.path.isdir(path):
-                if savename != _0_global_dct_savename:
-                    saves_list += [savename]
-
-        window = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите открыть',
-                              default_value=saves_list[0], combo_width=width(saves_list, 5, 100))
-        closed, savename = window.open()
-        if closed:
+        if savename == _0_global_dct_savename:
             return
 
         # Если есть прогресс, то предлагается его сохранить
@@ -5948,6 +5938,45 @@ class SettingsW(tk.Toplevel):
         _0_global_has_progress = False
 
         self.refresh()
+
+    # Переименовать словарь
+    def dct_rename(self, old_savename: str):
+        global _0_global_dct_savename
+
+        window_rename = PopupEntryW(self, f'Введите новое название для словаря "{old_savename}"',
+                                    default_value=old_savename,
+                                    validate_function=validate_savename, check_answer_function=check_dct_savename)
+        closed, new_savename = window_rename.open()
+        if closed:
+            return
+
+        os.rename(os.path.join(SAVES_PATH, old_savename), os.path.join(SAVES_PATH, new_savename))
+        if _0_global_dct_savename == old_savename:
+            _0_global_dct_savename = new_savename
+            save_dct_name()
+            # Обновляем надписи с названием открытого словаря
+            self.refresh_open_dct_name(new_savename)
+        print(f'Словарь "{old_savename}" успешно переименован в "{new_savename}"')
+
+        self.print_dct_list(False)
+
+    # Удалить словарь
+    def dct_delete(self, savename: str):
+        if savename == _0_global_dct_savename:
+            warning(self, 'Вы не можете удалить словарь, когда он открыт!')
+            return
+
+        window_confirm = PopupDialogueW(self, f'Словарь "{savename}" будет безвозвратно удалён!\n'
+                                              f'Хотите продолжить?',
+                                        set_enter_on_btn='none')
+        answer = window_confirm.open()
+        if not answer:
+            return
+
+        shutil.rmtree(os.path.join(SAVES_PATH, savename))
+        PopupMsgW(self, f'Словарь "{savename}" успешно удалён').open()
+
+        self.print_dct_list(False)
 
     # Создать словарь (срабатывает при нажатии на кнопку)
     def dct_create(self):
@@ -5986,66 +6015,6 @@ class SettingsW(tk.Toplevel):
         _0_global_has_progress = False
 
         self.refresh()
-
-    # Переименовать словарь (срабатывает при нажатии на кнопку)
-    def dct_rename(self):
-        global _0_global_dct_savename
-
-        saves_count = 0
-        saves_list = []
-        for savename in os.listdir(SAVES_PATH):
-            path = os.path.join(SAVES_PATH, savename)
-            if os.path.isdir(path):
-                saves_list += [savename]
-                saves_count += 1
-        window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите переименовать',
-                                     default_value=saves_list[0], combo_width=width(saves_list, 5, 100))
-        closed, old_savename = window_choose.open()
-        if closed:
-            return
-
-        window_rename = PopupEntryW(self, 'Введите название нового словаря', default_value=old_savename,
-                                    validate_function=validate_savename, check_answer_function=check_dct_savename)
-        closed, new_savename = window_rename.open()
-        if closed:
-            return
-
-        os.rename(os.path.join(SAVES_PATH, old_savename), os.path.join(SAVES_PATH, new_savename))
-        if _0_global_dct_savename == old_savename:
-            _0_global_dct_savename = new_savename
-            save_dct_name()
-            # Обновляем надписи с названием открытого словаря
-            self.refresh_open_dct_name(new_savename)
-        print(f'Словарь "{old_savename}" успешно переименован в "{new_savename}"')
-
-        self.print_dct_list()
-
-    # Удалить словарь (срабатывает при нажатии на кнопку)
-    def dct_delete(self):
-        saves_list = []
-        for savename in os.listdir(SAVES_PATH):
-            path = os.path.join(SAVES_PATH, savename)
-            if os.path.isdir(path):
-                if savename != _0_global_dct_savename:
-                    saves_list += [savename]
-
-        window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите удалить',
-                                     default_value=saves_list[0], combo_width=width(saves_list, 5, 100))
-        closed, savename = window_choose.open()
-        if closed:
-            return
-
-        window_confirm = PopupDialogueW(self, f'Словарь "{savename}" будет безвозвратно удалён!\n'
-                                              f'Хотите продолжить?',
-                                        set_enter_on_btn='none')
-        answer = window_confirm.open()
-        if not answer:
-            return
-
-        shutil.rmtree(os.path.join(SAVES_PATH, savename))
-        PopupMsgW(self, f'Словарь "{savename}" успешно удалён').open()
-
-        self.print_dct_list()
 
     # Экспортировать словарь (срабатывает при нажатии на кнопку)
     def dct_export(self):
@@ -6102,9 +6071,8 @@ class SettingsW(tk.Toplevel):
         self.parent.set_ttk_styles()  # Установка ttk-стилей
 
         # Установка некоторых стилей для окна настроек
-        self.txt_dcts.configure(font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                highlightbackground=ST_BORDERCOLOR[th], relief=ST_RELIEF_TEXT[th])
+        self.scrolled_frame_dcts.resize(SCALE_FRAME_DCTS_HEIGHT[_0_global_scale - SCALE_MIN],
+                                        SCALE_FRAME_DCTS_WIDTH[_0_global_scale - SCALE_MIN])
         self.txt_themes_note.configure(font=('StdFont', _0_global_scale), bg=ST_BG[th], fg=ST_FG[th],
                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                        highlightbackground=ST_BORDERCOLOR[th])
@@ -6121,9 +6089,8 @@ class SettingsW(tk.Toplevel):
         self.parent.set_ttk_styles()  # Установка ttk-стилей
 
         # Установка некоторых стилей для окна настроек
-        self.txt_dcts.configure(font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                highlightbackground=ST_BORDERCOLOR[th], relief=ST_RELIEF_TEXT[th])
+        self.scrolled_frame_dcts.resize(SCALE_FRAME_DCTS_HEIGHT[_0_global_scale - SCALE_MIN],
+                                        SCALE_FRAME_DCTS_WIDTH[_0_global_scale - SCALE_MIN])
         self.txt_themes_note.configure(font=('StdFont', _0_global_scale), bg=ST_BG[th], fg=ST_FG[th],
                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                        highlightbackground=ST_BORDERCOLOR[th])
@@ -6191,27 +6158,56 @@ class SettingsW(tk.Toplevel):
         self.destroy()
 
     # Вывод списка существующих словарей в текстовое поле
-    def print_dct_list(self):
-        self.txt_dcts['state'] = 'normal'
-        self.txt_dcts.delete(1.0, tk.END)
+    def print_dct_list(self, move_scroll: bool):
+        # Удаляем старые кнопки
+        for btn in self.dcts_buttons:
+            btn.destroy()
+        # Удаляем старые фреймы
+        for fr in self.dcts_frames:
+            fr.unbind('<Enter>')
+            fr.unbind('<Control-R>')
+            fr.unbind('<Control-r>')
+            fr.unbind('<Control-D>')
+            fr.unbind('<Control-d>')
+            fr.destroy()
 
-        has_only_one_dct = True
-        for savename in os.listdir(SAVES_PATH):
-            path = os.path.join(SAVES_PATH, savename)
-            if os.path.isdir(path):
-                if savename == _0_global_dct_savename:
-                    self.txt_dcts.insert(tk.END, f'"{savename}" (ОТКРЫТ)\n')
-                else:
-                    self.txt_dcts.insert(tk.END, f'"{savename}"\n')
-                    has_only_one_dct = False
-        self.txt_dcts['state'] = 'disabled'
+        # Выбираем словари
+        self.dcts_savenames = [savename for savename in os.listdir(SAVES_PATH)
+                               if os.path.isdir(os.path.join(SAVES_PATH, savename))]
+        dcts_count = len(self.dcts_savenames)
 
-        if has_only_one_dct:
-            btn_disable(self.btn_dct_open)
-            btn_disable(self.btn_dct_delete)
-        else:
-            btn_enable(self.btn_dct_open, self.dct_open)
-            btn_enable(self.btn_dct_delete, self.dct_delete)
+        # Создаём новые фреймы
+        self.dcts_frames = [ttk.Frame(self.scrolled_frame_dcts.frame_canvas, style='Invis.TFrame')
+                            for i in range(dcts_count)]
+        # Создаём новые кнопки
+        self.dcts_buttons = [ttk.Button(self.dcts_frames[i],
+                                        command=lambda i=i: self.dct_open(self.dcts_savenames[i]),
+                                        takefocus=False, style='Flat.TButton')
+                             for i in range(dcts_count)]
+        # Выводим текст на кнопки
+        for i in range(dcts_count):
+            savename = self.dcts_savenames[i]
+            if savename == _0_global_dct_savename:
+                self.dcts_buttons[i].configure(text=split_text(f'"{savename}" (ОТКРЫТ)', 25))
+            else:
+                self.dcts_buttons[i].configure(text=split_text(f'"{savename}"', 25))
+        # Расставляем фреймы и кнопки
+        for i in range(dcts_count):
+            self.dcts_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            # {
+            self.dcts_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
+            # }
+        # Привязываем события
+        for i in range(dcts_count):
+            self.dcts_frames[i].bind('<Enter>', lambda event, i=i: self.dcts_frames[i].focus_set())
+            self.dcts_frames[i].bind('<Control-R>', lambda event, i=i: self.dct_rename(self.dcts_savenames[i]))
+            self.dcts_frames[i].bind('<Control-r>', lambda event, i=i: self.dct_rename(self.dcts_savenames[i]))
+            self.dcts_frames[i].bind('<Control-D>', lambda event, i=i: self.dct_delete(self.dcts_savenames[i]))
+            self.dcts_frames[i].bind('<Control-d>', lambda event, i=i: self.dct_delete(self.dcts_savenames[i]))
+
+        # Если требуется, прокручиваем вверх
+        if move_scroll:
+            self.scrolled_frame_dcts.canvas.yview_moveto(0.0)
 
     # Обновить кнопки изменения масштаба
     def refresh_scale_buttons(self):
@@ -6231,7 +6227,7 @@ class SettingsW(tk.Toplevel):
     def refresh(self):
         self.var_mgsp.set(str(_0_global_min_good_score_perc))
         self.var_check_register.set(bool(_0_global_check_register))
-        self.print_dct_list()
+        self.print_dct_list(False)
 
     # Установить выбранную тему
     def set_theme(self):
@@ -6245,14 +6241,12 @@ class SettingsW(tk.Toplevel):
         # Установка изображений
         set_image(self.btn_about_mgsp, self.img_about, img_about, '?')
         set_image(self.btn_about_typo, self.img_about, img_about, '?')
+        set_image(self.btn_about_dcts, self.img_about, img_about, '?')
         set_image(self.btn_scale_plus, self.img_plus, img_add, '+')
         set_image(self.btn_scale_minus, self.img_minus, img_delete, '-')
 
         # Установка некоторых стилей для окна настроек
         self.configure(bg=ST_BG[th])
-        self.txt_dcts.configure(font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                                selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                highlightbackground=ST_BORDERCOLOR[th], relief=ST_RELIEF_TEXT[th])
         self.txt_themes_note.configure(font=('StdFont', _0_global_scale), bg=ST_BG[th], fg=ST_FG[th],
                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
                                        highlightbackground=ST_BORDERCOLOR[th])
