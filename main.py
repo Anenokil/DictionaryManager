@@ -19,15 +19,15 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-10.2'
+PROGRAM_VERSION = 'v7.1.0-PRE-10.3'
 PROGRAM_DATE = '6.3.2023'
-PROGRAM_TIME = '20:10 (UTC+3)'
+PROGRAM_TIME = '20:39 (UTC+3)'
 
 """ Версии ресурсов """
 
 SAVES_VERSION = 4  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
-LOCAL_AUTO_SETTINGS_VERSION = 2  # Актуальная версия автосохраняемых локальных настроек
+LOCAL_AUTO_SETTINGS_VERSION = 3  # Актуальная версия автосохраняемых локальных настроек
 GLOBAL_SETTINGS_VERSION = 3  # Актуальная версия глобальных настроек
 REQUIRED_THEME_VERSION = 5  # Актуальная версия тем
 
@@ -1900,14 +1900,27 @@ def save_local_settings(min_good_score_perc: int, special_combinations: dict[tup
             local_settings_file.write('\n')
 
 
-# Обновить локальные авто-настройки с 1 до 2 версии
-def upgrade_local_auto_settings_1_to_2(local_auto_settings_path: str):
+# Обновить локальные авто-настройки с 1 до 3 версии
+def upgrade_local_auto_settings_1_to_3(local_auto_settings_path: str):
     with open(local_auto_settings_path, 'r', encoding='utf-8') as local_auto_settings_file:
         lines = local_auto_settings_file.readlines()
     with open(local_auto_settings_path, 'w', encoding='utf-8') as local_auto_settings_file:
         local_auto_settings_file.write('v2\n')
         local_auto_settings_file.write('0\n')
         local_auto_settings_file.write(lines[1])
+
+    upgrade_local_auto_settings_2_to_3(local_auto_settings_path)
+
+
+# Обновить локальные авто-настройки с 2 до 3 версии
+def upgrade_local_auto_settings_2_to_3(local_auto_settings_path: str):
+    with open(local_auto_settings_path, 'r', encoding='utf-8') as local_auto_settings_file:
+        lines = local_auto_settings_file.readlines()
+    with open(local_auto_settings_path, 'w', encoding='utf-8') as local_auto_settings_file:
+        local_auto_settings_file.write('v3\n')
+        local_auto_settings_file.write(lines[1])
+        local_auto_settings_file.write('0 1 1 0 0\n')
+        local_auto_settings_file.write(lines[2])
 
 
 # Обновить локальные авто-настройки старой версии до актуальной версии
@@ -1917,7 +1930,9 @@ def upgrade_local_auto_settings(local_auto_settings_path: str):
         if first_line == '':  # Если сохранение пустое
             return
         if first_line.strip() == 'v1':  # Версия 1
-            upgrade_local_auto_settings_1_to_2(local_auto_settings_path)
+            upgrade_local_auto_settings_1_to_3(local_auto_settings_path)
+        elif first_line.strip() == 'v2':  # Версия 2
+            upgrade_local_auto_settings_2_to_3(local_auto_settings_path)
         elif first_line.strip() != f'v{LOCAL_AUTO_SETTINGS_VERSION}':
             print(f'Неизвестная версия локальных авто-настроек: {first_line.strip()}!\n'
                   f'Проверьте наличие обновлений программы')
@@ -1931,7 +1946,8 @@ def upload_local_auto_settings(savename: str):
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
         with open(local_auto_settings_path, 'w', encoding='utf-8') as local_auto_settings_file:
             local_auto_settings_file.write(f'v{LOCAL_AUTO_SETTINGS_VERSION}\n'  # Версия локальных авто-настроек
-                                           f'0'  # Номер сессии
+                                           f'0\n'  # Номер сессии
+                                           f'0 1 1 0 0\n'  # Режим поиска
                                            f'0 1 1 1')  # Режим учёбы
     else:
         upgrade_local_auto_settings(local_auto_settings_path)
@@ -1944,6 +1960,14 @@ def upload_local_auto_settings(savename: str):
             session_number = int(local_auto_settings_file.readline().strip())
         except (ValueError, TypeError):
             session_number = 0
+        # Режим поиска
+        try:
+            search_settings = tuple(int(el) for el in local_auto_settings_file.readline().strip().split())
+        except (ValueError, TypeError):
+            search_settings = (0, 1, 1, 0, 0)
+        else:
+            if len(search_settings) != 5:
+                search_settings = (0, 1, 1, 0, 0)
         # Режим учёбы
         try:
             learn_settings = tuple(int(el) for el in local_auto_settings_file.readline().strip().split())
@@ -1955,18 +1979,22 @@ def upload_local_auto_settings(savename: str):
 
     # Увеличиваем счётчик сессий на 1 и сохраняем изменение
     session_number += 1
-    save_local_auto_settings(learn_settings, session_number, savename)
+    save_local_auto_settings(session_number, search_settings, learn_settings, savename)
 
     # Возвращаем результат
-    return learn_settings, session_number
+    return session_number, search_settings, learn_settings
 
 
 # Сохранить автосохраняемые локальные настройки (настройки словаря)
-def save_local_auto_settings(learn_settings: tuple[int, int, int, int], session_number: int, savename: str):
+def save_local_auto_settings(session_number: int, search_settings: tuple[int, int, int, int, int],
+                             learn_settings: tuple[int, int, int, int], savename: str):
     local_auto_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_AUTO_SETTINGS_FN)
     with open(local_auto_settings_path, 'w', encoding='utf-8') as local_auto_settings_file:
         local_auto_settings_file.write(f'v{LOCAL_AUTO_SETTINGS_VERSION}\n')
         local_auto_settings_file.write(f'{session_number}\n')
+        for el in search_settings:
+            local_auto_settings_file.write(f'{el} ')
+        local_auto_settings_file.write('\n')
         for el in learn_settings:
             local_auto_settings_file.write(f'{el} ')
 
@@ -1980,7 +2008,8 @@ def save_settings_if_has_changes(window_parent):
                              _0_global_scale)
         save_local_settings(_0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register,
                             _0_global_categories, _0_global_dct_savename)
-        save_local_auto_settings(_0_global_learn_settings, _0_global_session_number, _0_global_dct_savename)
+        save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
+                                 _0_global_dct_savename)
         PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
         print('\nНастройки успешно сохранены')
 
@@ -2732,7 +2761,8 @@ class ChooseLearnModeW(tk.Toplevel):
                                     int(self.var_forms.get()),
                                     LEARN_VALUES_WORDS.index(words),
                                     LEARN_VALUES_ORDER.index(order))
-        save_local_auto_settings(_0_global_learn_settings, _0_global_session_number, _0_global_dct_savename)
+        save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
+                                 _0_global_dct_savename)
 
         self.destroy()
 
@@ -2826,11 +2856,11 @@ class SearchSettingsW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.var_search_only_fav = tk.BooleanVar(value=search_only_fav)
-        self.var_search_wrd = tk.BooleanVar(value=search_wrd)
-        self.var_search_tr = tk.BooleanVar(value=search_tr)
-        self.var_search_frm = tk.BooleanVar(value=search_frm)
-        self.var_search_nt = tk.BooleanVar(value=search_nt)
+        self.var_search_only_fav = tk.BooleanVar(value=bool(_0_global_search_settings[0]))
+        self.var_search_wrd = tk.BooleanVar(value=bool(_0_global_search_settings[1]))
+        self.var_search_tr = tk.BooleanVar(value=bool(_0_global_search_settings[2]))
+        self.var_search_frm = tk.BooleanVar(value=bool(_0_global_search_settings[3]))
+        self.var_search_nt = tk.BooleanVar(value=bool(_0_global_search_settings[4]))
 
         self.lbl_search_only_fav = ttk.Label(self, text='Искать только среди избранных статей:', style='Default.TLabel')
         self.check_search_only_fav = ttk.Checkbutton(self, variable=self.var_search_only_fav,
@@ -2868,10 +2898,20 @@ class SearchSettingsW(tk.Toplevel):
         self.bind('<Escape>', lambda event=None: self.destroy())
 
     def open(self):
+        global _0_global_search_settings
+
         self.set_focus()
 
         self.grab_set()
         self.wait_window()
+
+        _0_global_search_settings = (int(self.var_search_only_fav.get()),
+                                     int(self.var_search_wrd.get()),
+                                     int(self.var_search_tr.get()),
+                                     int(self.var_search_frm.get()),
+                                     int(self.var_search_nt.get()))
+        save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
+                                 _0_global_dct_savename)
 
         return self.var_search_only_fav.get(), self.var_search_wrd.get(), self.var_search_tr.get(),\
             self.var_search_frm.get(), self.var_search_nt.get()
@@ -5908,7 +5948,8 @@ class SettingsW(tk.Toplevel):
             return
         _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_categories =\
             upload_local_settings(savename)
-        _0_global_learn_settings, _0_global_session_number = upload_local_auto_settings(savename)
+        _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
+            upload_local_auto_settings(savename)
         _0_global_dct_savename = savename
         save_dct_name()
 
@@ -5943,7 +5984,8 @@ class SettingsW(tk.Toplevel):
         create_dct(_0_global_dct, savename)
         _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_categories =\
             upload_local_settings(savename)
-        _0_global_learn_settings, _0_global_session_number = upload_local_auto_settings(savename)
+        _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
+            upload_local_auto_settings(savename)
         _0_global_dct_savename = savename
         save_dct_name()
 
@@ -6138,7 +6180,8 @@ class SettingsW(tk.Toplevel):
                             _0_global_categories, _0_global_dct_savename)
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
                              _0_global_scale)
-        save_local_auto_settings(_0_global_learn_settings, _0_global_session_number, _0_global_dct_savename)
+        save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
+                                 _0_global_dct_savename)
 
         # Сохранение словаря, если были изменения локальных настроек
         if self.has_local_changes():
@@ -6420,7 +6463,8 @@ class MainW(tk.Tk):
         _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_categories =\
             upload_local_settings(_0_global_dct_savename)
         # Обновляем локальные авто-настройки
-        _0_global_learn_settings, _0_global_session_number = upload_local_auto_settings(_0_global_dct_savename)
+        _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
+            upload_local_auto_settings(_0_global_dct_savename)
 
         # Обновляем надпись с названием открытого словаря
         self.lbl_dct_name.config(text=f'Открыт словарь\n'
@@ -6747,7 +6791,7 @@ if not _0_global_dct_savename:
     exit(101)
 _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_categories =\
     upload_local_settings(_0_global_dct_savename)  # Загружаем локальные настройки
-_0_global_learn_settings, _0_global_session_number =\
+_0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
     upload_local_auto_settings(_0_global_dct_savename)  # Загружаем локальные авто-настройки
 _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
 root.mainloop()
