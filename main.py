@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-10.1'
-PROGRAM_DATE = '4.3.2023'
-PROGRAM_TIME = '18:58 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.0-PRE-10.2'
+PROGRAM_DATE = '6.3.2023'
+PROGRAM_TIME = '20:10 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -263,9 +263,6 @@ NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с
 CATEGORY_SEPARATOR = '@'
 # Открывающие символы специальных комбинаций
 SPECIAL_COMBINATIONS_OPENING_SYMBOLS = ('^', '~', '`', '\'', '"', '*', '_', ':', '/', '\\', '|', '#', '$', '%', '&')
-
-# Максимальное количество элементов на одной странице ScrollFrame
-MAX_ELEMENTS_ON_ONE_PAGE = 200
 
 LEARN_VALUES_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову',
                        'Der-Die-Das (для немецкого)')  # Варианты метода учёбы
@@ -667,37 +664,6 @@ class Dictionary(object):
                 count_t += entry.count_t
                 count_f += entry.count_f
         return count_w, count_t, count_f
-
-    # Напечатать статьи, в которых слова содержат данную строку
-    def get_words_with_content(self, search_wrd: str) -> list[tuple[tuple[str, int], str]] | list:
-        res = []
-        for key in self.d.keys():
-            wrd = key_to_wrd(key)
-            ans = find_and_highlight(wrd, search_wrd)
-            if ans != '':
-                res += [(key, ans)]
-        return res
-
-    # Напечатать статьи, в которых переводы содержат данную строку
-    def get_translations_with_content(self, search_tr: str) -> list[tuple[tuple[str, int], str]] | list:
-        res = []
-        for key in self.d.keys():
-            entry = self.d[key]
-            is_first_in_line = True
-            tmp = ''
-            for tr in entry.tr:
-                ans = find_and_highlight(tr, search_tr)
-                if ans != '':
-                    if is_first_in_line:
-                        is_first_in_line = False
-                        tmp = f'{entry.wrd}: '
-                    else:
-                        # Вывод запятой после найденного перевода (кроме первого в статье перевода)
-                        tmp += ', '
-                    tmp += ans  # Вывод перевода
-            if tmp != '':
-                res += [(key, tmp)]
-        return res
 
     # Выбрать одну статью из нескольких с одинаковыми словами
     def choose_one_of_similar_entries(self, window_parent, wrd: str):
@@ -1411,6 +1377,53 @@ def delete_ctg_val(window_parent, values: list[str] | tuple[str, ...], dct: Dict
         dct.delete_forms_with_val(index, val)  # Удаление всех словоформ, содержащих это значение категории
         return True
     return False
+
+
+# Поиск статей в словаре
+def search_entries(dct: Dictionary, keys: tuple[tuple[str, int], ...], query: str,
+                   search_wrd: bool, search_tr: bool, search_frm: bool, search_nt: bool):
+    full_matches = set()
+    particulary_matches = set()
+    if search_wrd:
+        for key in keys:
+            entry = dct.d[key]
+            if query == entry.wrd:
+                full_matches.add(key)
+            elif find_and_highlight(entry.wrd, query) != '':
+                if key not in full_matches:
+                    particulary_matches.add(key)
+    if search_tr:
+        for key in keys:
+            entry = dct.d[key]
+            if query in entry.tr:
+                full_matches.add(key)
+            else:
+                for tr in entry.tr:
+                    if find_and_highlight(tr, query) != '':
+                        if key not in full_matches:
+                            particulary_matches.add(key)
+            #print( tpl(tuple(find_and_highlight(tr, query) for tr in entry.tr)) )
+    if search_frm:
+        for key in keys:
+            entry = dct.d[key]
+            if query in entry.forms.values():
+                full_matches.add(key)
+            else:
+                for frm in entry.forms.values():
+                    if find_and_highlight(frm, query) != '':
+                        if key not in full_matches:
+                            particulary_matches.add(key)
+    if search_nt:
+        for key in keys:
+            entry = dct.d[key]
+            if query in entry.notes:
+                full_matches.add(key)
+            else:
+                for nt in entry.notes:
+                    if find_and_highlight(nt, query) != '':
+                        if key not in full_matches:
+                            particulary_matches.add(key)
+    return full_matches, particulary_matches
 
 
 """ Загрузка/сохранение/обновление """
@@ -2804,6 +2817,66 @@ class IncorrectAnswerW(tk.Toplevel):
         return self.answer
 
 
+# Окно настроек поиска
+class SearchSettingsW(tk.Toplevel):
+    def __init__(self, parent, search_only_fav: bool, search_wrd: bool, search_tr: bool, search_frm: bool,
+                 search_nt: bool):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Настройки поиска')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[th])
+
+        self.var_search_only_fav = tk.BooleanVar(value=search_only_fav)
+        self.var_search_wrd = tk.BooleanVar(value=search_wrd)
+        self.var_search_tr = tk.BooleanVar(value=search_tr)
+        self.var_search_frm = tk.BooleanVar(value=search_frm)
+        self.var_search_nt = tk.BooleanVar(value=search_nt)
+
+        self.lbl_search_only_fav = ttk.Label(self, text='Искать только среди избранных статей:', style='Default.TLabel')
+        self.check_search_only_fav = ttk.Checkbutton(self, variable=self.var_search_only_fav,
+                                                     style='Default.TCheckbutton')
+        self.frame = ttk.Frame(self, style='Default.TFrame')
+        # {
+        self.lbl_search_wrd = ttk.Label(self.frame, text='Искать среди слов:', style='Default.TLabel')
+        self.check_search_wrd = ttk.Checkbutton(self.frame, variable=self.var_search_wrd, style='Default.TCheckbutton')
+        self.lbl_search_tr = ttk.Label(self.frame, text='Искать среди переводов:', style='Default.TLabel')
+        self.check_search_tr = ttk.Checkbutton(self.frame, variable=self.var_search_tr, style='Default.TCheckbutton')
+        self.lbl_search_frm = ttk.Label(self.frame, text='Искать среди словоформ:', style='Default.TLabel')
+        self.check_search_frm = ttk.Checkbutton(self.frame, variable=self.var_search_frm, style='Default.TCheckbutton')
+        self.lbl_search_nt = ttk.Label(self.frame, text='Искать среди сносок:', style='Default.TLabel')
+        self.check_search_nt = ttk.Checkbutton(self.frame, variable=self.var_search_nt, style='Default.TCheckbutton')
+        # }
+
+        self.lbl_search_only_fav.grid(  row=0, column=0,               padx=(6, 1), pady=6, sticky='E')
+        self.check_search_only_fav.grid(row=0, column=1,               padx=(0, 6), pady=6, sticky='W')
+        self.frame.grid(                row=1, column=0, columnspan=2, padx=6,      pady=6)
+        # {
+        self.lbl_search_wrd.grid(  row=0, column=0, padx=(6, 1), pady=6,      sticky='E')
+        self.check_search_wrd.grid(row=0, column=1, padx=(0, 6), pady=6,      sticky='W')
+        self.lbl_search_tr.grid(   row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_search_tr.grid( row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_search_frm.grid(  row=2, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_search_frm.grid(row=2, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_search_nt.grid(   row=3, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_search_nt.grid( row=3, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        # }
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.bind('<Return>', lambda event=None: self.destroy())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.var_search_only_fav.get(), self.var_search_wrd.get(), self.var_search_tr.get(),\
+            self.var_search_frm.get(), self.var_search_nt.get()
+
+
 # Окно выбора одной статьи из нескольких с одинаковыми словами
 class ChooseOneOfSimilarNotesW(tk.Toplevel):
     def __init__(self, parent, query: str):
@@ -4139,6 +4212,7 @@ class PrintW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
+        self.max_elements_on_page = 200  # Максимальное количество элементов на одной странице ScrollFrame
         self.current_page = 1  # Номер текущей страницы ScrollFrame (начиная с 1)
         self.start_index = 0  # Номер по порядку первого слова на текущей странице ScrollFrame (начиная с 0)
         self.count_pages = None  # Количество страниц ScrollFrame
@@ -4181,11 +4255,11 @@ class PrintW(tk.Toplevel):
         self.frame_parameters = ttk.Frame(self.frame_header, style='Default.TFrame')
         # { {
         self.lbl_fav = ttk.Label(self.frame_parameters, text='Только избранные:', style='Default.TLabel')
-        self.lbl_forms = ttk.Label(self.frame_parameters, text='Все словоформы:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self.frame_parameters, variable=self.var_fav,
-                                         command=lambda: self.go_to_first_page(), style='Default.TCheckbutton')
+                                         command=self.go_to_first_page, style='Default.TCheckbutton')
+        self.lbl_forms = ttk.Label(self.frame_parameters, text='Все словоформы:', style='Default.TLabel')
         self.check_forms = ttk.Checkbutton(self.frame_parameters, variable=self.var_forms,
-                                           command=lambda: self.go_to_last_page(), style='Default.TCheckbutton')
+                                           command=self.go_to_last_page, style='Default.TCheckbutton')
         # } }
         # }
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
@@ -4195,7 +4269,8 @@ class PrintW(tk.Toplevel):
                                           SCALE_WIDE_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.frame_page_buttons = ttk.Frame(self.frame_main, style='Invis.TFrame')
         # { {
-        self.btn_first_page = ttk.Button(self.frame_page_buttons, command=self.go_to_first_page, width=2, takefocus=False)
+        self.btn_first_page = ttk.Button(self.frame_page_buttons, command=self.go_to_first_page, width=2,
+                                         takefocus=False)
         set_image(self.btn_first_page, self.img_double_arrow_left, img_double_arrow_left, '<<')
         self.btn_prev_page = ttk.Button(self.frame_page_buttons, command=self.go_to_prev_page, width=2, takefocus=False)
         set_image(self.btn_prev_page, self.img_arrow_left, img_arrow_left, '<')
@@ -4236,7 +4311,7 @@ class PrintW(tk.Toplevel):
         # }
         self.frame_main.grid(row=1, column=0, padx=6, pady=6)
         # {
-        self.lbl_info.grid(          row=0, column=0, padx=6, pady=(0, 6))
+        self.lbl_info.grid(          row=0, column=0, padx=0, pady=(0, 6))
         self.scrolled_frame.grid(    row=1, column=0, padx=0, pady=(0, 6))
         self.frame_page_buttons.grid(row=2, column=0, padx=0, pady=0)
         # { {
@@ -4312,17 +4387,17 @@ class PrintW(tk.Toplevel):
         if self.count_elements == 0:
             self.count_pages = 1
         else:
-            self.count_pages = math.ceil(self.count_elements / MAX_ELEMENTS_ON_ONE_PAGE)
+            self.count_pages = math.ceil(self.count_elements / self.max_elements_on_page)
         if self.current_page > self.count_pages:
             self.current_page = self.count_pages
-            self.start_index = (self.count_pages - 1) * MAX_ELEMENTS_ON_ONE_PAGE
+            self.start_index = (self.count_pages - 1) * self.max_elements_on_page
         if self.current_page == self.count_pages:
-            if self.count_elements % MAX_ELEMENTS_ON_ONE_PAGE == 0 and self.count_elements != 0:
-                self.count_elements_on_page = MAX_ELEMENTS_ON_ONE_PAGE
+            if self.count_elements % self.max_elements_on_page == 0 and self.count_elements != 0:
+                self.count_elements_on_page = self.max_elements_on_page
             else:
-                self.count_elements_on_page = self.count_elements % MAX_ELEMENTS_ON_ONE_PAGE
+                self.count_elements_on_page = self.count_elements % self.max_elements_on_page
         else:
-            self.count_elements_on_page = MAX_ELEMENTS_ON_ONE_PAGE
+            self.count_elements_on_page = self.max_elements_on_page
         # Выводим номер страницы
         self.var_current_page.set(str(self.current_page))
         self.entry_current_page.icursor(len(str(self.current_page)))
@@ -4394,18 +4469,24 @@ class PrintW(tk.Toplevel):
             for i in range(self.count_elements_on_page):
                 self.buttons[i].configure(text=_0_global_dct.d[self.keys[self.start_index + i]].print_briefly(75))
 
+    # Перейти на страницу с заданным номером
+    def go_to_page_with_number(self, number: int):
+        self.current_page = number
+        self.start_index = (self.current_page - 1) * self.max_elements_on_page
+        self.print(True)
+
     # Перейти на предыдущую страницу
     def go_to_prev_page(self):
         if self.current_page != 1:
             self.current_page -= 1
-            self.start_index -= MAX_ELEMENTS_ON_ONE_PAGE
+            self.start_index -= self.max_elements_on_page
             self.print(True)
 
     # Перейти на следующую страницу
     def go_to_next_page(self):
         if self.current_page != self.count_pages:
             self.current_page += 1
-            self.start_index += MAX_ELEMENTS_ON_ONE_PAGE
+            self.start_index += self.max_elements_on_page
             self.print(True)
 
     # Перейти на первую страницу
@@ -4417,13 +4498,7 @@ class PrintW(tk.Toplevel):
     # Перейти на последнюю страницу
     def go_to_last_page(self):
         self.current_page = self.count_pages
-        self.start_index = (self.current_page - 1) * MAX_ELEMENTS_ON_ONE_PAGE
-        self.print(True)
-
-    # Перейти на страницу с заданным номером
-    def go_to_page_with_number(self, number: int):
-        self.current_page = number
-        self.start_index = (number - 1) * MAX_ELEMENTS_ON_ONE_PAGE
+        self.start_index = (self.current_page - 1) * self.max_elements_on_page
         self.print(True)
 
     # Добавить одну статью в избранное
@@ -4463,8 +4538,8 @@ class PrintW(tk.Toplevel):
     # Нажатие на кнопку "Справка" (картинка с вопросом)
     def about_window(self):
         PopupMsgW(self, '* Чтобы добавить статью в избранное, наведите на неё мышку и нажмите Ctrl+F\n'
-                        '* Чтобы прокрутить в самый низ, нажмите Ctrl+D\n'
-                        '* Чтобы прокрутить в самый верх, нажмите Ctrl+U',
+                        '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
+                        '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP',
                   msg_justify='left').open()
 
     # Установить фокус
@@ -4820,165 +4895,283 @@ class LearnW(tk.Toplevel):
 
 # Окно поиска статей
 class SearchW(tk.Toplevel):
-    def __init__(self, parent, query: str):
+    def __init__(self, parent):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Поиск')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.var_query = tk.StringVar(value=query)
+        self.search_only_fav = False
+        self.search_wrd = True
+        self.search_tr = True
+        self.search_frm = False
+        self.search_nt = False
 
-        self.frame_main = ttk.Frame(self, style='Default.TFrame')
+        self.max_elements_on_page = 100  # Максимальное количество элементов на одной странице ScrollFrame
+        self.current_page = 1  # Номер текущей страницы ScrollFrame (начиная с 1)
+        self.start_index = 0  # Номер по порядку первого слова на текущей странице ScrollFrame (начиная с 0)
+        self.count_pages = None  # Количество страниц ScrollFrame
+        self.count_full_matches = None  # Количество полных совпадений
+        self.count_particular_matches = None  # Количество частичных совпадений
+        self.count_elements = None  # Количество элементов на всех страницах ScrollFrame
+        self.count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
+
+        self.var_query = tk.StringVar()
+        self.var_info = tk.StringVar()
+        self.var_current_page = tk.StringVar(value=str(self.current_page))
+
+        self.img_about = tk.PhotoImage()
+        self.img_settings = tk.PhotoImage()
+        self.img_arrow_left = tk.PhotoImage()
+        self.img_arrow_right = tk.PhotoImage()
+        self.img_double_arrow_left = tk.PhotoImage()
+        self.img_double_arrow_right = tk.PhotoImage()
+
+        def validate_and_goto_page_number(value: str):
+            res = validate_int_min_max(value, 1, self.count_pages)
+            if res and value != '' and int(value) != self.current_page:
+                self.go_to_page_with_number(int(value))
+            return res
+        self.vcmd_page = (self.register(validate_and_goto_page_number), '%P')
+
+        self.keys = []
+        self.frames = []
+        self.buttons = []
+        self.tips = []
+
+        self.frame_header = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.lbl_input = ttk.Label(self.frame_main, text='Введите запрос:', style='Default.TLabel')
-        self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_query, width=60, style='Default.TEntry')
-        self.btn_search = ttk.Button(self.frame_main, text='Поиск', command=self.search,
-                                     takefocus=False, style='Default.TButton')
+        self.btn_about_window = ttk.Button(self.frame_header, command=self.about_window, width=2, takefocus=False)
+        set_image(self.btn_about_window, self.img_about, img_about, '?')
+        self.lbl_dct_name = ttk.Label(self.frame_header, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
+                                                                         40, add_right_spaces=False),
+                                      justify='center', style='Default.TLabel')
+        self.frame_query = ttk.Frame(self.frame_header, style='Default.TFrame')
+        # { {
+        self.btn_search_settings = ttk.Button(self.frame_query, command=self.search_settings, width=9, takefocus=False)
+        set_image(self.btn_search_settings, self.img_settings, img_edit, 'Настройки')
+        self.entry_query = ttk.Entry(self.frame_query, textvariable=self.var_query, width=10 + 3 * _0_global_scale,
+                                     style='Default.TEntry')
+        self.btn_search = ttk.Button(self.frame_query, text='Поиск', command=self.print,
+                                     width=6, takefocus=False, style='Default.TButton')
+        # } }
         # }
-        self.lbl_wrd = ttk.Label(self, text='Поиск по слову', style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
-                                              SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.widgets_wrd = []
-        # }
-        self.lbl_tr = ttk.Label(self, text='Поиск по переводу', style='Default.TLabel')
-        self.scrolled_frame_tr = ScrollFrame(self, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
-                                             SCALE_NARROW_FRAME_WIDTH[_0_global_scale - SCALE_MIN],
-                                             scrollbar_position='left')
-        # {
-        self.widgets_tr = []
+        self.lbl_info = ttk.Label(self.frame_main, textvariable=self.var_info, style='Default.TLabel')
+        self.scrolled_frame = ScrollFrame(self.frame_main, SCALE_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
+                                          SCALE_WIDE_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.frame_page_buttons = ttk.Frame(self.frame_main, style='Invis.TFrame')
+        # { {
+        self.btn_first_page = ttk.Button(self.frame_page_buttons, command=self.go_to_first_page, width=2,
+                                         takefocus=False)
+        set_image(self.btn_first_page, self.img_double_arrow_left, img_double_arrow_left, '<<')
+        self.btn_prev_page = ttk.Button(self.frame_page_buttons, command=self.go_to_prev_page, width=2, takefocus=False)
+        set_image(self.btn_prev_page, self.img_arrow_left, img_arrow_left, '<')
+        self.frame_current_page = ttk.Frame(self.frame_page_buttons, style='Invis.TFrame')
+        # { { {
+        self.lbl_current_page_1 = ttk.Label(self.frame_current_page, text='Страница', style='Default.TLabel')
+        self.entry_current_page = ttk.Entry(self.frame_current_page, textvariable=self.var_current_page,
+                                            validate='key', validatecommand=self.vcmd_page,
+                                            justify='center', width=3, style='Default.TEntry')
+        self.lbl_current_page_2 = ttk.Label(self.frame_current_page, text='из 1', style='Default.TLabel')
+        # } } }
+        self.btn_next_page = ttk.Button(self.frame_page_buttons, command=self.go_to_next_page, width=2, takefocus=False)
+        set_image(self.btn_next_page, self.img_arrow_right, img_arrow_right, '>')
+        self.btn_last_page = ttk.Button(self.frame_page_buttons, command=self.go_to_last_page, width=2, takefocus=False)
+        set_image(self.btn_last_page, self.img_double_arrow_right, img_double_arrow_right, '>>')
+        # } }
         # }
 
-        self.frame_main.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
+        self.frame_header.grid(row=0, column=0, padx=6, pady=(6, 0))
         # {
-        self.lbl_input.grid(  row=0, column=0, padx=(6, 1), pady=6, sticky='E')
-        self.entry_input.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
-        self.btn_search.grid( row=0, column=2, padx=6,      pady=6)
+        self.btn_about_window.grid(row=0, column=0, padx=0,      pady=0)
+        self.lbl_dct_name.grid(    row=0, column=1, padx=0,      pady=0)
+        self.frame_query.grid(     row=0, column=2, padx=(6, 0), pady=0)
+        # { {
+        self.btn_search_settings.grid(row=0, column=0, padx=(6, 1), pady=6)
+        self.entry_query.grid(        row=0, column=1, padx=(0, 1), pady=6)
+        self.btn_search.grid(         row=0, column=2, padx=(0, 6), pady=6)
+        # } }
         # }
-        self.lbl_wrd.grid(           row=1, column=0, padx=(6, 3), pady=(0, 3))
-        self.lbl_tr.grid(            row=1, column=1, padx=(3, 6), pady=(0, 3))
-        self.scrolled_frame_wrd.grid(row=2, column=0, padx=6,      pady=(0, 6))
-        self.scrolled_frame_tr.grid( row=2, column=1, padx=6,      pady=(0, 6))
+        self.frame_main.grid(row=1, column=0, padx=6, pady=6)
+        # {
+        self.lbl_info.grid(          row=0, column=0, padx=0, pady=(0, 6))
+        self.scrolled_frame.grid(    row=1, column=0, padx=0, pady=(0, 6))
+        self.frame_page_buttons.grid(row=2, column=0, padx=0, pady=0)
+        # { {
+        self.btn_first_page.grid(    row=0, column=0, padx=3, pady=0)
+        self.btn_prev_page.grid(     row=0, column=1, padx=3, pady=0)
+        self.frame_current_page.grid(row=0, column=2, padx=3, pady=0)
+        # { { {
+        self.lbl_current_page_1.grid(row=0, column=0, padx=0, pady=0)
+        self.entry_current_page.grid(row=0, column=1, padx=3, pady=0)
+        self.lbl_current_page_2.grid(row=0, column=2, padx=0, pady=0)
+        # } } }
+        self.btn_next_page.grid(row=0, column=3, padx=3, pady=0)
+        self.btn_last_page.grid(row=0, column=4, padx=3, pady=0)
+        # } }
+        # }
 
-        self.search()
+        self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
+        self.tip_btn_first_page = ttip.Hovertip(self.btn_first_page, 'В начало', hover_delay=650)
+        self.tip_btn_prev_page = ttip.Hovertip(self.btn_prev_page, 'На предыдущую страницу', hover_delay=650)
+        self.tip_btn_next_page = ttip.Hovertip(self.btn_next_page, 'На следующую страницу', hover_delay=650)
+        self.tip_btn_last_page = ttip.Hovertip(self.btn_last_page, 'В конец', hover_delay=650)
+
+        self.bind('<Up>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
+        self.bind('<Control-U>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
+        self.bind('<Control-u>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
+
+        self.bind('<Down>', lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
+        self.bind('<Control-D>', lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
+        self.bind('<Control-d>', lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
+
+        self.print()  # Выводим статьи
+
+    # Нажатие на кнопку "Настройки поиска"
+    def search_settings(self):
+        window = SearchSettingsW(self, self.search_only_fav,
+                                 self.search_wrd, self.search_tr, self.search_frm, self.search_nt)
+        self.search_only_fav, self.search_wrd, self.search_tr, self.search_frm, self.search_nt = window.open()
 
     # Изменить статью
     def edit_note(self, key: tuple[str, int]):
         EditW(self, key).open()
 
-        self.search()
+        self.print()
 
-    # Поиск статей
-    def search(self):
-        self.search_wrd()  # Поиск статей по слову
-        self.search_tr()  # Поиск статей по переводу
+    # Нажатие на кнопку "Поиск"
+    def print(self):
+        # Удаляем старые подсказки
+        for tip in self.tips:
+            tip.__del__()
+        # Удаляем старые кнопки
+        for btn in self.buttons:
+            btn.destroy()
+        # Удаляем старые фреймы
+        for fr in self.frames:
+            fr.unbind('<Enter>')
+            fr.unbind('<Control-F>')
+            fr.unbind('<Control-f>')
+            fr.destroy()
 
-        self.entry_input.icursor(len(self.var_query.get()))
-
-    # Поиск статей по слову
-    def search_wrd(self):
-        # Удаляем старые виджеты
-        for wdg in self.widgets_wrd:
-            wdg.destroy()
-        self.widgets_wrd = []
-
-        # Искомое слово
-        search_wrd = encode_special_combinations(self.var_query.get())
-
-        # Полное совпадение
-        self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
-                                       text=split_text('Полное совпадение:', 50, 0),
-                                       style='Flat.TLabel')]
-        count = 0
-        while True:
-            key = wrd_to_key(search_wrd, count)
-            if key not in _0_global_dct.d.keys():
-                break
-            self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
-                                            text=_0_global_dct.d[key].print_all(50, 13),
-                                            command=lambda key=key: self.edit_note(key),
-                                            takefocus=False, style='Flat.TButton')]
-            count += 1
-        if count == 0:
-            self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
-                                           text=split_text(f'Слово "{search_wrd}" отсутствует в словаре', 50, 0),
-                                           style='Flat.TLabel')]
-
-        # Частичное совпадение
-        self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
-                                       text=split_text('Частичное совпадение:', 50, 0), style='Flat.TLabel')]
-        particular_matches = _0_global_dct.get_words_with_content(search_wrd)
-        if particular_matches:
-            for (key, text) in particular_matches:
-                self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
-                                                text=split_text(text, 50, 5),
-                                                command=lambda key=key: self.edit_note(key),
-                                                takefocus=False, style='Flat.TButton')]
+        # Выбираем нужные статьи
+        if self.search_only_fav:
+            keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
         else:
-            self.widgets_wrd += [ttk.Label(self.scrolled_frame_wrd.frame_canvas,
-                                           text=split_text('Частичных совпадений не найдено', 50, 0),
-                                           style='Flat.TLabel')]
+            keys = [key for key in _0_global_dct.d.keys()]
+        full_matches, particular_matches = search_entries(_0_global_dct, tuple(keys), self.var_query.get(),
+                                                          self.search_wrd, self.search_tr,
+                                                          self.search_frm, self.search_nt)
+        self.keys = tuple(full_matches) + tuple(particular_matches)
 
-        # Расположение виджетов
-        for i in range(len(self.widgets_wrd)):
-            self.widgets_wrd[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-
-        self.scrolled_frame_wrd.canvas.yview_moveto(0.0)
-
-    # Поиск статей по переводу
-    def search_tr(self):
-        # Удаляем старые виджеты
-        for wdg in self.widgets_tr:
-            wdg.destroy()
-        self.widgets_tr = []
-
-        # Искомый перевод
-        search_tr = encode_special_combinations(self.var_query.get())
-
-        # Полное совпадение
-        self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
-                                      text=split_text('Полное совпадение:', 50, 0),
-                                      style='Flat.TLabel')]
-        count = 0
-        for key in _0_global_dct.d.keys():
-            entry = _0_global_dct.d[key]
-            if search_tr in entry.tr:
-                self.widgets_tr += [ttk.Button(self.scrolled_frame_tr.frame_canvas,
-                                               text=entry.print_all(50, 13),
-                                               command=lambda key=key: self.edit_note(key),
-                                               takefocus=False, style='Flat.TButton')]
-                count += 1
-        if count == 0:
-            self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
-                                          text=split_text(f'Слово с переводом "{search_tr}" отсутствует в словаре',
-                                                          50, 0),
-                                          style='Flat.TLabel')]
-
-        # Частичное совпадение
-        self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
-                                      text=split_text('Частичное совпадение:', 50, 0), style='Flat.TLabel')]
-        particular_matches = _0_global_dct.get_translations_with_content(search_tr)
-        if particular_matches:
-            for (key, text) in particular_matches:
-                self.widgets_tr += [ttk.Button(self.scrolled_frame_tr.frame_canvas,
-                                               text=split_text(text, 50, 5),
-                                               command=lambda key=key: self.edit_note(key),
-                                               takefocus=False, style='Flat.TButton')]
+        # Вычисляем значения некоторых количественных переменных
+        self.count_elements = len(self.keys)
+        if self.count_elements == 0:
+            self.count_pages = 1
         else:
-            self.widgets_tr += [ttk.Label(self.scrolled_frame_tr.frame_canvas,
-                                          text=split_text('Частичных совпадений не найдено', 50, 0),
-                                          style='Flat.TLabel')]
+            self.count_pages = math.ceil(self.count_elements / self.max_elements_on_page)
+        if self.current_page > self.count_pages:
+            self.current_page = self.count_pages
+            self.start_index = (self.count_pages - 1) * self.max_elements_on_page
+        if self.current_page == self.count_pages:
+            if self.count_elements % self.max_elements_on_page == 0 and self.count_elements != 0:
+                self.count_elements_on_page = self.max_elements_on_page
+            else:
+                self.count_elements_on_page = self.count_elements % self.max_elements_on_page
+        else:
+            self.count_elements_on_page = self.max_elements_on_page
+        # Выводим информацию о количестве статей
+        self.var_info.set(f'Найдено статей: {self.count_elements}')
+        # Выводим номер страницы
+        self.var_current_page.set(str(self.current_page))
+        self.entry_current_page.icursor(len(str(self.current_page)))
+        self.lbl_current_page_2.configure(text=f'из {self.count_pages}')
 
-        # Расположение виджетов
-        for i in range(len(self.widgets_tr)):
-            self.widgets_tr[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+        # Создаём новые фреймы
+        self.frames = [ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
+                       for i in range(self.count_elements_on_page)]
+        # Создаём новые кнопки
+        self.buttons = [ttk.Button(self.frames[i], takefocus=False,
+                                   command=lambda i=i: self.edit_note(self.keys[self.start_index + i]),
+                                   style='Flat.TButton')
+                        for i in range(self.count_elements_on_page)]
+        # Выводим текст на кнопки
+        for i in range(self.count_elements_on_page):
+            self.buttons[i].configure(text=_0_global_dct.d[self.keys[self.start_index + i]].print_all(75, 13))
+        # Расставляем фреймы и кнопки
+        for i in range(self.count_elements_on_page):
+            self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            # {
+            self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
+            # }
+        # Привязываем события
+        for i in range(self.count_elements_on_page):
+            self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
+            self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav_one(i, self.keys[self.start_index + i]))
+            self.frames[i].bind('<Control-f>', lambda event, i=i: self.fav_one(i, self.keys[self.start_index + i]))
 
-        self.scrolled_frame_tr.canvas.yview_moveto(0.0)
+        # Прокручиваем вверх
+        self.scrolled_frame.canvas.yview_moveto(0.0)
+
+    # Обновить одну из кнопок журнала
+    def refresh_one_button(self, index: int, key: tuple[str, int]):
+        # Выводим текст на кнопку
+        self.buttons[index].configure(text=_0_global_dct.d[key].print_all(75, 13))
+
+        # Выводим информацию о количестве статей
+        self.var_info.set(f'Найдено статей: {self.count_elements}')
+
+    # Перейти на страницу с заданным номером
+    def go_to_page_with_number(self, number: int):
+        self.current_page = number
+        self.start_index = (self.current_page - 1) * self.max_elements_on_page
+        self.print()
+
+    # Перейти на предыдущую страницу
+    def go_to_prev_page(self):
+        if self.current_page != 1:
+            self.current_page -= 1
+            self.start_index -= self.max_elements_on_page
+            self.print()
+
+    # Перейти на следующую страницу
+    def go_to_next_page(self):
+        if self.current_page != self.count_pages:
+            self.current_page += 1
+            self.start_index += self.max_elements_on_page
+            self.print()
+
+    # Перейти на первую страницу
+    def go_to_first_page(self):
+        self.current_page = 1
+        self.start_index = 0
+        self.print()
+
+    # Перейти на последнюю страницу
+    def go_to_last_page(self):
+        self.current_page = self.count_pages
+        self.start_index = (self.current_page - 1) * self.max_elements_on_page
+        self.print()
+
+    # Добавить одну статью в избранное
+    def fav_one(self, index: int, key: tuple[str, int]):
+        _0_global_dct.d[key].change_fav()
+
+        self.refresh_one_button(index, key)
+
+    # Нажатие на кнопку "Справка" (картинка с вопросом)
+    def about_window(self):
+        PopupMsgW(self, '* Чтобы добавить статью в избранное, наведите на неё мышку и нажмите Ctrl+F\n'
+                        '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
+                        '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP',
+                  msg_justify='left').open()
 
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        self.entry_input.focus_set()
+        self.entry_query.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_search.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
@@ -6202,8 +6395,7 @@ class MainW(tk.Tk):
 
     # Нажатие на кнопку "Найти статью"
     def search(self):
-        wrd = self.var_word.get()
-        SearchW(self, wrd).open()
+        SearchW(self).open()
 
     # Нажатие на кнопку "Добавить статью"
     def add(self):
