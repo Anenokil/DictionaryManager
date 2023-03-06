@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-10.5'
+PROGRAM_VERSION = 'v7.1.0-PRE-10.6'
 PROGRAM_DATE = '6.3.2023'
-PROGRAM_TIME = '21:01 (UTC+3)'
+PROGRAM_TIME = '21:24 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -38,7 +38,6 @@ SCALE_MAX = 16
 SCALE_DEF = 10
 
 SCALE_WIDE_FRAME_WIDTH         = (532, 604, 682, 757, 757, 832, 907, 980, 1057)
-SCALE_NARROW_FRAME_WIDTH       = (356, 404, 457, 508, 508, 557, 607, 657,  707)
 SCALE_FRAME_HEIGHT             = (400, 430, 460, 490, 520, 550, 580, 610,  640)
 SCALE_CUSTOM_THEME_FRAME_WIDTH = (410, 440, 455, 495, 517, 543, 590, 615,  643)
 SCALE_CUSTOM_THEME_COMBO_WIDTH = ( 16,  16,  14,  12,  11,  11,  10,   9,    8)
@@ -2856,11 +2855,11 @@ class SearchSettingsW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.var_search_only_fav = tk.BooleanVar(value=bool(_0_global_search_settings[0]))
-        self.var_search_wrd = tk.BooleanVar(value=bool(_0_global_search_settings[1]))
-        self.var_search_tr = tk.BooleanVar(value=bool(_0_global_search_settings[2]))
-        self.var_search_frm = tk.BooleanVar(value=bool(_0_global_search_settings[3]))
-        self.var_search_nt = tk.BooleanVar(value=bool(_0_global_search_settings[4]))
+        self.var_search_only_fav = tk.BooleanVar(value=search_only_fav)
+        self.var_search_wrd = tk.BooleanVar(value=search_wrd)
+        self.var_search_tr = tk.BooleanVar(value=search_tr)
+        self.var_search_frm = tk.BooleanVar(value=search_frm)
+        self.var_search_nt = tk.BooleanVar(value=search_nt)
 
         self.lbl_search_only_fav = ttk.Label(self, text='Искать только среди избранных статей:', style='Default.TLabel')
         self.check_search_only_fav = ttk.Checkbutton(self, variable=self.var_search_only_fav,
@@ -4518,28 +4517,20 @@ class PrintW(tk.Toplevel):
     # Перейти на предыдущую страницу
     def go_to_prev_page(self):
         if self.current_page != 1:
-            self.current_page -= 1
-            self.start_index -= self.max_elements_on_page
-            self.print(True)
+            self.go_to_page_with_number(self.current_page - 1)
 
     # Перейти на следующую страницу
     def go_to_next_page(self):
         if self.current_page != self.count_pages:
-            self.current_page += 1
-            self.start_index += self.max_elements_on_page
-            self.print(True)
+            self.go_to_page_with_number(self.current_page + 1)
 
     # Перейти на первую страницу
     def go_to_first_page(self):
-        self.current_page = 1
-        self.start_index = 0
-        self.print(True)
+        self.go_to_page_with_number(1)
 
     # Перейти на последнюю страницу
     def go_to_last_page(self):
-        self.current_page = self.count_pages
-        self.start_index = (self.current_page - 1) * self.max_elements_on_page
-        self.print(True)
+        self.go_to_page_with_number(self.count_pages)
 
     # Добавить одну статью в избранное
     def fav_one(self, index: int):
@@ -4941,11 +4932,11 @@ class SearchW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.search_only_fav = False
-        self.search_wrd = True
-        self.search_tr = True
-        self.search_frm = False
-        self.search_nt = False
+        self.search_only_fav = bool(_0_global_search_settings[0])
+        self.search_wrd = bool(_0_global_search_settings[1])
+        self.search_tr = bool(_0_global_search_settings[2])
+        self.search_frm = bool(_0_global_search_settings[3])
+        self.search_nt = bool(_0_global_search_settings[4])
 
         self.max_elements_on_page = 100  # Максимальное количество элементов на одной странице ScrollFrame
         self.current_page = 1  # Номер текущей страницы ScrollFrame (начиная с 1)
@@ -4992,7 +4983,7 @@ class SearchW(tk.Toplevel):
         set_image(self.btn_search_settings, self.img_settings, img_edit, 'Настройки')
         self.entry_query = ttk.Entry(self.frame_query, textvariable=self.var_query, width=10 + 3 * _0_global_scale,
                                      style='Default.TEntry')
-        self.btn_search = ttk.Button(self.frame_query, text='Поиск', command=self.print,
+        self.btn_search = ttk.Button(self.frame_query, text='Поиск', command=lambda: self.print(True),
                                      width=6, takefocus=False, style='Default.TButton')
         # } }
         # }
@@ -5067,7 +5058,7 @@ class SearchW(tk.Toplevel):
         self.bind('<Control-D>', lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
         self.bind('<Control-d>', lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
 
-        self.print()  # Выводим статьи
+        self.print(True)  # Выводим статьи
 
     # Нажатие на кнопку "Настройки поиска"
     def search_settings(self):
@@ -5079,10 +5070,10 @@ class SearchW(tk.Toplevel):
     def edit_note(self, key: tuple[str, int]):
         EditW(self, key).open()
 
-        self.print()
+        self.print(False)
 
     # Нажатие на кнопку "Поиск"
-    def print(self):
+    def print(self, move_scroll: bool):
         # Удаляем старые подсказки
         for tip in self.tips:
             tip.__del__()
@@ -5152,8 +5143,9 @@ class SearchW(tk.Toplevel):
             self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav_one(i, self.keys[self.start_index + i]))
             self.frames[i].bind('<Control-f>', lambda event, i=i: self.fav_one(i, self.keys[self.start_index + i]))
 
-        # Прокручиваем вверх
-        self.scrolled_frame.canvas.yview_moveto(0.0)
+        # Если требуется, прокручиваем вверх
+        if move_scroll:
+            self.scrolled_frame.canvas.yview_moveto(0.0)
 
     # Обновить одну из кнопок журнала
     def refresh_one_button(self, index: int, key: tuple[str, int]):
@@ -5167,33 +5159,25 @@ class SearchW(tk.Toplevel):
     def go_to_page_with_number(self, number: int):
         self.current_page = number
         self.start_index = (self.current_page - 1) * self.max_elements_on_page
-        self.print()
+        self.print(True)
 
     # Перейти на предыдущую страницу
     def go_to_prev_page(self):
         if self.current_page != 1:
-            self.current_page -= 1
-            self.start_index -= self.max_elements_on_page
-            self.print()
+            self.go_to_page_with_number(self.current_page - 1)
 
     # Перейти на следующую страницу
     def go_to_next_page(self):
         if self.current_page != self.count_pages:
-            self.current_page += 1
-            self.start_index += self.max_elements_on_page
-            self.print()
+            self.go_to_page_with_number(self.current_page + 1)
 
     # Перейти на первую страницу
     def go_to_first_page(self):
-        self.current_page = 1
-        self.start_index = 0
-        self.print()
+        self.go_to_page_with_number(1)
 
     # Перейти на последнюю страницу
     def go_to_last_page(self):
-        self.current_page = self.count_pages
-        self.start_index = (self.current_page - 1) * self.max_elements_on_page
-        self.print()
+        self.go_to_page_with_number(self.count_pages)
 
     # Добавить одну статью в избранное
     def fav_one(self, index: int, key: tuple[str, int]):
