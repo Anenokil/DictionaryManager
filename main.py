@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-10.3'
+PROGRAM_VERSION = 'v7.1.0-PRE-10.4'
 PROGRAM_DATE = '6.3.2023'
-PROGRAM_TIME = '20:39 (UTC+3)'
+PROGRAM_TIME = '20:47 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -5699,13 +5699,13 @@ class SettingsW(tk.Toplevel):
         self.has_spec_comb_changes = False
         self.backup_dct = copy.deepcopy(_0_global_dct)
         self.backup_fp = copy.deepcopy(_0_global_categories)
+        self.backup_scale = _0_global_scale
 
         self.var_mgsp = tk.StringVar(value=str(_0_global_min_good_score_perc))
         self.var_check_register = tk.BooleanVar(value=bool(_0_global_check_register))
         self.var_show_updates = tk.BooleanVar(value=bool(_0_global_show_updates))
         self.var_show_typo_button = tk.BooleanVar(value=bool(_0_global_with_typo))
         self.var_theme = tk.StringVar(value=th)
-        self.var_scale = tk.StringVar(value=str(_0_global_scale))
 
         self.img_about = tk.PhotoImage()
         self.img_plus = tk.PhotoImage()
@@ -6174,6 +6174,7 @@ class SettingsW(tk.Toplevel):
         # Обновление бэкапов сохранения
         self.backup_dct = copy.deepcopy(_0_global_dct)
         self.backup_fp = copy.deepcopy(_0_global_categories)
+        self.backup_scale = _0_global_scale
 
         # Сохранение настроек в файлы
         save_local_settings(_0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register,
@@ -6294,7 +6295,7 @@ class SettingsW(tk.Toplevel):
             int(self.var_show_updates.get()) != _0_global_show_updates or\
             int(self.var_show_typo_button.get()) != _0_global_with_typo or\
             self.var_theme.get() != th or\
-            int(self.var_scale.get()) != _0_global_scale
+            self.backup_scale != _0_global_scale
 
     # Обновить надписи с названием открытого словаря
     def refresh_open_dct_name(self, savename: str):
