@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-10.4'
+PROGRAM_VERSION = 'v7.1.0-PRE-10.5'
 PROGRAM_DATE = '6.3.2023'
-PROGRAM_TIME = '20:47 (UTC+3)'
+PROGRAM_TIME = '21:01 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -5611,7 +5611,7 @@ class EditW(tk.Toplevel):
 
 # Окно добавления статьи
 class AddW(tk.Toplevel):
-    def __init__(self, parent, wrd: str):
+    def __init__(self, parent):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Добавление статьи')
         self.resizable(width=False, height=False)
@@ -5619,7 +5619,7 @@ class AddW(tk.Toplevel):
 
         self.dct_key = None
 
-        self.var_wrd = tk.StringVar(value=wrd)
+        self.var_wrd = tk.StringVar()
         self.var_tr = tk.StringVar()
         self.var_fav = tk.BooleanVar(value=False)
 
@@ -6351,8 +6351,6 @@ class MainW(tk.Tk):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.var_word = tk.StringVar(value='')
-
         self.set_ttk_styles()  # Установка ttk-стилей
 
         self.frame_head = ttk.Frame(self, style='Invis.TFrame')
@@ -6373,14 +6371,10 @@ class MainW(tk.Tk):
                                     takefocus=False, style='Default.TButton')
         self.btn_learn = ttk.Button(self.frame_buttons, text='Учить слова', command=self.learn,
                                     takefocus=False, style='Default.TButton')
-        self.frame_word = ttk.Frame(self.frame_buttons, style='Default.TFrame')
-        # { {
-        self.entry_word = ttk.Entry(self.frame_word, textvariable=self.var_word, width=30, style='Default.TEntry')
-        self.btn_search = ttk.Button(self.frame_word, text='Найти статью', command=self.search,
+        self.btn_search = ttk.Button(self.frame_buttons, text='Найти статью', command=self.search,
                                      takefocus=False, style='Default.TButton')
-        self.btn_add = ttk.Button(self.frame_word, text='Добавить статью', command=self.add,
+        self.btn_add = ttk.Button(self.frame_buttons, text='Добавить статью', command=self.add,
                                   takefocus=False, style='Default.TButton')
-        # } }
         self.btn_settings = ttk.Button(self.frame_buttons, text='Настройки', command=self.settings,
                                        takefocus=False, style='Default.TButton')
         self.btn_check_updates = ttk.Button(self.frame_buttons, text='Проверить обновления', command=self.check_updates,
@@ -6405,24 +6399,16 @@ class MainW(tk.Tk):
         # }
         self.frame_buttons.grid(row=2, padx=6, pady=(0, 6))
         # {
-        self.btn_print.grid( row=0, padx=0, pady=(0, 3))
-        self.btn_learn.grid( row=1, padx=0, pady=(3, 3))
-        self.frame_word.grid(row=2, padx=0, pady=(3, 3))
-        # { {
-        self.entry_word.grid(row=0, padx=6, pady=(6, 3))
-        self.btn_search.grid(row=1, padx=6, pady=(3, 3))
-        self.btn_add.grid(   row=2, padx=6, pady=(3, 6))
-        # } }
-        self.btn_settings.grid(     row=3, padx=0, pady=(3, 3))
-        self.btn_check_updates.grid(row=4, padx=0, pady=(3, 3))
-        self.btn_save.grid(         row=5, padx=0, pady=(3, 3))
-        self.btn_close.grid(        row=6, padx=0, pady=(3, 0))
+        self.btn_print.grid(        row=0, padx=0, pady=(0, 3))
+        self.btn_learn.grid(        row=1, padx=0, pady=(3, 3))
+        self.btn_search.grid(       row=2, padx=0, pady=(3, 3))
+        self.btn_add.grid(          row=3, padx=0, pady=(3, 3))
+        self.btn_settings.grid(     row=4, padx=0, pady=(3, 3))
+        self.btn_check_updates.grid(row=5, padx=0, pady=(3, 3))
+        self.btn_save.grid(         row=6, padx=0, pady=(3, 3))
+        self.btn_close.grid(        row=7, padx=0, pady=(3, 0))
         # }
         self.lbl_footer.grid(row=3, padx=6, pady=3)
-
-        self.tip_entry = ttip.Hovertip(self.entry_word, 'Введите слово, которое хотите\n'
-                                                        'найти/изменить/добавить',
-                                       hover_delay=500)
 
         self.set_focus()
 
@@ -6443,8 +6429,7 @@ class MainW(tk.Tk):
 
     # Нажатие на кнопку "Добавить статью"
     def add(self):
-        wrd = self.var_word.get()
-        key = AddW(self, wrd).open()
+        key = AddW(self).open()
         if not key:
             return
         EditW(self, key).open()
@@ -6757,8 +6742,6 @@ class MainW(tk.Tk):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        self.entry_word.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_search.invoke())
 
 
 # Вывод информации о программе
