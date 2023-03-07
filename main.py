@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-10.11'
+PROGRAM_VERSION = 'v7.1.0-PRE-10.12'
 PROGRAM_DATE = '7.3.2023'
-PROGRAM_TIME = '19:00 (UTC+3)'
+PROGRAM_TIME = '19:14 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -225,16 +225,21 @@ ICON_NAMES = IMG_NAMES[:-2]
 
 img_ok = os.path.join(IMAGES_PATH, 'ok.png')
 img_cancel = os.path.join(IMAGES_PATH, 'cancel.png')
+#
 img_add = os.path.join(IMAGES_PATH, 'add.png')
 img_delete = os.path.join(IMAGES_PATH, 'delete.png')
 img_edit = os.path.join(IMAGES_PATH, 'edit.png')
+#
+img_print_out = os.path.join(IMAGES_PATH, 'print_out.png')
+#
 img_undo = os.path.join(IMAGES_PATH, 'undo.png')
 img_redo = os.path.join(IMAGES_PATH, 'redo.png')
+#
 img_arrow_left = os.path.join(IMAGES_PATH, 'arrow_left.png')
 img_arrow_right = os.path.join(IMAGES_PATH, 'arrow_right.png')
 img_double_arrow_left = os.path.join(IMAGES_PATH, 'double_arrow_left.png')
 img_double_arrow_right = os.path.join(IMAGES_PATH, 'double_arrow_right.png')
-img_print_out = os.path.join(IMAGES_PATH, 'print_out.png')
+#
 img_about = os.path.join(IMAGES_PATH, 'about.png')
 img_about_mgsp = os.path.join(IMAGES_PATH, 'about_mgsp.png')
 img_about_typo = os.path.join(IMAGES_PATH, 'about_typo.png')
@@ -317,34 +322,6 @@ class Entry(object):
         self.score = correct_att / all_att if (all_att != 0) else 0
         self.correct_att_in_a_row = correct_att_in_a_row
         self.latest_answer_session = latest_answer_session
-
-    # Преобразовать переводы в читаемый вид
-    def tr_to_str(self):
-        if self.count_t == 0:  # Если нет переводов, возвращается пустая строка
-            return ''
-        res = f'> {self.tr[0]}'
-        for i in range(1, self.count_t):
-            res += f'\n> {self.tr[i]}'
-        return res
-
-    # Преобразовать сноски в читаемый вид
-    def notes_to_str(self):
-        if self.count_n == 0:  # Если нет сносок, возвращается пустая строка
-            return ''
-        res = f'> {self.notes[0]}'
-        for i in range(1, self.count_n):
-            res += f'\n> {self.notes[i]}'
-        return res
-
-    # Преобразовать словоформы в читаемый вид
-    def frm_to_str(self):
-        if self.count_f == 0:  # Если нет словоформ, возвращается пустая строка
-            return ''
-        keys = list(self.forms.keys())
-        res = f'[{tpl(keys[0])}] {self.forms[keys[0]]}'
-        for i in range(1, self.count_f):
-            res += f'\n[{tpl(keys[i])}] {self.forms[keys[i]]}'
-        return res
 
     # Напечатать переводы
     def tr_print(self):
@@ -3004,6 +2981,406 @@ class ChooseOneOfSimilarNotesW(tk.Toplevel):
         return self.answer
 
 
+# Окно изменения статьи
+class EditW(tk.Toplevel):
+    def __init__(self, parent, key: tuple[str, int]):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - Изменение статьи')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[th])
+
+        self.dct_key = key
+        self.line_width = 35
+        self.max_height_w = 3
+
+        self.var_fav = tk.BooleanVar(value=_0_global_dct.d[key].fav)
+
+        self.img_edit = tk.PhotoImage()
+        self.img_add = tk.PhotoImage()
+
+        self.translations = []
+        self.tr_frames = []
+        self.tr_buttons = []
+        #
+        self.notes = []
+        self.nt_frames = []
+        self.nt_buttons = []
+        #
+        self.forms = []
+        self.frm_frames = []
+        self.frm_buttons = []
+
+        self.frame_main = ttk.Frame(self, style='Default.TFrame')
+        # {
+        self.lbl_wrd = ttk.Label(self.frame_main, text='Слово:', style='Default.TLabel')
+        self.scrollbar_wrd = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
+        self.txt_wrd = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_wrd.set,
+                               font=('DejaVu Sans Mono', _0_global_scale + 1), relief='solid', bg=ST_BG_FIELDS[th],
+                               fg=ST_FG[th], selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                               highlightbackground=ST_BORDERCOLOR[th])
+        self.scrollbar_wrd.config(command=self.txt_wrd.yview)
+        self.btn_wrd_edt = ttk.Button(self.frame_main, command=self.wrd_edt, width=4, takefocus=False)
+        set_image(self.btn_wrd_edt, self.img_edit, img_edit, 'изм.')
+        if self.btn_wrd_edt['style'] == 'Image.TButton':
+            self.tip_btn_wrd_edt = ttip.Hovertip(self.btn_wrd_edt, 'Изменить слово', hover_delay=500)
+        #
+        self.lbl_tr = ttk.Label(self.frame_main, text='Перевод:', style='Default.TLabel')
+        self.scrolled_frame_tr = ScrollFrame(self.frame_main,
+                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
+                                             SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.btn_tr_add = ttk.Button(self.frame_main, command=self.tr_add, width=2, takefocus=False)
+        set_image(self.btn_tr_add, self.img_add, img_add, '+')
+        if self.btn_tr_add['style'] == 'Image.TButton':
+            self.tip_btn_tr_add = ttip.Hovertip(self.btn_tr_add, 'Добавить перевод', hover_delay=500)
+        #
+        self.lbl_notes = ttk.Label(self.frame_main, text='Сноски:', style='Default.TLabel')
+        self.scrolled_frame_nt = ScrollFrame(self.frame_main,
+                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
+                                             SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.btn_note_add = ttk.Button(self.frame_main, command=self.note_add, width=2, takefocus=False)
+        set_image(self.btn_note_add, self.img_add, img_add, '+')
+        if self.btn_note_add['style'] == 'Image.TButton':
+            self.tip_btn_note_add = ttip.Hovertip(self.btn_note_add, 'Добавить сноску', hover_delay=500)
+        #
+        self.lbl_frm = ttk.Label(self.frame_main, text='Формы слова:', style='Default.TLabel')
+        self.scrolled_frame_frm = ScrollFrame(self.frame_main,
+                                              SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
+                                              SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.btn_frm_add = ttk.Button(self.frame_main, command=self.frm_add, width=2, takefocus=False)
+        set_image(self.btn_frm_add, self.img_add, img_add, '+')
+        if self.btn_frm_add['style'] == 'Image.TButton':
+            self.tip_btn_frm_add = ttip.Hovertip(self.btn_frm_add, 'Добавить словоформу', hover_delay=500)
+        #
+        self.lbl_fav = ttk.Label(self.frame_main, text='Избранное:', style='Default.TLabel')
+        self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=self.set_fav,
+                                         style='Default.TCheckbutton')
+        # }
+        self.btn_back = ttk.Button(self, text='Закончить', command=self.back, takefocus=False, style='Default.TButton')
+        self.btn_delete = ttk.Button(self, text='Удалить статью', command=self.delete,
+                                     takefocus=False, style='No.TButton')
+
+        self.frame_main.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
+        # {
+        self.lbl_wrd.grid(      row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
+        self.txt_wrd.grid(      row=0, column=1, padx=(0, 1), pady=(6, 3), sticky='W')
+        self.scrollbar_wrd.grid(row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
+        self.btn_wrd_edt.grid(  row=0, column=3, padx=(3, 6), pady=(6, 3), sticky='W')
+        #
+        self.lbl_tr.grid(           row=1, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
+        self.scrolled_frame_tr.grid(row=1, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.btn_tr_add.grid(       row=1, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_notes.grid(        row=2, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
+        self.scrolled_frame_nt.grid(row=2, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.btn_note_add.grid(     row=2, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_frm.grid(           row=3, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
+        self.scrolled_frame_frm.grid(row=3, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.btn_frm_add.grid(       row=3, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_fav.grid(  row=4, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_fav.grid(row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        # }
+        self.btn_back.grid(  row=1, column=0, padx=(0, 1), pady=(0, 6))
+        self.btn_delete.grid(row=1, column=1, padx=(0, 6), pady=(0, 6))
+
+        self.refresh(True)
+
+    # Изменить слово
+    def wrd_edt(self):
+        global _0_global_has_progress
+
+        window = PopupEntryW(self, 'Введите новое слово', default_value=_0_global_dct.d[self.dct_key].wrd,
+                             check_answer_function=lambda wnd, val:
+                             check_not_void(wnd, val, 'Слово должно содержать хотя бы один символ!'))
+        closed, new_wrd = window.open()
+        if closed:
+            return
+        new_wrd = encode_special_combinations(new_wrd)
+        if new_wrd == _0_global_dct.d[self.dct_key].wrd:
+            return
+
+        self.dct_key = _0_global_dct.edit_wrd(self, self.dct_key, new_wrd)
+        if not self.dct_key:
+            return
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Добавить перевод
+    def tr_add(self):
+        global _0_global_has_progress
+
+        window = PopupEntryW(self, 'Введите новый перевод',
+                             check_answer_function=lambda wnd, val: check_tr(wnd, _0_global_dct.d[self.dct_key].tr,
+                                                                             val, key_to_wrd(self.dct_key)))
+        closed, tr = window.open()
+        if closed:
+            return
+        tr = encode_special_combinations(tr)
+
+        _0_global_dct.add_tr(self.dct_key, tr)
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Изменить перевод
+    def tr_edt(self, tr: str):
+        global _0_global_has_progress
+
+        window = PopupEntryW(self, 'Введите новый перевод', default_value=tr,
+                             check_answer_function=lambda wnd, val: check_tr_edit(wnd, _0_global_dct.d[self.dct_key].tr,
+                                                                                  tr, val, key_to_wrd(self.dct_key)))
+        closed, new_tr = window.open()
+        if closed:
+            return
+        new_tr = encode_special_combinations(new_tr)
+
+        _0_global_dct.delete_tr(self.dct_key, tr)
+        _0_global_dct.add_tr(self.dct_key, new_tr)
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Удалить перевод
+    def tr_del(self, tr: str):
+        global _0_global_has_progress
+
+        if len(self.translations) == 1:
+            warning(self, 'Вы не можете удалить единственный перевод!')
+            return
+
+        _0_global_dct.delete_tr(self.dct_key, tr)
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Добавить сноску
+    def note_add(self):
+        global _0_global_has_progress
+
+        window = PopupEntryW(self, 'Введите сноску',
+                             check_answer_function=lambda wnd, val: check_note(wnd, _0_global_dct.d[self.dct_key].notes,
+                                                                               val, key_to_wrd(self.dct_key)))
+        closed, note = window.open()
+        if closed:
+            return
+        note = encode_special_combinations(note)
+
+        _0_global_dct.add_note(self.dct_key, note)
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Изменить сноску
+    def note_edt(self, note: str):
+        global _0_global_has_progress
+
+        window = PopupEntryW(self, 'Введите сноску', default_value=note,
+                             check_answer_function=lambda wnd, val:
+                             check_note_edit(wnd, _0_global_dct.d[self.dct_key].notes, note, val,
+                                             key_to_wrd(self.dct_key)))
+        closed, new_note = window.open()
+        if closed:
+            return
+        new_note = encode_special_combinations(new_note)
+
+        _0_global_dct.delete_note(self.dct_key, note)
+        _0_global_dct.add_note(self.dct_key, new_note)
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Удалить сноску
+    def note_del(self, note: str):
+        global _0_global_has_progress
+
+        _0_global_dct.delete_note(self.dct_key, note)
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Добавить словоформу
+    def frm_add(self):
+        global _0_global_has_progress
+
+        if not _0_global_categories:
+            warning(self, 'Отсутствуют категории слов!\n'
+                          'Чтобы их добавить, перейдите в\n'
+                          'Настройки/Настройки словаря/Грамматические категории')
+            return
+
+        window_form = AddFormW(self, self.dct_key, combo_width=width(tuple(_0_global_categories.keys()),
+                                                                     5, 100))  # Создание словоформы
+        frm_key, frm = window_form.open()
+        if not frm_key:
+            return
+        frm = encode_special_combinations(frm)
+
+        _0_global_dct.add_frm(self.dct_key, frm_key, frm)
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Изменить словоформу
+    def frm_edt(self, frm_key: tuple[str, ...]):
+        global _0_global_has_progress
+
+        window_entry = PopupEntryW(self, 'Введите новую форму слова',
+                                   default_value=_0_global_dct.d[self.dct_key].forms[frm_key],
+                                   check_answer_function=lambda wnd, val:
+                                   check_not_void(wnd, val, 'Словоформа должна содержать хотя бы один символ!'))
+        closed, new_frm = window_entry.open()
+        if closed:
+            return
+        new_frm = encode_special_combinations(new_frm)
+
+        _0_global_dct.d[self.dct_key].forms[frm_key] = new_frm
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Удалить словоформу
+    def frm_del(self, frm_key: tuple[str, ...]):
+        global _0_global_has_progress
+
+        _0_global_dct.delete_frm(self.dct_key, frm_key)
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Добавить в избранное/убрать из избранного
+    def set_fav(self):
+        _0_global_dct.d[self.dct_key].fav = self.var_fav.get()
+
+    # Удалить статью
+    def delete(self):
+        global _0_global_has_progress
+
+        window = PopupDialogueW(self, 'Вы уверены, что хотите удалить эту статью?', set_enter_on_btn='none')
+        answer = window.open()
+        if answer:
+            _0_global_dct.delete_entry(self.dct_key)
+            _0_global_has_progress = True
+            self.destroy()
+
+    # Закрыть настройки
+    def back(self):
+        self.destroy()
+
+    # Обновить поля
+    def refresh(self, move_scroll: bool):
+        # Обновляем поле со словом
+        height_w = max(min(height(_0_global_dct.d[self.dct_key].wrd, self.line_width), self.max_height_w), 1)
+        self.txt_wrd['height'] = height_w
+        #
+        if height_w < self.max_height_w:
+            self.scrollbar_wrd.grid_remove()
+        #
+        self.txt_wrd['state'] = 'normal'
+        self.txt_wrd.delete(1.0, tk.END)
+        self.txt_wrd.insert(tk.END, _0_global_dct.d[self.dct_key].wrd)
+        self.txt_wrd['state'] = 'disabled'
+        #
+        self.scrollbar_wrd.grid(row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
+
+        # Удаляем старые кнопки
+        for btn in self.tr_buttons + self.nt_buttons + self.frm_buttons:
+            btn.destroy()
+        # Удаляем старые фреймы
+        for fr in self.tr_frames + self.nt_frames + self.frm_frames:
+            fr.unbind('<Enter>')
+            fr.unbind('<Control-E>')
+            fr.unbind('<Control-e>')
+            fr.unbind('<Control-D>')
+            fr.unbind('<Control-d>')
+            fr.destroy()
+
+        # Выбираем комбинации
+        self.translations = [tr for tr in _0_global_dct.d[self.dct_key].tr]
+        self.notes = [nt for nt in _0_global_dct.d[self.dct_key].notes]
+        self.forms = [frm for frm in _0_global_dct.d[self.dct_key].forms.keys()]
+        tr_count = len(self.translations)
+        nt_count = len(self.notes)
+        frm_count = len(self.forms)
+
+        # Создаём новые фреймы
+        self.tr_frames = tuple([ttk.Frame(self.scrolled_frame_tr.frame_canvas, style='Invis.TFrame')
+                                for i in range(tr_count)])
+        self.nt_frames = tuple([ttk.Frame(self.scrolled_frame_nt.frame_canvas, style='Invis.TFrame')
+                                for i in range(nt_count)])
+        self.frm_frames = tuple([ttk.Frame(self.scrolled_frame_frm.frame_canvas, style='Invis.TFrame')
+                                 for i in range(frm_count)])
+        # Создаём новые кнопки
+        self.tr_buttons = [ttk.Button(self.tr_frames[i], command=lambda i=i: self.tr_edt(self.translations[i]),
+                                      takefocus=False, style='Flat.TButton')
+                           for i in range(tr_count)]
+        self.nt_buttons = [ttk.Button(self.nt_frames[i], command=lambda i=i: self.note_edt(self.notes[i]),
+                                      takefocus=False, style='Flat.TButton')
+                           for i in range(nt_count)]
+        self.frm_buttons = [ttk.Button(self.frm_frames[i], command=lambda i=i: self.frm_edt(self.forms[i]),
+                                       takefocus=False, style='Flat.TButton')
+                            for i in range(frm_count)]
+        # Выводим текст на кнопки
+        for i in range(tr_count):
+            tr = self.translations[i]
+            self.tr_buttons[i].configure(text=split_text(tr, 35))
+        for i in range(nt_count):
+            nt = self.notes[i]
+            self.nt_buttons[i].configure(text=split_text(nt, 35))
+        for i in range(frm_count):
+            frm = self.forms[i]
+            self.frm_buttons[i].configure(text=split_text(f'[{tpl(frm)}] {_0_global_dct.d[self.dct_key].forms[frm]}',
+                                                          35))
+        # Расставляем элементы
+        for i in range(tr_count):
+            self.tr_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            # {
+            self.tr_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
+            # }
+        for i in range(nt_count):
+            self.nt_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            # {
+            self.nt_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
+            # }
+        for i in range(frm_count):
+            self.frm_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            # {
+            self.frm_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
+            # }
+        # Привязываем события
+        for i in range(tr_count):
+            self.tr_frames[i].bind('<Enter>', lambda event, i=i: self.tr_frames[i].focus_set())
+            self.tr_frames[i].bind('<Control-D>', lambda event, i=i: self.tr_del(self.translations[i]))
+            self.tr_frames[i].bind('<Control-d>', lambda event, i=i: self.tr_del(self.translations[i]))
+        for i in range(nt_count):
+            self.nt_frames[i].bind('<Enter>', lambda event, i=i: self.nt_frames[i].focus_set())
+            self.nt_frames[i].bind('<Control-D>', lambda event, i=i: self.note_del(self.notes[i]))
+            self.nt_frames[i].bind('<Control-d>', lambda event, i=i: self.note_del(self.notes[i]))
+        for i in range(frm_count):
+            self.frm_frames[i].bind('<Enter>', lambda event, i=i: self.frm_frames[i].focus_set())
+            self.frm_frames[i].bind('<Control-D>', lambda event, i=i: self.frm_del(self.forms[i]))
+            self.frm_frames[i].bind('<Control-d>', lambda event, i=i: self.frm_del(self.forms[i]))
+
+        # Если требуется, прокручиваем вверх
+        if move_scroll:
+            self.scrolled_frame_tr.canvas.yview_moveto(0.0)
+            self.scrolled_frame_nt.canvas.yview_moveto(0.0)
+            self.scrolled_frame_frm.canvas.yview_moveto(0.0)
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_back.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
+
+        self.grab_set()
+        self.wait_window()
+
+
 # Окно создания шаблона словоформы
 class AddFormW(tk.Toplevel):
     def __init__(self, parent, key: tuple[str, int], combo_width=20):
@@ -4244,121 +4621,346 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.wait_window()
 
 
-# Окно уведомления о выходе новой версии
-class NewVersionAvailableW(tk.Toplevel):
-    def __init__(self, parent, last_version: str):
+""" Графический интерфейс - основные окна """
+
+
+# Окно изучения слов
+class LearnW(tk.Toplevel):
+    def __init__(self, parent, parameters: tuple[str, bool, str, str]):
         super().__init__(parent)
-        self.title('Доступна новая версия')
+        self.title(f'{PROGRAM_NAME} - Учёба')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.var_url = tk.StringVar(value=URL_GITHUB)  # Ссылка, для загрузки новой версии
+        self.current_key = None  # Текущее слово
+        self.current_form = None  # Текущая форма (если начальная, то None)
+        self.count_all = 0  # Счётчик всех ответов
+        self.count_correct = 0  # Счётчик верных ответов
+        self.learn_method = parameters[0]  # Метод изучения слов
+        self.with_forms = parameters[1]  # Со всеми ли словоформами
+        self.words = parameters[2]  # Способ подбора слов
+        self.order = parameters[3]  # Порядок следования слов
+        self.pool = set()  # Набор слов для изучения
 
-        self.lbl_msg = ttk.Label(self, text=f'Доступна новая версия программы:\n'
-                                            f'{last_version}',
-                                 justify='center', style='Default.TLabel')
-        self.frame_url = ttk.Frame(self, style='Invis.TFrame')
+        # Формируем пул слов, которые будут использоваться при учёбе
+        if self.learn_method == LEARN_VALUES_METHOD[2]:
+            all_keys = []
+            for key in _0_global_dct.d.keys():
+                wrd = _0_global_dct.d[key].wrd
+                if len(wrd) > 4 and wrd[0:4].lower() in ('der ', 'die ', 'das '):
+                    all_keys += [key]
+        else:
+            all_keys = tuple(_0_global_dct.d.keys())
+        #
+        if self.words == LEARN_VALUES_WORDS[0]:  # Учить все слова
+            for key in all_keys:
+                self.pool.add((key, None))
+            if self.with_forms:
+                for key in all_keys:
+                    for frm in _0_global_dct.d[key].forms.keys():
+                        self.pool.add((key, frm))
+        elif self.words == LEARN_VALUES_WORDS[1]:  # Учить преимущественно избранные слова
+            for key in all_keys:
+                if _0_global_dct.d[key].fav:
+                    self.pool.add((key, None))
+            if self.with_forms:
+                for key in all_keys:
+                    if _0_global_dct.d[key].fav:
+                        for frm in _0_global_dct.d[key].forms.keys():
+                            self.pool.add((key, frm))
+
+            # Помимо всех избранных слов (пусть их количество N) добавим N // 4 остальных слов
+            # Выберем их из самых давно не отвечаемых слов (и только по одной словоформе для каждого из них)
+
+            # Отбираем слова, не являющиеся избранными
+            unfav_keys = list(k for k in all_keys if not _0_global_dct.d[k].fav)
+            # Сортируем по давности ответа
+            unfav_keys = sorted(unfav_keys, key=lambda k: _0_global_dct.d[k].latest_answer_session)
+            # Находим N // 4
+            count_unfav_keys = min(len(unfav_keys), _0_global_dct.count_fav_info()[0] // 4)
+            # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
+            latest_session = _0_global_dct.d[unfav_keys[count_unfav_keys-1]].latest_answer_session
+            # Оставляем только слова с номером сессии <= S
+            unfav_keys = list(k for k in unfav_keys if _0_global_dct.d[k].latest_answer_session <= latest_session)
+            # Перемешиваем их
+            random.shuffle(unfav_keys)
+            # И выбираем из них N // 4 слов
+            if self.with_forms:
+                for i in range(count_unfav_keys):
+                    key = unfav_keys[i]
+                    forms = tuple([None]) + tuple(_0_global_dct.d[key].forms.keys())
+                    self.pool.add((key, random.choice(forms)))
+            else:
+                for i in range(count_unfav_keys):
+                    self.pool.add((unfav_keys[i], None))
+        elif self.words == LEARN_VALUES_WORDS[2]:  # Учить только избранные слова
+            for key in all_keys:
+                if _0_global_dct.d[key].fav:
+                    self.pool.add((key, None))
+            if self.with_forms:
+                for key in all_keys:
+                    if _0_global_dct.d[key].fav:
+                        for frm in _0_global_dct.d[key].forms.keys():
+                            self.pool.add((key, frm))
+        elif self.words == LEARN_VALUES_WORDS[3]:  # Учить только неотвеченные слова
+            for key in all_keys:
+                if _0_global_dct.d[key].correct_att == 0:
+                    self.pool.add((key, None))
+            if self.with_forms:
+                for key in all_keys:
+                    if _0_global_dct.d[key].correct_att == 0:
+                        for frm in _0_global_dct.d[key].forms.keys():
+                            self.pool.add((key, frm))
+        elif self.words == LEARN_VALUES_WORDS[4]:  # Учить 15 случайных слов
+            keys = random.sample(all_keys, min(len(all_keys), 15))
+            for key in keys:
+                self.pool.add((key, None))
+            if self.with_forms:
+                for key in keys:
+                    for frm in _0_global_dct.d[key].forms.keys():
+                        self.pool.add((key, frm))
+        else:  # Учить 15 случайных избранных слов
+            all_keys = tuple(key for key in all_keys if _0_global_dct.d[key].fav)
+            keys = random.sample(all_keys, min(len(all_keys), 15))
+            for key in keys:
+                self.pool.add((key, None))
+            if self.with_forms:
+                for key in keys:
+                    for frm in _0_global_dct.d[key].forms.keys():
+                        self.pool.add((key, frm))
+
+        self.len_of_pool = len(self.pool)  # Количество изучаемых слов
+
+        self.var_input = tk.StringVar()
+
+        self.lbl_global_rating = ttk.Label(self, text=f'Ваш общий рейтинг по словарю: {self.get_percent()}%',
+                                           style='Default.TLabel')
+        self.lbl_count = ttk.Label(self, text=f'Отвечено: 0/{self.len_of_pool}', style='Default.TLabel')
+        self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
+        self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
+                               font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
+                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
+                               relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
+        self.scrollbar.config(command=self.txt_dct.yview)
+        self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.entry_url = ttk.Entry(self.frame_url, textvariable=self.var_url, state='readonly', width=45,
-                                   justify='center', style='Default.TEntry')
-        self.btn_open = ttk.Button(self.frame_url, text='Открыть ссылку', command=self.open_github,
-                                   takefocus=False, style='Default.TButton')
+        self.btn_input = ttk.Button(self.frame_main, text='Ввод', command=self.input,
+                                    takefocus=False, style='Default.TButton')
+        self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=50, style='Default.TEntry')
+        self.btn_notes = ttk.Button(self.frame_main, text='Посмотреть сноски', command=self.show_notes,
+                                    takefocus=False, style='Default.TButton')
         # }
-        self.btn_update = ttk.Button(self, text='Обновить', command=self.download_and_install,
-                                     takefocus=False, style='Yes.TButton')
-        self.btn_close = ttk.Button(self, text='Закрыть', command=self.destroy, takefocus=False, style='No.TButton')
+        self.btn_stop = ttk.Button(self, text='Закончить', command=self.stop, takefocus=False, style='No.TButton')
 
-        self.lbl_msg.grid(  row=1, columnspan=2, padx=6, pady=(4, 0))
-        self.frame_url.grid(row=2, columnspan=2, padx=6, pady=(0, 4))
+        self.lbl_global_rating.grid(row=0, columnspan=2, padx=6,      pady=(6, 3))
+        self.lbl_count.grid(        row=1, columnspan=2, padx=6,      pady=(0, 6))
+        self.txt_dct.grid(          row=2, column=0,     padx=(6, 0), pady=6, sticky='NSWE')
+        self.scrollbar.grid(        row=2, column=1,     padx=(0, 6), pady=6, sticky='NSW')
+        self.frame_main.grid(       row=3, columnspan=2, padx=6,      pady=6)
         # {
-        self.entry_url.grid(row=0, column=0, padx=(0, 3), pady=0)
-        self.btn_open.grid( row=0, column=1, padx=0,      pady=0)
+        self.btn_input.grid(  row=0, column=0, padx=(0, 3), pady=0, sticky='E')
+        self.entry_input.grid(row=0, column=1, padx=(0, 3), pady=0, sticky='W')
+        self.btn_notes.grid(  row=0, column=2, padx=0,      pady=0, sticky='W')
         # }
-        self.btn_update.grid(row=3, column=0, padx=6, pady=4)
-        self.btn_close.grid( row=3, column=1, padx=6, pady=4)
+        self.btn_stop.grid(row=4, columnspan=2, padx=6, pady=6)
 
-    # Открыть репозиторий проекта на GitHub
-    def open_github(self):
-        try:
-            webbrowser.open(URL_GITHUB)
-        except Exception as exc:
-            print(f'Не удалось открыть страницу!\n'
-                  f'{exc}')
-            warning(self, f'Не удалось открыть страницу!\n'
-                          f'{exc}')
+        self.tip_btn_notes = ttip.Hovertip(self.btn_notes, 'Срабатывает при нажатии на Tab', hover_delay=700)
+        if self.learn_method == LEARN_VALUES_METHOD[0]:
+            self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
+        elif self.learn_method == LEARN_VALUES_METHOD[1]:
+            self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
+        else:
+            self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите артикль', hover_delay=1000)
 
-    # Скачать и установить обновление
-    def download_and_install(self):
-        save_dct_if_has_progress(self, _0_global_dct, _0_global_dct_savename, _0_global_has_progress)
+        self.choose()
 
-        # Загрузка списка обновляемых файлов
-        try:
-            print('\nЧтение данных...')
-            data = urllib2.urlopen(URL_UPDATE_FILES)
-            update_files = [str(filename.decode('utf-8')).strip() for filename in data.readlines()]
-        except Exception as exc:
-            print(f'Не удалось получить данные!\n'
-                  f'{exc}')
-            warning(self, f'Не удалось получить данные!\n'
-                          f'{exc}')
-            self.destroy()
-            return
-        # Загрузка
-        try:
-            # Скачиваем архив с обновлением
-            print('Загрузка архива...', end='')
-            wget.download(URL_DOWNLOAD_ZIP, out=MAIN_PATH)
-        except Exception as exc:
-            print(f'\nНе удалось загрузить обновление!\n'
-                  f'{exc}')
-            warning(self, f'Не удалось загрузить обновление!\n'
-                          f'{exc}')
-            self.destroy()
-            return
-        # Установка
-        try:
-            # Распаковываем архив во временную папку
-            print('\nРаспаковка архива...')
-            with zipfile.ZipFile(NEW_VERSION_ZIP_PATH, 'r') as zip_file:
-                zip_file.extractall(MAIN_PATH)
-            # Удаляем архив
-            print('Удаление архива...')
-            os.remove(NEW_VERSION_ZIP_PATH)
-            # Удаляем файлы текущей версии
-            print('Удаление старых файлов...')
-            for filename in os.listdir(IMAGES_PATH):
-                try:
-                    os.remove(os.path.join(IMAGES_PATH, filename))
-                except FileNotFoundError:
-                    print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
-            for filename in ('ver', 'README.txt', 'README.md', 'main.py'):
-                try:
-                    os.remove(os.path.join(MAIN_PATH, filename))
-                except FileNotFoundError:
-                    print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
-            # Из временной папки достаём файлы новой версии
-            print('Установка новых файлов...')
-            for filename in update_files:
-                os.replace(os.path.join(NEW_VERSION_PATH, filename),
-                           os.path.join(MAIN_PATH, filename))
-            # Удаляем временную папку
-            print('Удаление временной папки...')
-            shutil.rmtree(NEW_VERSION_PATH)
-        except Exception as exc:
-            print(f'Не удалось установить обновление!\n'
-                  f'{exc}')
-            warning(self, f'Не удалось установить обновление!\n'
-                          f'{exc}')
-            self.destroy()
+        if self.current_key:
+            entry = _0_global_dct.d[self.current_key]
+            if entry.count_n == 0:
+                btn_disable(self.btn_notes)
+
+    # Печать в журнал
+    def outp(self, msg='', end='\n'):
+        self.txt_dct['state'] = 'normal'
+        self.txt_dct.insert(tk.END, f'{msg}{end}')
+        self.txt_dct.yview_moveto(1.0)
+        self.txt_dct['state'] = 'disabled'
+
+    # Нажатие на кнопку "Ввод"
+    # Ввод ответа и переход к следующему слову
+    def input(self):
+        # Вывод в журнал пользовательского ответа
+        answer = encode_special_combinations(self.entry_input.get())
+        if answer != '':
+            self.outp(answer)
+
+        # Проверка пользовательского ответа
+        if self.learn_method == LEARN_VALUES_METHOD[1]:
+            self.check_tr()
+        elif self.learn_method == LEARN_VALUES_METHOD[2]:
+            self.check_article()
+        elif self.with_forms and self.current_form:
+            self.check_form()
+        else:
+            self.check_wrd()
+
+        # Выбор нового слова для угадывания
+        self.choose()
+
+        # Обновление кнопки "Посмотреть сноски"
+        entry = _0_global_dct.d[self.current_key]
+        if entry.count_n == 0:
+            btn_disable(self.btn_notes)
+        else:
+            btn_enable(self.btn_notes, self.show_notes)
+        # Очистка поля ввода
+        self.entry_input.delete(0, tk.END)
+        # Обновление отображаемого рейтинга
+        self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {self.get_percent()}%'
+        self.lbl_count['text'] = f'Отвечено: {self.count_correct}/{self.len_of_pool}'
+
+    # Нажатие на кнопку "Посмотреть сноски"
+    # Просмотр сносок
+    def show_notes(self):
+        entry = _0_global_dct.d[self.current_key]
+        if entry.count_n != 0:
+            self.outp(entry.notes_print())
+        btn_disable(self.btn_notes)
+
+    # Нажатие на кнопку "Закончить"
+    # Завершение учёбы
+    def stop(self):
+        self.frame_main.grid_remove()
+        self.btn_stop.grid_remove()
+        btn_disable(self.btn_input)
+
+        PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
+        self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}', end='')
+
+    # Проверка введённого ответа
+    def check_answer(self, correct_answer: str, is_correct: bool,
+                     current_key: tuple[str, int], current_form: tuple[str, ...] | None = None):
+        entry = _0_global_dct.d[current_key]
+        if is_correct:
+            entry.correct(_0_global_session_number)
+            self.outp('Верно\n')
+            if entry.fav:
+                window = PopupDialogueW(self, 'Верно.\n'
+                                              'Оставить слово в избранном?',
+                                        'Да', 'Нет', val_on_close=True)
+                answer = window.open()
+                if not answer:
+                    entry.fav = False
+            self.count_all += 1
+            self.count_correct += 1
+            self.pool.remove((current_key, current_form))
+        else:
+            self.outp(f'Неверно. Правильный ответ: "{correct_answer}"\n')
+            if entry.fav:
+                if bool(_0_global_with_typo):
+                    window = PopupDialogueW(self, msg=f'Неверно.\n'
+                                                      f'Ваш ответ: {encode_special_combinations(self.entry_input.get())}\n'
+                                                      f'Правильный ответ: {correct_answer}',
+                                            btn_left_text='Ясно', btn_right_text='Просто опечатка',
+                                            st_left='Default', st_right='Default',
+                                            val_left='ok', val_right='typo')
+                    answer = window.open()
+                    if answer != 'typo':
+                        entry.incorrect()
+                        self.count_all += 1
+                else:
+                    entry.incorrect()
+                    self.count_all += 1
+            else:
+                window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
+                                          correct_answer, bool(_0_global_with_typo))
+                answer = window.open()
+                if answer != 'typo':
+                    entry.incorrect()
+                    self.count_all += 1
+                if answer == 'yes':
+                    entry.fav = True
+
+    # Проверка введённого слова
+    def check_wrd(self):
+        entry = _0_global_dct.d[self.current_key]
+        if _0_global_check_register:
+            is_correct = encode_special_combinations(self.entry_input.get()) == entry.wrd
+        else:
+            is_correct = encode_special_combinations(self.entry_input.get()).lower() == entry.wrd.lower()
+        self.check_answer(entry.wrd, is_correct, self.current_key)
+
+    # Проверка введённой словоформы
+    def check_form(self):
+        entry = _0_global_dct.d[self.current_key]
+        if _0_global_check_register:
+            is_correct = encode_special_combinations(self.entry_input.get()) == entry.forms[self.current_form]
+        else:
+            is_correct = encode_special_combinations(self.entry_input.get()).lower() == entry.forms[self.current_form].lower()
+        self.check_answer(entry.forms[self.current_form], is_correct, self.current_key, self.current_form)
+
+    # Проверка введённого перевода
+    def check_tr(self):
+        entry = _0_global_dct.d[self.current_key]
+        if _0_global_check_register:
+            is_correct = encode_special_combinations(self.entry_input.get()) in entry.tr
+        else:
+            is_correct = encode_special_combinations(self.entry_input.get()).lower() in (tr.lower() for tr in entry.tr)
+        self.check_answer(tpl(entry.tr), is_correct, self.current_key)
+
+    # Проверка введённого артикля
+    def check_article(self):
+        entry = _0_global_dct.d[self.current_key]
+        if _0_global_check_register:
+            is_correct = encode_special_combinations(self.entry_input.get()) == entry.wrd[0:3]
+        else:
+            is_correct = encode_special_combinations(self.entry_input.get()).lower() == entry.wrd[0:3].lower()
+        self.check_answer(entry.wrd[0:3], is_correct, self.current_key)
+
+    # Выбор слова для угадывания
+    def choose(self):
+        global _0_global_has_progress
+
+        if len(self.pool) == 0:
+            # Если все слова отвечены, то завершаем учёбу
+            self.stop()
             return
         else:
-            print('Обновление успешно установлено!')
-            PopupMsgW(self, 'Обновление успешно установлено!\n'
-                            'Программа закроется').open()
-            exit(777)
+            _0_global_has_progress = True
 
+        # Выбор слова
+        if self.order == LEARN_VALUES_ORDER[0]:
+            self.current_key, self.current_form = random.choice(tuple(self.pool))
+        else:
+            self.current_key, self.current_form = random_smart(_0_global_dct, self.pool, _0_global_min_good_score_perc)
 
-""" Графический интерфейс - основные окна """
+        # Вывод слова в журнал
+        if self.learn_method == LEARN_VALUES_METHOD[0]:
+            if self.with_forms and self.current_form:
+                self.outp(_0_global_dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
+            else:
+                self.outp(_0_global_dct.d[self.current_key].print_tr_with_stat())
+        elif self.learn_method == LEARN_VALUES_METHOD[1]:
+            self.outp(_0_global_dct.d[self.current_key].print_wrd_with_stat())
+        else:
+            self.outp(_0_global_dct.d[self.current_key].print_wrd_with_stat()[4:])
+
+    # Получить глобальный процент угадываний
+    def get_percent(self):
+        return format(_0_global_dct.count_rating() * 100, '.1f')
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.entry_input.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_input.invoke())
+        self.bind('<Tab>', lambda event=None: self.btn_notes.invoke())
+
+    def open(self):
+        self.set_focus()
+
+        self.grab_set()
+        self.wait_window()
 
 
 # Окно просмотра словаря
@@ -4703,345 +5305,6 @@ class PrintW(tk.Toplevel):
         self.wait_window()
 
 
-# Окно изучения слов
-class LearnW(tk.Toplevel):
-    def __init__(self, parent, parameters: tuple[str, bool, str, str]):
-        super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Учёба')
-        self.resizable(width=False, height=False)
-        self.configure(bg=ST_BG[th])
-
-        self.current_key = None  # Текущее слово
-        self.current_form = None  # Текущая форма (если начальная, то None)
-        self.count_all = 0  # Счётчик всех ответов
-        self.count_correct = 0  # Счётчик верных ответов
-        self.learn_method = parameters[0]  # Метод изучения слов
-        self.with_forms = parameters[1]  # Со всеми ли словоформами
-        self.words = parameters[2]  # Способ подбора слов
-        self.order = parameters[3]  # Порядок следования слов
-        self.pool = set()  # Набор слов для изучения
-
-        # Формируем пул слов, которые будут использоваться при учёбе
-        if self.learn_method == LEARN_VALUES_METHOD[2]:
-            all_keys = []
-            for key in _0_global_dct.d.keys():
-                wrd = _0_global_dct.d[key].wrd
-                if len(wrd) > 4 and wrd[0:4].lower() in ('der ', 'die ', 'das '):
-                    all_keys += [key]
-        else:
-            all_keys = tuple(_0_global_dct.d.keys())
-        #
-        if self.words == LEARN_VALUES_WORDS[0]:  # Учить все слова
-            for key in all_keys:
-                self.pool.add((key, None))
-            if self.with_forms:
-                for key in all_keys:
-                    for frm in _0_global_dct.d[key].forms.keys():
-                        self.pool.add((key, frm))
-        elif self.words == LEARN_VALUES_WORDS[1]:  # Учить преимущественно избранные слова
-            for key in all_keys:
-                if _0_global_dct.d[key].fav:
-                    self.pool.add((key, None))
-            if self.with_forms:
-                for key in all_keys:
-                    if _0_global_dct.d[key].fav:
-                        for frm in _0_global_dct.d[key].forms.keys():
-                            self.pool.add((key, frm))
-
-            # Помимо всех избранных слов (пусть их количество N) добавим N // 4 остальных слов
-            # Выберем их из самых давно не отвечаемых слов (и только по одной словоформе для каждого из них)
-
-            # Отбираем слова, не являющиеся избранными
-            unfav_keys = list(k for k in all_keys if not _0_global_dct.d[k].fav)
-            # Сортируем по давности ответа
-            unfav_keys = sorted(unfav_keys, key=lambda k: _0_global_dct.d[k].latest_answer_session)
-            # Находим N // 4
-            count_unfav_keys = min(len(unfav_keys), _0_global_dct.count_fav_info()[0] // 4)
-            # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
-            latest_session = _0_global_dct.d[unfav_keys[count_unfav_keys-1]].latest_answer_session
-            # Оставляем только слова с номером сессии <= S
-            unfav_keys = list(k for k in unfav_keys if _0_global_dct.d[k].latest_answer_session <= latest_session)
-            # Перемешиваем их
-            random.shuffle(unfav_keys)
-            # И выбираем из них N // 4 слов
-            if self.with_forms:
-                for i in range(count_unfav_keys):
-                    key = unfav_keys[i]
-                    forms = tuple([None]) + tuple(_0_global_dct.d[key].forms.keys())
-                    self.pool.add((key, random.choice(forms)))
-            else:
-                for i in range(count_unfav_keys):
-                    self.pool.add((unfav_keys[i], None))
-        elif self.words == LEARN_VALUES_WORDS[2]:  # Учить только избранные слова
-            for key in all_keys:
-                if _0_global_dct.d[key].fav:
-                    self.pool.add((key, None))
-            if self.with_forms:
-                for key in all_keys:
-                    if _0_global_dct.d[key].fav:
-                        for frm in _0_global_dct.d[key].forms.keys():
-                            self.pool.add((key, frm))
-        elif self.words == LEARN_VALUES_WORDS[3]:  # Учить только неотвеченные слова
-            for key in all_keys:
-                if _0_global_dct.d[key].correct_att == 0:
-                    self.pool.add((key, None))
-            if self.with_forms:
-                for key in all_keys:
-                    if _0_global_dct.d[key].correct_att == 0:
-                        for frm in _0_global_dct.d[key].forms.keys():
-                            self.pool.add((key, frm))
-        elif self.words == LEARN_VALUES_WORDS[4]:  # Учить 15 случайных слов
-            keys = random.sample(all_keys, min(len(all_keys), 15))
-            for key in keys:
-                self.pool.add((key, None))
-            if self.with_forms:
-                for key in keys:
-                    for frm in _0_global_dct.d[key].forms.keys():
-                        self.pool.add((key, frm))
-        else:  # Учить 15 случайных избранных слов
-            all_keys = tuple(key for key in all_keys if _0_global_dct.d[key].fav)
-            keys = random.sample(all_keys, min(len(all_keys), 15))
-            for key in keys:
-                self.pool.add((key, None))
-            if self.with_forms:
-                for key in keys:
-                    for frm in _0_global_dct.d[key].forms.keys():
-                        self.pool.add((key, frm))
-
-        self.len_of_pool = len(self.pool)  # Количество изучаемых слов
-
-        self.var_input = tk.StringVar()
-
-        self.lbl_global_rating = ttk.Label(self, text=f'Ваш общий рейтинг по словарю: {self.get_percent()}%',
-                                           style='Default.TLabel')
-        self.lbl_count = ttk.Label(self, text=f'Отвечено: 0/{self.len_of_pool}', style='Default.TLabel')
-        self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
-                               font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                               selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                               relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
-        self.scrollbar.config(command=self.txt_dct.yview)
-        self.frame_main = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.btn_input = ttk.Button(self.frame_main, text='Ввод', command=self.input,
-                                    takefocus=False, style='Default.TButton')
-        self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=50, style='Default.TEntry')
-        self.btn_notes = ttk.Button(self.frame_main, text='Посмотреть сноски', command=self.show_notes,
-                                    takefocus=False, style='Default.TButton')
-        # }
-        self.btn_stop = ttk.Button(self, text='Закончить', command=self.stop, takefocus=False, style='No.TButton')
-
-        self.lbl_global_rating.grid(row=0, columnspan=2, padx=6,      pady=(6, 3))
-        self.lbl_count.grid(        row=1, columnspan=2, padx=6,      pady=(0, 6))
-        self.txt_dct.grid(          row=2, column=0,     padx=(6, 0), pady=6, sticky='NSWE')
-        self.scrollbar.grid(        row=2, column=1,     padx=(0, 6), pady=6, sticky='NSW')
-        self.frame_main.grid(       row=3, columnspan=2, padx=6,      pady=6)
-        # {
-        self.btn_input.grid(  row=0, column=0, padx=(0, 3), pady=0, sticky='E')
-        self.entry_input.grid(row=0, column=1, padx=(0, 3), pady=0, sticky='W')
-        self.btn_notes.grid(  row=0, column=2, padx=0,      pady=0, sticky='W')
-        # }
-        self.btn_stop.grid(row=4, columnspan=2, padx=6, pady=6)
-
-        self.tip_btn_notes = ttip.Hovertip(self.btn_notes, 'Срабатывает при нажатии на Tab', hover_delay=700)
-        if self.learn_method == LEARN_VALUES_METHOD[0]:
-            self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
-        elif self.learn_method == LEARN_VALUES_METHOD[1]:
-            self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
-        else:
-            self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите артикль', hover_delay=1000)
-
-        self.choose()
-
-        if self.current_key:
-            entry = _0_global_dct.d[self.current_key]
-            if entry.count_n == 0:
-                btn_disable(self.btn_notes)
-
-    # Печать в журнал
-    def outp(self, msg='', end='\n'):
-        self.txt_dct['state'] = 'normal'
-        self.txt_dct.insert(tk.END, f'{msg}{end}')
-        self.txt_dct.yview_moveto(1.0)
-        self.txt_dct['state'] = 'disabled'
-
-    # Нажатие на кнопку "Ввод"
-    # Ввод ответа и переход к следующему слову
-    def input(self):
-        # Вывод в журнал пользовательского ответа
-        answer = encode_special_combinations(self.entry_input.get())
-        if answer != '':
-            self.outp(answer)
-
-        # Проверка пользовательского ответа
-        if self.learn_method == LEARN_VALUES_METHOD[1]:
-            self.check_tr()
-        elif self.learn_method == LEARN_VALUES_METHOD[2]:
-            self.check_article()
-        elif self.with_forms and self.current_form:
-            self.check_form()
-        else:
-            self.check_wrd()
-
-        # Выбор нового слова для угадывания
-        self.choose()
-
-        # Обновление кнопки "Посмотреть сноски"
-        entry = _0_global_dct.d[self.current_key]
-        if entry.count_n == 0:
-            btn_disable(self.btn_notes)
-        else:
-            btn_enable(self.btn_notes, self.show_notes)
-        # Очистка поля ввода
-        self.entry_input.delete(0, tk.END)
-        # Обновление отображаемого рейтинга
-        self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {self.get_percent()}%'
-        self.lbl_count['text'] = f'Отвечено: {self.count_correct}/{self.len_of_pool}'
-
-    # Нажатие на кнопку "Посмотреть сноски"
-    # Просмотр сносок
-    def show_notes(self):
-        entry = _0_global_dct.d[self.current_key]
-        if entry.count_n != 0:
-            self.outp(entry.notes_print())
-        btn_disable(self.btn_notes)
-
-    # Нажатие на кнопку "Закончить"
-    # Завершение учёбы
-    def stop(self):
-        self.frame_main.grid_remove()
-        self.btn_stop.grid_remove()
-        btn_disable(self.btn_input)
-
-        PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
-        self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}', end='')
-
-    # Проверка введённого ответа
-    def check_answer(self, correct_answer: str, is_correct: bool,
-                     current_key: tuple[str, int], current_form: tuple[str, ...] | None = None):
-        entry = _0_global_dct.d[current_key]
-        if is_correct:
-            entry.correct(_0_global_session_number)
-            self.outp('Верно\n')
-            if entry.fav:
-                window = PopupDialogueW(self, 'Верно.\n'
-                                              'Оставить слово в избранном?',
-                                        'Да', 'Нет', val_on_close=True)
-                answer = window.open()
-                if not answer:
-                    entry.fav = False
-            self.count_all += 1
-            self.count_correct += 1
-            self.pool.remove((current_key, current_form))
-        else:
-            self.outp(f'Неверно. Правильный ответ: "{correct_answer}"\n')
-            if entry.fav:
-                if bool(_0_global_with_typo):
-                    window = PopupDialogueW(self, msg=f'Неверно.\n'
-                                                      f'Ваш ответ: {encode_special_combinations(self.entry_input.get())}\n'
-                                                      f'Правильный ответ: {correct_answer}',
-                                            btn_left_text='Ясно', btn_right_text='Просто опечатка',
-                                            st_left='Default', st_right='Default',
-                                            val_left='ok', val_right='typo')
-                    answer = window.open()
-                    if answer != 'typo':
-                        entry.incorrect()
-                        self.count_all += 1
-                else:
-                    entry.incorrect()
-                    self.count_all += 1
-            else:
-                window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
-                                          correct_answer, bool(_0_global_with_typo))
-                answer = window.open()
-                if answer != 'typo':
-                    entry.incorrect()
-                    self.count_all += 1
-                if answer == 'yes':
-                    entry.fav = True
-
-    # Проверка введённого слова
-    def check_wrd(self):
-        entry = _0_global_dct.d[self.current_key]
-        if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get()) == entry.wrd
-        else:
-            is_correct = encode_special_combinations(self.entry_input.get()).lower() == entry.wrd.lower()
-        self.check_answer(entry.wrd, is_correct, self.current_key)
-
-    # Проверка введённой словоформы
-    def check_form(self):
-        entry = _0_global_dct.d[self.current_key]
-        if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get()) == entry.forms[self.current_form]
-        else:
-            is_correct = encode_special_combinations(self.entry_input.get()).lower() == entry.forms[self.current_form].lower()
-        self.check_answer(entry.forms[self.current_form], is_correct, self.current_key, self.current_form)
-
-    # Проверка введённого перевода
-    def check_tr(self):
-        entry = _0_global_dct.d[self.current_key]
-        if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get()) in entry.tr
-        else:
-            is_correct = encode_special_combinations(self.entry_input.get()).lower() in (tr.lower() for tr in entry.tr)
-        self.check_answer(tpl(entry.tr), is_correct, self.current_key)
-
-    # Проверка введённого артикля
-    def check_article(self):
-        entry = _0_global_dct.d[self.current_key]
-        if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get()) == entry.wrd[0:3]
-        else:
-            is_correct = encode_special_combinations(self.entry_input.get()).lower() == entry.wrd[0:3].lower()
-        self.check_answer(entry.wrd[0:3], is_correct, self.current_key)
-
-    # Выбор слова для угадывания
-    def choose(self):
-        global _0_global_has_progress
-
-        if len(self.pool) == 0:
-            # Если все слова отвечены, то завершаем учёбу
-            self.stop()
-            return
-        else:
-            _0_global_has_progress = True
-
-        # Выбор слова
-        if self.order == LEARN_VALUES_ORDER[0]:
-            self.current_key, self.current_form = random.choice(tuple(self.pool))
-        else:
-            self.current_key, self.current_form = random_smart(_0_global_dct, self.pool, _0_global_min_good_score_perc)
-
-        # Вывод слова в журнал
-        if self.learn_method == LEARN_VALUES_METHOD[0]:
-            if self.with_forms and self.current_form:
-                self.outp(_0_global_dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
-            else:
-                self.outp(_0_global_dct.d[self.current_key].print_tr_with_stat())
-        elif self.learn_method == LEARN_VALUES_METHOD[1]:
-            self.outp(_0_global_dct.d[self.current_key].print_wrd_with_stat())
-        else:
-            self.outp(_0_global_dct.d[self.current_key].print_wrd_with_stat()[4:])
-
-    # Получить глобальный процент угадываний
-    def get_percent(self):
-        return format(_0_global_dct.count_rating() * 100, '.1f')
-
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.entry_input.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_input.invoke())
-        self.bind('<Tab>', lambda event=None: self.btn_notes.invoke())
-
-    def open(self):
-        self.set_focus()
-
-        self.grab_set()
-        self.wait_window()
-
-
 # Окно поиска статей
 class SearchW(tk.Toplevel):
     def __init__(self, parent):
@@ -5309,406 +5572,6 @@ class SearchW(tk.Toplevel):
         self.focus_set()
         self.entry_query.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_search.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-    def open(self):
-        self.set_focus()
-
-        self.grab_set()
-        self.wait_window()
-
-
-# Окно изменения статьи
-class EditW(tk.Toplevel):
-    def __init__(self, parent, key: tuple[str, int]):
-        super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Изменение статьи')
-        self.resizable(width=False, height=False)
-        self.configure(bg=ST_BG[th])
-
-        self.dct_key = key
-        self.line_width = 35
-        self.max_height_w = 3
-
-        self.var_fav = tk.BooleanVar(value=_0_global_dct.d[key].fav)
-
-        self.img_edit = tk.PhotoImage()
-        self.img_add = tk.PhotoImage()
-
-        self.translations = []
-        self.tr_frames = []
-        self.tr_buttons = []
-        #
-        self.notes = []
-        self.nt_frames = []
-        self.nt_buttons = []
-        #
-        self.forms = []
-        self.frm_frames = []
-        self.frm_buttons = []
-
-        self.frame_main = ttk.Frame(self, style='Default.TFrame')
-        # {
-        self.lbl_wrd = ttk.Label(self.frame_main, text='Слово:', style='Default.TLabel')
-        self.scrollbar_wrd = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
-        self.txt_wrd = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_wrd.set,
-                               font=('DejaVu Sans Mono', _0_global_scale + 1), relief='solid', bg=ST_BG_FIELDS[th],
-                               fg=ST_FG[th], selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                               highlightbackground=ST_BORDERCOLOR[th])
-        self.scrollbar_wrd.config(command=self.txt_wrd.yview)
-        self.btn_wrd_edt = ttk.Button(self.frame_main, command=self.wrd_edt, width=4, takefocus=False)
-        set_image(self.btn_wrd_edt, self.img_edit, img_edit, 'изм.')
-        if self.btn_wrd_edt['style'] == 'Image.TButton':
-            self.tip_btn_wrd_edt = ttip.Hovertip(self.btn_wrd_edt, 'Изменить слово', hover_delay=500)
-        #
-        self.lbl_tr = ttk.Label(self.frame_main, text='Перевод:', style='Default.TLabel')
-        self.scrolled_frame_tr = ScrollFrame(self.frame_main,
-                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
-                                             SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
-        self.btn_tr_add = ttk.Button(self.frame_main, command=self.tr_add, width=2, takefocus=False)
-        set_image(self.btn_tr_add, self.img_add, img_add, '+')
-        if self.btn_tr_add['style'] == 'Image.TButton':
-            self.tip_btn_tr_add = ttip.Hovertip(self.btn_tr_add, 'Добавить перевод', hover_delay=500)
-        #
-        self.lbl_notes = ttk.Label(self.frame_main, text='Сноски:', style='Default.TLabel')
-        self.scrolled_frame_nt = ScrollFrame(self.frame_main,
-                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
-                                             SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
-        self.btn_note_add = ttk.Button(self.frame_main, command=self.note_add, width=2, takefocus=False)
-        set_image(self.btn_note_add, self.img_add, img_add, '+')
-        if self.btn_note_add['style'] == 'Image.TButton':
-            self.tip_btn_note_add = ttip.Hovertip(self.btn_note_add, 'Добавить сноску', hover_delay=500)
-        #
-        self.lbl_frm = ttk.Label(self.frame_main, text='Формы слова:', style='Default.TLabel')
-        self.scrolled_frame_frm = ScrollFrame(self.frame_main,
-                                              SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
-                                              SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
-        self.btn_frm_add = ttk.Button(self.frame_main, command=self.frm_add, width=2, takefocus=False)
-        set_image(self.btn_frm_add, self.img_add, img_add, '+')
-        if self.btn_frm_add['style'] == 'Image.TButton':
-            self.tip_btn_frm_add = ttip.Hovertip(self.btn_frm_add, 'Добавить словоформу', hover_delay=500)
-        #
-        self.lbl_fav = ttk.Label(self.frame_main, text='Избранное:', style='Default.TLabel')
-        self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=self.set_fav,
-                                         style='Default.TCheckbutton')
-        # }
-        self.btn_back = ttk.Button(self, text='Закончить', command=self.back, takefocus=False, style='Default.TButton')
-        self.btn_delete = ttk.Button(self, text='Удалить статью', command=self.delete,
-                                     takefocus=False, style='No.TButton')
-
-        self.frame_main.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
-        # {
-        self.lbl_wrd.grid(      row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
-        self.txt_wrd.grid(      row=0, column=1, padx=(0, 1), pady=(6, 3), sticky='W')
-        self.scrollbar_wrd.grid(row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
-        self.btn_wrd_edt.grid(  row=0, column=3, padx=(3, 6), pady=(6, 3), sticky='W')
-        #
-        self.lbl_tr.grid(           row=1, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
-        self.scrolled_frame_tr.grid(row=1, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
-        self.btn_tr_add.grid(       row=1, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
-        #
-        self.lbl_notes.grid(        row=2, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
-        self.scrolled_frame_nt.grid(row=2, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
-        self.btn_note_add.grid(     row=2, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
-        #
-        self.lbl_frm.grid(           row=3, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
-        self.scrolled_frame_frm.grid(row=3, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
-        self.btn_frm_add.grid(       row=3, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
-        #
-        self.lbl_fav.grid(  row=4, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_fav.grid(row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
-        # }
-        self.btn_back.grid(  row=1, column=0, padx=(0, 1), pady=(0, 6))
-        self.btn_delete.grid(row=1, column=1, padx=(0, 6), pady=(0, 6))
-
-        self.refresh(True)
-
-    # Изменить слово
-    def wrd_edt(self):
-        global _0_global_has_progress
-
-        window = PopupEntryW(self, 'Введите новое слово', default_value=_0_global_dct.d[self.dct_key].wrd,
-                             check_answer_function=lambda wnd, val:
-                             check_not_void(wnd, val, 'Слово должно содержать хотя бы один символ!'))
-        closed, new_wrd = window.open()
-        if closed:
-            return
-        new_wrd = encode_special_combinations(new_wrd)
-        if new_wrd == _0_global_dct.d[self.dct_key].wrd:
-            return
-
-        self.dct_key = _0_global_dct.edit_wrd(self, self.dct_key, new_wrd)
-        if not self.dct_key:
-            return
-
-        _0_global_has_progress = True
-        self.refresh(False)
-
-    # Добавить перевод
-    def tr_add(self):
-        global _0_global_has_progress
-
-        window = PopupEntryW(self, 'Введите новый перевод',
-                             check_answer_function=lambda wnd, val: check_tr(wnd, _0_global_dct.d[self.dct_key].tr,
-                                                                             val, key_to_wrd(self.dct_key)))
-        closed, tr = window.open()
-        if closed:
-            return
-        tr = encode_special_combinations(tr)
-
-        _0_global_dct.add_tr(self.dct_key, tr)
-
-        _0_global_has_progress = True
-        self.refresh(False)
-
-    # Изменить перевод
-    def tr_edt(self, tr: str):
-        global _0_global_has_progress
-
-        window = PopupEntryW(self, 'Введите новый перевод', default_value=tr,
-                             check_answer_function=lambda wnd, val: check_tr_edit(wnd, _0_global_dct.d[self.dct_key].tr,
-                                                                                  tr, val, key_to_wrd(self.dct_key)))
-        closed, new_tr = window.open()
-        if closed:
-            return
-        new_tr = encode_special_combinations(new_tr)
-
-        _0_global_dct.delete_tr(self.dct_key, tr)
-        _0_global_dct.add_tr(self.dct_key, new_tr)
-
-        _0_global_has_progress = True
-        self.refresh(False)
-
-    # Удалить перевод
-    def tr_del(self, tr: str):
-        global _0_global_has_progress
-
-        if len(self.translations) == 1:
-            warning(self, 'Вы не можете удалить единственный перевод!')
-            return
-
-        _0_global_dct.delete_tr(self.dct_key, tr)
-
-        _0_global_has_progress = True
-        self.refresh(False)
-
-    # Добавить сноску
-    def note_add(self):
-        global _0_global_has_progress
-
-        window = PopupEntryW(self, 'Введите сноску',
-                             check_answer_function=lambda wnd, val: check_note(wnd, _0_global_dct.d[self.dct_key].notes,
-                                                                               val, key_to_wrd(self.dct_key)))
-        closed, note = window.open()
-        if closed:
-            return
-        note = encode_special_combinations(note)
-
-        _0_global_dct.add_note(self.dct_key, note)
-
-        _0_global_has_progress = True
-        self.refresh(False)
-
-    # Изменить сноску
-    def note_edt(self, note: str):
-        global _0_global_has_progress
-
-        window = PopupEntryW(self, 'Введите сноску', default_value=note,
-                             check_answer_function=lambda wnd, val:
-                             check_note_edit(wnd, _0_global_dct.d[self.dct_key].notes, note, val,
-                                             key_to_wrd(self.dct_key)))
-        closed, new_note = window.open()
-        if closed:
-            return
-        new_note = encode_special_combinations(new_note)
-
-        _0_global_dct.delete_note(self.dct_key, note)
-        _0_global_dct.add_note(self.dct_key, new_note)
-
-        _0_global_has_progress = True
-        self.refresh(False)
-
-    # Удалить сноску
-    def note_del(self, note: str):
-        global _0_global_has_progress
-
-        _0_global_dct.delete_note(self.dct_key, note)
-
-        _0_global_has_progress = True
-        self.refresh(False)
-
-    # Добавить словоформу
-    def frm_add(self):
-        global _0_global_has_progress
-
-        if not _0_global_categories:
-            warning(self, 'Отсутствуют категории слов!\n'
-                          'Чтобы их добавить, перейдите в\n'
-                          'Настройки/Настройки словаря/Грамматические категории')
-            return
-
-        window_form = AddFormW(self, self.dct_key, combo_width=width(tuple(_0_global_categories.keys()),
-                                                                     5, 100))  # Создание словоформы
-        frm_key, frm = window_form.open()
-        if not frm_key:
-            return
-        frm = encode_special_combinations(frm)
-
-        _0_global_dct.add_frm(self.dct_key, frm_key, frm)
-
-        _0_global_has_progress = True
-        self.refresh(False)
-
-    # Изменить словоформу
-    def frm_edt(self, frm_key: tuple[str, ...]):
-        global _0_global_has_progress
-
-        window_entry = PopupEntryW(self, 'Введите новую форму слова',
-                                   default_value=_0_global_dct.d[self.dct_key].forms[frm_key],
-                                   check_answer_function=lambda wnd, val:
-                                   check_not_void(wnd, val, 'Словоформа должна содержать хотя бы один символ!'))
-        closed, new_frm = window_entry.open()
-        if closed:
-            return
-        new_frm = encode_special_combinations(new_frm)
-
-        _0_global_dct.d[self.dct_key].forms[frm_key] = new_frm
-
-        _0_global_has_progress = True
-        self.refresh(False)
-
-    # Удалить словоформу
-    def frm_del(self, frm_key: tuple[str, ...]):
-        global _0_global_has_progress
-
-        _0_global_dct.delete_frm(self.dct_key, frm_key)
-
-        _0_global_has_progress = True
-        self.refresh(False)
-
-    # Добавить в избранное/убрать из избранного
-    def set_fav(self):
-        _0_global_dct.d[self.dct_key].fav = self.var_fav.get()
-
-    # Удалить статью
-    def delete(self):
-        global _0_global_has_progress
-
-        window = PopupDialogueW(self, 'Вы уверены, что хотите удалить эту статью?', set_enter_on_btn='none')
-        answer = window.open()
-        if answer:
-            _0_global_dct.delete_entry(self.dct_key)
-            _0_global_has_progress = True
-            self.destroy()
-
-    # Закрыть настройки
-    def back(self):
-        self.destroy()
-
-    # Обновить поля
-    def refresh(self, move_scroll: bool):
-        # Обновляем поле со словом
-        height_w = max(min(height(_0_global_dct.d[self.dct_key].wrd, self.line_width), self.max_height_w), 1)
-        self.txt_wrd['height'] = height_w
-        #
-        if height_w < self.max_height_w:
-            self.scrollbar_wrd.grid_remove()
-        #
-        self.txt_wrd['state'] = 'normal'
-        self.txt_wrd.delete(1.0, tk.END)
-        self.txt_wrd.insert(tk.END, _0_global_dct.d[self.dct_key].wrd)
-        self.txt_wrd['state'] = 'disabled'
-        #
-        self.scrollbar_wrd.grid(row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
-
-        # Удаляем старые кнопки
-        for btn in self.tr_buttons + self.nt_buttons + self.frm_buttons:
-            btn.destroy()
-        # Удаляем старые фреймы
-        for fr in self.tr_frames + self.nt_frames + self.frm_frames:
-            fr.unbind('<Enter>')
-            fr.unbind('<Control-E>')
-            fr.unbind('<Control-e>')
-            fr.unbind('<Control-D>')
-            fr.unbind('<Control-d>')
-            fr.destroy()
-
-        # Выбираем комбинации
-        self.translations = [tr for tr in _0_global_dct.d[self.dct_key].tr]
-        self.notes = [nt for nt in _0_global_dct.d[self.dct_key].notes]
-        self.forms = [frm for frm in _0_global_dct.d[self.dct_key].forms.keys()]
-        tr_count = len(self.translations)
-        nt_count = len(self.notes)
-        frm_count = len(self.forms)
-
-        # Создаём новые фреймы
-        self.tr_frames = tuple([ttk.Frame(self.scrolled_frame_tr.frame_canvas, style='Invis.TFrame')
-                                for i in range(tr_count)])
-        self.nt_frames = tuple([ttk.Frame(self.scrolled_frame_nt.frame_canvas, style='Invis.TFrame')
-                                for i in range(nt_count)])
-        self.frm_frames = tuple([ttk.Frame(self.scrolled_frame_frm.frame_canvas, style='Invis.TFrame')
-                                 for i in range(frm_count)])
-        # Создаём новые кнопки
-        self.tr_buttons = [ttk.Button(self.tr_frames[i], command=lambda i=i: self.tr_edt(self.translations[i]),
-                                      takefocus=False, style='Flat.TButton')
-                           for i in range(tr_count)]
-        self.nt_buttons = [ttk.Button(self.nt_frames[i], command=lambda i=i: self.note_edt(self.notes[i]),
-                                      takefocus=False, style='Flat.TButton')
-                           for i in range(nt_count)]
-        self.frm_buttons = [ttk.Button(self.frm_frames[i], command=lambda i=i: self.frm_edt(self.forms[i]),
-                                       takefocus=False, style='Flat.TButton')
-                            for i in range(frm_count)]
-        # Выводим текст на кнопки
-        for i in range(tr_count):
-            tr = self.translations[i]
-            self.tr_buttons[i].configure(text=split_text(tr, 35))
-        for i in range(nt_count):
-            nt = self.notes[i]
-            self.nt_buttons[i].configure(text=split_text(nt, 35))
-        for i in range(frm_count):
-            frm = self.forms[i]
-            self.frm_buttons[i].configure(text=split_text(f'[{tpl(frm)}] {_0_global_dct.d[self.dct_key].forms[frm]}',
-                                                          35))
-        # Расставляем элементы
-        for i in range(tr_count):
-            self.tr_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            # {
-            self.tr_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
-            # }
-        for i in range(nt_count):
-            self.nt_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            # {
-            self.nt_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
-            # }
-        for i in range(frm_count):
-            self.frm_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            # {
-            self.frm_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
-            # }
-        # Привязываем события
-        for i in range(tr_count):
-            self.tr_frames[i].bind('<Enter>', lambda event, i=i: self.tr_frames[i].focus_set())
-            self.tr_frames[i].bind('<Control-D>', lambda event, i=i: self.tr_del(self.translations[i]))
-            self.tr_frames[i].bind('<Control-d>', lambda event, i=i: self.tr_del(self.translations[i]))
-        for i in range(nt_count):
-            self.nt_frames[i].bind('<Enter>', lambda event, i=i: self.nt_frames[i].focus_set())
-            self.nt_frames[i].bind('<Control-D>', lambda event, i=i: self.note_del(self.notes[i]))
-            self.nt_frames[i].bind('<Control-d>', lambda event, i=i: self.note_del(self.notes[i]))
-        for i in range(frm_count):
-            self.frm_frames[i].bind('<Enter>', lambda event, i=i: self.frm_frames[i].focus_set())
-            self.frm_frames[i].bind('<Control-D>', lambda event, i=i: self.frm_del(self.forms[i]))
-            self.frm_frames[i].bind('<Control-d>', lambda event, i=i: self.frm_del(self.forms[i]))
-
-        # Если требуется, прокручиваем вверх
-        if move_scroll:
-            self.scrolled_frame_tr.canvas.yview_moveto(0.0)
-            self.scrolled_frame_nt.canvas.yview_moveto(0.0)
-            self.scrolled_frame_frm.canvas.yview_moveto(0.0)
-
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_back.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
     def open(self):
@@ -6436,6 +6299,120 @@ class SettingsW(tk.Toplevel):
 
         _0_global_dct = copy.deepcopy(self.backup_dct)
         _0_global_categories = copy.deepcopy(self.backup_fp)
+
+
+# Окно уведомления о выходе новой версии
+class NewVersionAvailableW(tk.Toplevel):
+    def __init__(self, parent, last_version: str):
+        super().__init__(parent)
+        self.title('Доступна новая версия')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[th])
+
+        self.var_url = tk.StringVar(value=URL_GITHUB)  # Ссылка, для загрузки новой версии
+
+        self.lbl_msg = ttk.Label(self, text=f'Доступна новая версия программы:\n'
+                                            f'{last_version}',
+                                 justify='center', style='Default.TLabel')
+        self.frame_url = ttk.Frame(self, style='Invis.TFrame')
+        # {
+        self.entry_url = ttk.Entry(self.frame_url, textvariable=self.var_url, state='readonly', width=45,
+                                   justify='center', style='Default.TEntry')
+        self.btn_open = ttk.Button(self.frame_url, text='Открыть ссылку', command=self.open_github,
+                                   takefocus=False, style='Default.TButton')
+        # }
+        self.btn_update = ttk.Button(self, text='Обновить', command=self.download_and_install,
+                                     takefocus=False, style='Yes.TButton')
+        self.btn_close = ttk.Button(self, text='Закрыть', command=self.destroy, takefocus=False, style='No.TButton')
+
+        self.lbl_msg.grid(  row=1, columnspan=2, padx=6, pady=(4, 0))
+        self.frame_url.grid(row=2, columnspan=2, padx=6, pady=(0, 4))
+        # {
+        self.entry_url.grid(row=0, column=0, padx=(0, 3), pady=0)
+        self.btn_open.grid( row=0, column=1, padx=0,      pady=0)
+        # }
+        self.btn_update.grid(row=3, column=0, padx=6, pady=4)
+        self.btn_close.grid( row=3, column=1, padx=6, pady=4)
+
+    # Открыть репозиторий проекта на GitHub
+    def open_github(self):
+        try:
+            webbrowser.open(URL_GITHUB)
+        except Exception as exc:
+            print(f'Не удалось открыть страницу!\n'
+                  f'{exc}')
+            warning(self, f'Не удалось открыть страницу!\n'
+                          f'{exc}')
+
+    # Скачать и установить обновление
+    def download_and_install(self):
+        save_dct_if_has_progress(self, _0_global_dct, _0_global_dct_savename, _0_global_has_progress)
+
+        # Загрузка списка обновляемых файлов
+        try:
+            print('\nЧтение данных...')
+            data = urllib2.urlopen(URL_UPDATE_FILES)
+            update_files = [str(filename.decode('utf-8')).strip() for filename in data.readlines()]
+        except Exception as exc:
+            print(f'Не удалось получить данные!\n'
+                  f'{exc}')
+            warning(self, f'Не удалось получить данные!\n'
+                          f'{exc}')
+            self.destroy()
+            return
+        # Загрузка
+        try:
+            # Скачиваем архив с обновлением
+            print('Загрузка архива...', end='')
+            wget.download(URL_DOWNLOAD_ZIP, out=MAIN_PATH)
+        except Exception as exc:
+            print(f'\nНе удалось загрузить обновление!\n'
+                  f'{exc}')
+            warning(self, f'Не удалось загрузить обновление!\n'
+                          f'{exc}')
+            self.destroy()
+            return
+        # Установка
+        try:
+            # Распаковываем архив во временную папку
+            print('\nРаспаковка архива...')
+            with zipfile.ZipFile(NEW_VERSION_ZIP_PATH, 'r') as zip_file:
+                zip_file.extractall(MAIN_PATH)
+            # Удаляем архив
+            print('Удаление архива...')
+            os.remove(NEW_VERSION_ZIP_PATH)
+            # Удаляем файлы текущей версии
+            print('Удаление старых файлов...')
+            for filename in os.listdir(IMAGES_PATH):
+                try:
+                    os.remove(os.path.join(IMAGES_PATH, filename))
+                except FileNotFoundError:
+                    print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
+            for filename in ('ver', 'README.txt', 'README.md', 'main.py'):
+                try:
+                    os.remove(os.path.join(MAIN_PATH, filename))
+                except FileNotFoundError:
+                    print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
+            # Из временной папки достаём файлы новой версии
+            print('Установка новых файлов...')
+            for filename in update_files:
+                os.replace(os.path.join(NEW_VERSION_PATH, filename),
+                           os.path.join(MAIN_PATH, filename))
+            # Удаляем временную папку
+            print('Удаление временной папки...')
+            shutil.rmtree(NEW_VERSION_PATH)
+        except Exception as exc:
+            print(f'Не удалось установить обновление!\n'
+                  f'{exc}')
+            warning(self, f'Не удалось установить обновление!\n'
+                          f'{exc}')
+            self.destroy()
+            return
+        else:
+            print('Обновление успешно установлено!')
+            PopupMsgW(self, 'Обновление успешно установлено!\n'
+                            'Программа закроется').open()
+            exit(777)
 
 
 # Главное окно
