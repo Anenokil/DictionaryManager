@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-10.12'
+PROGRAM_VERSION = 'v7.1.0-PRE-10.13'
 PROGRAM_DATE = '7.3.2023'
-PROGRAM_TIME = '19:14 (UTC+3)'
+PROGRAM_TIME = '20:13 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -42,6 +42,7 @@ SCALE_DEFAULT_FRAME_HEIGHT     = (400, 430, 460, 490, 520, 550, 580, 610,  640)
 SCALE_SMALL_FRAME_WIDTH        = (250, 284, 318, 353, 354, 390, 424, 460,  495)
 SCALE_SMALL_FRAME_HEIGHT_SHORT = (120, 130, 140, 150, 160, 170, 180, 190,  200)
 SCALE_SMALL_FRAME_HEIGHT_TALL  = (220, 230, 240, 250, 260, 270, 280, 290,  300)
+SCALE_FRAME_HEIGHT_ONE_LINE    = ( 21,  23,  24,  26,  28,  29,  31,  33,   34)
 SCALE_CUSTOM_THEME_FRAME_WIDTH = (410, 440, 455, 495, 517, 543, 590, 615,  643)
 SCALE_CUSTOM_THEME_COMBO_WIDTH = ( 16,  16,  14,  12,  11,  11,  10,   9,    8)
 
@@ -2992,6 +2993,9 @@ class EditW(tk.Toplevel):
         self.dct_key = key
         self.line_width = 35
         self.max_height_w = 3
+        self.max_height_t = 6
+        self.max_height_n = 4
+        self.max_height_f = 6
 
         self.var_fav = tk.BooleanVar(value=_0_global_dct.d[key].fav)
 
@@ -3112,8 +3116,8 @@ class EditW(tk.Toplevel):
         global _0_global_has_progress
 
         window = PopupEntryW(self, 'Введите новый перевод',
-                             check_answer_function=lambda wnd, val: check_tr(wnd, _0_global_dct.d[self.dct_key].tr,
-                                                                             val, key_to_wrd(self.dct_key)))
+                             check_answer_function=lambda wnd, val:
+                             check_tr(wnd, _0_global_dct.d[self.dct_key].tr, val, key_to_wrd(self.dct_key)))
         closed, tr = window.open()
         if closed:
             return
@@ -3129,8 +3133,8 @@ class EditW(tk.Toplevel):
         global _0_global_has_progress
 
         window = PopupEntryW(self, 'Введите новый перевод', default_value=tr,
-                             check_answer_function=lambda wnd, val: check_tr_edit(wnd, _0_global_dct.d[self.dct_key].tr,
-                                                                                  tr, val, key_to_wrd(self.dct_key)))
+                             check_answer_function=lambda wnd, val:
+                             check_tr_edit(wnd, _0_global_dct.d[self.dct_key].tr, tr, val, key_to_wrd(self.dct_key)))
         closed, new_tr = window.open()
         if closed:
             return
@@ -3160,8 +3164,8 @@ class EditW(tk.Toplevel):
         global _0_global_has_progress
 
         window = PopupEntryW(self, 'Введите сноску',
-                             check_answer_function=lambda wnd, val: check_note(wnd, _0_global_dct.d[self.dct_key].notes,
-                                                                               val, key_to_wrd(self.dct_key)))
+                             check_answer_function=lambda wnd, val:
+                             check_note(wnd, _0_global_dct.d[self.dct_key].notes, val, key_to_wrd(self.dct_key)))
         closed, note = window.open()
         if closed:
             return
@@ -3271,18 +3275,18 @@ class EditW(tk.Toplevel):
     # Обновить поля
     def refresh(self, move_scroll: bool):
         # Обновляем поле со словом
-        height_w = max(min(height(_0_global_dct.d[self.dct_key].wrd, self.line_width), self.max_height_w), 1)
-        self.txt_wrd['height'] = height_w
-        #
-        if height_w < self.max_height_w:
-            self.scrollbar_wrd.grid_remove()
-        #
         self.txt_wrd['state'] = 'normal'
         self.txt_wrd.delete(1.0, tk.END)
         self.txt_wrd.insert(tk.END, _0_global_dct.d[self.dct_key].wrd)
         self.txt_wrd['state'] = 'disabled'
         #
-        self.scrollbar_wrd.grid(row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
+        height_w = max(min(height(_0_global_dct.d[self.dct_key].wrd, self.line_width), self.max_height_w), 1)
+        self.txt_wrd['height'] = height_w
+        #
+        if height_w < self.max_height_w:
+            self.scrollbar_wrd.grid_remove()
+        else:
+            self.scrollbar_wrd.grid(row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
 
         # Удаляем старые кнопки
         for btn in self.tr_buttons + self.nt_buttons + self.frm_buttons:
@@ -3361,6 +3365,16 @@ class EditW(tk.Toplevel):
             self.frm_frames[i].bind('<Enter>', lambda event, i=i: self.frm_frames[i].focus_set())
             self.frm_frames[i].bind('<Control-D>', lambda event, i=i: self.frm_del(self.forms[i]))
             self.frm_frames[i].bind('<Control-d>', lambda event, i=i: self.frm_del(self.forms[i]))
+        # Изменяем высоту полей
+        self.scrolled_frame_tr.resize(max(1, min(tr_count, self.max_height_t)) *
+                                      SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN],
+                                      SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_nt.resize(max(1, min(nt_count, self.max_height_n)) *
+                                      SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN],
+                                      SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_frm.resize(max(1, min(frm_count, self.max_height_f)) *
+                                       SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN],
+                                       SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
