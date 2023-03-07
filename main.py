@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-10.8'
-PROGRAM_DATE = '6.3.2023'
-PROGRAM_TIME = '23:22 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.0-PRE-10.9'
+PROGRAM_DATE = '7.3.2023'
+PROGRAM_TIME = '4:50 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -39,8 +39,9 @@ SCALE_DEF = 10
 
 SCALE_DEFAULT_FRAME_WIDTH      = (532, 604, 682, 757, 757, 832, 907, 980, 1057)
 SCALE_DEFAULT_FRAME_HEIGHT     = (400, 430, 460, 490, 520, 550, 580, 610,  640)
-SCALE_FRAME_DCTS_WIDTH         = (250, 284, 318, 353, 354, 390, 424, 460,  495)
-SCALE_FRAME_DCTS_HEIGHT        = (120, 130, 140, 150, 160, 170, 180, 190,  200)
+SCALE_SMALL_FRAME_WIDTH        = (250, 284, 318, 353, 354, 390, 424, 460,  495)
+SCALE_SMALL_FRAME_HEIGHT_SHORT = (120, 130, 140, 150, 160, 170, 180, 190,  200)
+SCALE_SMALL_FRAME_HEIGHT_TALL  = (220, 230, 240, 250, 260, 270, 280, 290,  300)
 SCALE_CUSTOM_THEME_FRAME_WIDTH = (410, 440, 455, 495, 517, 543, 590, 615,  643)
 SCALE_CUSTOM_THEME_COMBO_WIDTH = ( 16,  16,  14,  12,  11,  11,  10,   9,    8)
 
@@ -1286,42 +1287,33 @@ def add_ctg(window_parent, categories: dict[str, list[str]], dct: Dictionary):
 
 
 # Переименовать категорию
-def rename_ctg(window_parent, categories: dict[str, list[str]]):
-    ctg_names = [ctg_name for ctg_name in categories.keys()]
-    window_choose = PopupChooseW(window_parent, ctg_names, default_value=ctg_names[0], btn_text='Переименовать',
-                                 combo_width=width(ctg_names, 5, 100))  # Выбор категории, которую нужно переименовать
-    closed, old_name = window_choose.open()
-    if closed:
-        return False
-
+def rename_ctg(window_parent, categories: dict[str, list[str]], old_ctg_name: str):
     # Ввод нового названия категории
-    window_entry = PopupEntryW(window_parent, 'Введите новое название категории',
+    window_entry = PopupEntryW(window_parent, 'Введите новое название категории', default_value=old_ctg_name,
                                check_answer_function=lambda wnd, val: check_ctg(wnd, tuple(categories.keys()), val))
-    closed, new_name = window_entry.open()
+    closed, new_ctg_name = window_entry.open()
     if closed:
         return False
-    new_name = encode_special_combinations(new_name)
+    new_ctg_name = encode_special_combinations(new_ctg_name)
 
     # обновление категорий
-    categories[new_name] = categories[old_name]
-    categories.pop(old_name)
+    categories[new_ctg_name] = categories[old_ctg_name]
+    categories.pop(old_ctg_name)
     return True
 
 
 # Удалить категорию
-def delete_ctg(window_parent, categories: dict[str, list[str]], dct: Dictionary):
-    ctg_names = [ctg_name for ctg_name in categories.keys()]
-    window_choose = PopupChooseW(window_parent, ctg_names, default_value=ctg_names[0], btn_text='Удалить',
-                                 combo_width=width(ctg_names, 5, 100))  # Выбор категории, которую нужно удалить
-    closed, selected_ctg_name = window_choose.open()
-    if closed:
-        return False
-    window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие эту категорию, будут удалены!\n'
-                                               'Хотите продолжить?')  # Подтверждение действия
-    answer = window_dia.open()
+def delete_ctg(window_parent, categories: dict[str, list[str]], ctg_name: str, dct: Dictionary, to_ask: bool):
+    if to_ask:
+        window_dia = PopupDialogueW(window_parent, f'Все словоформы, содержащие категорию {ctg_name}, будут удалены!\n'
+                                                   f'Хотите продолжить?')  # Подтверждение действия
+        answer = window_dia.open()
+    else:
+        answer = True
     if answer:
-        pos = ctg_names.index(selected_ctg_name)
-        categories.pop(selected_ctg_name)
+        ctg_names = [ctg_name for ctg_name in categories.keys()]
+        pos = ctg_names.index(ctg_name)
+        categories.pop(ctg_name)
         dct.delete_ctg(pos)
         return True
     return False
@@ -1341,41 +1333,31 @@ def add_ctg_val(window_parent, values: list[str] | tuple[str, ...], text='Вве
 
 
 # Переименовать значение категории
-def rename_ctg_val(window_parent, values: list[str] | tuple[str, ...], pos: int, dct: Dictionary):
-    window_choose = PopupChooseW(window_parent, values, default_value=values[0],
-                                 combo_width=width(values, 5, 100))  # Выбор значения, которое нужно переименовать
-    closed, old_val = window_choose.open()
-    if closed:
-        return False
-
+def rename_ctg_val(window_parent, values: list[str] | tuple[str, ...], old_ctg_val: str, pos: int, dct: Dictionary):
     # Ввод нового значения
-    window_entry = PopupEntryW(window_parent, 'Введите новое значение категории',
+    window_entry = PopupEntryW(window_parent, 'Введите новое название значения', default_value=old_ctg_val,
                                check_answer_function=lambda wnd, val: check_ctg_val(wnd, values, val))
-    closed, new_val = window_entry.open()
+    closed, new_ctg_val = window_entry.open()
     if closed:
         return False
-    new_val = encode_special_combinations(new_val)
+    new_ctg_val = encode_special_combinations(new_ctg_val)
 
-    dct.rename_forms_with_val(pos, old_val, new_val)  # Переименовывание значения во всех словоформах, его содержащих
-    index = values.index(old_val)
-    values[index] = new_val
+    # Переименовывание значения во всех словоформах, его содержащих
+    dct.rename_forms_with_val(pos, old_ctg_val, new_ctg_val)
+    index = values.index(old_ctg_val)
+    values[index] = new_ctg_val
     return True
 
 
 # Удалить значение категории
-def delete_ctg_val(window_parent, values: list[str] | tuple[str, ...], dct: Dictionary):
-    window_choose = PopupChooseW(window_parent, values, default_value=values[0],
-                                 combo_width=width(values, 5, 100))  # Выбор значения, которое нужно удалить
-    closed, val = window_choose.open()
-    if closed:
-        return False
-    window_dia = PopupDialogueW(window_parent, 'Все словоформы, содержащие это значение категории, будут удалены!\n'
-                                               'Хотите продолжить?')  # Подтверждение действия
+def delete_ctg_val(window_parent, values: list[str] | tuple[str, ...], ctg_val: str, dct: Dictionary):
+    window_dia = PopupDialogueW(window_parent, f'Все словоформы, содержащие значение {ctg_val}, будут удалены!\n'
+                                               f'Хотите продолжить?')  # Подтверждение действия
     answer = window_dia.open()
     if answer:
-        index = values.index(val)
+        index = values.index(ctg_val)
         values.pop(index)
-        dct.delete_forms_with_val(index, val)  # Удаление всех словоформ, содержащих это значение категории
+        dct.delete_forms_with_val(index, ctg_val)  # Удаление всех словоформ, содержащих это значение категории
         return True
     return False
 
@@ -2267,11 +2249,6 @@ def dct_import(savename: str, src_path: str):
 """ Графический интерфейс - вспомогательные функции """
 
 
-# Вывести текст на виджет
-def outp(output_widget: tk.Entry | ttk.Entry | tk.Text, text='', end='\n', mode=tk.END):
-    output_widget.insert(mode, f'{text}{end}')
-
-
 # Вывести сообщение с предупреждением
 def warning(window_parent, msg: str):
     PopupMsgW(window_parent, msg, title='Warning').open()
@@ -2642,17 +2619,8 @@ class PopupImgW(tk.Toplevel):
         try:
             self.img = tk.PhotoImage(file=img_name)
         except:
-            self.lbl_img = ttk.Label(self, text='[!!!] Изображение не найдено [!!!]\n'
-                                                'Недостающие изображения можно скачать здесь:',
+            self.lbl_img = ttk.Label(self, text='[!!!] Изображение не найдено [!!!]',
                                      justify='center', style='Default.TLabel')
-
-            self.txt_img_not_found = tk.Text(self, height=1, width=47, relief='sunken', borderwidth=1,
-                                             font=('StdFont', _0_global_scale), bg=ST_BG[th], fg=ST_FG[th],
-                                             selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                             highlightbackground=ST_BORDERCOLOR[th])
-            self.txt_img_not_found.insert(tk.END, f'{URL_RELEASES}')
-            self.txt_img_not_found['state'] = 'disabled'
-            self.txt_img_not_found.grid(row=1, column=0, padx=6, pady=(0, 16))
         else:
             self.lbl_img = ttk.Label(self, image=self.img, style='Default.TLabel')
         self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, add_right_spaces=False), justify='center',
@@ -3159,93 +3127,110 @@ class CategoriesSettingsW(tk.Toplevel):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
-
         self.has_changes = False
 
         self.var_ctg = tk.StringVar()
 
+        self.img_about = tk.PhotoImage()
+
+        self.categories = []
+        self.frames = []
+        self.buttons = []
+
+        self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
+        set_image(self.btn_about_window, self.img_about, img_about, '?')
         self.lbl_categories = ttk.Label(self, text='Существующие категории слов:',
                                         justify='center', style='Default.TLabel')
-        self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.txt_categories = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                      font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                                      selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                      relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
-        self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.btn_add = ttk.Button(self.frame_buttons, text='Добавить категорию', command=self.add,
-                                  takefocus=False, style='Default.TButton')
-        self.btn_rename = ttk.Button(self.frame_buttons, text='Переименовать категорию', command=self.rename,
-                                     takefocus=False, style='Default.TButton')
-        self.btn_delete = ttk.Button(self.frame_buttons, text='Удалить категорию', command=self.delete,
-                                     takefocus=False, style='Default.TButton')
-        self.btn_values = ttk.Button(self.frame_buttons, text='Изменить значения категории', command=self.values,
-                                     takefocus=False, style='Default.TButton')
-        # }
+        self.scrolled_frame = ScrollFrame(self, SCALE_SMALL_FRAME_HEIGHT_TALL[_0_global_scale - SCALE_MIN],
+                                          SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.btn_add = ttk.Button(self, text='Добавить категорию', command=self.add, takefocus=False,
+                                  style='Default.TButton')
 
-        self.lbl_categories.grid(row=0,            column=0, padx=(6, 0), pady=(6, 0))
-        self.txt_categories.grid(row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(     row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.frame_buttons.grid( row=0, rowspan=2, column=2, padx=6,      pady=6)
-        # {
-        self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
-        self.btn_rename.grid(row=1, padx=6, pady=3)
-        self.btn_delete.grid(row=2, padx=6, pady=3)
-        self.btn_values.grid(row=3, padx=6, pady=(3, 6))
-        # }
+        self.btn_about_window.grid(row=0, column=0,               padx=(6, 0), pady=(6, 6), sticky='E')
+        self.lbl_categories.grid(  row=0, column=1,               padx=(0, 6), pady=(6, 0), sticky='W')
+        self.scrolled_frame.grid(  row=1, column=0, columnspan=2, padx=6,      pady=(0, 6))
+        self.btn_add.grid(         row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
 
-        self.scrollbar.config(command=self.txt_categories.yview)
-
-        self.refresh()
+        self.print_categories(True)
 
     # Добавить категорию
     def add(self):
         self.has_changes = add_ctg(self, _0_global_categories, _0_global_dct) or self.has_changes
-        self.refresh()
+        self.print_categories(False)
 
     # Переименовать категорию
-    def rename(self):
-        self.has_changes = rename_ctg(self, _0_global_categories) or self.has_changes
-        self.refresh()
+    def rename(self, ctg_key: str):
+        self.has_changes = rename_ctg(self, _0_global_categories, ctg_key) or self.has_changes
+        self.print_categories(False)
 
     # Удалить категорию
-    def delete(self):
-        self.has_changes = delete_ctg(self, _0_global_categories, _0_global_dct) or self.has_changes
-        self.refresh()
+    def delete(self, ctg_key: str, to_ask: bool):
+        self.has_changes = delete_ctg(self, _0_global_categories, ctg_key, _0_global_dct, to_ask) or self.has_changes
+        self.print_categories(False)
 
     # Перейти к настройкам значений категории
-    def values(self):
-        keys = [_key for _key in _0_global_categories.keys()]
-        window = PopupChooseW(self, keys, 'Какую категорию вы хотите изменить?',
-                              default_value=keys[0], combo_width=width(keys, 5, 100))
-        closed, key = window.open()
-        if closed:
-            return
-        self.has_changes = CategoryValuesSettingsW(self, key).open() or self.has_changes
+    def values(self, ctg_key: str):
+        self.has_changes = CategoryValuesSettingsW(self, ctg_key).open() or self.has_changes
 
     # Напечатать существующие категории
-    def print_categories(self):
-        self.txt_categories['state'] = 'normal'
-        self.txt_categories.delete(1.0, tk.END)
-        for key in _0_global_categories.keys():
-            self.txt_categories.insert(tk.END, f'{key}\n')
-        self.txt_categories['state'] = 'disabled'
+    def print_categories(self, move_scroll: bool):
+        # Удаляем старые кнопки
+        for btn in self.buttons:
+            btn.destroy()
+        # Удаляем старые фреймы
+        for fr in self.frames:
+            fr.unbind('<Enter>')
+            fr.unbind('<Control-R>')
+            fr.unbind('<Control-r>')
+            fr.unbind('<Control-D>')
+            fr.unbind('<Control-d>')
+            fr.destroy()
 
-    # Обновить отображаемую информацию
-    def refresh(self):
-        self.print_categories()
-        if _0_global_categories:
-            btn_enable(self.btn_rename, self.rename)
-            btn_enable(self.btn_delete, self.delete)
-            btn_enable(self.btn_values, self.values)
-        else:
-            btn_disable(self.btn_rename)
-            btn_disable(self.btn_delete)
-            btn_disable(self.btn_values)
+        # Выбираем категории
+        self.categories = [key for key in _0_global_categories.keys()]
+        categories_count = len(self.categories)
+
+        # Создаём новые фреймы
+        self.frames = [ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
+                       for i in range(categories_count)]
+        # Создаём новые кнопки
+        self.buttons = [ttk.Button(self.frames[i],
+                                   command=lambda i=i: self.values(self.categories[i]),
+                                   takefocus=False, style='Flat.TButton')
+                        for i in range(categories_count)]
+        # Выводим текст на кнопки
+        for i in range(categories_count):
+            ctg = self.categories[i]
+            self.buttons[i].configure(text=split_text(f'{ctg}', 35))
+        # Расставляем элементы
+        for i in range(categories_count):
+            self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            # {
+            self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
+            # }
+        # Привязываем события
+        for i in range(categories_count):
+            self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
+            self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename(self.categories[i]))
+            self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename(self.categories[i]))
+            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.categories[i], True))
+            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.categories[i], True))
+
+        # Если требуется, прокручиваем вверх
+        if move_scroll:
+            self.scrolled_frame.canvas.yview_moveto(0.0)
+
+    # Справка об окне (срабатывает при нажатии на кнопку)
+    def about_window(self):
+        PopupMsgW(self, '* Чтобы добавить значение категории, наведите на неё мышку и нажмите ЛКМ\n'
+                        '* Чтобы переименовать категорию, наведите на неё мышку и нажмите Ctrl+R\n'
+                        '* Чтобы удалить категорию, наведите на неё мышку и нажмите Ctrl+D',
+                  msg_justify='left').open()
 
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+        self.bind('<Return>', lambda event=None: self.destroy())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
     def open(self):
@@ -3259,50 +3244,40 @@ class CategoriesSettingsW(tk.Toplevel):
 
 # Окно настроек значений категории
 class CategoryValuesSettingsW(tk.Toplevel):
-    def __init__(self, parent, ctg: str):
+    def __init__(self, parent, ctg_key: str):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.ctg = ctg  # Название изменяемой категории
-        self.ctg_values = _0_global_categories[self.ctg]  # Значения изменяемой категории
-
+        self.parent = parent
+        self.ctg_key = ctg_key  # Название изменяемой категории
+        self.ctg_values = _0_global_categories[self.ctg_key]  # Значения изменяемой категории
         self.has_changes = False
 
-        self.var_ctg = tk.StringVar()
+        self.img_about = tk.PhotoImage()
 
+        self.values = []
+        self.frames = []
+        self.buttons = []
+
+        self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
+        set_image(self.btn_about_window, self.img_about, img_about, '?')
         self.lbl_ctg_values = ttk.Label(self, text=f'Существующие значения категории\n'
-                                                   f'"{ctg}":',
+                                                   f'"{self.ctg_key}":',
                                         justify='center', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.txt_ctg_values = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                      font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                                      selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                      relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
-        self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.btn_add = ttk.Button(self.frame_buttons, text='Добавить значение', command=self.add,
-                                  takefocus=False, style='Default.TButton')
-        self.btn_rename = ttk.Button(self.frame_buttons, text='Переименовать значение', command=self.rename,
-                                     takefocus=False, style='Default.TButton')
-        self.btn_delete = ttk.Button(self.frame_buttons, text='Удалить значение', command=self.delete,
-                                     takefocus=False, style='Default.TButton')
-        # }
+        self.scrolled_frame = ScrollFrame(self, SCALE_SMALL_FRAME_HEIGHT_TALL[_0_global_scale - SCALE_MIN],
+                                          SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.btn_add = ttk.Button(self, text='Добавить значение', command=self.add, takefocus=False,
+                                  style='Default.TButton')
 
-        self.lbl_ctg_values.grid(row=0,            column=0, padx=(6, 0), pady=(6, 0))
-        self.txt_ctg_values.grid(row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(     row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.frame_buttons.grid( row=0, rowspan=2, column=2, padx=6,      pady=6)
-        # {
-        self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
-        self.btn_rename.grid(row=1, padx=6, pady=3)
-        self.btn_delete.grid(row=2, padx=6, pady=3)
-        # }
+        self.btn_about_window.grid(row=0, column=0,               padx=(6, 0), pady=(6, 6), sticky='E')
+        self.lbl_ctg_values.grid(  row=0, column=1,               padx=(0, 6), pady=(6, 0), sticky='W')
+        self.scrolled_frame.grid(  row=1, column=0, columnspan=2, padx=6,      pady=(0, 6))
+        self.btn_add.grid(         row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
 
-        self.scrollbar.config(command=self.txt_ctg_values.yview)
-
-        self.refresh()
+        self.print_ctg_values(True)
 
     # Добавить значение категории
     def add(self):
@@ -3311,38 +3286,80 @@ class CategoryValuesSettingsW(tk.Toplevel):
         if not new_val:
             return
         self.ctg_values += [new_val]
-        self.refresh()
+        self.print_ctg_values(False)
 
     # Переименовать значение категории
-    def rename(self):
-        index = tuple(_0_global_categories).index(self.ctg)
-        self.has_changes = rename_ctg_val(self, self.ctg_values, index, _0_global_dct) or self.has_changes
-        self.refresh()
+    def rename(self, val: str):
+        index = tuple(_0_global_categories).index(self.ctg_key)
+        self.has_changes = rename_ctg_val(self, self.ctg_values, val, index, _0_global_dct) or self.has_changes
+        self.print_ctg_values(False)
 
     # Удалить значение категории
-    def delete(self):
-        self.has_changes = delete_ctg_val(self, self.ctg_values, _0_global_dct) or self.has_changes
-        self.refresh()
+    def delete(self, val: str):
+        self.has_changes = delete_ctg_val(self, self.ctg_values, val, _0_global_dct) or self.has_changes
+        self.print_ctg_values(False)
+        if not self.ctg_values:
+            self.parent.delete(self.ctg_key, False)
+            self.destroy()
 
     # Напечатать существующие значения категории
-    def print_ctg_values(self):
-        self.txt_ctg_values['state'] = 'normal'
-        self.txt_ctg_values.delete(1.0, tk.END)
-        for key in self.ctg_values:
-            self.txt_ctg_values.insert(tk.END, f'{key}\n')
-        self.txt_ctg_values['state'] = 'disabled'
+    def print_ctg_values(self, move_scroll: bool):
+        # Удаляем старые кнопки
+        for btn in self.buttons:
+            btn.destroy()
+        # Удаляем старые фреймы
+        for fr in self.frames:
+            fr.unbind('<Enter>')
+            fr.unbind('<Control-R>')
+            fr.unbind('<Control-r>')
+            fr.unbind('<Control-D>')
+            fr.unbind('<Control-d>')
+            fr.destroy()
 
-    # Обновить отображаемую информацию
-    def refresh(self):
-        self.print_ctg_values()
-        if len(self.ctg_values) == 1:
-            btn_disable(self.btn_delete)
-        else:
-            btn_enable(self.btn_delete, self.delete)
+        # Выбираем значения
+        self.values = [val for val in self.ctg_values]
+        categories_count = len(self.values)
+
+        # Создаём новые фреймы
+        self.frames = [ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
+                       for i in range(categories_count)]
+        # Создаём новые кнопки
+        self.buttons = [ttk.Button(self.frames[i],
+                                   command=lambda i=i: self.rename(self.values[i]),
+                                   takefocus=False, style='Flat.TButton')
+                        for i in range(categories_count)]
+        # Выводим текст на кнопки
+        for i in range(categories_count):
+            ctg = self.values[i]
+            self.buttons[i].configure(text=split_text(f'{ctg}', 35))
+        # Расставляем элементы
+        for i in range(categories_count):
+            self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            # {
+            self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
+            # }
+        # Привязываем события
+        for i in range(categories_count):
+            self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
+            self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename(self.values[i]))
+            self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename(self.values[i]))
+            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.values[i]))
+            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.values[i]))
+
+        # Если требуется, прокручиваем вверх
+        if move_scroll:
+            self.scrolled_frame.canvas.yview_moveto(0.0)
+
+    # Справка об окне (срабатывает при нажатии на кнопку)
+    def about_window(self):
+        PopupMsgW(self, '* Чтобы переименовать значение, наведите на него мышку и нажмите ЛКМ или Ctrl+R\n'
+                        '* Чтобы удалить значение, наведите на него мышку и нажмите Ctrl+D',
+                  msg_justify='left').open()
 
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+        self.bind('<Return>', lambda event=None: self.destroy())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
     def open(self):
@@ -3364,33 +3381,27 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
 
         self.has_changes = False
 
+        self.img_about = tk.PhotoImage()
+
+        self.combinations = []
+        self.frames = []
+        self.buttons = []
+
+        self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
+        set_image(self.btn_about_window, self.img_about, img_about, '?')
         self.lbl_combinations = ttk.Label(self, text='Существующие комбинации:', justify='center',
                                           style='Default.TLabel')
-        self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.txt_combinations = tk.Text(self, width=24, height=10, state='disabled', yscrollcommand=self.scrollbar.set,
-                                        font=('StdFont', _0_global_scale), bg=ST_BG_FIELDS[th], fg=ST_FG[th],
-                                        selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                        relief=ST_RELIEF_TEXT[th], highlightbackground=ST_BORDERCOLOR[th])
-        self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.btn_add = ttk.Button(self.frame_buttons, text='Добавить комбинацию', command=self.add,
-                                  takefocus=False, style='Default.TButton')
-        self.btn_delete = ttk.Button(self.frame_buttons, text='Удалить комбинацию', command=self.delete,
-                                     takefocus=False, style='Default.TButton')
-        # }
+        self.scrolled_frame = ScrollFrame(self, SCALE_SMALL_FRAME_HEIGHT_TALL[_0_global_scale - SCALE_MIN],
+                                          SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.btn_add = ttk.Button(self, text='Добавить комбинацию', command=self.add, takefocus=False,
+                                  style='Default.TButton')
 
-        self.lbl_combinations.grid(row=0,            column=0, padx=(6, 0), pady=(6, 0))
-        self.txt_combinations.grid(row=1,            column=0, padx=(6, 0), pady=(0, 6), sticky='NSEW')
-        self.scrollbar.grid(       row=1,            column=1, padx=(0, 6), pady=(0, 6), sticky='NSW')
-        self.frame_buttons.grid(   row=0, rowspan=2, column=2, padx=6,      pady=6)
-        # {
-        self.btn_add.grid(   row=0, padx=6, pady=(6, 3))
-        self.btn_delete.grid(row=1, padx=6, pady=(3, 6))
-        # }
+        self.btn_about_window.grid(row=0, column=0,               padx=(6, 0), pady=(6, 6), sticky='E')
+        self.lbl_combinations.grid(row=0, column=1,               padx=(0, 6), pady=(6, 0), sticky='W')
+        self.scrolled_frame.grid(  row=1, column=0, columnspan=2, padx=6,      pady=(0, 6))
+        self.btn_add.grid(         row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
 
-        self.scrollbar.config(command=self.txt_combinations.yview)
-
-        self.refresh()
+        self.print_combinations(True)
 
     # Добавить комбинацию
     def add(self):
@@ -3402,44 +3413,92 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
             warning(self, f'Комбинация {key[0]}{key[1]} уже существует!')
             return
         _0_global_special_combinations[key] = val
-        self.refresh()
+        self.print_combinations(False)
+        self.has_changes = True
+
+    # Изменить комбинацию
+    def edit(self, old_key: tuple[str, str]):
+        old_val = _0_global_special_combinations[old_key]
+        window = EnterSpecialCombinationW(self, default_value=old_key+tuple(old_val))
+        closed, new_key, new_val = window.open()
+        if closed or new_key[0] == '' or new_key[1] == '' or new_val == '':
+            return
+        if new_key == old_key and new_val == old_val:
+            return
+
+        _0_global_special_combinations.pop(old_key)
+
+        _0_global_special_combinations[new_key] = new_val
+        self.print_combinations(False)
         self.has_changes = True
 
     # Удалить комбинацию
-    def delete(self):
-        variants = [special_combination(key) for key in _0_global_special_combinations]
-        window = PopupChooseW(self, variants, 'Выберите комбинацию, которую хотите удалить', default_value=variants[0])
-        closed, choose = window.open()
-        if closed:
-            return
-        chosen_key = (choose[0], choose[1])
-        _0_global_special_combinations.pop(chosen_key)
-        self.refresh()
+    def delete(self, cmb_key: tuple[str, str]):
+        _0_global_special_combinations.pop(cmb_key)
+        self.print_combinations(False)
         self.has_changes = True
 
     # Напечатать существующие комбинации
-    def print_combinations(self):
-        self.txt_combinations['state'] = 'normal'
-        self.txt_combinations.delete(1.0, tk.END)
+    def print_combinations(self, move_scroll: bool):
+        # Удаляем старые кнопки
+        for btn in self.buttons:
+            btn.destroy()
+        # Удаляем старые фреймы
+        for fr in self.frames:
+            fr.unbind('<Enter>')
+            fr.unbind('<Control-E>')
+            fr.unbind('<Control-e>')
+            fr.unbind('<Control-D>')
+            fr.unbind('<Control-d>')
+            fr.destroy()
 
-        combinations = [special_combination(key) for key in _0_global_special_combinations]
-        for combination in combinations:
-            self.txt_combinations.insert(tk.END, f'{combination}\n')
-        self.txt_combinations.insert(tk.END, '## -> #, %% -> % и т. д.')
+        # Выбираем комбинации
+        self.combinations = [key for key in _0_global_special_combinations]
+        combinations_count = len(self.combinations)
 
-        self.txt_combinations['state'] = 'disabled'
+        # Создаём новые фреймы
+        self.frames = tuple([ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
+                             for i in range(combinations_count)]) +\
+                      tuple([ttk.Label(self.scrolled_frame.frame_canvas,
+                                       text=split_text('## -> #, %% -> % и т. д.', 35), style='Flat.TLabel')])
+        # Создаём новые кнопки
+        self.buttons = [ttk.Button(self.frames[i],
+                                   command=lambda i=i: self.edit(self.combinations[i]),
+                                   takefocus=False, style='Flat.TButton')
+                        for i in range(combinations_count)]
+        # Выводим текст на кнопки
+        for i in range(combinations_count):
+            cmb = self.combinations[i]
+            self.buttons[i].configure(text=split_text(special_combination(cmb), 35))
+        # Расставляем элементы
+        for i in range(combinations_count):
+            self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            # {
+            self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
+            # }
+        self.frames[combinations_count].grid(row=combinations_count, column=0, padx=0, pady=0, sticky='WE')
+        # Привязываем события
+        for i in range(combinations_count):
+            self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
+            self.frames[i].bind('<Control-E>', lambda event, i=i: self.edit(self.combinations[i]))
+            self.frames[i].bind('<Control-e>', lambda event, i=i: self.edit(self.combinations[i]))
+            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.combinations[i]))
+            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.combinations[i]))
 
-    # Обновить отображаемую информацию
-    def refresh(self):
-        self.print_combinations()
-        if _0_global_special_combinations:
-            btn_enable(self.btn_delete, self.delete)
-        else:
-            btn_disable(self.btn_delete)
+        # Если требуется, прокручиваем вверх
+        if move_scroll:
+            self.scrolled_frame.canvas.yview_moveto(0.0)
+
+    # Справка об окне (срабатывает при нажатии на кнопку)
+    def about_window(self):
+        PopupMsgW(self, '* Чтобы изменить комбинацию, наведите на неё мышку и нажмите ЛКМ или Ctrl+E\n'
+                        '* Чтобы удалить комбинацию, наведите на неё мышку и нажмите Ctrl+D',
+                  msg_justify='left').open()
 
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+        self.bind('<Return>', lambda event=None: self.destroy())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
     def open(self):
@@ -3453,16 +3512,17 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
 
 # Окно ввода специальной комбинации
 class EnterSpecialCombinationW(tk.Toplevel):
-    def __init__(self, parent):
+    def __init__(self, parent,
+                 default_value: tuple[str, str, str] = (SPECIAL_COMBINATIONS_OPENING_SYMBOLS[0], None, None)):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
 
         self.closed = True  # Закрыто ли окно крестиком
 
-        self.var_opening_symbol = tk.StringVar(value=SPECIAL_COMBINATIONS_OPENING_SYMBOLS[0])
-        self.var_key_symbol = tk.StringVar()
-        self.var_val = tk.StringVar()
+        self.var_opening_symbol = tk.StringVar(value=default_value[0])
+        self.var_key_symbol = tk.StringVar(value=default_value[1])
+        self.var_val = tk.StringVar(value=default_value[2])
 
         self.vcmd_opening_symbol = (self.register(validate_special_combination_opening_symbol), '%P')
         self.vcmd_key_symbol = (self.register(validate_special_combination_key_symbol), '%P')
@@ -3656,20 +3716,20 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.lbl_demo_footer = ttk.Label(self.frame_demonstration, text='Нижний колонтитул', style='DemoFooter.TLabel')
         # }
 
-        # *---0------------------------1------2-----------------------*
+        # *---0-------------------------------1-----------------------*
         # |                                                           |
-        # 0   *---------------------------*   *-------------------*   |
-        # |   |  [lbl]   [combo]   [btn]  |   |                   |   |
-        # |   |  [lbl]   [combo]   [btn]  |   |                   |   |
+        # 0   *---------------------------* - - - - - - - - - - - *   |
+        # |   |  [lbl]   [combo]   [btn]  |                       :   |
+        # |   |  [lbl]   [combo]   [btn]  |                       :   |
+        # |   *---------------------------* - - - - - - - - - - - *   |
+        # |                                                           |
+        # 1   *---------------------------*   *-------------------*   |
+        # |   |                           |   |                   |   |
+        # |   |                           |   |                   |   |
+        # |   |                           |   |                   |   |
+        # |   |                           |   |                   |   |
+        # |   |                           |   |                   |   |
         # |   *---------------------------*   |                   |   |
-        # |                                   |                   |   |
-        # 1   *------------------------*--*   |                   |   |
-        # |   |                        |  |   |                   |   |
-        # |   |                        |sc|   |                   |   |
-        # |   |                        |ro|   |                   |   |
-        # |   |                        |ll|   |                   |   |
-        # |   |                        |  |   |                   |   |
-        # |   *------------------------*--*   |                   |   |
         # |                                   |                   |   |
         # 2   *---------------------------*   |                   |   |
         # |   |    [<-]  [->]   [save]    |   |                   |   |
@@ -3677,7 +3737,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         # |                                                           |
         # *-----------------------------------------------------------*
 
-        self.frame_themes.grid(row=0, column=0, columnspan=2, padx=6, pady=(6, 0))
+        self.frame_themes.grid(row=0, column=0, columnspan=2, padx=6, pady=(6, 0), sticky='W')
         # {
         self.lbl_set_theme.grid(   row=0, column=0, padx=(0, 1), pady=(0, 6), sticky='E')
         self.combo_set_theme.grid( row=0, column=1, padx=(0, 3), pady=(0, 6))
@@ -3686,14 +3746,14 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.combo_set_images.grid(row=1, column=1, padx=(0, 3), pady=0)
         self.btn_set_images.grid(  row=1, column=2, padx=(0, 0), pady=0,      sticky='W')
         # }
-        self.scrolled_frame.grid(row=1, columnspan=2, padx=6, pady=6)
+        self.scrolled_frame.grid(row=1, column=0, padx=6, pady=6)
         # {
         self.lbl_relief_frame.grid(  row=9,  column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_relief_frame.grid(row=9,  column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_relief_text.grid(   row=10, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_relief_text.grid( row=10, column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
         # }
-        self.frame_buttons.grid(row=2, column=0, columnspan=2, padx=6, pady=(0, 6))
+        self.frame_buttons.grid(row=2, column=0, padx=6, pady=(0, 6))
         # {
         self.btn_save.grid(     row=0, column=0, padx=(0, 36), pady=0)
         self.frame_history.grid(row=0, column=1, padx=0,       pady=0)
@@ -3702,7 +3762,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.btn_redo.grid(row=0, column=1, padx=0,      pady=0, sticky='W')
         # } }
         # }
-        self.frame_demonstration.grid(row=0, rowspan=3, column=2, padx=6, pady=6)
+        self.frame_demonstration.grid(row=1, rowspan=2, column=1, padx=6, pady=6)
         # {
         self.lbl_demo_header.grid( row=0, column=0, columnspan=3, padx=12, pady=(12, 0))
         self.lbl_demo_logo.grid(   row=1, column=0, columnspan=3, padx=12, pady=(0, 12))
@@ -3721,7 +3781,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.frame_demo_img.grid( row=7,            column=0, columnspan=3, padx=6,      pady=(0, 6))
         # { {
         for i in range(len(ICON_NAMES)):
-            self.img_buttons[i].grid(row=0, column=i, padx=3, pady=3)
+            self.img_buttons[i].grid(row=i // 7, column=i % 7, padx=3, pady=3)
         # } }
         self.lbl_demo_warn.grid(  row=8, column=0, columnspan=3, padx=6, pady=(0, 6))
         self.lbl_demo_footer.grid(row=9, column=0, columnspan=3, padx=6, pady=(0, 6))
@@ -4463,7 +4523,7 @@ class PrintW(tk.Toplevel):
         else:
             for i in range(self.count_elements_on_page):
                 self.buttons[i].configure(text=_0_global_dct.d[self.keys[self.start_index + i]].print_briefly(75))
-        # Расставляем фреймы и кнопки
+        # Расставляем элементы
         for i in range(self.count_elements_on_page):
             self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
             # {
@@ -5131,7 +5191,7 @@ class SearchW(tk.Toplevel):
         # Выводим текст на кнопки
         for i in range(self.count_elements_on_page):
             self.buttons[i].configure(text=_0_global_dct.d[self.keys[self.start_index + i]].print_all(75, 13))
-        # Расставляем фреймы и кнопки
+        # Расставляем элементы
         for i in range(self.count_elements_on_page):
             self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
             # {
@@ -5690,6 +5750,7 @@ class SettingsW(tk.Toplevel):
         self.var_show_updates = tk.BooleanVar(value=bool(_0_global_show_updates))
         self.var_show_typo_button = tk.BooleanVar(value=bool(_0_global_with_typo))
         self.var_theme = tk.StringVar(value=th)
+        self.var_themes_url = tk.StringVar(value=URL_RELEASES)
 
         self.img_about = tk.PhotoImage()
         self.img_plus = tk.PhotoImage()
@@ -5760,8 +5821,9 @@ class SettingsW(tk.Toplevel):
         self.lbl_dcts = ttk.Label(self.frame_dcts, text='Существующие словари:', style='Default.TLabel')
         self.btn_about_dcts = ttk.Button(self.frame_dcts, command=self.about_dcts, width=2, takefocus=False)
         set_image(self.btn_about_dcts, self.img_about, img_about, '?')
-        self.scrolled_frame_dcts = ScrollFrame(self.frame_dcts, SCALE_FRAME_DCTS_HEIGHT[_0_global_scale - SCALE_MIN],
-                                               SCALE_FRAME_DCTS_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_dcts = ScrollFrame(self.frame_dcts,
+                                               SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
+                                               SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.frame_dct_buttons = ttk.Frame(self.frame_dcts, style='Invis.TFrame')
         # { { {
         self.btn_dct_create = ttk.Button(self.frame_dct_buttons, text='Новый словарь', command=self.dct_create,
@@ -5784,12 +5846,8 @@ class SettingsW(tk.Toplevel):
         self.lbl_themes_note = ttk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
                                                                  f'Актуальные темы можно скачать здесь:',
                                          justify='left', style='Default.TLabel')
-        self.txt_themes_note = tk.Text(self.frame_themes, height=1, width=47, relief='sunken', borderwidth=1,
-                                       font=('StdFont', _0_global_scale), bg=ST_BG[th], fg=ST_FG[th],
-                                       selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                       highlightbackground=ST_BORDERCOLOR[th])
-        self.txt_themes_note.insert(tk.END, URL_RELEASES)
-        self.txt_themes_note['state'] = 'disabled'
+        self.entry_themes_note = ttk.Entry(self.frame_themes, textvariable=self.var_themes_url, state='readonly',
+                                           width=52, justify='center', style='Default.TEntry')
         self.btn_custom_theme = ttk.Button(self.frame_themes, text='Собственная тема', command=self.custom_theme,
                                            takefocus=False, style='Default.TButton')
         # } }
@@ -5849,15 +5907,15 @@ class SettingsW(tk.Toplevel):
         self.btn_dct_export.grid(row=1, column=0, padx=0, pady=(3, 3), sticky='WE')
         self.btn_dct_import.grid(row=2, column=0, padx=0, pady=(3, 0), sticky='WE')
         # } }
-        self.lbl_dcts_warn.grid(row=2, column=1, padx=6, pady=(0, 6))
+        self.lbl_dcts_warn.grid(row=2, column=1, padx=6, pady=(3, 6))
         # }
         self.frame_themes.grid(row=3, padx=6, pady=6)
         # {
-        self.lbl_themes.grid(      row=0, column=0, padx=(6, 1),  pady=6)
-        self.combo_themes.grid(    row=0, column=1, padx=0,       pady=6)
-        self.lbl_themes_note.grid( row=0, column=2, padx=(6, 12), pady=(6, 0), sticky='W')
-        self.btn_custom_theme.grid(row=1, column=1, padx=0,       pady=(0, 6), sticky='W')
-        self.txt_themes_note.grid( row=1, column=2, padx=(6, 12), pady=(0, 6), sticky='W')
+        self.lbl_themes.grid(       row=0, column=0,               padx=(6, 1), pady=6,      sticky='S')
+        self.combo_themes.grid(     row=0, column=1,               padx=0,      pady=6,      sticky='S')
+        self.lbl_themes_note.grid(  row=0, column=2,               padx=6,      pady=(6, 0), sticky='WS')
+        self.btn_custom_theme.grid( row=1, column=0, columnspan=2, padx=0,      pady=(0, 6), sticky='E')
+        self.entry_themes_note.grid(row=1, column=2,               padx=6,      pady=(0, 6), sticky='WENS')
         # }
         self.frame_scale.grid(row=4, padx=6, pady=6)
         # {
@@ -5869,6 +5927,7 @@ class SettingsW(tk.Toplevel):
         self.btn_save.grid( row=4, column=0, padx=(6, 3), pady=(0, 6))
         self.btn_close.grid(row=4, column=1, padx=(0, 6), pady=(0, 6))
 
+        self.entry_mgsp.icursor(len(self.var_mgsp.get()))
         self.print_dct_list(True)
         self.refresh_scale_buttons()
 
@@ -6072,11 +6131,8 @@ class SettingsW(tk.Toplevel):
         self.parent.set_ttk_styles()  # Установка ttk-стилей
 
         # Установка некоторых стилей для окна настроек
-        self.scrolled_frame_dcts.resize(SCALE_FRAME_DCTS_HEIGHT[_0_global_scale - SCALE_MIN],
-                                        SCALE_FRAME_DCTS_WIDTH[_0_global_scale - SCALE_MIN])
-        self.txt_themes_note.configure(font=('StdFont', _0_global_scale), bg=ST_BG[th], fg=ST_FG[th],
-                                       selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                       highlightbackground=ST_BORDERCOLOR[th])
+        self.scrolled_frame_dcts.resize(SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
+                                        SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.combo_themes.configure(font=('DejaVu Sans Mono', _0_global_scale))
 
         self.refresh_scale_buttons()
@@ -6090,11 +6146,8 @@ class SettingsW(tk.Toplevel):
         self.parent.set_ttk_styles()  # Установка ttk-стилей
 
         # Установка некоторых стилей для окна настроек
-        self.scrolled_frame_dcts.resize(SCALE_FRAME_DCTS_HEIGHT[_0_global_scale - SCALE_MIN],
-                                        SCALE_FRAME_DCTS_WIDTH[_0_global_scale - SCALE_MIN])
-        self.txt_themes_note.configure(font=('StdFont', _0_global_scale), bg=ST_BG[th], fg=ST_FG[th],
-                                       selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                       highlightbackground=ST_BORDERCOLOR[th])
+        self.scrolled_frame_dcts.resize(SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
+                                        SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.combo_themes.configure(font=('DejaVu Sans Mono', _0_global_scale))
 
         self.refresh_scale_buttons()
@@ -6189,10 +6242,10 @@ class SettingsW(tk.Toplevel):
         for i in range(dcts_count):
             savename = self.dcts_savenames[i]
             if savename == _0_global_dct_savename:
-                self.dcts_buttons[i].configure(text=split_text(f'"{savename}" (ОТКРЫТ)', 35))
+                self.dcts_buttons[i].configure(text=split_text(f'{savename} (ОТКРЫТ)', 35))
             else:
-                self.dcts_buttons[i].configure(text=split_text(f'"{savename}"', 35))
-        # Расставляем фреймы и кнопки
+                self.dcts_buttons[i].configure(text=split_text(f'{savename}', 35))
+        # Расставляем элементы
         for i in range(dcts_count):
             self.dcts_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
             # {
@@ -6246,11 +6299,8 @@ class SettingsW(tk.Toplevel):
         set_image(self.btn_scale_plus, self.img_plus, img_add, '+')
         set_image(self.btn_scale_minus, self.img_minus, img_delete, '-')
 
-        # Установка некоторых стилей для окна настроек
+        # Установка фона для окна настроек
         self.configure(bg=ST_BG[th])
-        self.txt_themes_note.configure(font=('StdFont', _0_global_scale), bg=ST_BG[th], fg=ST_FG[th],
-                                       selectbackground=ST_SELECT_BG[th], selectforeground=ST_SELECT_FG[th],
-                                       highlightbackground=ST_BORDERCOLOR[th])
 
         # Установка фона для главного окна
         self.parent.configure(bg=ST_BG[th])
@@ -6346,9 +6396,9 @@ class MainW(tk.Tk):
         # }
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.btn_print = ttk.Button(self.frame_buttons, text='Просмотреть словарь', command=self.print,
-                                    takefocus=False, style='Default.TButton')
         self.btn_learn = ttk.Button(self.frame_buttons, text='Учить слова', command=self.learn,
+                                    takefocus=False, style='Default.TButton')
+        self.btn_print = ttk.Button(self.frame_buttons, text='Просмотреть словарь', command=self.print,
                                     takefocus=False, style='Default.TButton')
         self.btn_search = ttk.Button(self.frame_buttons, text='Найти статью', command=self.search,
                                      takefocus=False, style='Default.TButton')
@@ -6378,8 +6428,8 @@ class MainW(tk.Tk):
         # }
         self.frame_buttons.grid(row=2, padx=6, pady=(0, 6))
         # {
-        self.btn_print.grid(        row=0, padx=0, pady=(0, 3))
-        self.btn_learn.grid(        row=1, padx=0, pady=(3, 3))
+        self.btn_learn.grid(        row=0, padx=0, pady=(0, 3))
+        self.btn_print.grid(        row=1, padx=0, pady=(3, 3))
         self.btn_search.grid(       row=2, padx=0, pady=(3, 3))
         self.btn_add.grid(          row=3, padx=0, pady=(3, 3))
         self.btn_settings.grid(     row=4, padx=0, pady=(3, 3))
@@ -6695,6 +6745,8 @@ class MainW(tk.Tk):
                                      ('!selected', ST_BG[th])])
 
         # Стиль вкладок notebook
+        self.st_note.configure('TNotebook.Tab',
+                               font=('StdFont', _0_global_scale))
         self.st_note.map('TNotebook.Tab',
                          background=[('selected', ST_TAB_BG_SEL[th]),
                                      ('!selected', ST_TAB_BG[th])],
