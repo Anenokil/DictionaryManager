@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-10.9'
+PROGRAM_VERSION = 'v7.1.0-PRE-10.10'
 PROGRAM_DATE = '7.3.2023'
-PROGRAM_TIME = '4:50 (UTC+3)'
+PROGRAM_TIME = '5:33 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -6299,8 +6299,9 @@ class SettingsW(tk.Toplevel):
         set_image(self.btn_scale_plus, self.img_plus, img_add, '+')
         set_image(self.btn_scale_minus, self.img_minus, img_delete, '-')
 
-        # Установка фона для окна настроек
+        # Установка некоторых стилей для окна настроек
         self.configure(bg=ST_BG[th])
+        self.scrolled_frame_dcts.canvas.configure(bg=ST_BG_FIELDS[th])
 
         # Установка фона для главного окна
         self.parent.configure(bg=ST_BG[th])
@@ -6715,17 +6716,6 @@ class MainW(tk.Tk):
         self.st_vscroll = ttk.Style()
         self.st_vscroll.theme_use('alt')
         self.st_vscroll.map('Vertical.TScrollbar',
-                            troughcolor=[('disabled', ST_BG[th]),
-                                         ('pressed', ST_SCROLL_BG_SEL[th]),
-                                         ('!pressed', ST_SCROLL_BG[th])],
-                            background=[('disabled', ST_BG[th]),
-                                        ('pressed', ST_SCROLL_FG_SEL[th]),
-                                        ('!pressed', ST_SCROLL_FG[th])])
-
-        # Стиль scrollbar "horizontal"
-        self.st_hscroll = ttk.Style()
-        self.st_hscroll.theme_use('alt')
-        self.st_hscroll.map('Horizontal.TScrollbar',
                             troughcolor=[('disabled', ST_BG[th]),
                                          ('pressed', ST_SCROLL_BG_SEL[th]),
                                          ('!pressed', ST_SCROLL_BG[th])],
