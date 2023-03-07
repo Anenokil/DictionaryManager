@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0-PRE-10.13'
+PROGRAM_VERSION = 'v7.1.0-PRE-10.14'
 PROGRAM_DATE = '7.3.2023'
-PROGRAM_TIME = '20:13 (UTC+3)'
+PROGRAM_TIME = '20:28 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -3001,6 +3001,7 @@ class EditW(tk.Toplevel):
 
         self.img_edit = tk.PhotoImage()
         self.img_add = tk.PhotoImage()
+        self.img_about = tk.PhotoImage()
 
         self.translations = []
         self.tr_frames = []
@@ -3060,10 +3061,12 @@ class EditW(tk.Toplevel):
                                          style='Default.TCheckbutton')
         # }
         self.btn_back = ttk.Button(self, text='Закончить', command=self.back, takefocus=False, style='Default.TButton')
+        self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
+        set_image(self.btn_about_window, self.img_about, img_about, '?')
         self.btn_delete = ttk.Button(self, text='Удалить статью', command=self.delete,
                                      takefocus=False, style='No.TButton')
 
-        self.frame_main.grid(row=0, columnspan=2, padx=6, pady=(6, 4))
+        self.frame_main.grid(row=0, columnspan=3, padx=6, pady=(6, 4))
         # {
         self.lbl_wrd.grid(      row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
         self.txt_wrd.grid(      row=0, column=1, padx=(0, 1), pady=(6, 3), sticky='W')
@@ -3085,8 +3088,9 @@ class EditW(tk.Toplevel):
         self.lbl_fav.grid(  row=4, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
         self.check_fav.grid(row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
         # }
-        self.btn_back.grid(  row=1, column=0, padx=(0, 1), pady=(0, 6))
-        self.btn_delete.grid(row=1, column=1, padx=(0, 6), pady=(0, 6))
+        self.btn_back.grid(        row=1, column=0, padx=(6, 0), pady=(0, 6))
+        self.btn_about_window.grid(row=1, column=1, padx=(6, 6), pady=(0, 6))
+        self.btn_delete.grid(      row=1, column=2, padx=(0, 6), pady=(0, 6))
 
         self.refresh(True)
 
@@ -3381,6 +3385,12 @@ class EditW(tk.Toplevel):
             self.scrolled_frame_tr.canvas.yview_moveto(0.0)
             self.scrolled_frame_nt.canvas.yview_moveto(0.0)
             self.scrolled_frame_frm.canvas.yview_moveto(0.0)
+
+    # Справка об окне (срабатывает при нажатии на кнопку)
+    def about_window(self):
+        PopupMsgW(self, '* Чтобы изменить поле, наведите на него мышку и нажмите ЛКМ\n'
+                        '* Чтобы удалить поле, наведите на него мышку и нажмите Ctrl+D',
+                  msg_justify='left').open()
 
     # Установить фокус
     def set_focus(self):
@@ -5770,8 +5780,6 @@ class SettingsW(tk.Toplevel):
         # { { {
         self.btn_dct_create = ttk.Button(self.frame_dct_buttons, text='Новый словарь', command=self.dct_create,
                                          takefocus=False, style='Default.TButton')
-        self.btn_dct_export = ttk.Button(self.frame_dct_buttons, text='Экспортировать словарь', command=self.dct_export,
-                                         takefocus=False, style='Default.TButton')
         self.btn_dct_import = ttk.Button(self.frame_dct_buttons, text='Импортировать словарь', command=self.dct_import,
                                          takefocus=False, style='Default.TButton')
         # } } }
@@ -5846,8 +5854,7 @@ class SettingsW(tk.Toplevel):
         self.frame_dct_buttons.grid(  row=1,            column=1, padx=6,      pady=0)
         # { {
         self.btn_dct_create.grid(row=0, column=0, padx=0, pady=(0, 3), sticky='WE')
-        self.btn_dct_export.grid(row=1, column=0, padx=0, pady=(3, 3), sticky='WE')
-        self.btn_dct_import.grid(row=2, column=0, padx=0, pady=(3, 0), sticky='WE')
+        self.btn_dct_import.grid(row=1, column=0, padx=0, pady=(3, 0), sticky='WE')
         # } }
         self.lbl_dcts_warn.grid(row=2, column=1, padx=6, pady=(3, 6))
         # }
@@ -5900,7 +5907,8 @@ class SettingsW(tk.Toplevel):
     def about_dcts(self):
         PopupMsgW(self, '* Чтобы открыть словарь, наведите на него мышку и нажмите ЛКМ\n'
                         '* Чтобы переименовать словарь, наведите на него мышку и нажмите Ctrl+R\n'
-                        '* Чтобы удалить словарь, наведите на него мышку и нажмите Ctrl+D',
+                        '* Чтобы удалить словарь, наведите на него мышку и нажмите Ctrl+D\n'
+                        '* Чтобы экспортировать словарь, наведите на него мышку и нажмите Ctrl+E',
                   msg_justify='left').open()
 
     # Открыть словарь
@@ -6019,21 +6027,8 @@ class SettingsW(tk.Toplevel):
 
         self.refresh()
 
-    # Экспортировать словарь (срабатывает при нажатии на кнопку)
-    def dct_export(self):
-        saves_count = 0
-        saves_list = []
-        for savename in os.listdir(SAVES_PATH):
-            path = os.path.join(SAVES_PATH, savename)
-            if os.path.isdir(path):
-                saves_list += [savename]
-                saves_count += 1
-        window_choose = PopupChooseW(self, saves_list, 'Выберите словарь, который хотите экспортировать',
-                                     default_value=saves_list[0], combo_width=width(saves_list, 5, 100))
-        closed, savename = window_choose.open()
-        if closed:
-            return
-
+    # Экспортировать словарь
+    def dct_export(self, savename: str):
         dst_path = askdirectory(title='Выберите папку для сохранения')
         if dst_path == '':
             return
@@ -6166,6 +6161,8 @@ class SettingsW(tk.Toplevel):
             fr.unbind('<Control-r>')
             fr.unbind('<Control-D>')
             fr.unbind('<Control-d>')
+            fr.unbind('<Control-E>')
+            fr.unbind('<Control-e>')
             fr.destroy()
 
         # Выбираем словари
@@ -6201,6 +6198,8 @@ class SettingsW(tk.Toplevel):
             self.dcts_frames[i].bind('<Control-r>', lambda event, i=i: self.dct_rename(self.dcts_savenames[i]))
             self.dcts_frames[i].bind('<Control-D>', lambda event, i=i: self.dct_delete(self.dcts_savenames[i]))
             self.dcts_frames[i].bind('<Control-d>', lambda event, i=i: self.dct_delete(self.dcts_savenames[i]))
+            self.dcts_frames[i].bind('<Control-E>', lambda event, i=i: self.dct_export(self.dcts_savenames[i]))
+            self.dcts_frames[i].bind('<Control-e>', lambda event, i=i: self.dct_export(self.dcts_savenames[i]))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
