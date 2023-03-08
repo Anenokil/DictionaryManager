@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.0'
-PROGRAM_DATE = '7.3.2023'
-PROGRAM_TIME = '22:26 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.1'
+PROGRAM_DATE = '8.3.2023'
+PROGRAM_TIME = '3:37 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -298,6 +298,8 @@ LEARN_VALUES_METHOD = ('Угадывать слово по переводу', '�
 LEARN_VALUES_WORDS = ('Все слова', 'Больше избранных (рекоменд.)', 'Только избранные',
                       'Только неотвеченные', '15 случайных слов',
                       '15 случайных избранных слов')  # Варианты подбора слов для учёбы
+LEARN_VALUES_FORMS = ('Только начальная форма', 'По одной случайной словоформе',
+                      'Все словоформы')  # Варианты подбора словоформ
 LEARN_VALUES_ORDER = ('Случайный порядок', 'В первую очередь сложные')  # Варианты порядка следования слов при учёбе
 
 """ Объекты """
@@ -2734,11 +2736,11 @@ class ChooseLearnModeW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.res = None
+        self.res: tuple[str, str, str, str] | None = None
 
         self.var_method = tk.StringVar(value=LEARN_VALUES_METHOD[_0_global_learn_settings[0]])  # Метод изучения слов
-        self.var_forms = tk.BooleanVar(value=bool(_0_global_learn_settings[1]))  # Со всеми ли словоформами
         self.var_words = tk.StringVar(value=LEARN_VALUES_WORDS[_0_global_learn_settings[2]])  # Способ подбора слов
+        self.var_forms = tk.StringVar(value=LEARN_VALUES_FORMS[_0_global_learn_settings[1]])  # Способ подбора словоформ
         self.var_order = tk.StringVar(value=LEARN_VALUES_ORDER[_0_global_learn_settings[3]])  # Порядок следования слов
 
         self.lbl_header = ttk.Label(self, text='Выберите способ учёбы', style='Default.TLabel')
@@ -2748,12 +2750,17 @@ class ChooseLearnModeW(tk.Toplevel):
         self.combo_method = ttk.Combobox(self.frame_main, textvariable=self.var_method, values=LEARN_VALUES_METHOD,
                                          validate='focusin', width=30, state='readonly', style='Default.TCombobox',
                                          font=('DejaVu Sans Mono', _0_global_scale))
-        self.lbl_forms = ttk.Label(self.frame_main, text='Все словоформы:', style='Default.TLabel')
-        self.check_forms = ttk.Checkbutton(self.frame_main, variable=self.var_forms, style='Default.TCheckbutton')
+        #
         self.lbl_words = ttk.Label(self.frame_main, text='Набор слов:', style='Default.TLabel')
         self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=LEARN_VALUES_WORDS,
                                         width=30, state='readonly', style='Default.TCombobox',
                                         font=('DejaVu Sans Mono', _0_global_scale))
+        #
+        self.lbl_forms = ttk.Label(self.frame_main, text='Набор словоформ:', style='Default.TLabel')
+        self.combo_forms = ttk.Combobox(self.frame_main, textvariable=self.var_forms, values=LEARN_VALUES_FORMS,
+                                        width=30, state='readonly', style='Default.TCombobox',
+                                        font=('DejaVu Sans Mono', _0_global_scale))
+        #
         self.lbl_order = ttk.Label(self.frame_main, text='Порядок слов:', style='Default.TLabel')
         self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=LEARN_VALUES_ORDER,
                                         width=30, state='readonly', style='Default.TCombobox',
@@ -2766,10 +2773,10 @@ class ChooseLearnModeW(tk.Toplevel):
         # {
         self.lbl_method.grid(  row=1, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
         self.combo_method.grid(row=1, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
-        self.lbl_forms.grid(   row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
-        self.check_forms.grid( row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
-        self.lbl_words.grid(   row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
-        self.combo_words.grid( row=3, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+        self.lbl_words.grid(   row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.combo_words.grid( row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+        self.lbl_forms.grid(   row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.combo_forms.grid( row=3, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_order.grid(   row=4, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
         self.combo_order.grid( row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
         # }
@@ -2778,11 +2785,11 @@ class ChooseLearnModeW(tk.Toplevel):
         # При выборе второго или третьего метода учёбы нельзя добавить словоформы
         def validate_method_and_forms(value: str):
             if value == LEARN_VALUES_METHOD[0]:
-                self.lbl_forms.grid(  row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
-                self.check_forms.grid(row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+                self.lbl_forms.grid(  row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+                self.combo_forms.grid(row=3, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
             else:
                 self.lbl_forms.grid_remove()
-                self.check_forms.grid_remove()
+                self.combo_forms.grid_remove()
             return True
 
         self.vcmd_method = (self.register(validate_method_and_forms), '%P')
@@ -2794,18 +2801,15 @@ class ChooseLearnModeW(tk.Toplevel):
         global _0_global_learn_settings
 
         method = self.var_method.get()
-        if method == LEARN_VALUES_METHOD[0]:
-            forms = self.var_forms.get()
-        else:
-            forms = False
+        forms = self.var_forms.get()
         words = self.var_words.get()
         order = self.var_order.get()
         self.res = (method, forms, words, order)
-
         _0_global_learn_settings = (LEARN_VALUES_METHOD.index(method),
-                                    int(self.var_forms.get()),
+                                    LEARN_VALUES_FORMS.index(forms),
                                     LEARN_VALUES_WORDS.index(words),
                                     LEARN_VALUES_ORDER.index(order))
+
         save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
                                  _0_global_dct_savename)
 
@@ -2817,7 +2821,7 @@ class ChooseLearnModeW(tk.Toplevel):
         self.bind('<Return>', lambda event=None: self.btn_start.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
 
-    def open(self) -> tuple[str, bool, str, str]:
+    def open(self):
         self.set_focus()
 
         self.grab_set()
@@ -4692,7 +4696,7 @@ class CustomThemeSettingsW(tk.Toplevel):
 
 # Окно изучения слов
 class LearnW(tk.Toplevel):
-    def __init__(self, parent, parameters: tuple[str, bool, str, str]):
+    def __init__(self, parent, parameters: tuple[str, str, str, str]):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Учёба')
         self.resizable(width=False, height=False)
@@ -4708,92 +4712,7 @@ class LearnW(tk.Toplevel):
         self.order = parameters[3]  # Порядок следования слов
         self.pool = set()  # Набор слов для изучения
 
-        # Формируем пул слов, которые будут использоваться при учёбе
-        if self.learn_method == LEARN_VALUES_METHOD[2]:
-            all_keys = []
-            for key in _0_global_dct.d.keys():
-                wrd = _0_global_dct.d[key].wrd
-                if len(wrd) > 4 and wrd[0:4].lower() in ('der ', 'die ', 'das '):
-                    all_keys += [key]
-        else:
-            all_keys = tuple(_0_global_dct.d.keys())
-        #
-        if self.words == LEARN_VALUES_WORDS[0]:  # Учить все слова
-            for key in all_keys:
-                self.pool.add((key, None))
-            if self.with_forms:
-                for key in all_keys:
-                    for frm in _0_global_dct.d[key].forms.keys():
-                        self.pool.add((key, frm))
-        elif self.words == LEARN_VALUES_WORDS[1]:  # Учить преимущественно избранные слова
-            for key in all_keys:
-                if _0_global_dct.d[key].fav:
-                    self.pool.add((key, None))
-            if self.with_forms:
-                for key in all_keys:
-                    if _0_global_dct.d[key].fav:
-                        for frm in _0_global_dct.d[key].forms.keys():
-                            self.pool.add((key, frm))
-
-            # Помимо всех избранных слов (пусть их количество N) добавим N // 4 остальных слов
-            # Выберем их из самых давно не отвечаемых слов (и только по одной словоформе для каждого из них)
-
-            # Отбираем слова, не являющиеся избранными
-            unfav_keys = list(k for k in all_keys if not _0_global_dct.d[k].fav)
-            # Сортируем по давности ответа
-            unfav_keys = sorted(unfav_keys, key=lambda k: _0_global_dct.d[k].latest_answer_session)
-            # Находим N // 4
-            count_unfav_keys = min(len(unfav_keys), _0_global_dct.count_fav_info()[0] // 4)
-            # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
-            latest_session = _0_global_dct.d[unfav_keys[count_unfav_keys-1]].latest_answer_session
-            # Оставляем только слова с номером сессии <= S
-            unfav_keys = list(k for k in unfav_keys if _0_global_dct.d[k].latest_answer_session <= latest_session)
-            # Перемешиваем их
-            random.shuffle(unfav_keys)
-            # И выбираем из них N // 4 слов
-            if self.with_forms:
-                for i in range(count_unfav_keys):
-                    key = unfav_keys[i]
-                    forms = tuple([None]) + tuple(_0_global_dct.d[key].forms.keys())
-                    self.pool.add((key, random.choice(forms)))
-            else:
-                for i in range(count_unfav_keys):
-                    self.pool.add((unfav_keys[i], None))
-        elif self.words == LEARN_VALUES_WORDS[2]:  # Учить только избранные слова
-            for key in all_keys:
-                if _0_global_dct.d[key].fav:
-                    self.pool.add((key, None))
-            if self.with_forms:
-                for key in all_keys:
-                    if _0_global_dct.d[key].fav:
-                        for frm in _0_global_dct.d[key].forms.keys():
-                            self.pool.add((key, frm))
-        elif self.words == LEARN_VALUES_WORDS[3]:  # Учить только неотвеченные слова
-            for key in all_keys:
-                if _0_global_dct.d[key].correct_att == 0:
-                    self.pool.add((key, None))
-            if self.with_forms:
-                for key in all_keys:
-                    if _0_global_dct.d[key].correct_att == 0:
-                        for frm in _0_global_dct.d[key].forms.keys():
-                            self.pool.add((key, frm))
-        elif self.words == LEARN_VALUES_WORDS[4]:  # Учить 15 случайных слов
-            keys = random.sample(all_keys, min(len(all_keys), 15))
-            for key in keys:
-                self.pool.add((key, None))
-            if self.with_forms:
-                for key in keys:
-                    for frm in _0_global_dct.d[key].forms.keys():
-                        self.pool.add((key, frm))
-        else:  # Учить 15 случайных избранных слов
-            all_keys = tuple(key for key in all_keys if _0_global_dct.d[key].fav)
-            keys = random.sample(all_keys, min(len(all_keys), 15))
-            for key in keys:
-                self.pool.add((key, None))
-            if self.with_forms:
-                for key in keys:
-                    for frm in _0_global_dct.d[key].forms.keys():
-                        self.pool.add((key, frm))
+        self.create_pool()  # Формируем пул слов, которые будут использоваться при учёбе
 
         self.len_of_pool = len(self.pool)  # Количество изучаемых слов
 
@@ -4844,6 +4763,66 @@ class LearnW(tk.Toplevel):
             entry = _0_global_dct.d[self.current_key]
             if entry.count_n == 0:
                 btn_disable(self.btn_notes)
+
+    # Формируем пул слов, которые будут использоваться при учёбе
+    def create_pool(self):
+        if self.learn_method == LEARN_VALUES_METHOD[2]:
+            all_keys = []
+            for key in _0_global_dct.d.keys():
+                wrd = _0_global_dct.d[key].wrd
+                if len(wrd) > 4 and wrd[0:4].lower() in ('der ', 'die ', 'das '):
+                    all_keys += [key]
+        else:
+            all_keys = tuple(_0_global_dct.d.keys())
+
+        if self.words == LEARN_VALUES_WORDS[0]:  # Учить все слова
+            selected_keys = all_keys
+        elif self.words == LEARN_VALUES_WORDS[1]:  # Учить преимущественно избранные слова
+            selected_keys = [key for key in all_keys if _0_global_dct.d[key].fav]
+
+            # Помимо всех избранных слов (пусть их количество N) добавим N // 4 остальных слов
+            # Выберем их из самых давно не отвечаемых слов (и только по одной словоформе для каждого из них)
+
+            # Отбираем слова, не являющиеся избранными
+            unfav_keys = list(k for k in all_keys if not _0_global_dct.d[k].fav)
+            # Сортируем по давности ответа
+            unfav_keys = sorted(unfav_keys, key=lambda k: _0_global_dct.d[k].latest_answer_session)
+            # Находим N // 4
+            count_unfav_keys = min(len(unfav_keys), _0_global_dct.count_fav_info()[0] // 4)
+            # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
+            latest_session = _0_global_dct.d[unfav_keys[count_unfav_keys - 1]].latest_answer_session
+            # Оставляем только слова с номером сессии <= S
+            unfav_keys = list(k for k in unfav_keys if _0_global_dct.d[k].latest_answer_session <= latest_session)
+            # Перемешиваем их
+            random.shuffle(unfav_keys)
+            # И выбираем из них N // 4 слов
+            for i in range(count_unfav_keys):
+                selected_keys += [unfav_keys[i]]
+        elif self.words == LEARN_VALUES_WORDS[2]:  # Учить только избранные слова
+            selected_keys = [key for key in all_keys if _0_global_dct.d[key].fav]
+        elif self.words == LEARN_VALUES_WORDS[3]:  # Учить только неотвеченные слова
+            selected_keys = [key for key in all_keys if _0_global_dct.d[key].correct_att == 0]
+        elif self.words == LEARN_VALUES_WORDS[4]:  # Учить 15 случайных слов
+            selected_keys = random.sample(all_keys, min(len(all_keys), 15))
+        else:  # Учить 15 случайных избранных слов
+            all_keys = tuple(key for key in all_keys if _0_global_dct.d[key].fav)
+            selected_keys = random.sample(all_keys, min(len(all_keys), 15))
+
+        selected_forms = []
+        if self.with_forms == LEARN_VALUES_FORMS[0]:
+            for key in selected_keys:
+                selected_forms += [(key, None)]
+        elif self.with_forms == LEARN_VALUES_FORMS[1]:
+            for key in selected_keys:
+                forms = tuple([None]) + tuple(_0_global_dct.d[key].forms.keys())
+                selected_forms += [(key, random.choice(forms))]
+        else:
+            for key in selected_keys:
+                selected_forms += [(key, None)]
+                for frm in _0_global_dct.d[key].forms.keys():
+                    selected_forms += [(key, frm)]
+
+        self.pool = set(selected_forms)
 
     # Печать в журнал
     def outp(self, msg='', end='\n'):
