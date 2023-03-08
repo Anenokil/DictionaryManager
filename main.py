@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.1'
+PROGRAM_VERSION = 'v7.1.2'
 PROGRAM_DATE = '8.3.2023'
-PROGRAM_TIME = '3:37 (UTC+3)'
+PROGRAM_TIME = '6:16 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -301,6 +301,9 @@ LEARN_VALUES_WORDS = ('Все слова', 'Больше избранных (р�
 LEARN_VALUES_FORMS = ('Только начальная форма', 'По одной случайной словоформе',
                       'Все словоформы')  # Варианты подбора словоформ
 LEARN_VALUES_ORDER = ('Случайный порядок', 'В первую очередь сложные')  # Варианты порядка следования слов при учёбе
+PRINT_VALUES_ORDER = ('Сначала старые', 'Сначала новые', 'Сначала сложные', 'Сначала простые',
+                      'Сначала давно отвеченные',
+                      'Сначала недавно отвеченные')  # Варианты порядка следования слов при учёбе
 
 """ Объекты """
 
@@ -2400,7 +2403,7 @@ class ScrollFrame(tk.Frame):
         else:
             canvas_position: typing.Literal['left', 'right'] = 'right'
 
-        self.canvas = tk.Canvas(self, bg=ST_BG_FIELDS[th], bd=0, highlightthickness=0, height=height, width=width)
+        self.canvas = tk.Canvas(self, bg=ST_BTN_NOTE_BG[th], bd=0, highlightthickness=0, height=height, width=width)
         # {
         self.frame_canvas = ttk.Frame(self.canvas, style='Default.TFrame')
         # }
@@ -2463,8 +2466,11 @@ class ScrollFrame(tk.Frame):
             self.canvas.unbind_all('<MouseWheel>')
 
     # Изменить размеры фрейма
-    def resize(self, height: int, width: int):
-        self.canvas.configure(height=height, width=width)
+    def resize(self, height: int = None, width: int = None):
+        if height:
+            self.canvas.configure(height=height)
+        if width:
+            self.canvas.configure(width=width)
 
 
 """ Графический интерфейс - всплывающие окна """
@@ -3416,15 +3422,12 @@ class EditW(tk.Toplevel):
             self.frm_frames[i].bind('<Control-D>', lambda event, i=i: self.frm_del(self.forms[i]))
             self.frm_frames[i].bind('<Control-d>', lambda event, i=i: self.frm_del(self.forms[i]))
         # Изменяем высоту полей
-        self.scrolled_frame_tr.resize(max(1, min(tr_count, self.max_height_t)) *
-                                      SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN],
-                                      SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
-        self.scrolled_frame_nt.resize(max(1, min(nt_count, self.max_height_n)) *
-                                      SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN],
-                                      SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
-        self.scrolled_frame_frm.resize(max(1, min(frm_count, self.max_height_f)) *
-                                       SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN],
-                                       SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_tr.resize(height=max(1, min(tr_count, self.max_height_t)) *
+                                             SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_nt.resize(height=max(1, min(nt_count, self.max_height_n)) *
+                                             SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_frm.resize(height=max(1, min(frm_count, self.max_height_f)) *
+                                              SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -5027,6 +5030,7 @@ class PrintW(tk.Toplevel):
         self.var_forms = tk.BooleanVar(value=True)
         self.var_info = tk.StringVar()
         self.var_current_page = tk.StringVar(value=str(self.current_page))
+        self.var_order = tk.StringVar(value=PRINT_VALUES_ORDER[0])
 
         self.img_about = tk.PhotoImage()
         self.img_arrow_left = tk.PhotoImage()
@@ -5056,15 +5060,19 @@ class PrintW(tk.Toplevel):
         self.lbl_dct_name = ttk.Label(self.frame_header, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
                                                                          40, add_right_spaces=False),
                                       justify='center', style='Default.TLabel')
-        self.frame_parameters = ttk.Frame(self.frame_header, style='Default.TFrame')
-        # { {
+        # }
+        self.frame_parameters = ttk.Frame(self, style='Default.TFrame')
+        # {
         self.lbl_fav = ttk.Label(self.frame_parameters, text='Только избранные:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self.frame_parameters, variable=self.var_fav,
                                          command=self.go_to_first_page, style='Default.TCheckbutton')
         self.lbl_forms = ttk.Label(self.frame_parameters, text='Все словоформы:', style='Default.TLabel')
         self.check_forms = ttk.Checkbutton(self.frame_parameters, variable=self.var_forms,
                                            command=self.go_to_last_page, style='Default.TCheckbutton')
-        # } }
+        self.lbl_order = ttk.Label(self.frame_parameters, text='Порядок:', style='Default.TLabel')
+        self.combo_order = ttk.Combobox(self.frame_parameters, textvariable=self.var_order, values=PRINT_VALUES_ORDER,
+                                        width=26, state='readonly', style='Default.TCombobox',
+                                        font=('DejaVu Sans Mono', _0_global_scale))
         # }
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
@@ -5102,18 +5110,20 @@ class PrintW(tk.Toplevel):
 
         self.frame_header.grid(row=0, column=0, padx=6, pady=(6, 0))
         # {
-        self.btn_about_window.grid(row=0, column=0, padx=0,      pady=0)
-        self.btn_print_out.grid(   row=0, column=1, padx=0,      pady=0)
-        self.lbl_dct_name.grid(    row=0, column=2, padx=0,      pady=0)
-        self.frame_parameters.grid(row=0, column=3, padx=(6, 0), pady=0)
-        # { {
+        self.btn_about_window.grid(row=0, column=0, padx=0, pady=0)
+        self.btn_print_out.grid(   row=0, column=1, padx=0, pady=0)
+        self.lbl_dct_name.grid(    row=0, column=2, padx=0, pady=0)
+        # }
+        self.frame_parameters.grid(row=1, column=0, padx=6, pady=0)
+        # {
         self.lbl_fav.grid(    row=0, column=0, padx=(6, 1), pady=6, sticky='E')
         self.check_fav.grid(  row=0, column=1, padx=(0, 6), pady=6, sticky='W')
         self.lbl_forms.grid(  row=0, column=2, padx=(6, 1), pady=6, sticky='E')
         self.check_forms.grid(row=0, column=3, padx=(0, 6), pady=6, sticky='W')
-        # } }
+        self.lbl_order.grid(  row=0, column=4, padx=(6, 1), pady=6, sticky='E')
+        self.combo_order.grid(row=0, column=5, padx=(0, 6), pady=6, sticky='W')
         # }
-        self.frame_main.grid(row=1, column=0, padx=6, pady=6)
+        self.frame_main.grid(row=2, column=0, padx=6, pady=6)
         # {
         self.lbl_info.grid(          row=0, column=0, padx=0, pady=(0, 6))
         self.scrolled_frame.grid(    row=1, column=0, padx=0, pady=(0, 6))
@@ -5143,6 +5153,8 @@ class PrintW(tk.Toplevel):
         self.tip_btn_prev_page = ttip.Hovertip(self.btn_prev_page, 'На предыдущую страницу', hover_delay=650)
         self.tip_btn_next_page = ttip.Hovertip(self.btn_next_page, 'На следующую страницу', hover_delay=650)
         self.tip_btn_last_page = ttip.Hovertip(self.btn_last_page, 'В конец', hover_delay=650)
+
+        self.combo_order.bind("<<ComboboxSelected>>", lambda event: self.print(False))
 
         self.bind('<Up>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
         self.bind('<Control-U>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
@@ -5185,6 +5197,17 @@ class PrintW(tk.Toplevel):
             self.keys = [key for key in _0_global_dct.d.keys()]
 
             self.var_info.set(_0_global_dct.dct_info())
+        #
+        if self.var_order.get() == PRINT_VALUES_ORDER[1]:
+            self.keys.reverse()
+        elif self.var_order.get() == PRINT_VALUES_ORDER[2]:
+            self.keys = sorted(self.keys, key=lambda k: _0_global_dct.d[k].score)
+        elif self.var_order.get() == PRINT_VALUES_ORDER[3]:
+            self.keys = sorted(self.keys, key=lambda k: _0_global_dct.d[k].score, reverse=True)
+        elif self.var_order.get() == PRINT_VALUES_ORDER[4]:
+            self.keys = sorted(self.keys, key=lambda k: _0_global_dct.d[k].latest_answer_session)
+        elif self.var_order.get() == PRINT_VALUES_ORDER[5]:
+            self.keys = sorted(self.keys, key=lambda k: _0_global_dct.d[k].latest_answer_session, reverse=True)
 
         # Вычисляем значения некоторых количественных переменных
         self.count_elements = len(self.keys)
@@ -5827,7 +5850,7 @@ class SettingsW(tk.Toplevel):
         self.btn_scale_minus = ttk.Button(self.frame_scale, command=self.scale_minus,
                                           width=2, state='normal', takefocus=False)
         set_image(self.btn_scale_minus, self.img_minus, img_delete, '-')
-        self.lbl_scale = ttk.Label(self.frame_scale, text='Масштаб', style='Default.TLabel')
+        self.lbl_scale = ttk.Label(self.frame_scale, text=f'Масштаб ({_0_global_scale}x)', style='Default.TLabel')
         self.btn_scale_plus = ttk.Button(self.frame_scale, command=self.scale_plus,
                                          width=2, state='normal', takefocus=False)
         set_image(self.btn_scale_plus, self.img_plus, img_add, '+')
@@ -6090,6 +6113,7 @@ class SettingsW(tk.Toplevel):
         self.parent.set_ttk_styles()  # Установка ttk-стилей
 
         # Установка некоторых стилей для окна настроек
+        self.lbl_scale.configure(text=f'Масштаб ({_0_global_scale}x)')
         self.scrolled_frame_dcts.resize(SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
                                         SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.combo_themes.configure(font=('DejaVu Sans Mono', _0_global_scale))
@@ -6105,6 +6129,7 @@ class SettingsW(tk.Toplevel):
         self.parent.set_ttk_styles()  # Установка ttk-стилей
 
         # Установка некоторых стилей для окна настроек
+        self.lbl_scale.configure(text=f'Масштаб ({_0_global_scale}x)')
         self.scrolled_frame_dcts.resize(SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
                                         SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.combo_themes.configure(font=('DejaVu Sans Mono', _0_global_scale))
