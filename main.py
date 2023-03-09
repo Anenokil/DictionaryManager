@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.4'
+PROGRAM_VERSION = 'v7.1.5'
 PROGRAM_DATE = '9.3.2023'
-PROGRAM_TIME = '4:38 (UTC+3)'
+PROGRAM_TIME = '5:39 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -676,8 +676,8 @@ class Dictionary(object):
     def choose_one_of_similar_entries(self, window_parent, wrd: str):
         if wrd_to_key(wrd, 1) not in self.d.keys():  # Если статья только одна, то возвращает её ключ
             return wrd_to_key(wrd, 0)
-        window_note = ChooseOneOfSimilarNotesW(window_parent, wrd)
-        answer = window_note.open()
+        window_entries = ChooseOneOfSimilarEntriesW(window_parent, wrd)
+        answer = window_entries.open()
         if not answer:
             return None
         return answer
@@ -2645,49 +2645,6 @@ class PopupEntryW(tk.Toplevel):
         return self.closed, self.var_text.get()
 
 
-# Всплывающее окно с полем Combobox
-class PopupChooseW(tk.Toplevel):
-    def __init__(self, parent, values: list[str] | tuple[str, ...], msg='Выберите один из вариантов',
-                 btn_text='Подтвердить', combo_width=20, default_value=None, title=PROGRAM_NAME):
-        super().__init__(parent)
-        self.title(title)
-        self.configure(bg=ST_BG[th])
-
-        self.closed = True  # Закрыто ли окно крестиком
-
-        self.var_answer = tk.StringVar(value=default_value)
-
-        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, add_right_spaces=False), justify='center',
-                                 style='Default.TLabel')
-        self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values, width=combo_width,
-                                       state='readonly', style='Default.TCombobox',
-                                       font=('DejaVu Sans Mono', _0_global_scale))
-        self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
-
-        self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
-        self.combo_vals.grid(row=1, padx=6, pady=1)
-        self.btn_ok.grid(    row=2, padx=6, pady=4)
-
-    # Нажатие на кнопку
-    def ok(self):
-        self.closed = False
-        self.destroy()
-
-    # Установить фокус
-    def set_focus(self):
-        self.focus_set()
-        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
-        self.bind('<Escape>', lambda event=None: self.destroy())
-
-    def open(self):
-        self.set_focus()
-
-        self.grab_set()
-        self.wait_window()
-
-        return self.closed, self.var_answer.get()
-
-
 # Всплывающее окно с изображением
 class PopupImgW(tk.Toplevel):
     def __init__(self, parent, img_name: str, msg: str, btn_text='Ясно', title=PROGRAM_NAME):
@@ -2866,7 +2823,7 @@ class IncorrectAnswerW(tk.Toplevel):
             self.btn_no.grid(  row=1, column=1,               padx=6, pady=4)
             self.btn_typo.grid(row=1, column=2,               padx=6, pady=4, sticky='W')
 
-            self.tip_btn_notes = ttip.Hovertip(self.btn_typo, 'Срабатывает при нажатии на Tab', hover_delay=700)
+            self.tip_btn_typo = ttip.Hovertip(self.btn_typo, 'Срабатывает при нажатии на Tab', hover_delay=700)
         else:
             self.lbl_msg.grid(row=0, column=0, columnspan=2, padx=6, pady=4)
             self.btn_yes.grid(row=1, column=0,               padx=6, pady=4, sticky='E')
@@ -2904,12 +2861,12 @@ class IncorrectAnswerW(tk.Toplevel):
         return self.answer
 
 
-# Окно настроек поиска
+# Окно с параметрами поиска
 class SearchSettingsW(tk.Toplevel):
     def __init__(self, parent, search_only_fav: bool, search_wrd: bool, search_tr: bool, search_frm: bool,
                  search_nt: bool):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Настройки поиска')
+        self.title(f'{PROGRAM_NAME} - Параметры поиска')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -2975,7 +2932,7 @@ class SearchSettingsW(tk.Toplevel):
 
 
 # Окно выбора одной статьи из нескольких с одинаковыми словами
-class ChooseOneOfSimilarNotesW(tk.Toplevel):
+class ChooseOneOfSimilarEntriesW(tk.Toplevel):
     def __init__(self, parent, query: str):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Найдено несколько схожих статей')
@@ -2998,7 +2955,7 @@ class ChooseOneOfSimilarNotesW(tk.Toplevel):
         self.print()
 
     # Выбрать статью из предложенных вариантов
-    def choose_note(self, key: tuple[str, int]):
+    def choose_entry(self, key: tuple[str, int]):
         self.answer = key
         self.destroy()
 
@@ -3012,7 +2969,7 @@ class ChooseOneOfSimilarNotesW(tk.Toplevel):
                 break
             self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
                                             text=_0_global_dct.d[key].print_all(75, 13),
-                                            command=lambda key=key: self.choose_note(key),
+                                            command=lambda key=key: self.choose_entry(key),
                                             takefocus=False, style='Note.TButton')]
             count += 1
 
@@ -3145,6 +3102,8 @@ class EditW(tk.Toplevel):
         self.btn_back.grid(        row=1, column=0, padx=(6, 0), pady=(0, 6))
         self.btn_about_window.grid(row=1, column=1, padx=(6, 6), pady=(0, 6))
         self.btn_delete.grid(      row=1, column=2, padx=(0, 6), pady=(0, 6))
+
+        self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
 
         self.refresh(True)
 
@@ -3659,6 +3618,8 @@ class CategoriesSettingsW(tk.Toplevel):
         self.scrolled_frame.grid(  row=1, column=0, columnspan=2, padx=6,      pady=(0, 6))
         self.btn_add.grid(         row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
 
+        self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
+
         self.print_categories(True)
 
     # Добавить категорию
@@ -3785,6 +3746,8 @@ class CategoryValuesSettingsW(tk.Toplevel):
         self.scrolled_frame.grid(  row=1, column=0, columnspan=2, padx=6,      pady=(0, 6))
         self.btn_add.grid(         row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
 
+        self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
+
         self.print_ctg_values(True)
 
     # Добавить значение категории
@@ -3908,6 +3871,8 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.lbl_combinations.grid(row=0, column=1,               padx=(0, 6), pady=(6, 0), sticky='W')
         self.scrolled_frame.grid(  row=1, column=0, columnspan=2, padx=6,      pady=(0, 6))
         self.btn_add.grid(         row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
+
+        self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
 
         self.print_combinations(True)
 
@@ -4297,6 +4262,9 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.lbl_demo_warn.grid(  row=8, column=0, columnspan=3, padx=6, pady=(0, 6))
         self.lbl_demo_footer.grid(row=9, column=0, columnspan=3, padx=6, pady=(0, 6))
         # }
+
+        self.tip_btn_undo = ttip.Hovertip(self.btn_undo, 'Отменить последнее действие', hover_delay=450)
+        self.tip_btn_redo = ttip.Hovertip(self.btn_redo, 'Вернуть отменённое действие', hover_delay=450)
 
         self.entry_demo.insert(tk.END, 'abcde 12345')
         self.txt_demo.insert(tk.END, '1')
@@ -4745,8 +4713,8 @@ class LearnW(tk.Toplevel):
                                     takefocus=False, style='Default.TButton')
         self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=50,
                                      style='Default.TEntry', font=('StdFont', _0_global_scale))
-        self.btn_notes = ttk.Button(self.frame_main, text='Посмотреть сноски', command=self.show_notes,
-                                    takefocus=False, style='Default.TButton')
+        self.btn_show_notes = ttk.Button(self.frame_main, text='Посмотреть сноски', command=self.show_notes,
+                                         takefocus=False, style='Default.TButton')
         # }
         self.btn_stop = ttk.Button(self, text='Закончить', command=self.stop, takefocus=False, style='No.TButton')
 
@@ -4756,13 +4724,13 @@ class LearnW(tk.Toplevel):
         self.scrollbar.grid(        row=2, column=1,     padx=(0, 6), pady=6, sticky='NSW')
         self.frame_main.grid(       row=3, columnspan=2, padx=6,      pady=6)
         # {
-        self.btn_input.grid(  row=0, column=0, padx=(0, 3), pady=0, sticky='E')
-        self.entry_input.grid(row=0, column=1, padx=(0, 3), pady=0, sticky='W')
-        self.btn_notes.grid(  row=0, column=2, padx=0,      pady=0, sticky='W')
+        self.btn_input.grid(     row=0, column=0, padx=(0, 3), pady=0, sticky='E')
+        self.entry_input.grid(   row=0, column=1, padx=(0, 3), pady=0, sticky='W')
+        self.btn_show_notes.grid(row=0, column=2, padx=0,      pady=0, sticky='W')
         # }
         self.btn_stop.grid(row=4, columnspan=2, padx=6, pady=6)
 
-        self.tip_btn_notes = ttip.Hovertip(self.btn_notes, 'Срабатывает при нажатии на Tab', hover_delay=700)
+        self.tip_btn_show_notes = ttip.Hovertip(self.btn_show_notes, 'Срабатывает при нажатии на Tab', hover_delay=700)
         if self.learn_method == LEARN_VALUES_METHOD[0]:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
         elif self.learn_method == LEARN_VALUES_METHOD[1]:
@@ -4775,7 +4743,7 @@ class LearnW(tk.Toplevel):
         if self.current_key:
             entry = _0_global_dct.d[self.current_key]
             if entry.count_n == 0:
-                btn_disable(self.btn_notes)
+                btn_disable(self.btn_show_notes)
 
     # Формируем пул слов, которые будут использоваться при учёбе
     def create_pool(self):
@@ -4874,9 +4842,9 @@ class LearnW(tk.Toplevel):
         # Обновление кнопки "Посмотреть сноски"
         entry = _0_global_dct.d[self.current_key]
         if entry.count_n == 0:
-            btn_disable(self.btn_notes)
+            btn_disable(self.btn_show_notes)
         else:
-            btn_enable(self.btn_notes, self.show_notes)
+            btn_enable(self.btn_show_notes, self.show_notes)
         # Очистка поля ввода
         self.entry_input.delete(0, tk.END)
         # Обновление отображаемого рейтинга
@@ -4889,7 +4857,7 @@ class LearnW(tk.Toplevel):
         entry = _0_global_dct.d[self.current_key]
         if entry.count_n != 0:
             self.outp(entry.notes_print())
-        btn_disable(self.btn_notes)
+        btn_disable(self.btn_show_notes)
 
     # Нажатие на кнопку "Закончить"
     # Завершение учёбы
@@ -5018,7 +4986,7 @@ class LearnW(tk.Toplevel):
         self.focus_set()
         self.entry_input.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_input.invoke())
-        self.bind('<Tab>', lambda event=None: self.btn_notes.invoke())
+        self.bind('<Tab>', lambda event=None: self.btn_show_notes.invoke())
 
     def open(self):
         self.set_focus()
@@ -5507,6 +5475,7 @@ class SearchW(tk.Toplevel):
         # }
 
         self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
+        self.tip_btn_search_settings = ttip.Hovertip(self.btn_search_settings, 'Параметры поиска', hover_delay=450)
         self.tip_btn_first_page = ttip.Hovertip(self.btn_first_page, 'В начало', hover_delay=650)
         self.tip_btn_prev_page = ttip.Hovertip(self.btn_prev_page, 'На предыдущую страницу', hover_delay=650)
         self.tip_btn_next_page = ttip.Hovertip(self.btn_next_page, 'На следующую страницу', hover_delay=650)
@@ -5680,10 +5649,10 @@ class AddW(tk.Toplevel):
         self.var_fav = tk.BooleanVar(value=False)
 
         self.lbl_wrd = ttk.Label(self, text='Введите слово:', style='Default.TLabel')
-        self.entry_wrd = ttk.Entry(self, textvariable=self.var_wrd, width=60, validate='all',
+        self.entry_wrd = ttk.Entry(self, textvariable=self.var_wrd, width=50, validate='all',
                                    style='Default.TEntry', font=('StdFont', _0_global_scale))
         self.lbl_tr = ttk.Label(self, text='Введите перевод:', style='Default.TLabel')
-        self.entry_tr = ttk.Entry(self, textvariable=self.var_tr, width=60, validate='all',
+        self.entry_tr = ttk.Entry(self, textvariable=self.var_tr, width=50, validate='all',
                                   style='Default.TEntry', font=('StdFont', _0_global_scale))
         self.lbl_fav = ttk.Label(self, text='Избранное:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self, variable=self.var_fav, style='Default.TCheckbutton')
@@ -5711,6 +5680,9 @@ class AddW(tk.Toplevel):
         self.vcmd_tr = (self.register(lambda value: validate_entries(value, self.var_wrd.get())), '%P')
         self.entry_wrd['validatecommand'] = self.vcmd_wrd
         self.entry_tr['validatecommand'] = self.vcmd_tr
+
+        self.entry_wrd.bind('<Down>', lambda event: self.entry_tr.focus_set())
+        self.entry_tr.bind('<Up>', lambda event: self.entry_wrd.focus_set())
 
         self.entry_wrd.icursor(len(self.var_wrd.get()))
 
@@ -5854,14 +5826,14 @@ class SettingsW(tk.Toplevel):
         # { {
         self.lbl_themes = ttk.Label(self.frame_themes, text='Тема:', style='Default.TLabel')
         self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
-                                         state='readonly', width=16, style='Default.TCombobox',
+                                         state='readonly', width=15, style='Default.TCombobox',
                                          font=('DejaVu Sans Mono', _0_global_scale))
-        self.lbl_themes_note = ttk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
-                                                                 f'Актуальные темы можно скачать здесь:',
-                                         justify='left', style='Default.TLabel')
-        self.entry_themes_note = ttk.Entry(self.frame_themes, textvariable=self.var_themes_url,
-                                           state='readonly', width=47, justify='center',
-                                           style='Default.TEntry', font=('StdFont', _0_global_scale))
+        self.lbl_themes_version = ttk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
+                                                                    f'Актуальные темы можно скачать здесь:',
+                                            justify='left', style='Default.TLabel')
+        self.entry_themes_version = ttk.Entry(self.frame_themes, textvariable=self.var_themes_url,
+                                              state='readonly', width=47, justify='center',
+                                              style='Default.TEntry', font=('StdFont', _0_global_scale))
         self.btn_custom_theme = ttk.Button(self.frame_themes, text='Собственная тема', command=self.custom_theme,
                                            takefocus=False, style='Default.TButton')
         # } }
@@ -5924,11 +5896,11 @@ class SettingsW(tk.Toplevel):
         # }
         self.frame_themes.grid(row=3, padx=6, pady=6)
         # {
-        self.lbl_themes.grid(       row=0, column=0,               padx=(6, 1), pady=6,      sticky='S')
-        self.combo_themes.grid(     row=0, column=1,               padx=0,      pady=6,      sticky='S')
-        self.lbl_themes_note.grid(  row=0, column=2,               padx=6,      pady=(6, 0), sticky='WS')
-        self.btn_custom_theme.grid( row=1, column=0, columnspan=2, padx=0,      pady=(0, 6), sticky='E')
-        self.entry_themes_note.grid(row=1, column=2,               padx=6,      pady=(0, 6), sticky='WENS')
+        self.lbl_themes.grid(          row=0, column=0,               padx=(6, 1), pady=6,      sticky='S')
+        self.combo_themes.grid(        row=0, column=1,               padx=0,      pady=6,      sticky='S')
+        self.lbl_themes_version.grid(  row=0, column=2,               padx=6,      pady=(6, 0), sticky='WS')
+        self.btn_custom_theme.grid(    row=1, column=0, columnspan=2, padx=0,      pady=(0, 6), sticky='E')
+        self.entry_themes_version.grid(row=1, column=2,               padx=6,      pady=(0, 6), sticky='WENS')
         # }
         self.frame_scale.grid(row=4, padx=6, pady=6)
         # {
@@ -5939,6 +5911,10 @@ class SettingsW(tk.Toplevel):
         #
         self.btn_save.grid( row=4, column=0, padx=(6, 3), pady=(0, 6))
         self.btn_close.grid(row=4, column=1, padx=(0, 6), pady=(0, 6))
+
+        self.tip_btn_about_mgsp = ttip.Hovertip(self.btn_about_mgsp, 'Справка', hover_delay=450)
+        self.tip_btn_about_typo = ttip.Hovertip(self.btn_about_typo, 'Справка', hover_delay=450)
+        self.tip_btn_about_dcts = ttip.Hovertip(self.btn_about_dcts, 'Справка', hover_delay=450)
 
         self.entry_mgsp.icursor(len(self.var_mgsp.get()))
         self.print_dct_list(True)
@@ -6137,7 +6113,7 @@ class SettingsW(tk.Toplevel):
         self.scrolled_frame_dcts.resize(SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
                                         SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.combo_themes.configure(font=('DejaVu Sans Mono', _0_global_scale))
-        self.entry_themes_note.configure(font=('StdFont', _0_global_scale))
+        self.entry_themes_version.configure(font=('StdFont', _0_global_scale))
         self.entry_mgsp.configure(font=('StdFont', _0_global_scale))
 
         # Установка масштаба для окна уведомления об обновлении
@@ -6161,7 +6137,7 @@ class SettingsW(tk.Toplevel):
         self.scrolled_frame_dcts.resize(SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
                                         SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.combo_themes.configure(font=('DejaVu Sans Mono', _0_global_scale))
-        self.entry_themes_note.configure(font=('StdFont', _0_global_scale))
+        self.entry_themes_version.configure(font=('StdFont', _0_global_scale))
         self.entry_mgsp.configure(font=('StdFont', _0_global_scale))
 
         # Установка масштаба для окна уведомления об обновлении
@@ -6483,7 +6459,7 @@ class NewVersionAvailableW(tk.Toplevel):
                     os.remove(os.path.join(IMAGES_PATH, filename))
                 except FileNotFoundError:
                     print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
-            for filename in ('ver', 'README.txt', 'README.md', 'main.py', 'resources/icon.png'):
+            for filename in ('ver', 'README.md', 'main.py', 'resources/icon.png'):
                 try:
                     os.remove(os.path.join(MAIN_PATH, filename))
                 except FileNotFoundError:
@@ -6582,25 +6558,37 @@ class MainW(tk.Tk):
 
     # Нажатие на кнопку "Просмотреть словарь"
     def print(self):
+        self.disable_all_buttons()
         PrintW(self).open()
+        self.enable_all_buttons()
 
     # Нажатие на кнопку "Учить слова"
     def learn(self):
+        self.disable_all_buttons()
+
         res = ChooseLearnModeW(self).open()
         if not res:
             return
         LearnW(self, res).open()
 
+        self.enable_all_buttons()
+
     # Нажатие на кнопку "Найти статью"
     def search(self):
+        self.disable_all_buttons()
         SearchW(self).open()
+        self.enable_all_buttons()
 
     # Нажатие на кнопку "Добавить статью"
     def add(self):
+        self.disable_all_buttons()
+
         key = AddW(self).open()
         if not key:
             return
         EditW(self, key).open()
+
+        self.enable_all_buttons()
 
     # Нажатие на кнопку "Настройки"
     def settings(self):
@@ -6608,7 +6596,9 @@ class MainW(tk.Tk):
             _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations,\
             _0_global_check_register, _0_global_learn_settings
 
+        self.disable_all_buttons()
         SettingsW(self).open()
+        self.enable_all_buttons()
 
         # Обновляем глобальные настройки
         _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale =\
@@ -6658,6 +6648,23 @@ class MainW(tk.Tk):
     def close(self):
         save_dct_if_has_progress(self, _0_global_dct, _0_global_dct_savename, _0_global_has_progress)
         self.quit()
+
+    # Отключить все кнопки на главном окне
+    def disable_all_buttons(self):
+        for btn in (self.btn_learn, self.btn_print, self.btn_search, self.btn_add, self.btn_settings,
+                    self.btn_check_updates, self.btn_save, self.btn_close):
+            btn_disable(btn)
+
+    # Включить все кнопки на главном окне
+    def enable_all_buttons(self):
+        btn_enable(self.btn_learn, self.learn)
+        btn_enable(self.btn_print, self.print)
+        btn_enable(self.btn_search, self.search)
+        btn_enable(self.btn_add, self.add)
+        btn_enable(self.btn_settings, self.settings)
+        btn_enable(self.btn_check_updates, self.check_updates)
+        btn_enable(self.btn_save, self.save, 'Yes')
+        btn_enable(self.btn_close, self.close, 'No')
 
     # Установить ttk-стили
     def set_ttk_styles(self):
