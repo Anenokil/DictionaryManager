@@ -19,13 +19,13 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.6'
+PROGRAM_VERSION = 'v7.1.7'
 PROGRAM_DATE = '9.3.2023'
-PROGRAM_TIME = '7:35 (UTC+3)'
+PROGRAM_TIME = '23:00 (UTC+3)'
 
 """ Версии ресурсов """
 
-SAVES_VERSION = 4  # Актуальная версия сохранений словарей
+SAVES_VERSION = 5  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
 LOCAL_AUTO_SETTINGS_VERSION = 3  # Актуальная версия автосохраняемых локальных настроек
 GLOBAL_SETTINGS_VERSION = 3  # Актуальная версия глобальных настроек
@@ -330,7 +330,7 @@ class Entry(object):
                  tr: str | list[str],
                  notes: str | list[str] | None = None,
                  forms: dict[tuple[str, ...], str] | None = None,
-                 fav=False, all_att=0, correct_att=0, correct_att_in_a_row=0, latest_answer_session=0):
+                 fav=False, all_att=0, correct_att=0, correct_att_in_a_row=0, latest_answer_session=(0, 0, 0)):
         self.wrd = wrd
         self.tr = tr.copy() if (type(tr) == list) else [tr]
         if notes is None:
@@ -584,7 +584,7 @@ class Entry(object):
         self.correct_att_in_a_row += correct_att_in_a_row
 
     # Обновить статистику, если совершена верная попытка
-    def correct(self, session_number: int):
+    def correct(self, session_number: tuple[int, int, int]):
         self.all_att += 1
         self.correct_att += 1
         self.score = self.correct_att / self.all_att
@@ -607,7 +607,7 @@ class Entry(object):
     def save(self, file: typing.TextIO):
         file.write(f'w{self.wrd}\n')
         file.write(f'{self.all_att}:{self.correct_att}:{self.correct_att_in_a_row}\n')
-        file.write(f'{self.latest_answer_session}\n')
+        file.write(f'{self.latest_answer_session[0]}:{self.latest_answer_session[1]}:{self.latest_answer_session[2]}\n')
         file.write(f'{self.tr[0]}\n')
         for i in range(1, self.count_t):
             file.write(f't{self.tr[i]}\n')
@@ -626,11 +626,11 @@ class Entry(object):
             file.write(f', {self.tr[i]}')
         file.write('\n')
         for note in self.notes:
-            file.write(f'| > {note}\n')
+            file.write(f'| ~ {note}\n')
         for frm_template in self.forms.keys():
             file.write(f'| [{tpl(frm_template)}] {self.forms[frm_template]}\n')
         if self.fav:
-            file.write('| <Fav>\n')
+            file.write('| <Избр>\n')
 
 
 # Словарь
@@ -810,13 +810,14 @@ class Dictionary(object):
 
     # Добавить статью в словарь (при чтении файла)
     def load_entry(self, wrd: str, tr: str, all_att: int, correct_att: int, correct_att_in_a_row: int,
-                   latest_answer_session: int):
+                   latest_answer_session: tuple[int, int, int]):
         i = 0
         while True:
             key = wrd_to_key(wrd, i)
             if key not in self.d.keys():
                 self.d[key] = Entry(wrd, [tr], all_att=all_att, correct_att=correct_att,
-                                    correct_att_in_a_row=correct_att_in_a_row, latest_answer_session=latest_answer_session)
+                                    correct_att_in_a_row=correct_att_in_a_row,
+                                    latest_answer_session=latest_answer_session)
                 self.count_w += 1
                 self.count_t += 1
                 return key
@@ -885,7 +886,7 @@ class Dictionary(object):
                 elif line[0] == 'w':
                     wrd = line[1:]
                     all_att, correct_att, correct_att_in_a_row = (int(el) for el in file.readline().strip().split(':'))
-                    latest_answer_session = int(file.readline().strip())
+                    latest_answer_session = tuple((int(el) for el in file.readline().strip().split(':')))
                     tr = file.readline().strip()
                     key = self.load_entry(wrd, tr, all_att, correct_att, correct_att_in_a_row, latest_answer_session)
                 elif line[0] == 't':
@@ -2076,8 +2077,8 @@ def save_settings_if_has_changes(window_parent):
         print('\nНастройки успешно сохранены')
 
 
-# Обновить сохранение словаря с 0 до 4 версии
-def upgrade_dct_save_0_to_4(path: str):
+# Обновить сохранение словаря с 0 до 5 версии
+def upgrade_dct_save_0_to_5(path: str):
     with open(path, 'r', encoding='utf-8') as dct_save:
         with open(TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             dct_save_tmp.write('v1\n')
@@ -2096,11 +2097,11 @@ def upgrade_dct_save_0_to_4(path: str):
     if TMP_FN in os.listdir(RESOURCES_PATH):
         os.remove(TMP_PATH)
 
-    upgrade_dct_save_1_to_4(path)
+    upgrade_dct_save_1_to_5(path)
 
 
-# Обновить сохранение словаря с 1 до 4 версии
-def upgrade_dct_save_1_to_4(path: str):
+# Обновить сохранение словаря с 1 до 5 версии
+def upgrade_dct_save_1_to_5(path: str):
     global _0_global_special_combinations
 
     _, _0_global_special_combinations, _, _ = upload_local_settings(_0_global_dct_savename)
@@ -2141,11 +2142,11 @@ def upgrade_dct_save_1_to_4(path: str):
     if TMP_FN in os.listdir(RESOURCES_PATH):
         os.remove(TMP_PATH)
 
-    upgrade_dct_save_2_to_4(path)
+    upgrade_dct_save_2_to_5(path)
 
 
-# Обновить сохранение словаря с 2 до 4 версии
-def upgrade_dct_save_2_to_4(path: str):
+# Обновить сохранение словаря с 2 до 5 версии
+def upgrade_dct_save_2_to_5(path: str):
     with open(path, 'r', encoding='utf-8') as dct_save:
         with open(TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             dct_save.readline()
@@ -2188,11 +2189,11 @@ def upgrade_dct_save_2_to_4(path: str):
     if TMP_FN in os.listdir(RESOURCES_PATH):
         os.remove(TMP_PATH)
 
-    upgrade_dct_save_3_to_4(path)
+    upgrade_dct_save_3_to_5(path)
 
 
-# Обновить сохранение словаря с 3 до 4 версии
-def upgrade_dct_save_3_to_4(path: str):
+# Обновить сохранение словаря с 3 до 5 версии
+def upgrade_dct_save_3_to_5(path: str):
     with open(path, 'r', encoding='utf-8') as dct_save:
         with open(TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             dct_save.readline()
@@ -2228,6 +2229,47 @@ def upgrade_dct_save_3_to_4(path: str):
     if TMP_FN in os.listdir(RESOURCES_PATH):
         os.remove(TMP_PATH)
 
+    upgrade_dct_save_4_to_5(path)
+
+
+# Обновить сохранение словаря с 4 до 5 версии
+def upgrade_dct_save_4_to_5(path: str):
+    with open(path, 'r', encoding='utf-8') as dct_save:
+        with open(TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+            dct_save.readline()
+            dct_save_tmp.write('v5\n')  # Версия сохранения словаря
+            while True:
+                line = dct_save.readline()
+                if not line:
+                    break
+                elif line[0] == 'w':
+                    dct_save_tmp.write(line)
+                    line = dct_save.readline()
+                    dct_save_tmp.write(line)
+                    line = dct_save.readline()
+                    dct_save_tmp.write(f'{line.strip()}:0:0\n')
+                    line = dct_save.readline()
+                    dct_save_tmp.write(line)
+                elif line[0] == 't':
+                    dct_save_tmp.write(line)
+                elif line[0] == 'n':
+                    dct_save_tmp.write(line)
+                elif line[0] == 'f':
+                    dct_save_tmp.write(line)
+                    line = dct_save.readline()
+                    dct_save_tmp.write(line)
+                elif line[0] == '*':
+                    dct_save_tmp.write(line)
+    with open(TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
+        with open(path, 'w', encoding='utf-8') as dct_save:
+            while True:
+                line = dct_save_tmp.readline()
+                if not line:
+                    break
+                dct_save.write(line)
+    if TMP_FN in os.listdir(RESOURCES_PATH):
+        os.remove(TMP_PATH)
+
 
 # Обновить сохранение словаря старой версии до актуальной версии
 def upgrade_dct_save(path: str):
@@ -2236,13 +2278,15 @@ def upgrade_dct_save(path: str):
     if first_line == '':  # Если сохранение пустое
         return
     if first_line[0] == 'w':  # Версия 0
-        upgrade_dct_save_0_to_4(path)
+        upgrade_dct_save_0_to_5(path)
     elif first_line.strip() == 'v1':  # Версия 1
-        upgrade_dct_save_1_to_4(path)
+        upgrade_dct_save_1_to_5(path)
     elif first_line.strip() == 'v2':  # Версия 2
-        upgrade_dct_save_2_to_4(path)
+        upgrade_dct_save_2_to_5(path)
     elif first_line.strip() == 'v3':  # Версия 3
-        upgrade_dct_save_3_to_4(path)
+        upgrade_dct_save_3_to_5(path)
+    elif first_line.strip() == 'v4':  # Версия 4
+        upgrade_dct_save_4_to_5(path)
     elif first_line.strip() != f'v{SAVES_VERSION}':
         print(f'Неизвестная версия словаря: {first_line.strip()}!\n'
               f'Проверьте наличие обновлений программы')
@@ -4777,7 +4821,8 @@ class LearnW(tk.Toplevel):
             # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
             latest_session = _0_global_dct.d[unfav_keys[count_unfav_keys - 1]].latest_answer_session
             # Оставляем только слова с номером сессии <= S
-            unfav_keys = list(k for k in unfav_keys if _0_global_dct.d[k].latest_answer_session <= latest_session)
+            unfav_keys = list(k for k in unfav_keys
+                              if _0_global_dct.d[k].latest_answer_session[0:2] <= latest_session[0:2])
             # Перемешиваем их
             random.shuffle(unfav_keys)
             # И выбираем из них N // 4 слов
@@ -4876,7 +4921,7 @@ class LearnW(tk.Toplevel):
                      current_key: tuple[str, int], current_form: tuple[str, ...] | None = None):
         entry = _0_global_dct.d[current_key]
         if is_correct:
-            entry.correct(_0_global_session_number)
+            entry.correct((_0_global_session_number, _0_global_learn_session_number, self.count_all))
             self.outp('Верно\n')
             if entry.fav:
                 window = PopupDialogueW(self, 'Верно.\n'
@@ -4991,10 +5036,14 @@ class LearnW(tk.Toplevel):
         self.bind('<Tab>', lambda event=None: self.btn_show_notes.invoke())
 
     def open(self):
+        global _0_global_learn_session_number
+
         self.set_focus()
 
         self.grab_set()
         self.wait_window()
+
+        _0_global_learn_session_number += 1
 
 
 # Окно просмотра словаря
@@ -6982,6 +7031,7 @@ _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_r
 _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
     upload_local_auto_settings(_0_global_dct_savename)  # Загружаем локальные авто-настройки
 _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
+_0_global_learn_session_number = 0
 root.iconphoto(True, tk.PhotoImage(file=ICON_PATH))  # Устанавливаем иконку
 root.mainloop()
 
