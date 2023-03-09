@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.5'
+PROGRAM_VERSION = 'v7.1.6'
 PROGRAM_DATE = '9.3.2023'
-PROGRAM_TIME = '5:39 (UTC+3)'
+PROGRAM_TIME = '7:35 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -240,12 +240,13 @@ if TMP_FN in os.listdir(RESOURCES_PATH):
     os.remove(TMP_PATH)
 
 # Изображения
-IMG_NAMES = ['ok', 'cancel',
+IMG_NAMES = ['about_mgsp', 'about_typo', 'about',
+             'ok', 'cancel',
              'add', 'delete', 'edit',
+             'print_out',
              'undo', 'redo',
-             'arrow_left', 'arrow_right', 'double_arrow_left', 'double_arrow_right', 'print_out',
-             'about', 'about_mgsp', 'about_typo']
-ICON_NAMES = IMG_NAMES[:-2]
+             'arrow_left', 'arrow_right', 'double_arrow_left', 'double_arrow_right']
+ICON_NAMES = IMG_NAMES[2:]
 
 img_ok = os.path.join(IMAGES_PATH, 'ok.png')
 img_cancel = os.path.join(IMAGES_PATH, 'cancel.png')
@@ -1650,8 +1651,8 @@ def create_default_custom_theme():
 
 # Загрузить изображения для выбранной темы
 def upload_theme_img(theme: str):
-    global img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_arrow_left, img_arrow_right,\
-        img_double_arrow_left, img_double_arrow_right, img_print_out, img_about, img_about_mgsp, img_about_typo
+    global img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_add, img_delete, img_edit, img_print_out,\
+        img_undo, img_redo, img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right
 
     if theme == CUSTOM_TH:
         theme_dir = CUSTOM_THEME_PATH
@@ -1668,8 +1669,8 @@ def upload_theme_img(theme: str):
         else:
             images[i] = os.path.join(IMAGES_PATH, file_name)
 
-    img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_arrow_left, img_arrow_right,\
-        img_double_arrow_left, img_double_arrow_right, img_print_out, img_about, img_about_mgsp, img_about_typo = images
+    img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_add, img_delete, img_edit, img_print_out,\
+        img_undo, img_redo, img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right = images
 
 
 # Обновить глобальные настройки с 0 до 3 версии
@@ -4176,7 +4177,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.btn_demo_y = ttk.Button(self.frame_demonstration, text='Да', takefocus=False,
                                      style='DemoYes.TButton')
         self.btn_demo_n = ttk.Button(self.frame_demonstration, text='Нет', takefocus=False, style='DemoNo.TButton')
-        self.entry_demo = ttk.Entry(self.frame_demonstration, width=21,
+        self.entry_demo = ttk.Entry(self.frame_demonstration, width=20,
                                     style='DemoDefault.TEntry', font=('StdFont', _0_global_scale))
         self.txt_demo = tk.Text(self.frame_demonstration, font=('StdFont', _0_global_scale), width=12, height=4,
                                 state='normal')
@@ -4247,14 +4248,14 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.lbl_demo_def.grid(row=0, column=0, padx=(6, 1), pady=6, sticky='E')
         self.check_demo.grid(  row=0, column=1, padx=(0, 6), pady=6, sticky='W')
         # } }
-        self.btn_demo_def.grid(   row=3,            column=0,               padx=6,      pady=(0, 6), sticky='E')
-        self.btn_demo_dis.grid(   row=4,            column=0,               padx=6,      pady=(0, 6), sticky='E')
-        self.btn_demo_y.grid(     row=5,            column=0,               padx=6,      pady=(0, 6), sticky='E')
-        self.btn_demo_n.grid(     row=6,            column=0,               padx=6,      pady=(0, 6), sticky='E')
-        self.entry_demo.grid(     row=2,            column=1, columnspan=2, padx=(0, 6), pady=(0, 6), sticky='SW')
-        self.txt_demo.grid(       row=3, rowspan=4, column=1,               padx=0,      pady=(0, 6), sticky='SNWE')
-        self.scroll_demo.grid(    row=3, rowspan=4, column=2,               padx=(0, 6), pady=(0, 6), sticky='SNW')
-        self.frame_demo_img.grid( row=7,            column=0, columnspan=3, padx=6,      pady=(0, 6))
+        self.entry_demo.grid(    row=2,            column=1, columnspan=2, padx=(0, 6), pady=(0, 6), sticky='SW')
+        self.btn_demo_def.grid(  row=3,            column=0,               padx=6,      pady=(0, 6), sticky='E')
+        self.btn_demo_dis.grid(  row=4,            column=0,               padx=6,      pady=(0, 6), sticky='E')
+        self.btn_demo_y.grid(    row=5,            column=0,               padx=6,      pady=(0, 6), sticky='E')
+        self.btn_demo_n.grid(    row=6,            column=0,               padx=6,      pady=(0, 6), sticky='E')
+        self.txt_demo.grid(      row=3, rowspan=4, column=1,               padx=0,      pady=(0, 6), sticky='SNWE')
+        self.scroll_demo.grid(   row=3, rowspan=4, column=2,               padx=(0, 6), pady=(0, 6), sticky='SNW')
+        self.frame_demo_img.grid(row=7,            column=0, columnspan=3, padx=6,      pady=(0, 6))
         # { {
         for i in range(len(ICON_NAMES)):
             self.img_buttons[i].grid(row=i // 7, column=i % 7, padx=3, pady=3)
@@ -4342,8 +4343,9 @@ class CustomThemeSettingsW(tk.Toplevel):
                 file.write(f'\n{self.custom_styles[el]}')
 
         if self.dir_with_images != CUSTOM_THEME_PATH:
-            images = [img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_about, img_about_mgsp,
-                      img_about_typo]
+            images = [img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel,
+                      img_add, img_delete, img_edit, img_print_out, img_undo, img_redo,
+                      img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right]
             for i in range(len(images)):
                 file_name = f'{IMG_NAMES[i]}.png'
                 src_path = os.path.join(self.dir_with_images, file_name)
@@ -4472,7 +4474,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_default = ttk.Style()
         self.st_lbl_default.theme_use('alt')
         self.st_lbl_default.configure('DemoDefault.TLabel',
-                                      font=('StdFont', 10),
+                                      font=('StdFont', _0_global_scale),
                                       background=self.custom_styles['BG'],
                                       foreground=self.custom_styles['FG'])
 
@@ -4480,7 +4482,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_header = ttk.Style()
         self.st_lbl_header.theme_use('alt')
         self.st_lbl_header.configure('DemoHeader.TLabel',
-                                     font=('StdFont', 15),
+                                     font=('StdFont', _0_global_scale + 5),
                                      background=self.custom_styles['BG'],
                                      foreground=self.custom_styles['FG'])
 
@@ -4488,7 +4490,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_logo = ttk.Style()
         self.st_lbl_logo.theme_use('alt')
         self.st_lbl_logo.configure('DemoLogo.TLabel',
-                                   font=('Times', 21),
+                                   font=('StdFont', _0_global_scale + 11),
                                    background=self.custom_styles['BG'],
                                    foreground=self.custom_styles['FG_LOGO'])
 
@@ -4496,7 +4498,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_footer = ttk.Style()
         self.st_lbl_footer.theme_use('alt')
         self.st_lbl_footer.configure('DemoFooter.TLabel',
-                                     font=('StdFont', 8),
+                                     font=('StdFont', _0_global_scale - 2),
                                      background=self.custom_styles['BG'],
                                      foreground=self.custom_styles['FG_FOOTER'])
 
@@ -4504,7 +4506,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_warn = ttk.Style()
         self.st_lbl_warn.theme_use('alt')
         self.st_lbl_warn.configure('DemoWarn.TLabel',
-                                   font=('StdFont', 10),
+                                   font=('StdFont', _0_global_scale),
                                    background=self.custom_styles['BG'],
                                    foreground=self.custom_styles['FG_WARN'])
 
@@ -4512,7 +4514,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_entry = ttk.Style()
         self.st_entry.theme_use('alt')
         self.st_entry.configure('DemoDefault.TEntry',
-                                font=('StdFont', 10))
+                                font=('StdFont', _0_global_scale))
         self.st_entry.map('DemoDefault.TEntry',
                           fieldbackground=[('readonly', self.custom_styles['BG']),
                                            ('!readonly', self.custom_styles['BG_FIELDS'])],
@@ -4527,7 +4529,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_default = ttk.Style()
         self.st_btn_default.theme_use('alt')
         self.st_btn_default.configure('DemoDefault.TButton',
-                                      font=('StdFont', 12),
+                                      font=('StdFont', _0_global_scale + 2),
                                       borderwidth=1)
         self.st_btn_default.map('DemoDefault.TButton',
                                 relief=[('pressed', 'sunken'),
@@ -4544,7 +4546,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_disabled = ttk.Style()
         self.st_btn_disabled.theme_use('alt')
         self.st_btn_disabled.configure('DemoDisabled.TButton',
-                                       font=('StdFont', 12),
+                                       font=('StdFont', _0_global_scale + 2),
                                        borderwidth=1)
         self.st_btn_disabled.map('DemoDisabled.TButton',
                                  relief=[('active', 'raised'),
@@ -4558,7 +4560,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_yes = ttk.Style()
         self.st_btn_yes.theme_use('alt')
         self.st_btn_yes.configure('DemoYes.TButton',
-                                  font=('StdFont', 12),
+                                  font=('StdFont', _0_global_scale + 2),
                                   borderwidth=1)
         self.st_btn_yes.map('DemoYes.TButton',
                             relief=[('pressed', 'sunken'),
@@ -4575,7 +4577,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_no = ttk.Style()
         self.st_btn_no.theme_use('alt')
         self.st_btn_no.configure('DemoNo.TButton',
-                                 font=('StdFont', 12),
+                                 font=('StdFont', _0_global_scale + 2),
                                  borderwidth=1)
         self.st_btn_no.map('DemoNo.TButton',
                            relief=[('pressed', 'sunken'),
@@ -4592,7 +4594,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_image = ttk.Style()
         self.st_btn_image.theme_use('alt')
         self.st_btn_image.configure('DemoImage.TButton',
-                                    font=('StdFont', 12),
+                                    font=('StdFont', _0_global_scale + 2),
                                     borderwidth=0)
         self.st_btn_image.map('DemoImage.TButton',
                               relief=[('pressed', 'flat'),
@@ -4711,7 +4713,7 @@ class LearnW(tk.Toplevel):
         # {
         self.btn_input = ttk.Button(self.frame_main, text='Ввод', command=self.input,
                                     takefocus=False, style='Default.TButton')
-        self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=50,
+        self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=36,
                                      style='Default.TEntry', font=('StdFont', _0_global_scale))
         self.btn_show_notes = ttk.Button(self.frame_main, text='Посмотреть сноски', command=self.show_notes,
                                          takefocus=False, style='Default.TButton')
@@ -5655,29 +5657,57 @@ class AddW(tk.Toplevel):
         self.entry_tr = ttk.Entry(self, textvariable=self.var_tr, width=50, validate='all',
                                   style='Default.TEntry', font=('StdFont', _0_global_scale))
         self.lbl_fav = ttk.Label(self, text='Избранное:', style='Default.TLabel')
-        self.check_fav = ttk.Checkbutton(self, variable=self.var_fav, style='Default.TCheckbutton')
+        self.frame = ttk.Frame(self, style='Invis.TFrame')
+        # {
+        self.check_fav = ttk.Checkbutton(self.frame, variable=self.var_fav, style='Default.TCheckbutton')
+        self.lbl_msg = ttk.Label(self.frame, justify='left', style='Default.TLabel')
+        # }
         self.btn_add = ttk.Button(self, text='Добавить', command=self.add, takefocus=False, style='Default.TButton')
 
-        self.lbl_wrd.grid(  row=0, column=0,     padx=(6, 1), pady=(6, 3), sticky='E')
-        self.entry_wrd.grid(row=0, column=1,     padx=(0, 6), pady=(6, 3), sticky='W')
-        self.lbl_tr.grid(   row=1, column=0,     padx=(6, 1), pady=(0, 3), sticky='E')
-        self.entry_tr.grid( row=1, column=1,     padx=(0, 6), pady=(0, 3), sticky='W')
-        self.lbl_fav.grid(  row=2, column=0,     padx=(6, 1), pady=(0, 3), sticky='E')
-        self.check_fav.grid(row=2, column=1,     padx=(0, 6), pady=(0, 3), sticky='W')
-        self.btn_add.grid(  row=3, columnspan=2, padx=6,      pady=(0, 6))
+        self.lbl_wrd.grid(  row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
+        self.entry_wrd.grid(row=0, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
+        self.lbl_tr.grid(   row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.entry_tr.grid( row=1, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+        self.lbl_fav.grid(  row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.frame.grid(    row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+        # {
+        self.check_fav.grid(row=0, column=0, padx=0,      pady=0)
+        self.lbl_msg.grid(  row=0, column=1, padx=(6, 0), pady=0)
+        # }
+        self.btn_add.grid(row=3, columnspan=2, padx=6, pady=(0, 6))
 
         btn_disable(self.btn_add)
 
         # При незаполненных полях нельзя нажать кнопку
-        def validate_entries(value: str, second_value: str):
-            if value == '' or second_value == '':
+        def validate_entries(value_wrd: str, value_tr: str):
+            if value_wrd == '' or value_tr == '':
                 btn_disable(self.btn_add)
             else:
                 btn_enable(self.btn_add, self.add)
+
+            words = (entry.wrd for entry in _0_global_dct.d.values())
+            translations = []
+            for tr in (entry.tr for entry in _0_global_dct.d.values()):
+                translations += tr
+
+            if value_wrd in words:
+                keys_with_this_word = (key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].wrd == value_wrd)
+                translations = []
+                for tr in (_0_global_dct.d[key].tr for key in keys_with_this_word):
+                    translations += tr
+                if value_tr in translations:
+                    self.lbl_msg.configure(text='Такая статья уже есть в словаре')
+                else:
+                    self.lbl_msg.configure(text='Такое слово уже есть в словаре')
+            elif value_tr in translations:
+                self.lbl_msg.configure(text='Слово с таким переводом уже есть в словаре')
+            else:
+                self.lbl_msg.configure(text='')
+
             return True
 
         self.vcmd_wrd = (self.register(lambda value: validate_entries(value, self.var_tr.get())), '%P')
-        self.vcmd_tr = (self.register(lambda value: validate_entries(value, self.var_wrd.get())), '%P')
+        self.vcmd_tr = (self.register(lambda value: validate_entries(self.var_wrd.get(), value)), '%P')
         self.entry_wrd['validatecommand'] = self.vcmd_wrd
         self.entry_tr['validatecommand'] = self.vcmd_tr
 
@@ -6568,6 +6598,7 @@ class MainW(tk.Tk):
 
         res = ChooseLearnModeW(self).open()
         if not res:
+            self.enable_all_buttons()
             return
         LearnW(self, res).open()
 
@@ -6585,6 +6616,7 @@ class MainW(tk.Tk):
 
         key = AddW(self).open()
         if not key:
+            self.enable_all_buttons()
             return
         EditW(self, key).open()
 
