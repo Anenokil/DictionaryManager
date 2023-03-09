@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.3'
+PROGRAM_VERSION = 'v7.1.4'
 PROGRAM_DATE = '9.3.2023'
-PROGRAM_TIME = '4:25 (UTC+3)'
+PROGRAM_TIME = '4:38 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -215,6 +215,8 @@ IMAGES_DIR = 'images'  # Папка с изображениями
 IMAGES_PATH = os.path.join(RESOURCES_PATH, IMAGES_DIR)
 TMP_FN = 'tmp.txt'  # Временный файл (для обновления словарей)
 TMP_PATH = os.path.join(RESOURCES_PATH, TMP_FN)
+ICON_FN = 'icon.png'  # Файл с изображением иконки
+ICON_PATH = os.path.join(RESOURCES_PATH, ICON_FN)
 
 # Если папки отсутствуют, то они создаются
 if RESOURCES_DIR not in os.listdir(MAIN_PATH):
@@ -6481,7 +6483,7 @@ class NewVersionAvailableW(tk.Toplevel):
                     os.remove(os.path.join(IMAGES_PATH, filename))
                 except FileNotFoundError:
                     print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
-            for filename in ('ver', 'README.txt', 'README.md', 'main.py'):
+            for filename in ('ver', 'README.txt', 'README.md', 'main.py', 'resources/icon.png'):
                 try:
                     os.remove(os.path.join(MAIN_PATH, filename))
                 except FileNotFoundError:
@@ -6941,6 +6943,7 @@ _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_r
 _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
     upload_local_auto_settings(_0_global_dct_savename)  # Загружаем локальные авто-настройки
 _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
+root.iconphoto(True, tk.PhotoImage(file=ICON_PATH))  # Устанавливаем иконку
 root.mainloop()
 
 """
