@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.2'
-PROGRAM_DATE = '8.3.2023'
-PROGRAM_TIME = '6:16 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.3'
+PROGRAM_DATE = '9.3.2023'
+PROGRAM_TIME = '4:25 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -295,10 +295,9 @@ SPECIAL_COMBINATIONS_OPENING_SYMBOLS = ('^', '~', '`', '\'', '"', '*', '_', ':',
 
 LEARN_VALUES_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову',
                        'Der-Die-Das (для немецкого)')  # Варианты метода учёбы
-LEARN_VALUES_WORDS = ('Все слова', 'Больше избранных (рекоменд.)', 'Только избранные',
-                      'Только неотвеченные', '15 случайных слов',
-                      '15 случайных избранных слов')  # Варианты подбора слов для учёбы
-LEARN_VALUES_FORMS = ('Только начальная форма', 'По одной случайной словоформе',
+LEARN_VALUES_WORDS = ('Все', 'Больше избранных (рекоменд.)', 'Только избранные', 'Только неотвеченные',
+                      '15 случайных', '15 случайных из избранных')  # Варианты подбора слов для учёбы
+LEARN_VALUES_FORMS = ('Только начальная форма', 'По одной случайной словоформе', 'Все формы, кроме начальной',
                       'Все словоформы')  # Варианты подбора словоформ
 LEARN_VALUES_ORDER = ('Случайный порядок', 'В первую очередь сложные')  # Варианты порядка следования слов при учёбе
 PRINT_VALUES_ORDER = ('Сначала старые', 'Сначала новые', 'Сначала сложные', 'Сначала простые',
@@ -2585,7 +2584,7 @@ class PopupDialogueW(tk.Toplevel):
 # Всплывающее окно с полем ввода
 class PopupEntryW(tk.Toplevel):
     def __init__(self, parent, msg='Введите строку', btn_text='Подтвердить',
-                 entry_width=30, default_value='', validate_function=None,
+                 entry_width=45, default_value='', validate_function=None,
                  check_answer_function=None, if_correct_function=None, if_incorrect_function=None, title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
@@ -2600,7 +2599,8 @@ class PopupEntryW(tk.Toplevel):
 
         self.lbl_msg = ttk.Label(self, text=split_text(f'{msg}:', 45, add_right_spaces=False), justify='center',
                                  style='Default.TLabel')
-        self.entry_inp = ttk.Entry(self, textvariable=self.var_text, width=entry_width, style='Default.TEntry')
+        self.entry_inp = ttk.Entry(self, textvariable=self.var_text, width=entry_width,
+                                   style='Default.TEntry', font=('StdFont', _0_global_scale))
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
 
         self.lbl_msg.grid(  row=0, padx=6, pady=(6, 3))
@@ -2757,7 +2757,7 @@ class ChooseLearnModeW(tk.Toplevel):
                                          validate='focusin', width=30, state='readonly', style='Default.TCombobox',
                                          font=('DejaVu Sans Mono', _0_global_scale))
         #
-        self.lbl_words = ttk.Label(self.frame_main, text='Набор слов:', style='Default.TLabel')
+        self.lbl_words = ttk.Label(self.frame_main, text='Набор статей:', style='Default.TLabel')
         self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=LEARN_VALUES_WORDS,
                                         width=30, state='readonly', style='Default.TCombobox',
                                         font=('DejaVu Sans Mono', _0_global_scale))
@@ -2767,7 +2767,7 @@ class ChooseLearnModeW(tk.Toplevel):
                                         width=30, state='readonly', style='Default.TCombobox',
                                         font=('DejaVu Sans Mono', _0_global_scale))
         #
-        self.lbl_order = ttk.Label(self.frame_main, text='Порядок слов:', style='Default.TLabel')
+        self.lbl_order = ttk.Label(self.frame_main, text='Порядок заданий:', style='Default.TLabel')
         self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=LEARN_VALUES_ORDER,
                                         width=30, state='readonly', style='Default.TCombobox',
                                         font=('DejaVu Sans Mono', _0_global_scale))
@@ -3422,11 +3422,14 @@ class EditW(tk.Toplevel):
             self.frm_frames[i].bind('<Control-D>', lambda event, i=i: self.frm_del(self.forms[i]))
             self.frm_frames[i].bind('<Control-d>', lambda event, i=i: self.frm_del(self.forms[i]))
         # Изменяем высоту полей
-        self.scrolled_frame_tr.resize(height=max(1, min(tr_count, self.max_height_t)) *
+        self.scrolled_frame_tr.resize(height=max(1, min(sum([height(btn['text'], 35) for btn in self.tr_buttons]),
+                                                        self.max_height_t)) *
                                              SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
-        self.scrolled_frame_nt.resize(height=max(1, min(nt_count, self.max_height_n)) *
+        self.scrolled_frame_nt.resize(height=max(1, min(sum([height(btn['text'], 35) for btn in self.nt_buttons]),
+                                                        self.max_height_n)) *
                                              SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
-        self.scrolled_frame_frm.resize(height=max(1, min(frm_count, self.max_height_f)) *
+        self.scrolled_frame_frm.resize(height=max(1, min(sum([height(btn['text'], 35) for btn in self.frm_buttons]),
+                                                         self.max_height_f)) *
                                               SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
 
         # Если требуется, прокручиваем вверх
@@ -3507,7 +3510,8 @@ class AddFormW(tk.Toplevel):
         self.frame_form = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.lbl_form = ttk.Label(self.frame_form, text='Форма:', justify='left', style='Default.TLabel')
-        self.entry_form = ttk.Entry(self.frame_form, textvariable=self.var_form, style='Default.TEntry')
+        self.entry_form = ttk.Entry(self.frame_form, textvariable=self.var_form,
+                                    style='Default.TEntry', font=('StdFont', _0_global_scale))
         # }
         self.btn_save = ttk.Button(self, text='Добавить', command=self.save, takefocus=False, style='Default.TButton')
 
@@ -4039,10 +4043,12 @@ class EnterSpecialCombinationW(tk.Toplevel):
                                                  width=3, state='normal', style='Default.TCombobox',
                                                  font=('DejaVu Sans Mono', _0_global_scale))
         self.entry_key_symbol = ttk.Entry(self.frame_main, textvariable=self.var_key_symbol, width=2, justify='right',
-                                          validate='key', validatecommand=self.vcmd_key_symbol, style='Default.TEntry')
+                                          validate='key', validatecommand=self.vcmd_key_symbol, style='Default.TEntry',
+                                          font=('StdFont', _0_global_scale))
         self.lbl_arrow = ttk.Label(self.frame_main, text='->', justify='center', style='Default.TLabel')
         self.entry_val = ttk.Entry(self.frame_main, textvariable=self.var_val, width=2,
-                                   validate='key', validatecommand=self.vcmd_val, style='Default.TEntry')
+                                   validate='key', validatecommand=self.vcmd_val,
+                                   style='Default.TEntry', font=('StdFont', _0_global_scale))
         # }
         self.btn_ok = ttk.Button(self, text='Подтвердить', command=self.ok, takefocus=False, style='Yes.TButton')
 
@@ -4203,7 +4209,8 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.btn_demo_y = ttk.Button(self.frame_demonstration, text='Да', takefocus=False,
                                      style='DemoYes.TButton')
         self.btn_demo_n = ttk.Button(self.frame_demonstration, text='Нет', takefocus=False, style='DemoNo.TButton')
-        self.entry_demo = ttk.Entry(self.frame_demonstration, style='DemoDefault.TEntry', width=21)
+        self.entry_demo = ttk.Entry(self.frame_demonstration, width=21,
+                                    style='DemoDefault.TEntry', font=('StdFont', _0_global_scale))
         self.txt_demo = tk.Text(self.frame_demonstration, font=('StdFont', _0_global_scale), width=12, height=4,
                                 state='normal')
         self.scroll_demo = ttk.Scrollbar(self.frame_demonstration, command=self.txt_demo.yview,
@@ -4734,7 +4741,8 @@ class LearnW(tk.Toplevel):
         # {
         self.btn_input = ttk.Button(self.frame_main, text='Ввод', command=self.input,
                                     takefocus=False, style='Default.TButton')
-        self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=50, style='Default.TEntry')
+        self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=50,
+                                     style='Default.TEntry', font=('StdFont', _0_global_scale))
         self.btn_notes = ttk.Button(self.frame_main, text='Посмотреть сноски', command=self.show_notes,
                                     takefocus=False, style='Default.TButton')
         # }
@@ -4777,6 +4785,8 @@ class LearnW(tk.Toplevel):
                     all_keys += [key]
         else:
             all_keys = tuple(_0_global_dct.d.keys())
+        if self.with_forms == LEARN_VALUES_FORMS[2]:
+            all_keys = tuple(key for key in all_keys if len(_0_global_dct.d[key].forms) != 0)
 
         if self.words == LEARN_VALUES_WORDS[0]:  # Учить все слова
             selected_keys = all_keys
@@ -4784,7 +4794,7 @@ class LearnW(tk.Toplevel):
             selected_keys = [key for key in all_keys if _0_global_dct.d[key].fav]
 
             # Помимо всех избранных слов (пусть их количество N) добавим N // 4 остальных слов
-            # Выберем их из самых давно не отвечаемых слов (и только по одной словоформе для каждого из них)
+            # Выберем их из самых давно не отвечаемых слов
 
             # Отбираем слова, не являющиеся избранными
             unfav_keys = list(k for k in all_keys if not _0_global_dct.d[k].fav)
@@ -4819,6 +4829,10 @@ class LearnW(tk.Toplevel):
             for key in selected_keys:
                 forms = tuple([None]) + tuple(_0_global_dct.d[key].forms.keys())
                 selected_forms += [(key, random.choice(forms))]
+        elif self.with_forms == LEARN_VALUES_FORMS[2]:
+            for key in selected_keys:
+                for frm in _0_global_dct.d[key].forms.keys():
+                    selected_forms += [(key, frm)]
         else:
             for key in selected_keys:
                 selected_forms += [(key, None)]
@@ -5068,7 +5082,7 @@ class PrintW(tk.Toplevel):
                                          command=self.go_to_first_page, style='Default.TCheckbutton')
         self.lbl_forms = ttk.Label(self.frame_parameters, text='Все словоформы:', style='Default.TLabel')
         self.check_forms = ttk.Checkbutton(self.frame_parameters, variable=self.var_forms,
-                                           command=self.go_to_last_page, style='Default.TCheckbutton')
+                                           command=self.go_to_first_page, style='Default.TCheckbutton')
         self.lbl_order = ttk.Label(self.frame_parameters, text='Порядок:', style='Default.TLabel')
         self.combo_order = ttk.Combobox(self.frame_parameters, textvariable=self.var_order, values=PRINT_VALUES_ORDER,
                                         width=26, state='readonly', style='Default.TCombobox',
@@ -5090,8 +5104,8 @@ class PrintW(tk.Toplevel):
         # { { {
         self.lbl_current_page_1 = ttk.Label(self.frame_current_page, text='Страница', style='Default.TLabel')
         self.entry_current_page = ttk.Entry(self.frame_current_page, textvariable=self.var_current_page,
-                                            validate='key', validatecommand=self.vcmd_page,
-                                            justify='center', width=3, style='Default.TEntry')
+                                            validate='key', validatecommand=self.vcmd_page, justify='center', width=3,
+                                            style='Default.TEntry', font=('StdFont', _0_global_scale))
         self.lbl_current_page_2 = ttk.Label(self.frame_current_page, text='из 1', style='Default.TLabel')
         # } } }
         self.btn_next_page = ttk.Button(self.frame_page_buttons, command=self.go_to_next_page, width=2, takefocus=False)
@@ -5108,7 +5122,7 @@ class PrintW(tk.Toplevel):
                                         takefocus=False, style='Default.TButton')
         # }
 
-        self.frame_header.grid(row=0, column=0, padx=6, pady=(6, 0))
+        self.frame_header.grid(row=0, column=0, padx=6, pady=6)
         # {
         self.btn_about_window.grid(row=0, column=0, padx=0, pady=0)
         self.btn_print_out.grid(   row=0, column=1, padx=0, pady=0)
@@ -5427,8 +5441,8 @@ class SearchW(tk.Toplevel):
         # { {
         self.btn_search_settings = ttk.Button(self.frame_query, command=self.search_settings, width=9, takefocus=False)
         set_image(self.btn_search_settings, self.img_settings, img_edit, 'Настройки')
-        self.entry_query = ttk.Entry(self.frame_query, textvariable=self.var_query, width=10 + 3 * _0_global_scale,
-                                     style='Default.TEntry')
+        self.entry_query = ttk.Entry(self.frame_query, textvariable=self.var_query, width=50,
+                                     style='Default.TEntry', font=('StdFont', _0_global_scale))
         self.btn_search = ttk.Button(self.frame_query, text='Поиск', command=lambda: self.print(True),
                                      width=6, takefocus=False, style='Default.TButton')
         # } }
@@ -5449,8 +5463,8 @@ class SearchW(tk.Toplevel):
         # { { {
         self.lbl_current_page_1 = ttk.Label(self.frame_current_page, text='Страница', style='Default.TLabel')
         self.entry_current_page = ttk.Entry(self.frame_current_page, textvariable=self.var_current_page,
-                                            validate='key', validatecommand=self.vcmd_page,
-                                            justify='center', width=3, style='Default.TEntry')
+                                            validate='key', validatecommand=self.vcmd_page, justify='center', width=3,
+                                            style='Default.TEntry', font=('StdFont', _0_global_scale))
         self.lbl_current_page_2 = ttk.Label(self.frame_current_page, text='из 1', style='Default.TLabel')
         # } } }
         self.btn_next_page = ttk.Button(self.frame_page_buttons, command=self.go_to_next_page, width=2, takefocus=False)
@@ -5664,9 +5678,11 @@ class AddW(tk.Toplevel):
         self.var_fav = tk.BooleanVar(value=False)
 
         self.lbl_wrd = ttk.Label(self, text='Введите слово:', style='Default.TLabel')
-        self.entry_wrd = ttk.Entry(self, textvariable=self.var_wrd, width=60, validate='all', style='Default.TEntry')
+        self.entry_wrd = ttk.Entry(self, textvariable=self.var_wrd, width=60, validate='all',
+                                   style='Default.TEntry', font=('StdFont', _0_global_scale))
         self.lbl_tr = ttk.Label(self, text='Введите перевод:', style='Default.TLabel')
-        self.entry_tr = ttk.Entry(self, textvariable=self.var_tr, width=60, validate='all', style='Default.TEntry')
+        self.entry_tr = ttk.Entry(self, textvariable=self.var_tr, width=60, validate='all',
+                                  style='Default.TEntry', font=('StdFont', _0_global_scale))
         self.lbl_fav = ttk.Label(self, text='Избранное:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self, variable=self.var_fav, style='Default.TCheckbutton')
         self.btn_add = ttk.Button(self, text='Добавить', command=self.add, takefocus=False, style='Default.TButton')
@@ -5772,8 +5788,9 @@ class SettingsW(tk.Toplevel):
         set_image(self.btn_about_mgsp, self.img_about, img_about, '?')
         self.lbl_mgsp = ttk.Label(self.frame_mgsp, text='Минимальный приемлемый процент угадываний слова:',
                                   style='Default.TLabel')
-        self.entry_mgsp = ttk.Entry(self.frame_mgsp, textvariable=self.var_mgsp, width=5,
-                                    validate='key', validatecommand=self.vcmd, style='Default.TEntry')
+        self.entry_mgsp = ttk.Entry(self.frame_mgsp, textvariable=self.var_mgsp, width=4,
+                                    validate='key', validatecommand=self.vcmd,
+                                    style='Default.TEntry', font=('StdFont', _0_global_scale))
         # } }
         self.frame_check_register = ttk.Frame(self.tab_local, style='Default.TFrame')
         # { {
@@ -5840,8 +5857,9 @@ class SettingsW(tk.Toplevel):
         self.lbl_themes_note = ttk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
                                                                  f'Актуальные темы можно скачать здесь:',
                                          justify='left', style='Default.TLabel')
-        self.entry_themes_note = ttk.Entry(self.frame_themes, textvariable=self.var_themes_url, state='readonly',
-                                           width=52, justify='center', style='Default.TEntry')
+        self.entry_themes_note = ttk.Entry(self.frame_themes, textvariable=self.var_themes_url,
+                                           state='readonly', width=47, justify='center',
+                                           style='Default.TEntry', font=('StdFont', _0_global_scale))
         self.btn_custom_theme = ttk.Button(self.frame_themes, text='Собственная тема', command=self.custom_theme,
                                            takefocus=False, style='Default.TButton')
         # } }
@@ -6117,6 +6135,14 @@ class SettingsW(tk.Toplevel):
         self.scrolled_frame_dcts.resize(SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
                                         SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.combo_themes.configure(font=('DejaVu Sans Mono', _0_global_scale))
+        self.entry_themes_note.configure(font=('StdFont', _0_global_scale))
+        self.entry_mgsp.configure(font=('StdFont', _0_global_scale))
+
+        # Установка масштаба для окна уведомления об обновлении
+        try:
+            _0_global_window_last_version.entry_url.configure(font=('StdFont', _0_global_scale))
+        except:  # Если окно обновления не открыто
+            pass
 
         self.refresh_scale_buttons()
 
@@ -6133,6 +6159,14 @@ class SettingsW(tk.Toplevel):
         self.scrolled_frame_dcts.resize(SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
                                         SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.combo_themes.configure(font=('DejaVu Sans Mono', _0_global_scale))
+        self.entry_themes_note.configure(font=('StdFont', _0_global_scale))
+        self.entry_mgsp.configure(font=('StdFont', _0_global_scale))
+
+        # Установка масштаба для окна уведомления об обновлении
+        try:
+            _0_global_window_last_version.entry_url.configure(font=('StdFont', _0_global_scale))
+        except:  # Если окно обновления не открыто
+            pass
 
         self.refresh_scale_buttons()
 
@@ -6375,8 +6409,8 @@ class NewVersionAvailableW(tk.Toplevel):
                                  justify='center', style='Default.TLabel')
         self.frame_url = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.entry_url = ttk.Entry(self.frame_url, textvariable=self.var_url, state='readonly', width=45,
-                                   justify='center', style='Default.TEntry')
+        self.entry_url = ttk.Entry(self.frame_url, textvariable=self.var_url, state='readonly', justify='center',
+                                   width=39, style='Default.TEntry', font=('StdFont', _0_global_scale))
         self.btn_open = ttk.Button(self.frame_url, text='Открыть ссылку', command=self.open_github,
                                    takefocus=False, style='Default.TButton')
         # }
@@ -6587,6 +6621,12 @@ class MainW(tk.Tk):
         # Обновляем надпись с названием открытого словаря
         self.lbl_dct_name.config(text=f'Открыт словарь\n'
                                       f'"{split_text(_0_global_dct_savename, 20, add_right_spaces=False)}"')
+
+        # Установка масштаба для окна уведомления об обновлении
+        try:
+            _0_global_window_last_version.entry_url.configure(font=('StdFont', _0_global_scale))
+        except:  # Если окно обновления не открыто
+            pass
 
         self.set_ttk_styles()  # Установка ttk-стилей
 
