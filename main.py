@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.8-PRE-1'
+PROGRAM_VERSION = 'v7.1.8-PRE-2'
 PROGRAM_DATE = '10.3.2023'
-PROGRAM_TIME = '5:33 (UTC+3)'
+PROGRAM_TIME = '5:43 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -2978,16 +2978,12 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
     # Вывод вариантов
     def print(self):
         # Вывод вариантов
-        count = 0
-        while True:
-            key = wrd_to_key(self.search_wrd, count)
-            if key not in _0_global_dct.d.keys():
-                break
+        keys = [key for key in _0_global_dct.d.keys() if key[0] == self.search_wrd]
+        for key in keys:
             self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
                                             text=_0_global_dct.d[key].print_all(75, 13),
                                             command=lambda key=key: self.choose_entry(key),
                                             takefocus=False, style='Note.TButton')]
-            count += 1
 
         # Расположение виджетов
         for i in range(len(self.widgets_wrd)):
