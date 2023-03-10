@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.8-PRE-2'
+PROGRAM_VERSION = 'v7.1.8-PRE-3'
 PROGRAM_DATE = '10.3.2023'
-PROGRAM_TIME = '5:43 (UTC+3)'
+PROGRAM_TIME = '5:57 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -654,16 +654,6 @@ class Dictionary(object):
                 count_f += entry.count_f
         return count_w, count_t, count_f
 
-    # Выбрать одну статью из нескольких с одинаковыми словами
-    def choose_one_of_similar_entries(self, window_parent, wrd: str):
-        if wrd_to_key(wrd, 1) not in self.d.keys():  # Если статья только одна, то возвращает её ключ
-            return wrd_to_key(wrd, 0)
-        window_entries = ChooseOneOfSimilarEntriesW(window_parent, wrd)
-        answer = window_entries.open()
-        if not answer:
-            return None
-        return answer
-
     # Объединить две статьи с одинаковым словом в одну
     def merge_entries(self, main_entry_key: tuple[str, int], additional_entry_key: tuple[str, int]):
         self.count_t -= self.d[additional_entry_key].count_t
@@ -689,36 +679,6 @@ class Dictionary(object):
         self.count_f += self.d[main_entry_key].count_f
 
         self.d.pop(additional_entry_key)
-
-    # Изменить слово в статье
-    def edit_wrd(self, window_parent, key: tuple[str, int], new_wrd: str):
-        if wrd_to_key(new_wrd, 0) in self.d.keys():  # Если в словаре уже есть статья с таким словом
-            window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
-                                                   'Что вы хотите сделать?',
-                                    'Добавить к существующей статье', 'Оставить отдельной статьёй',
-                                    set_enter_on_btn='none', st_left='Default', st_right='Default',
-                                    val_left='l', val_right='r', val_on_close='c')
-            answer = window.open()
-            if answer == 'l':  # Добавить к существующей статье
-                new_key = self.choose_one_of_similar_entries(window_parent, new_wrd)
-                if not new_key:
-                    return None
-                self.merge_entries(new_key, key)
-                return new_key
-            elif answer == 'r':  # Оставить отдельной статьёй
-                new_key = self.add_entry(new_wrd, self.d[key].tr, self.d[key].notes, self.d[key].forms, self.d[key].fav,
-                                         self.d[key].all_att, self.d[key].correct_att, self.d[key].correct_att_in_a_row,
-                                         self.d[key].latest_answer_session)
-                self.delete_entry(key)
-                return new_key
-            else:
-                return None
-        else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
-            new_key = self.add_entry(new_wrd, self.d[key].tr, self.d[key].notes, self.d[key].forms, self.d[key].fav,
-                                     self.d[key].all_att, self.d[key].correct_att, self.d[key].correct_att_in_a_row,
-                                     self.d[key].latest_answer_session)
-            self.delete_entry(key)
-            return new_key
 
     # Добавить перевод к статье
     def add_tr(self, key: tuple[str, int], tr: str):
@@ -768,29 +728,6 @@ class Dictionary(object):
                 self.count_f += self.d[key].count_f
                 return key
             i += 1
-
-    # Добавить статью в словарь (для пользователя)
-    def add_entry_with_choose(self, window_parent, wrd: str, tr: str):
-        if wrd_to_key(wrd, 0) in self.d.keys():  # Если в словаре уже есть статья с таким словом
-            while True:
-                window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
-                                                       'Что вы хотите сделать?',
-                                        'Добавить к существующей статье', 'Создать новую статью',
-                                        set_enter_on_btn='none', st_left='Default', st_right='Default',
-                                        val_left='l', val_right='r', val_on_close='c')
-                answer = window.open()
-                if answer == 'l':  # Добавить к существующей статье
-                    key = self.choose_one_of_similar_entries(window_parent, wrd)
-                    if not key:
-                        return None
-                    self.add_tr(key, tr)
-                    return key
-                elif answer == 'r':  # Создать новую статью
-                    return self.add_entry(wrd, tr)
-                else:
-                    return None
-        else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
-            return self.add_entry(wrd, tr)
 
     # Удалить статью
     def delete_entry(self, key: tuple[str, int]):
@@ -1285,6 +1222,71 @@ def random_smart(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple
 
 
 """ Основные функции """
+
+
+# Выбрать одну статью из нескольких с одинаковыми словами
+def choose_one_of_similar_entries(dct: Dictionary, window_parent, wrd: str):
+    if wrd_to_key(wrd, 1) not in dct.d.keys():  # Если статья только одна, то возвращает её ключ
+        return wrd_to_key(wrd, 0)
+    window_entries = ChooseOneOfSimilarEntriesW(window_parent, wrd)
+    answer = window_entries.open()
+    if not answer:
+        return None
+    return answer
+
+
+# Изменить слово в статье
+def edit_wrd(dct: Dictionary, window_parent, key: tuple[str, int], new_wrd: str):
+    if wrd_to_key(new_wrd, 0) in dct.d.keys():  # Если в словаре уже есть статья с таким словом
+        window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
+                                               'Что вы хотите сделать?',
+                                'Добавить к существующей статье', 'Оставить отдельной статьёй',
+                                set_enter_on_btn='none', st_left='Default', st_right='Default',
+                                val_left='l', val_right='r', val_on_close='c')
+        answer = window.open()
+        if answer == 'l':  # Добавить к существующей статье
+            new_key = choose_one_of_similar_entries(dct, window_parent, new_wrd)
+            if not new_key:
+                return None
+            dct.merge_entries(new_key, key)
+            return new_key
+        elif answer == 'r':  # Оставить отдельной статьёй
+            new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].forms, dct.d[key].fav,
+                                    dct.d[key].all_att, dct.d[key].correct_att, dct.d[key].correct_att_in_a_row,
+                                    dct.d[key].latest_answer_session)
+            dct.delete_entry(key)
+            return new_key
+        else:
+            return None
+    else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
+        new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].forms, dct.d[key].fav,
+                                dct.d[key].all_att, dct.d[key].correct_att, dct.d[key].correct_att_in_a_row,
+                                dct.d[key].latest_answer_session)
+        dct.delete_entry(key)
+        return new_key
+
+
+# Добавить статью в словарь (для пользователя)
+def add_entry_with_choose(dct: Dictionary, window_parent, wrd: str, tr: str):
+    if wrd_to_key(wrd, 0) in dct.d.keys():  # Если в словаре уже есть статья с таким словом
+        window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
+                                               'Что вы хотите сделать?',
+                                'Добавить к существующей статье', 'Создать новую статью',
+                                set_enter_on_btn='none', st_left='Default', st_right='Default',
+                                val_left='l', val_right='r', val_on_close='c')
+        answer = window.open()
+        if answer == 'l':  # Добавить к существующей статье
+            key = choose_one_of_similar_entries(dct, window_parent, wrd)
+            if not key:
+                return None
+            dct.add_tr(key, tr)
+            return key
+        elif answer == 'r':  # Создать новую статью
+            return dct.add_entry(wrd, tr)
+        else:
+            return None
+    else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
+        return dct.add_entry(wrd, tr)
 
 
 # Добавить категорию
@@ -3133,7 +3135,7 @@ class EditW(tk.Toplevel):
         if new_wrd == _0_global_dct.d[self.dct_key].wrd:
             return
 
-        self.dct_key = _0_global_dct.edit_wrd(self, self.dct_key, new_wrd)
+        self.dct_key = edit_wrd(_0_global_dct, self, self.dct_key, new_wrd)
         if not self.dct_key:
             return
 
@@ -5736,8 +5738,8 @@ class AddW(tk.Toplevel):
     def add(self):
         global _0_global_has_progress
 
-        self.dct_key = _0_global_dct.add_entry_with_choose(self, encode_special_combinations(self.var_wrd.get()),
-                                                           encode_special_combinations(self.var_tr.get()))
+        self.dct_key = add_entry_with_choose(_0_global_dct, self, encode_special_combinations(self.var_wrd.get()),
+                                             encode_special_combinations(self.var_tr.get()))
         if not self.dct_key:
             return
         _0_global_dct.d[self.dct_key].fav = self.var_fav.get()
