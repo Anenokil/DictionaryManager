@@ -1,5 +1,4 @@
 import typing
-from aneno_constants import SAVES_VERSION
 from aneno_functions import split_text, tpl, encode_tpl, decode_tpl, set_postfix, wrd_to_key
 
 
@@ -517,9 +516,9 @@ class Dictionary(object):
                     self.d[key].add_to_fav()
 
     # Сохранить словарь в файл
-    def save(self, filepath: str):
+    def save(self, filepath: str, saves_version: int | str = 0):
         with open(filepath, 'w', encoding='utf-8') as file:
-            file.write(f'v{SAVES_VERSION}\n')
+            file.write(f'v{saves_version}\n')
             for entry in self.d.values():
                 entry.save(file)
 

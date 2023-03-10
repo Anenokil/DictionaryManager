@@ -2,6 +2,7 @@ import copy
 import platform
 import shutil
 import random
+import math
 import tkinter as tk
 from tkinter import colorchooser
 import tkinter.ttk as ttk
@@ -12,9 +13,8 @@ import webbrowser  # Для открытия веб-страницы
 import urllib.request as urllib2  # Для проверки наличия обновлений
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
-import typing  # Аннотации
-from aneno_dct import Dictionary
-from aneno_functions import *
+from aneno_dct import *
+from aneno_functions import width, height, split_text, arr_to_str, tpl, encode_tpl, decode_tpl, wrd_to_key, key_to_wrd
 from aneno_constants import *
 
 """ Темы """
@@ -1484,7 +1484,7 @@ def create_dct(dct: Dictionary, savename: str):
 # Сохранить словарь
 def save_dct(dct: Dictionary, savename: str):
     filepath = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
-    dct.save(filepath)
+    dct.save(filepath, SAVES_VERSION)
 
 
 # Предложить сохранение словаря, если есть изменения
