@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.8-PRE-4'
+PROGRAM_VERSION = 'v7.1.8-PRE-5'
 PROGRAM_DATE = '10.3.2023'
-PROGRAM_TIME = '6:07 (UTC+3)'
+PROGRAM_TIME = '7:02 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -2784,7 +2784,10 @@ class ChooseLearnModeW(tk.Toplevel):
         global _0_global_learn_settings
 
         method = self.var_method.get()
-        forms = self.var_forms.get()
+        if method == LEARN_VALUES_METHOD[0]:
+            forms = self.var_forms.get()
+        else:
+            forms = LEARN_VALUES_FORMS[0]
         words = self.var_words.get()
         order = self.var_order.get()
         self.res = (method, forms, words, order)
