@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.8-PRE-3'
+PROGRAM_VERSION = 'v7.1.8-PRE-4'
 PROGRAM_DATE = '10.3.2023'
-PROGRAM_TIME = '5:57 (UTC+3)'
+PROGRAM_TIME = '6:07 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -1236,7 +1236,7 @@ def choose_one_of_similar_entries(dct: Dictionary, window_parent, wrd: str):
 
 
 # Изменить слово в статье
-def edit_wrd(dct: Dictionary, window_parent, key: tuple[str, int], new_wrd: str):
+def edit_wrd_with_choose(dct: Dictionary, window_parent, key: tuple[str, int], new_wrd: str):
     if wrd_to_key(new_wrd, 0) in dct.d.keys():  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                'Что вы хотите сделать?',
@@ -1247,7 +1247,7 @@ def edit_wrd(dct: Dictionary, window_parent, key: tuple[str, int], new_wrd: str)
         if answer == 'l':  # Добавить к существующей статье
             new_key = choose_one_of_similar_entries(dct, window_parent, new_wrd)
             if not new_key:
-                return None
+                return key
             dct.merge_entries(new_key, key)
             return new_key
         elif answer == 'r':  # Оставить отдельной статьёй
@@ -1257,7 +1257,7 @@ def edit_wrd(dct: Dictionary, window_parent, key: tuple[str, int], new_wrd: str)
             dct.delete_entry(key)
             return new_key
         else:
-            return None
+            return key
     else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
         new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].forms, dct.d[key].fav,
                                 dct.d[key].all_att, dct.d[key].correct_att, dct.d[key].correct_att_in_a_row,
@@ -3135,9 +3135,10 @@ class EditW(tk.Toplevel):
         if new_wrd == _0_global_dct.d[self.dct_key].wrd:
             return
 
-        self.dct_key = edit_wrd(_0_global_dct, self, self.dct_key, new_wrd)
-        if not self.dct_key:
+        new_key = edit_wrd_with_choose(_0_global_dct, self, self.dct_key, new_wrd)
+        if new_key == self.dct_key:
             return
+        self.dct_key = new_key
 
         _0_global_has_progress = True
         self.refresh(False)
