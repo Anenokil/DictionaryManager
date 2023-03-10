@@ -19,9 +19,9 @@ import typing  # Аннотации
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.7'
-PROGRAM_DATE = '9.3.2023'
-PROGRAM_TIME = '23:00 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.8-PRE-1'
+PROGRAM_DATE = '10.3.2023'
+PROGRAM_TIME = '5:33 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -30,6 +30,19 @@ LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальны
 LOCAL_AUTO_SETTINGS_VERSION = 3  # Актуальная версия автосохраняемых локальных настроек
 GLOBAL_SETTINGS_VERSION = 3  # Актуальная версия глобальных настроек
 REQUIRED_THEME_VERSION = 6  # Актуальная версия тем
+
+""" Варианты для Combobox`ов """
+
+LEARN_VALUES_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову',
+                       'Der-Die-Das (для немецкого)')  # Варианты метода учёбы
+LEARN_VALUES_WORDS = ('Все', 'Больше избранных (рекоменд.)', 'Только избранные', 'Только неотвеченные',
+                      '15 случайных', '15 случайных из избранных')  # Варианты подбора слов для учёбы
+LEARN_VALUES_FORMS = ('Только начальная форма', 'По одной случайной словоформе', 'Все формы, кроме начальной',
+                      'Все словоформы')  # Варианты подбора словоформ
+LEARN_VALUES_ORDER = ('Случайный порядок', 'В первую очередь сложные')  # Варианты порядка следования слов при учёбе
+PRINT_VALUES_ORDER = ('Сначала старые', 'Сначала новые', 'Сначала сложные', 'Сначала простые',
+                      'Сначала давно отвеченные',
+                      'Сначала недавно отвеченные')  # Варианты порядка следования слов при учёбе
 
 """ Масштаб """
 
@@ -218,27 +231,6 @@ TMP_PATH = os.path.join(RESOURCES_PATH, TMP_FN)
 ICON_FN = 'icon.png'  # Файл с изображением иконки
 ICON_PATH = os.path.join(RESOURCES_PATH, ICON_FN)
 
-# Если папки отсутствуют, то они создаются
-if RESOURCES_DIR not in os.listdir(MAIN_PATH):
-    os.mkdir(RESOURCES_PATH)
-if SAVES_DIR not in os.listdir(RESOURCES_PATH):
-    os.mkdir(SAVES_PATH)
-if ADDITIONAL_THEMES_DIR not in os.listdir(RESOURCES_PATH):
-    os.mkdir(ADDITIONAL_THEMES_PATH)
-if CUSTOM_THEME_DIR not in os.listdir(RESOURCES_PATH):
-    os.mkdir(CUSTOM_THEME_PATH)
-if IMAGES_DIR not in os.listdir(RESOURCES_PATH):
-    os.mkdir(IMAGES_PATH)
-
-if THEMES[1] not in os.listdir(ADDITIONAL_THEMES_PATH):
-    os.mkdir(os.path.join(ADDITIONAL_THEMES_PATH, THEMES[1]))
-if THEMES[2] not in os.listdir(ADDITIONAL_THEMES_PATH):
-    os.mkdir(os.path.join(ADDITIONAL_THEMES_PATH, THEMES[2]))
-
-# Если временный файл не удалён, то он удаляется
-if TMP_FN in os.listdir(RESOURCES_PATH):
-    os.remove(TMP_PATH)
-
 # Изображения
 IMG_NAMES = ['about_mgsp', 'about_typo', 'about',
              'ok', 'cancel',
@@ -296,17 +288,6 @@ CATEGORY_SEPARATOR = '@'
 # Открывающие символы специальных комбинаций
 SPECIAL_COMBINATIONS_OPENING_SYMBOLS = ('^', '~', '`', '\'', '"', '*', '_', ':', '/', '\\', '|', '#', '$', '%', '&')
 
-LEARN_VALUES_METHOD = ('Угадывать слово по переводу', 'Угадывать перевод по слову',
-                       'Der-Die-Das (для немецкого)')  # Варианты метода учёбы
-LEARN_VALUES_WORDS = ('Все', 'Больше избранных (рекоменд.)', 'Только избранные', 'Только неотвеченные',
-                      '15 случайных', '15 случайных из избранных')  # Варианты подбора слов для учёбы
-LEARN_VALUES_FORMS = ('Только начальная форма', 'По одной случайной словоформе', 'Все формы, кроме начальной',
-                      'Все словоформы')  # Варианты подбора словоформ
-LEARN_VALUES_ORDER = ('Случайный порядок', 'В первую очередь сложные')  # Варианты порядка следования слов при учёбе
-PRINT_VALUES_ORDER = ('Сначала старые', 'Сначала новые', 'Сначала сложные', 'Сначала простые',
-                      'Сначала давно отвеченные',
-                      'Сначала недавно отвеченные')  # Варианты порядка следования слов при учёбе
-
 """ Объекты """
 
 
@@ -348,7 +329,7 @@ class Entry(object):
         self.fav = fav
         self.all_att = all_att
         self.correct_att = correct_att
-        self.score = correct_att / all_att if (all_att != 0) else 0
+        self.score = 0 if (all_att == 0) else correct_att / all_att
         self.correct_att_in_a_row = correct_att_in_a_row
         self.latest_answer_session = latest_answer_session
 
@@ -408,18 +389,6 @@ class Entry(object):
         tab_percent = ' ' * (4 - len(percent))
         res = f'[{tab_correct}{correct_att_in_a_row}:{tab_percent}{percent}]'
         return res
-
-    # Добавить в избранное
-    def add_to_fav(self):
-        self.fav = True
-
-    # Убрать из избранного
-    def remove_from_fav(self):
-        self.fav = False
-
-    # Изменить статус избранного
-    def change_fav(self):
-        self.fav = not self.fav
 
     # Служебный метод для print_briefly и print_briefly_with_forms
     def _print_briefly(self):
@@ -490,6 +459,18 @@ class Entry(object):
             res += f'             2) Доля верных ответов: '
             res += f'{self.correct_att}/{self.all_att} = ' + '{:.0%}'.format(self.score)
         return split_text(res, len_str, tab=tab)
+
+    # Добавить в избранное
+    def add_to_fav(self):
+        self.fav = True
+
+    # Убрать из избранного
+    def remove_from_fav(self):
+        self.fav = False
+
+    # Изменить статус избранного
+    def change_fav(self):
+        self.fav = not self.fav
 
     # Добавить перевод
     def add_tr(self, new_tr: str):
@@ -580,7 +561,7 @@ class Entry(object):
     def merge_stat(self, all_att: int, correct_att: int, correct_att_in_a_row: int):
         self.all_att += all_att
         self.correct_att += correct_att
-        self.score = self.correct_att / self.all_att if (self.all_att != 0) else 0
+        self.score = 0 if (self.all_att == 0) else self.correct_att / self.all_att
         self.correct_att_in_a_row += correct_att_in_a_row
 
     # Обновить статистику, если совершена верная попытка
@@ -621,21 +602,21 @@ class Entry(object):
 
     # Распечатать статью в файл
     def print_out(self, file: typing.TextIO):
-        file.write(f'|{self.wrd} - {self.tr[0]}')
+        if self.fav:
+            file.write('| (Избр.)\n')
+        file.write(f'| {self.wrd} - {self.tr[0]}')
         for i in range(1, self.count_t):
             file.write(f', {self.tr[i]}')
         file.write('\n')
-        for note in self.notes:
-            file.write(f'| ~ {note}\n')
         for frm_template in self.forms.keys():
-            file.write(f'| [{tpl(frm_template)}] {self.forms[frm_template]}\n')
-        if self.fav:
-            file.write('| <Избр>\n')
+            file.write(f'|  [{tpl(frm_template)}] {self.forms[frm_template]}\n')
+        for note in self.notes:
+            file.write(f'| > {note}\n')
 
 
 # Словарь
 class Dictionary(object):
-    # self.d: dict[tuple[str, int], Entry] - сам словарь
+    # self.d - сам словарь
     # self.count_w - количество статей (слов) в словаре
     # self.count_t - количество переводов в словаре
     # self.count_f - количество неначальных словоформ в словаре
@@ -683,12 +664,38 @@ class Dictionary(object):
             return None
         return answer
 
+    # Объединить две статьи с одинаковым словом в одну
+    def merge_entries(self, main_entry_key: tuple[str, int], additional_entry_key: tuple[str, int]):
+        self.count_t -= self.d[additional_entry_key].count_t
+        self.count_t -= self.d[main_entry_key].count_t
+        self.count_f -= self.d[additional_entry_key].count_f
+        self.count_f -= self.d[main_entry_key].count_f
+
+        for tr in self.d[additional_entry_key].tr:
+            self.d[main_entry_key].add_tr(tr)
+        for note in self.d[additional_entry_key].notes:
+            self.d[main_entry_key].add_note(note)
+        for frm_key in self.d[additional_entry_key].forms.keys():
+            frm = self.d[additional_entry_key].forms[frm_key]
+            self.d[main_entry_key].add_frm(frm_key, frm)
+        if self.d[additional_entry_key].fav:
+            self.d[main_entry_key].fav = True
+        self.d[main_entry_key].merge_stat(self.d[additional_entry_key].all_att,
+                                          self.d[additional_entry_key].correct_att,
+                                          self.d[additional_entry_key].correct_att_in_a_row)
+
+        self.count_w -= 1
+        self.count_t += self.d[main_entry_key].count_t
+        self.count_f += self.d[main_entry_key].count_f
+
+        self.d.pop(additional_entry_key)
+
     # Изменить слово в статье
     def edit_wrd(self, window_parent, key: tuple[str, int], new_wrd: str):
         if wrd_to_key(new_wrd, 0) in self.d.keys():  # Если в словаре уже есть статья с таким словом
             window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                    'Что вы хотите сделать?',
-                                    'Добавить к существующей статье', 'Создать новую статью',
+                                    'Добавить к существующей статье', 'Оставить отдельной статьёй',
                                     set_enter_on_btn='none', st_left='Default', st_right='Default',
                                     val_left='l', val_right='r', val_on_close='c')
             answer = window.open()
@@ -696,49 +703,21 @@ class Dictionary(object):
                 new_key = self.choose_one_of_similar_entries(window_parent, new_wrd)
                 if not new_key:
                     return None
-
-                self.count_t -= self.d[key].count_t
-                self.count_t -= self.d[new_key].count_t
-                self.count_f -= self.d[key].count_f
-                self.count_f -= self.d[new_key].count_f
-
-                for tr in self.d[key].tr:
-                    self.d[new_key].add_tr(tr)
-                for note in self.d[key].notes:
-                    self.d[new_key].add_note(note)
-                for frm_key in self.d[key].forms.keys():
-                    frm = self.d[key].forms[frm_key]
-                    self.d[new_key].add_frm(frm_key, frm)
-                if self.d[key].fav:
-                    self.d[new_key].fav = True
-                self.d[new_key].merge_stat(self.d[key].all_att, self.d[key].correct_att,
-                                           self.d[key].correct_att_in_a_row)
-
-                self.count_w -= 1
-                self.count_t += self.d[new_key].count_t
-                self.count_f += self.d[new_key].count_f
-
-                self.d.pop(key)
+                self.merge_entries(new_key, key)
                 return new_key
-            elif answer == 'r':  # Создать новую статью
-                i = 0
-                while True:
-                    new_key = wrd_to_key(new_wrd, i)
-                    if new_key not in self.d.keys():
-                        self.d[new_key] = Entry(new_wrd, self.d[key].tr, self.d[key].notes, self.d[key].forms,
-                                                self.d[key].fav, self.d[key].all_att, self.d[key].correct_att,
-                                                self.d[key].correct_att_in_a_row)
-                        self.d.pop(key)
-                        return new_key
-                    i += 1
+            elif answer == 'r':  # Оставить отдельной статьёй
+                new_key = self.add_entry(new_wrd, self.d[key].tr, self.d[key].notes, self.d[key].forms, self.d[key].fav,
+                                         self.d[key].all_att, self.d[key].correct_att, self.d[key].correct_att_in_a_row,
+                                         self.d[key].latest_answer_session)
+                self.delete_entry(key)
+                return new_key
             else:
                 return None
         else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
-            new_key = wrd_to_key(new_wrd, 0)
-            self.d[new_key] = Entry(new_wrd, self.d[key].tr, self.d[key].notes, self.d[key].forms,
-                                    self.d[key].fav, self.d[key].all_att, self.d[key].correct_att,
-                                    self.d[key].correct_att_in_a_row)
-            self.d.pop(key)
+            new_key = self.add_entry(new_wrd, self.d[key].tr, self.d[key].notes, self.d[key].forms, self.d[key].fav,
+                                     self.d[key].all_att, self.d[key].correct_att, self.d[key].correct_att_in_a_row,
+                                     self.d[key].latest_answer_session)
+            self.delete_entry(key)
             return new_key
 
     # Добавить перевод к статье
@@ -773,8 +752,25 @@ class Dictionary(object):
         self.d[key].delete_frm(frm_key)
         self.count_f += self.d[key].count_f
 
+    # Добавить статью в словарь
+    def add_entry(self, wrd: str, tr: str | list[str],
+                  notes: str | list[str] = None, forms: dict[tuple[str, ...], str] = None,
+                  fav: bool = False, all_att: int = 0, correct_att: int = 0, correct_att_in_a_row: int = 0,
+                  latest_answer_session: tuple[int, int, int] = (0, 0, 0)):
+        i = 0
+        while True:
+            key = wrd_to_key(wrd, i)
+            if key not in self.d.keys():
+                self.d[key] = Entry(wrd, tr, notes, forms, fav, all_att, correct_att, correct_att_in_a_row,
+                                    latest_answer_session)
+                self.count_w += 1
+                self.count_t += self.d[key].count_t
+                self.count_f += self.d[key].count_f
+                return key
+            i += 1
+
     # Добавить статью в словарь (для пользователя)
-    def add_entry(self, window_parent, wrd: str, tr: str):
+    def add_entry_with_choose(self, window_parent, wrd: str, tr: str):
         if wrd_to_key(wrd, 0) in self.d.keys():  # Если в словаре уже есть статья с таким словом
             while True:
                 window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
@@ -790,38 +786,11 @@ class Dictionary(object):
                     self.add_tr(key, tr)
                     return key
                 elif answer == 'r':  # Создать новую статью
-                    i = 0
-                    while True:
-                        key = wrd_to_key(wrd, i)
-                        if key not in self.d.keys():
-                            self.d[key] = Entry(wrd, [tr])
-                            self.count_w += 1
-                            self.count_t += 1
-                            return key
-                        i += 1
+                    return self.add_entry(wrd, tr)
                 else:
                     return None
         else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
-            key = wrd_to_key(wrd, 0)
-            self.d[key] = Entry(wrd, [tr])
-            self.count_w += 1
-            self.count_t += 1
-            return key
-
-    # Добавить статью в словарь (при чтении файла)
-    def load_entry(self, wrd: str, tr: str, all_att: int, correct_att: int, correct_att_in_a_row: int,
-                   latest_answer_session: tuple[int, int, int]):
-        i = 0
-        while True:
-            key = wrd_to_key(wrd, i)
-            if key not in self.d.keys():
-                self.d[key] = Entry(wrd, [tr], all_att=all_att, correct_att=correct_att,
-                                    correct_att_in_a_row=correct_att_in_a_row,
-                                    latest_answer_session=latest_answer_session)
-                self.count_w += 1
-                self.count_t += 1
-                return key
-            i += 1
+            return self.add_entry(wrd, tr)
 
     # Удалить статью
     def delete_entry(self, key: tuple[str, int]):
@@ -888,7 +857,9 @@ class Dictionary(object):
                     all_att, correct_att, correct_att_in_a_row = (int(el) for el in file.readline().strip().split(':'))
                     latest_answer_session = tuple((int(el) for el in file.readline().strip().split(':')))
                     tr = file.readline().strip()
-                    key = self.load_entry(wrd, tr, all_att, correct_att, correct_att_in_a_row, latest_answer_session)
+                    key = self.add_entry(wrd, tr, all_att=all_att, correct_att=correct_att,
+                                         correct_att_in_a_row=correct_att_in_a_row,
+                                         latest_answer_session=latest_answer_session)
                 elif line[0] == 't':
                     self.add_tr(key, line[1:])
                 elif line[0] == 'n':
@@ -5769,8 +5740,8 @@ class AddW(tk.Toplevel):
     def add(self):
         global _0_global_has_progress
 
-        self.dct_key = _0_global_dct.add_entry(self, encode_special_combinations(self.var_wrd.get()),
-                                               encode_special_combinations(self.var_tr.get()))
+        self.dct_key = _0_global_dct.add_entry_with_choose(self, encode_special_combinations(self.var_wrd.get()),
+                                                           encode_special_combinations(self.var_tr.get()))
         if not self.dct_key:
             return
         _0_global_dct.d[self.dct_key].fav = self.var_fav.get()
@@ -6996,6 +6967,27 @@ class MainW(tk.Tk):
     def set_focus(self):
         self.focus_set()
 
+
+# Если папки отсутствуют, то они создаются
+if RESOURCES_DIR not in os.listdir(MAIN_PATH):
+    os.mkdir(RESOURCES_PATH)
+if SAVES_DIR not in os.listdir(RESOURCES_PATH):
+    os.mkdir(SAVES_PATH)
+if ADDITIONAL_THEMES_DIR not in os.listdir(RESOURCES_PATH):
+    os.mkdir(ADDITIONAL_THEMES_PATH)
+if CUSTOM_THEME_DIR not in os.listdir(RESOURCES_PATH):
+    os.mkdir(CUSTOM_THEME_PATH)
+if IMAGES_DIR not in os.listdir(RESOURCES_PATH):
+    os.mkdir(IMAGES_PATH)
+
+if THEMES[1] not in os.listdir(ADDITIONAL_THEMES_PATH):
+    os.mkdir(os.path.join(ADDITIONAL_THEMES_PATH, THEMES[1]))
+if THEMES[2] not in os.listdir(ADDITIONAL_THEMES_PATH):
+    os.mkdir(os.path.join(ADDITIONAL_THEMES_PATH, THEMES[2]))
+
+# Если временный файл не удалён, то он удаляется
+if TMP_FN in os.listdir(RESOURCES_PATH):
+    os.remove(TMP_PATH)
 
 # Вывод информации о программе
 CONSOLE_LOGO_FRAME_WIDTH = 85
