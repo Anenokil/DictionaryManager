@@ -14,7 +14,7 @@ import urllib.request as urllib2  # Для проверки наличия об�
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
 from aneno_dct import *
-from aneno_functions import width, height, split_text, arr_to_str, tpl, encode_tpl, decode_tpl, wrd_to_key, key_to_wrd
+from aneno_functions import split_text, arr_to_str, encode_tpl, decode_tpl, wrd_to_key, key_to_wrd
 from aneno_constants import *
 
 """ Темы """
@@ -585,7 +585,7 @@ def search_entries(dct: Dictionary, keys: tuple[tuple[str, int], ...], query: st
                     if find_and_highlight(tr, query) != '':
                         if key not in full_matches:
                             particulary_matches.add(key)
-            #print( tpl(tuple(find_and_highlight(tr, query) for tr in entry.tr)) )
+            #print(frm_key_to_str(tuple(find_and_highlight(tr, query) for tr in entry.tr)))
     if search_frm:
         for key in keys:
             entry = dct.d[key]
@@ -1513,6 +1513,25 @@ def dct_import(savename: str, src_path: str):
 """ Графический интерфейс - вспомогательные функции """
 
 
+# Вычислить ширину моноширинного поля, в которое должно помещаться каждое из данных значений
+def combobox_width(values: tuple[str, ...] | list[str], min_width: int, max_width: int):
+    assert min_width >= 0
+    assert max_width >= 0
+    assert max_width >= min_width
+
+    max_len_of_vals = max(len(val) for val in values)
+    return min(max(max_len_of_vals, min_width), max_width)
+
+
+# Вычислить количество строк, необходимых для записи данного текста
+# в многострочное текстовое поле при данной длине строки
+def field_height(text: str, len_str: int):
+    assert len_str > 0
+
+    segments = text.split('\n')
+    return sum(math.ceil(len(segment) / len_str) for segment in segments)
+
+
 # Вывести сообщение с предупреждением
 def warning(window_parent, msg: str):
     PopupMsgW(window_parent, msg, title='Warning').open()
@@ -2417,8 +2436,8 @@ class EditW(tk.Toplevel):
                           'Настройки/Настройки словаря/Грамматические категории')
             return
 
-        window_form = AddFormW(self, self.dct_key, combo_width=width(tuple(_0_global_categories.keys()),
-                                                                     5, 100))  # Создание словоформы
+        window_form = AddFormW(self, self.dct_key, combo_width=combobox_width(tuple(_0_global_categories.keys()),
+                                                                              5, 100))  # Создание словоформы
         frm_key, frm = window_form.open()
         if not frm_key:
             return
@@ -2483,7 +2502,7 @@ class EditW(tk.Toplevel):
         self.txt_wrd.insert(tk.END, _0_global_dct.d[self.dct_key].wrd)
         self.txt_wrd['state'] = 'disabled'
         #
-        height_w = max(min(height(_0_global_dct.d[self.dct_key].wrd, self.line_width), self.max_height_w), 1)
+        height_w = max(min(field_height(_0_global_dct.d[self.dct_key].wrd, self.line_width), self.max_height_w), 1)
         self.txt_wrd['height'] = height_w
         #
         if height_w < self.max_height_w:
@@ -2537,8 +2556,7 @@ class EditW(tk.Toplevel):
             self.nt_buttons[i].configure(text=split_text(nt, 35))
         for i in range(frm_count):
             frm = self.forms[i]
-            self.frm_buttons[i].configure(text=split_text(f'[{tpl(frm)}] {_0_global_dct.d[self.dct_key].forms[frm]}',
-                                                          35))
+            self.frm_buttons[i].configure(text=split_text(f'[{frm_key_to_str(frm)}] {_0_global_dct.d[self.dct_key].forms[frm]}', 35))
         # Расставляем элементы
         for i in range(tr_count):
             self.tr_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
@@ -2569,13 +2587,16 @@ class EditW(tk.Toplevel):
             self.frm_frames[i].bind('<Control-D>', lambda event, i=i: self.frm_del(self.forms[i]))
             self.frm_frames[i].bind('<Control-d>', lambda event, i=i: self.frm_del(self.forms[i]))
         # Изменяем высоту полей
-        self.scrolled_frame_tr.resize(height=max(1, min(sum([height(btn['text'], 35) for btn in self.tr_buttons]),
+        self.scrolled_frame_tr.resize(height=max(1, min(sum([field_height(btn['text'], 35)
+                                                             for btn in self.tr_buttons]),
                                                         self.max_height_t)) *
                                              SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
-        self.scrolled_frame_nt.resize(height=max(1, min(sum([height(btn['text'], 35) for btn in self.nt_buttons]),
+        self.scrolled_frame_nt.resize(height=max(1, min(sum([field_height(btn['text'], 35)
+                                                             for btn in self.nt_buttons]),
                                                         self.max_height_n)) *
                                              SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
-        self.scrolled_frame_frm.resize(height=max(1, min(sum([height(btn['text'], 35) for btn in self.frm_buttons]),
+        self.scrolled_frame_frm.resize(height=max(1, min(sum([field_height(btn['text'], 35)
+                                                              for btn in self.frm_buttons]),
                                                          self.max_height_f)) *
                                               SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
 
@@ -2641,7 +2662,7 @@ class AddFormW(tk.Toplevel):
         self.frame_val = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.combo_val = ttk.Combobox(self.frame_val, textvariable=self.var_val, values=self.ctg_values,
-                                      width=width(self.ctg_values, 5, 100),
+                                      width=combobox_width(self.ctg_values, 5, 100),
                                       state='readonly', style='Default.TCombobox',
                                       font=('DejaVu Sans Mono', _0_global_scale))
         self.btn_choose = ttk.Button(self.frame_val, command=self.choose, takefocus=False)
@@ -2695,7 +2716,7 @@ class AddFormW(tk.Toplevel):
             return
         self.template[index] = val
 
-        self.var_template.set(f'Текущий шаблон словоформы: "{tpl(self.template)}"')
+        self.var_template.set(f'Текущий шаблон словоформы: "{frm_key_to_str(self.template)}"')
 
         if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
             btn_disable(self.btn_save)
@@ -2718,7 +2739,7 @@ class AddFormW(tk.Toplevel):
 
         self.template[index] = ''
 
-        self.var_template.set(f'Текущий шаблон словоформы: "{tpl(self.template)}"')
+        self.var_template.set(f'Текущий шаблон словоформы: "{frm_key_to_str(self.template)}"')
 
         if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
             btn_disable(self.btn_save)
@@ -2748,7 +2769,7 @@ class AddFormW(tk.Toplevel):
         self.ctg_values = list(_0_global_categories[self.var_ctg.get()])
         self.var_val = tk.StringVar(value=self.ctg_values[0])
         self.combo_val.configure(textvariable=self.var_val, values=self.ctg_values,
-                                 width=width(self.ctg_values, 5, 100))
+                                 width=combobox_width(self.ctg_values, 5, 100))
         return True
 
     # Установить фокус
@@ -4126,7 +4147,7 @@ class LearnW(tk.Toplevel):
             is_correct = encode_special_combinations(self.entry_input.get()) in entry.tr
         else:
             is_correct = encode_special_combinations(self.entry_input.get()).lower() in (tr.lower() for tr in entry.tr)
-        self.check_answer(tpl(entry.tr), is_correct, self.current_key)
+        self.check_answer(frm_key_to_str(entry.tr), is_correct, self.current_key)
 
     # Проверка введённого артикля
     def check_article(self):
@@ -5679,8 +5700,8 @@ class NewVersionAvailableW(tk.Toplevel):
                     os.remove(os.path.join(IMAGES_PATH, filename))
                 except FileNotFoundError:
                     print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
-            for filename in ('README.md', 'resources/icon.png',
-                             'aneno_dct.py', 'aneno_functions.py', 'aneno_constants.py', 'main.py'):
+            for filename in ('resources/icon.png', 'aneno_dct.py', 'aneno_functions.py', 'aneno_constants.py',
+                             'main.py'):
                 try:
                     os.remove(os.path.join(MAIN_PATH, filename))
                 except FileNotFoundError:

@@ -1,24 +1,4 @@
-import math
 from aneno_constants import CATEGORY_SEPARATOR
-
-
-# Вычислить ширину моноширинного поля, в которое должно помещаться каждое из данных значений
-def width(values: tuple[str, ...] | list[str], min_width: int, max_width: int):
-    assert min_width >= 0
-    assert max_width >= 0
-    assert max_width >= min_width
-
-    max_len_of_vals = max(len(val) for val in values)
-    return min(max(max_len_of_vals, min_width), max_width)
-
-
-# Вычислить количество строк, необходимых для записи данного текста
-# в многострочное текстовое поле при данной длине строки
-def height(text: str, len_str: int):
-    assert len_str > 0
-
-    segments = text.split('\n')
-    return sum(math.ceil(len(segment) / len_str) for segment in segments)
 
 
 # Разделить строку на слова
@@ -122,20 +102,6 @@ def arr_to_str(arr: list[str] | tuple[str, ...]):
     res = ''
     for frag in arr:
         res += frag
-    return res
-
-
-# Преобразовать кортеж в читаемый вид (для вывода на экран)
-def tpl(input_tuple: tuple | list):
-    res = ''
-    is_first = True
-    for i in range(len(input_tuple)):
-        if input_tuple[i] != '':
-            if is_first:  # Перед первым элементом не ставится запятая
-                res += f'{input_tuple[i]}'
-                is_first = False
-            else:  # Перед последующими элементами ставится запятая
-                res += f', {input_tuple[i]}'
     return res
 
 

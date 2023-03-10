@@ -1,5 +1,19 @@
 import typing
-from aneno_functions import split_text, tpl, encode_tpl, decode_tpl, set_postfix, wrd_to_key
+from aneno_functions import split_text, encode_tpl, decode_tpl, set_postfix, wrd_to_key
+
+
+# Преобразовать шаблон словоформы (кортеж) в читаемый вид (для вывода на экран)
+def frm_key_to_str(input_tuple: tuple | list):
+    res = ''
+    is_first = True
+    for i in range(len(input_tuple)):
+        if input_tuple[i] != '':
+            if is_first:  # Перед первым элементом не ставится запятая
+                res += f'{input_tuple[i]}'
+                is_first = False
+            else:  # Перед последующими элементами ставится запятая
+                res += f', {input_tuple[i]}'
+    return res
 
 
 # Словарная статья
@@ -67,9 +81,9 @@ class Entry(object):
         res = ''
         keys = tuple(self.forms.keys())
         if self.count_f != 0:
-            res += ' ' * tab + f'[{tpl(keys[0])}] {self.forms[keys[0]]}'
+            res += ' ' * tab + f'[{frm_key_to_str(keys[0])}] {self.forms[keys[0]]}'
             for i in range(1, len(keys)):
-                res += '\n' + ' ' * tab + f'[{tpl(keys[i])}] {self.forms[keys[i]]}'
+                res += '\n' + ' ' * tab + f'[{frm_key_to_str(keys[i])}] {self.forms[keys[i]]}'
         return res
 
     # Напечатать количество ошибок после последнего верного ответа
@@ -138,7 +152,7 @@ class Entry(object):
 
     # Напечатать статью - перевод со словоформой и со статистикой
     def print_tr_and_frm_with_stat(self, frm_key: tuple[str, ...] | list[str]):
-        res = f'{self.tr_print()} ({tpl(frm_key)}) {self.stat_print()}'
+        res = f'{self.tr_print()} ({frm_key_to_str(frm_key)}) {self.stat_print()}'
         return res
 
     # Напечатать статью - со всей информацией
@@ -151,9 +165,9 @@ class Entry(object):
             res += '-\n'
         else:
             keys = [key for key in self.forms.keys()]
-            res += f'[{tpl(keys[0])}] {self.forms[keys[0]]}\n'
+            res += f'[{frm_key_to_str(keys[0])}] {self.forms[keys[0]]}\n'
             for i in range(1, self.count_f):
-                res += f'             [{tpl(keys[i])}] {self.forms[keys[i]]}\n'
+                res += f'             [{frm_key_to_str(keys[i])}] {self.forms[keys[i]]}\n'
         res += '     Сноски: '
         if self.count_n == 0:
             res += '-\n'
@@ -320,7 +334,7 @@ class Entry(object):
             file.write(f', {self.tr[i]}')
         file.write('\n')
         for frm_template in self.forms.keys():
-            file.write(f'|  [{tpl(frm_template)}] {self.forms[frm_template]}\n')
+            file.write(f'|  [{frm_key_to_str(frm_template)}] {self.forms[frm_template]}\n')
         for note in self.notes:
             file.write(f'| > {note}\n')
 
