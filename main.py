@@ -14,7 +14,7 @@ import urllib.request as urllib2  # Для проверки наличия об�
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
 from aneno_dct import *
-from aneno_functions import split_text, arr_to_str, encode_tpl, decode_tpl, wrd_to_key, key_to_wrd
+from aneno_functions import read_frm_key, frm_key_to_str_for_save
 from aneno_constants import *
 
 """ Темы """
@@ -291,6 +291,167 @@ def check_ctg_val_edit(window_parent, values: list[str] | tuple[str, ...], old_v
     return True
 
 
+""" Функции вывода """
+
+
+# Напечатать переводы
+def tr_print(entry: Entry):
+    res = ''
+    if entry.count_t != 0:
+        res += entry.tr[0]
+        for i in range(1, entry.count_t):
+            res += f', {entry.tr[i]}'
+    return res
+
+
+# Напечатать сноски
+def notes_print(entry: Entry, tab=0):
+    res = ''
+    if entry.count_n != 0:
+        res += ' ' * tab + f'> {entry.notes[0]}'
+        for i in range(1, entry.count_n):
+            res += '\n' + ' ' * tab + f'> {entry.notes[i]}'
+    return res
+
+
+# Напечатать словоформы
+def frm_print(entry: Entry, tab=0):
+    res = ''
+    keys = tuple(entry.forms.keys())
+    if entry.count_f != 0:
+        res += ' ' * tab + f'[{frm_key_to_str_for_print(keys[0])}] {entry.forms[keys[0]]}'
+        for i in range(1, len(keys)):
+            res += '\n' + ' ' * tab + f'[{frm_key_to_str_for_print(keys[i])}] {entry.forms[keys[i]]}'
+    return res
+
+
+# Напечатать количество ошибок после последнего верного ответа
+def correct_att_in_a_row_print(entry: Entry):
+    if entry.all_att == 0:  # Если ещё не было попыток
+        res = '-'
+    elif entry.correct_att_in_a_row > 999:
+        res = '+∞'
+    elif entry.correct_att_in_a_row < -99:
+        res = '-∞'
+    else:
+        res = entry.correct_att_in_a_row
+    return res
+
+
+# Напечатать процент верных ответов
+def percent_print(entry: Entry):
+    if entry.all_att == 0:  # Если ещё не было попыток
+        res = '-'
+    else:
+        res = '{:.0%}'.format(entry.score)
+    return res
+
+
+# Напечатать статистику
+def stat_print(entry: Entry):
+    correct_att_in_a_row = correct_att_in_a_row_print(entry)
+    percent = percent_print(entry)
+    tab_correct = ' ' * (3 - len(str(correct_att_in_a_row)))
+    tab_percent = ' ' * (4 - len(percent))
+    res = f'[{tab_correct}{correct_att_in_a_row}:{tab_percent}{percent}]'
+    return res
+
+
+# Служебная функция для print_briefly и print_briefly_with_forms
+def _print_briefly(entry: Entry):
+    if entry.fav:
+        res = '(*)'
+    else:
+        res = '   '
+    res += f' {stat_print(entry)} {entry.wrd}: {tr_print(entry)}'
+    return res
+
+
+# Напечатать статью - кратко
+def print_briefly(entry: Entry, len_str: int):
+    res = _print_briefly(entry)
+    if entry.count_n != 0:
+        res += f'\n{notes_print(entry, tab=15)}'
+    return split_text(res, len_str, tab=15)
+
+
+# Напечатать статью - кратко со словоформами
+def print_briefly_with_forms(entry: Entry, len_str: int):
+    res = _print_briefly(entry)
+    if entry.count_f != 0:
+        res += f'\n{frm_print(entry, tab=15)}'
+    if entry.count_n != 0:
+        res += f'\n{notes_print(entry, tab=15)}'
+    return split_text(res, len_str, tab=15)
+
+
+# Напечатать статью - слово со статистикой
+def print_wrd_with_stat(entry: Entry):
+    res = f'{entry.wrd} {stat_print(entry)}'
+    return res
+
+
+# Напечатать статью - перевод со статистикой
+def print_tr_with_stat(entry: Entry):
+    res = f'{tr_print(entry)} {stat_print(entry)}'
+    return res
+
+
+# Напечатать статью - перевод со словоформой и со статистикой
+def print_tr_and_frm_with_stat(entry: Entry, frm_key: tuple[str, ...] | list[str]):
+    res = f'{tr_print(entry)} ({frm_key_to_str_for_print(frm_key)}) {stat_print(entry)}'
+    return res
+
+
+# Напечатать статью - со всей информацией
+def print_all(entry: Entry, len_str: int, tab=0):
+    res = ''
+    res += f'      Слово: {entry.wrd}\n'
+    res += f'    Перевод: {tr_print(entry)}\n'
+    res += f'Формы слова: '
+    if entry.count_f == 0:
+        res += '-\n'
+    else:
+        keys = [key for key in entry.forms.keys()]
+        res += f'[{frm_key_to_str_for_print(keys[0])}] {entry.forms[keys[0]]}\n'
+        for i in range(1, entry.count_f):
+            res += f'             [{frm_key_to_str_for_print(keys[i])}] {entry.forms[keys[i]]}\n'
+    res += '     Сноски: '
+    if entry.count_n == 0:
+        res += '-\n'
+    else:
+        res += f'> {entry.notes[0]}\n'
+        for i in range(1, entry.count_n):
+            res += f'             > {entry.notes[i]}\n'
+    res += f'  Избранное: {entry.fav}\n'
+    if entry.all_att == 0:  # Если ещё не было попыток
+        res += ' Статистика: 1) Верных ответов подряд: -\n'
+        res += '             2) Доля верных ответов: -'
+    else:
+        res += f' Статистика: 1) Верных ответов подряд: {entry.correct_att_in_a_row}\n'
+        res += f'             2) Доля верных ответов: '
+        res += f'{entry.correct_att}/{entry.all_att} = ' + '{:.0%}'.format(entry.score)
+    return split_text(res, len_str, tab=tab)
+
+
+# Вывести информацию о количестве статей в словаре
+def dct_info(dct: Dictionary):
+    w = set_postfix(dct.count_w, ('слово', 'слова', 'слов'))
+    f = set_postfix(dct.count_w + dct.count_f, ('словоформа', 'словоформы', 'словоформ'))
+    t = set_postfix(dct.count_t, ('перевод', 'перевода', 'переводов'))
+    return f'[ {dct.count_w} {w} | {dct.count_w + dct.count_f} {f} | {dct.count_t} {t} ]'
+
+
+# Вывести информацию о количестве избранных статей в словаре
+def dct_info_fav(dct: Dictionary, count_w: int, count_t: int, count_f: int):
+    w = set_postfix(count_w, ('слово', 'слова', 'слов'))
+    f = set_postfix(count_w + count_f, ('словоформа', 'словоформы', 'словоформ'))
+    t = set_postfix(count_t, ('перевод', 'перевода', 'переводов'))
+    return f'[ {count_w}/{dct.count_w} {w} | ' \
+           f'{count_w + count_f}/{dct.count_w + dct.count_f} {f} | ' \
+           f'{count_t}/{dct.count_t} {t} ]'
+
+
 """ Вспомогательные функции """
 
 
@@ -358,9 +519,8 @@ def find_and_highlight(target_wrd: str, search_wrd: str):
             if search_wrd == '':  # Если искомая подстрока пустая, то она не выделяется
                 res = target_wrd
             else:
-                res = f'{arr_to_str(target_arr[:pos])}' \
-                      f'[{arr_to_str(target_arr[pos:end_pos])}]' \
-                      f'{arr_to_str(target_arr[end_pos:])}'
+                res = ''.join((s for s in target_arr[:pos] + ['['] +
+                               target_arr[pos:end_pos] + [']'] + target_arr[end_pos:]))
             return res
     return ''
 
@@ -387,6 +547,114 @@ def random_smart(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple
         r -= round(score)
         if r <= 0:
             return key, frm
+
+
+# Разделить строку на слова
+def split_line(line: str) -> list[str, str]:
+    len_line = len(line)
+    res = []
+
+    i = 0
+    while i < len_line and not line[i].isalnum():
+        i += 1
+    if i != 0:
+        res += [['', line[0:i]]]
+
+    while i < len_line:
+        word = ''
+        separator = ''
+        while i < len_line and line[i].isalnum():
+            word += line[i]
+            i += 1
+        while i < len_line and not line[i].isalnum():
+            separator += line[i]
+            i += 1
+        res += [[word, separator]]
+
+    return res
+
+
+# Разделить текст на части, длина которых не превышает заданное значение
+def split_text(text: str, max_str_len: int, tab: int = 0, add_right_spaces: bool = True):
+    assert max_str_len > 0
+    assert tab >= 0
+    assert tab < max_str_len
+
+    res = ''
+    lines = text.split('\n')  # Строки
+    count_lines = len(lines)  # Количество строк
+    for i in range(count_lines):
+        line = lines[i]
+        len_line = len(line)
+        # Если ширина строки соответствует требованиям, то просто записываем эту строку
+        if len_line <= max_str_len:
+            res += line
+            # Если нужно, дополняем строку пробелами до максимальной длины
+            if add_right_spaces:
+                res += ' ' * (max_str_len - len_line)
+        else:
+            current_len = 0
+            tabulate = False
+            words = split_line(line)
+            for (word, separator) in words:
+                len_word = len(word)
+                len_separator = len(separator)
+
+                # Если слово превышает максимальную длину строки, то разбиваем его на части
+                if len_word > max_str_len or (tabulate and tab + len_word > max_str_len):
+                    tmp = max_str_len - current_len
+                    res += word[0:tmp]
+                    res += ''.join(['\n' + ' ' * tab + word[i:i+max_str_len-tab]
+                                    for i in range(tmp, len_word, max_str_len-tab)])
+                    current_len = tab + (len_word - tmp) % (max_str_len - tab)
+                    tabulate = True
+                # Если слово не вмещается в данную строку, но может вместиться в следующую,
+                # то записываем его в следующую
+                elif len_word + current_len > max_str_len:
+                    # Если нужно, дополняем строку пробелами до максимальной длины
+                    if add_right_spaces:
+                        res += ' ' * (max_str_len - current_len)
+                    res += '\n'
+                    res += ' ' * tab
+                    res += word
+                    current_len = tab + len_word
+                    tabulate = True
+                # Если слово вмещается в данную строку, то просто записываем его
+                else:
+                    res += word
+                    current_len += len_word
+
+                # Если разделитель целиком не вмещается в данную строку, то разделяем его на части
+                if current_len + len_separator > max_str_len:
+                    tmp = max_str_len - current_len
+                    res += separator[0:tmp]
+                    res += ''.join(['\n' + ' ' * tab + separator[i:i+max_str_len-tab]
+                                    for i in range(tmp, len_separator, max_str_len-tab)])
+                    current_len = tab + (len_separator - tmp) % (max_str_len - tab)
+                    tabulate = True
+                # Если разделитель вмещается в данную строку целиком, то просто записываем его
+                else:
+                    res += separator
+                    current_len += len_separator
+            # Если нужно, дополняем строку пробелами до максимальной длины
+            if add_right_spaces:
+                res += ' ' * (max_str_len - current_len)
+        # Если строка не последняя, то добавляем перенос строки
+        if i != count_lines - 1:
+            res += '\n'
+    return res
+
+
+# Выбрать окончание слова в зависимости от количественного числительного
+def set_postfix(n: int, wrd_forms: tuple[str, str, str]):
+    if 5 <= (n % 100) <= 20:
+        return wrd_forms[2]  # Пример: 5 яблок
+    elif n % 10 == 1:
+        return wrd_forms[0]  # Пример: 1 яблоко
+    elif 1 < n % 10 < 5:
+        return wrd_forms[1]  # Пример: 2 яблока
+    else:
+        return wrd_forms[2]  # Пример: 0 яблок
 
 
 """ Основные функции """
@@ -585,7 +853,7 @@ def search_entries(dct: Dictionary, keys: tuple[tuple[str, int], ...], query: st
                     if find_and_highlight(tr, query) != '':
                         if key not in full_matches:
                             particulary_matches.add(key)
-            #print(frm_key_to_str(tuple(find_and_highlight(tr, query) for tr in entry.tr)))
+            #print(frm_key_to_str_for_print(tuple(find_and_highlight(tr, query) for tr in entry.tr)))
     if search_frm:
         for key in keys:
             entry = dct.d[key]
@@ -972,7 +1240,7 @@ def upgrade_local_settings_1_to_4(local_settings_path: str):
             else:
                 values = lines[i].strip().split(CATEGORY_SEPARATOR)
                 values = [encode_special_combinations(i) for i in values]
-                local_settings_file.write(decode_tpl(values) + '\n')
+                local_settings_file.write(frm_key_to_str_for_save(values) + '\n')
 
     upgrade_local_settings_2_to_4(local_settings_path)
 
@@ -1266,9 +1534,9 @@ def upgrade_dct_save_1_to_5(path: str):
                 elif line[0] == 'd':
                     dct_save_tmp.write('n' + encode_special_combinations(line[1:]))
                 elif line[0] == 'f':
-                    old_frm_key = encode_tpl(line[1:])
+                    old_frm_key = read_frm_key(line[1:])
                     new_frm_key = [encode_special_combinations(i) for i in old_frm_key]
-                    dct_save_tmp.write('f' + decode_tpl(new_frm_key))
+                    dct_save_tmp.write('f' + frm_key_to_str_for_save(new_frm_key))
                     line = dct_save.readline()
                     dct_save_tmp.write(encode_special_combinations(line))
                 elif line[0] == '*':
@@ -2173,7 +2441,7 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
         keys = [key for key in _0_global_dct.d.keys() if key[0] == self.search_wrd]
         for key in keys:
             self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
-                                            text=_0_global_dct.d[key].print_all(75, 13),
+                                            text=print_all(_0_global_dct.d[key], 75, 13),
                                             command=lambda key=key: self.choose_entry(key),
                                             takefocus=False, style='Note.TButton')]
 
@@ -2556,7 +2824,7 @@ class EditW(tk.Toplevel):
             self.nt_buttons[i].configure(text=split_text(nt, 35))
         for i in range(frm_count):
             frm = self.forms[i]
-            self.frm_buttons[i].configure(text=split_text(f'[{frm_key_to_str(frm)}] {_0_global_dct.d[self.dct_key].forms[frm]}', 35))
+            self.frm_buttons[i].configure(text=split_text(f'[{frm_key_to_str_for_print(frm)}] {_0_global_dct.d[self.dct_key].forms[frm]}', 35))
         # Расставляем элементы
         for i in range(tr_count):
             self.tr_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
@@ -2716,7 +2984,7 @@ class AddFormW(tk.Toplevel):
             return
         self.template[index] = val
 
-        self.var_template.set(f'Текущий шаблон словоформы: "{frm_key_to_str(self.template)}"')
+        self.var_template.set(f'Текущий шаблон словоформы: "{frm_key_to_str_for_print(self.template)}"')
 
         if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
             btn_disable(self.btn_save)
@@ -2739,7 +3007,7 @@ class AddFormW(tk.Toplevel):
 
         self.template[index] = ''
 
-        self.var_template.set(f'Текущий шаблон словоформы: "{frm_key_to_str(self.template)}"')
+        self.var_template.set(f'Текущий шаблон словоформы: "{frm_key_to_str_for_print(self.template)}"')
 
         if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
             btn_disable(self.btn_save)
@@ -4065,7 +4333,7 @@ class LearnW(tk.Toplevel):
     def show_notes(self):
         entry = _0_global_dct.d[self.current_key]
         if entry.count_n != 0:
-            self.outp(entry.notes_print())
+            self.outp(notes_print(entry))
         btn_disable(self.btn_show_notes)
 
     # Нажатие на кнопку "Закончить"
@@ -4147,7 +4415,7 @@ class LearnW(tk.Toplevel):
             is_correct = encode_special_combinations(self.entry_input.get()) in entry.tr
         else:
             is_correct = encode_special_combinations(self.entry_input.get()).lower() in (tr.lower() for tr in entry.tr)
-        self.check_answer(frm_key_to_str(entry.tr), is_correct, self.current_key)
+        self.check_answer(frm_key_to_str_for_print(entry.tr), is_correct, self.current_key)
 
     # Проверка введённого артикля
     def check_article(self):
@@ -4178,13 +4446,13 @@ class LearnW(tk.Toplevel):
         # Вывод слова в журнал
         if self.learn_method == LEARN_VALUES_METHOD[0]:
             if self.with_forms and self.current_form:
-                self.outp(_0_global_dct.d[self.current_key].print_tr_and_frm_with_stat(self.current_form))
+                self.outp(print_tr_and_frm_with_stat(_0_global_dct.d[self.current_key], self.current_form))
             else:
-                self.outp(_0_global_dct.d[self.current_key].print_tr_with_stat())
+                self.outp(print_tr_with_stat(_0_global_dct.d[self.current_key]))
         elif self.learn_method == LEARN_VALUES_METHOD[1]:
-            self.outp(_0_global_dct.d[self.current_key].print_wrd_with_stat())
+            self.outp(print_wrd_with_stat(_0_global_dct.d[self.current_key]))
         else:
-            self.outp(_0_global_dct.d[self.current_key].print_wrd_with_stat()[4:])
+            self.outp(print_wrd_with_stat(_0_global_dct.d[self.current_key])[4:])
 
     # Получить глобальный процент угадываний
     def get_percent(self):
@@ -4389,11 +4657,11 @@ class PrintW(tk.Toplevel):
             self.keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
 
             w, t, f = _0_global_dct.count_fav_info()
-            self.var_info.set(_0_global_dct.dct_info_fav(w, t, f))
+            self.var_info.set(dct_info_fav(_0_global_dct, w, t, f))
         else:
             self.keys = [key for key in _0_global_dct.d.keys()]
 
-            self.var_info.set(_0_global_dct.dct_info())
+            self.var_info.set(dct_info(_0_global_dct))
         #
         if self.var_order.get() == PRINT_VALUES_ORDER[1]:
             self.keys.reverse()
@@ -4437,11 +4705,12 @@ class PrintW(tk.Toplevel):
         # Выводим текст на кнопки
         if self.var_forms.get():
             for i in range(self.count_elements_on_page):
-                self.buttons[i].configure(text=_0_global_dct.d[self.keys[self.start_index + i]].
-                                          print_briefly_with_forms(75))
+                key = self.keys[self.start_index + i]
+                self.buttons[i].configure(text=print_briefly_with_forms(_0_global_dct.d[key], 75))
         else:
             for i in range(self.count_elements_on_page):
-                self.buttons[i].configure(text=_0_global_dct.d[self.keys[self.start_index + i]].print_briefly(75))
+                key = self.keys[self.start_index + i]
+                self.buttons[i].configure(text=print_briefly(_0_global_dct.d[key], 75))
         # Расставляем элементы
         for i in range(self.count_elements_on_page):
             self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
@@ -4451,9 +4720,9 @@ class PrintW(tk.Toplevel):
         # Создаём подсказки
         self.tips = [ttip.Hovertip(self.buttons[i],
                                    f'Верных ответов подряд: '
-                                   f'{_0_global_dct.d[self.keys[self.start_index + i]].correct_att_in_a_row_print()}\n'
+                                   f'{correct_att_in_a_row_print(_0_global_dct.d[self.keys[self.start_index + i]])}\n'
                                    f'Доля верных ответов: '
-                                   f'{_0_global_dct.d[self.keys[self.start_index + i]].percent_print()}',
+                                   f'{percent_print(_0_global_dct.d[self.keys[self.start_index + i]])}',
                                    hover_delay=666)
                      for i in range(self.count_elements_on_page)]
         # Привязываем события
@@ -4470,28 +4739,30 @@ class PrintW(tk.Toplevel):
     def refresh_one_button(self, index: int):
         # Выводим текст на кнопку
         if self.var_forms.get():
-            self.buttons[index].configure(text=_0_global_dct.d[self.keys[self.start_index + index]].
-                                          print_briefly_with_forms(75))
+            key = self.keys[self.start_index + index]
+            self.buttons[index].configure(text=print_briefly_with_forms(_0_global_dct.d[key], 75))
         else:
-            self.buttons[index].configure(text=_0_global_dct.d[self.keys[self.start_index + index]].print_briefly(75))
+            key = self.keys[self.start_index + index]
+            self.buttons[index].configure(text=print_briefly(_0_global_dct.d[key], 75))
 
         # Выводим информацию о количестве статей
         if self.var_fav.get():
             w, t, f = _0_global_dct.count_fav_info()
-            self.var_info.set(_0_global_dct.dct_info_fav(w, t, f))
+            self.var_info.set(dct_info_fav(_0_global_dct, w, t, f))
         else:
-            self.var_info.set(_0_global_dct.dct_info())
+            self.var_info.set(dct_info(_0_global_dct))
 
     # Обновить все кнопки журнала
     def refresh_all_buttons(self):
         # Выводим текст на кнопки
         if self.var_forms.get():
             for i in range(self.count_elements_on_page):
-                self.buttons[i].configure(text=_0_global_dct.d[self.keys[self.start_index + i]].
-                                          print_briefly_with_forms(75))
+                key = self.keys[self.start_index + i]
+                self.buttons[i].configure(text=print_briefly_with_forms(_0_global_dct.d[key], 75))
         else:
             for i in range(self.count_elements_on_page):
-                self.buttons[i].configure(text=_0_global_dct.d[self.keys[self.start_index + i]].print_briefly(75))
+                key = self.keys[self.start_index + i]
+                self.buttons[i].configure(text=print_briefly(_0_global_dct.d[key], 75))
 
     # Перейти на страницу с заданным номером
     def go_to_page_with_number(self, number: int):
@@ -4771,7 +5042,7 @@ class SearchW(tk.Toplevel):
                         for i in range(self.count_elements_on_page)]
         # Выводим текст на кнопки
         for i in range(self.count_elements_on_page):
-            self.buttons[i].configure(text=_0_global_dct.d[self.keys[self.start_index + i]].print_all(75, 13))
+            self.buttons[i].configure(text=print_all(_0_global_dct.d[self.keys[self.start_index + i]], 75, 13))
         # Расставляем элементы
         for i in range(self.count_elements_on_page):
             self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
@@ -4791,7 +5062,7 @@ class SearchW(tk.Toplevel):
     # Обновить одну из кнопок журнала
     def refresh_one_button(self, index: int, key: tuple[str, int]):
         # Выводим текст на кнопку
-        self.buttons[index].configure(text=_0_global_dct.d[key].print_all(75, 13))
+        self.buttons[index].configure(text=print_all(_0_global_dct.d[key], 75, 13))
 
         # Выводим информацию о количестве статей
         self.var_info.set(f'Найдено статей: {self.count_elements}')

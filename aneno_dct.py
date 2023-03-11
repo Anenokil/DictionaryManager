@@ -1,19 +1,5 @@
 import typing
-from aneno_functions import split_text, encode_tpl, decode_tpl, set_postfix, wrd_to_key
-
-
-# Преобразовать шаблон словоформы (кортеж) в читаемый вид (для вывода на экран)
-def frm_key_to_str(input_tuple: tuple | list):
-    res = ''
-    is_first = True
-    for i in range(len(input_tuple)):
-        if input_tuple[i] != '':
-            if is_first:  # Перед первым элементом не ставится запятая
-                res += f'{input_tuple[i]}'
-                is_first = False
-            else:  # Перед последующими элементами ставится запятая
-                res += f', {input_tuple[i]}'
-    return res
+from aneno_functions import read_frm_key, frm_key_to_str_for_save
 
 
 # Словарная статья
@@ -57,133 +43,6 @@ class Entry(object):
         self.score = 0 if (all_att == 0) else correct_att / all_att
         self.correct_att_in_a_row = correct_att_in_a_row
         self.latest_answer_session = latest_answer_session
-
-    # Напечатать переводы
-    def tr_print(self):
-        res = ''
-        if self.count_t != 0:
-            res += self.tr[0]
-            for i in range(1, self.count_t):
-                res += f', {self.tr[i]}'
-        return res
-
-    # Напечатать сноски
-    def notes_print(self, tab=0):
-        res = ''
-        if self.count_n != 0:
-            res += ' ' * tab + f'> {self.notes[0]}'
-            for i in range(1, self.count_n):
-                res += '\n' + ' ' * tab + f'> {self.notes[i]}'
-        return res
-
-    # Напечатать словоформы
-    def frm_print(self, tab=0):
-        res = ''
-        keys = tuple(self.forms.keys())
-        if self.count_f != 0:
-            res += ' ' * tab + f'[{frm_key_to_str(keys[0])}] {self.forms[keys[0]]}'
-            for i in range(1, len(keys)):
-                res += '\n' + ' ' * tab + f'[{frm_key_to_str(keys[i])}] {self.forms[keys[i]]}'
-        return res
-
-    # Напечатать количество ошибок после последнего верного ответа
-    def correct_att_in_a_row_print(self):
-        if self.all_att == 0:  # Если ещё не было попыток
-            res = '-'
-        elif self.correct_att_in_a_row > 999:
-            res = '+∞'
-        elif self.correct_att_in_a_row < -99:
-            res = '-∞'
-        else:
-            res = self.correct_att_in_a_row
-        return res
-
-    # Напечатать процент верных ответов
-    def percent_print(self):
-        if self.all_att == 0:  # Если ещё не было попыток
-            res = '-'
-        else:
-            res = '{:.0%}'.format(self.score)
-        return res
-
-    # Напечатать статистику
-    def stat_print(self):
-        correct_att_in_a_row = self.correct_att_in_a_row_print()
-        percent = self.percent_print()
-        tab_correct = ' ' * (3 - len(str(correct_att_in_a_row)))
-        tab_percent = ' ' * (4 - len(percent))
-        res = f'[{tab_correct}{correct_att_in_a_row}:{tab_percent}{percent}]'
-        return res
-
-    # Служебный метод для print_briefly и print_briefly_with_forms
-    def _print_briefly(self):
-        if self.fav:
-            res = '(*)'
-        else:
-            res = '   '
-        res += f' {self.stat_print()} {self.wrd}: {self.tr_print()}'
-        return res
-
-    # Напечатать статью - кратко
-    def print_briefly(self, len_str):
-        res = self._print_briefly()
-        if self.count_n != 0:
-            res += f'\n{self.notes_print(tab=15)}'
-        return split_text(res, len_str, tab=15)
-
-    # Напечатать статью - кратко со словоформами
-    def print_briefly_with_forms(self, len_str):
-        res = self._print_briefly()
-        if self.count_f != 0:
-            res += f'\n{self.frm_print(tab=15)}'
-        if self.count_n != 0:
-            res += f'\n{self.notes_print(tab=15)}'
-        return split_text(res, len_str, tab=15)
-
-    # Напечатать статью - слово со статистикой
-    def print_wrd_with_stat(self):
-        res = f'{self.wrd} {self.stat_print()}'
-        return res
-
-    # Напечатать статью - перевод со статистикой
-    def print_tr_with_stat(self):
-        res = f'{self.tr_print()} {self.stat_print()}'
-        return res
-
-    # Напечатать статью - перевод со словоформой и со статистикой
-    def print_tr_and_frm_with_stat(self, frm_key: tuple[str, ...] | list[str]):
-        res = f'{self.tr_print()} ({frm_key_to_str(frm_key)}) {self.stat_print()}'
-        return res
-
-    # Напечатать статью - со всей информацией
-    def print_all(self, len_str, tab=0):
-        res = ''
-        res += f'      Слово: {self.wrd}\n'
-        res += f'    Перевод: {self.tr_print()}\n'
-        res += f'Формы слова: '
-        if self.count_f == 0:
-            res += '-\n'
-        else:
-            keys = [key for key in self.forms.keys()]
-            res += f'[{frm_key_to_str(keys[0])}] {self.forms[keys[0]]}\n'
-            for i in range(1, self.count_f):
-                res += f'             [{frm_key_to_str(keys[i])}] {self.forms[keys[i]]}\n'
-        res += '     Сноски: '
-        if self.count_n == 0:
-            res += '-\n'
-        else:
-            res += f'> {self.notes[0]}\n'
-            for i in range(1, self.count_n):
-                res += f'             > {self.notes[i]}\n'
-        res += f'  Избранное: {self.fav}\n'
-        if self.all_att == 0:  # Если ещё не было попыток
-            res += ' Статистика: 1) Верных ответов подряд: -\n'
-            res += '             2) Доля верных ответов: -'
-        else:
-            res += f' Статистика: 1) Верных ответов подряд: {self.correct_att_in_a_row}\n'
-            res += f'             2) Доля верных ответов: '
-            res += f'{self.correct_att}/{self.all_att} = ' + '{:.0%}'.format(self.score)
-        return split_text(res, len_str, tab=tab)
 
     # Добавить в избранное
     def add_to_fav(self):
@@ -320,7 +179,7 @@ class Entry(object):
         for note in self.notes:
             file.write(f'n{note}\n')
         for frm_template in self.forms.keys():
-            file.write(f'f{decode_tpl(frm_template)}\n'
+            file.write(f'f{frm_key_to_str_for_save(frm_template)}\n'
                        f'{self.forms[frm_template]}\n')
         if self.fav:
             file.write('*\n')
@@ -334,7 +193,7 @@ class Entry(object):
             file.write(f', {self.tr[i]}')
         file.write('\n')
         for frm_template in self.forms.keys():
-            file.write(f'|  [{frm_key_to_str(frm_template)}] {self.forms[frm_template]}\n')
+            file.write(f'|  [{frm_key_to_str_for_print(frm_template)}] {self.forms[frm_template]}\n')
         for note in self.notes:
             file.write(f'| > {note}\n')
 
@@ -350,22 +209,6 @@ class Dictionary(object):
         self.count_w = 0
         self.count_t = 0
         self.count_f = 0
-
-    # Вывести информацию о количестве статей в словаре
-    def dct_info(self):
-        w = set_postfix(self.count_w, ('слово', 'слова', 'слов'))
-        f = set_postfix(self.count_w + self.count_f, ('словоформа', 'словоформы', 'словоформ'))
-        t = set_postfix(self.count_t, ('перевод', 'перевода', 'переводов'))
-        return f'[ {self.count_w} {w} | {self.count_w + self.count_f} {f} | {self.count_t} {t} ]'
-
-    # Вывести информацию о количестве избранных статей в словаре
-    def dct_info_fav(self, count_w: int, count_t: int, count_f: int):
-        w = set_postfix(count_w, ('слово', 'слова', 'слов'))
-        f = set_postfix(count_w + count_f, ('словоформа', 'словоформы', 'словоформ'))
-        t = set_postfix(count_t, ('перевод', 'перевода', 'переводов'))
-        return f'[ {count_w}/{self.count_w} {w} | ' \
-               f'{count_w + count_f}/{self.count_w + self.count_f} {f} | ' \
-               f'{count_t}/{self.count_t} {t} ]'
 
     # Подсчитать количество избранных статей
     def count_fav_info(self):
@@ -524,7 +367,7 @@ class Dictionary(object):
                 elif line[0] == 'n':
                     self.add_note(key, line[1:])
                 elif line[0] == 'f':
-                    frm_key = encode_tpl(line[1:])
+                    frm_key = read_frm_key(line[1:])
                     self.add_frm(key, frm_key, file.readline().strip())
                 elif line[0] == '*':
                     self.d[key].add_to_fav()
@@ -542,3 +385,27 @@ class Dictionary(object):
             for entry in self.d.values():
                 entry.print_out(file)
                 file.write('\n')
+
+
+# Преобразовать шаблон словоформы в читаемый вид (для вывода на экран)
+def frm_key_to_str_for_print(input_tuple: tuple | list):
+    res = ''
+    is_first = True
+    for i in range(len(input_tuple)):
+        if input_tuple[i] != '':
+            if is_first:  # Перед первым элементом не ставится запятая
+                res += f'{input_tuple[i]}'
+                is_first = False
+            else:  # Перед последующими элементами ставится запятая
+                res += f', {input_tuple[i]}'
+    return res
+
+
+# Перевести слово в ключ для словаря
+def wrd_to_key(wrd: str, num: int):
+    return wrd, num
+
+
+# Перевести ключ для словаря в слово
+def key_to_wrd(key: tuple[str, int]):
+    return key[0]
