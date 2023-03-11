@@ -15,6 +15,7 @@ import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
 from aneno_dct import *
 from aneno_constants import *
+#from aneno_upgrades import *
 
 """ Темы """
 
@@ -1208,7 +1209,7 @@ def save_dct_name():
 
 
 # Обновить локальные настройки с 0 до 4 версии
-def upgrade_local_settings_0_to_4(local_settings_path: str):
+def upgrade_local_settings_0_to_4(local_settings_path: str, encode_special_combinations):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         lines = local_settings_file.readlines()
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
@@ -1218,15 +1219,11 @@ def upgrade_local_settings_0_to_4(local_settings_path: str):
         for i in range(1, len(lines)):
             local_settings_file.write(lines[i])
 
-    upgrade_local_settings_1_to_4(local_settings_path)
+    upgrade_local_settings_1_to_4(local_settings_path, encode_special_combinations)
 
 
 # Обновить локальные настройки с 1 до 4 версии
-def upgrade_local_settings_1_to_4(local_settings_path: str):
-    global _0_global_special_combinations
-
-    _, _0_global_special_combinations, _, _ = upload_local_settings(_0_global_dct_savename, upgrade=False)
-
+def upgrade_local_settings_1_to_4(local_settings_path: str, encode_special_combinations):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         lines = local_settings_file.readlines()
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
@@ -1276,15 +1273,15 @@ def upgrade_local_settings_3_to_4(local_settings_path: str):
 
 
 # Обновить локальные настройки старой версии до актуальной версии
-def upgrade_local_settings(local_settings_path: str):
+def upgrade_local_settings(local_settings_path: str, encode_special_combinations):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         first_line = local_settings_file.readline()
         if first_line == '':  # Если сохранение пустое
             return
         if first_line[0] != 'v':  # Версия 0
-            upgrade_local_settings_0_to_4(local_settings_path)
+            upgrade_local_settings_0_to_4(local_settings_path, encode_special_combinations)
         elif first_line.strip() == 'v1':  # Версия 1
-            upgrade_local_settings_1_to_4(local_settings_path)
+            upgrade_local_settings_1_to_4(local_settings_path, encode_special_combinations)
         elif first_line.strip() == 'v2':  # Версия 2
             upgrade_local_settings_2_to_4(local_settings_path)
         elif first_line.strip() == 'v3':  # Версия 3
@@ -1319,7 +1316,9 @@ def upload_local_settings(savename: str, upgrade=True):
                                       f'пр.вр.{CATEGORY_SEPARATOR}н.вр.{CATEGORY_SEPARATOR}буд.вр.')
     else:
         if upgrade:
-            upgrade_local_settings(local_settings_path)
+            global _0_global_special_combinations
+            _, _0_global_special_combinations, _, _ = upload_local_settings(_0_global_dct_savename, upgrade=False)
+            upgrade_local_settings(local_settings_path, encode_special_combinations)
 
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         # Версия
@@ -1486,7 +1485,7 @@ def save_settings_if_has_changes(window_parent):
 
 
 # Обновить сохранение словаря с 0 до 5 версии
-def upgrade_dct_save_0_to_5(path: str):
+def upgrade_dct_save_0_to_5(path: str, encode_special_combinations):
     with open(path, 'r', encoding='utf-8') as dct_save:
         with open(TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             dct_save_tmp.write('v1\n')
@@ -1505,15 +1504,11 @@ def upgrade_dct_save_0_to_5(path: str):
     if TMP_FN in os.listdir(RESOURCES_PATH):
         os.remove(TMP_PATH)
 
-    upgrade_dct_save_1_to_5(path)
+    upgrade_dct_save_1_to_5(path, encode_special_combinations)
 
 
 # Обновить сохранение словаря с 1 до 5 версии
-def upgrade_dct_save_1_to_5(path: str):
-    global _0_global_special_combinations
-
-    _, _0_global_special_combinations, _, _ = upload_local_settings(_0_global_dct_savename)
-
+def upgrade_dct_save_1_to_5(path: str, encode_special_combinations):
     with open(path, 'r', encoding='utf-8') as dct_save:
         with open(TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             dct_save.readline()
@@ -1680,15 +1675,15 @@ def upgrade_dct_save_4_to_5(path: str):
 
 
 # Обновить сохранение словаря старой версии до актуальной версии
-def upgrade_dct_save(path: str):
+def upgrade_dct_save(path: str, encode_special_combinations):
     with open(path, 'r', encoding='utf-8') as dct_save:
         first_line = dct_save.readline()
     if first_line == '':  # Если сохранение пустое
         return
     if first_line[0] == 'w':  # Версия 0
-        upgrade_dct_save_0_to_5(path)
+        upgrade_dct_save_0_to_5(path, encode_special_combinations)
     elif first_line.strip() == 'v1':  # Версия 1
-        upgrade_dct_save_1_to_5(path)
+        upgrade_dct_save_1_to_5(path, encode_special_combinations)
     elif first_line.strip() == 'v2':  # Версия 2
         upgrade_dct_save_2_to_5(path)
     elif first_line.strip() == 'v3':  # Версия 3
@@ -1704,7 +1699,9 @@ def upgrade_dct_save(path: str):
 def upload_dct(window_parent, dct: Dictionary, savename: str, btn_close_text: str):
     filepath = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
     try:
-        upgrade_dct_save(filepath)  # Если требуется, сохранение обновляется
+        global _0_global_special_combinations
+        _, _0_global_special_combinations, _, _ = upload_local_settings(_0_global_dct_savename, upgrade=False)
+        upgrade_dct_save(filepath, encode_special_combinations)  # Если требуется, сохранение обновляется
         dct.read(filepath, CATEGORY_SEPARATOR)  # Загрузка словаря
     except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
         print(f'\nСловарь "{savename}" не найден!')
