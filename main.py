@@ -14,7 +14,6 @@ import urllib.request as urllib2  # Для проверки наличия об�
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
 from aneno_dct import *
-from aneno_functions import read_frm_key, frm_key_to_str_for_save
 from aneno_constants import *
 
 """ Темы """
@@ -1240,7 +1239,7 @@ def upgrade_local_settings_1_to_4(local_settings_path: str):
             else:
                 values = lines[i].strip().split(CATEGORY_SEPARATOR)
                 values = [encode_special_combinations(i) for i in values]
-                local_settings_file.write(frm_key_to_str_for_save(values) + '\n')
+                local_settings_file.write(frm_key_to_str_for_save(values, CATEGORY_SEPARATOR) + '\n')
 
     upgrade_local_settings_2_to_4(local_settings_path)
 
@@ -1534,9 +1533,9 @@ def upgrade_dct_save_1_to_5(path: str):
                 elif line[0] == 'd':
                     dct_save_tmp.write('n' + encode_special_combinations(line[1:]))
                 elif line[0] == 'f':
-                    old_frm_key = read_frm_key(line[1:])
+                    old_frm_key = read_frm_key(line[1:], CATEGORY_SEPARATOR)
                     new_frm_key = [encode_special_combinations(i) for i in old_frm_key]
-                    dct_save_tmp.write('f' + frm_key_to_str_for_save(new_frm_key))
+                    dct_save_tmp.write('f' + frm_key_to_str_for_save(new_frm_key, CATEGORY_SEPARATOR))
                     line = dct_save.readline()
                     dct_save_tmp.write(encode_special_combinations(line))
                 elif line[0] == '*':
@@ -1706,7 +1705,7 @@ def upload_dct(window_parent, dct: Dictionary, savename: str, btn_close_text: st
     filepath = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
     try:
         upgrade_dct_save(filepath)  # Если требуется, сохранение обновляется
-        dct.read(filepath)  # Загрузка словаря
+        dct.read(filepath, CATEGORY_SEPARATOR)  # Загрузка словаря
     except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
         print(f'\nСловарь "{savename}" не найден!')
         create_dct(dct, savename)
@@ -1746,13 +1745,13 @@ def create_dct(dct: Dictionary, savename: str):
     filepath = os.path.join(folder_path, DICTIONARY_SAVE_FN)
     os.mkdir(folder_path)
     open(filepath, 'w', encoding='utf-8').write(f'v{SAVES_VERSION}\n')
-    dct.read(filepath)
+    dct.read(filepath, CATEGORY_SEPARATOR)
 
 
 # Сохранить словарь
 def save_dct(dct: Dictionary, savename: str):
     filepath = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
-    dct.save(filepath, SAVES_VERSION)
+    dct.save(filepath, CATEGORY_SEPARATOR, SAVES_VERSION)
 
 
 # Предложить сохранение словаря, если есть изменения

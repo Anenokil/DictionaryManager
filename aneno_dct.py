@@ -1,5 +1,4 @@
 import typing
-from aneno_functions import read_frm_key, frm_key_to_str_for_save
 
 
 # Словарная статья
@@ -169,7 +168,7 @@ class Entry(object):
             self.correct_att_in_a_row -= 1
 
     # Сохранить статью в файл
-    def save(self, file: typing.TextIO):
+    def save(self, file: typing.TextIO, frm_template_separator: str):
         file.write(f'w{self.wrd}\n')
         file.write(f'{self.all_att}:{self.correct_att}:{self.correct_att_in_a_row}\n')
         file.write(f'{self.latest_answer_session[0]}:{self.latest_answer_session[1]}:{self.latest_answer_session[2]}\n')
@@ -179,7 +178,7 @@ class Entry(object):
         for note in self.notes:
             file.write(f'n{note}\n')
         for frm_template in self.forms.keys():
-            file.write(f'f{frm_key_to_str_for_save(frm_template)}\n'
+            file.write(f'f{frm_key_to_str_for_save(frm_template, frm_template_separator)}\n'
                        f'{self.forms[frm_template]}\n')
         if self.fav:
             file.write('*\n')
@@ -347,7 +346,7 @@ class Dictionary(object):
         return sum_num / sum_den
 
     # Прочитать словарь из файла
-    def read(self, filepath: str):
+    def read(self, filepath: str, frm_template_separator: str):
         with open(filepath, 'r', encoding='utf-8') as file:
             file.readline()  # Первая строка - версия сохранения словаря
             while True:
@@ -367,17 +366,17 @@ class Dictionary(object):
                 elif line[0] == 'n':
                     self.add_note(key, line[1:])
                 elif line[0] == 'f':
-                    frm_key = read_frm_key(line[1:])
+                    frm_key = read_frm_key(line[1:], frm_template_separator)
                     self.add_frm(key, frm_key, file.readline().strip())
                 elif line[0] == '*':
                     self.d[key].add_to_fav()
 
     # Сохранить словарь в файл
-    def save(self, filepath: str, saves_version: int | str = 0):
+    def save(self, filepath: str, frm_template_separator: str, saves_version: int | str):
         with open(filepath, 'w', encoding='utf-8') as file:
             file.write(f'v{saves_version}\n')
             for entry in self.d.values():
-                entry.save(file)
+                entry.save(file, frm_template_separator)
 
     # Распечатать словарь в файл
     def print_out(self, filepath: str):
@@ -399,6 +398,21 @@ def frm_key_to_str_for_print(input_tuple: tuple | list):
             else:  # Перед последующими элементами ставится запятая
                 res += f', {input_tuple[i]}'
     return res
+
+
+# Преобразовать кортеж в строку (для сохранения значений категории в файл локальных настроек)
+def frm_key_to_str_for_save(input_tuple: tuple | list, separator: str):
+    if not input_tuple:  # input_tuple == () или input_tuple == ('')
+        return ''
+    res = input_tuple[0]
+    for i in range(1, len(input_tuple)):
+        res += f'{separator}{input_tuple[i]}'
+    return res
+
+
+# Преобразовать строку в кортеж (для чтения значений категории из файла локальных настроек)
+def read_frm_key(line: str, separator: str):
+    return tuple(line.split(separator))
 
 
 # Перевести слово в ключ для словаря
