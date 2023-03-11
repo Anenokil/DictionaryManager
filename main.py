@@ -876,7 +876,7 @@ def search_entries(dct: Dictionary, keys: tuple[tuple[str, int], ...], query: st
     return full_matches, particulary_matches
 
 
-""" Загрузка/сохранение/обновление """
+""" Загрузка/сохранение """
 
 
 # Проверить наличие обновлений программы
