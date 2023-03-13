@@ -1180,10 +1180,10 @@ def upload_local_auto_settings(savename: str):
         try:
             search_settings = tuple(int(el) for el in local_auto_settings_file.readline().strip().split())
         except (ValueError, TypeError):
-            search_settings = (0, 1, 1, 0, 0)
+            search_settings = (0, 0, 1, 1, 0, 0)
         else:
-            if len(search_settings) != 5:
-                search_settings = (0, 1, 1, 0, 0)
+            if len(search_settings) != 6:
+                search_settings = (0, 0, 1, 1, 0, 0)
         # Режим учёбы
         try:
             learn_settings = tuple(int(el) for el in local_auto_settings_file.readline().strip().split())
@@ -1202,7 +1202,7 @@ def upload_local_auto_settings(savename: str):
 
 
 # Сохранить автосохраняемые локальные настройки (настройки словаря)
-def save_local_auto_settings(session_number: int, search_settings: tuple[int, int, int, int, int],
+def save_local_auto_settings(session_number: int, search_settings: tuple[int, int, int, int, int, int],
                              learn_settings: tuple[int, int, int, int], savename: str):
     local_auto_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_AUTO_SETTINGS_FN)
     with open(local_auto_settings_path, 'w', encoding='utf-8') as local_auto_settings_file:
@@ -1870,14 +1870,15 @@ class IncorrectAnswerW(tk.Toplevel):
 
 # Окно с параметрами поиска
 class SearchSettingsW(tk.Toplevel):
-    def __init__(self, parent, search_only_fav: bool, search_wrd: bool, search_tr: bool, search_frm: bool,
-                 search_nt: bool):
+    def __init__(self, parent, search_only_fav: bool, search_only_full: bool,
+                 search_wrd: bool, search_tr: bool, search_frm: bool, search_nt: bool):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Параметры поиска')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
         self.var_search_only_fav = tk.BooleanVar(value=search_only_fav)
+        self.var_search_only_full = tk.BooleanVar(value=search_only_full)
         self.var_search_wrd = tk.BooleanVar(value=search_wrd)
         self.var_search_tr = tk.BooleanVar(value=search_tr)
         self.var_search_frm = tk.BooleanVar(value=search_frm)
@@ -1886,6 +1887,9 @@ class SearchSettingsW(tk.Toplevel):
         self.lbl_search_only_fav = ttk.Label(self, text='Искать только среди избранных статей:', style='Default.TLabel')
         self.check_search_only_fav = ttk.Checkbutton(self, variable=self.var_search_only_fav,
                                                      style='Default.TCheckbutton')
+        self.lbl_search_only_full = ttk.Label(self, text='Искать только точные совпадения:', style='Default.TLabel')
+        self.check_search_only_full = ttk.Checkbutton(self, variable=self.var_search_only_full,
+                                                      style='Default.TCheckbutton')
         self.frame = ttk.Frame(self, style='Default.TFrame')
         # {
         self.lbl_search_wrd = ttk.Label(self.frame, text='Искать среди слов:', style='Default.TLabel')
@@ -1898,9 +1902,11 @@ class SearchSettingsW(tk.Toplevel):
         self.check_search_nt = ttk.Checkbutton(self.frame, variable=self.var_search_nt, style='Default.TCheckbutton')
         # }
 
-        self.lbl_search_only_fav.grid(  row=0, column=0,               padx=(6, 1), pady=6, sticky='E')
-        self.check_search_only_fav.grid(row=0, column=1,               padx=(0, 6), pady=6, sticky='W')
-        self.frame.grid(                row=1, column=0, columnspan=2, padx=6,      pady=6)
+        self.lbl_search_only_fav.grid(   row=0, column=0,               padx=(6, 1), pady=6, sticky='E')
+        self.check_search_only_fav.grid( row=0, column=1,               padx=(0, 6), pady=6, sticky='W')
+        self.lbl_search_only_full.grid(  row=1, column=0,               padx=(6, 1), pady=6, sticky='E')
+        self.check_search_only_full.grid(row=1, column=1,               padx=(0, 6), pady=6, sticky='W')
+        self.frame.grid(                 row=2, column=0, columnspan=2, padx=6,      pady=6)
         # {
         self.lbl_search_wrd.grid(  row=0, column=0, padx=(6, 1), pady=6,      sticky='E')
         self.check_search_wrd.grid(row=0, column=1, padx=(0, 6), pady=6,      sticky='W')
@@ -1927,6 +1933,7 @@ class SearchSettingsW(tk.Toplevel):
         self.wait_window()
 
         _0_global_search_settings = (int(self.var_search_only_fav.get()),
+                                     int(self.var_search_only_full.get()),
                                      int(self.var_search_wrd.get()),
                                      int(self.var_search_tr.get()),
                                      int(self.var_search_frm.get()),
@@ -1934,8 +1941,8 @@ class SearchSettingsW(tk.Toplevel):
         save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
                                  _0_global_dct_savename)
 
-        return self.var_search_only_fav.get(), self.var_search_wrd.get(), self.var_search_tr.get(),\
-            self.var_search_frm.get(), self.var_search_nt.get()
+        return self.var_search_only_fav.get(), self.var_search_only_full.get(), self.var_search_wrd.get(),\
+            self.var_search_tr.get(), self.var_search_frm.get(), self.var_search_nt.get()
 
 
 # Окно выбора одной статьи из нескольких с одинаковыми словами
@@ -4381,10 +4388,11 @@ class SearchW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
 
         self.search_only_fav = bool(_0_global_search_settings[0])
-        self.search_wrd = bool(_0_global_search_settings[1])
-        self.search_tr = bool(_0_global_search_settings[2])
-        self.search_frm = bool(_0_global_search_settings[3])
-        self.search_nt = bool(_0_global_search_settings[4])
+        self.search_only_full = bool(_0_global_search_settings[1])
+        self.search_wrd = bool(_0_global_search_settings[2])
+        self.search_tr = bool(_0_global_search_settings[3])
+        self.search_frm = bool(_0_global_search_settings[4])
+        self.search_nt = bool(_0_global_search_settings[5])
 
         self.max_elements_on_page = 100  # Максимальное количество элементов на одной странице ScrollFrame
         self.current_page = 1  # Номер текущей страницы ScrollFrame (начиная с 1)
@@ -4508,9 +4516,10 @@ class SearchW(tk.Toplevel):
 
     # Нажатие на кнопку "Настройки поиска"
     def search_settings(self):
-        window = SearchSettingsW(self, self.search_only_fav,
+        window = SearchSettingsW(self, self.search_only_fav, self.search_only_full,
                                  self.search_wrd, self.search_tr, self.search_frm, self.search_nt)
-        self.search_only_fav, self.search_wrd, self.search_tr, self.search_frm, self.search_nt = window.open()
+        self.search_only_fav, self.search_only_full, self.search_wrd, self.search_tr, self.search_frm,\
+            self.search_nt = window.open()
 
     # Изменить статью
     def edit_entry(self, key: tuple[str, int]):
@@ -4538,7 +4547,10 @@ class SearchW(tk.Toplevel):
         full_matches, particular_matches = search_entries(_0_global_dct, tuple(keys), self.var_query.get(),
                                                           self.search_wrd, self.search_tr,
                                                           self.search_frm, self.search_nt)
-        self.keys = tuple(full_matches) + tuple(particular_matches)
+        if self.search_only_full:
+            self.keys = tuple(full_matches)
+        else:
+            self.keys = tuple(full_matches) + tuple(particular_matches)
 
         # Вычисляем значения некоторых количественных переменных
         self.count_elements = len(self.keys)
