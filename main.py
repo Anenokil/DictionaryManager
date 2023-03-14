@@ -2452,11 +2452,8 @@ class AddFormW(tk.Toplevel):
         self.img_ok = tk.PhotoImage()
         self.img_none = tk.PhotoImage()
 
-        self.vcmd_ctg = (self.register(lambda value: self.refresh_vals()), '%P')
-
         self.lbl_choose_ctg = ttk.Label(self, text='Выберите категорию:', justify='center', style='Default.TLabel')
         self.combo_ctg = ttk.Combobox(self, textvariable=self.var_ctg, values=self.categories, width=combo_width,
-                                      validate='focusin', validatecommand=self.vcmd_ctg,
                                       state='readonly', style='Default.TCombobox',
                                       font=('DejaVu Sans Mono', _0_global_scale))
         self.lbl_choose_val = ttk.Label(self, text='Задайте значение категории:', justify='center',
@@ -2572,7 +2569,6 @@ class AddFormW(tk.Toplevel):
         self.var_val = tk.StringVar(value=self.ctg_values[0])
         self.combo_val.configure(textvariable=self.var_val, values=self.ctg_values,
                                  width=combobox_width(self.ctg_values, 5, 100))
-        return True
 
     # Установить фокус
     def set_focus(self):
@@ -2580,6 +2576,7 @@ class AddFormW(tk.Toplevel):
         self.entry_form.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_choose.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+        self.combo_ctg.bind('<<ComboboxSelected>>', lambda event=None: self.refresh_vals())
 
     def open(self):
         self.set_focus()
@@ -4220,7 +4217,7 @@ class PrintW(tk.Toplevel):
         self.tip_btn_next_page = ttip.Hovertip(self.btn_next_page, 'На следующую страницу', hover_delay=650)
         self.tip_btn_last_page = ttip.Hovertip(self.btn_last_page, 'В конец', hover_delay=650)
 
-        self.combo_order.bind("<<ComboboxSelected>>", lambda event: self.print(False))
+        self.combo_order.bind('<<ComboboxSelected>>', lambda event: self.print(False))
 
         self.bind('<Up>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
         self.bind('<Control-U>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
