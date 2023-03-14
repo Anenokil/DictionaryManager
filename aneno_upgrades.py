@@ -3,7 +3,6 @@ import shutil
 import aneno_constants as anc
 from aneno_dct import frm_key_to_str_for_save, read_frm_key
 
-
 """ Обновление ресурсов """
 
 

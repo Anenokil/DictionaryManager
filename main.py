@@ -295,33 +295,18 @@ def check_ctg_val_edit(window_parent, values: list[str] | tuple[str, ...], old_v
 
 # Напечатать переводы
 def tr_print(entry: Entry):
-    res = ''
-    if entry.count_t != 0:
-        res += entry.tr[0]
-        for i in range(1, entry.count_t):
-            res += f', {entry.tr[i]}'
-    return res
+    return ', '.join((tr for tr in entry.tr))
 
 
 # Напечатать сноски
 def notes_print(entry: Entry, tab=0):
-    res = ''
-    if entry.count_n != 0:
-        res += ' ' * tab + f'> {entry.notes[0]}'
-        for i in range(1, entry.count_n):
-            res += '\n' + ' ' * tab + f'> {entry.notes[i]}'
-    return res
+    return '\n'.join((' ' * tab + '> ' + nt for nt in entry.notes))
 
 
 # Напечатать словоформы
 def frm_print(entry: Entry, tab=0):
-    res = ''
-    keys = tuple(entry.forms.keys())
-    if entry.count_f != 0:
-        res += ' ' * tab + f'[{frm_key_to_str_for_print(keys[0])}] {entry.forms[keys[0]]}'
-        for i in range(1, len(keys)):
-            res += '\n' + ' ' * tab + f'[{frm_key_to_str_for_print(keys[i])}] {entry.forms[keys[i]]}'
-    return res
+    frm_keys = entry.forms.keys()
+    return '\n'.join((' ' * tab + f'[{frm_key_to_str_for_print(key)}] {entry.forms[key]}' for key in frm_keys))
 
 
 # Напечатать количество ошибок после последнего верного ответа
@@ -422,7 +407,10 @@ def print_all(entry: Entry, len_str: int, tab=0):
         res += f'> {entry.notes[0]}\n'
         for i in range(1, entry.count_n):
             res += f'             > {entry.notes[i]}\n'
-    res += f'  Избранное: {entry.fav}\n'
+    if entry.fav:
+        res += f'  Избранное: ДА\n'
+    else:
+        res += f'  Избранное: НЕТ\n'
     if entry.all_att == 0:  # Если ещё не было попыток
         res += ' Статистика: 1) Верных ответов подряд: -\n'
         res += '             2) Доля верных ответов: -'
@@ -1802,7 +1790,7 @@ class ChooseLearnModeW(tk.Toplevel):
         return self.res
 
 
-# Окно с сообщением о неверном ответе
+# Окно с сообщением о неверном ответе (для слов, не находящихся в избранном)
 class IncorrectAnswerW(tk.Toplevel):
     def __init__(self, parent, user_answer: str, correct_answer: str, with_typo: bool):
         super().__init__(parent)
@@ -1830,7 +1818,9 @@ class IncorrectAnswerW(tk.Toplevel):
             self.btn_no.grid(  row=1, column=1,               padx=6, pady=4)
             self.btn_typo.grid(row=1, column=2,               padx=6, pady=4, sticky='W')
 
-            self.tip_btn_typo = ttip.Hovertip(self.btn_typo, 'Срабатывает при нажатии на Tab', hover_delay=700)
+            self.tip_btn_typo = ttip.Hovertip(self.btn_typo, 'Не засчитывать ошибку\n'
+                                                             'Tab',
+                                              hover_delay=700)
         else:
             self.lbl_msg.grid(row=0, column=0, columnspan=2, padx=6, pady=4)
             self.btn_yes.grid(row=1, column=0,               padx=6, pady=4, sticky='E')
@@ -1902,10 +1892,10 @@ class SearchSettingsW(tk.Toplevel):
         self.check_search_nt = ttk.Checkbutton(self.frame, variable=self.var_search_nt, style='Default.TCheckbutton')
         # }
 
-        self.lbl_search_only_fav.grid(   row=0, column=0,               padx=(6, 1), pady=6, sticky='E')
-        self.check_search_only_fav.grid( row=0, column=1,               padx=(0, 6), pady=6, sticky='W')
-        self.lbl_search_only_full.grid(  row=1, column=0,               padx=(6, 1), pady=6, sticky='E')
-        self.check_search_only_full.grid(row=1, column=1,               padx=(0, 6), pady=6, sticky='W')
+        self.lbl_search_only_fav.grid(   row=0, column=0,               padx=(6, 1), pady=6,      sticky='E')
+        self.check_search_only_fav.grid( row=0, column=1,               padx=(0, 6), pady=6,      sticky='W')
+        self.lbl_search_only_full.grid(  row=1, column=0,               padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_search_only_full.grid(row=1, column=1,               padx=(0, 6), pady=(0, 6), sticky='W')
         self.frame.grid(                 row=2, column=0, columnspan=2, padx=6,      pady=6)
         # {
         self.lbl_search_wrd.grid(  row=0, column=0, padx=(6, 1), pady=6,      sticky='E')
@@ -3698,6 +3688,7 @@ class LearnW(tk.Toplevel):
 
         self.current_key = None  # Текущее слово
         self.current_form = None  # Текущая форма (если начальная, то None)
+        self.homonyms = []  # Омонимы к текущему слову
         self.count_all = 0  # Счётчик всех ответов
         self.count_correct = 0  # Счётчик верных ответов
         self.learn_method = parameters[0]  # Метод изучения слов
@@ -3723,12 +3714,14 @@ class LearnW(tk.Toplevel):
         self.scrollbar.config(command=self.txt_dct.yview)
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.btn_input = ttk.Button(self.frame_main, text='Ввод', command=self.input,
+        self.btn_input = ttk.Button(self.frame_main, text='Ввод', command=self.input, width=6,
                                     takefocus=False, style='Default.TButton')
         self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=36,
                                      style='Default.TEntry', font=('StdFont', _0_global_scale))
-        self.btn_show_notes = ttk.Button(self.frame_main, text='Посмотреть сноски', command=self.show_notes,
+        self.btn_show_notes = ttk.Button(self.frame_main, text='Сноски', command=self.show_notes, width=7,
                                          takefocus=False, style='Default.TButton')
+        self.btn_show_homonyms = ttk.Button(self.frame_main, text='Омонимы', command=self.show_homonyms, width=8,
+                                            takefocus=False, style='Default.TButton')
         # }
         self.btn_stop = ttk.Button(self, text='Закончить', command=self.stop, takefocus=False, style='No.TButton')
 
@@ -3738,13 +3731,20 @@ class LearnW(tk.Toplevel):
         self.scrollbar.grid(        row=2, column=1,     padx=(0, 6), pady=6, sticky='NSW')
         self.frame_main.grid(       row=3, columnspan=2, padx=6,      pady=6)
         # {
-        self.btn_input.grid(     row=0, column=0, padx=(0, 3), pady=0, sticky='E')
-        self.entry_input.grid(   row=0, column=1, padx=(0, 3), pady=0, sticky='W')
-        self.btn_show_notes.grid(row=0, column=2, padx=0,      pady=0, sticky='W')
+        self.btn_input.grid(        row=0, column=0, padx=(0, 3), pady=0, sticky='E')
+        self.entry_input.grid(      row=0, column=1, padx=(0, 3), pady=0, sticky='W')
+        self.btn_show_notes.grid(   row=0, column=2, padx=(0, 3), pady=0, sticky='W')
+        self.btn_show_homonyms.grid(row=0, column=3, padx=0,      pady=0, sticky='W')
         # }
         self.btn_stop.grid(row=4, columnspan=2, padx=6, pady=6)
 
-        self.tip_btn_show_notes = ttip.Hovertip(self.btn_show_notes, 'Срабатывает при нажатии на Tab', hover_delay=700)
+        self.tip_btn_show_notes = ttip.Hovertip(self.btn_show_notes, 'Посмотреть сноски\n'
+                                                                     'Control-N',
+                                                hover_delay=700)
+        self.tip_btn_show_homonyms = ttip.Hovertip(self.btn_show_homonyms,
+                                                   'Посмотреть остальные слова с таким же написанием\n'
+                                                   'Control-H',
+                                                   hover_delay=700)
         if self.learn_method == LEARN_VALUES_METHOD[0]:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
         elif self.learn_method == LEARN_VALUES_METHOD[1]:
@@ -3758,6 +3758,8 @@ class LearnW(tk.Toplevel):
             entry = _0_global_dct.d[self.current_key]
             if entry.count_n == 0:
                 btn_disable(self.btn_show_notes)
+            if not self.homonyms:
+                btn_disable(self.btn_show_homonyms)
 
     # Формируем пул слов, которые будут использоваться при учёбе
     def create_pool(self):
@@ -3860,6 +3862,11 @@ class LearnW(tk.Toplevel):
             btn_disable(self.btn_show_notes)
         else:
             btn_enable(self.btn_show_notes, self.show_notes)
+        # Обновление кнопки "Посмотреть омонимы"
+        if not self.homonyms:
+            btn_disable(self.btn_show_homonyms)
+        else:
+            btn_enable(self.btn_show_homonyms, self.show_homonyms)
         # Очистка поля ввода
         self.entry_input.delete(0, tk.END)
         # Обновление отображаемого рейтинга
@@ -3869,10 +3876,21 @@ class LearnW(tk.Toplevel):
     # Нажатие на кнопку "Посмотреть сноски"
     # Просмотр сносок
     def show_notes(self):
+        self.outp('Сноски:')
         entry = _0_global_dct.d[self.current_key]
-        if entry.count_n != 0:
-            self.outp(notes_print(entry))
+        self.outp(notes_print(entry))
         btn_disable(self.btn_show_notes)
+
+    # Нажатие на кнопку "Посмотреть омонимы"
+    # Просмотр омонимов
+    def show_homonyms(self):
+        if self.learn_method == LEARN_VALUES_METHOD[0]:
+            self.outp('Омонимы: ' + ', '.join([_0_global_dct.d[key].wrd for key in self.homonyms]))
+        else:
+            self.outp('Омонимы:')
+            for key in self.homonyms:
+                self.outp('> ' + tr_print(_0_global_dct.d[key]))
+        btn_disable(self.btn_show_homonyms)
 
     # Нажатие на кнопку "Закончить"
     # Завершение учёбы
@@ -3880,6 +3898,8 @@ class LearnW(tk.Toplevel):
         self.frame_main.grid_remove()
         self.btn_stop.grid_remove()
         btn_disable(self.btn_input)
+        btn_disable(self.btn_show_notes)
+        btn_disable(self.btn_show_homonyms)
 
         PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
         self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}', end='')
@@ -3905,12 +3925,17 @@ class LearnW(tk.Toplevel):
             self.outp(f'Неверно. Правильный ответ: "{correct_answer}"\n')
             if entry.fav:
                 if bool(_0_global_with_typo):
-                    window = PopupDialogueW(self, msg=f'Неверно.\n'
-                                                      f'Ваш ответ: {encode_special_combinations(self.entry_input.get())}\n'
-                                                      f'Правильный ответ: {correct_answer}',
+                    window = PopupDialogueW(self,
+                                            msg=f'Неверно.\n'
+                                                f'Ваш ответ: {encode_special_combinations(self.entry_input.get())}\n'
+                                                f'Правильный ответ: {correct_answer}',
                                             btn_left_text='Ясно', btn_right_text='Просто опечатка',
                                             st_left='Default', st_right='Default',
                                             val_left='ok', val_right='typo')
+                    ttip.Hovertip(window.btn_right, 'Не засчитывать ошибку\n'
+                                                    'Tab',
+                                  hover_delay=700)
+                    window.bind('<Tab>', lambda event=None: window.btn_right.invoke())
                     answer = window.open()
                     if answer != 'typo':
                         entry.incorrect()
@@ -3992,6 +4017,29 @@ class LearnW(tk.Toplevel):
         else:
             self.outp(print_wrd_with_stat(_0_global_dct.d[self.current_key])[4:])
 
+        # Запись омонимов
+        if self.learn_method == LEARN_VALUES_METHOD[0]:
+            ans = _0_global_dct.d[self.current_key].tr
+            self.homonyms = []
+            for key in _0_global_dct.d.keys():
+                if key != self.current_key:
+                    for tr in _0_global_dct.d[key].tr:
+                        if tr in ans:
+                            self.homonyms += [key]
+                            break
+        elif self.learn_method == LEARN_VALUES_METHOD[1]:
+            ans = _0_global_dct.d[self.current_key].wrd
+            self.homonyms = [key for key in _0_global_dct.d.keys()
+                             if _0_global_dct.d[key].wrd == ans and key != self.current_key]
+        elif self.learn_method == LEARN_VALUES_METHOD[2]:
+            ans = _0_global_dct.d[self.current_key].wrd
+            self.homonyms = []
+            for key in _0_global_dct.d.keys():
+                if key != self.current_key:
+                    wrd = _0_global_dct.d[key].wrd
+                    if len(wrd) > 4 and wrd[0:4].lower() in ('der ', 'die ', 'das ') and wrd[4:] == ans[4:]:
+                        self.homonyms += [key]
+
     # Получить глобальный процент угадываний
     def get_percent(self):
         return format(_0_global_dct.count_rating() * 100, '.1f')
@@ -4001,7 +4049,10 @@ class LearnW(tk.Toplevel):
         self.focus_set()
         self.entry_input.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_input.invoke())
-        self.bind('<Tab>', lambda event=None: self.btn_show_notes.invoke())
+        self.bind('<Control-N>', lambda event=None: self.btn_show_notes.invoke())
+        self.bind('<Control-n>', lambda event=None: self.btn_show_notes.invoke())
+        self.bind('<Control-H>', lambda event=None: self.btn_show_homonyms.invoke())
+        self.bind('<Control-h>', lambda event=None: self.btn_show_homonyms.invoke())
 
     def open(self):
         global _0_global_learn_session_number
@@ -4595,6 +4646,7 @@ class SearchW(tk.Toplevel):
         # Привязываем события
         for i in range(self.count_elements_on_page):
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
+            self.frames[i].bind('<Leave>', lambda event, i=i: self.entry_query.focus_set())
             self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav_one(i, self.keys[self.start_index + i]))
             self.frames[i].bind('<Control-f>', lambda event, i=i: self.fav_one(i, self.keys[self.start_index + i]))
 
@@ -5087,7 +5139,8 @@ class SettingsW(tk.Toplevel):
     # Создать словарь (срабатывает при нажатии на кнопку)
     def dct_create(self):
         global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_categories,\
-            _0_global_special_combinations, _0_global_check_register, _0_global_has_progress, _0_global_learn_settings
+            _0_global_special_combinations, _0_global_check_register, _0_global_has_progress,\
+            _0_global_session_number, _0_global_search_settings, _0_global_learn_settings
 
         window = PopupEntryW(self, 'Введите название нового словаря', validate_function=validate_savename,
                              check_answer_function=check_dct_savename)
@@ -5972,6 +6025,9 @@ class MainW(tk.Tk):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
+
+""" Выполнение программы """
 
 
 # Если папки отсутствуют, то они создаются
