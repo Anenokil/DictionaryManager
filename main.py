@@ -864,9 +864,6 @@ def search_entries(dct: Dictionary, keys: tuple[tuple[str, int], ...], query: st
     return full_matches, particulary_matches
 
 
-""" Загрузка/сохранение """
-
-
 # Проверить наличие обновлений программы
 def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
     print('\nПроверка наличия обновлений...')
@@ -877,7 +874,7 @@ def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
         if PROGRAM_VERSION == last_version:
             print('Установлена последняя доступная версия программы')
             if show_updates and show_if_no_updates:
-                window_last_version = PopupMsgW(window_parent, 'Установлена последняя доступная версия программы')
+                PopupMsgW(window_parent, 'Установлена последняя доступная версия программы').open()
         else:
             print(f'Доступна новая версия: {last_version}')
             if show_updates:
@@ -889,6 +886,9 @@ def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
             warning(window_parent, f'Ошибка: невозможно проверить наличие обновлений!\n'
                                    f'{exc}')
     return window_last_version
+
+
+""" Загрузка/сохранение """
 
 
 # Загрузить дополнительные темы
