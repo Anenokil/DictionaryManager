@@ -2316,6 +2316,7 @@ class EditW(tk.Toplevel):
             fr.unbind('<Control-e>')
             fr.unbind('<Control-D>')
             fr.unbind('<Control-d>')
+            fr.unbind('<Leave>')
             fr.destroy()
 
         # Выбираем комбинации
@@ -2374,14 +2375,17 @@ class EditW(tk.Toplevel):
             self.tr_frames[i].bind('<Enter>', lambda event, i=i: self.tr_frames[i].focus_set())
             self.tr_frames[i].bind('<Control-D>', lambda event, i=i: self.tr_del(self.translations[i]))
             self.tr_frames[i].bind('<Control-d>', lambda event, i=i: self.tr_del(self.translations[i]))
+            self.tr_frames[i].bind('<Leave>', lambda event: self.focus_set())
         for i in range(nt_count):
             self.nt_frames[i].bind('<Enter>', lambda event, i=i: self.nt_frames[i].focus_set())
             self.nt_frames[i].bind('<Control-D>', lambda event, i=i: self.note_del(self.notes[i]))
             self.nt_frames[i].bind('<Control-d>', lambda event, i=i: self.note_del(self.notes[i]))
+            self.nt_frames[i].bind('<Leave>', lambda event: self.focus_set())
         for i in range(frm_count):
             self.frm_frames[i].bind('<Enter>', lambda event, i=i: self.frm_frames[i].focus_set())
             self.frm_frames[i].bind('<Control-D>', lambda event, i=i: self.frm_del(self.forms[i]))
             self.frm_frames[i].bind('<Control-d>', lambda event, i=i: self.frm_del(self.forms[i]))
+            self.frm_frames[i].bind('<Leave>', lambda event: self.focus_set())
         # Изменяем высоту полей
         self.scrolled_frame_tr.resize(height=max(1, min(sum([field_height(btn['text'], 35)
                                                              for btn in self.tr_buttons]),
@@ -2656,6 +2660,7 @@ class CategoriesSettingsW(tk.Toplevel):
             fr.unbind('<Control-r>')
             fr.unbind('<Control-D>')
             fr.unbind('<Control-d>')
+            fr.unbind('<Leave>')
             fr.destroy()
 
         # Выбираем категории
@@ -2687,6 +2692,7 @@ class CategoriesSettingsW(tk.Toplevel):
             self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename(self.categories[i]))
             self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.categories[i], True))
             self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.categories[i], True))
+            self.frames[i].bind('<Leave>', lambda event: self.focus_set())
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -2788,6 +2794,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
             fr.unbind('<Control-r>')
             fr.unbind('<Control-D>')
             fr.unbind('<Control-d>')
+            fr.unbind('<Leave>')
             fr.destroy()
 
         # Выбираем значения
@@ -2819,6 +2826,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
             self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename(self.values[i]))
             self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.values[i]))
             self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.values[i]))
+            self.frames[i].bind('<Leave>', lambda event: self.focus_set())
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -2926,6 +2934,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
             fr.unbind('<Control-e>')
             fr.unbind('<Control-D>')
             fr.unbind('<Control-d>')
+            fr.unbind('<Leave>')
             fr.destroy()
 
         # Выбираем комбинации
@@ -2960,6 +2969,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
             self.frames[i].bind('<Control-e>', lambda event, i=i: self.edit(self.combinations[i]))
             self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.combinations[i]))
             self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.combinations[i]))
+            self.frames[i].bind('<Leave>', lambda event: self.focus_set())
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -5329,6 +5339,7 @@ class SettingsW(tk.Toplevel):
             fr.unbind('<Control-d>')
             fr.unbind('<Control-E>')
             fr.unbind('<Control-e>')
+            fr.unbind('<Leave>')
             fr.destroy()
 
         # Выбираем словари
@@ -5366,6 +5377,7 @@ class SettingsW(tk.Toplevel):
             self.dcts_frames[i].bind('<Control-d>', lambda event, i=i: self.dct_delete(self.dcts_savenames[i]))
             self.dcts_frames[i].bind('<Control-E>', lambda event, i=i: self.dct_export(self.dcts_savenames[i]))
             self.dcts_frames[i].bind('<Control-e>', lambda event, i=i: self.dct_export(self.dcts_savenames[i]))
+            self.dcts_frames[i].bind('<Leave>', lambda event: self.focus_set())
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
