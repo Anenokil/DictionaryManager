@@ -293,24 +293,24 @@ def check_ctg_val_edit(window_parent, values: list[str] | tuple[str, ...], old_v
 """ Функции вывода """
 
 
-# Напечатать переводы
-def tr_print(entry: Entry):
+# Вывести переводы
+def get_tr(entry: Entry):
     return ', '.join((tr for tr in entry.tr))
 
 
-# Напечатать сноски
-def notes_print(entry: Entry, tab=0):
+# Вывести сноски
+def get_notes(entry: Entry, tab=0):
     return '\n'.join((' ' * tab + '> ' + nt for nt in entry.notes))
 
 
-# Напечатать словоформы
-def frm_print(entry: Entry, tab=0):
+# Вывести словоформы
+def get_forms(entry: Entry, tab=0):
     frm_keys = entry.forms.keys()
     return '\n'.join((' ' * tab + f'[{frm_key_to_str_for_print(key)}] {entry.forms[key]}' for key in frm_keys))
 
 
-# Напечатать количество ошибок после последнего верного ответа
-def correct_att_in_a_row_print(entry: Entry):
+# Вывести количество ошибок после последнего верного ответа
+def get_correct_att_in_a_row(entry: Entry):
     if entry.all_att == 0:  # Если ещё не было попыток
         res = '-'
     elif entry.correct_att_in_a_row > 999:
@@ -322,8 +322,8 @@ def correct_att_in_a_row_print(entry: Entry):
     return res
 
 
-# Напечатать процент верных ответов
-def percent_print(entry: Entry):
+# Вывести процент верных ответов
+def get_entry_percent(entry: Entry):
     if entry.all_att == 0:  # Если ещё не было попыток
         res = '-'
     else:
@@ -331,67 +331,67 @@ def percent_print(entry: Entry):
     return res
 
 
-# Напечатать статистику
-def stat_print(entry: Entry):
-    correct_att_in_a_row = correct_att_in_a_row_print(entry)
-    percent = percent_print(entry)
+# Вывести статистику
+def get_entry_stat(entry: Entry):
+    correct_att_in_a_row = get_correct_att_in_a_row(entry)
+    percent = get_entry_percent(entry)
     tab_correct = ' ' * (3 - len(str(correct_att_in_a_row)))
     tab_percent = ' ' * (4 - len(percent))
     res = f'[{tab_correct}{correct_att_in_a_row}:{tab_percent}{percent}]'
     return res
 
 
-# Служебная функция для print_briefly и print_briefly_with_forms
-def _print_briefly(entry: Entry):
+# Служебная функция для get_entry_info_briefly и get_entry_info_briefly_with_forms
+def _get_entry_info_briefly(entry: Entry):
     if entry.fav:
         res = '(*)'
     else:
         res = '   '
-    res += f' {stat_print(entry)} {entry.wrd}: {tr_print(entry)}'
+    res += f' {get_entry_stat(entry)} {entry.wrd}: {get_tr(entry)}'
     return res
 
 
-# Напечатать статью - кратко
-def print_briefly(entry: Entry, len_str: int):
-    res = _print_briefly(entry)
+# Вывести статью - кратко
+def get_entry_info_briefly(entry: Entry, len_str: int):
+    res = _get_entry_info_briefly(entry)
     if entry.count_n != 0:
-        res += f'\n{notes_print(entry, tab=15)}'
+        res += f'\n{get_notes(entry, tab=15)}'
     return split_text(res, len_str, tab=15)
 
 
-# Напечатать статью - кратко со словоформами
-def print_briefly_with_forms(entry: Entry, len_str: int):
-    res = _print_briefly(entry)
+# Вывести статью - кратко со словоформами
+def get_entry_info_briefly_with_forms(entry: Entry, len_str: int):
+    res = _get_entry_info_briefly(entry)
     if entry.count_f != 0:
-        res += f'\n{frm_print(entry, tab=15)}'
+        res += f'\n{get_forms(entry, tab=15)}'
     if entry.count_n != 0:
-        res += f'\n{notes_print(entry, tab=15)}'
+        res += f'\n{get_notes(entry, tab=15)}'
     return split_text(res, len_str, tab=15)
 
 
-# Напечатать статью - слово со статистикой
-def print_wrd_with_stat(entry: Entry):
-    res = f'{entry.wrd} {stat_print(entry)}'
+# Вывести слово со статистикой
+def get_wrd_with_stat(entry: Entry):
+    res = f'{entry.wrd} {get_entry_stat(entry)}'
     return res
 
 
-# Напечатать статью - перевод со статистикой
-def print_tr_with_stat(entry: Entry):
-    res = f'{tr_print(entry)} {stat_print(entry)}'
+# Вывести перевод со статистикой
+def get_tr_with_stat(entry: Entry):
+    res = f'{get_tr(entry)} {get_entry_stat(entry)}'
     return res
 
 
-# Напечатать статью - перевод со словоформой и со статистикой
-def print_tr_and_frm_with_stat(entry: Entry, frm_key: tuple[str, ...] | list[str]):
-    res = f'{tr_print(entry)} ({frm_key_to_str_for_print(frm_key)}) {stat_print(entry)}'
+# Вывести перевод со словоформой и со статистикой
+def get_tr_and_frm_with_stat(entry: Entry, frm_key: tuple[str, ...] | list[str]):
+    res = f'{get_tr(entry)} ({frm_key_to_str_for_print(frm_key)}) {get_entry_stat(entry)}'
     return res
 
 
-# Напечатать статью - со всей информацией
-def print_all(entry: Entry, len_str: int, tab=0):
+# Вывести статью со всей информацией
+def get_all_entry_info(entry: Entry, len_str: int, tab=0):
     res = ''
     res += f'      Слово: {entry.wrd}\n'
-    res += f'    Перевод: {tr_print(entry)}\n'
+    res += f'    Перевод: {get_tr(entry)}\n'
     res += f'Формы слова: '
     if entry.count_f == 0:
         res += '-\n'
@@ -1969,7 +1969,7 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
         keys = [key for key in _0_global_dct.d.keys() if key[0] == self.search_wrd]
         for key in keys:
             self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
-                                            text=print_all(_0_global_dct.d[key], 75, 13),
+                                            text=get_all_entry_info(_0_global_dct.d[key], 75, 13),
                                             command=lambda key=key: self.choose_entry(key),
                                             takefocus=False, style='Note.TButton')]
 
@@ -3878,7 +3878,7 @@ class LearnW(tk.Toplevel):
     def show_notes(self):
         self.outp('Сноски:')
         entry = _0_global_dct.d[self.current_key]
-        self.outp(notes_print(entry))
+        self.outp(get_notes(entry))
         btn_disable(self.btn_show_notes)
 
     # Нажатие на кнопку "Посмотреть омонимы"
@@ -3889,7 +3889,7 @@ class LearnW(tk.Toplevel):
         else:
             self.outp('Омонимы:')
             for key in self.homonyms:
-                self.outp('> ' + tr_print(_0_global_dct.d[key]))
+                self.outp('> ' + get_tr(_0_global_dct.d[key]))
         btn_disable(self.btn_show_homonyms)
 
     # Нажатие на кнопку "Закончить"
@@ -4009,13 +4009,13 @@ class LearnW(tk.Toplevel):
         # Вывод слова в журнал
         if self.learn_method == LEARN_VALUES_METHOD[0]:
             if self.with_forms and self.current_form:
-                self.outp(print_tr_and_frm_with_stat(_0_global_dct.d[self.current_key], self.current_form))
+                self.outp(get_tr_and_frm_with_stat(_0_global_dct.d[self.current_key], self.current_form))
             else:
-                self.outp(print_tr_with_stat(_0_global_dct.d[self.current_key]))
+                self.outp(get_tr_with_stat(_0_global_dct.d[self.current_key]))
         elif self.learn_method == LEARN_VALUES_METHOD[1]:
-            self.outp(print_wrd_with_stat(_0_global_dct.d[self.current_key]))
+            self.outp(get_wrd_with_stat(_0_global_dct.d[self.current_key]))
         else:
-            self.outp(print_wrd_with_stat(_0_global_dct.d[self.current_key])[4:])
+            self.outp(get_wrd_with_stat(_0_global_dct.d[self.current_key])[4:])
 
         # Запись омонимов
         if self.learn_method == LEARN_VALUES_METHOD[0]:
@@ -4295,11 +4295,11 @@ class PrintW(tk.Toplevel):
         if self.var_forms.get():
             for i in range(self.count_elements_on_page):
                 key = self.keys[self.start_index + i]
-                self.buttons[i].configure(text=print_briefly_with_forms(_0_global_dct.d[key], 75))
+                self.buttons[i].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
         else:
             for i in range(self.count_elements_on_page):
                 key = self.keys[self.start_index + i]
-                self.buttons[i].configure(text=print_briefly(_0_global_dct.d[key], 75))
+                self.buttons[i].configure(text=get_entry_info_briefly(_0_global_dct.d[key], 75))
         # Расставляем элементы
         for i in range(self.count_elements_on_page):
             self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
@@ -4309,9 +4309,9 @@ class PrintW(tk.Toplevel):
         # Создаём подсказки
         self.tips = [ttip.Hovertip(self.buttons[i],
                                    f'Верных ответов подряд: '
-                                   f'{correct_att_in_a_row_print(_0_global_dct.d[self.keys[self.start_index + i]])}\n'
+                                   f'{get_correct_att_in_a_row(_0_global_dct.d[self.keys[self.start_index + i]])}\n'
                                    f'Доля верных ответов: '
-                                   f'{percent_print(_0_global_dct.d[self.keys[self.start_index + i]])}',
+                                   f'{get_entry_percent(_0_global_dct.d[self.keys[self.start_index + i]])}',
                                    hover_delay=666)
                      for i in range(self.count_elements_on_page)]
         # Привязываем события
@@ -4329,10 +4329,10 @@ class PrintW(tk.Toplevel):
         # Выводим текст на кнопку
         if self.var_forms.get():
             key = self.keys[self.start_index + index]
-            self.buttons[index].configure(text=print_briefly_with_forms(_0_global_dct.d[key], 75))
+            self.buttons[index].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
         else:
             key = self.keys[self.start_index + index]
-            self.buttons[index].configure(text=print_briefly(_0_global_dct.d[key], 75))
+            self.buttons[index].configure(text=get_entry_info_briefly(_0_global_dct.d[key], 75))
 
         # Выводим информацию о количестве статей
         if self.var_fav.get():
@@ -4347,11 +4347,11 @@ class PrintW(tk.Toplevel):
         if self.var_forms.get():
             for i in range(self.count_elements_on_page):
                 key = self.keys[self.start_index + i]
-                self.buttons[i].configure(text=print_briefly_with_forms(_0_global_dct.d[key], 75))
+                self.buttons[i].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
         else:
             for i in range(self.count_elements_on_page):
                 key = self.keys[self.start_index + i]
-                self.buttons[i].configure(text=print_briefly(_0_global_dct.d[key], 75))
+                self.buttons[i].configure(text=get_entry_info_briefly(_0_global_dct.d[key], 75))
 
     # Перейти на страницу с заданным номером
     def go_to_page_with_number(self, number: int):
@@ -4636,7 +4636,7 @@ class SearchW(tk.Toplevel):
                         for i in range(self.count_elements_on_page)]
         # Выводим текст на кнопки
         for i in range(self.count_elements_on_page):
-            self.buttons[i].configure(text=print_all(_0_global_dct.d[self.keys[self.start_index + i]], 75, 13))
+            self.buttons[i].configure(text=get_all_entry_info(_0_global_dct.d[self.keys[self.start_index + i]], 75, 13))
         # Расставляем элементы
         for i in range(self.count_elements_on_page):
             self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
@@ -4657,7 +4657,7 @@ class SearchW(tk.Toplevel):
     # Обновить одну из кнопок журнала
     def refresh_one_button(self, index: int, key: tuple[str, int]):
         # Выводим текст на кнопку
-        self.buttons[index].configure(text=print_all(_0_global_dct.d[key], 75, 13))
+        self.buttons[index].configure(text=get_all_entry_info(_0_global_dct.d[key], 75, 13))
 
         # Выводим информацию о количестве статей
         self.var_info.set(f'Найдено статей: {self.count_elements}')
