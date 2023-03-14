@@ -492,23 +492,25 @@ def simplify(text: str):
 
 # Найти в строке подстроку и выделить её (только частичные совпадения)
 def find_and_highlight(target_wrd: str, search_wrd: str):
+    if target_wrd == search_wrd:  # Полное совпадение не учитывается
+        return ''
+
     target_wrd = encode_special_combinations(target_wrd)
     search_wrd = encode_special_combinations(search_wrd)
 
     target_simpl, target_arr = simplify(target_wrd)
     search_simpl, search_arr = simplify(search_wrd)
 
-    if target_wrd != search_wrd:  # Полное совпадение не учитывается
-        pos = target_simpl.find(search_simpl)
-        if pos != -1:
-            search_len = len(encode_special_combinations(search_simpl))
-            end_pos = pos + search_len
-            if search_wrd == '':  # Если искомая подстрока пустая, то она не выделяется
-                res = target_wrd
-            else:
-                res = ''.join((s for s in target_arr[:pos] + ['['] +
-                               target_arr[pos:end_pos] + [']'] + target_arr[end_pos:]))
-            return res
+    pos = target_simpl.find(search_simpl)
+    if pos != -1:
+        search_len = len(encode_special_combinations(search_simpl))
+        end_pos = pos + search_len
+        if search_wrd == '':  # Если искомая подстрока пустая, то она не выделяется
+            res = target_wrd
+        else:
+            res = ''.join((s for s in target_arr[:pos] + ['['] +
+                           target_arr[pos:end_pos] + [']'] + target_arr[end_pos:]))
+        return res
     return ''
 
 
