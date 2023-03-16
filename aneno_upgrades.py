@@ -465,11 +465,51 @@ def upgrade_dct_save_4_to_5(path: str, _=None):
         os.remove(anc.TMP_PATH)
 
 
+# Обновить сохранение словаря с 5 до 6 версии
+def upgrade_dct_save_5_to_6(path: str, _=None):
+    with open(path, 'r', encoding='utf-8') as dct_save:
+        with open(anc.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+            dct_save.readline()
+            dct_save_tmp.write('v6\n')  # Версия сохранения словаря
+            while True:
+                line = dct_save.readline()
+                if not line:
+                    break
+                elif line[0] == 'w':
+                    dct_save_tmp.write(line)
+                    line = dct_save.readline()
+                    dct_save_tmp.write(line)
+                    line = dct_save.readline()
+                    dct_save_tmp.write(line)
+                    line = dct_save.readline()
+                    dct_save_tmp.write(line)
+                elif line[0] == 't':
+                    dct_save_tmp.write(line)
+                elif line[0] == 'n':
+                    dct_save_tmp.write(line)
+                elif line[0] == 'f':
+                    dct_save_tmp.write(line)
+                    line = dct_save.readline()
+                    dct_save_tmp.write(line)
+                elif line[0] == '*':
+                    dct_save_tmp.write('gИзбранное\n')
+    with open(anc.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
+        with open(path, 'w', encoding='utf-8') as dct_save:
+            while True:
+                line = dct_save_tmp.readline()
+                if not line:
+                    break
+                dct_save.write(line)
+    if anc.TMP_FN in os.listdir(anc.RESOURCES_PATH):
+        os.remove(anc.TMP_PATH)
+
+
 upgrade_dct_save_functions = [upgrade_dct_save_0_to_1,
                               upgrade_dct_save_1_to_2,
                               upgrade_dct_save_2_to_3,
                               upgrade_dct_save_3_to_4,
-                              upgrade_dct_save_4_to_5]
+                              upgrade_dct_save_4_to_5,
+                              upgrade_dct_save_5_to_6]
 
 
 # Обновить сохранение словаря старой версии до актуальной версии

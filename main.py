@@ -295,7 +295,7 @@ def check_ctg_val_edit(window_parent, values: list[str] | tuple[str, ...], old_v
 
 # Вывести переводы
 def get_tr(entry: Entry):
-    return ', '.join((tr for tr in entry.tr))
+    return ', '.join(tuple(entry.tr))
 
 
 # Вывести сноски
@@ -307,6 +307,14 @@ def get_notes(entry: Entry, tab=0):
 def get_forms(entry: Entry, tab=0):
     frm_keys = entry.forms.keys()
     return '\n'.join((' ' * tab + f'[{frm_key_to_str_for_print(key)}] {entry.forms[key]}' for key in frm_keys))
+
+
+# Вывести группы
+def get_groups(entry: Entry):
+    if entry.groups:
+        return ', '.join(tuple(entry.groups))
+    else:
+        return '-'
 
 
 # Вывести количество ошибок после последнего верного ответа
@@ -343,7 +351,7 @@ def get_entry_stat(entry: Entry):
 
 # Служебная функция для get_entry_info_briefly и get_entry_info_briefly_with_forms
 def _get_entry_info_briefly(entry: Entry):
-    if entry.fav:
+    if FAV_GROUP in entry.groups:
         res = '(*)'
     else:
         res = '   '
@@ -407,10 +415,7 @@ def get_all_entry_info(entry: Entry, len_str: int, tab=0):
         res += f'> {entry.notes[0]}\n'
         for i in range(1, entry.count_n):
             res += f'             > {entry.notes[i]}\n'
-    if entry.fav:
-        res += f'  Избранное: ДА\n'
-    else:
-        res += f'  Избранное: НЕТ\n'
+    res += f'     Группы: {get_groups(entry)}\n'
     if entry.all_att == 0:  # Если ещё не было попыток
         res += ' Статистика: 1) Верных ответов подряд: -\n'
         res += '             2) Доля верных ответов: -'
@@ -676,7 +681,7 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, key: tuple[str, int], n
             dct.merge_entries(new_key, key)
             return new_key
         elif answer == 'r':  # Оставить отдельной статьёй
-            new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].forms, dct.d[key].fav,
+            new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].forms, dct.d[key].groups,
                                     dct.d[key].all_att, dct.d[key].correct_att, dct.d[key].correct_att_in_a_row,
                                     dct.d[key].latest_answer_session)
             dct.delete_entry(key)
@@ -684,7 +689,7 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, key: tuple[str, int], n
         else:
             return key
     else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
-        new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].forms, dct.d[key].fav,
+        new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].forms, dct.d[key].groups,
                                 dct.d[key].all_att, dct.d[key].correct_att, dct.d[key].correct_att_in_a_row,
                                 dct.d[key].latest_answer_session)
         dct.delete_entry(key)
@@ -2010,7 +2015,7 @@ class EditW(tk.Toplevel):
         self.max_height_n = 4
         self.max_height_f = 6
 
-        self.var_fav = tk.BooleanVar(value=_0_global_dct.d[key].fav)
+        self.var_fav = tk.BooleanVar(value=FAV_GROUP in _0_global_dct.d[key].groups)
 
         self.img_edit = tk.PhotoImage()
         self.img_add = tk.PhotoImage()
@@ -2275,7 +2280,10 @@ class EditW(tk.Toplevel):
 
     # Добавить в избранное/убрать из избранного
     def set_fav(self):
-        _0_global_dct.d[self.dct_key].fav = self.var_fav.get()
+        if self.var_fav.get():
+            _0_global_dct.d[self.dct_key].add_to_group(FAV_GROUP)
+        else:
+            _0_global_dct.d[self.dct_key].remove_from_group(FAV_GROUP)
 
     # Удалить статью
     def delete(self):
@@ -3786,17 +3794,17 @@ class LearnW(tk.Toplevel):
         if self.words == LEARN_VALUES_WORDS[0]:  # Учить все слова
             selected_keys = all_keys
         elif self.words == LEARN_VALUES_WORDS[1]:  # Учить преимущественно избранные слова
-            selected_keys = [key for key in all_keys if _0_global_dct.d[key].fav]
+            selected_keys = [key for key in all_keys if FAV_GROUP in _0_global_dct.d[key].groups]
 
             # Помимо всех избранных слов (пусть их количество N) добавим N // 4 остальных слов
             # Выберем их из самых давно не отвечаемых слов
 
             # Отбираем слова, не являющиеся избранными
-            unfav_keys = list(k for k in all_keys if not _0_global_dct.d[k].fav)
+            unfav_keys = list(key for key in all_keys if FAV_GROUP not in _0_global_dct.d[key].groups)
             # Сортируем по давности ответа
             unfav_keys = sorted(unfav_keys, key=lambda k: _0_global_dct.d[k].latest_answer_session)
             # Находим N // 4
-            count_unfav_keys = min(len(unfav_keys), _0_global_dct.count_fav_info()[0] // 4)
+            count_unfav_keys = min(len(unfav_keys), _0_global_dct.count_entries_in_group(FAV_GROUP)[0] // 4)
             # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
             latest_session = _0_global_dct.d[unfav_keys[count_unfav_keys - 1]].latest_answer_session
             # Оставляем только слова с номером сессии <= S
@@ -3808,13 +3816,13 @@ class LearnW(tk.Toplevel):
             for i in range(count_unfav_keys):
                 selected_keys += [unfav_keys[i]]
         elif self.words == LEARN_VALUES_WORDS[2]:  # Учить только избранные слова
-            selected_keys = [key for key in all_keys if _0_global_dct.d[key].fav]
+            selected_keys = [key for key in all_keys if FAV_GROUP in _0_global_dct.d[key].groups]
         elif self.words == LEARN_VALUES_WORDS[3]:  # Учить только неотвеченные слова
             selected_keys = [key for key in all_keys if _0_global_dct.d[key].correct_att == 0]
         elif self.words == LEARN_VALUES_WORDS[4]:  # Учить 15 случайных слов
             selected_keys = random.sample(all_keys, min(len(all_keys), 15))
         else:  # Учить 15 случайных избранных слов
-            all_keys = tuple(key for key in all_keys if _0_global_dct.d[key].fav)
+            all_keys = tuple(key for key in all_keys if FAV_GROUP in _0_global_dct.d[key].groups)
             selected_keys = random.sample(all_keys, min(len(all_keys), 15))
 
         selected_forms = []
@@ -3920,19 +3928,19 @@ class LearnW(tk.Toplevel):
         if is_correct:
             entry.correct((_0_global_session_number, _0_global_learn_session_number, self.count_all))
             self.outp('Верно\n')
-            if entry.fav:
+            if FAV_GROUP in entry.groups:
                 window = PopupDialogueW(self, 'Верно.\n'
                                               'Оставить слово в избранном?',
                                         'Да', 'Нет', val_on_close=True)
                 answer = window.open()
                 if not answer:
-                    entry.fav = False
+                    entry.remove_from_group(FAV_GROUP)
             self.count_all += 1
             self.count_correct += 1
             self.pool.remove((current_key, current_form))
         else:
             self.outp(f'Неверно. Правильный ответ: "{correct_answer}"\n')
-            if entry.fav:
+            if FAV_GROUP in entry.groups:
                 if bool(_0_global_with_typo):
                     window = PopupDialogueW(self,
                                             msg=f'Неверно.\n'
@@ -3960,7 +3968,7 @@ class LearnW(tk.Toplevel):
                     entry.incorrect()
                     self.count_all += 1
                 if answer == 'yes':
-                    entry.fav = True
+                    entry.add_to_group(FAV_GROUP)
 
     # Проверка введённого слова
     def check_wrd(self):
@@ -4252,9 +4260,9 @@ class PrintW(tk.Toplevel):
 
         # Выбираем нужные статьи и выводим информацию о количестве статей
         if self.var_fav.get():
-            self.keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
+            self.keys = [key for key in _0_global_dct.d.keys() if FAV_GROUP in _0_global_dct.d[key].groups]
 
-            w, t, f = _0_global_dct.count_fav_info()
+            w, t, f = _0_global_dct.count_entries_in_group(FAV_GROUP)
             self.var_info.set(dct_info_fav(_0_global_dct, w, t, f))
         else:
             self.keys = [key for key in _0_global_dct.d.keys()]
@@ -4345,7 +4353,7 @@ class PrintW(tk.Toplevel):
 
         # Выводим информацию о количестве статей
         if self.var_fav.get():
-            w, t, f = _0_global_dct.count_fav_info()
+            w, t, f = _0_global_dct.count_entries_in_group(FAV_GROUP)
             self.var_info.set(dct_info_fav(_0_global_dct, w, t, f))
         else:
             self.var_info.set(dct_info(_0_global_dct))
@@ -4386,9 +4394,13 @@ class PrintW(tk.Toplevel):
     def go_to_last_page(self):
         self.go_to_page_with_number(self.count_pages)
 
-    # Добавить одну статью в избранное
+    # Добавить одну статью в избранное (или убрать)
     def fav_one(self, index: int):
-        _0_global_dct.d[self.keys[self.start_index + index]].change_fav()
+        key = self.keys[self.start_index + index]
+        if FAV_GROUP in _0_global_dct.d[key].groups:
+            _0_global_dct.d[key].remove_from_group(FAV_GROUP)
+        else:
+            _0_global_dct.d[key].add_to_group(FAV_GROUP)
 
         self.refresh_one_button(index)
 
@@ -4398,7 +4410,7 @@ class PrintW(tk.Toplevel):
         answer = window.open()
         if not answer:
             return
-        _0_global_dct.fav_all()
+        _0_global_dct.add_all_entries_to_group(FAV_GROUP)
 
         self.print(False)
 
@@ -4408,7 +4420,7 @@ class PrintW(tk.Toplevel):
         answer = window.open()
         if not answer:
             return
-        _0_global_dct.unfav_all()
+        _0_global_dct.remove_all_entries_from_group(FAV_GROUP)
 
         self.refresh_all_buttons()
 
@@ -4601,7 +4613,7 @@ class SearchW(tk.Toplevel):
 
         # Выбираем нужные статьи
         if self.search_only_fav:
-            keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
+            keys = [key for key in _0_global_dct.d.keys() if FAV_GROUP in _0_global_dct.d[key].groups]
         else:
             keys = [key for key in _0_global_dct.d.keys()]
         full_matches, particular_matches = search_entries(_0_global_dct, tuple(keys), self.var_query.get(),
@@ -4695,9 +4707,12 @@ class SearchW(tk.Toplevel):
     def go_to_last_page(self):
         self.go_to_page_with_number(self.count_pages)
 
-    # Добавить одну статью в избранное
+    # Добавить одну статью в избранное (или убрать)
     def fav_one(self, index: int, key: tuple[str, int]):
-        _0_global_dct.d[key].change_fav()
+        if FAV_GROUP in _0_global_dct.d[key].groups:
+            _0_global_dct.d[key].remove_from_group(FAV_GROUP)
+        else:
+            _0_global_dct.d[key].add_to_group(FAV_GROUP)
 
         self.refresh_one_button(index, key)
 
@@ -4810,7 +4825,8 @@ class AddW(tk.Toplevel):
                                              encode_special_combinations(self.var_tr.get()))
         if not self.dct_key:
             return
-        _0_global_dct.d[self.dct_key].fav = self.var_fav.get()
+        if self.var_fav.get():
+            _0_global_dct.d[self.dct_key].add_to_group(FAV_GROUP)
 
         _0_global_has_progress = True
         self.destroy()

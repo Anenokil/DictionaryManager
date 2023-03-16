@@ -3,13 +3,13 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.12'
-PROGRAM_DATE = '14.3.2023'
-PROGRAM_TIME = '5:54 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.13-PRE-1'
+PROGRAM_DATE = '16.3.2023'
+PROGRAM_TIME = '23:56 (UTC+3)'
 
 """ Версии ресурсов """
 
-SAVES_VERSION = 5  # Актуальная версия сохранений словарей
+SAVES_VERSION = 6  # Актуальная версия сохранений словарей
 LOCAL_SETTINGS_VERSION = 4  # Актуальная версия локальных настроек
 LOCAL_AUTO_SETTINGS_VERSION = 3  # Актуальная версия автосохраняемых локальных настроек
 GLOBAL_SETTINGS_VERSION = 3  # Актуальная версия глобальных настроек
@@ -120,6 +120,8 @@ NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с
 
 """ Другие константы """
 
+# Группа с избранными статьями
+FAV_GROUP = 'Избранное'
 # Разделитель для записи значений категории в файл локальных настроек
 CATEGORY_SEPARATOR = '@'
 # Открывающие символы специальных комбинаций
