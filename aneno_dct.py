@@ -10,6 +10,7 @@ class Entry(object):
     # self.count_t - количество переводов
     # self.count_n - количество сносок
     # self.count_f - количество словоформ
+    # self.fav - избранное или нет
     # self.groups - группы, к которым относится эта статья
     # self.all_att - количество всех попыток
     # self.correct_att - количество удачных попыток
@@ -21,7 +22,7 @@ class Entry(object):
                  tr: str | list[str],
                  notes: str | list[str] | None = None,
                  forms: dict[tuple[str, ...], str] | None = None,
-                 groups: set[str] | None = None,
+                 fav=False, groups: set[str] | None = None,
                  all_att=0, correct_att=0, correct_att_in_a_row=0, latest_answer_session=(0, 0, 0)):
         self.wrd = wrd
         self.tr = tr.copy() if (type(tr) == list) else [tr]
@@ -37,12 +38,25 @@ class Entry(object):
         self.count_t = len(self.tr)
         self.count_n = len(self.notes)
         self.count_f = len(self.forms)
+        self.fav = fav
         self.groups = groups if groups else set()
         self.all_att = all_att
         self.correct_att = correct_att
         self.score = 0 if (all_att == 0) else correct_att / all_att
         self.correct_att_in_a_row = correct_att_in_a_row
         self.latest_answer_session = latest_answer_session
+
+    # Добавить в избранное
+    def add_to_fav(self):
+        self.fav = True
+
+    # Убрать из избранного
+    def remove_from_fav(self):
+        self.fav = False
+
+    # Изменить статус избранного
+    def change_fav(self):
+        self.fav = not self.fav
 
     # Добавить в группу
     def add_to_group(self, group: str):
@@ -51,6 +65,13 @@ class Entry(object):
     # Убрать из группы
     def remove_from_group(self, group: str):
         self.groups.remove(group)
+
+    # Изменить статус группы
+    def change_group_status(self, group: str):
+        if group in self.groups:
+            self.remove_from_group(group)
+        else:
+            self.add_to_group(group)
 
     # Добавить перевод
     def add_tr(self, new_tr: str):
@@ -177,11 +198,15 @@ class Entry(object):
         for frm_template in self.forms.keys():
             file.write(f'f{frm_key_to_str_for_save(frm_template, frm_template_separator)}\n'
                        f'{self.forms[frm_template]}\n')
+        if self.fav:
+            file.write('*\n')
         for group in self.groups:
             file.write(f'g{group}\n')
 
     # Распечатать статью в файл
     def print_out(self, file: typing.TextIO):
+        if self.fav:
+            file.write('* (Избр.)\n')
         file.write(f'| {self.wrd} - {self.tr[0]}')
         for i in range(1, self.count_t):
             file.write(f', {self.tr[i]}')
@@ -198,11 +223,25 @@ class Dictionary(object):
     # self.count_w - количество статей (слов) в словаре
     # self.count_t - количество переводов в словаре
     # self.count_f - количество неначальных словоформ в словаре
+    # self.groups - все существующие группы
     def __init__(self):
         self.d: dict[tuple[str, int], Entry] = {}
         self.count_w = 0
         self.count_t = 0
         self.count_f = 0
+        self.groups = set()
+
+    # Подсчитать количество избранных статей
+    def count_fav_info(self):
+        count_w = 0
+        count_t = 0
+        count_f = 0
+        for entry in self.d.values():
+            if entry.fav:
+                count_w += 1
+                count_t += entry.count_t
+                count_f += entry.count_f
+        return count_w, count_t, count_f
 
     # Подсчитать количество статей в заданной группе
     def count_entries_in_group(self, group: str):
@@ -230,6 +269,8 @@ class Dictionary(object):
         for frm_key in self.d[additional_entry_key].forms.keys():
             frm = self.d[additional_entry_key].forms[frm_key]
             self.d[main_entry_key].add_frm(frm_key, frm)
+        if self.d[additional_entry_key].fav:
+            self.d[main_entry_key].fav = True
         for group in self.d[additional_entry_key].groups:
             self.d[main_entry_key].groups.add(group)
         self.d[main_entry_key].merge_stat(self.d[additional_entry_key].all_att,
@@ -277,13 +318,14 @@ class Dictionary(object):
     # Добавить статью в словарь
     def add_entry(self, wrd: str, tr: str | list[str],
                   notes: str | list[str] = None, forms: dict[tuple[str, ...], str] = None,
-                  groups: set[str] | None = None, all_att: int = 0, correct_att: int = 0, correct_att_in_a_row: int = 0,
+                  fav: bool = False, groups: set[str] | None = None,
+                  all_att: int = 0, correct_att: int = 0, correct_att_in_a_row: int = 0,
                   latest_answer_session: tuple[int, int, int] = (0, 0, 0)):
         i = 0
         while True:
             key = wrd_to_key(wrd, i)
             if key not in self.d.keys():
-                self.d[key] = Entry(wrd, tr, notes, forms, groups, all_att, correct_att, correct_att_in_a_row,
+                self.d[key] = Entry(wrd, tr, notes, forms, fav, groups, all_att, correct_att, correct_att_in_a_row,
                                     latest_answer_session)
                 self.count_w += 1
                 self.count_t += self.d[key].count_t
@@ -299,11 +341,21 @@ class Dictionary(object):
         self.d.pop(key)
 
     # Добавить все статьи в избранное
+    def fav_all(self):
+        for note in self.d.values():
+            note.add_to_fav()
+
+    # Убрать все статьи из избранного
+    def unfav_all(self):
+        for note in self.d.values():
+            note.remove_from_fav()
+
+    # Добавить все статьи в группу
     def add_all_entries_to_group(self, group: str):
         for note in self.d.values():
             note.add_to_group(group)
 
-    # Убрать все статьи из избранного
+    # Убрать все статьи из группы
     def remove_all_entries_from_group(self, group: str):
         for note in self.d.values():
             note.remove_from_group(group)
@@ -340,6 +392,26 @@ class Dictionary(object):
             return 0
         return sum_num / sum_den
 
+    # Добавить группу
+    def add_group(self, group: str):
+        self.groups.add(group)
+
+    # Переименовать группу
+    def rename_group(self, group_old: str, group_new: str):
+        for entry in self.d.values():
+            if group_old in entry.groups:
+                entry.remove_from_group(group_old)
+                entry.add_to_group(group_new)
+        self.groups.remove(group_old)
+        self.groups.add(group_new)
+
+    # Удалить группу
+    def delete_group(self, group: str):
+        for entry in self.d.values():
+            if group in entry.groups:
+                entry.remove_from_group(group)
+        self.groups.remove(group)
+
     # Прочитать словарь из файла
     def read(self, filepath: str, frm_template_separator: str):
         with open(filepath, 'r', encoding='utf-8') as file:
@@ -363,8 +435,13 @@ class Dictionary(object):
                 elif line[0] == 'f':
                     frm_key = read_frm_key(line[1:], frm_template_separator)
                     self.add_frm(key, frm_key, file.readline().strip())
+                elif line[0] == '*':
+                    self.d[key].add_to_fav()
                 elif line[0] == 'g':
-                    self.d[key].add_to_group(line[1:])
+                    group = line[1:]
+                    self.d[key].add_to_group(group)
+                    if group in self.groups:
+                        self.add_group(group)
 
     # Сохранить словарь в файл
     def save(self, filepath: str, frm_template_separator: str, saves_version: int | str):
