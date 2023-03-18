@@ -3,9 +3,9 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.13-PRE-4'
+PROGRAM_VERSION = 'v7.1.13-PRE-5'
 PROGRAM_DATE = '19.3.2023'
-PROGRAM_TIME = '1:02 (UTC+3)'
+PROGRAM_TIME = '2:44 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -89,6 +89,16 @@ img_delete = os.path.join(IMAGES_PATH, 'delete.png')
 img_edit = os.path.join(IMAGES_PATH, 'edit.png')
 #
 img_print_out = os.path.join(IMAGES_PATH, 'print_out.png')
+#
+img_select_page = os.path.join(IMAGES_PATH, 'select_page.png')
+img_unselect_page = os.path.join(IMAGES_PATH, 'unselect_page.png')
+img_select_all = os.path.join(IMAGES_PATH, 'select_all.png')
+img_unselect_all = os.path.join(IMAGES_PATH, 'unselect_all.png')
+#
+img_fav = os.path.join(IMAGES_PATH, 'fav.png')
+img_unfav = os.path.join(IMAGES_PATH, 'unfav.png')
+img_add_to_group = os.path.join(IMAGES_PATH, 'add_to_group.png')
+img_remove_from_group = os.path.join(IMAGES_PATH, 'remove_from_group.png')
 #
 img_undo = os.path.join(IMAGES_PATH, 'undo.png')
 img_redo = os.path.join(IMAGES_PATH, 'redo.png')

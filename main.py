@@ -4372,6 +4372,14 @@ class PrintW(tk.Toplevel):
         self.img_double_arrow_left = tk.PhotoImage()
         self.img_double_arrow_right = tk.PhotoImage()
         self.img_print_out = tk.PhotoImage()
+        self.img_select_page = tk.PhotoImage()
+        self.img_unselect_page = tk.PhotoImage()
+        self.img_select_all = tk.PhotoImage()
+        self.img_unselect_all = tk.PhotoImage()
+        self.img_fav = tk.PhotoImage()
+        self.img_unfav = tk.PhotoImage()
+        self.img_add_to_group = tk.PhotoImage()
+        self.img_remove_from_group = tk.PhotoImage()
 
         self.keys = []
         self.selected_keys = []
@@ -4396,8 +4404,10 @@ class PrintW(tk.Toplevel):
                                                                          40, add_right_spaces=False),
                                       justify='center', style='Default.TLabel')
         # }
-        self.frame_parameters = ttk.Frame(self, style='Default.TFrame')
+        self.frame_menu = ttk.Frame(self, style='Invis.TFrame')
         # {
+        self.frame_parameters = ttk.Frame(self.frame_menu, style='Default.TFrame')
+        # { {
         self.lbl_fav = ttk.Label(self.frame_parameters, text='Только избранные:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self.frame_parameters, variable=self.var_fav,
                                          command=lambda: self.go_to_first_page(True), style='Default.TCheckbutton')
@@ -4412,6 +4422,36 @@ class PrintW(tk.Toplevel):
         self.combo_order = ttk.Combobox(self.frame_parameters, textvariable=self.var_order, values=PRINT_VALUES_ORDER,
                                         width=26, state='readonly', style='Default.TCombobox',
                                         font=('DejaVu Sans Mono', _0_global_scale))
+        # } }
+        self.frame_buttons_for_selected = ttk.Frame(self.frame_menu, style='Default.TFrame')
+        # { {
+        self.btn_fav = ttk.Button(self.frame_buttons_for_selected, command=self.fav_selected, width=3, takefocus=False)
+        set_image(self.btn_fav, self.img_fav, img_fav, '*+')
+        self.btn_unfav = ttk.Button(self.frame_buttons_for_selected, command=self.unfav_selected, width=3,
+                                    takefocus=False)
+        set_image(self.btn_unfav, self.img_unfav, img_unfav, '*-')
+        self.btn_add_to_group = ttk.Button(self.frame_buttons_for_selected, command=self.add_selected_to_group, width=3,
+                                           takefocus=False)
+        set_image(self.btn_add_to_group, self.img_add_to_group, img_add_to_group, 'G+')
+        self.btn_remove_from_group = ttk.Button(self.frame_buttons_for_selected,
+                                                command=self.remove_selected_from_group, width=3, takefocus=False)
+        set_image(self.btn_remove_from_group, self.img_remove_from_group, img_remove_from_group, 'G-')
+        # } }
+        self.frame_selection_buttons = ttk.Frame(self.frame_menu, style='Default.TFrame')
+        # { {
+        self.btn_select_page = ttk.Button(self.frame_selection_buttons, command=self.select_page, width=3,
+                                          takefocus=False)
+        set_image(self.btn_select_page, self.img_select_page, img_select_page, '[X]')
+        self.btn_unselect_page = ttk.Button(self.frame_selection_buttons, command=self.unselect_page, width=3,
+                                            takefocus=False)
+        set_image(self.btn_unselect_page, self.img_unselect_page, img_unselect_page, '[ ]')
+        self.btn_select_all = ttk.Button(self.frame_selection_buttons, command=self.select_all, width=3,
+                                         takefocus=False)
+        set_image(self.btn_select_all, self.img_select_all, img_select_all, '[X]')
+        self.btn_unselect_all = ttk.Button(self.frame_selection_buttons, command=self.unselect_all, width=3,
+                                           takefocus=False)
+        set_image(self.btn_unselect_all, self.img_unselect_all, img_unselect_all, '[ ]')
+        # } }
         # }
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
@@ -4446,8 +4486,10 @@ class PrintW(tk.Toplevel):
         self.btn_print_out.grid(   row=0, column=1, padx=0, pady=0)
         self.lbl_dct_name.grid(    row=0, column=2, padx=0, pady=0)
         # }
-        self.frame_parameters.grid(row=1, column=0, padx=6, pady=0)
+        self.frame_menu.grid(row=1, column=0, padx=6, pady=0)
         # {
+        self.frame_parameters.grid(row=0, rowspan=2, column=0, padx=6, pady=0)
+        # { {
         self.lbl_fav.grid(    row=0, column=0, padx=(6, 1), pady=6,      sticky='E')
         self.check_fav.grid(  row=0, column=1, padx=(0, 6), pady=6,      sticky='W')
         self.lbl_group.grid(  row=0, column=2, padx=(0, 1), pady=6,      sticky='E')
@@ -4456,6 +4498,20 @@ class PrintW(tk.Toplevel):
         self.check_forms.grid(row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
         self.lbl_order.grid(  row=1, column=2, padx=(0, 1), pady=(0, 6), sticky='E')
         self.combo_order.grid(row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
+        # } }
+        # { {
+        self.btn_fav.grid(              row=0, column=0)
+        self.btn_unfav.grid(            row=0, column=1)
+        self.btn_add_to_group.grid(     row=0, column=2)
+        self.btn_remove_from_group.grid(row=0, column=3)
+        # } }
+        self.frame_selection_buttons.grid(row=1, column=1, padx=6, pady=0, sticky='S')
+        # { {
+        self.btn_select_page.grid(  row=0, column=0)
+        self.btn_unselect_page.grid(row=0, column=1)
+        self.btn_select_all.grid(   row=0, column=2)
+        self.btn_unselect_all.grid( row=0, column=3)
+        # } }
         # }
         self.frame_main.grid(row=2, column=0, padx=6, pady=6)
         # {
@@ -4478,6 +4534,32 @@ class PrintW(tk.Toplevel):
 
         self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
         self.tip_btn_print_out = ttip.Hovertip(self.btn_print_out, 'Распечатать словарь в файл', hover_delay=450)
+        self.tip_btn_fav = ttip.Hovertip(self.btn_fav, 'Добавить выделенные статьи в избранное\n'
+                                                       'Ctrl+F',
+                                         hover_delay=450)
+        self.tip_btn_unfav = ttip.Hovertip(self.btn_unfav, 'Убрать выделенные статьи из избранного\n'
+                                                           'Ctrl+V',
+                                           hover_delay=450)
+        self.tip_btn_add_to_group = ttip.Hovertip(self.btn_add_to_group, 'Добавить выделенные статьи в группу\n'
+                                                                         'Ctrl+G',
+                                                  hover_delay=450)
+        self.tip_btn_remove_from_group = ttip.Hovertip(self.btn_remove_from_group,
+                                                       'Убрать выделенные статьи из группы\n'
+                                                       'Ctrl+B',
+                                                       hover_delay=450)
+        self.tip_btn_select_page = ttip.Hovertip(self.btn_select_page, 'Выделить все статьи на текущей странице\n'
+                                                                       'Ctrl+P',
+                                                 hover_delay=450)
+        self.tip_btn_unselect_page = ttip.Hovertip(self.btn_unselect_page,
+                                                   'Снять выделение со всех статей на текущей странице\n'
+                                                   'Ctrl+L',
+                                                   hover_delay=450)
+        self.tip_btn_select_all = ttip.Hovertip(self.btn_select_all, 'Выделить все статьи\n'
+                                                                     'Ctrl+A',
+                                                hover_delay=450)
+        self.tip_btn_unselect_all = ttip.Hovertip(self.btn_unselect_all, 'Снять выделение со всех статей\n'
+                                                                         'Ctrl+Z',
+                                                  hover_delay=450)
         self.tip_btn_first_page = ttip.Hovertip(self.btn_first_page, 'В начало', hover_delay=650)
         self.tip_btn_prev_page = ttip.Hovertip(self.btn_prev_page, 'На предыдущую страницу', hover_delay=650)
         self.tip_btn_next_page = ttip.Hovertip(self.btn_next_page, 'На следующую страницу', hover_delay=650)
@@ -4678,6 +4760,7 @@ class PrintW(tk.Toplevel):
     def go_to_first_page(self, to_reset_selected_keys=False):
         if to_reset_selected_keys:
             self.selected_keys = []
+            self.frame_buttons_for_selected.grid_remove()
         self.go_to_page_with_number(1)
 
     # Перейти на последнюю страницу
@@ -4690,9 +4773,12 @@ class PrintW(tk.Toplevel):
         if key in self.selected_keys:
             self.selected_keys.remove(key)
             self.buttons[index].configure(style='Note.TButton')
+            if not self.selected_keys:
+                self.frame_buttons_for_selected.grid_remove()
         else:
             self.selected_keys += [key]
             self.buttons[index].configure(style='NoteSelected.TButton')
+            self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='N')
 
     # Выделить все статьи на странице
     def select_page(self):
@@ -4702,6 +4788,7 @@ class PrintW(tk.Toplevel):
                 self.selected_keys += [key]
         for btn in self.buttons:
             btn.configure(style='NoteSelected.TButton')
+        self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='N')
 
     # Снять выделение со всех статей на странице
     def unselect_page(self):
@@ -4711,18 +4798,22 @@ class PrintW(tk.Toplevel):
                 self.selected_keys.remove(key)
         for btn in self.buttons:
             btn.configure(style='Note.TButton')
+        if not self.selected_keys:
+            self.frame_buttons_for_selected.grid_remove()
 
     # Выделить все статьи
     def select_all(self):
         self.selected_keys = self.keys
         for btn in self.buttons:
             btn.configure(style='NoteSelected.TButton')
+        self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='N')
 
     # Снять выделение со всех статей
     def unselect_all(self):
         self.selected_keys = []
         for btn in self.buttons:
             btn.configure(style='Note.TButton')
+        self.frame_buttons_for_selected.grid_remove()
 
     # Добавить выделенные статьи в избранное
     def fav_selected(self):
@@ -4786,11 +4877,7 @@ class PrintW(tk.Toplevel):
     def about_window(self):
         PopupMsgW(self, '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
                         '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
-                        '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ\n'
-                        '* Чтобы выделить все статьи на странице, нажмите Ctrl+P (снять выделение - Ctrl+L)\n'
-                        '* Чтобы выделить все статьи, нажмите Ctrl+A (снять выделение - Ctrl+Z)\n'
-                        '* Чтобы добавить выделенные статьи в избранное, нажмите Ctrl+F (убрать - Ctrl+V)\n'
-                        '* Чтобы добавить выделенные статьи в группу, нажмите Ctrl+G (убрать - Ctrl+B)',
+                        '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
                   msg_justify='left').open()
 
     # Установить фокус
