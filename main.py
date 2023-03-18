@@ -4307,6 +4307,7 @@ class PrintW(tk.Toplevel):
         self.img_print_out = tk.PhotoImage()
 
         self.keys = []
+        self.selected_keys = []
         self.frames = []
         self.buttons = []
         self.tips = []
@@ -4332,10 +4333,10 @@ class PrintW(tk.Toplevel):
         # {
         self.lbl_fav = ttk.Label(self.frame_parameters, text='Только избранные:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self.frame_parameters, variable=self.var_fav,
-                                         command=self.go_to_first_page, style='Default.TCheckbutton')
+                                         command=lambda: self.go_to_first_page(True), style='Default.TCheckbutton')
         self.lbl_forms = ttk.Label(self.frame_parameters, text='Все словоформы:', style='Default.TLabel')
         self.check_forms = ttk.Checkbutton(self.frame_parameters, variable=self.var_forms,
-                                           command=self.go_to_first_page, style='Default.TCheckbutton')
+                                           command=lambda: self.print(False), style='Default.TCheckbutton')
         self.lbl_order = ttk.Label(self.frame_parameters, text='Порядок:', style='Default.TLabel')
         self.combo_order = ttk.Combobox(self.frame_parameters, textvariable=self.var_order, values=PRINT_VALUES_ORDER,
                                         width=26, state='readonly', style='Default.TCombobox',
@@ -4464,7 +4465,8 @@ class PrintW(tk.Toplevel):
             self.keys = [key for key in _0_global_dct.d.keys()]
 
             self.var_info.set(dct_info(_0_global_dct))
-        #
+        self.selected_keys = [key for key in self.selected_keys if key in _0_global_dct.d.keys()]
+        # Сортируем статьи
         if self.var_order.get() == PRINT_VALUES_ORDER[1]:
             self.keys.reverse()
         elif self.var_order.get() == PRINT_VALUES_ORDER[2]:
@@ -4502,7 +4504,9 @@ class PrintW(tk.Toplevel):
                        for i in range(self.count_elements_on_page)]
         # Создаём новые кнопки
         self.buttons = [ttk.Button(self.frames[i], command=lambda i=i: self.edit_entry(self.start_index + i),
-                                   takefocus=False, style='Note.TButton')
+                                   takefocus=False, style='NoteSelected.TButton'
+                                                          if self.keys[self.start_index + i] in self.selected_keys
+                                                          else 'Note.TButton')
                         for i in range(self.count_elements_on_page)]
         # Выводим текст на кнопки
         if self.var_forms.get():
@@ -4532,6 +4536,8 @@ class PrintW(tk.Toplevel):
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav_one(i))
             self.frames[i].bind('<Control-f>', lambda event, i=i: self.fav_one(i))
+            self.buttons[i].bind('<Button-2>', lambda event, i=i: self.select_one(i))
+            self.buttons[i].bind('<Button-3>', lambda event, i=i: self.select_one(i))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -4583,8 +4589,10 @@ class PrintW(tk.Toplevel):
             self.go_to_page_with_number(self.current_page + 1)
 
     # Перейти на первую страницу
-    def go_to_first_page(self):
+    def go_to_first_page(self, to_reset_selected_keys=False):
         self.go_to_page_with_number(1)
+        if to_reset_selected_keys:
+            self.selected_keys = []
 
     # Перейти на последнюю страницу
     def go_to_last_page(self):
@@ -4616,6 +4624,28 @@ class PrintW(tk.Toplevel):
 
         self.refresh_all_buttons()
 
+    # Выделить одну статью (или убрать выделение)
+    def select_one(self, index: int):
+        key = self.keys[self.start_index + index]
+        if key in self.selected_keys:
+            self.selected_keys.remove(key)
+            self.buttons[index].configure(style='Note.TButton')
+        else:
+            self.selected_keys += [key]
+            self.buttons[index].configure(style='NoteSelected.TButton')
+
+    # Выделить все статьи
+    def select_all(self):
+        self.selected_keys = self.keys
+        for btn in self.buttons:
+            btn.configure(style='NoteSelected.TButton')
+
+    # Снять выделение со всех статей
+    def unselect_all(self):
+        self.selected_keys = []
+        for btn in self.buttons:
+            btn.configure(style='Note.TButton')
+
     # Нажатие на кнопку "Распечатать словарь в файл"
     def print_out(self):
         folder = askdirectory(initialdir=MAIN_PATH, title='В какую папку сохранить файл?')
@@ -4626,7 +4656,8 @@ class PrintW(tk.Toplevel):
 
     # Нажатие на кнопку "Справка" (картинка с вопросом)
     def about_window(self):
-        PopupMsgW(self, '* Чтобы добавить статью в избранное, наведите на неё мышку и нажмите Ctrl+F\n'
+        PopupMsgW(self, '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ\n'
+                        '* Чтобы добавить статью в избранное, наведите на неё мышку и нажмите Ctrl+F\n'
                         '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
                         '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP',
                   msg_justify='left').open()
@@ -6169,6 +6200,23 @@ class MainW(tk.Tk):
                              foreground=[('pressed', ST_BTN_NOTE_FG_SEL[th]),
                                          ('active', ST_BTN_NOTE_FG_HOV[th]),
                                          ('!active', ST_BTN_NOTE_FG[th])])
+
+        # Стиль button "note selected"
+        self.st_btn_note_selected = ttk.Style()
+        self.st_btn_note_selected.theme_use('alt')
+        self.st_btn_note_selected.configure('NoteSelected.TButton',
+                                            font=('DejaVu Sans Mono', _0_global_scale + 1),
+                                            borderwidth=0)
+        self.st_btn_note_selected.map('NoteSelected.TButton',
+                                      relief=[('pressed', 'flat'),
+                                              ('active', 'flat'),
+                                              ('!active', 'flat')],
+                                      background=[('pressed', ST_BTN_NOTE_BG[th]),
+                                                  ('active', ST_BTN_NOTE_BG_HOV[th]),
+                                                  ('!active', ST_BTN_NOTE_BG_SEL[th])],
+                                      foreground=[('pressed', ST_BTN_NOTE_FG[th]),
+                                                  ('active', ST_BTN_NOTE_FG_HOV[th]),
+                                                  ('!active', ST_BTN_NOTE_FG_SEL[th])])
 
         # Стиль checkbutton "default"
         self.st_check = ttk.Style()
