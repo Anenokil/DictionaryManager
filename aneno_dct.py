@@ -9,7 +9,7 @@ class Entry(object):
     # self.forms - словоформы (кроме начальной)
     # self.count_t - количество переводов
     # self.count_n - количество сносок
-    # self.count_f - количество словоформ
+    # self.count_f - количество словоформ (кроме начальной)
     # self.fav - избранное или нет
     # self.groups - группы, к которым относится эта статья
     # self.all_att - количество всех попыток
@@ -231,18 +231,6 @@ class Dictionary(object):
         self.count_f = 0
         self.groups = set()
 
-    # Подсчитать количество избранных статей
-    def count_fav_info(self):
-        count_w = 0
-        count_t = 0
-        count_f = 0
-        for entry in self.d.values():
-            if entry.fav:
-                count_w += 1
-                count_t += entry.count_t
-                count_f += entry.count_f
-        return count_w, count_t, count_f
-
     # Подсчитать количество статей в заданной группе
     def count_entries_in_group(self, group: str):
         count_w = 0
@@ -253,6 +241,25 @@ class Dictionary(object):
                 count_w += 1
                 count_t += entry.count_t
                 count_f += entry.count_f
+        return count_w, count_t, count_f
+
+    # Подсчитать количество избранных статей
+    def count_fav_entries(self, group: str | None = None):
+        count_w = 0
+        count_t = 0
+        count_f = 0
+        if group:
+            for entry in self.d.values():
+                if entry.fav and group in entry.groups:
+                    count_w += 1
+                    count_t += entry.count_t
+                    count_f += entry.count_f
+        else:
+            for entry in self.d.values():
+                if entry.fav:
+                    count_w += 1
+                    count_t += entry.count_t
+                    count_f += entry.count_f
         return count_w, count_t, count_f
 
     # Объединить две статьи с одинаковым словом в одну
@@ -340,25 +347,26 @@ class Dictionary(object):
         self.count_f -= self.d[key].count_f
         self.d.pop(key)
 
-    # Добавить все статьи в избранное
-    def fav_all(self):
-        for note in self.d.values():
-            note.add_to_fav()
+    # Добавить выбранные статьи в избранное
+    def fav_entries(self, dct_keys: tuple[tuple[str, int], ...]):
+        for key in dct_keys:
+            self.d[key].add_to_fav()
 
-    # Убрать все статьи из избранного
-    def unfav_all(self):
-        for note in self.d.values():
-            note.remove_from_fav()
+    # Убрать выбранные статьи из избранного
+    def unfav_entries(self, dct_keys: tuple[tuple[str, int], ...]):
+        for key in dct_keys:
+            self.d[key].remove_from_fav()
 
-    # Добавить все статьи в группу
-    def add_all_entries_to_group(self, group: str):
-        for note in self.d.values():
-            note.add_to_group(group)
+    # Добавить выбранные статьи в группу
+    def add_entries_to_group(self, group: str, dct_keys: tuple[tuple[str, int], ...]):
+        for key in dct_keys:
+            self.d[key].add_to_group(group)
 
-    # Убрать все статьи из группы
-    def remove_all_entries_from_group(self, group: str):
-        for note in self.d.values():
-            note.remove_from_group(group)
+    # Убрать выбранные статьи из группы
+    def remove_entries_from_group(self, group: str, dct_keys: tuple[tuple[str, int], ...]):
+        for key in dct_keys:
+            if group in self.d[key].groups:
+                self.d[key].remove_from_group(group)
 
     # Удалить данное значение категории у всех словоформ
     def delete_forms_with_val(self, pos: int, ctg_val: str):

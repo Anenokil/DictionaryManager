@@ -471,7 +471,7 @@ def dct_info(dct: Dictionary):
 
 
 # Вывести информацию о количестве избранных статей в словаре
-def dct_info_fav(dct: Dictionary, count_w: int, count_t: int, count_f: int):
+def dct_info_part(dct: Dictionary, count_w: int, count_t: int, count_f: int):
     w = set_postfix(count_w, ('слово', 'слова', 'слов'))
     f = set_postfix(count_w + count_f, ('словоформа', 'словоформы', 'словоформ'))
     t = set_postfix(count_t, ('перевод', 'перевода', 'переводов'))
@@ -1707,6 +1707,49 @@ class PopupEntryW(tk.Toplevel):
         return self.closed, self.var_text.get()
 
 
+# Всплывающее окно с полем Combobox
+class PopupChooseW(tk.Toplevel):
+    def __init__(self, parent, values: list[str] | tuple[str, ...], msg='Выберите один из вариантов',
+                 btn_text='Подтвердить', combo_width=20, default_value=None, title=PROGRAM_NAME):
+        super().__init__(parent)
+        self.title(title)
+        self.configure(bg=ST_BG[th])
+
+        self.closed = True  # Закрыто ли окно крестиком
+
+        self.var_answer = tk.StringVar(value=default_value)
+
+        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, add_right_spaces=False), justify='center',
+                                 style='Default.TLabel')
+        self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values,
+                                       width=combo_width, state='readonly',
+                                       font=('DejaVu Sans Mono', _0_global_scale), style='Default.TCombobox')
+        self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
+
+        self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
+        self.combo_vals.grid(row=1, padx=6, pady=1)
+        self.btn_ok.grid(    row=2, padx=6, pady=4)
+
+    # Нажатие на кнопку
+    def ok(self):
+        self.closed = False
+        self.destroy()
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.closed, self.var_answer.get()
+
+
 # Всплывающее окно с изображением
 class PopupImgW(tk.Toplevel):
     def __init__(self, parent, img_name: str, msg: str, btn_text='Ясно', title=PROGRAM_NAME):
@@ -1763,11 +1806,12 @@ class ChooseLearnModeW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
-        self.res: tuple[str, str, str, str] | None = None
+        self.res: tuple[str, str, str, str, str] | None = None
 
-        self.var_method = tk.StringVar(value=LEARN_VALUES_METHOD[_0_global_learn_settings[0]])  # Метод изучения слов
-        self.var_words = tk.StringVar(value=LEARN_VALUES_WORDS[_0_global_learn_settings[2]])  # Способ подбора слов
-        self.var_forms = tk.StringVar(value=LEARN_VALUES_FORMS[_0_global_learn_settings[1]])  # Способ подбора словоформ
+        self.var_method = tk.StringVar(value=LEARN_VALUES_METHOD[_0_global_learn_settings[0]])  # Метод учёбы
+        self.var_group = tk.StringVar(value=ALL_GROUPS)  # Группа, из которой берутся слова
+        self.var_words = tk.StringVar(value=LEARN_VALUES_WORDS[_0_global_learn_settings[2]])  # Способ набора слов
+        self.var_forms = tk.StringVar(value=LEARN_VALUES_FORMS[_0_global_learn_settings[1]])  # Способ набора словоформ
         self.var_order = tk.StringVar(value=LEARN_VALUES_ORDER[_0_global_learn_settings[3]])  # Порядок следования слов
 
         self.lbl_header = ttk.Label(self, text='Выберите способ учёбы', style='Default.TLabel')
@@ -1777,6 +1821,12 @@ class ChooseLearnModeW(tk.Toplevel):
         self.combo_method = ttk.Combobox(self.frame_main, textvariable=self.var_method, values=LEARN_VALUES_METHOD,
                                          validate='focusin', width=30, state='readonly', style='Default.TCombobox',
                                          font=('DejaVu Sans Mono', _0_global_scale))
+        #
+        self.lbl_group = ttk.Label(self.frame_main, text='Группа:', style='Default.TLabel')
+        self.combo_group = ttk.Combobox(self.frame_main, textvariable=self.var_group,
+                                        values=[ALL_GROUPS] + list(_0_global_dct.groups),
+                                        width=30, state='readonly', style='Default.TCombobox',
+                                        font=('DejaVu Sans Mono', _0_global_scale))
         #
         self.lbl_words = ttk.Label(self.frame_main, text='Набор статей:', style='Default.TLabel')
         self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=LEARN_VALUES_WORDS,
@@ -1798,8 +1848,10 @@ class ChooseLearnModeW(tk.Toplevel):
         self.lbl_header.grid(row=0, column=0, padx=6, pady=(6, 3))
         self.frame_main.grid(row=1, column=0, padx=6, pady=(0, 3))
         # {
-        self.lbl_method.grid(  row=1, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
-        self.combo_method.grid(row=1, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
+        self.lbl_method.grid(  row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
+        self.combo_method.grid(row=0, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
+        self.lbl_group.grid(   row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.combo_group.grid( row=1, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_words.grid(   row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_words.grid( row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_forms.grid(   row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
@@ -1828,13 +1880,14 @@ class ChooseLearnModeW(tk.Toplevel):
         global _0_global_learn_settings
 
         method = self.var_method.get()
+        group = self.var_group.get()
+        words = self.var_words.get()
         if method == LEARN_VALUES_METHOD[0]:
             forms = self.var_forms.get()
         else:
             forms = LEARN_VALUES_FORMS[0]
-        words = self.var_words.get()
         order = self.var_order.get()
-        self.res = (method, forms, words, order)
+        self.res = (method, group, words, forms, order)
         _0_global_learn_settings = (LEARN_VALUES_METHOD.index(method),
                                     LEARN_VALUES_FORMS.index(forms),
                                     LEARN_VALUES_WORDS.index(words),
@@ -2848,6 +2901,13 @@ class GroupsSettingsW(tk.Toplevel):
 
     # Удалить группу
     def delete(self, group: str):
+        group_size = _0_global_dct.count_entries_in_group(group)[0]
+        tmp = set_postfix(group_size, ('слово будет убрано', 'слова будут убраны', 'слов будут убраны'))
+        window_dia = PopupDialogueW(self, f'{group_size} {tmp} из группы "{group}", а сама группа будет удалена!\n'
+                                          f'Хотите продолжить?')
+        answer = window_dia.open()
+        if not answer:
+            return
         _0_global_dct.delete_group(group)
 
         self.print_groups(False)
@@ -3893,7 +3953,7 @@ class CustomThemeSettingsW(tk.Toplevel):
 
 # Окно изучения слов
 class LearnW(tk.Toplevel):
-    def __init__(self, parent, parameters: tuple[str, str, str, str]):
+    def __init__(self, parent, parameters: tuple[str, str, str, str, str]):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Учёба')
         self.resizable(width=False, height=False)
@@ -3904,10 +3964,11 @@ class LearnW(tk.Toplevel):
         self.homonyms = []  # Омонимы к текущему слову
         self.count_all = 0  # Счётчик всех ответов
         self.count_correct = 0  # Счётчик верных ответов
-        self.learn_method = parameters[0]  # Метод изучения слов
-        self.with_forms = parameters[1]  # Со всеми ли словоформами
-        self.words = parameters[2]  # Способ подбора слов
-        self.order = parameters[3]  # Порядок следования слов
+        self.learn_method = parameters[0]  # Метод учёбы
+        self.group = parameters[1]  # Группа, из которой берутся слова
+        self.words = parameters[2]  # Способ набора слов
+        self.forms = parameters[3]  # Способ набора словоформ
+        self.order = parameters[4]  # Порядок следования слов
         self.pool = set()  # Набор слов для изучения
 
         self.create_pool()  # Формируем пул слов, которые будут использоваться при учёбе
@@ -3976,6 +4037,7 @@ class LearnW(tk.Toplevel):
 
     # Формируем пул слов, которые будут использоваться при учёбе
     def create_pool(self):
+        # Если надо, оставляем только слова с der/die/das
         if self.learn_method == LEARN_VALUES_METHOD[2]:
             all_keys = []
             for key in _0_global_dct.d.keys():
@@ -3984,8 +4046,12 @@ class LearnW(tk.Toplevel):
                     all_keys += [key]
         else:
             all_keys = tuple(_0_global_dct.d.keys())
-        if self.with_forms == LEARN_VALUES_FORMS[2]:
-            all_keys = tuple(key for key in all_keys if len(_0_global_dct.d[key].forms) != 0)
+        # Если надо, оставляем только слова из нужной группы
+        if self.group != ALL_GROUPS:
+            all_keys = (key for key in all_keys if self.group in _0_global_dct.d[key].groups)
+        # Если надо, оставляем только слова, у которых есть словоформы
+        if self.forms == LEARN_VALUES_FORMS[2]:
+            all_keys = tuple(key for key in all_keys if _0_global_dct.d[key].count_f != 0)
 
         if self.words == LEARN_VALUES_WORDS[0]:  # Учить все слова
             selected_keys = all_keys
@@ -4000,7 +4066,7 @@ class LearnW(tk.Toplevel):
             # Сортируем по давности ответа
             unfav_keys = sorted(unfav_keys, key=lambda k: _0_global_dct.d[k].latest_answer_session)
             # Находим N // 4
-            count_unfav_keys = min(len(unfav_keys), _0_global_dct.count_fav_info()[0] // 4)
+            count_unfav_keys = min(len(unfav_keys), _0_global_dct.count_fav_entries()[0] // 4)
             # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
             latest_session = _0_global_dct.d[unfav_keys[count_unfav_keys - 1]].latest_answer_session
             # Оставляем только слова с номером сессии <= S
@@ -4022,14 +4088,14 @@ class LearnW(tk.Toplevel):
             selected_keys = random.sample(all_keys, min(len(all_keys), 15))
 
         selected_forms = []
-        if self.with_forms == LEARN_VALUES_FORMS[0]:
+        if self.forms == LEARN_VALUES_FORMS[0]:
             for key in selected_keys:
                 selected_forms += [(key, None)]
-        elif self.with_forms == LEARN_VALUES_FORMS[1]:
+        elif self.forms == LEARN_VALUES_FORMS[1]:
             for key in selected_keys:
                 forms = tuple([None]) + tuple(_0_global_dct.d[key].forms.keys())
                 selected_forms += [(key, random.choice(forms))]
-        elif self.with_forms == LEARN_VALUES_FORMS[2]:
+        elif self.forms == LEARN_VALUES_FORMS[2]:
             for key in selected_keys:
                 for frm in _0_global_dct.d[key].forms.keys():
                     selected_forms += [(key, frm)]
@@ -4061,7 +4127,7 @@ class LearnW(tk.Toplevel):
             self.check_tr()
         elif self.learn_method == LEARN_VALUES_METHOD[2]:
             self.check_article()
-        elif self.with_forms and self.current_form:
+        elif self.forms and self.current_form:
             self.check_form()
         else:
             self.check_wrd()
@@ -4221,7 +4287,7 @@ class LearnW(tk.Toplevel):
 
         # Вывод слова в журнал
         if self.learn_method == LEARN_VALUES_METHOD[0]:
-            if self.with_forms and self.current_form:
+            if self.forms and self.current_form:
                 self.outp(get_tr_and_frm_with_stat(_0_global_dct.d[self.current_key], self.current_form))
             else:
                 self.outp(get_tr_with_stat(_0_global_dct.d[self.current_key]))
@@ -4298,6 +4364,7 @@ class PrintW(tk.Toplevel):
         self.var_info = tk.StringVar()
         self.var_current_page = tk.StringVar(value=str(self.current_page))
         self.var_order = tk.StringVar(value=PRINT_VALUES_ORDER[0])
+        self.var_group = tk.StringVar(value=ALL_GROUPS)
 
         self.img_about = tk.PhotoImage()
         self.img_arrow_left = tk.PhotoImage()
@@ -4334,6 +4401,10 @@ class PrintW(tk.Toplevel):
         self.lbl_fav = ttk.Label(self.frame_parameters, text='Только избранные:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self.frame_parameters, variable=self.var_fav,
                                          command=lambda: self.go_to_first_page(True), style='Default.TCheckbutton')
+        self.lbl_group = ttk.Label(self.frame_parameters, text='Группа:', style='Default.TLabel')
+        self.combo_group = ttk.Combobox(self.frame_parameters, textvariable=self.var_group,
+                                        values=[ALL_GROUPS] + list(_0_global_dct.groups), width=26, state='readonly',
+                                        style='Default.TCombobox', font=('DejaVu Sans Mono', _0_global_scale))
         self.lbl_forms = ttk.Label(self.frame_parameters, text='Все словоформы:', style='Default.TLabel')
         self.check_forms = ttk.Checkbutton(self.frame_parameters, variable=self.var_forms,
                                            command=lambda: self.print(False), style='Default.TCheckbutton')
@@ -4368,13 +4439,6 @@ class PrintW(tk.Toplevel):
         set_image(self.btn_last_page, self.img_double_arrow_right, img_double_arrow_right, '>>')
         # } }
         # }
-        self.frame_fav_buttons = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.btn_fav_all = ttk.Button(self.frame_fav_buttons, text='Добавить всё в избранное', command=self.fav_all,
-                                      takefocus=False, style='Default.TButton')
-        self.btn_unfav_all = ttk.Button(self.frame_fav_buttons, text='Убрать всё из избранного', command=self.unfav_all,
-                                        takefocus=False, style='Default.TButton')
-        # }
 
         self.frame_header.grid(row=0, column=0, padx=6, pady=6)
         # {
@@ -4384,12 +4448,14 @@ class PrintW(tk.Toplevel):
         # }
         self.frame_parameters.grid(row=1, column=0, padx=6, pady=0)
         # {
-        self.lbl_fav.grid(    row=0, column=0, padx=(6, 1), pady=6, sticky='E')
-        self.check_fav.grid(  row=0, column=1, padx=(0, 6), pady=6, sticky='W')
-        self.lbl_forms.grid(  row=0, column=2, padx=(6, 1), pady=6, sticky='E')
-        self.check_forms.grid(row=0, column=3, padx=(0, 6), pady=6, sticky='W')
-        self.lbl_order.grid(  row=0, column=4, padx=(6, 1), pady=6, sticky='E')
-        self.combo_order.grid(row=0, column=5, padx=(0, 6), pady=6, sticky='W')
+        self.lbl_fav.grid(    row=0, column=0, padx=(6, 1), pady=6,      sticky='E')
+        self.check_fav.grid(  row=0, column=1, padx=(0, 6), pady=6,      sticky='W')
+        self.lbl_group.grid(  row=0, column=2, padx=(0, 1), pady=6,      sticky='E')
+        self.combo_group.grid(row=0, column=3, padx=(0, 6), pady=6,      sticky='W')
+        self.lbl_forms.grid(  row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_forms.grid(row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_order.grid(  row=1, column=2, padx=(0, 1), pady=(0, 6), sticky='E')
+        self.combo_order.grid(row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
         # }
         self.frame_main.grid(row=2, column=0, padx=6, pady=6)
         # {
@@ -4409,11 +4475,6 @@ class PrintW(tk.Toplevel):
         self.btn_last_page.grid(row=0, column=4, padx=3, pady=0)
         # } }
         # }
-        self.frame_fav_buttons.grid(row=3, column=0, padx=6, pady=(0, 6))
-        # {
-        self.btn_fav_all.grid(  row=0, column=0, padx=(0, 6), pady=0)
-        self.btn_unfav_all.grid(row=0, column=1, padx=(0, 6), pady=0)
-        # }
 
         self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
         self.tip_btn_print_out = ttip.Hovertip(self.btn_print_out, 'Распечатать словарь в файл', hover_delay=450)
@@ -4423,6 +4484,7 @@ class PrintW(tk.Toplevel):
         self.tip_btn_last_page = ttip.Hovertip(self.btn_last_page, 'В конец', hover_delay=650)
 
         self.combo_order.bind('<<ComboboxSelected>>', lambda event: self.print(False))
+        self.combo_group.bind('<<ComboboxSelected>>', lambda event: self.go_to_first_page(True))
 
         self.bind('<Up>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
         self.bind('<Control-U>', lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
@@ -4451,20 +4513,23 @@ class PrintW(tk.Toplevel):
         # Удаляем старые фреймы
         for fr in self.frames:
             fr.unbind('<Enter>')
-            fr.unbind('<Control-F>')
-            fr.unbind('<Control-f>')
+            fr.unbind('<Button-2>')
+            fr.unbind('<Button-3>')
             fr.destroy()
 
-        # Выбираем нужные статьи и выводим информацию о количестве статей
+        # Выбираем нужные статьи
+        group = self.var_group.get()
         if self.var_fav.get():
-            self.keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
-
-            w, t, f = _0_global_dct.count_fav_info()
-            self.var_info.set(dct_info_fav(_0_global_dct, w, t, f))
+            if group == ALL_GROUPS:
+                self.keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
+            else:
+                self.keys = [key for key in _0_global_dct.d.keys()
+                             if _0_global_dct.d[key].fav and group in _0_global_dct.d[key].groups]
         else:
-            self.keys = [key for key in _0_global_dct.d.keys()]
-
-            self.var_info.set(dct_info(_0_global_dct))
+            if group == ALL_GROUPS:
+                self.keys = [key for key in _0_global_dct.d.keys()]
+            else:
+                self.keys = [key for key in _0_global_dct.d.keys() if group in _0_global_dct.d[key].groups]
         self.selected_keys = [key for key in self.selected_keys if key in _0_global_dct.d.keys()]
         # Сортируем статьи
         if self.var_order.get() == PRINT_VALUES_ORDER[1]:
@@ -4477,6 +4542,20 @@ class PrintW(tk.Toplevel):
             self.keys = sorted(self.keys, key=lambda k: _0_global_dct.d[k].latest_answer_session)
         elif self.var_order.get() == PRINT_VALUES_ORDER[5]:
             self.keys = sorted(self.keys, key=lambda k: _0_global_dct.d[k].latest_answer_session, reverse=True)
+        # Выводим информацию о количестве статей
+        if self.var_fav.get():
+            if group == ALL_GROUPS:
+                w, t, f = _0_global_dct.count_fav_entries()
+                self.var_info.set(dct_info_part(_0_global_dct, w, t, f))
+            else:
+                w, t, f = _0_global_dct.count_fav_entries(group)
+                self.var_info.set(dct_info_part(_0_global_dct, w, t, f))
+        else:
+            if group == ALL_GROUPS:
+                self.var_info.set(dct_info(_0_global_dct))
+            else:
+                w, t, f = _0_global_dct.count_entries_in_group(group)
+                self.var_info.set(dct_info_part(_0_global_dct, w, t, f))
 
         # Вычисляем значения некоторых количественных переменных
         self.count_elements = len(self.keys)
@@ -4534,8 +4613,6 @@ class PrintW(tk.Toplevel):
         # Привязываем события
         for i in range(self.count_elements_on_page):
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
-            self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav_one(i))
-            self.frames[i].bind('<Control-f>', lambda event, i=i: self.fav_one(i))
             self.buttons[i].bind('<Button-2>', lambda event, i=i: self.select_one(i))
             self.buttons[i].bind('<Button-3>', lambda event, i=i: self.select_one(i))
 
@@ -4554,11 +4631,20 @@ class PrintW(tk.Toplevel):
             self.buttons[index].configure(text=get_entry_info_briefly(_0_global_dct.d[key], 75))
 
         # Выводим информацию о количестве статей
+        group = self.var_group.get()
         if self.var_fav.get():
-            w, t, f = _0_global_dct.count_fav_info()
-            self.var_info.set(dct_info_fav(_0_global_dct, w, t, f))
+            if group == ALL_GROUPS:
+                w, t, f = _0_global_dct.count_fav_entries()
+                self.var_info.set(dct_info_part(_0_global_dct, w, t, f))
+            else:
+                w, t, f = _0_global_dct.count_fav_entries(group)
+                self.var_info.set(dct_info_part(_0_global_dct, w, t, f))
         else:
-            self.var_info.set(dct_info(_0_global_dct))
+            if group == ALL_GROUPS:
+                self.var_info.set(dct_info(_0_global_dct))
+            else:
+                w, t, f = _0_global_dct.count_entries_in_group(group)
+                self.var_info.set(dct_info_part(_0_global_dct, w, t, f))
 
     # Обновить все кнопки журнала
     def refresh_all_buttons(self):
@@ -4590,39 +4676,13 @@ class PrintW(tk.Toplevel):
 
     # Перейти на первую страницу
     def go_to_first_page(self, to_reset_selected_keys=False):
-        self.go_to_page_with_number(1)
         if to_reset_selected_keys:
             self.selected_keys = []
+        self.go_to_page_with_number(1)
 
     # Перейти на последнюю страницу
     def go_to_last_page(self):
         self.go_to_page_with_number(self.count_pages)
-
-    # Добавить одну статью в избранное (или убрать)
-    def fav_one(self, index: int):
-        _0_global_dct.d[self.keys[self.start_index + index]].change_fav()
-
-        self.refresh_one_button(index)
-
-    # Нажатие на кнопку "Добавить все статьи в избранное"
-    def fav_all(self):
-        window = PopupDialogueW(self, 'Вы действительно хотите добавить все статьи в избранное?')
-        answer = window.open()
-        if not answer:
-            return
-        _0_global_dct.fav_all()
-
-        self.print(False)
-
-    # Нажатие на кнопку "Убрать все статьи из избранного"
-    def unfav_all(self):
-        window = PopupDialogueW(self, 'Вы действительно хотите убрать все статьи из избранного?')
-        answer = window.open()
-        if not answer:
-            return
-        _0_global_dct.unfav_all()
-
-        self.refresh_all_buttons()
 
     # Выделить одну статью (или убрать выделение)
     def select_one(self, index: int):
@@ -4633,6 +4693,24 @@ class PrintW(tk.Toplevel):
         else:
             self.selected_keys += [key]
             self.buttons[index].configure(style='NoteSelected.TButton')
+
+    # Выделить все статьи на странице
+    def select_page(self):
+        for i in range(self.count_elements_on_page):
+            key = self.keys[self.start_index + i]
+            if key not in self.selected_keys:
+                self.selected_keys += [key]
+        for btn in self.buttons:
+            btn.configure(style='NoteSelected.TButton')
+
+    # Снять выделение со всех статей на странице
+    def unselect_page(self):
+        for i in range(self.count_elements_on_page):
+            key = self.keys[self.start_index + i]
+            if key in self.selected_keys:
+                self.selected_keys.remove(key)
+        for btn in self.buttons:
+            btn.configure(style='Note.TButton')
 
     # Выделить все статьи
     def select_all(self):
@@ -4646,6 +4724,56 @@ class PrintW(tk.Toplevel):
         for btn in self.buttons:
             btn.configure(style='Note.TButton')
 
+    # Добавить выделенные статьи в избранное
+    def fav_selected(self):
+        if not self.selected_keys:
+            return
+
+        _0_global_dct.fav_entries(tuple(self.selected_keys))
+
+        self.refresh_all_buttons()
+
+    # Убрать выделенные статьи из избранного
+    def unfav_selected(self):
+        if not self.selected_keys:
+            return
+
+        _0_global_dct.unfav_entries(tuple(self.selected_keys))
+
+        self.refresh_all_buttons()
+
+    # Добавить выделенные статьи в группу
+    def add_selected_to_group(self):
+        if not self.selected_keys:
+            return
+        if not _0_global_dct.groups:
+            PopupMsgW(self, 'Не найдено ни одной группы!').open()
+            return
+
+        window_groups = PopupChooseW(self, msg='Выберите группу, в которую хотите добавить выбранные слова:',
+                                     values=tuple(_0_global_dct.groups), default_value=tuple(_0_global_dct.groups)[0])
+        closed, group = window_groups.open()
+        if closed:
+            return
+        _0_global_dct.add_entries_to_group(group, tuple(self.selected_keys))
+
+    # Убрать выделенные статьи из группы
+    def remove_selected_from_group(self):
+        if not self.selected_keys:
+            return
+        if not _0_global_dct.groups:
+            PopupMsgW(self, 'Не найдено ни одной группы!').open()
+            return
+
+        window_groups = PopupChooseW(self, msg='Выберите группу, из которой хотите убрать выбранные слова:',
+                                     values=tuple(_0_global_dct.groups), default_value=tuple(_0_global_dct.groups)[0])
+        closed, group = window_groups.open()
+        if closed:
+            return
+        _0_global_dct.remove_entries_from_group(group, tuple(self.selected_keys))
+
+        self.print(True)
+
     # Нажатие на кнопку "Распечатать словарь в файл"
     def print_out(self):
         folder = askdirectory(initialdir=MAIN_PATH, title='В какую папку сохранить файл?')
@@ -4656,16 +4784,40 @@ class PrintW(tk.Toplevel):
 
     # Нажатие на кнопку "Справка" (картинка с вопросом)
     def about_window(self):
-        PopupMsgW(self, '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ\n'
-                        '* Чтобы добавить статью в избранное, наведите на неё мышку и нажмите Ctrl+F\n'
-                        '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
-                        '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP',
+        PopupMsgW(self, '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
+                        '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
+                        '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ\n'
+                        '* Чтобы выделить все статьи на странице, нажмите Ctrl+P (снять выделение - Ctrl+L)\n'
+                        '* Чтобы выделить все статьи, нажмите Ctrl+A (снять выделение - Ctrl+Z)\n'
+                        '* Чтобы добавить выделенные статьи в избранное, нажмите Ctrl+F (убрать - Ctrl+V)\n'
+                        '* Чтобы добавить выделенные статьи в группу, нажмите Ctrl+G (убрать - Ctrl+B)',
                   msg_justify='left').open()
 
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Escape>', lambda event=None: self.destroy())
+        #
+        self.bind('<Control-P>', lambda event=None: self.select_page())
+        self.bind('<Control-p>', lambda event=None: self.select_page())
+        self.bind('<Control-L>', lambda event=None: self.unselect_page())
+        self.bind('<Control-l>', lambda event=None: self.unselect_page())
+        #
+        self.bind('<Control-A>', lambda event=None: self.select_all())
+        self.bind('<Control-a>', lambda event=None: self.select_all())
+        self.bind('<Control-Z>', lambda event=None: self.unselect_all())
+        self.bind('<Control-z>', lambda event=None: self.unselect_all())
+        #
+        self.bind('<Control-G>', lambda event=None: self.add_selected_to_group())
+        self.bind('<Control-g>', lambda event=None: self.add_selected_to_group())
+        self.bind('<Control-B>', lambda event=None: self.remove_selected_from_group())
+        self.bind('<Control-b>', lambda event=None: self.remove_selected_from_group())
+        #
+        self.bind('<Control-F>', lambda event=None: self.fav_selected())
+        self.bind('<Control-f>', lambda event=None: self.fav_selected())
+        self.bind('<Control-V>', lambda event=None: self.unfav_selected())
+        self.bind('<Control-v>', lambda event=None: self.unfav_selected())
 
     def open(self):
         self.set_focus()
@@ -5129,7 +5281,7 @@ class SettingsW(tk.Toplevel):
         self.btn_forms = ttk.Button(self.tab_local, text='Грамматические категории', command=self.categories_settings,
                                     takefocus=False, style='Default.TButton')
         #
-        self.btn_groups = ttk.Button(self.tab_local, text='Группы', #command=self.groups_settings,
+        self.btn_groups = ttk.Button(self.tab_local, text='Группы', command=self.groups_settings,
                                      takefocus=False, style='Default.TButton')
         #
         self.btn_special_combinations = ttk.Button(self.tab_local, text='Специальные комбинации',

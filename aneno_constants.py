@@ -3,9 +3,9 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.13-PRE-3'
-PROGRAM_DATE = '18.3.2023'
-PROGRAM_TIME = '3:09 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.13-PRE-4'
+PROGRAM_DATE = '19.3.2023'
+PROGRAM_TIME = '1:02 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -120,6 +120,8 @@ NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с
 
 """ Другие константы """
 
+# Показать все группы
+ALL_GROUPS = 'Все'
 # Разделитель для записи значений категории в файл локальных настроек
 CATEGORY_SEPARATOR = '@'
 # Открывающие символы специальных комбинаций
