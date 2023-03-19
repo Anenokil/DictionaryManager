@@ -2794,18 +2794,18 @@ class CategoriesSettingsW(tk.Toplevel):
                                    command=lambda i=i: self.values(self.categories[i]),
                                    takefocus=False, style='Note.TButton')
                         for i in range(categories_count)]
-        # Выводим текст на кнопки
         for i in range(categories_count):
+            # Выводим текст на кнопки
             ctg = self.categories[i]
             self.buttons[i].configure(text=split_text(f'{ctg}', 35))
-        # Расставляем элементы
-        for i in range(categories_count):
+
+            # Расставляем элементы
             self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
             # {
             self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
             # }
-        # Привязываем события
-        for i in range(categories_count):
+
+            # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename(self.categories[i]))
             self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename(self.categories[i]))
@@ -2854,6 +2854,7 @@ class GroupsSettingsW(tk.Toplevel):
         self.groups = []
         self.frames = []
         self.buttons = []
+        self.tips = []
 
         self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
         set_image(self.btn_about_window, self.img_about, img_about, '?')
@@ -2915,6 +2916,9 @@ class GroupsSettingsW(tk.Toplevel):
 
     # Напечатать существующие группы
     def print_groups(self, move_scroll: bool):
+        # Удаляем старые подсказки
+        for tip in self.tips:
+            tip.__del__()
         # Удаляем старые кнопки
         for btn in self.buttons:
             btn.destroy()
@@ -2939,18 +2943,23 @@ class GroupsSettingsW(tk.Toplevel):
         self.buttons = [ttk.Button(self.frames[i], command=lambda i=i: self.rename(self.groups[i]),
                                    takefocus=False, style='Note.TButton')
                         for i in range(groups_count)]
-        # Выводим текст на кнопки
+        # Создаём новые подсказки
+        self.tips = [ttip.Hovertip(self.buttons[i],
+                                   f'Статей в группе: {_0_global_dct.count_entries_in_group(self.groups[i])[0]}',
+                                   hover_delay=500)
+                     for i in range(groups_count)]
         for i in range(groups_count):
+            # Выводим текст на кнопки
             group = self.groups[i]
             self.buttons[i].configure(text=split_text(f'{group}', 35))
-        # Расставляем элементы
-        for i in range(groups_count):
+
+            # Расставляем элементы
             self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
             # {
             self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
             # }
-        # Привязываем события
-        for i in range(groups_count):
+
+            # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename(self.groups[i]))
             self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename(self.groups[i]))
@@ -3072,18 +3081,18 @@ class CategoryValuesSettingsW(tk.Toplevel):
                                    command=lambda i=i: self.rename(self.values[i]),
                                    takefocus=False, style='Note.TButton')
                         for i in range(categories_count)]
-        # Выводим текст на кнопки
         for i in range(categories_count):
+            # Выводим текст на кнопки
             ctg = self.values[i]
             self.buttons[i].configure(text=split_text(f'{ctg}', 35))
-        # Расставляем элементы
-        for i in range(categories_count):
+
+            # Расставляем элементы
             self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
             # {
             self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
             # }
-        # Привязываем события
-        for i in range(categories_count):
+
+            # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename(self.values[i]))
             self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename(self.values[i]))
@@ -3214,25 +3223,26 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
                                    command=lambda i=i: self.edit(self.combinations[i]),
                                    takefocus=False, style='Note.TButton')
                         for i in range(combinations_count)]
-        # Выводим текст на кнопки
         for i in range(combinations_count):
+            # Выводим текст на кнопки
             cmb = self.combinations[i]
             self.buttons[i].configure(text=split_text(special_combination(cmb), 35))
-        # Расставляем элементы
-        for i in range(combinations_count):
+
+            # Расставляем элементы
             self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
             # {
             self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
             # }
-        self.frames[combinations_count].grid(row=combinations_count, column=0, padx=0, pady=0, sticky='WE')
-        # Привязываем события
-        for i in range(combinations_count):
+
+            # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Control-E>', lambda event, i=i: self.edit(self.combinations[i]))
             self.frames[i].bind('<Control-e>', lambda event, i=i: self.edit(self.combinations[i]))
             self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.combinations[i]))
             self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.combinations[i]))
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
+
+        self.frames[combinations_count].grid(row=combinations_count, column=0, padx=0, pady=0, sticky='WE')
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -4584,6 +4594,29 @@ class PrintW(tk.Toplevel):
 
         self.print(False)
 
+    # Вывести информацию о количестве статей
+    def print_info(self):
+        group = self.var_group.get()
+        if self.var_fav.get():
+            if group == ALL_GROUPS:
+                w, t, f = _0_global_dct.count_fav_entries()
+                res = dct_info_part(_0_global_dct, w, t, f)
+            else:
+                w, t, f = _0_global_dct.count_fav_entries(group)
+                res = dct_info_part(_0_global_dct, w, t, f)
+        else:
+            if group == ALL_GROUPS:
+                res = dct_info(_0_global_dct)
+            else:
+                w, t, f = _0_global_dct.count_entries_in_group(group)
+                res = dct_info_part(_0_global_dct, w, t, f)
+        if self.selected_keys:
+            count = len(self.selected_keys)
+            tmp_1 = set_postfix(count, ('Выделена', 'Выделены', 'Выделено'))
+            tmp_2 = set_postfix(count, ('статья', 'статьи', 'статей'))
+            res += f'   {tmp_1} {count} {tmp_2}'
+        self.var_info.set(res)
+
     # Напечатать словарь
     def print(self, move_scroll: bool):
         # Удаляем старые подсказки
@@ -4625,19 +4658,7 @@ class PrintW(tk.Toplevel):
         elif self.var_order.get() == PRINT_VALUES_ORDER[5]:
             self.keys = sorted(self.keys, key=lambda k: _0_global_dct.d[k].latest_answer_session, reverse=True)
         # Выводим информацию о количестве статей
-        if self.var_fav.get():
-            if group == ALL_GROUPS:
-                w, t, f = _0_global_dct.count_fav_entries()
-                self.var_info.set(dct_info_part(_0_global_dct, w, t, f))
-            else:
-                w, t, f = _0_global_dct.count_fav_entries(group)
-                self.var_info.set(dct_info_part(_0_global_dct, w, t, f))
-        else:
-            if group == ALL_GROUPS:
-                self.var_info.set(dct_info(_0_global_dct))
-            else:
-                w, t, f = _0_global_dct.count_entries_in_group(group)
-                self.var_info.set(dct_info_part(_0_global_dct, w, t, f))
+        self.print_info()
 
         # Вычисляем значения некоторых количественных переменных
         self.count_elements = len(self.keys)
@@ -4669,6 +4690,14 @@ class PrintW(tk.Toplevel):
                                                           if self.keys[self.start_index + i] in self.selected_keys
                                                           else 'Note.TButton')
                         for i in range(self.count_elements_on_page)]
+        # Создаём подсказки
+        self.tips = [ttip.Hovertip(self.buttons[i],
+                                   f'Верных ответов подряд: '
+                                   f'{get_correct_att_in_a_row(_0_global_dct.d[self.keys[self.start_index + i]])}\n'
+                                   f'Доля верных ответов: '
+                                   f'{get_entry_percent(_0_global_dct.d[self.keys[self.start_index + i]])}',
+                                   hover_delay=666)
+                     for i in range(self.count_elements_on_page)]
         # Выводим текст на кнопки
         if self.var_forms.get():
             for i in range(self.count_elements_on_page):
@@ -4684,16 +4713,8 @@ class PrintW(tk.Toplevel):
             # {
             self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
             # }
-        # Создаём подсказки
-        self.tips = [ttip.Hovertip(self.buttons[i],
-                                   f'Верных ответов подряд: '
-                                   f'{get_correct_att_in_a_row(_0_global_dct.d[self.keys[self.start_index + i]])}\n'
-                                   f'Доля верных ответов: '
-                                   f'{get_entry_percent(_0_global_dct.d[self.keys[self.start_index + i]])}',
-                                   hover_delay=666)
-                     for i in range(self.count_elements_on_page)]
-        # Привязываем события
-        for i in range(self.count_elements_on_page):
+
+            # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.buttons[i].bind('<Button-2>', lambda event, i=i: self.select_one(i))
             self.buttons[i].bind('<Button-3>', lambda event, i=i: self.select_one(i))
@@ -4713,20 +4734,7 @@ class PrintW(tk.Toplevel):
             self.buttons[index].configure(text=get_entry_info_briefly(_0_global_dct.d[key], 75))
 
         # Выводим информацию о количестве статей
-        group = self.var_group.get()
-        if self.var_fav.get():
-            if group == ALL_GROUPS:
-                w, t, f = _0_global_dct.count_fav_entries()
-                self.var_info.set(dct_info_part(_0_global_dct, w, t, f))
-            else:
-                w, t, f = _0_global_dct.count_fav_entries(group)
-                self.var_info.set(dct_info_part(_0_global_dct, w, t, f))
-        else:
-            if group == ALL_GROUPS:
-                self.var_info.set(dct_info(_0_global_dct))
-            else:
-                w, t, f = _0_global_dct.count_entries_in_group(group)
-                self.var_info.set(dct_info_part(_0_global_dct, w, t, f))
+        self.print_info()
 
     # Обновить все кнопки журнала
     def refresh_all_buttons(self):
@@ -4779,6 +4787,7 @@ class PrintW(tk.Toplevel):
             self.selected_keys += [key]
             self.buttons[index].configure(style='NoteSelected.TButton')
             self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='N')
+        self.print_info()
 
     # Выделить все статьи на странице
     def select_page(self):
@@ -4789,6 +4798,7 @@ class PrintW(tk.Toplevel):
         for btn in self.buttons:
             btn.configure(style='NoteSelected.TButton')
         self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='N')
+        self.print_info()
 
     # Снять выделение со всех статей на странице
     def unselect_page(self):
@@ -4800,6 +4810,7 @@ class PrintW(tk.Toplevel):
             btn.configure(style='Note.TButton')
         if not self.selected_keys:
             self.frame_buttons_for_selected.grid_remove()
+        self.print_info()
 
     # Выделить все статьи
     def select_all(self):
@@ -4807,6 +4818,7 @@ class PrintW(tk.Toplevel):
         for btn in self.buttons:
             btn.configure(style='NoteSelected.TButton')
         self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='N')
+        self.print_info()
 
     # Снять выделение со всех статей
     def unselect_all(self):
@@ -4814,6 +4826,7 @@ class PrintW(tk.Toplevel):
         for btn in self.buttons:
             btn.configure(style='Note.TButton')
         self.frame_buttons_for_selected.grid_remove()
+        self.print_info()
 
     # Добавить выделенные статьи в избранное
     def fav_selected(self):
@@ -5117,17 +5130,17 @@ class SearchW(tk.Toplevel):
                                    command=lambda i=i: self.edit_entry(self.keys[self.start_index + i]),
                                    takefocus=False, style='Note.TButton')
                         for i in range(self.count_elements_on_page)]
-        # Выводим текст на кнопки
         for i in range(self.count_elements_on_page):
+            # Выводим текст на кнопки
             self.buttons[i].configure(text=get_all_entry_info(_0_global_dct.d[self.keys[self.start_index + i]], 75, 13))
-        # Расставляем элементы
-        for i in range(self.count_elements_on_page):
+
+            # Расставляем элементы
             self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
             # {
             self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
             # }
-        # Привязываем события
-        for i in range(self.count_elements_on_page):
+
+            # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event, i=i: self.entry_query.focus_set())
             self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav_one(i, self.keys[self.start_index + i]))
@@ -5626,7 +5639,6 @@ class SettingsW(tk.Toplevel):
             return
 
         shutil.rmtree(os.path.join(SAVES_PATH, savename))
-        PopupMsgW(self, f'Словарь "{savename}" успешно удалён').open()
 
         self.print_dct_list(False)
 
@@ -5841,21 +5853,21 @@ class SettingsW(tk.Toplevel):
                                         command=lambda i=i: self.dct_open(self.dcts_savenames[i]),
                                         takefocus=False, style='Note.TButton')
                              for i in range(dcts_count)]
-        # Выводим текст на кнопки
         for i in range(dcts_count):
+            # Выводим текст на кнопки
             savename = self.dcts_savenames[i]
             if savename == _0_global_dct_savename:
                 self.dcts_buttons[i].configure(text=split_text(f'{savename} (ОТКРЫТ)', 35))
             else:
                 self.dcts_buttons[i].configure(text=split_text(f'{savename}', 35))
-        # Расставляем элементы
-        for i in range(dcts_count):
+
+            # Расставляем элементы
             self.dcts_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
             # {
             self.dcts_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
             # }
-        # Привязываем события
-        for i in range(dcts_count):
+
+            # Привязываем события
             self.dcts_frames[i].bind('<Enter>', lambda event, i=i: self.dcts_frames[i].focus_set())
             self.dcts_frames[i].bind('<Control-R>', lambda event, i=i: self.dct_rename(self.dcts_savenames[i]))
             self.dcts_frames[i].bind('<Control-r>', lambda event, i=i: self.dct_rename(self.dcts_savenames[i]))
