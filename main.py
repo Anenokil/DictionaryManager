@@ -4088,7 +4088,7 @@ class LearnW(tk.Toplevel):
             # Отбираем слова, не являющиеся избранными
             unfav_keys = list(k for k in all_keys if not _0_global_dct.d[k].fav)
             # Сортируем по давности ответа
-            unfav_keys = sorted(unfav_keys, key=lambda k: _0_global_dct.d[k].latest_answer_session)
+            unfav_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_session)
             # Находим N // 4
             count_unfav_keys = min(len(unfav_keys), _0_global_dct.count_fav_entries()[0] // 4)
             # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
@@ -4384,7 +4384,7 @@ class PrintW(tk.Toplevel):
         self.count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
 
         self.var_fav = tk.BooleanVar(value=False)
-        self.var_full_info = tk.BooleanVar(value=True)
+        self.var_briefly = tk.BooleanVar(value=False)
         self.var_info = tk.StringVar()
         self.var_info_selected = tk.StringVar()
         self.var_current_page = tk.StringVar(value=str(self.current_page))
@@ -4429,16 +4429,16 @@ class PrintW(tk.Toplevel):
         set_image(self.btn_print_out, self.img_print_out, img_print_out, 'Распечатать')
         self.frame_parameters = ttk.Frame(self.frame_header, style='Default.TFrame')
         # { { {
-        self.lbl_fav = ttk.Label(self.frame_parameters, text='Только избранные:', style='Default.TLabel')
+        self.lbl_fav = ttk.Label(self.frame_parameters, text='Только избр.:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self.frame_parameters, variable=self.var_fav,
                                          command=lambda: self.go_to_first_page(True), style='Default.TCheckbutton')
         self.lbl_group = ttk.Label(self.frame_parameters, text='Группа:', style='Default.TLabel')
         self.combo_group = ttk.Combobox(self.frame_parameters, textvariable=self.var_group,
                                         values=[ALL_GROUPS] + list(_0_global_dct.groups), width=26, state='readonly',
                                         style='Default.TCombobox', font=('DejaVu Sans Mono', _0_global_scale))
-        self.lbl_full_info = ttk.Label(self.frame_parameters, text='Вся информация:', style='Default.TLabel')
-        self.check_full_info = ttk.Checkbutton(self.frame_parameters, variable=self.var_full_info,
-                                               command=lambda: self.print(False), style='Default.TCheckbutton')
+        self.lbl_briefly = ttk.Label(self.frame_parameters, text='Кратко:', style='Default.TLabel')
+        self.check_briefly = ttk.Checkbutton(self.frame_parameters, variable=self.var_briefly,
+                                             command=lambda: self.print(False), style='Default.TCheckbutton')
         self.lbl_order = ttk.Label(self.frame_parameters, text='Порядок:', style='Default.TLabel')
         self.combo_order = ttk.Combobox(self.frame_parameters, textvariable=self.var_order, values=PRINT_VALUES_ORDER,
                                         width=26, state='readonly', style='Default.TCombobox',
@@ -4516,8 +4516,8 @@ class PrintW(tk.Toplevel):
         self.check_fav.grid(      row=0, column=1, padx=(0, 6), pady=6,      sticky='W')
         self.lbl_group.grid(      row=0, column=2, padx=(0, 1), pady=6,      sticky='E')
         self.combo_group.grid(    row=0, column=3, padx=(0, 6), pady=6,      sticky='W')
-        self.lbl_full_info.grid(  row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_full_info.grid(row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_briefly.grid(    row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_briefly.grid(  row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
         self.lbl_order.grid(      row=1, column=2, padx=(0, 1), pady=(0, 6), sticky='E')
         self.combo_order.grid(    row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
         # } } }
@@ -4668,13 +4668,21 @@ class PrintW(tk.Toplevel):
         if self.var_order.get() == PRINT_VALUES_ORDER[1]:
             self.keys.reverse()
         elif self.var_order.get() == PRINT_VALUES_ORDER[2]:
-            self.keys = sorted(self.keys, key=lambda k: _0_global_dct.d[k].score)
+            self.keys.sort(key=lambda k: _0_global_dct.d[k].score)
         elif self.var_order.get() == PRINT_VALUES_ORDER[3]:
-            self.keys = sorted(self.keys, key=lambda k: _0_global_dct.d[k].score, reverse=True)
+            self.keys.sort(key=lambda k: _0_global_dct.d[k].score, reverse=True)
         elif self.var_order.get() == PRINT_VALUES_ORDER[4]:
-            self.keys = sorted(self.keys, key=lambda k: _0_global_dct.d[k].latest_answer_session)
+            self.keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_session)
         elif self.var_order.get() == PRINT_VALUES_ORDER[5]:
-            self.keys = sorted(self.keys, key=lambda k: _0_global_dct.d[k].latest_answer_session, reverse=True)
+            self.keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_session, reverse=True)
+        elif self.var_order.get() == PRINT_VALUES_ORDER[6]:
+            self.keys.sort()
+        elif self.var_order.get() == PRINT_VALUES_ORDER[7]:
+            self.keys.sort(reverse=True)
+        elif self.var_order.get() == PRINT_VALUES_ORDER[8]:
+            self.keys.sort(key=lambda k: len(_0_global_dct.d[k].wrd))
+        elif self.var_order.get() == PRINT_VALUES_ORDER[9]:
+            self.keys.sort(key=lambda k: len(_0_global_dct.d[k].wrd), reverse=True)
         # Выводим информацию о количестве статей
         self.print_info()
 
@@ -4717,14 +4725,14 @@ class PrintW(tk.Toplevel):
                                    hover_delay=666)
                      for i in range(self.count_elements_on_page)]
         # Выводим текст на кнопки
-        if self.var_full_info.get():
-            for i in range(self.count_elements_on_page):
-                key = self.keys[self.start_index + i]
-                self.buttons[i].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
-        else:
+        if self.var_briefly.get():
             for i in range(self.count_elements_on_page):
                 key = self.keys[self.start_index + i]
                 self.buttons[i].configure(text=get_entry_info_briefly(_0_global_dct.d[key], 75))
+        else:
+            for i in range(self.count_elements_on_page):
+                key = self.keys[self.start_index + i]
+                self.buttons[i].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
 
         for i in range(self.count_elements_on_page):
             # Расставляем элементы
@@ -4745,12 +4753,12 @@ class PrintW(tk.Toplevel):
     # Обновить одну из кнопок журнала
     def refresh_one_button(self, index: int):
         # Выводим текст на кнопку
-        if self.var_full_info.get():
-            key = self.keys[self.start_index + index]
-            self.buttons[index].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
-        else:
+        if self.var_briefly.get():
             key = self.keys[self.start_index + index]
             self.buttons[index].configure(text=get_entry_info_briefly(_0_global_dct.d[key], 75))
+        else:
+            key = self.keys[self.start_index + index]
+            self.buttons[index].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
 
         # Выводим информацию о количестве статей
         self.print_info()
@@ -4758,14 +4766,14 @@ class PrintW(tk.Toplevel):
     # Обновить все кнопки журнала
     def refresh_all_buttons(self):
         # Выводим текст на кнопки
-        if self.var_full_info.get():
-            for i in range(self.count_elements_on_page):
-                key = self.keys[self.start_index + i]
-                self.buttons[i].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
-        else:
+        if self.var_briefly.get():
             for i in range(self.count_elements_on_page):
                 key = self.keys[self.start_index + i]
                 self.buttons[i].configure(text=get_entry_info_briefly(_0_global_dct.d[key], 75))
+        else:
+            for i in range(self.count_elements_on_page):
+                key = self.keys[self.start_index + i]
+                self.buttons[i].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
 
     # Перейти на страницу с заданным номером
     def go_to_page_with_number(self, number: int):
