@@ -1718,7 +1718,7 @@ class PopupEntryW(tk.Toplevel):
 # Всплывающее окно с полем Combobox
 class PopupChooseW(tk.Toplevel):
     def __init__(self, parent, values: list[str] | tuple[str, ...], msg='Выберите один из вариантов',
-                 btn_text='Подтвердить', combo_width=20, default_value=None, title=PROGRAM_NAME):
+                 btn_text='Подтвердить', combo_width=40, default_value=None, title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
@@ -4366,7 +4366,7 @@ class LearnW(tk.Toplevel):
 class PrintW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Просмотр словаря')
+        self.title(f'{PROGRAM_NAME} - Просмотр словаря "{_0_global_dct_savename}"')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
@@ -4380,6 +4380,7 @@ class PrintW(tk.Toplevel):
         self.var_fav = tk.BooleanVar(value=False)
         self.var_full_info = tk.BooleanVar(value=True)
         self.var_info = tk.StringVar()
+        self.var_info_selected = tk.StringVar()
         self.var_current_page = tk.StringVar(value=str(self.current_page))
         self.var_order = tk.StringVar(value=PRINT_VALUES_ORDER[0])
         self.var_group = tk.StringVar(value=ALL_GROUPS)
@@ -4412,20 +4413,16 @@ class PrintW(tk.Toplevel):
             return res
         self.vcmd_page = (self.register(validate_and_goto_page_number), '%P')
 
-        self.frame_header = ttk.Frame(self, style='Invis.TFrame')
+        self.frame_menu = ttk.Frame(self, style='Invis.TFrame')
         # {
+        self.frame_header = ttk.Frame(self.frame_menu, style='Invis.TFrame')
+        # { {
         self.btn_about_window = ttk.Button(self.frame_header, command=self.about_window, width=2, takefocus=False)
         set_image(self.btn_about_window, self.img_about, img_about, '?')
         self.btn_print_out = ttk.Button(self.frame_header, command=self.print_out, takefocus=False)
         set_image(self.btn_print_out, self.img_print_out, img_print_out, 'Распечатать')
-        self.lbl_dct_name = ttk.Label(self.frame_header, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
-                                                                         40, add_right_spaces=False),
-                                      justify='center', style='Default.TLabel')
-        # }
-        self.frame_menu = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.frame_parameters = ttk.Frame(self.frame_menu, style='Default.TFrame')
-        # { {
+        self.frame_parameters = ttk.Frame(self.frame_header, style='Default.TFrame')
+        # { { {
         self.lbl_fav = ttk.Label(self.frame_parameters, text='Только избранные:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self.frame_parameters, variable=self.var_fav,
                                          command=lambda: self.go_to_first_page(True), style='Default.TCheckbutton')
@@ -4440,6 +4437,7 @@ class PrintW(tk.Toplevel):
         self.combo_order = ttk.Combobox(self.frame_parameters, textvariable=self.var_order, values=PRINT_VALUES_ORDER,
                                         width=26, state='readonly', style='Default.TCombobox',
                                         font=('DejaVu Sans Mono', _0_global_scale))
+        # } } }
         # } }
         self.frame_buttons_for_selected = ttk.Frame(self.frame_menu, style='Default.TFrame')
         # { {
@@ -4470,10 +4468,12 @@ class PrintW(tk.Toplevel):
                                            takefocus=False)
         set_image(self.btn_unselect_all, self.img_unselect_all, img_unselect_all, '[ ]')
         # } }
+        self.lbl_info = ttk.Label(self.frame_menu, textvariable=self.var_info, style='Default.TLabel')
+        self.lbl_info_selected = ttk.Label(self.frame_menu, textvariable=self.var_info_selected, justify='left',
+                                           style='Default.TLabel')
         # }
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.lbl_info = ttk.Label(self.frame_main, textvariable=self.var_info, style='Default.TLabel')
         self.scrolled_frame = ScrollFrame(self.frame_main, SCALE_DEFAULT_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
                                           SCALE_DEFAULT_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.frame_page_buttons = ttk.Frame(self.frame_main, style='Invis.TFrame')
@@ -4498,16 +4498,14 @@ class PrintW(tk.Toplevel):
         # } }
         # }
 
-        self.frame_header.grid(row=0, column=0, padx=6, pady=6)
+        self.frame_menu.grid(row=0, column=0, padx=6, pady=(6, 0), sticky='W')
         # {
-        self.btn_about_window.grid(row=0, column=0, padx=0, pady=0)
-        self.btn_print_out.grid(   row=0, column=1, padx=0, pady=0)
-        self.lbl_dct_name.grid(    row=0, column=2, padx=0, pady=0)
-        # }
-        self.frame_menu.grid(row=1, column=0, padx=6, pady=0)
-        # {
-        self.frame_parameters.grid(row=0, rowspan=2, column=0, padx=6, pady=0)
+        self.frame_header.grid(row=0, rowspan=2, column=0, padx=0, pady=0, sticky='W')
         # { {
+        self.btn_about_window.grid(row=0,            column=0, padx=(0, 6), pady=0)
+        self.btn_print_out.grid(   row=1,            column=0, padx=(0, 6), pady=0)
+        self.frame_parameters.grid(row=0, rowspan=2, column=1, padx=0,      pady=0)
+        # { { {
         self.lbl_fav.grid(        row=0, column=0, padx=(6, 1), pady=6,      sticky='E')
         self.check_fav.grid(      row=0, column=1, padx=(0, 6), pady=6,      sticky='W')
         self.lbl_group.grid(      row=0, column=2, padx=(0, 1), pady=6,      sticky='E')
@@ -4516,6 +4514,7 @@ class PrintW(tk.Toplevel):
         self.check_full_info.grid(row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
         self.lbl_order.grid(      row=1, column=2, padx=(0, 1), pady=(0, 6), sticky='E')
         self.combo_order.grid(    row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
+        # } } }
         # } }
         # { {
         self.btn_fav.grid(              row=0, column=0)
@@ -4523,19 +4522,20 @@ class PrintW(tk.Toplevel):
         self.btn_add_to_group.grid(     row=0, column=2)
         self.btn_remove_from_group.grid(row=0, column=3)
         # } }
-        self.frame_selection_buttons.grid(row=1, column=1, padx=6, pady=0, sticky='S')
+        self.frame_selection_buttons.grid(row=1, column=1, padx=(6, 0), pady=0, sticky='WS')
         # { {
         self.btn_select_page.grid(  row=0, column=0)
         self.btn_unselect_page.grid(row=0, column=1)
         self.btn_select_all.grid(   row=0, column=2)
         self.btn_unselect_all.grid( row=0, column=3)
         # } }
+        self.lbl_info.grid(         row=2, column=0, padx=0,      pady=0)
+        self.lbl_info_selected.grid(row=2, column=1, padx=(6, 0), pady=0, sticky='W')
         # }
-        self.frame_main.grid(row=2, column=0, padx=6, pady=6)
+        self.frame_main.grid(row=1, column=0, padx=6, pady=6)
         # {
-        self.lbl_info.grid(          row=0, column=0, padx=0, pady=(0, 6))
-        self.scrolled_frame.grid(    row=1, column=0, padx=0, pady=(0, 6))
-        self.frame_page_buttons.grid(row=2, column=0, padx=0, pady=0)
+        self.scrolled_frame.grid(    row=0, column=0, padx=0, pady=(0, 6))
+        self.frame_page_buttons.grid(row=1, column=0, padx=0, pady=0)
         # { {
         self.btn_first_page.grid(    row=0, column=0, padx=3, pady=0)
         self.btn_prev_page.grid(     row=0, column=1, padx=3, pady=0)
@@ -4608,22 +4608,26 @@ class PrintW(tk.Toplevel):
         if self.var_fav.get():
             if group == ALL_GROUPS:
                 w, t, f = _0_global_dct.count_fav_entries()
-                res = dct_info_part(_0_global_dct, w, t, f)
+                info = dct_info_part(_0_global_dct, w, t, f)
             else:
                 w, t, f = _0_global_dct.count_fav_entries(group)
-                res = dct_info_part(_0_global_dct, w, t, f)
+                info = dct_info_part(_0_global_dct, w, t, f)
         else:
             if group == ALL_GROUPS:
-                res = dct_info(_0_global_dct)
+                info = dct_info(_0_global_dct)
             else:
                 w, t, f = _0_global_dct.count_entries_in_group(group)
-                res = dct_info_part(_0_global_dct, w, t, f)
-        if self.selected_keys:
-            count = len(self.selected_keys)
-            tmp_1 = set_postfix(count, ('Выделена', 'Выделены', 'Выделено'))
-            tmp_2 = set_postfix(count, ('статья', 'статьи', 'статей'))
-            res += f'   {tmp_1} {count} {tmp_2}'
-        self.var_info.set(res)
+                info = dct_info_part(_0_global_dct, w, t, f)
+        self.var_info.set(info)
+
+        count_selected = len(self.selected_keys)
+        if count_selected == 0:
+            info_selected = ''
+        else:
+            tmp_1 = set_postfix(count_selected, ('Выделена', 'Выделены', 'Выделено'))
+            tmp_2 = set_postfix(count_selected, ('статья', 'статьи', 'статей'))
+            info_selected = f'{tmp_1} {count_selected} {tmp_2}'
+        self.var_info_selected.set(info_selected)
 
     # Напечатать словарь
     def print(self, move_scroll: bool):
@@ -4715,8 +4719,9 @@ class PrintW(tk.Toplevel):
             for i in range(self.count_elements_on_page):
                 key = self.keys[self.start_index + i]
                 self.buttons[i].configure(text=get_entry_info_briefly(_0_global_dct.d[key], 75))
-        # Расставляем элементы
+
         for i in range(self.count_elements_on_page):
+            # Расставляем элементы
             self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
             # {
             self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
@@ -4794,7 +4799,7 @@ class PrintW(tk.Toplevel):
         else:
             self.selected_keys += [key]
             self.buttons[index].configure(style='NoteSelected.TButton')
-            self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='S')
+            self.frame_buttons_for_selected.grid(row=0, column=1, padx=(6, 0), pady=0, sticky='WS')
         self.print_info()
 
     # Выделить все статьи на странице
@@ -4805,7 +4810,7 @@ class PrintW(tk.Toplevel):
                 self.selected_keys += [key]
         for btn in self.buttons:
             btn.configure(style='NoteSelected.TButton')
-        self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='S')
+        self.frame_buttons_for_selected.grid(row=0, column=1, padx=(6, 0), pady=0, sticky='WS')
         self.print_info()
 
     # Снять выделение со всех статей на странице
@@ -4822,10 +4827,10 @@ class PrintW(tk.Toplevel):
 
     # Выделить все статьи
     def select_all(self):
-        self.selected_keys = self.keys
+        self.selected_keys = list(self.keys)
         for btn in self.buttons:
             btn.configure(style='NoteSelected.TButton')
-        self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='S')
+        self.frame_buttons_for_selected.grid(row=0, column=1, padx=(6, 0), pady=0, sticky='WS')
         self.print_info()
 
     # Снять выделение со всех статей
@@ -4971,8 +4976,17 @@ class SearchW(tk.Toplevel):
         self.img_arrow_right = tk.PhotoImage()
         self.img_double_arrow_left = tk.PhotoImage()
         self.img_double_arrow_right = tk.PhotoImage()
+        self.img_select_page = tk.PhotoImage()
+        self.img_unselect_page = tk.PhotoImage()
+        self.img_select_all = tk.PhotoImage()
+        self.img_unselect_all = tk.PhotoImage()
+        self.img_fav = tk.PhotoImage()
+        self.img_unfav = tk.PhotoImage()
+        self.img_add_to_group = tk.PhotoImage()
+        self.img_remove_from_group = tk.PhotoImage()
 
         self.keys = []
+        self.selected_keys = []
         self.frames = []
         self.buttons = []
 
@@ -4985,24 +4999,53 @@ class SearchW(tk.Toplevel):
 
         self.frame_header = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.btn_about_window = ttk.Button(self.frame_header, command=self.about_window, width=2, takefocus=False)
-        set_image(self.btn_about_window, self.img_about, img_about, '?')
-        self.lbl_dct_name = ttk.Label(self.frame_header, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
-                                                                         40, add_right_spaces=False),
-                                      justify='center', style='Default.TLabel')
         self.frame_query = ttk.Frame(self.frame_header, style='Default.TFrame')
         # { {
         self.btn_search_settings = ttk.Button(self.frame_query, command=self.search_settings, width=9, takefocus=False)
         set_image(self.btn_search_settings, self.img_settings, img_edit, 'Настройки')
         self.entry_query = ttk.Entry(self.frame_query, textvariable=self.var_query, width=50,
                                      style='Default.TEntry', font=('StdFont', _0_global_scale))
-        self.btn_search = ttk.Button(self.frame_query, text='Поиск', command=lambda: self.print(True),
+        self.btn_search = ttk.Button(self.frame_query, text='Поиск', command=lambda: self.go_to_first_page(True),
                                      width=6, takefocus=False, style='Default.TButton')
+        # } }
+        self.frame_selection_buttons = ttk.Frame(self.frame_header, style='Default.TFrame')
+        # { {
+        self.btn_select_page = ttk.Button(self.frame_selection_buttons, command=self.select_page, width=3,
+                                          takefocus=False)
+        set_image(self.btn_select_page, self.img_select_page, img_select_page, '[X]')
+        self.btn_unselect_page = ttk.Button(self.frame_selection_buttons, command=self.unselect_page, width=3,
+                                            takefocus=False)
+        set_image(self.btn_unselect_page, self.img_unselect_page, img_unselect_page, '[ ]')
+        self.btn_select_all = ttk.Button(self.frame_selection_buttons, command=self.select_all, width=3,
+                                         takefocus=False)
+        set_image(self.btn_select_all, self.img_select_all, img_select_all, '[X]')
+        self.btn_unselect_all = ttk.Button(self.frame_selection_buttons, command=self.unselect_all, width=3,
+                                           takefocus=False)
+        set_image(self.btn_unselect_all, self.img_unselect_all, img_unselect_all, '[ ]')
+        # } }
+        self.frame_info = ttk.Frame(self.frame_header, style='Invis.TFrame')
+        # { {
+        self.btn_about_window = ttk.Button(self.frame_info, command=self.about_window, width=2, takefocus=False)
+        set_image(self.btn_about_window, self.img_about, img_about, '?')
+        self.lbl_info = ttk.Label(self.frame_info, textvariable=self.var_info, style='Default.TLabel')
+        # } }
+        self.frame_buttons_for_selected = ttk.Frame(self.frame_header, style='Default.TFrame')
+        # { {
+        self.btn_fav = ttk.Button(self.frame_buttons_for_selected, command=self.fav_selected, width=3, takefocus=False)
+        set_image(self.btn_fav, self.img_fav, img_fav, '*+')
+        self.btn_unfav = ttk.Button(self.frame_buttons_for_selected, command=self.unfav_selected, width=3,
+                                    takefocus=False)
+        set_image(self.btn_unfav, self.img_unfav, img_unfav, '*-')
+        self.btn_add_to_group = ttk.Button(self.frame_buttons_for_selected, command=self.add_selected_to_group, width=3,
+                                           takefocus=False)
+        set_image(self.btn_add_to_group, self.img_add_to_group, img_add_to_group, 'G+')
+        self.btn_remove_from_group = ttk.Button(self.frame_buttons_for_selected,
+                                                command=self.remove_selected_from_group, width=3, takefocus=False)
+        set_image(self.btn_remove_from_group, self.img_remove_from_group, img_remove_from_group, 'G-')
         # } }
         # }
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.lbl_info = ttk.Label(self.frame_main, textvariable=self.var_info, style='Default.TLabel')
         self.scrolled_frame = ScrollFrame(self.frame_main, SCALE_DEFAULT_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
                                           SCALE_DEFAULT_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.frame_page_buttons = ttk.Frame(self.frame_main, style='Invis.TFrame')
@@ -5029,20 +5072,36 @@ class SearchW(tk.Toplevel):
 
         self.frame_header.grid(row=0, column=0, padx=6, pady=(6, 0))
         # {
-        self.btn_about_window.grid(row=0, column=0, padx=0,      pady=0)
-        self.lbl_dct_name.grid(    row=0, column=1, padx=0,      pady=0)
-        self.frame_query.grid(     row=0, column=2, padx=(6, 0), pady=0)
+        self.frame_query.grid(row=0, column=0, padx=0, pady=(0, 6))
         # { {
-        self.btn_search_settings.grid(row=0, column=0, padx=(6, 1), pady=6)
+        self.btn_search_settings.grid(row=0, column=0, padx=(6, 3), pady=6)
         self.entry_query.grid(        row=0, column=1, padx=(0, 1), pady=6)
         self.btn_search.grid(         row=0, column=2, padx=(0, 6), pady=6)
+        # } }
+        self.frame_selection_buttons.grid(row=0, column=1, padx=(6, 0), pady=(0, 6), sticky='S')
+        # { {
+        self.btn_select_page.grid(  row=0, column=0)
+        self.btn_unselect_page.grid(row=0, column=1)
+        self.btn_select_all.grid(   row=0, column=2)
+        self.btn_unselect_all.grid( row=0, column=3)
+        # } }
+        self.frame_info.grid(row=1, column=0, padx=(6, 0), pady=0, sticky='W')
+        # { {
+        self.btn_about_window.grid(row=0, column=0, padx=0, pady=0)
+        self.lbl_info.grid(        row=0, column=1, padx=0, pady=0)
+        # } }
+        # self.frame_buttons_for_selected
+        # { {
+        self.btn_fav.grid(              row=0, column=0)
+        self.btn_unfav.grid(            row=0, column=1)
+        self.btn_add_to_group.grid(     row=0, column=2)
+        self.btn_remove_from_group.grid(row=0, column=3)
         # } }
         # }
         self.frame_main.grid(row=1, column=0, padx=6, pady=6)
         # {
-        self.lbl_info.grid(          row=0, column=0, padx=0, pady=(0, 6))
-        self.scrolled_frame.grid(    row=1, column=0, padx=0, pady=(0, 6))
-        self.frame_page_buttons.grid(row=2, column=0, padx=0, pady=0)
+        self.scrolled_frame.grid(    row=0, column=0, padx=0, pady=(0, 6))
+        self.frame_page_buttons.grid(row=1, column=0, padx=0, pady=0)
         # { {
         self.btn_first_page.grid(    row=0, column=0, padx=3, pady=0)
         self.btn_prev_page.grid(     row=0, column=1, padx=3, pady=0)
@@ -5059,6 +5118,32 @@ class SearchW(tk.Toplevel):
 
         self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
         self.tip_btn_search_settings = ttip.Hovertip(self.btn_search_settings, 'Параметры поиска', hover_delay=450)
+        self.tip_btn_fav = ttip.Hovertip(self.btn_fav, 'Добавить выделенные статьи в избранное\n'
+                                                       'Ctrl+F',
+                                         hover_delay=450)
+        self.tip_btn_unfav = ttip.Hovertip(self.btn_unfav, 'Убрать выделенные статьи из избранного\n'
+                                                           'Ctrl+V',
+                                           hover_delay=450)
+        self.tip_btn_add_to_group = ttip.Hovertip(self.btn_add_to_group, 'Добавить выделенные статьи в группу\n'
+                                                                         'Ctrl+G',
+                                                  hover_delay=450)
+        self.tip_btn_remove_from_group = ttip.Hovertip(self.btn_remove_from_group,
+                                                       'Убрать выделенные статьи из группы\n'
+                                                       'Ctrl+B',
+                                                       hover_delay=450)
+        self.tip_btn_select_page = ttip.Hovertip(self.btn_select_page, 'Выделить все статьи на текущей странице\n'
+                                                                       'Ctrl+P',
+                                                 hover_delay=450)
+        self.tip_btn_unselect_page = ttip.Hovertip(self.btn_unselect_page,
+                                                   'Снять выделение со всех статей на текущей странице\n'
+                                                   'Ctrl+L',
+                                                   hover_delay=450)
+        self.tip_btn_select_all = ttip.Hovertip(self.btn_select_all, 'Выделить все статьи\n'
+                                                                     'Ctrl+A',
+                                                hover_delay=450)
+        self.tip_btn_unselect_all = ttip.Hovertip(self.btn_unselect_all, 'Снять выделение со всех статей\n'
+                                                                         'Ctrl+Z',
+                                                  hover_delay=450)
         self.tip_btn_first_page = ttip.Hovertip(self.btn_first_page, 'В начало', hover_delay=650)
         self.tip_btn_prev_page = ttip.Hovertip(self.btn_prev_page, 'На предыдущую страницу', hover_delay=650)
         self.tip_btn_next_page = ttip.Hovertip(self.btn_next_page, 'На следующую страницу', hover_delay=650)
@@ -5087,6 +5172,20 @@ class SearchW(tk.Toplevel):
 
         self.print(False)
 
+    # Вывести информацию о количестве статей
+    def print_info(self):
+        tmp_1 = set_postfix(self.count_elements, ('Найдена', 'Найдены', 'Найдено'))
+        tmp_2 = set_postfix(self.count_elements, ('статья', 'статьи', 'статей'))
+        res = f'{tmp_1} {self.count_elements} {tmp_2}'
+
+        count_selected = len(self.selected_keys)
+        if count_selected != 0:
+            tmp_1 = set_postfix(count_selected, ('Выделена', 'Выделены', 'Выделено'))
+            tmp_2 = set_postfix(count_selected, ('статья', 'статьи', 'статей'))
+            res += f' ({tmp_1} {count_selected} {tmp_2})'
+
+        self.var_info.set(res)
+
     # Нажатие на кнопку "Поиск"
     def print(self, move_scroll: bool):
         # Удаляем старые кнопки
@@ -5095,8 +5194,8 @@ class SearchW(tk.Toplevel):
         # Удаляем старые фреймы
         for fr in self.frames:
             fr.unbind('<Enter>')
-            fr.unbind('<Control-F>')
-            fr.unbind('<Control-f>')
+            fr.unbind('<Button-2>')
+            fr.unbind('<Button-3>')
             fr.destroy()
 
         # Выбираем нужные статьи
@@ -5108,9 +5207,9 @@ class SearchW(tk.Toplevel):
                                                           self.search_wrd, self.search_tr,
                                                           self.search_frm, self.search_nt)
         if self.search_only_full:
-            self.keys = tuple(full_matches)
+            self.keys = list(full_matches)
         else:
-            self.keys = tuple(full_matches) + tuple(particular_matches)
+            self.keys = list(full_matches) + list(particular_matches)
 
         # Вычисляем значения некоторых количественных переменных
         self.count_elements = len(self.keys)
@@ -5129,7 +5228,7 @@ class SearchW(tk.Toplevel):
         else:
             self.count_elements_on_page = self.max_elements_on_page
         # Выводим информацию о количестве статей
-        self.var_info.set(f'Найдено статей: {self.count_elements}')
+        self.print_info()
         # Выводим номер страницы
         self.var_current_page.set(str(self.current_page))
         self.entry_current_page.icursor(len(str(self.current_page)))
@@ -5141,8 +5240,11 @@ class SearchW(tk.Toplevel):
         # Создаём новые кнопки
         self.buttons = [ttk.Button(self.frames[i],
                                    command=lambda i=i: self.edit_entry(self.keys[self.start_index + i]),
-                                   takefocus=False, style='Note.TButton')
+                                   takefocus=False, style='NoteSelected.TButton'
+                                                          if self.keys[self.start_index + i] in self.selected_keys
+                                                          else 'Note.TButton')
                         for i in range(self.count_elements_on_page)]
+
         for i in range(self.count_elements_on_page):
             # Выводим текст на кнопки
             self.buttons[i].configure(text=get_all_entry_info(_0_global_dct.d[self.keys[self.start_index + i]], 75, 13))
@@ -5156,8 +5258,8 @@ class SearchW(tk.Toplevel):
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event, i=i: self.entry_query.focus_set())
-            self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav_one(i, self.keys[self.start_index + i]))
-            self.frames[i].bind('<Control-f>', lambda event, i=i: self.fav_one(i, self.keys[self.start_index + i]))
+            self.buttons[i].bind('<Button-2>', lambda event, i=i: self.select_one(i))
+            self.buttons[i].bind('<Button-3>', lambda event, i=i: self.select_one(i))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -5169,7 +5271,17 @@ class SearchW(tk.Toplevel):
         self.buttons[index].configure(text=get_all_entry_info(_0_global_dct.d[key], 75, 13))
 
         # Выводим информацию о количестве статей
-        self.var_info.set(f'Найдено статей: {self.count_elements}')
+        self.print_info()
+
+    # Обновить все кнопки журнала
+    def refresh_all_buttons(self):
+        # Выводим текст на кнопки
+        for i in range(self.count_elements_on_page):
+            key = self.keys[self.start_index + i]
+            self.buttons[i].configure(text=get_all_entry_info(_0_global_dct.d[key], 75, 13))
+
+        # Выводим информацию о количестве статей
+        self.print_info()
 
     # Перейти на страницу с заданным номером
     def go_to_page_with_number(self, number: int):
@@ -5188,24 +5300,126 @@ class SearchW(tk.Toplevel):
             self.go_to_page_with_number(self.current_page + 1)
 
     # Перейти на первую страницу
-    def go_to_first_page(self):
+    def go_to_first_page(self, to_reset_selected_keys=False):
+        if to_reset_selected_keys:
+            self.selected_keys = []
+            self.frame_buttons_for_selected.grid_remove()
         self.go_to_page_with_number(1)
 
     # Перейти на последнюю страницу
     def go_to_last_page(self):
         self.go_to_page_with_number(self.count_pages)
 
-    # Добавить одну статью в избранное (или убрать)
-    def fav_one(self, index: int, key: tuple[str, int]):
-        _0_global_dct.d[key].change_fav()
+    # Выделить одну статью (или убрать выделение)
+    def select_one(self, index: int):
+        key = self.keys[self.start_index + index]
+        if key in self.selected_keys:
+            self.selected_keys.remove(key)
+            self.buttons[index].configure(style='Note.TButton')
+            if not self.selected_keys:
+                self.frame_buttons_for_selected.grid_remove()
+        else:
+            self.selected_keys += [key]
+            self.buttons[index].configure(style='NoteSelected.TButton')
+            self.frame_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0)
+        self.print_info()
 
-        self.refresh_one_button(index, key)
+    # Выделить все статьи на странице
+    def select_page(self):
+        for i in range(self.count_elements_on_page):
+            key = self.keys[self.start_index + i]
+            if key not in self.selected_keys:
+                self.selected_keys += [key]
+        for btn in self.buttons:
+            btn.configure(style='NoteSelected.TButton')
+        self.frame_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0)
+        self.print_info()
+
+    # Снять выделение со всех статей на странице
+    def unselect_page(self):
+        for i in range(self.count_elements_on_page):
+            key = self.keys[self.start_index + i]
+            if key in self.selected_keys:
+                self.selected_keys.remove(key)
+        for btn in self.buttons:
+            btn.configure(style='Note.TButton')
+        if not self.selected_keys:
+            self.frame_buttons_for_selected.grid_remove()
+        self.print_info()
+
+    # Выделить все статьи
+    def select_all(self):
+        self.selected_keys = list(self.keys)
+        for btn in self.buttons:
+            btn.configure(style='NoteSelected.TButton')
+        self.frame_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0)
+        self.print_info()
+
+    # Снять выделение со всех статей
+    def unselect_all(self):
+        self.selected_keys = []
+        for btn in self.buttons:
+            btn.configure(style='Note.TButton')
+        self.frame_buttons_for_selected.grid_remove()
+        self.print_info()
+
+    # Добавить выделенные статьи в избранное
+    def fav_selected(self):
+        if not self.selected_keys:
+            return
+
+        _0_global_dct.fav_entries(tuple(self.selected_keys))
+
+        self.refresh_all_buttons()
+
+    # Убрать выделенные статьи из избранного
+    def unfav_selected(self):
+        if not self.selected_keys:
+            return
+
+        _0_global_dct.unfav_entries(tuple(self.selected_keys))
+
+        self.refresh_all_buttons()
+
+    # Добавить выделенные статьи в группу
+    def add_selected_to_group(self):
+        if not self.selected_keys:
+            return
+        if not _0_global_dct.groups:
+            PopupMsgW(self, 'Не найдено ни одной группы!').open()
+            return
+
+        window_groups = PopupChooseW(self, msg='Выберите группу, в которую хотите добавить выбранные слова:',
+                                     values=tuple(_0_global_dct.groups), default_value=tuple(_0_global_dct.groups)[0])
+        closed, group = window_groups.open()
+        if closed:
+            return
+        _0_global_dct.add_entries_to_group(group, tuple(self.selected_keys))
+
+        self.refresh_all_buttons()
+
+    # Убрать выделенные статьи из группы
+    def remove_selected_from_group(self):
+        if not self.selected_keys:
+            return
+        if not _0_global_dct.groups:
+            PopupMsgW(self, 'Не найдено ни одной группы!').open()
+            return
+
+        window_groups = PopupChooseW(self, msg='Выберите группу, из которой хотите убрать выбранные слова:',
+                                     values=tuple(_0_global_dct.groups), default_value=tuple(_0_global_dct.groups)[0])
+        closed, group = window_groups.open()
+        if closed:
+            return
+        _0_global_dct.remove_entries_from_group(group, tuple(self.selected_keys))
+
+        self.refresh_all_buttons()
 
     # Нажатие на кнопку "Справка" (картинка с вопросом)
     def about_window(self):
-        PopupMsgW(self, '* Чтобы добавить статью в избранное, наведите на неё мышку и нажмите Ctrl+F\n'
-                        '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
-                        '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP',
+        PopupMsgW(self, '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
+                        '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
+                        '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
                   msg_justify='left').open()
 
     # Установить фокус
@@ -5214,6 +5428,26 @@ class SearchW(tk.Toplevel):
         self.entry_query.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_search.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
+        #
+        self.bind('<Control-P>', lambda event=None: self.select_page())
+        self.bind('<Control-p>', lambda event=None: self.select_page())
+        self.bind('<Control-L>', lambda event=None: self.unselect_page())
+        self.bind('<Control-l>', lambda event=None: self.unselect_page())
+        #
+        self.bind('<Control-A>', lambda event=None: self.select_all())
+        self.bind('<Control-a>', lambda event=None: self.select_all())
+        self.bind('<Control-Z>', lambda event=None: self.unselect_all())
+        self.bind('<Control-z>', lambda event=None: self.unselect_all())
+        #
+        self.bind('<Control-G>', lambda event=None: self.add_selected_to_group())
+        self.bind('<Control-g>', lambda event=None: self.add_selected_to_group())
+        self.bind('<Control-B>', lambda event=None: self.remove_selected_from_group())
+        self.bind('<Control-b>', lambda event=None: self.remove_selected_from_group())
+        #
+        self.bind('<Control-F>', lambda event=None: self.fav_selected())
+        self.bind('<Control-f>', lambda event=None: self.fav_selected())
+        self.bind('<Control-V>', lambda event=None: self.unfav_selected())
+        self.bind('<Control-v>', lambda event=None: self.unfav_selected())
 
     def open(self):
         self.set_focus()
