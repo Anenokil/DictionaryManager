@@ -176,6 +176,9 @@ def check_not_void(window_parent, value: str, msg_if_void: str):
 
 # Проверить корректность названия словаря
 def check_dct_savename(window_parent, savename: str):
+    if len(savename) > 100:
+        warning(window_parent, 'Название слишком длинное (> 100)!')
+        return False
     if savename == '':
         warning(window_parent, 'Название должно содержать хотя бы один символ!')
         return False
@@ -187,6 +190,9 @@ def check_dct_savename(window_parent, savename: str):
 
 # Проверить корректность названия словаря при изменении
 def check_dct_savename_edit(window_parent, old_savename: str, new_savename: str):
+    if len(new_savename) > 100:
+        warning(window_parent, 'Название слишком длинное (> 100)!')
+        return False
     if new_savename == '':
         warning(window_parent, 'Название должно содержать хотя бы один символ!')
         return False
@@ -4500,11 +4506,11 @@ class PrintW(tk.Toplevel):
 
         self.frame_menu.grid(row=0, column=0, padx=6, pady=(6, 0), sticky='W')
         # {
-        self.frame_header.grid(row=0, rowspan=2, column=0, padx=0, pady=0, sticky='W')
+        self.frame_header.grid(row=0, rowspan=2, column=0, padx=0, pady=0)
         # { {
-        self.btn_about_window.grid(row=0,            column=0, padx=(0, 6), pady=0)
-        self.btn_print_out.grid(   row=1,            column=0, padx=(0, 6), pady=0)
-        self.frame_parameters.grid(row=0, rowspan=2, column=1, padx=0,      pady=0)
+        self.btn_about_window.grid(row=0,            column=0, padx=0,      pady=0)
+        self.btn_print_out.grid(   row=1,            column=0, padx=0,      pady=0)
+        self.frame_parameters.grid(row=0, rowspan=2, column=1, padx=(6, 0), pady=0)
         # { { {
         self.lbl_fav.grid(        row=0, column=0, padx=(6, 1), pady=6,      sticky='E')
         self.check_fav.grid(      row=0, column=1, padx=(0, 6), pady=6,      sticky='W')
