@@ -406,6 +406,8 @@ def get_entry_info_briefly_with_forms(entry: Entry, len_str: int):
         res += f'\n{get_forms(entry, tab=15)}'
     if entry.count_n != 0:
         res += f'\n{get_notes(entry, tab=15)}'
+    if entry.groups:
+        res += f'\n       Группы: {get_groups(entry)}'
     return split_text(res, len_str, tab=15)
 
 
@@ -1015,15 +1017,19 @@ def create_default_custom_theme():
 # Загрузить изображения для выбранной темы
 def upload_theme_img(theme: str):
     global img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_add, img_delete, img_edit, img_print_out,\
-        img_undo, img_redo, img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right
+        img_select_page, img_unselect_page, img_select_all, img_unselect_all,\
+        img_fav, img_unfav, img_add_to_group, img_remove_from_group, img_undo, img_redo,\
+        img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right
 
     if theme == CUSTOM_TH:
         theme_dir = CUSTOM_THEME_PATH
     else:
         theme_dir = os.path.join(ADDITIONAL_THEMES_PATH, theme)
 
-    images = [img_ok, img_cancel, img_add, img_delete, img_edit, img_undo, img_redo, img_arrow_left, img_arrow_right,
-              img_double_arrow_left, img_double_arrow_right, img_print_out, img_about, img_about_mgsp, img_about_typo]
+    images = [img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_add, img_delete, img_edit,
+              img_print_out, img_select_page, img_unselect_page, img_select_all, img_unselect_all,
+              img_fav, img_unfav, img_add_to_group, img_remove_from_group, img_undo, img_redo,
+              img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right]
 
     for i in range(len(images)):
         file_name = f'{IMG_NAMES[i]}.png'
@@ -1033,7 +1039,9 @@ def upload_theme_img(theme: str):
             images[i] = os.path.join(IMAGES_PATH, file_name)
 
     img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_add, img_delete, img_edit, img_print_out,\
-        img_undo, img_redo, img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right = images
+        img_select_page, img_unselect_page, img_select_all, img_unselect_all,\
+        img_fav, img_unfav, img_add_to_group, img_remove_from_group, img_undo, img_redo,\
+        img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right = images
 
 
 # Загрузить глобальные настройки (настройки программы)
@@ -4370,7 +4378,7 @@ class PrintW(tk.Toplevel):
         self.count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
 
         self.var_fav = tk.BooleanVar(value=False)
-        self.var_forms = tk.BooleanVar(value=True)
+        self.var_full_info = tk.BooleanVar(value=True)
         self.var_info = tk.StringVar()
         self.var_current_page = tk.StringVar(value=str(self.current_page))
         self.var_order = tk.StringVar(value=PRINT_VALUES_ORDER[0])
@@ -4425,9 +4433,9 @@ class PrintW(tk.Toplevel):
         self.combo_group = ttk.Combobox(self.frame_parameters, textvariable=self.var_group,
                                         values=[ALL_GROUPS] + list(_0_global_dct.groups), width=26, state='readonly',
                                         style='Default.TCombobox', font=('DejaVu Sans Mono', _0_global_scale))
-        self.lbl_forms = ttk.Label(self.frame_parameters, text='Все словоформы:', style='Default.TLabel')
-        self.check_forms = ttk.Checkbutton(self.frame_parameters, variable=self.var_forms,
-                                           command=lambda: self.print(False), style='Default.TCheckbutton')
+        self.lbl_full_info = ttk.Label(self.frame_parameters, text='Вся информация:', style='Default.TLabel')
+        self.check_full_info = ttk.Checkbutton(self.frame_parameters, variable=self.var_full_info,
+                                               command=lambda: self.print(False), style='Default.TCheckbutton')
         self.lbl_order = ttk.Label(self.frame_parameters, text='Порядок:', style='Default.TLabel')
         self.combo_order = ttk.Combobox(self.frame_parameters, textvariable=self.var_order, values=PRINT_VALUES_ORDER,
                                         width=26, state='readonly', style='Default.TCombobox',
@@ -4500,14 +4508,14 @@ class PrintW(tk.Toplevel):
         # {
         self.frame_parameters.grid(row=0, rowspan=2, column=0, padx=6, pady=0)
         # { {
-        self.lbl_fav.grid(    row=0, column=0, padx=(6, 1), pady=6,      sticky='E')
-        self.check_fav.grid(  row=0, column=1, padx=(0, 6), pady=6,      sticky='W')
-        self.lbl_group.grid(  row=0, column=2, padx=(0, 1), pady=6,      sticky='E')
-        self.combo_group.grid(row=0, column=3, padx=(0, 6), pady=6,      sticky='W')
-        self.lbl_forms.grid(  row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_forms.grid(row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
-        self.lbl_order.grid(  row=1, column=2, padx=(0, 1), pady=(0, 6), sticky='E')
-        self.combo_order.grid(row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_fav.grid(        row=0, column=0, padx=(6, 1), pady=6,      sticky='E')
+        self.check_fav.grid(      row=0, column=1, padx=(0, 6), pady=6,      sticky='W')
+        self.lbl_group.grid(      row=0, column=2, padx=(0, 1), pady=6,      sticky='E')
+        self.combo_group.grid(    row=0, column=3, padx=(0, 6), pady=6,      sticky='W')
+        self.lbl_full_info.grid(  row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_full_info.grid(row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_order.grid(      row=1, column=2, padx=(0, 1), pady=(0, 6), sticky='E')
+        self.combo_order.grid(    row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
         # } }
         # { {
         self.btn_fav.grid(              row=0, column=0)
@@ -4699,7 +4707,7 @@ class PrintW(tk.Toplevel):
                                    hover_delay=666)
                      for i in range(self.count_elements_on_page)]
         # Выводим текст на кнопки
-        if self.var_forms.get():
+        if self.var_full_info.get():
             for i in range(self.count_elements_on_page):
                 key = self.keys[self.start_index + i]
                 self.buttons[i].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
@@ -4726,7 +4734,7 @@ class PrintW(tk.Toplevel):
     # Обновить одну из кнопок журнала
     def refresh_one_button(self, index: int):
         # Выводим текст на кнопку
-        if self.var_forms.get():
+        if self.var_full_info.get():
             key = self.keys[self.start_index + index]
             self.buttons[index].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
         else:
@@ -4739,7 +4747,7 @@ class PrintW(tk.Toplevel):
     # Обновить все кнопки журнала
     def refresh_all_buttons(self):
         # Выводим текст на кнопки
-        if self.var_forms.get():
+        if self.var_full_info.get():
             for i in range(self.count_elements_on_page):
                 key = self.keys[self.start_index + i]
                 self.buttons[i].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
@@ -4786,7 +4794,7 @@ class PrintW(tk.Toplevel):
         else:
             self.selected_keys += [key]
             self.buttons[index].configure(style='NoteSelected.TButton')
-            self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='N')
+            self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='S')
         self.print_info()
 
     # Выделить все статьи на странице
@@ -4797,7 +4805,7 @@ class PrintW(tk.Toplevel):
                 self.selected_keys += [key]
         for btn in self.buttons:
             btn.configure(style='NoteSelected.TButton')
-        self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='N')
+        self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='S')
         self.print_info()
 
     # Снять выделение со всех статей на странице
@@ -4817,7 +4825,7 @@ class PrintW(tk.Toplevel):
         self.selected_keys = self.keys
         for btn in self.buttons:
             btn.configure(style='NoteSelected.TButton')
-        self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='N')
+        self.frame_buttons_for_selected.grid(row=0, column=1, padx=6, pady=0, sticky='S')
         self.print_info()
 
     # Снять выделение со всех статей
@@ -4861,6 +4869,8 @@ class PrintW(tk.Toplevel):
             return
         _0_global_dct.add_entries_to_group(group, tuple(self.selected_keys))
 
+        self.refresh_all_buttons()
+
     # Убрать выделенные статьи из группы
     def remove_selected_from_group(self):
         if not self.selected_keys:
@@ -4876,7 +4886,10 @@ class PrintW(tk.Toplevel):
             return
         _0_global_dct.remove_entries_from_group(group, tuple(self.selected_keys))
 
-        self.print(True)
+        if group == self.var_group.get():
+            self.print(True)
+        else:
+            self.refresh_all_buttons()
 
     # Нажатие на кнопку "Распечатать словарь в файл"
     def print_out(self):

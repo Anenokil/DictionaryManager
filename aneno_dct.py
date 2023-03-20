@@ -406,12 +406,12 @@ class Dictionary(object):
 
     # Переименовать группу
     def rename_group(self, group_old: str, group_new: str):
+        self.groups.add(group_new)
         for entry in self.d.values():
             if group_old in entry.groups:
                 entry.remove_from_group(group_old)
                 entry.add_to_group(group_new)
         self.groups.remove(group_old)
-        self.groups.add(group_new)
 
     # Удалить группу
     def delete_group(self, group: str):
