@@ -3642,8 +3642,9 @@ class CustomThemeSettingsW(tk.Toplevel):
                 file.write(f'\n{self.custom_styles[el]}')
 
         if self.dir_with_images != CUSTOM_THEME_PATH:
-            images = [img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel,
-                      img_add, img_delete, img_edit, img_print_out, img_undo, img_redo,
+            images = [img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_add, img_delete, img_edit,
+                      img_print_out, img_select_page, img_unselect_page, img_select_all, img_unselect_all,
+                      img_fav, img_unfav, img_add_to_group, img_remove_from_group, img_undo, img_redo,
                       img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right]
             for i in range(len(images)):
                 file_name = f'{IMG_NAMES[i]}.png'
