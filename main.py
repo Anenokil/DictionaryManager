@@ -3463,7 +3463,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         # {
         self.lbl_demo_header = ttk.Label(self.frame_demonstration, text='Anenokil developments presents',
                                          style='DemoHeader.TLabel')
-        self.lbl_demo_logo = ttk.Label(self.frame_demonstration, text='The Demonstration', style='DemoLogo.TLabel')
+        self.lbl_demo_logo = ttk.Label(self.frame_demonstration, text='Демонстрация', style='DemoLogo.TLabel')
         self.frame_demo_check = ttk.Frame(self.frame_demonstration, style='DemoDefault.TFrame')
         # { {
         self.lbl_demo_def = ttk.Label(self.frame_demo_check, text='Надпись:', style='DemoDefault.TLabel')
@@ -3790,7 +3790,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_logo = ttk.Style()
         self.st_lbl_logo.theme_use('alt')
         self.st_lbl_logo.configure('DemoLogo.TLabel',
-                                   font=('StdFont', _0_global_scale + 11),
+                                   font=('Times', _0_global_scale + 11),
                                    background=self.custom_styles['BG'],
                                    foreground=self.custom_styles['FG_LOGO'])
 
