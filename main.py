@@ -1022,20 +1022,20 @@ def create_default_custom_theme():
 
 # Загрузить изображения для выбранной темы
 def upload_theme_img(theme: str):
-    global img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_add, img_delete, img_edit, img_print_out,\
-        img_select_page, img_unselect_page, img_select_all, img_unselect_all,\
-        img_fav, img_unfav, img_add_to_group, img_remove_from_group, img_undo, img_redo,\
-        img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right
+    global img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group,\
+        img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all,\
+        img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right, img_double_arrow_left,\
+        img_double_arrow_right
 
     if theme == CUSTOM_TH:
         theme_dir = CUSTOM_THEME_PATH
     else:
         theme_dir = os.path.join(ADDITIONAL_THEMES_PATH, theme)
 
-    images = [img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_add, img_delete, img_edit,
-              img_print_out, img_select_page, img_unselect_page, img_select_all, img_unselect_all,
-              img_fav, img_unfav, img_add_to_group, img_remove_from_group, img_undo, img_redo,
-              img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right]
+    images = [img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group,
+              img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all,
+              img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right,
+              img_double_arrow_left, img_double_arrow_right]
 
     for i in range(len(images)):
         file_name = f'{IMG_NAMES[i]}.png'
@@ -1044,10 +1044,10 @@ def upload_theme_img(theme: str):
         else:
             images[i] = os.path.join(IMAGES_PATH, file_name)
 
-    img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_add, img_delete, img_edit, img_print_out,\
-        img_select_page, img_unselect_page, img_select_all, img_unselect_all,\
-        img_fav, img_unfav, img_add_to_group, img_remove_from_group, img_undo, img_redo,\
-        img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right = images
+    img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group,\
+        img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all,\
+        img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right, img_double_arrow_left,\
+        img_double_arrow_right = images
 
 
 # Загрузить глобальные настройки (настройки программы)
@@ -3463,7 +3463,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         # {
         self.lbl_demo_header = ttk.Label(self.frame_demonstration, text='Anenokil developments presents',
                                          style='DemoHeader.TLabel')
-        self.lbl_demo_logo = ttk.Label(self.frame_demonstration, text='Демонстрация', style='DemoLogo.TLabel')
+        self.lbl_demo_logo = ttk.Label(self.frame_demonstration, text='The Demonstration', style='DemoLogo.TLabel')
         self.frame_demo_check = ttk.Frame(self.frame_demonstration, style='DemoDefault.TFrame')
         # { {
         self.lbl_demo_def = ttk.Label(self.frame_demo_check, text='Надпись:', style='DemoDefault.TLabel')
@@ -3642,9 +3642,9 @@ class CustomThemeSettingsW(tk.Toplevel):
                 file.write(f'\n{self.custom_styles[el]}')
 
         if self.dir_with_images != CUSTOM_THEME_PATH:
-            images = [img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_add, img_delete, img_edit,
-                      img_print_out, img_select_page, img_unselect_page, img_select_all, img_unselect_all,
-                      img_fav, img_unfav, img_add_to_group, img_remove_from_group, img_undo, img_redo,
+            images = [img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav,
+                      img_add_to_group, img_remove_from_group, img_edit, img_add, img_delete, img_select_page,
+                      img_unselect_page, img_select_all, img_unselect_all, img_print_out, img_redo, img_undo,
                       img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right]
             for i in range(len(images)):
                 file_name = f'{IMG_NAMES[i]}.png'
@@ -4560,30 +4560,30 @@ class PrintW(tk.Toplevel):
         self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
         self.tip_btn_print_out = ttip.Hovertip(self.btn_print_out, 'Распечатать словарь в файл', hover_delay=450)
         self.tip_btn_fav = ttip.Hovertip(self.btn_fav, 'Добавить выделенные статьи в избранное\n'
-                                                       'Ctrl+F',
+                                                       'Alt+F',
                                          hover_delay=450)
         self.tip_btn_unfav = ttip.Hovertip(self.btn_unfav, 'Убрать выделенные статьи из избранного\n'
-                                                           'Ctrl+V',
+                                                           'Alt+Shift+F',
                                            hover_delay=450)
         self.tip_btn_add_to_group = ttip.Hovertip(self.btn_add_to_group, 'Добавить выделенные статьи в группу\n'
-                                                                         'Ctrl+G',
+                                                                         'Alt+G',
                                                   hover_delay=450)
         self.tip_btn_remove_from_group = ttip.Hovertip(self.btn_remove_from_group,
                                                        'Убрать выделенные статьи из группы\n'
-                                                       'Ctrl+B',
+                                                       'Alt+Shift+G',
                                                        hover_delay=450)
         self.tip_btn_select_page = ttip.Hovertip(self.btn_select_page, 'Выделить все статьи на текущей странице\n'
-                                                                       'Ctrl+P',
+                                                                       'Alt+P',
                                                  hover_delay=450)
         self.tip_btn_unselect_page = ttip.Hovertip(self.btn_unselect_page,
                                                    'Снять выделение со всех статей на текущей странице\n'
-                                                   'Ctrl+L',
+                                                   'Alt+Shift+P',
                                                    hover_delay=450)
         self.tip_btn_select_all = ttip.Hovertip(self.btn_select_all, 'Выделить все статьи\n'
-                                                                     'Ctrl+A',
+                                                                     'Alt+A',
                                                 hover_delay=450)
         self.tip_btn_unselect_all = ttip.Hovertip(self.btn_unselect_all, 'Снять выделение со всех статей\n'
-                                                                         'Ctrl+Z',
+                                                                         'Alt+Shift+A',
                                                   hover_delay=450)
         self.tip_btn_first_page = ttip.Hovertip(self.btn_first_page, 'В начало', hover_delay=650)
         self.tip_btn_prev_page = ttip.Hovertip(self.btn_prev_page, 'На предыдущую страницу', hover_delay=650)
@@ -4932,25 +4932,25 @@ class PrintW(tk.Toplevel):
 
         self.bind('<Escape>', lambda event=None: self.destroy())
         #
-        self.bind('<Control-P>', lambda event=None: self.select_page())
-        self.bind('<Control-p>', lambda event=None: self.select_page())
-        self.bind('<Control-L>', lambda event=None: self.unselect_page())
-        self.bind('<Control-l>', lambda event=None: self.unselect_page())
+        self.bind('<Alt-P>', lambda event=None: self.select_page())
+        self.bind('<Alt-p>', lambda event=None: self.select_page())
+        self.bind('<Alt-Shift-P>', lambda event=None: self.unselect_page())
+        self.bind('<Alt-Shift-p>', lambda event=None: self.unselect_page())
         #
-        self.bind('<Control-A>', lambda event=None: self.select_all())
-        self.bind('<Control-a>', lambda event=None: self.select_all())
-        self.bind('<Control-Z>', lambda event=None: self.unselect_all())
-        self.bind('<Control-z>', lambda event=None: self.unselect_all())
+        self.bind('<Alt-A>', lambda event=None: self.select_all())
+        self.bind('<Alt-a>', lambda event=None: self.select_all())
+        self.bind('<Alt-Shift-A>', lambda event=None: self.unselect_all())
+        self.bind('<Alt-Shift-a>', lambda event=None: self.unselect_all())
         #
-        self.bind('<Control-G>', lambda event=None: self.add_selected_to_group())
-        self.bind('<Control-g>', lambda event=None: self.add_selected_to_group())
-        self.bind('<Control-B>', lambda event=None: self.remove_selected_from_group())
-        self.bind('<Control-b>', lambda event=None: self.remove_selected_from_group())
+        self.bind('<Alt-G>', lambda event=None: self.add_selected_to_group())
+        self.bind('<Alt-g>', lambda event=None: self.add_selected_to_group())
+        self.bind('<Alt-Shift-G>', lambda event=None: self.remove_selected_from_group())
+        self.bind('<Alt-Shift-g>', lambda event=None: self.remove_selected_from_group())
         #
-        self.bind('<Control-F>', lambda event=None: self.fav_selected())
-        self.bind('<Control-f>', lambda event=None: self.fav_selected())
-        self.bind('<Control-V>', lambda event=None: self.unfav_selected())
-        self.bind('<Control-v>', lambda event=None: self.unfav_selected())
+        self.bind('<Alt-F>', lambda event=None: self.fav_selected())
+        self.bind('<Alt-f>', lambda event=None: self.fav_selected())
+        self.bind('<Alt-Shift-F>', lambda event=None: self.unfav_selected())
+        self.bind('<Alt-Shift-f>', lambda event=None: self.unfav_selected())
 
     def open(self):
         self.set_focus()
@@ -5134,30 +5134,30 @@ class SearchW(tk.Toplevel):
         self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
         self.tip_btn_search_settings = ttip.Hovertip(self.btn_search_settings, 'Параметры поиска', hover_delay=450)
         self.tip_btn_fav = ttip.Hovertip(self.btn_fav, 'Добавить выделенные статьи в избранное\n'
-                                                       'Ctrl+F',
+                                                       'Alt+F',
                                          hover_delay=450)
         self.tip_btn_unfav = ttip.Hovertip(self.btn_unfav, 'Убрать выделенные статьи из избранного\n'
-                                                           'Ctrl+V',
+                                                           'Alt+Shift+F',
                                            hover_delay=450)
         self.tip_btn_add_to_group = ttip.Hovertip(self.btn_add_to_group, 'Добавить выделенные статьи в группу\n'
-                                                                         'Ctrl+G',
+                                                                         'Alt+G',
                                                   hover_delay=450)
         self.tip_btn_remove_from_group = ttip.Hovertip(self.btn_remove_from_group,
                                                        'Убрать выделенные статьи из группы\n'
-                                                       'Ctrl+B',
+                                                       'Alt+Shift+G',
                                                        hover_delay=450)
         self.tip_btn_select_page = ttip.Hovertip(self.btn_select_page, 'Выделить все статьи на текущей странице\n'
-                                                                       'Ctrl+P',
+                                                                       'Alt+P',
                                                  hover_delay=450)
         self.tip_btn_unselect_page = ttip.Hovertip(self.btn_unselect_page,
                                                    'Снять выделение со всех статей на текущей странице\n'
-                                                   'Ctrl+L',
+                                                   'Alt+Shift+P',
                                                    hover_delay=450)
         self.tip_btn_select_all = ttip.Hovertip(self.btn_select_all, 'Выделить все статьи\n'
-                                                                     'Ctrl+A',
+                                                                     'Alt+A',
                                                 hover_delay=450)
         self.tip_btn_unselect_all = ttip.Hovertip(self.btn_unselect_all, 'Снять выделение со всех статей\n'
-                                                                         'Ctrl+Z',
+                                                                         'Alt+Shift+A',
                                                   hover_delay=450)
         self.tip_btn_first_page = ttip.Hovertip(self.btn_first_page, 'В начало', hover_delay=650)
         self.tip_btn_prev_page = ttip.Hovertip(self.btn_prev_page, 'На предыдущую страницу', hover_delay=650)
@@ -5444,25 +5444,25 @@ class SearchW(tk.Toplevel):
         self.bind('<Return>', lambda event=None: self.btn_search.invoke())
         self.bind('<Escape>', lambda event=None: self.destroy())
         #
-        self.bind('<Control-P>', lambda event=None: self.select_page())
-        self.bind('<Control-p>', lambda event=None: self.select_page())
-        self.bind('<Control-L>', lambda event=None: self.unselect_page())
-        self.bind('<Control-l>', lambda event=None: self.unselect_page())
+        self.bind('<Alt-P>', lambda event=None: self.select_page())
+        self.bind('<Alt-p>', lambda event=None: self.select_page())
+        self.bind('<Alt-Shift-P>', lambda event=None: self.unselect_page())
+        self.bind('<Alt-Shift-p>', lambda event=None: self.unselect_page())
         #
-        self.bind('<Control-A>', lambda event=None: self.select_all())
-        self.bind('<Control-a>', lambda event=None: self.select_all())
-        self.bind('<Control-Z>', lambda event=None: self.unselect_all())
-        self.bind('<Control-z>', lambda event=None: self.unselect_all())
+        self.bind('<Alt-A>', lambda event=None: self.select_all())
+        self.bind('<Alt-a>', lambda event=None: self.select_all())
+        self.bind('<Alt-Shift-A>', lambda event=None: self.unselect_all())
+        self.bind('<Alt-Shift-a>', lambda event=None: self.unselect_all())
         #
-        self.bind('<Control-G>', lambda event=None: self.add_selected_to_group())
-        self.bind('<Control-g>', lambda event=None: self.add_selected_to_group())
-        self.bind('<Control-B>', lambda event=None: self.remove_selected_from_group())
-        self.bind('<Control-b>', lambda event=None: self.remove_selected_from_group())
+        self.bind('<Alt-G>', lambda event=None: self.add_selected_to_group())
+        self.bind('<Alt-g>', lambda event=None: self.add_selected_to_group())
+        self.bind('<Alt-Shift-G>', lambda event=None: self.remove_selected_from_group())
+        self.bind('<Alt-Shift-g>', lambda event=None: self.remove_selected_from_group())
         #
-        self.bind('<Control-F>', lambda event=None: self.fav_selected())
-        self.bind('<Control-f>', lambda event=None: self.fav_selected())
-        self.bind('<Control-V>', lambda event=None: self.unfav_selected())
-        self.bind('<Control-v>', lambda event=None: self.unfav_selected())
+        self.bind('<Alt-F>', lambda event=None: self.fav_selected())
+        self.bind('<Alt-f>', lambda event=None: self.fav_selected())
+        self.bind('<Alt-Shift-F>', lambda event=None: self.unfav_selected())
+        self.bind('<Alt-Shift-f>', lambda event=None: self.unfav_selected())
 
     def open(self):
         self.set_focus()

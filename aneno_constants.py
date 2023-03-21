@@ -3,9 +3,9 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.13-patch-2'
-PROGRAM_DATE = '20.3.2023'
-PROGRAM_TIME = '9:14 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.13-patch-3'
+PROGRAM_DATE = '21.3.2023'
+PROGRAM_TIME = '9:18 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -73,11 +73,11 @@ ICON_PATH = os.path.join(RESOURCES_PATH, ICON_FN)
 # Изображения
 IMG_NAMES = ['about_mgsp', 'about_typo', 'about',
              'ok', 'cancel',
-             'add', 'delete', 'edit',
-             'print_out',
-             'select_page', 'unselect_page', 'select_all', 'unselect_all',
              'fav', 'unfav', 'add_to_group', 'remove_from_group',
-             'undo', 'redo',
+             'edit', 'add', 'delete',
+             'select_page', 'unselect_page', 'select_all', 'unselect_all',
+             'print_out',
+             'redo', 'undo',
              'arrow_left', 'arrow_right', 'double_arrow_left', 'double_arrow_right']
 ICON_NAMES = IMG_NAMES[2:]
 
