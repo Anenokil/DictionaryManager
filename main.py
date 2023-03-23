@@ -764,35 +764,34 @@ def add_entry_with_choose(dct: Dictionary, window_parent, wrd: str, tr: str):
 
 
 # Добавить категорию
-def add_ctg(window_parent, categories: dict[str, list[str]], dct: Dictionary):
-    # Ввод новой категории
-    window_entry = PopupEntryW(window_parent, 'Введите название новой категории',
-                               check_answer_function=lambda wnd, val: check_ctg(wnd, tuple(categories.keys()), val))
-    closed, new_ctg = window_entry.open()
+def add_ctg(window_parent, dct: Dictionary):
+    # Ввод названия новой категории
+    window_ctg = PopupEntryW(window_parent, 'Введите название новой категории',
+                             check_answer_function=lambda wnd, val: check_ctg(wnd, tuple(dct.ctg.keys()), val))
+    closed, new_ctg = window_ctg.open()
     if closed:
         return False
     new_ctg = encode_special_combinations(new_ctg)
 
     # Ввод первого значения категории
-    has_changes, new_val = add_ctg_val(window_parent, (),
-                                       'Необходимо добавить хотя бы одно значение для категории')
-    if not new_val:
+    window_val = PopupEntryW(window_parent, 'Необходимо добавить хотя бы одно значение для категории',
+                             check_answer_function=lambda wnd, val: check_ctg_val(wnd, (), val))
+    closed, new_val = window_val.open()
+    if closed:
         return False
     new_val = encode_special_combinations(new_val)
 
     # Обновление категорий
-    dct.add_ctg()
-    categories[new_ctg] = []
-    categories[new_ctg] += [new_val]
+    dct.add_ctg(new_ctg, [new_val])
     return True
 
 
 # Переименовать категорию
-def rename_ctg(window_parent, categories: dict[str, list[str]], old_ctg_name: str):
+def rename_ctg(window_parent, dct: Dictionary, old_ctg_name: str):
     # Ввод нового названия категории
     window_entry = PopupEntryW(window_parent, 'Введите новое название категории', default_value=old_ctg_name,
                                check_answer_function=lambda wnd, val:
-                               check_ctg_edit(wnd, tuple(categories.keys()), old_ctg_name, val))
+                               check_ctg_edit(wnd, tuple(dct.ctg.keys()), old_ctg_name, val))
     closed, new_ctg_name = window_entry.open()
     if closed:
         return False
@@ -800,72 +799,67 @@ def rename_ctg(window_parent, categories: dict[str, list[str]], old_ctg_name: st
     if new_ctg_name == old_ctg_name:
         return
 
-    # обновление категорий
-    categories[new_ctg_name] = categories[old_ctg_name]
-    categories.pop(old_ctg_name)
+    # Обновление категорий
+    dct.rename_ctg(old_ctg_name, new_ctg_name)
     return True
 
 
 # Удалить категорию
-def delete_ctg(window_parent, categories: dict[str, list[str]], ctg_name: str, dct: Dictionary, to_ask: bool):
-    if to_ask:
-        window_dia = PopupDialogueW(window_parent, f'Все словоформы, содержащие категорию {ctg_name}, будут удалены!\n'
-                                                   f'Хотите продолжить?')  # Подтверждение действия
-        answer = window_dia.open()
-    else:
-        answer = True
-    if answer:
-        ctg_names = [ctg_name for ctg_name in categories.keys()]
-        pos = ctg_names.index(ctg_name)
-        categories.pop(ctg_name)
-        dct.delete_ctg(pos)
-        return True
-    return False
+def delete_ctg(window_parent, dct: Dictionary, ctg_name: str):
+    window_dia = PopupDialogueW(window_parent, f'Все словоформы, содержащие категорию {ctg_name}, будут удалены!\n'
+                                               f'Хотите продолжить?')  # Подтверждение действия
+    answer = window_dia.open()
+    if not answer:
+        return False
+
+    # Обновление категорий
+    dct.delete_ctg(ctg_name)
+    return True
 
 
 # Добавить значение категории
-def add_ctg_val(window_parent, values: list[str] | tuple[str, ...], text='Введите новое значение категории'):
+def add_ctg_val(window_parent, dct: Dictionary, ctg_name: str, values: list[str] | tuple[str, ...]):
     # Ввод нового значения
-    window_entry = PopupEntryW(window_parent, text,
+    window_entry = PopupEntryW(window_parent, 'Введите новое значение категории',
                                check_answer_function=lambda wnd, val: check_ctg_val(wnd, values, val))
     closed, new_val = window_entry.open()
     if closed:
-        return False, None
-    new_val = encode_special_combinations(new_val)
+        return False
 
-    return True, new_val
+    new_val = encode_special_combinations(new_val)
+    dct.add_ctg_val(ctg_name, new_val)
+    return True
 
 
 # Переименовать значение категории
-def rename_ctg_val(window_parent, values: list[str] | tuple[str, ...], old_ctg_val: str, pos: int, dct: Dictionary):
+def rename_ctg_val(window_parent, dct: Dictionary, ctg_name: str, old_ctg_val: str):
     # Ввод нового значения
     window_entry = PopupEntryW(window_parent, 'Введите новое название значения', default_value=old_ctg_val,
-                               check_answer_function=lambda wnd, val: check_ctg_val_edit(wnd, values, old_ctg_val, val))
+                               check_answer_function=lambda wnd, val:
+                               check_ctg_val_edit(wnd, dct.ctg[ctg_name], old_ctg_val, val))
     closed, new_ctg_val = window_entry.open()
     if closed:
         return False
     new_ctg_val = encode_special_combinations(new_ctg_val)
     if new_ctg_val == old_ctg_val:
-        return
+        return False
 
     # Переименовывание значения во всех словоформах, его содержащих
-    dct.rename_forms_with_val(pos, old_ctg_val, new_ctg_val)
-    index = values.index(old_ctg_val)
-    values[index] = new_ctg_val
+    dct.rename_ctg_val(ctg_name, old_ctg_val, new_ctg_val)
     return True
 
 
 # Удалить значение категории
-def delete_ctg_val(window_parent, values: list[str] | tuple[str, ...], ctg_val: str, dct: Dictionary):
+def delete_ctg_val(window_parent, dct: Dictionary, ctg_name: str, ctg_val: str):
     window_dia = PopupDialogueW(window_parent, f'Все словоформы, содержащие значение {ctg_val}, будут удалены!\n'
                                                f'Хотите продолжить?')  # Подтверждение действия
     answer = window_dia.open()
-    if answer:
-        index = values.index(ctg_val)
-        values.pop(index)
-        dct.delete_forms_with_val(index, ctg_val)  # Удаление всех словоформ, содержащих это значение категории
-        return True
-    return False
+    if not answer:
+        return False
+
+    # Удаление всех словоформ, содержащих это значение категории
+    dct.delete_ctg_val(ctg_name, ctg_val)
+    return True
 
 
 # Поиск статей в словаре
@@ -1187,20 +1181,20 @@ def upload_local_settings(savename: str, upgrade=True):
         except:
             categories = {}
         # Группы
-        groups = set()
+        groups = []
         try:
             gr_count = int(local_settings_file.readline().strip())
             for i in range(gr_count):
                 group = local_settings_file.readline().strip('\n')
-                groups.add(group)
+                groups += [group]
         except:
-            groups = set()
+            groups = []
     return min_good_score_perc, special_combinations, check_register, categories, groups
 
 
 # Сохранить локальные настройки (настройки словаря)
 def save_local_settings(min_good_score_perc: int, special_combinations: dict[tuple[str, str], str], check_register: int,
-                        categories: dict[str, list[str]], groups: set[str], savename: str):
+                        categories: dict[str, list[str]], groups: list[str], savename: str):
     local_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_SETTINGS_FN)
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
         local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n')  # Версия
@@ -1295,7 +1289,7 @@ def save_settings_if_has_changes(window_parent):
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
                              _0_global_scale)
         save_local_settings(_0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register,
-                            _0_global_categories, _0_global_dct.groups, _0_global_dct_savename)
+                            _0_global_dct.ctg, _0_global_dct.groups, _0_global_dct_savename)
         save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
                                  _0_global_dct_savename)
         PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
@@ -1838,7 +1832,7 @@ class ChooseLearnModeW(tk.Toplevel):
         #
         self.lbl_group = ttk.Label(self.frame_main, text='Группа:', style='Default.TLabel')
         self.combo_group = ttk.Combobox(self.frame_main, textvariable=self.var_group,
-                                        values=[ALL_GROUPS] + list(_0_global_dct.groups),
+                                        values=[ALL_GROUPS] + _0_global_dct.groups,
                                         width=30, state='readonly', style='Default.TCombobox',
                                         font=('DejaVu Sans Mono', _0_global_scale))
         #
@@ -2363,13 +2357,13 @@ class EditW(tk.Toplevel):
     def frm_add(self):
         global _0_global_has_progress
 
-        if not _0_global_categories:
+        if not _0_global_dct.ctg:
             warning(self, 'Отсутствуют категории слов!\n'
                           'Чтобы их добавить, перейдите в\n'
                           'Настройки/Настройки словаря/Грамматические категории')
             return
 
-        window_form = AddFormW(self, self.dct_key, combo_width=combobox_width(tuple(_0_global_categories.keys()),
+        window_form = AddFormW(self, self.dct_key, combo_width=combobox_width(tuple(_0_global_dct.ctg.keys()),
                                                                               5, 100))  # Создание словоформы
         frm_key, frm = window_form.open()
         if not frm_key:
@@ -2571,8 +2565,8 @@ class AddFormW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
 
         self.closed = True  # Закрыто ли окно крестиком
-        self.categories = list(_0_global_categories.keys())  # Список категорий
-        self.ctg_values = list(_0_global_categories[self.categories[0]])  # Список значений выбранной категории
+        self.categories = list(_0_global_dct.ctg.keys())  # Список категорий
+        self.ctg_values = list(_0_global_dct.ctg[self.categories[0]])  # Список значений выбранной категории
         self.template = []  # Шаблон словоформы
         for _ in range(len(self.categories)):
             self.template += ['']
@@ -2700,7 +2694,7 @@ class AddFormW(tk.Toplevel):
 
     # Обновить combobox со значениями категории после выбора категории
     def refresh_vals(self):
-        self.ctg_values = list(_0_global_categories[self.var_ctg.get()])
+        self.ctg_values = list(_0_global_dct.ctg[self.var_ctg.get()])
         self.var_val = tk.StringVar(value=self.ctg_values[0])
         self.combo_val.configure(textvariable=self.var_val, values=self.ctg_values,
                                  width=combobox_width(self.ctg_values, 5, 100))
@@ -2728,7 +2722,7 @@ class AddFormW(tk.Toplevel):
         return tuple(self.template), self.var_form.get()
 
 
-# Окно настроек категорий
+# Окно настроек грамматических категорий
 class CategoriesSettingsW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
@@ -2764,17 +2758,17 @@ class CategoriesSettingsW(tk.Toplevel):
 
     # Добавить категорию
     def add(self):
-        self.has_changes = add_ctg(self, _0_global_categories, _0_global_dct) or self.has_changes
+        self.has_changes = add_ctg(self, _0_global_dct) or self.has_changes
         self.print_categories(False)
 
     # Переименовать категорию
     def rename(self, ctg_key: str):
-        self.has_changes = rename_ctg(self, _0_global_categories, ctg_key) or self.has_changes
+        self.has_changes = rename_ctg(self, _0_global_dct, ctg_key) or self.has_changes
         self.print_categories(False)
 
     # Удалить категорию
-    def delete(self, ctg_key: str, to_ask: bool):
-        self.has_changes = delete_ctg(self, _0_global_categories, ctg_key, _0_global_dct, to_ask) or self.has_changes
+    def delete(self, ctg_key: str):
+        self.has_changes = delete_ctg(self, _0_global_dct, ctg_key) or self.has_changes
         self.print_categories(False)
 
     # Перейти к настройкам значений категории
@@ -2797,7 +2791,7 @@ class CategoriesSettingsW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем категории
-        self.categories = [key for key in _0_global_categories.keys()]
+        self.categories = list(_0_global_dct.ctg.keys())
         categories_count = len(self.categories)
 
         # Создаём новые фреймы
@@ -2823,8 +2817,8 @@ class CategoriesSettingsW(tk.Toplevel):
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename(self.categories[i]))
             self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename(self.categories[i]))
-            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.categories[i], True))
-            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.categories[i], True))
+            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.categories[i]))
+            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.categories[i]))
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
 
         # Если требуется, прокручиваем вверх
@@ -2947,7 +2941,7 @@ class GroupsSettingsW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем группы
-        self.groups = [group for group in _0_global_dct.groups]
+        self.groups = list(_0_global_dct.groups)
         groups_count = len(self.groups)
 
         # Создаём новые фреймы
@@ -3006,7 +3000,7 @@ class GroupsSettingsW(tk.Toplevel):
         return self.has_changes
 
 
-# Окно настроек значений категории
+# Окно настроек значений грамматической категории
 class CategoryValuesSettingsW(tk.Toplevel):
     def __init__(self, parent, ctg_key: str):
         super().__init__(parent)
@@ -3016,7 +3010,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
 
         self.parent = parent
         self.ctg_key = ctg_key  # Название изменяемой категории
-        self.ctg_values = _0_global_categories[self.ctg_key]  # Значения изменяемой категории
+        self.ctg_values = _0_global_dct.ctg[self.ctg_key]  # Значения изменяемой категории
         self.has_changes = False
 
         self.img_about = tk.PhotoImage()
@@ -3047,25 +3041,20 @@ class CategoryValuesSettingsW(tk.Toplevel):
 
     # Добавить значение категории
     def add(self):
-        has_changes, new_val = add_ctg_val(self, self.ctg_values)
-        self.has_changes = self.has_changes or has_changes
-        if not new_val:
-            return
-        self.ctg_values += [new_val]
+        self.has_changes = add_ctg_val(self, _0_global_dct, self.ctg_key, self.ctg_values) or self.has_changes
         self.print_ctg_values(False)
 
     # Переименовать значение категории
     def rename(self, val: str):
-        index = tuple(_0_global_categories).index(self.ctg_key)
-        self.has_changes = rename_ctg_val(self, self.ctg_values, val, index, _0_global_dct) or self.has_changes
+        self.has_changes = rename_ctg_val(self, _0_global_dct, self.ctg_key, val) or self.has_changes
         self.print_ctg_values(False)
 
     # Удалить значение категории
     def delete(self, val: str):
-        self.has_changes = delete_ctg_val(self, self.ctg_values, val, _0_global_dct) or self.has_changes
+        self.has_changes = delete_ctg_val(self, _0_global_dct, self.ctg_key, val) or self.has_changes
         self.print_ctg_values(False)
-        if not self.ctg_values:
-            self.parent.delete(self.ctg_key, False)
+        if self.ctg_key not in _0_global_dct.ctg:
+            self.parent.print_categories(False)
             self.destroy()
 
     # Напечатать существующие значения категории
@@ -4435,7 +4424,7 @@ class PrintW(tk.Toplevel):
                                          command=lambda: self.go_to_first_page(True), style='Default.TCheckbutton')
         self.lbl_group = ttk.Label(self.frame_parameters, text='Группа:', style='Default.TLabel')
         self.combo_group = ttk.Combobox(self.frame_parameters, textvariable=self.var_group,
-                                        values=[ALL_GROUPS] + list(_0_global_dct.groups), width=26, state='readonly',
+                                        values=[ALL_GROUPS] + _0_global_dct.groups, width=26, state='readonly',
                                         style='Default.TCombobox', font=('DejaVu Sans Mono', _0_global_scale))
         self.lbl_briefly = ttk.Label(self.frame_parameters, text='Кратко:', style='Default.TLabel')
         self.check_briefly = ttk.Checkbutton(self.frame_parameters, variable=self.var_briefly,
@@ -4883,7 +4872,7 @@ class PrintW(tk.Toplevel):
             return
 
         window_groups = PopupChooseW(self, msg='Выберите группу, в которую хотите добавить выбранные слова:',
-                                     values=tuple(_0_global_dct.groups), default_value=tuple(_0_global_dct.groups)[0])
+                                     values=_0_global_dct.groups, default_value=_0_global_dct.groups[0])
         closed, group = window_groups.open()
         if closed:
             return
@@ -4900,7 +4889,7 @@ class PrintW(tk.Toplevel):
             return
 
         window_groups = PopupChooseW(self, msg='Выберите группу, из которой хотите убрать выбранные слова:',
-                                     values=tuple(_0_global_dct.groups), default_value=tuple(_0_global_dct.groups)[0])
+                                     values=_0_global_dct.groups, default_value=_0_global_dct.groups[0])
         closed, group = window_groups.open()
         if closed:
             return
@@ -5405,7 +5394,7 @@ class SearchW(tk.Toplevel):
             return
 
         window_groups = PopupChooseW(self, msg='Выберите группу, в которую хотите добавить выбранные слова:',
-                                     values=tuple(_0_global_dct.groups), default_value=tuple(_0_global_dct.groups)[0])
+                                     values=_0_global_dct.groups, default_value=_0_global_dct.groups[0])
         closed, group = window_groups.open()
         if closed:
             return
@@ -5422,7 +5411,7 @@ class SearchW(tk.Toplevel):
             return
 
         window_groups = PopupChooseW(self, msg='Выберите группу, из которой хотите убрать выбранные слова:',
-                                     values=tuple(_0_global_dct.groups), default_value=tuple(_0_global_dct.groups)[0])
+                                     values=_0_global_dct.groups, default_value=_0_global_dct.groups[0])
         closed, group = window_groups.open()
         if closed:
             return
@@ -5594,7 +5583,6 @@ class SettingsW(tk.Toplevel):
         self.has_groups_changes = False
         self.has_spec_comb_changes = False
         self.backup_dct = copy.deepcopy(_0_global_dct)
-        self.backup_fp = copy.deepcopy(_0_global_categories)
         self.backup_scale = _0_global_scale
 
         self.var_mgsp = tk.StringVar(value=str(_0_global_min_good_score_perc))
@@ -5828,9 +5816,9 @@ class SettingsW(tk.Toplevel):
 
     # Открыть словарь
     def dct_open(self, savename: str):
-        global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_categories,\
-            _0_global_special_combinations, _0_global_check_register, _0_global_has_progress,\
-            _0_global_session_number, _0_global_search_settings, _0_global_learn_settings
+        global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_special_combinations,\
+            _0_global_check_register, _0_global_has_progress, _0_global_session_number, _0_global_search_settings,\
+            _0_global_learn_settings
 
         if savename == _0_global_dct_savename:
             return
@@ -5845,7 +5833,7 @@ class SettingsW(tk.Toplevel):
         if not savename:
             self.destroy()  # Если была попытка открыть повреждённый словарь, то при сохранении настроек, текущий словарь стёрся бы
             return
-        _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_categories,\
+        _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_dct.ctg,\
             _0_global_dct.groups = upload_local_settings(savename)
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
             upload_local_auto_settings(savename)
@@ -5853,7 +5841,6 @@ class SettingsW(tk.Toplevel):
         save_dct_name()
 
         self.backup_dct = copy.deepcopy(_0_global_dct)
-        self.backup_fp = copy.deepcopy(_0_global_categories)
 
         # Обновляем надписи с названием открытого словаря
         self.refresh_open_dct_name(savename)
@@ -5906,9 +5893,9 @@ class SettingsW(tk.Toplevel):
 
     # Создать словарь (срабатывает при нажатии на кнопку)
     def dct_create(self):
-        global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_categories,\
-            _0_global_special_combinations, _0_global_check_register, _0_global_has_progress,\
-            _0_global_session_number, _0_global_search_settings, _0_global_learn_settings
+        global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_special_combinations,\
+            _0_global_check_register, _0_global_has_progress, _0_global_session_number, _0_global_search_settings,\
+            _0_global_learn_settings
 
         window = PopupEntryW(self, 'Введите название нового словаря', validate_function=validate_savename,
                              check_answer_function=check_dct_savename)
@@ -5922,7 +5909,7 @@ class SettingsW(tk.Toplevel):
 
         _0_global_dct = Dictionary()
         create_dct(_0_global_dct, savename)
-        _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_categories,\
+        _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_dct.ctg,\
             _0_global_dct.groups = upload_local_settings(savename)
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
             upload_local_auto_settings(savename)
@@ -5932,7 +5919,6 @@ class SettingsW(tk.Toplevel):
         print(f'\nСловарь "{savename}" успешно создан и открыт')
 
         self.backup_dct = copy.deepcopy(_0_global_dct)
-        self.backup_fp = copy.deepcopy(_0_global_categories)
 
         # Обновляем надписи с названием открытого словаря
         self.refresh_open_dct_name(savename)
@@ -6051,14 +6037,12 @@ class SettingsW(tk.Toplevel):
 
         # Обновление бэкапов сохранения
         self.backup_dct = copy.deepcopy(_0_global_dct)
-        self.backup_fp = copy.deepcopy(_0_global_categories)
         self.backup_scale = _0_global_scale
 
         # Сохранение настроек в файлы
         save_local_settings(_0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register,
-                            _0_global_categories, _0_global_dct.groups, _0_global_dct_savename)
-        save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
-                             _0_global_scale)
+                            _0_global_dct.ctg, _0_global_dct.groups, _0_global_dct_savename)
+        save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale)
         save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
                                  _0_global_dct_savename)
 
@@ -6242,7 +6226,7 @@ class SettingsW(tk.Toplevel):
         self.tabs.bind('<<NotebookTabChanged>>', lambda event=None: self.resize_tabs())
 
     def open(self):
-        global _0_global_dct, _0_global_categories
+        global _0_global_dct
 
         self.set_focus()
 
@@ -6250,7 +6234,6 @@ class SettingsW(tk.Toplevel):
         self.wait_window()
 
         _0_global_dct = copy.deepcopy(self.backup_dct)
-        _0_global_categories = copy.deepcopy(self.backup_fp)
 
 
 # Окно уведомления о выходе новой версии
@@ -6477,8 +6460,8 @@ class MainW(tk.Tk):
     # Нажатие на кнопку "Настройки"
     def settings(self):
         global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale,\
-            _0_global_min_good_score_perc, _0_global_categories, _0_global_special_combinations,\
-            _0_global_check_register, _0_global_learn_settings
+            _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register,\
+            _0_global_learn_settings, _0_global_session_number, _0_global_search_settings
 
         self.disable_all_buttons()
         SettingsW(self).open()
@@ -6488,7 +6471,7 @@ class MainW(tk.Tk):
         _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale =\
             upload_global_settings()
         # Обновляем локальные настройки
-        _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_categories,\
+        _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_dct.ctg,\
             _0_global_dct.groups = upload_local_settings(_0_global_dct_savename)
         # Обновляем локальные авто-настройки
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
@@ -6870,7 +6853,7 @@ _0_global_dct_savename = upload_dct(root, _0_global_dct, _0_global_dct_savename,
                                     'Завершить работу')  # Загружаем словарь
 if not _0_global_dct_savename:
     exit(101)
-_0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_categories,\
+_0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_dct.ctg,\
     _0_global_dct.groups = upload_local_settings(_0_global_dct_savename)  # Загружаем локальные настройки
 _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
     upload_local_auto_settings(_0_global_dct_savename)  # Загружаем локальные авто-настройки

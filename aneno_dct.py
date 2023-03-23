@@ -144,11 +144,11 @@ class Entry(object):
         to_delete = []
         to_edit = []
         for key in self.forms.keys():
-            if key[pos] != '':
+            if key[pos] == '':
+                to_edit += [key]
+            else:
                 to_delete += [key]
                 self.count_f -= 1
-            else:
-                to_edit += [key]
         for key in to_edit:
             new_key = list(key)
             new_key.pop(pos)
@@ -223,13 +223,15 @@ class Dictionary(object):
     # self.count_w - количество статей (слов) в словаре
     # self.count_t - количество переводов в словаре
     # self.count_f - количество неначальных словоформ в словаре
-    # self.groups - все существующие группы
+    # self.ctg - все грамматические категории
+    # self.groups - все группы
     def __init__(self):
         self.d: dict[tuple[str, int], Entry] = {}
         self.count_w = 0
         self.count_t = 0
         self.count_f = 0
-        self.groups = set()
+        self.ctg: dict[str, list[str]] = {}
+        self.groups: list[str] = []
 
     # Подсчитать количество статей в заданной группе
     def count_entries_in_group(self, group: str):
@@ -380,18 +382,6 @@ class Dictionary(object):
         for entry in self.d.values():
             entry.rename_forms_with_val(pos, old_ctg_val, new_ctg_val)
 
-    # Добавить данную категорию ко всем словоформам
-    def add_ctg(self):
-        for entry in self.d.values():
-            entry.add_ctg()
-
-    # Удалить данную категорию у всех словоформ
-    def delete_ctg(self, pos: int):
-        for entry in self.d.values():
-            self.count_f -= entry.count_f
-            entry.delete_ctg(pos)
-            self.count_f += entry.count_f
-
     # Подсчитать среднюю долю правильных ответов
     def count_rating(self):
         sum_num = sum(entry.correct_att for entry in self.d.values())
@@ -400,25 +390,92 @@ class Dictionary(object):
             return 0
         return sum_num / sum_den
 
+    # Добавить грамматическую категорию
+    def add_ctg(self, ctg_name: str, ctg_values: list[str]):
+        assert ctg_name not in self.ctg.keys()
+
+        for entry in self.d.values():
+            entry.add_ctg()
+
+        self.ctg[ctg_name] = ctg_values
+
+    # Удалить грамматическую категорию
+    def delete_ctg(self, ctg_name: str):
+        assert ctg_name in self.ctg.keys()
+
+        index = tuple(self.ctg.keys()).index(ctg_name)
+        for entry in self.d.values():
+            self.count_f -= entry.count_f
+            entry.delete_ctg(index)
+            self.count_f += entry.count_f
+
+        self.ctg.pop(ctg_name)
+
+    # Переименовать грамматическую категорию
+    def rename_ctg(self, ctg_name_old: str, ctg_name_new: str):
+        assert ctg_name_old in self.ctg.keys()
+        assert ctg_name_new not in self.ctg.keys()
+
+        self.ctg[ctg_name_new] = self.ctg[ctg_name_old].copy()
+        self.ctg.pop(ctg_name_old)
+
+    # Добавить значение грамматической категории
+    def add_ctg_val(self, ctg_name: str, ctg_value: str):
+        assert ctg_name in self.ctg.keys()
+        assert ctg_value not in self.ctg[ctg_name]
+
+        self.ctg[ctg_name] += [ctg_value]
+
+    # Удалить значение грамматической категории
+    def delete_ctg_val(self, ctg_name: str, ctg_value: str):
+        assert ctg_name in self.ctg.keys()
+        assert ctg_value in self.ctg[ctg_name]
+
+        index = self.ctg[ctg_name].index(ctg_value)
+        self.delete_forms_with_val(index, ctg_value)
+
+        self.ctg[ctg_name].remove(ctg_value)
+        if len(self.ctg[ctg_name]) == 0:  # Если у категории не осталось значений, то она удаляется
+            self.delete_ctg(ctg_name)
+
+    # Переименовать значение грамматической категории
+    def rename_ctg_val(self, ctg_name: str, ctg_value_old: str, ctg_value_new: str):
+        assert ctg_name in self.ctg.keys()
+        assert ctg_value_old in self.ctg[ctg_name]
+        assert ctg_value_new not in self.ctg[ctg_name]
+
+        index = tuple(self.ctg.keys()).index(ctg_name)
+        self.rename_forms_with_val(index, ctg_value_old, ctg_value_new)
+
+        index = self.ctg[ctg_name].index(ctg_value_old)
+        self.ctg[ctg_name][index] = ctg_value_new
+
     # Добавить группу
     def add_group(self, group: str):
-        self.groups.add(group)
+        assert group not in self.groups
+
+        self.groups += [group]
+
+    # Удалить группу
+    def delete_group(self, group: str):
+        assert group in self.groups
+
+        for entry in self.d.values():
+            if group in entry.groups:
+                entry.remove_from_group(group)
+        self.groups.remove(group)
 
     # Переименовать группу
     def rename_group(self, group_old: str, group_new: str):
-        self.groups.add(group_new)
+        assert group_old in self.groups
+        assert group_new not in self.groups
+
+        self.groups += [group_new]
         for entry in self.d.values():
             if group_old in entry.groups:
                 entry.remove_from_group(group_old)
                 entry.add_to_group(group_new)
         self.groups.remove(group_old)
-
-    # Удалить группу
-    def delete_group(self, group: str):
-        for entry in self.d.values():
-            if group in entry.groups:
-                entry.remove_from_group(group)
-        self.groups.remove(group)
 
     # Прочитать словарь из файла
     def read(self, filepath: str, frm_template_separator: str):
@@ -448,7 +505,7 @@ class Dictionary(object):
                 elif line[0] == 'g':
                     group = line[1:]
                     self.d[key].add_to_group(group)
-                    if group in self.groups:
+                    if group not in self.groups:
                         self.add_group(group)
 
     # Сохранить словарь в файл
