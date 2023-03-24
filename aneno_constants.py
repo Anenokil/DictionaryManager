@@ -3,9 +3,9 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.14'
+PROGRAM_VERSION = 'v7.1.14-patch-1'
 PROGRAM_DATE = '25.3.2023'
-PROGRAM_TIME = '1:49 (UTC+3)'
+PROGRAM_TIME = '2:34 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -78,7 +78,8 @@ IMG_NAMES = ['about_mgsp', 'about_typo', 'about',
              'select_page', 'unselect_page', 'select_all', 'unselect_all',
              'print_out',
              'redo', 'undo',
-             'arrow_left', 'arrow_right', 'double_arrow_left', 'double_arrow_right']
+             'arrow_left', 'arrow_right', 'double_arrow_left', 'double_arrow_right',
+             'trashcan']
 ICON_NAMES = IMG_NAMES[2:]
 
 img_about_mgsp = os.path.join(IMAGES_PATH, 'about_mgsp.png')
@@ -111,6 +112,8 @@ img_arrow_left = os.path.join(IMAGES_PATH, 'arrow_left.png')
 img_arrow_right = os.path.join(IMAGES_PATH, 'arrow_right.png')
 img_double_arrow_left = os.path.join(IMAGES_PATH, 'double_arrow_left.png')
 img_double_arrow_right = os.path.join(IMAGES_PATH, 'double_arrow_right.png')
+#
+img_trashcan = os.path.join(IMAGES_PATH, 'trashcan.png')
 
 # Название репозитория на GitHub
 REPOSITORY_NAME = 'DictionaryManager'

@@ -1016,7 +1016,7 @@ def upload_theme_img(theme: str):
     global img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group,\
         img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all,\
         img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right, img_double_arrow_left,\
-        img_double_arrow_right
+        img_double_arrow_right, img_trashcan
 
     if theme == CUSTOM_TH:
         theme_dir = CUSTOM_THEME_PATH
@@ -1026,7 +1026,7 @@ def upload_theme_img(theme: str):
     images = [img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group,
               img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all,
               img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right,
-              img_double_arrow_left, img_double_arrow_right]
+              img_double_arrow_left, img_double_arrow_right, img_trashcan]
 
     for i in range(len(images)):
         file_name = f'{IMG_NAMES[i]}.png'
@@ -1038,7 +1038,7 @@ def upload_theme_img(theme: str):
     img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group,\
         img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all,\
         img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right, img_double_arrow_left,\
-        img_double_arrow_right = images
+        img_double_arrow_right, img_trashcan = images
 
 
 # Загрузить глобальные настройки (настройки программы)
@@ -3706,7 +3706,7 @@ class CustomThemeSettingsW(tk.Toplevel):
             images = [img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav,
                       img_add_to_group, img_remove_from_group, img_edit, img_add, img_delete, img_select_page,
                       img_unselect_page, img_select_all, img_unselect_all, img_print_out, img_redo, img_undo,
-                      img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right]
+                      img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right, img_trashcan]
             for i in range(len(images)):
                 file_name = f'{IMG_NAMES[i]}.png'
                 src_path = os.path.join(self.dir_with_images, file_name)
@@ -4467,6 +4467,7 @@ class PrintW(tk.Toplevel):
         self.img_unfav = tk.PhotoImage()
         self.img_add_to_group = tk.PhotoImage()
         self.img_remove_from_group = tk.PhotoImage()
+        self.img_delete = tk.PhotoImage()
 
         self.keys = []
         self.selected_keys = []
@@ -4520,6 +4521,9 @@ class PrintW(tk.Toplevel):
         self.btn_remove_from_group = ttk.Button(self.frame_buttons_for_selected,
                                                 command=self.remove_selected_from_group, width=3, takefocus=False)
         set_image(self.btn_remove_from_group, self.img_remove_from_group, img_remove_from_group, 'G-')
+        self.btn_delete = ttk.Button(self.frame_buttons_for_selected, command=self.delete_selected, width=3,
+                                     takefocus=False)
+        set_image(self.btn_delete, self.img_delete, img_trashcan, 'DEL')
         # } }
         self.frame_selection_buttons = ttk.Frame(self.frame_menu, style='Default.TFrame')
         # { {
@@ -4574,14 +4578,14 @@ class PrintW(tk.Toplevel):
         self.btn_print_out.grid(   row=1,            column=0, padx=0,      pady=0)
         self.frame_parameters.grid(row=0, rowspan=2, column=1, padx=(6, 0), pady=0)
         # { { {
-        self.lbl_fav.grid(        row=0, column=0, padx=(6, 1), pady=6,      sticky='E')
-        self.check_fav.grid(      row=0, column=1, padx=(0, 6), pady=6,      sticky='W')
-        self.lbl_group.grid(      row=0, column=2, padx=(0, 1), pady=6,      sticky='E')
-        self.combo_group.grid(    row=0, column=3, padx=(0, 6), pady=6,      sticky='W')
-        self.lbl_briefly.grid(    row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_briefly.grid(  row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
-        self.lbl_order.grid(      row=1, column=2, padx=(0, 1), pady=(0, 6), sticky='E')
-        self.combo_order.grid(    row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_fav.grid(      row=0, column=0, padx=(6, 1), pady=6,      sticky='E')
+        self.check_fav.grid(    row=0, column=1, padx=(0, 6), pady=6,      sticky='W')
+        self.lbl_group.grid(    row=0, column=2, padx=(0, 1), pady=6,      sticky='E')
+        self.combo_group.grid(  row=0, column=3, padx=(0, 6), pady=6,      sticky='W')
+        self.lbl_briefly.grid(  row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_briefly.grid(row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_order.grid(    row=1, column=2, padx=(0, 1), pady=(0, 6), sticky='E')
+        self.combo_order.grid(  row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
         # } } }
         # } }
         # { {
@@ -4589,6 +4593,7 @@ class PrintW(tk.Toplevel):
         self.btn_unfav.grid(            row=0, column=1)
         self.btn_add_to_group.grid(     row=0, column=2)
         self.btn_remove_from_group.grid(row=0, column=3)
+        self.btn_delete.grid(           row=0, column=4)
         # } }
         self.frame_selection_buttons.grid(row=1, column=1, padx=(6, 0), pady=0, sticky='WS')
         # { {
@@ -4633,6 +4638,9 @@ class PrintW(tk.Toplevel):
                                                        'Убрать выделенные статьи из группы\n'
                                                        'Alt+Shift+G',
                                                        hover_delay=450)
+        self.tip_btn_delete = ttip.Hovertip(self.btn_delete, 'Удалить выделенные статьи\n'
+                                                             'Alt+D',
+                                            hover_delay=450)
         self.tip_btn_select_page = ttip.Hovertip(self.btn_select_page, 'Выделить все статьи на текущей странице\n'
                                                                        'Alt+P',
                                                  hover_delay=450)
@@ -5109,6 +5117,7 @@ class SearchW(tk.Toplevel):
         self.img_unfav = tk.PhotoImage()
         self.img_add_to_group = tk.PhotoImage()
         self.img_remove_from_group = tk.PhotoImage()
+        self.img_delete = tk.PhotoImage()
 
         self.keys = []
         self.selected_keys = []
@@ -5167,6 +5176,9 @@ class SearchW(tk.Toplevel):
         self.btn_remove_from_group = ttk.Button(self.frame_buttons_for_selected,
                                                 command=self.remove_selected_from_group, width=3, takefocus=False)
         set_image(self.btn_remove_from_group, self.img_remove_from_group, img_remove_from_group, 'G-')
+        self.btn_delete = ttk.Button(self.frame_buttons_for_selected, command=self.delete_selected, width=3,
+                                     takefocus=False)
+        set_image(self.btn_delete, self.img_delete, img_trashcan, 'DEL')
         # } }
         # }
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
@@ -5195,7 +5207,7 @@ class SearchW(tk.Toplevel):
         # } }
         # }
 
-        self.frame_header.grid(row=0, column=0, padx=6, pady=(6, 0))
+        self.frame_header.grid(row=0, column=0, padx=6, pady=(6, 0), sticky='W')
         # {
         self.frame_query.grid(row=0, column=0, padx=0, pady=(0, 6))
         # { {
@@ -5203,7 +5215,7 @@ class SearchW(tk.Toplevel):
         self.entry_query.grid(        row=0, column=1, padx=(0, 1), pady=6)
         self.btn_search.grid(         row=0, column=2, padx=(0, 6), pady=6)
         # } }
-        self.frame_selection_buttons.grid(row=0, column=1, padx=(6, 0), pady=(0, 6), sticky='S')
+        self.frame_selection_buttons.grid(row=0, column=1, padx=(6, 0), pady=(0, 6), sticky='WS')
         # { {
         self.btn_select_page.grid(  row=0, column=0)
         self.btn_unselect_page.grid(row=0, column=1)
@@ -5221,6 +5233,7 @@ class SearchW(tk.Toplevel):
         self.btn_unfav.grid(            row=0, column=1)
         self.btn_add_to_group.grid(     row=0, column=2)
         self.btn_remove_from_group.grid(row=0, column=3)
+        self.btn_delete.grid(           row=0, column=4)
         # } }
         # }
         self.frame_main.grid(row=1, column=0, padx=6, pady=6)
@@ -5256,6 +5269,9 @@ class SearchW(tk.Toplevel):
                                                        'Убрать выделенные статьи из группы\n'
                                                        'Alt+Shift+G',
                                                        hover_delay=450)
+        self.tip_btn_delete = ttip.Hovertip(self.btn_delete, 'Удалить выделенные статьи\n'
+                                                             'Alt+D',
+                                            hover_delay=450)
         self.tip_btn_select_page = ttip.Hovertip(self.btn_select_page, 'Выделить все статьи на текущей странице\n'
                                                                        'Alt+P',
                                                  hover_delay=450)
@@ -5450,7 +5466,7 @@ class SearchW(tk.Toplevel):
         else:
             self.selected_keys += [key]
             self.buttons[index].configure(style='NoteSelected.TButton')
-            self.frame_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0)
+            self.frame_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0, sticky='W')
         self.print_info()
 
     # Выделить все статьи на странице
@@ -5461,7 +5477,7 @@ class SearchW(tk.Toplevel):
                 self.selected_keys += [key]
         for btn in self.buttons:
             btn.configure(style='NoteSelected.TButton')
-        self.frame_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0)
+        self.frame_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0, sticky='W')
         self.print_info()
 
     # Снять выделение со всех статей на странице
@@ -5481,7 +5497,7 @@ class SearchW(tk.Toplevel):
         self.selected_keys = list(self.keys)
         for btn in self.buttons:
             btn.configure(style='NoteSelected.TButton')
-        self.frame_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0)
+        self.frame_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0, sticky='W')
         self.print_info()
 
     # Снять выделение со всех статей
