@@ -399,14 +399,11 @@ def _get_entry_info_briefly(entry: Entry):
 
 # Вывести статью - кратко
 def get_entry_info_briefly(entry: Entry, len_str: int):
-    res = _get_entry_info_briefly(entry)
-    if entry.count_n != 0:
-        res += f'\n{get_notes(entry, tab=15)}'
-    return split_text(res, len_str, tab=15)
+    return split_text(_get_entry_info_briefly(entry), len_str, tab=15)
 
 
-# Вывести статью - кратко со словоформами
-def get_entry_info_briefly_with_forms(entry: Entry, len_str: int):
+# Вывести статью - подробно
+def get_entry_info_detailed(entry: Entry, len_str: int):
     res = _get_entry_info_briefly(entry)
     if entry.count_f != 0:
         res += f'\n{get_forms(entry, tab=15)}'
@@ -417,25 +414,7 @@ def get_entry_info_briefly_with_forms(entry: Entry, len_str: int):
     return split_text(res, len_str, tab=15)
 
 
-# Вывести слово со статистикой
-def get_wrd_with_stat(entry: Entry):
-    res = f'{entry.wrd} {get_entry_stat(entry)}'
-    return res
-
-
-# Вывести перевод со статистикой
-def get_tr_with_stat(entry: Entry):
-    res = f'{get_tr(entry)} {get_entry_stat(entry)}'
-    return res
-
-
-# Вывести перевод со словоформой и со статистикой
-def get_tr_and_frm_with_stat(entry: Entry, frm_key: tuple[str, ...] | list[str]):
-    res = f'{get_tr(entry)} ({frm_key_to_str_for_print(frm_key)}) {get_entry_stat(entry)}'
-    return res
-
-
-# Вывести статью со всей информацией
+# Вывести статью - со всей информацией
 def get_all_entry_info(entry: Entry, len_str: int, tab=0):
     res = ''
     res += f'      Слово: {entry.wrd}\n'
@@ -470,22 +449,40 @@ def get_all_entry_info(entry: Entry, len_str: int, tab=0):
     return split_text(res, len_str, tab=tab)
 
 
+# Вывести слово со статистикой
+def get_wrd_with_stat(entry: Entry):
+    res = f'{entry.wrd} {get_entry_stat(entry)}'
+    return res
+
+
+# Вывести перевод со статистикой
+def get_tr_with_stat(entry: Entry):
+    res = f'{get_tr(entry)} {get_entry_stat(entry)}'
+    return res
+
+
+# Вывести перевод со словоформой и со статистикой
+def get_tr_and_frm_with_stat(entry: Entry, frm_key: tuple[str, ...] | list[str]):
+    res = f'{get_tr(entry)} ({frm_key_to_str_for_print(frm_key)}) {get_entry_stat(entry)}'
+    return res
+
+
 # Вывести информацию о количестве статей в словаре
-def dct_info(dct: Dictionary):
-    w = set_postfix(dct.count_w, ('слово', 'слова', 'слов'))
-    f = set_postfix(dct.count_w + dct.count_f, ('словоформа', 'словоформы', 'словоформ'))
-    t = set_postfix(dct.count_t, ('перевод', 'перевода', 'переводов'))
-    return f'[ {dct.count_w} {w} | {dct.count_w + dct.count_f} {f} | {dct.count_t} {t} ]'
-
-
-# Вывести информацию о количестве избранных статей в словаре
-def dct_info_part(dct: Dictionary, count_w: int, count_t: int, count_f: int):
+def dct_info(count_w: int, count_t: int, count_f: int):
     w = set_postfix(count_w, ('слово', 'слова', 'слов'))
     f = set_postfix(count_w + count_f, ('словоформа', 'словоформы', 'словоформ'))
     t = set_postfix(count_t, ('перевод', 'перевода', 'переводов'))
-    return f'[ {count_w}/{dct.count_w} {w} | ' \
-           f'{count_w + count_f}/{dct.count_w + dct.count_f} {f} | ' \
-           f'{count_t}/{dct.count_t} {t} ]'
+    return f'[ {count_w} {w} | {count_w + count_f} {f} | {count_t} {t} ]'
+
+
+# Вывести информацию о количестве избранных статей в словаре
+def dct_info_part(count_w: tuple[int, int], count_t: tuple[int, int], count_f: tuple[int, int]):
+    w = set_postfix(count_w[0], ('слово', 'слова', 'слов'))
+    f = set_postfix(count_w[0] + count_f[0], ('словоформа', 'словоформы', 'словоформ'))
+    t = set_postfix(count_t[0], ('перевод', 'перевода', 'переводов'))
+    return f'[ {count_w[0]}/{count_w[1]} {w} '\
+           f'| {count_w[0] + count_f[0]}/{count_w[1] + count_f[1]} {f} '\
+           f'| {count_t[0]}/{count_t[1]} {t} ]'
 
 
 """ Вспомогательные функции """
@@ -2135,9 +2132,10 @@ class EditW(tk.Toplevel):
         self.dct_key = key
         self.line_width = 35
         self.max_height_w = 3
-        self.max_height_t = 6
+        self.max_height_t = 5
         self.max_height_n = 4
-        self.max_height_f = 6
+        self.max_height_f = 5
+        self.max_height_g = 4
 
         self.var_fav = tk.BooleanVar(value=_0_global_dct.d[key].fav)
 
@@ -2156,6 +2154,10 @@ class EditW(tk.Toplevel):
         self.forms = []
         self.frm_frames = []
         self.frm_buttons = []
+        #
+        self.groups = []
+        self.gr_frames = []
+        self.gr_buttons = []
 
         self.frame_main = ttk.Frame(self, style='Default.TFrame')
         # {
@@ -2198,6 +2200,15 @@ class EditW(tk.Toplevel):
         if self.btn_frm_add['style'] == 'Image.TButton':
             self.tip_btn_frm_add = ttip.Hovertip(self.btn_frm_add, 'Добавить словоформу', hover_delay=500)
         #
+        self.lbl_gr = ttk.Label(self.frame_main, text='Группы:', style='Default.TLabel')
+        self.scrolled_frame_gr = ScrollFrame(self.frame_main,
+                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
+                                             SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.btn_gr_add = ttk.Button(self.frame_main, command=self.gr_add, width=2, takefocus=False)
+        set_image(self.btn_gr_add, self.img_add, img_add, '+')
+        if self.btn_gr_add['style'] == 'Image.TButton':
+            self.tip_btn_gr_add = ttip.Hovertip(self.btn_gr_add, 'Добавить группу', hover_delay=500)
+        #
         self.lbl_fav = ttk.Label(self.frame_main, text='Избранное:', style='Default.TLabel')
         self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=self.set_fav,
                                          style='Default.TCheckbutton')
@@ -2227,8 +2238,12 @@ class EditW(tk.Toplevel):
         self.scrolled_frame_frm.grid(row=3, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
         self.btn_frm_add.grid(       row=3, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
         #
-        self.lbl_fav.grid(  row=4, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_fav.grid(row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_gr.grid(           row=4, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
+        self.scrolled_frame_gr.grid(row=4, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.btn_gr_add.grid(       row=4, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_fav.grid(  row=5, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_fav.grid(row=5, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
         # }
         self.btn_back.grid(        row=1, column=0, padx=(6, 0), pady=(0, 6))
         self.btn_about_window.grid(row=1, column=1, padx=(6, 6), pady=(0, 6))
@@ -2402,6 +2417,40 @@ class EditW(tk.Toplevel):
         _0_global_has_progress = True
         self.refresh(False)
 
+    # Добавить группу
+    def gr_add(self):
+        global _0_global_has_progress
+
+        if not _0_global_dct.groups:
+            warning(self, 'Отсутствуют группы!\n'
+                          'Чтобы их добавить, перейдите в\n'
+                          'Настройки/Настройки словаря/Группы')
+            return
+        values = [group for group in _0_global_dct.groups if group not in _0_global_dct.d[self.dct_key].groups]
+        if not values:
+            warning(self, 'Статья уже добавлена во все группы')
+            return
+
+        window_group = PopupChooseW(self, values, 'Выберите группу', default_value=values[0])
+        closed, group = window_group.open()
+        if closed:
+            return
+        group = encode_special_combinations(group)
+
+        _0_global_dct.add_entries_to_group(group, [self.dct_key])
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Удалить группу
+    def gr_del(self, group: str):
+        global _0_global_has_progress
+
+        _0_global_dct.remove_entries_from_group(group, [self.dct_key])
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
     # Добавить в избранное/убрать из избранного
     def set_fav(self):
         _0_global_dct.d[self.dct_key].fav = self.var_fav.get()
@@ -2438,13 +2487,11 @@ class EditW(tk.Toplevel):
             self.scrollbar_wrd.grid(row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
 
         # Удаляем старые кнопки
-        for btn in self.tr_buttons + self.nt_buttons + self.frm_buttons:
+        for btn in self.tr_buttons + self.nt_buttons + self.frm_buttons + self.gr_buttons:
             btn.destroy()
         # Удаляем старые фреймы
-        for fr in self.tr_frames + self.nt_frames + self.frm_frames:
+        for fr in self.tr_frames + self.nt_frames + self.frm_frames + self.gr_frames:
             fr.unbind('<Enter>')
-            fr.unbind('<Control-E>')
-            fr.unbind('<Control-e>')
             fr.unbind('<Control-D>')
             fr.unbind('<Control-d>')
             fr.unbind('<Leave>')
@@ -2454,9 +2501,11 @@ class EditW(tk.Toplevel):
         self.translations = [tr for tr in _0_global_dct.d[self.dct_key].tr]
         self.notes = [nt for nt in _0_global_dct.d[self.dct_key].notes]
         self.forms = [frm for frm in _0_global_dct.d[self.dct_key].forms.keys()]
+        self.groups = [gr for gr in _0_global_dct.d[self.dct_key].groups]
         tr_count = len(self.translations)
         nt_count = len(self.notes)
         frm_count = len(self.forms)
+        gr_count = len(self.groups)
 
         # Создаём новые фреймы
         self.tr_frames = tuple([ttk.Frame(self.scrolled_frame_tr.frame_canvas, style='Invis.TFrame')
@@ -2465,6 +2514,8 @@ class EditW(tk.Toplevel):
                                 for i in range(nt_count)])
         self.frm_frames = tuple([ttk.Frame(self.scrolled_frame_frm.frame_canvas, style='Invis.TFrame')
                                  for i in range(frm_count)])
+        self.gr_frames = tuple([ttk.Frame(self.scrolled_frame_gr.frame_canvas, style='Invis.TFrame')
+                                for i in range(gr_count)])
         # Создаём новые кнопки
         self.tr_buttons = [ttk.Button(self.tr_frames[i], command=lambda i=i: self.tr_edt(self.translations[i]),
                                       takefocus=False, style='Note.TButton')
@@ -2475,6 +2526,8 @@ class EditW(tk.Toplevel):
         self.frm_buttons = [ttk.Button(self.frm_frames[i], command=lambda i=i: self.frm_edt(self.forms[i]),
                                        takefocus=False, style='Note.TButton')
                             for i in range(frm_count)]
+        self.gr_buttons = [ttk.Button(self.gr_frames[i], takefocus=False, style='Note.TButton')
+                           for i in range(gr_count)]
         # Выводим текст на кнопки
         for i in range(tr_count):
             tr = self.translations[i]
@@ -2484,7 +2537,11 @@ class EditW(tk.Toplevel):
             self.nt_buttons[i].configure(text=split_text(nt, 35))
         for i in range(frm_count):
             frm = self.forms[i]
-            self.frm_buttons[i].configure(text=split_text(f'[{frm_key_to_str_for_print(frm)}] {_0_global_dct.d[self.dct_key].forms[frm]}', 35))
+            text = f'[{frm_key_to_str_for_print(frm)}] {_0_global_dct.d[self.dct_key].forms[frm]}'
+            self.frm_buttons[i].configure(text=split_text(text, 35))
+        for i in range(gr_count):
+            gr = self.groups[i]
+            self.gr_buttons[i].configure(text=split_text(gr, 35))
         # Расставляем элементы
         for i in range(tr_count):
             self.tr_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
@@ -2500,6 +2557,11 @@ class EditW(tk.Toplevel):
             self.frm_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
             # {
             self.frm_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
+            # }
+        for i in range(gr_count):
+            self.gr_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            # {
+            self.gr_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
             # }
         # Привязываем события
         for i in range(tr_count):
@@ -2517,6 +2579,11 @@ class EditW(tk.Toplevel):
             self.frm_frames[i].bind('<Control-D>', lambda event, i=i: self.frm_del(self.forms[i]))
             self.frm_frames[i].bind('<Control-d>', lambda event, i=i: self.frm_del(self.forms[i]))
             self.frm_frames[i].bind('<Leave>', lambda event: self.focus_set())
+        for i in range(gr_count):
+            self.gr_frames[i].bind('<Enter>', lambda event, i=i: self.gr_frames[i].focus_set())
+            self.gr_frames[i].bind('<Control-D>', lambda event, i=i: self.gr_del(self.groups[i]))
+            self.gr_frames[i].bind('<Control-d>', lambda event, i=i: self.gr_del(self.groups[i]))
+            self.gr_frames[i].bind('<Leave>', lambda event: self.focus_set())
         # Изменяем высоту полей
         self.scrolled_frame_tr.resize(height=max(1, min(sum([field_height(btn['text'], 35)
                                                              for btn in self.tr_buttons]),
@@ -2530,12 +2597,17 @@ class EditW(tk.Toplevel):
                                                               for btn in self.frm_buttons]),
                                                          self.max_height_f)) *
                                               SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_gr.resize(height=max(1, min(sum([field_height(btn['text'], 35)
+                                                             for btn in self.gr_buttons]),
+                                                        self.max_height_g)) *
+                                             SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
             self.scrolled_frame_tr.canvas.yview_moveto(0.0)
             self.scrolled_frame_nt.canvas.yview_moveto(0.0)
             self.scrolled_frame_frm.canvas.yview_moveto(0.0)
+            self.scrolled_frame_gr.canvas.yview_moveto(0.0)
 
     # Справка об окне (срабатывает при нажатии на кнопку)
     def about_window(self):
@@ -4428,7 +4500,7 @@ class PrintW(tk.Toplevel):
                                         style='Default.TCombobox', font=('DejaVu Sans Mono', _0_global_scale))
         self.lbl_briefly = ttk.Label(self.frame_parameters, text='Кратко:', style='Default.TLabel')
         self.check_briefly = ttk.Checkbutton(self.frame_parameters, variable=self.var_briefly,
-                                             command=lambda: self.print(False), style='Default.TCheckbutton')
+                                             command=lambda: self.print(True), style='Default.TCheckbutton')
         self.lbl_order = ttk.Label(self.frame_parameters, text='Порядок:', style='Default.TLabel')
         self.combo_order = ttk.Combobox(self.frame_parameters, textvariable=self.var_order, values=PRINT_VALUES_ORDER,
                                         width=26, state='readonly', style='Default.TCombobox',
@@ -4601,19 +4673,20 @@ class PrintW(tk.Toplevel):
     # Вывести информацию о количестве статей
     def print_info(self):
         group = self.var_group.get()
-        if self.var_fav.get():
-            if group == ALL_GROUPS:
+        if group == ALL_GROUPS:
+            if self.var_fav.get():
                 w, t, f = _0_global_dct.count_fav_entries()
-                info = dct_info_part(_0_global_dct, w, t, f)
+                info = dct_info_part((w, _0_global_dct.count_w), (t, _0_global_dct.count_t), (f, _0_global_dct.count_f))
             else:
-                w, t, f = _0_global_dct.count_fav_entries(group)
-                info = dct_info_part(_0_global_dct, w, t, f)
+                info = dct_info(_0_global_dct.count_w, _0_global_dct.count_t, _0_global_dct.count_f)
         else:
-            if group == ALL_GROUPS:
-                info = dct_info(_0_global_dct)
+            if self.var_fav.get():
+                w1, t1, f1 = _0_global_dct.count_fav_entries(group)
+                w2, t2, f2 = _0_global_dct.count_entries_in_group(group)
+                info = dct_info_part((w1, w2), (t1, t2), (f1, f2))
             else:
                 w, t, f = _0_global_dct.count_entries_in_group(group)
-                info = dct_info_part(_0_global_dct, w, t, f)
+                info = dct_info(w, t, f)
         self.var_info.set(info)
 
         count_selected = len(self.selected_keys)
@@ -4654,6 +4727,8 @@ class PrintW(tk.Toplevel):
             else:
                 self.keys = [key for key in _0_global_dct.d.keys() if group in _0_global_dct.d[key].groups]
         self.selected_keys = [key for key in self.selected_keys if key in _0_global_dct.d.keys()]
+        if not self.selected_keys:
+            self.frame_buttons_for_selected.grid_remove()
         # Сортируем статьи
         if self.var_order.get() == PRINT_VALUES_ORDER[1]:
             self.keys.reverse()
@@ -4722,7 +4797,7 @@ class PrintW(tk.Toplevel):
         else:
             for i in range(self.count_elements_on_page):
                 key = self.keys[self.start_index + i]
-                self.buttons[i].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
+                self.buttons[i].configure(text=get_entry_info_detailed(_0_global_dct.d[key], 75))
 
         for i in range(self.count_elements_on_page):
             # Расставляем элементы
@@ -4748,7 +4823,7 @@ class PrintW(tk.Toplevel):
             self.buttons[index].configure(text=get_entry_info_briefly(_0_global_dct.d[key], 75))
         else:
             key = self.keys[self.start_index + index]
-            self.buttons[index].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
+            self.buttons[index].configure(text=get_entry_info_detailed(_0_global_dct.d[key], 75))
 
         # Выводим информацию о количестве статей
         self.print_info()
@@ -4763,7 +4838,7 @@ class PrintW(tk.Toplevel):
         else:
             for i in range(self.count_elements_on_page):
                 key = self.keys[self.start_index + i]
-                self.buttons[i].configure(text=get_entry_info_briefly_with_forms(_0_global_dct.d[key], 75))
+                self.buttons[i].configure(text=get_entry_info_detailed(_0_global_dct.d[key], 75))
 
     # Перейти на страницу с заданным номером
     def go_to_page_with_number(self, number: int):
@@ -4847,6 +4922,8 @@ class PrintW(tk.Toplevel):
 
     # Добавить выделенные статьи в избранное
     def fav_selected(self):
+        global _0_global_has_progress
+
         if not self.selected_keys:
             return
 
@@ -4854,8 +4931,12 @@ class PrintW(tk.Toplevel):
 
         self.refresh_all_buttons()
 
+        _0_global_has_progress = True
+
     # Убрать выделенные статьи из избранного
     def unfav_selected(self):
+        global _0_global_has_progress
+
         if not self.selected_keys:
             return
 
@@ -4863,8 +4944,12 @@ class PrintW(tk.Toplevel):
 
         self.refresh_all_buttons()
 
+        _0_global_has_progress = True
+
     # Добавить выделенные статьи в группу
     def add_selected_to_group(self):
+        global _0_global_has_progress
+
         if not self.selected_keys:
             return
         if not _0_global_dct.groups:
@@ -4880,16 +4965,24 @@ class PrintW(tk.Toplevel):
 
         self.refresh_all_buttons()
 
+        _0_global_has_progress = True
+
     # Убрать выделенные статьи из группы
     def remove_selected_from_group(self):
+        global _0_global_has_progress
+
         if not self.selected_keys:
             return
         if not _0_global_dct.groups:
             PopupMsgW(self, 'Не найдено ни одной группы!').open()
             return
 
+        if self.var_group.get() == ALL_GROUPS:
+            default_value = _0_global_dct.groups[0]
+        else:
+            default_value = self.var_group.get()
         window_groups = PopupChooseW(self, msg='Выберите группу, из которой хотите убрать выбранные слова:',
-                                     values=_0_global_dct.groups, default_value=_0_global_dct.groups[0])
+                                     values=_0_global_dct.groups, default_value=default_value)
         closed, group = window_groups.open()
         if closed:
             return
@@ -4899,6 +4992,30 @@ class PrintW(tk.Toplevel):
             self.print(True)
         else:
             self.refresh_all_buttons()
+
+        _0_global_has_progress = True
+
+    # Удалить выделенные статьи
+    def delete_selected(self):
+        global _0_global_has_progress
+
+        if not self.selected_keys:
+            return
+
+        count_selected = len(self.selected_keys)
+        tmp = set_postfix(count_selected, ('статью', 'статьи', 'статей'))
+        window = PopupDialogueW(self, f'Вы действительно хотите удалить {count_selected} {tmp}?',
+                                set_enter_on_btn='none')
+        answer = window.open()
+        if not answer:
+            return
+
+        for key in self.selected_keys:
+            _0_global_dct.delete_entry(key)
+
+        self.print(True)
+
+        _0_global_has_progress = True
 
     # Нажатие на кнопку "Распечатать словарь в файл"
     def print_out(self):
@@ -4912,7 +5029,8 @@ class PrintW(tk.Toplevel):
     def about_window(self):
         PopupMsgW(self, '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
                         '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
-                        '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
+                        '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ\n'
+                        '* Чтобы удалить выделенные статьи, нажмите Alt+D',
                   msg_justify='left').open()
 
     # Установить фокус
@@ -4940,6 +5058,9 @@ class PrintW(tk.Toplevel):
         self.bind('<Alt-f>', lambda event=None: self.fav_selected())
         self.bind('<Alt-Shift-F>', lambda event=None: self.unfav_selected())
         self.bind('<Alt-Shift-f>', lambda event=None: self.unfav_selected())
+        #
+        self.bind('<Alt-D>', lambda event=None: self.delete_selected())
+        self.bind('<Alt-d>', lambda event=None: self.delete_selected())
 
     def open(self):
         self.set_focus()
@@ -5214,6 +5335,10 @@ class SearchW(tk.Toplevel):
             self.keys = list(full_matches)
         else:
             self.keys = list(full_matches) + list(particular_matches)
+        self.selected_keys = [key for key in self.selected_keys if key in _0_global_dct.d.keys()]
+
+        if not self.selected_keys:
+            self.frame_buttons_for_selected.grid_remove()
 
         # Вычисляем значения некоторых количественных переменных
         self.count_elements = len(self.keys)
@@ -5369,6 +5494,8 @@ class SearchW(tk.Toplevel):
 
     # Добавить выделенные статьи в избранное
     def fav_selected(self):
+        global _0_global_has_progress
+
         if not self.selected_keys:
             return
 
@@ -5376,8 +5503,12 @@ class SearchW(tk.Toplevel):
 
         self.refresh_all_buttons()
 
+        _0_global_has_progress = True
+
     # Убрать выделенные статьи из избранного
     def unfav_selected(self):
+        global _0_global_has_progress
+
         if not self.selected_keys:
             return
 
@@ -5385,8 +5516,12 @@ class SearchW(tk.Toplevel):
 
         self.refresh_all_buttons()
 
+        _0_global_has_progress = True
+
     # Добавить выделенные статьи в группу
     def add_selected_to_group(self):
+        global _0_global_has_progress
+
         if not self.selected_keys:
             return
         if not _0_global_dct.groups:
@@ -5402,8 +5537,12 @@ class SearchW(tk.Toplevel):
 
         self.refresh_all_buttons()
 
+        _0_global_has_progress = True
+
     # Убрать выделенные статьи из группы
     def remove_selected_from_group(self):
+        global _0_global_has_progress
+
         if not self.selected_keys:
             return
         if not _0_global_dct.groups:
@@ -5419,11 +5558,36 @@ class SearchW(tk.Toplevel):
 
         self.refresh_all_buttons()
 
+        _0_global_has_progress = True
+
+    # Удалить выделенные статьи
+    def delete_selected(self):
+        global _0_global_has_progress
+
+        if not self.selected_keys:
+            return
+
+        count_selected = len(self.selected_keys)
+        tmp = set_postfix(count_selected, ('статью', 'статьи', 'статей'))
+        window = PopupDialogueW(self, f'Вы действительно хотите удалить {count_selected} {tmp}?',
+                                set_enter_on_btn='none')
+        answer = window.open()
+        if not answer:
+            return
+
+        for key in self.selected_keys:
+            _0_global_dct.delete_entry(key)
+
+        self.print(True)
+
+        _0_global_has_progress = True
+
     # Нажатие на кнопку "Справка" (картинка с вопросом)
     def about_window(self):
         PopupMsgW(self, '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
                         '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
-                        '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
+                        '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ\n'
+                        '* Чтобы удалить выделенные статьи, нажмите Alt+D',
                   msg_justify='left').open()
 
     # Установить фокус
@@ -5452,6 +5616,9 @@ class SearchW(tk.Toplevel):
         self.bind('<Alt-f>', lambda event=None: self.fav_selected())
         self.bind('<Alt-Shift-F>', lambda event=None: self.unfav_selected())
         self.bind('<Alt-Shift-f>', lambda event=None: self.unfav_selected())
+        #
+        self.bind('<Alt-D>', lambda event=None: self.delete_selected())
+        self.bind('<Alt-d>', lambda event=None: self.delete_selected())
 
     def open(self):
         self.set_focus()

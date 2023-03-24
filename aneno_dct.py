@@ -360,12 +360,12 @@ class Dictionary(object):
             self.d[key].remove_from_fav()
 
     # Добавить выбранные статьи в группу
-    def add_entries_to_group(self, group: str, dct_keys: tuple[tuple[str, int], ...]):
+    def add_entries_to_group(self, group: str, dct_keys: tuple[tuple[str, int], ...] | list[tuple[str, int]]):
         for key in dct_keys:
             self.d[key].add_to_group(group)
 
     # Убрать выбранные статьи из группы
-    def remove_entries_from_group(self, group: str, dct_keys: tuple[tuple[str, int], ...]):
+    def remove_entries_from_group(self, group: str, dct_keys: tuple[tuple[str, int], ...] | list[tuple[str, int]]):
         for key in dct_keys:
             if group in self.d[key].groups:
                 self.d[key].remove_from_group(group)
