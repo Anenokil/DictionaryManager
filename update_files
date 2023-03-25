@@ -21,6 +21,7 @@ resources/images/arrow_left.png
 resources/images/arrow_right.png
 resources/images/double_arrow_left.png
 resources/images/double_arrow_right.png
+resources/images/trashcan.png
 resources/icon.png
 aneno_dct.py
 aneno_constants.py
