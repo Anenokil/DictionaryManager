@@ -328,6 +328,14 @@ def check_group_name_edit(window_parent, groups: list[str] | tuple[str, ...], ol
     return True
 
 
+# Проверить является ли строка разделимой (для split_line)
+def is_splittable(line: str):
+    for c in line:
+        if not (c.isalnum() or c in '()[]{}<>_-+*%!?.,;:`"\''):
+            return True
+    return False
+
+
 """ Функции вывода """
 
 
@@ -590,7 +598,7 @@ def split_line(line: str) -> list[str, str]:
     res = []
 
     i = 0
-    while i < len_line and not line[i].isalnum():
+    while i < len_line and is_splittable(line[i]):
         i += 1
     if i != 0:
         res += [['', line[0:i]]]
@@ -598,10 +606,10 @@ def split_line(line: str) -> list[str, str]:
     while i < len_line:
         word = ''
         separator = ''
-        while i < len_line and line[i].isalnum():
+        while i < len_line and not is_splittable(line[i]):
             word += line[i]
             i += 1
-        while i < len_line and not line[i].isalnum():
+        while i < len_line and is_splittable(line[i]):
             separator += line[i]
             i += 1
         res += [[word, separator]]
