@@ -4880,22 +4880,6 @@ class PrintW(tk.Toplevel):
         self.combo_print_order.bind('<<ComboboxSelected>>', lambda event: self.print_print(False))
         self.combo_print_group.bind('<<ComboboxSelected>>', lambda event: self.print_go_to_first_page(True))
 
-        self.bind('<Up>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
-        self.bind('<Control-U>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
-        self.bind('<Control-u>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
-        #
-        self.bind('<Down>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
-        self.bind('<Control-D>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
-        self.bind('<Control-d>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
-
-        self.bind('<Up>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
-        self.bind('<Control-U>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
-        self.bind('<Control-u>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
-        #
-        self.bind('<Down>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
-        self.bind('<Control-D>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
-        self.bind('<Control-d>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
-
         self.print_print(True)  # Выводим статьи
         self.search_print(True)  # Выводим статьи
 
@@ -5580,21 +5564,27 @@ class PrintW(tk.Toplevel):
     def print_about_window(self):
         PopupMsgW(self, '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
                         '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
-                        '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ\n'
-                        '* Чтобы удалить выделенные статьи, нажмите Alt+D',
+                        '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
                   msg_justify='left').open()
 
     # Нажатие на кнопку "Справка" (картинка с вопросом)
     def search_about_window(self):
         PopupMsgW(self, '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
                         '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
-                        '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ\n'
-                        '* Чтобы удалить выделенные статьи, нажмите Alt+D',
+                        '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
                   msg_justify='left').open()
 
     # Установить фокус (вкладка "Просмотр словаря")
     def print_set_focus(self):
         self.unbind('<Return>')
+        #
+        self.bind('<Up>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
+        self.bind('<Control-U>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
+        self.bind('<Control-u>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
+        #
+        self.bind('<Down>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
+        self.bind('<Control-D>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
+        self.bind('<Control-d>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
         #
         self.bind('<Alt-P>', lambda event=None: self.print_select_page())
         self.bind('<Alt-p>', lambda event=None: self.print_select_page())
@@ -5618,14 +5608,20 @@ class PrintW(tk.Toplevel):
         #
         self.bind('<Alt-D>', lambda event=None: self.print_delete_selected())
         self.bind('<Alt-d>', lambda event=None: self.print_delete_selected())
-        #
-        self.tabs.bind('<<NotebookTabChanged>>', lambda event=None: self.search_set_focus())
 
     # Установить фокус (вкладка "Поиск")
     def search_set_focus(self):
         self.entry_search_query.focus_set()
 
         self.bind('<Return>', lambda event=None: self.btn_search_search.invoke())
+        #
+        self.bind('<Up>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+        self.bind('<Control-U>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+        self.bind('<Control-u>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+        #
+        self.bind('<Down>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
+        self.bind('<Control-D>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
+        self.bind('<Control-d>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
         #
         self.bind('<Alt-P>', lambda event=None: self.search_select_page())
         self.bind('<Alt-p>', lambda event=None: self.search_select_page())
@@ -5649,8 +5645,13 @@ class PrintW(tk.Toplevel):
         #
         self.bind('<Alt-D>', lambda event=None: self.search_delete_selected())
         self.bind('<Alt-d>', lambda event=None: self.search_delete_selected())
-        #
-        self.tabs.bind('<<NotebookTabChanged>>', lambda event=None: self.print_set_focus())
+
+    # Смена вкладки
+    def change_tab(self):
+        if self.tabs.index(self.tabs.select()) == 0:
+            self.print_set_focus()
+        else:
+            self.search_set_focus()
 
     def open(self, tab: typing.Literal['print', 'search'] = 'print'):
         self.focus_set()
@@ -5661,6 +5662,8 @@ class PrintW(tk.Toplevel):
             self.search_set_focus()
         else:
             self.print_set_focus()
+
+        self.tabs.bind('<<NotebookTabChanged>>', lambda event=None: self.change_tab())
 
         self.grab_set()
         self.wait_window()
