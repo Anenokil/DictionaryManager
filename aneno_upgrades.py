@@ -167,17 +167,18 @@ def upgrade_local_settings_0_to_1(local_settings_path: str, _=None):
 def upgrade_local_settings_1_to_2(local_settings_path: str, encode_special_combinations):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         lines = local_settings_file.readlines()
+    spec_combinations = {('#', lines[2][i-1]): lines[2][i] for i in range(1, len(lines[2]), 2)}
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
         local_settings_file.write('v2\n')
         local_settings_file.write(lines[1])
         local_settings_file.write(lines[2])
         for i in range(3, len(lines)):
             if i % 2 == 1:
-                local_settings_file.write(encode_special_combinations(lines[i]))
+                local_settings_file.write(encode_special_combinations(lines[i], spec_combinations))
             else:
-                values = lines[i].strip().split(anc.CATEGORY_SEPARATOR)
-                values = [encode_special_combinations(i) for i in values]
-                local_settings_file.write(frm_key_to_str_for_save(values, anc.CATEGORY_SEPARATOR) + '\n')
+                values = lines[i].strip().split('@')
+                values = [encode_special_combinations(i, spec_combinations) for i in values]
+                local_settings_file.write(frm_key_to_str_for_save(values, '@') + '\n')
 
 
 # Обновить локальные настройки со 2 до 3 версии
@@ -234,11 +235,25 @@ def upgrade_local_settings_4_to_5(local_settings_path: str, _=None):
         local_settings_file.write('0')
 
 
+# Обновить локальные настройки со 5 до 6 версии
+def upgrade_local_settings_5_to_6(local_settings_path: str, _=None):
+    with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
+        lines = local_settings_file.readlines()
+    with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
+        local_settings_file.write('v6\n')
+        local_settings_file.write(lines[1])
+        local_settings_file.write(lines[3])
+        local_settings_file.write(lines[2])
+        for i in range(4, len(lines)):
+            local_settings_file.write(lines[i])
+
+
 upgrade_local_settings_functions = [upgrade_local_settings_0_to_1,
                                     upgrade_local_settings_1_to_2,
                                     upgrade_local_settings_2_to_3,
                                     upgrade_local_settings_3_to_4,
-                                    upgrade_local_settings_4_to_5]
+                                    upgrade_local_settings_4_to_5,
+                                    upgrade_local_settings_5_to_6]
 
 
 # Обновить локальные настройки старой версии до актуальной версии

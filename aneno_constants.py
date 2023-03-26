@@ -3,14 +3,14 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.14-patch-2'
-PROGRAM_DATE = '25.3.2023'
-PROGRAM_TIME = '21:48 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.15-1'
+PROGRAM_DATE = '26.3.2023'
+PROGRAM_TIME = '0:55 (UTC+3)'
 
 """ Версии ресурсов """
 
 SAVES_VERSION = 7  # Актуальная версия сохранений словарей
-LOCAL_SETTINGS_VERSION = 5  # Актуальная версия локальных настроек
+LOCAL_SETTINGS_VERSION = 6  # Актуальная версия локальных настроек
 LOCAL_AUTO_SETTINGS_VERSION = 3  # Актуальная версия автосохраняемых локальных настроек
 GLOBAL_SETTINGS_VERSION = 3  # Актуальная версия глобальных настроек
 REQUIRED_THEME_VERSION = 6  # Актуальная версия тем

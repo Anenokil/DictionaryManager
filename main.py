@@ -204,7 +204,7 @@ def check_dct_savename_edit(window_parent, old_savename: str, new_savename: str)
 
 # Проверить корректность перевода
 def check_tr(window_parent, translations: list[str] | tuple[str, ...], new_tr: str, wrd: str):
-    new_tr = encode_special_combinations(new_tr)
+    new_tr = encode_special_combinations(new_tr, _0_global_special_combinations)
     if new_tr == '':
         warning(window_parent, 'Перевод должен содержать хотя бы один символ!')
         return False
@@ -216,7 +216,7 @@ def check_tr(window_parent, translations: list[str] | tuple[str, ...], new_tr: s
 
 # Проверить корректность перевода при изменении
 def check_tr_edit(window_parent, translations: list[str] | tuple[str, ...], old_tr: str, new_tr: str, wrd: str):
-    new_tr = encode_special_combinations(new_tr)
+    new_tr = encode_special_combinations(new_tr, _0_global_special_combinations)
     if new_tr == '':
         warning(window_parent, 'Перевод должен содержать хотя бы один символ!')
         return False
@@ -228,7 +228,7 @@ def check_tr_edit(window_parent, translations: list[str] | tuple[str, ...], old_
 
 # Проверить корректность сноски
 def check_note(window_parent, notes: list[str] | tuple[str, ...], new_note: str, wrd: str):
-    new_note = encode_special_combinations(new_note)
+    new_note = encode_special_combinations(new_note, _0_global_special_combinations)
     if new_note == '':
         warning(window_parent, 'Сноска должна содержать хотя бы один символ!')
         return False
@@ -240,7 +240,7 @@ def check_note(window_parent, notes: list[str] | tuple[str, ...], new_note: str,
 
 # Проверить корректность сноски при изменении
 def check_note_edit(window_parent, notes: list[str] | tuple[str, ...], old_note: str, new_note: str, wrd: str):
-    new_note = encode_special_combinations(new_note)
+    new_note = encode_special_combinations(new_note, _0_global_special_combinations)
     if new_note == '':
         warning(window_parent, 'Сноска должна содержать хотя бы один символ!')
         return False
@@ -252,7 +252,7 @@ def check_note_edit(window_parent, notes: list[str] | tuple[str, ...], old_note:
 
 # Проверить корректность названия категории
 def check_ctg(window_parent, categories: list[str] | tuple[str, ...], new_ctg: str):
-    new_ctg = encode_special_combinations(new_ctg)
+    new_ctg = encode_special_combinations(new_ctg, _0_global_special_combinations)
     if new_ctg == '':
         warning(window_parent, 'Название категории должно содержать хотя бы один символ!')
         return False
@@ -264,7 +264,7 @@ def check_ctg(window_parent, categories: list[str] | tuple[str, ...], new_ctg: s
 
 # Проверить корректность названия категории при изменении
 def check_ctg_edit(window_parent, categories: list[str] | tuple[str, ...], old_ctg: str, new_ctg: str):
-    new_ctg = encode_special_combinations(new_ctg)
+    new_ctg = encode_special_combinations(new_ctg, _0_global_special_combinations)
     if new_ctg == '':
         warning(window_parent, 'Название категории должно содержать хотя бы один символ!')
         return False
@@ -276,7 +276,7 @@ def check_ctg_edit(window_parent, categories: list[str] | tuple[str, ...], old_c
 
 # Проверить корректность значения категории
 def check_ctg_val(window_parent, values: list[str] | tuple[str, ...], new_val: str):
-    new_val = encode_special_combinations(new_val)
+    new_val = encode_special_combinations(new_val, _0_global_special_combinations)
     if new_val == '':
         warning(window_parent, 'Значение категории должно содержать хотя бы один символ!')
         return False
@@ -291,7 +291,7 @@ def check_ctg_val(window_parent, values: list[str] | tuple[str, ...], new_val: s
 
 # Проверить корректность значения категории при изменении
 def check_ctg_val_edit(window_parent, values: list[str] | tuple[str, ...], old_val: str, new_val: str):
-    new_val = encode_special_combinations(new_val)
+    new_val = encode_special_combinations(new_val, _0_global_special_combinations)
     if new_val == '':
         warning(window_parent, 'Значение категории должно содержать хотя бы один символ!')
         return False
@@ -306,7 +306,7 @@ def check_ctg_val_edit(window_parent, values: list[str] | tuple[str, ...], old_v
 
 # Проверить корректность названия группы
 def check_group_name(window_parent, groups: list[str] | tuple[str, ...], new_group: str):
-    new_group = encode_special_combinations(new_group)
+    new_group = encode_special_combinations(new_group, _0_global_special_combinations)
     if new_group == '':
         warning(window_parent, 'Название группы должно содержать хотя бы один символ!')
         return False
@@ -318,7 +318,7 @@ def check_group_name(window_parent, groups: list[str] | tuple[str, ...], new_gro
 
 # Проверить корректность названия группы при изменении
 def check_group_name_edit(window_parent, groups: list[str] | tuple[str, ...], old_group: str, new_group: str):
-    new_group = encode_special_combinations(new_group)
+    new_group = encode_special_combinations(new_group, _0_global_special_combinations)
     if new_group == '':
         warning(window_parent, 'Название группы должно содержать хотя бы один символ!')
         return False
@@ -503,16 +503,16 @@ def special_combination(key: tuple[str, str]):
 
 
 # Преобразовать в тексте специальные комбинации в соответствующие символы
-def encode_special_combinations(text: str):
+def encode_special_combinations(text: str, special_combinations: dict[tuple[str, str], str]):
     encoded_text = ''
 
     opening_symbol = None  # Встречен ли открывающий символ специальной комбинации
     for symbol in text:
         if opening_symbol:
-            if (opening_symbol, symbol) in _0_global_special_combinations.keys():  # Если есть такая комбинация
-                encoded_text += _0_global_special_combinations[(opening_symbol, symbol)]
+            if (opening_symbol, symbol) in special_combinations.keys():  # Если есть такая комбинация
+                encoded_text += special_combinations[(opening_symbol, symbol)]
             elif symbol == opening_symbol:  # Если встречено два открывающих символа подряд
-                encoded_text += opening_symbol  # (## -> #)
+                encoded_text += opening_symbol  # $$ -> $
             else:  # Если нет такой комбинации
                 encoded_text += f'{opening_symbol}{symbol}'
             opening_symbol = None
@@ -528,7 +528,7 @@ def encode_special_combinations(text: str):
 
 # Заменить буквы в тексте соответствующими английскими (для find_and_highlight)
 def simplify(text: str):
-    encoded_text = encode_special_combinations(text)
+    encoded_text = encode_special_combinations(text, _0_global_special_combinations)
     converted_text = ''
     transformations = []
 
@@ -549,15 +549,15 @@ def find_and_highlight(target_wrd: str, search_wrd: str):
     if target_wrd == search_wrd:  # Полное совпадение не учитывается
         return ''
 
-    target_wrd = encode_special_combinations(target_wrd)
-    search_wrd = encode_special_combinations(search_wrd)
+    target_wrd = encode_special_combinations(target_wrd, _0_global_special_combinations)
+    search_wrd = encode_special_combinations(search_wrd, _0_global_special_combinations)
 
     target_simpl, target_arr = simplify(target_wrd)
     search_simpl, search_arr = simplify(search_wrd)
 
     pos = target_simpl.find(search_simpl)
     if pos != -1:
-        search_len = len(encode_special_combinations(search_simpl))
+        search_len = len(encode_special_combinations(search_simpl, _0_global_special_combinations))
         end_pos = pos + search_len
         if search_wrd == '':  # Если искомая подстрока пустая, то она не выделяется
             res = target_wrd
@@ -776,7 +776,7 @@ def add_ctg(window_parent, dct: Dictionary):
     closed, new_ctg = window_ctg.open()
     if closed:
         return False
-    new_ctg = encode_special_combinations(new_ctg)
+    new_ctg = encode_special_combinations(new_ctg, _0_global_special_combinations)
 
     # Ввод первого значения категории
     window_val = PopupEntryW(window_parent, 'Необходимо добавить хотя бы одно значение для категории',
@@ -784,7 +784,7 @@ def add_ctg(window_parent, dct: Dictionary):
     closed, new_val = window_val.open()
     if closed:
         return False
-    new_val = encode_special_combinations(new_val)
+    new_val = encode_special_combinations(new_val, _0_global_special_combinations)
 
     # Обновление категорий
     dct.add_ctg(new_ctg, [new_val])
@@ -800,7 +800,7 @@ def rename_ctg(window_parent, dct: Dictionary, old_ctg_name: str):
     closed, new_ctg_name = window_entry.open()
     if closed:
         return False
-    new_ctg_name = encode_special_combinations(new_ctg_name)
+    new_ctg_name = encode_special_combinations(new_ctg_name, _0_global_special_combinations)
     if new_ctg_name == old_ctg_name:
         return
 
@@ -831,7 +831,7 @@ def add_ctg_val(window_parent, dct: Dictionary, ctg_name: str, values: list[str]
     if closed:
         return False
 
-    new_val = encode_special_combinations(new_val)
+    new_val = encode_special_combinations(new_val, _0_global_special_combinations)
     dct.add_ctg_val(ctg_name, new_val)
     return True
 
@@ -845,7 +845,7 @@ def rename_ctg_val(window_parent, dct: Dictionary, ctg_name: str, old_ctg_val: s
     closed, new_ctg_val = window_entry.open()
     if closed:
         return False
-    new_ctg_val = encode_special_combinations(new_ctg_val)
+    new_ctg_val = encode_special_combinations(new_ctg_val, _0_global_special_combinations)
     if new_ctg_val == old_ctg_val:
         return False
 
@@ -1120,7 +1120,7 @@ def save_dct_name():
 
 
 # Загрузить локальные настройки (настройки словаря)
-def upload_local_settings(savename: str, upgrade=True):
+def upload_local_settings(savename: str):
     local_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_SETTINGS_FN)
     try:
         open(local_settings_path, 'r', encoding='utf-8')
@@ -1128,8 +1128,8 @@ def upload_local_settings(savename: str, upgrade=True):
         with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
             local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n'  # Версия локальных настроек
                                       f'67\n'  # МППУ
-                                      f'#aä#AÄ#oö#OÖ#uü#UÜ#sß#Sẞ\n'  # Специальные комбинации
                                       f'1\n'  # Учитывать ли регистр букв при учёбе
+                                      f'#aä#AÄ#oö#OÖ#uü#UÜ#sß#Sẞ\n'  # Специальные комбинации
                                       f'5\n'  # Грамматические категории
                                       f'Число\n'
                                       f'2\nед.ч.\nмн.ч.\n'
@@ -1143,19 +1143,21 @@ def upload_local_settings(savename: str, upgrade=True):
                                       f'3\nпр.вр.\nн.вр.\nбуд.вр.\n'
                                       f'0')  # Группы
     else:
-        if upgrade:
-            global _0_global_special_combinations
-            _, _0_global_special_combinations, _, _, _ = upload_local_settings(_0_global_dct_savename, upgrade=False)
-            upgrade_local_settings(local_settings_path, encode_special_combinations)
+        upgrade_local_settings(local_settings_path, encode_special_combinations)
 
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
-        # Версия
+        # Версия локальных настроек
         local_settings_file.readline()
         # МППУ
         try:
             min_good_score_perc = int(local_settings_file.readline().strip())
         except (ValueError, TypeError):
             min_good_score_perc = 67
+        # Учитывать ли регистр букв при учёбе
+        try:
+            check_register = int(local_settings_file.readline().strip())
+        except (ValueError, TypeError):
+            check_register = 1
         # Специальные комбинации
         special_combinations = {}
         try:
@@ -1167,11 +1169,6 @@ def upload_local_settings(savename: str, upgrade=True):
                 special_combinations[(opening_symbol, key_symbol)] = value
         except:
             special_combinations = {}
-        # Учитывать ли регистр букв при учёбе
-        try:
-            check_register = int(local_settings_file.readline().strip())
-        except (ValueError, TypeError):
-            check_register = 1
         # Грамматические категории
         categories = {}
         try:
@@ -1194,23 +1191,23 @@ def upload_local_settings(savename: str, upgrade=True):
                 groups += [group]
         except:
             groups = []
-    return min_good_score_perc, special_combinations, check_register, categories, groups
+    return min_good_score_perc, check_register, special_combinations, categories, groups
 
 
 # Сохранить локальные настройки (настройки словаря)
-def save_local_settings(min_good_score_perc: int, special_combinations: dict[tuple[str, str], str], check_register: int,
+def save_local_settings(min_good_score_perc: int, check_register: int, special_combinations: dict[tuple[str, str], str],
                         categories: dict[str, list[str]], groups: list[str], savename: str):
     local_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_SETTINGS_FN)
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
         local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n')  # Версия
         local_settings_file.write(f'{min_good_score_perc}\n')  # МППУ
+        # Проверять ли регистр букв при учёбе
+        local_settings_file.write(f'{check_register}\n')
         # Специальные комбинации
         for key in special_combinations:
             val = special_combinations[key]
             local_settings_file.write(f'{key[0]}{key[1]}{val}')
         local_settings_file.write('\n')
-        # Проверять ли регистр букв при учёбе
-        local_settings_file.write(f'{check_register}\n')
         # Грамматические категории
         local_settings_file.write(f'{len(categories)}\n')
         for key in categories.keys():
@@ -1293,53 +1290,12 @@ def save_settings_if_has_changes(window_parent):
     if answer:
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
                              _0_global_scale)
-        save_local_settings(_0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register,
+        save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations,
                             _0_global_dct.ctg, _0_global_dct.groups, _0_global_dct_savename)
         save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
                                  _0_global_dct_savename)
         PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
         print('\nНастройки успешно сохранены')
-
-
-# Загрузить словарь (с обновлением и обработкой исключений)
-def upload_dct(window_parent, dct: Dictionary, savename: str, btn_close_text: str):
-    filepath = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
-    try:
-        global _0_global_special_combinations
-        _, _0_global_special_combinations, _, _, _ = upload_local_settings(_0_global_dct_savename, upgrade=False)
-        upgrade_dct_save(filepath, encode_special_combinations)  # Если требуется, сохранение обновляется
-        dct.read(filepath, CATEGORY_SEPARATOR)  # Загрузка словаря
-    except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
-        print(f'\nСловарь "{savename}" не найден!')
-        create_dct(dct, savename)
-        print('Создан и загружен пустой словарь')
-        return savename
-    except Exception as exc:  # Если сохранение повреждено, то предлагается загрузить другое
-        print(f'\nФайл со словарём "{savename}" повреждён или некорректен!'
-              f'\n{exc}')
-        while True:
-            window_dia = PopupDialogueW(window_parent, f'Файл со словарём "{savename}" повреждён или некорректен!\n'
-                                                       f'Хотите открыть другой словарь?',
-                                        'Да', btn_close_text, set_enter_on_btn='none', title='Warning')
-            answer = window_dia.open()
-            if answer:
-                window_entry = PopupEntryW(window_parent, 'Введите название словаря\n'
-                                                          '(если он ещё не существует, то будет создан пустой словарь)',
-                                           validate_function=validate_savename,
-                                           check_answer_function=lambda wnd, val:
-                                           check_not_void(wnd, val,
-                                                          'Название словаря должно содержать хотя бы один символ!'))
-                closed, other_savename = window_entry.open()
-                if closed:
-                    continue
-                save_dct_name()
-                dct = Dictionary()
-                return upload_dct(window_parent, dct, other_savename, btn_close_text)
-            else:
-                return None
-    else:  # Если чтение прошло успешно, то выводится соответствующее сообщение
-        print(f'\nСловарь "{savename}" успешно открыт')
-        return savename
 
 
 # Создать и загрузить пустой словарь
@@ -1366,6 +1322,47 @@ def save_dct_if_has_progress(window_parent, dct: Dictionary, savename: str, has_
             save_dct(dct, savename)
             PopupMsgW(window_parent, 'Прогресс успешно сохранён').open()
             print('\nПрогресс успешно сохранён')
+
+
+# Загрузить сохранение
+def upload_save(window_parent, dct: Dictionary, savename: str, btn_close_text: str):
+    min_good_score_perc, check_register, special_combinations, dct.ctg, dct.groups = upload_local_settings(savename)
+
+    save_file_path = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
+    try:
+        upgrade_dct_save(save_file_path, lambda line: encode_special_combinations(line, special_combinations))  # Если требуется, сохранение обновляется
+        dct.read(save_file_path, CATEGORY_SEPARATOR)  # Загрузка словаря
+    except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
+        print(f'\nСловарь "{savename}" не найден!')
+        create_dct(dct, savename)
+        print('Создан и загружен пустой словарь')
+        return savename, min_good_score_perc, check_register, special_combinations
+    except Exception as exc:  # Если сохранение повреждено, то предлагается загрузить другое
+        print(f'\nФайл со словарём "{savename}" повреждён или некорректен!'
+              f'\n{exc}')
+        while True:
+            window_dia = PopupDialogueW(window_parent, f'Файл со словарём "{savename}" повреждён или некорректен!\n'
+                                                       f'Хотите открыть другой словарь?',
+                                        'Да', btn_close_text, set_enter_on_btn='none', title='Warning')
+            answer = window_dia.open()
+            if answer:
+                window_entry = PopupEntryW(window_parent, 'Введите название словаря\n'
+                                                          '(если он ещё не существует, то будет создан пустой словарь)',
+                                           validate_function=validate_savename,
+                                           check_answer_function=lambda wnd, val:
+                                           check_not_void(wnd, val,
+                                                          'Название словаря должно содержать хотя бы один символ!'))
+                closed, other_savename = window_entry.open()
+                if closed:
+                    continue
+                save_dct_name()
+                dct = Dictionary()
+                return upload_save(window_parent, dct, other_savename, btn_close_text)
+            else:
+                return None
+    else:  # Если чтение прошло успешно, то выводится соответствующее сообщение
+        print(f'\nСловарь "{savename}" успешно открыт')
+        return savename, min_good_score_perc, check_register, special_combinations
 
 
 # Экспортировать словарь
@@ -2271,7 +2268,7 @@ class EditW(tk.Toplevel):
         closed, new_wrd = window.open()
         if closed:
             return
-        new_wrd = encode_special_combinations(new_wrd)
+        new_wrd = encode_special_combinations(new_wrd, _0_global_special_combinations)
         if new_wrd == _0_global_dct.d[self.dct_key].wrd:
             return
 
@@ -2293,7 +2290,7 @@ class EditW(tk.Toplevel):
         closed, tr = window.open()
         if closed:
             return
-        tr = encode_special_combinations(tr)
+        tr = encode_special_combinations(tr, _0_global_special_combinations)
 
         _0_global_dct.add_tr(self.dct_key, tr)
 
@@ -2310,7 +2307,7 @@ class EditW(tk.Toplevel):
         closed, new_tr = window.open()
         if closed:
             return
-        new_tr = encode_special_combinations(new_tr)
+        new_tr = encode_special_combinations(new_tr, _0_global_special_combinations)
 
         _0_global_dct.delete_tr(self.dct_key, tr)
         _0_global_dct.add_tr(self.dct_key, new_tr)
@@ -2341,7 +2338,7 @@ class EditW(tk.Toplevel):
         closed, note = window.open()
         if closed:
             return
-        note = encode_special_combinations(note)
+        note = encode_special_combinations(note, _0_global_special_combinations)
 
         _0_global_dct.add_note(self.dct_key, note)
 
@@ -2359,7 +2356,7 @@ class EditW(tk.Toplevel):
         closed, new_note = window.open()
         if closed:
             return
-        new_note = encode_special_combinations(new_note)
+        new_note = encode_special_combinations(new_note, _0_global_special_combinations)
 
         _0_global_dct.delete_note(self.dct_key, note)
         _0_global_dct.add_note(self.dct_key, new_note)
@@ -2391,7 +2388,7 @@ class EditW(tk.Toplevel):
         frm_key, frm = window_form.open()
         if not frm_key:
             return
-        frm = encode_special_combinations(frm)
+        frm = encode_special_combinations(frm, _0_global_special_combinations)
 
         _0_global_dct.add_frm(self.dct_key, frm_key, frm)
 
@@ -2409,7 +2406,7 @@ class EditW(tk.Toplevel):
         closed, new_frm = window_entry.open()
         if closed:
             return
-        new_frm = encode_special_combinations(new_frm)
+        new_frm = encode_special_combinations(new_frm, _0_global_special_combinations)
 
         _0_global_dct.d[self.dct_key].forms[frm_key] = new_frm
 
@@ -2443,7 +2440,7 @@ class EditW(tk.Toplevel):
         closed, group = window_group.open()
         if closed:
             return
-        group = encode_special_combinations(group)
+        group = encode_special_combinations(group, _0_global_special_combinations)
 
         _0_global_dct.add_entries_to_group(group, [self.dct_key])
 
@@ -2968,7 +2965,7 @@ class GroupsSettingsW(tk.Toplevel):
         closed, group = window.open()
         if closed:
             return
-        group = encode_special_combinations(group)
+        group = encode_special_combinations(group, _0_global_special_combinations)
         _0_global_dct.add_group(group)
 
         self.print_groups(False)
@@ -2982,7 +2979,7 @@ class GroupsSettingsW(tk.Toplevel):
         closed, group_new = window.open()
         if closed:
             return
-        group_new = encode_special_combinations(group_new)
+        group_new = encode_special_combinations(group_new, _0_global_special_combinations)
         _0_global_dct.rename_group(group_old, group_new)
 
         self.print_groups(False)
@@ -4212,7 +4209,7 @@ class LearnW(tk.Toplevel):
     # Ввод ответа и переход к следующему слову
     def input(self):
         # Вывод в журнал пользовательского ответа
-        answer = encode_special_combinations(self.entry_input.get())
+        answer = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations)
         if answer != '':
             self.outp(answer)
 
@@ -4300,7 +4297,7 @@ class LearnW(tk.Toplevel):
                 if bool(_0_global_with_typo):
                     window = PopupDialogueW(self,
                                             msg=f'Неверно.\n'
-                                                f'Ваш ответ: {encode_special_combinations(self.entry_input.get())}\n'
+                                                f'Ваш ответ: {encode_special_combinations(self.entry_input.get(), _0_global_special_combinations)}\n'
                                                 f'Правильный ответ: {correct_answer}',
                                             btn_left_text='Ясно', btn_right_text='Просто опечатка',
                                             st_left='Default', st_right='Default',
@@ -4317,7 +4314,8 @@ class LearnW(tk.Toplevel):
                     entry.incorrect()
                     self.count_all += 1
             else:
-                window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get()),
+                window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get(),
+                                                                            _0_global_special_combinations),
                                           correct_answer, bool(_0_global_with_typo))
                 answer = window.open()
                 if answer != 'typo':
@@ -4330,36 +4328,43 @@ class LearnW(tk.Toplevel):
     def check_wrd(self):
         entry = _0_global_dct.d[self.current_key]
         if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get()) == entry.wrd
+            is_correct = encode_special_combinations(self.entry_input.get(),
+                                                     _0_global_special_combinations) == entry.wrd
         else:
-            is_correct = encode_special_combinations(self.entry_input.get()).lower() == entry.wrd.lower()
+            is_correct = encode_special_combinations(self.entry_input.get(),
+                                                     _0_global_special_combinations).lower() == entry.wrd.lower()
         self.check_answer(entry.wrd, is_correct, self.current_key)
 
     # Проверка введённой словоформы
     def check_form(self):
         entry = _0_global_dct.d[self.current_key]
         if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get()) == entry.forms[self.current_form]
+            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations) ==\
+                         entry.forms[self.current_form]
         else:
-            is_correct = encode_special_combinations(self.entry_input.get()).lower() == entry.forms[self.current_form].lower()
+            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations).lower() ==\
+                         entry.forms[self.current_form].lower()
         self.check_answer(entry.forms[self.current_form], is_correct, self.current_key, self.current_form)
 
     # Проверка введённого перевода
     def check_tr(self):
         entry = _0_global_dct.d[self.current_key]
         if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get()) in entry.tr
+            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations) in entry.tr
         else:
-            is_correct = encode_special_combinations(self.entry_input.get()).lower() in (tr.lower() for tr in entry.tr)
+            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations).lower() in\
+                         (tr.lower() for tr in entry.tr)
         self.check_answer(frm_key_to_str_for_print(entry.tr), is_correct, self.current_key)
 
     # Проверка введённого артикля
     def check_article(self):
         entry = _0_global_dct.d[self.current_key]
         if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get()) == entry.wrd[0:3]
+            is_correct = encode_special_combinations(self.entry_input.get(),
+                                                     _0_global_special_combinations) == entry.wrd[0:3]
         else:
-            is_correct = encode_special_combinations(self.entry_input.get()).lower() == entry.wrd[0:3].lower()
+            is_correct = encode_special_combinations(self.entry_input.get(),
+                                                     _0_global_special_combinations).lower() == entry.wrd[0:3].lower()
         self.check_answer(entry.wrd[0:3], is_correct, self.current_key)
 
     # Выбор слова для угадывания
@@ -5735,8 +5740,11 @@ class AddW(tk.Toplevel):
     def add(self):
         global _0_global_has_progress
 
-        self.dct_key = add_entry_with_choose(_0_global_dct, self, encode_special_combinations(self.var_wrd.get()),
-                                             encode_special_combinations(self.var_tr.get()))
+        self.dct_key = add_entry_with_choose(_0_global_dct, self,
+                                             encode_special_combinations(self.var_wrd.get(),
+                                                                         _0_global_special_combinations),
+                                             encode_special_combinations(self.var_tr.get(),
+                                                                         _0_global_special_combinations))
         if not self.dct_key:
             return
         _0_global_dct.d[self.dct_key].fav = self.var_fav.get()
@@ -6020,21 +6028,20 @@ class SettingsW(tk.Toplevel):
         save_dct_if_has_progress(self, _0_global_dct, _0_global_dct_savename, _0_global_has_progress)
 
         _0_global_dct = Dictionary()
-        savename = upload_dct(self, _0_global_dct, savename, 'Отмена')
-        if not savename:
+        res = upload_save(self, _0_global_dct, savename, 'Отмена')
+        if not res:
             self.destroy()  # Если была попытка открыть повреждённый словарь, то при сохранении настроек, текущий словарь стёрся бы
             return
-        _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_dct.ctg,\
-            _0_global_dct.groups = upload_local_settings(savename)
+        _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_check_register,\
+            _0_global_special_combinations = res
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
-            upload_local_auto_settings(savename)
-        _0_global_dct_savename = savename
+            upload_local_auto_settings(_0_global_dct_savename)
         save_dct_name()
 
         self.backup_dct = copy.deepcopy(_0_global_dct)
 
         # Обновляем надписи с названием открытого словаря
-        self.refresh_open_dct_name(savename)
+        self.refresh_open_dct_name(_0_global_dct_savename)
 
         self.has_ctg_changes = False
         self.has_groups_changes = False
@@ -6100,7 +6107,7 @@ class SettingsW(tk.Toplevel):
 
         _0_global_dct = Dictionary()
         create_dct(_0_global_dct, savename)
-        _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_dct.ctg,\
+        _0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations, _0_global_dct.ctg,\
             _0_global_dct.groups = upload_local_settings(savename)
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
             upload_local_auto_settings(savename)
@@ -6231,7 +6238,7 @@ class SettingsW(tk.Toplevel):
         self.backup_scale = _0_global_scale
 
         # Сохранение настроек в файлы
-        save_local_settings(_0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register,
+        save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations,
                             _0_global_dct.ctg, _0_global_dct.groups, _0_global_dct_savename)
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale)
         save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
@@ -6662,7 +6669,7 @@ class MainW(tk.Tk):
         _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale =\
             upload_global_settings()
         # Обновляем локальные настройки
-        _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_dct.ctg,\
+        _0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations, _0_global_dct.ctg,\
             _0_global_dct.groups = upload_local_settings(_0_global_dct_savename)
         # Обновляем локальные авто-настройки
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
@@ -7040,12 +7047,10 @@ _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_glob
     upload_global_settings()  # Загружаем глобальные настройки
 upload_theme_img(th)  # Загружаем изображения для выбранной темы
 root = MainW()  # Создаём графический интерфейс
-_0_global_dct_savename = upload_dct(root, _0_global_dct, _0_global_dct_savename,
-                                    'Завершить работу')  # Загружаем словарь
-if not _0_global_dct_savename:
+res = upload_save(root, _0_global_dct, _0_global_dct_savename, 'Завершить работу')  # Загружаем словарь
+if not res:
     exit(101)
-_0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register, _0_global_dct.ctg,\
-    _0_global_dct.groups = upload_local_settings(_0_global_dct_savename)  # Загружаем локальные настройки
+_0_global_dct_savename, _0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations = res
 _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
     upload_local_auto_settings(_0_global_dct_savename)  # Загружаем локальные авто-настройки
 _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
