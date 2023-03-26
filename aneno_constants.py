@@ -3,7 +3,7 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.16-patch-1'
+PROGRAM_VERSION = 'v7.1.16-patch-2'
 PROGRAM_DATE = '27.3.2023'
 PROGRAM_TIME = '2:08 (UTC+3)'
 
