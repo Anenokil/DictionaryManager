@@ -4534,9 +4534,9 @@ class PrintW(tk.Toplevel):
         # { {
         self.frame_print_header = ttk.Frame(self.frame_print_menu, style='Invis.TFrame')
         # { { {
-        self.btn_print_about_window = ttk.Button(self.frame_print_header, command=self.print_about_window, width=2, takefocus=False)
+        self.btn_print_about_window = ttk.Button(self.frame_print_header, command=self.about_window, width=2, takefocus=False)
         set_image(self.btn_print_about_window, self.img_about, img_about, '?')
-        self.btn_print_print_out = ttk.Button(self.frame_print_header, command=self.print_print_out, takefocus=False)
+        self.btn_print_print_out = ttk.Button(self.frame_print_header, command=self.print_out, takefocus=False)
         set_image(self.btn_print_print_out, self.img_print_out, img_print_out, 'Распечатать')
         self.frame_print_parameters = ttk.Frame(self.frame_print_header, style='Default.TFrame')
         # { { { {
@@ -4559,19 +4559,19 @@ class PrintW(tk.Toplevel):
         # } } }
         self.frame_print_buttons_for_selected = ttk.Frame(self.frame_print_menu, style='Default.TFrame')
         # { { {
-        self.btn_print_fav = ttk.Button(self.frame_print_buttons_for_selected, command=self.print_fav_selected, width=3,
+        self.btn_print_fav = ttk.Button(self.frame_print_buttons_for_selected, command=lambda: self.fav_selected(self.print_selected_keys), width=3,
                                   takefocus=False)
         set_image(self.btn_print_fav, self.img_fav, img_fav, '*+')
-        self.btn_print_unfav = ttk.Button(self.frame_print_buttons_for_selected, command=self.print_unfav_selected, width=3,
+        self.btn_print_unfav = ttk.Button(self.frame_print_buttons_for_selected, command=lambda: self.unfav_selected(self.print_selected_keys), width=3,
                                     takefocus=False)
         set_image(self.btn_print_unfav, self.img_unfav, img_unfav, '*-')
-        self.btn_print_add_to_group = ttk.Button(self.frame_print_buttons_for_selected, command=self.print_add_selected_to_group,
+        self.btn_print_add_to_group = ttk.Button(self.frame_print_buttons_for_selected, command=lambda: self.add_selected_to_group(self.print_selected_keys),
                                            width=3, takefocus=False)
         set_image(self.btn_print_add_to_group, self.img_add_to_group, img_add_to_group, 'G+')
         self.btn_print_remove_from_group = ttk.Button(self.frame_print_buttons_for_selected,
-                                                command=self.print_remove_selected_from_group, width=3, takefocus=False)
+                                                command=self.remove_selected_from_group_print, width=3, takefocus=False)
         set_image(self.btn_print_remove_from_group, self.img_remove_from_group, img_remove_from_group, 'G-')
-        self.btn_print_delete = ttk.Button(self.frame_print_buttons_for_selected, command=self.print_delete_selected, width=3,
+        self.btn_print_delete = ttk.Button(self.frame_print_buttons_for_selected, command=lambda: self.delete_selected(self.print_selected_keys), width=3,
                                      takefocus=False)
         set_image(self.btn_print_delete, self.img_delete, img_trashcan, 'DEL')
         # } } }
@@ -4651,24 +4651,24 @@ class PrintW(tk.Toplevel):
         # } } }
         self.frame_search_info = ttk.Frame(self.frame_search_header, style='Invis.TFrame')
         # { { {
-        self.btn_search_about_window = ttk.Button(self.frame_search_info, command=self.search_about_window, width=2, takefocus=False)
+        self.btn_search_about_window = ttk.Button(self.frame_search_info, command=self.about_window, width=2, takefocus=False)
         set_image(self.btn_search_about_window, self.img_about, img_about, '?')
         self.lbl_search_info = ttk.Label(self.frame_search_info, textvariable=self.var_search_info, style='Default.TLabel')
         # } } }
         self.frame_search_buttons_for_selected = ttk.Frame(self.frame_search_header, style='Default.TFrame')
         # { { {
-        self.btn_search_fav = ttk.Button(self.frame_search_buttons_for_selected, command=self.search_fav_selected, width=3, takefocus=False)
+        self.btn_search_fav = ttk.Button(self.frame_search_buttons_for_selected, command=lambda: self.fav_selected(self.search_selected_keys), width=3, takefocus=False)
         set_image(self.btn_search_fav, self.img_fav, img_fav, '*+')
-        self.btn_search_unfav = ttk.Button(self.frame_search_buttons_for_selected, command=self.search_unfav_selected, width=3,
+        self.btn_search_unfav = ttk.Button(self.frame_search_buttons_for_selected, command=lambda: self.unfav_selected(self.search_selected_keys), width=3,
                                     takefocus=False)
         set_image(self.btn_search_unfav, self.img_unfav, img_unfav, '*-')
-        self.btn_search_add_to_group = ttk.Button(self.frame_search_buttons_for_selected, command=self.search_add_selected_to_group, width=3,
+        self.btn_search_add_to_group = ttk.Button(self.frame_search_buttons_for_selected, command=lambda: self.add_selected_to_group(self.search_selected_keys), width=3,
                                            takefocus=False)
         set_image(self.btn_search_add_to_group, self.img_add_to_group, img_add_to_group, 'G+')
         self.btn_search_remove_from_group = ttk.Button(self.frame_search_buttons_for_selected,
-                                                command=self.search_remove_selected_from_group, width=3, takefocus=False)
+                                                command=self.remove_selected_from_group_search, width=3, takefocus=False)
         set_image(self.btn_search_remove_from_group, self.img_remove_from_group, img_remove_from_group, 'G-')
-        self.btn_search_delete = ttk.Button(self.frame_search_buttons_for_selected, command=self.search_delete_selected, width=3,
+        self.btn_search_delete = ttk.Button(self.frame_search_buttons_for_selected, command=lambda: self.delete_selected(self.search_selected_keys), width=3,
                                      takefocus=False)
         set_image(self.btn_search_delete, self.img_delete, img_trashcan, 'DEL')
         # } } }
@@ -4700,7 +4700,7 @@ class PrintW(tk.Toplevel):
         # } }
         # }
 
-        self.tabs.grid(row=0, column=0, padx=6, pady=6)
+        self.tabs.grid(row=0, column=0, padx=0, pady=0)
         # {
         self.frame_print_menu.grid(row=0, column=0, padx=6, pady=(6, 0), sticky='W')
         # { {
@@ -4720,6 +4720,7 @@ class PrintW(tk.Toplevel):
         self.combo_print_order.grid(  row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
         # } } } }
         # } } }
+        # self.frame_print_buttons_for_selected
         # { { {
         self.btn_print_fav.grid(              row=0, column=0)
         self.btn_print_unfav.grid(            row=0, column=1)
@@ -4777,7 +4778,7 @@ class PrintW(tk.Toplevel):
         self.btn_search_about_window.grid(row=0, column=0, padx=0, pady=0)
         self.lbl_search_info.grid(        row=0, column=1, padx=0, pady=0)
         # } } }
-        # self.frame_buttons_for_selected
+        # self.frame_search_buttons_for_selected
         # { { {
         self.btn_search_fav.grid(              row=0, column=0)
         self.btn_search_unfav.grid(            row=0, column=1)
@@ -4884,7 +4885,7 @@ class PrintW(tk.Toplevel):
         self.search_print(True)  # Выводим статьи
 
     # Нажатие на кнопку "Распечатать словарь в файл"
-    def print_print_out(self):
+    def print_out(self):
         folder = askdirectory(initialdir=MAIN_PATH, title='В какую папку сохранить файл?')
         if not folder:
             return
@@ -4899,20 +4900,13 @@ class PrintW(tk.Toplevel):
             self.search_nt = window.open()
 
     # Изменить статью
-    def print_edit_entry(self, index: int):
-        EditW(self, self.print_keys[index]).open()
-
-        self.print_print(False)
-        self.search_print(False)
-
-    # Изменить статью
-    def search_edit_entry(self, key: tuple[str, int]):
+    def edit_entry(self, key: tuple[str, int]):
         EditW(self, key).open()
 
         self.search_print(False)
         self.print_print(False)
 
-    # Вывести информацию о количестве статей
+    # Вывести информацию о количестве статей (1)
     def print_print_info(self):
         group = self.var_print_group.get()
         if group == ALL_GROUPS:
@@ -4940,7 +4934,7 @@ class PrintW(tk.Toplevel):
             info_selected = f'{tmp_1} {count_selected} {tmp_2}'
         self.var_print_info_selected.set(info_selected)
 
-    # Вывести информацию о количестве статей
+    # Вывести информацию о количестве статей (2)
     def search_print_info(self):
         tmp_1 = set_postfix(self.search_count_elements, ('Найдена', 'Найдены', 'Найдено'))
         tmp_2 = set_postfix(self.search_count_elements, ('статья', 'статьи', 'статей'))
@@ -4954,7 +4948,7 @@ class PrintW(tk.Toplevel):
 
         self.var_search_info.set(res)
 
-    # Напечатать словарь
+    # Напечатать словарь (1)
     def print_print(self, move_scroll: bool):
         # Удаляем старые подсказки
         for tip in self.print_tips:
@@ -5033,7 +5027,7 @@ class PrintW(tk.Toplevel):
                              for i in range(self.print_count_elements_on_page)]
         # Создаём новые кнопки
         self.print_buttons = [ttk.Button(self.print_frames[i],
-                                         command=lambda i=i: self.print_edit_entry(self.print_start_index + i),
+                                         command=lambda i=i: self.edit_entry(self.print_keys[self.print_start_index + i]),
                                          takefocus=False,
                                          style='NoteSelected.TButton'
                                                if self.print_keys[self.print_start_index + i]
@@ -5074,7 +5068,7 @@ class PrintW(tk.Toplevel):
         if move_scroll:
             self.scrolled_frame_print.canvas.yview_moveto(0.0)
 
-    # Нажатие на кнопку "Поиск"
+    # Нажатие на кнопку "Поиск" (2)
     def search_print(self, move_scroll: bool):
         # Удаляем старые кнопки
         for btn in self.search_buttons:
@@ -5131,7 +5125,7 @@ class PrintW(tk.Toplevel):
                               for i in range(self.search_count_elements_on_page)]
         # Создаём новые кнопки
         self.search_buttons = [ttk.Button(self.search_frames[i],
-                                          command=lambda i=i: self.search_edit_entry(self.search_keys[self.search_start_index + i]),
+                                          command=lambda i=i: self.edit_entry(self.search_keys[self.search_start_index + i]),
                                           takefocus=False,
                                           style='NoteSelected.TButton'
                                                 if self.search_keys[self.search_start_index + i]
@@ -5159,7 +5153,7 @@ class PrintW(tk.Toplevel):
         if move_scroll:
             self.scrolled_frame_search.canvas.yview_moveto(0.0)
 
-    # Обновить одну из кнопок журнала
+    # Обновить одну из кнопок журнала (1)
     def print_refresh_one_button(self, index: int):
         # Выводим текст на кнопку
         if self.var_print_briefly.get():
@@ -5172,7 +5166,7 @@ class PrintW(tk.Toplevel):
         # Выводим информацию о количестве статей
         self.print_print_info()
 
-    # Обновить одну из кнопок журнала
+    # Обновить одну из кнопок журнала (2)
     def search_refresh_one_button(self, index: int, key: tuple[str, int]):
         # Выводим текст на кнопку
         self.search_buttons[index].configure(text=get_all_entry_info(_0_global_dct.d[key], 75, 13))
@@ -5180,7 +5174,7 @@ class PrintW(tk.Toplevel):
         # Выводим информацию о количестве статей
         self.search_print_info()
 
-    # Обновить все кнопки журнала
+    # Обновить все кнопки журнала (1)
     def print_refresh_all_buttons(self):
         # Выводим текст на кнопки
         if self.var_print_briefly.get():
@@ -5192,7 +5186,7 @@ class PrintW(tk.Toplevel):
                 key = self.print_keys[self.print_start_index + i]
                 self.print_buttons[i].configure(text=get_entry_info_detailed(_0_global_dct.d[key], 75))
 
-    # Обновить все кнопки журнала
+    # Обновить все кнопки журнала (2)
     def search_refresh_all_buttons(self):
         # Выводим текст на кнопки
         for i in range(self.search_count_elements_on_page):
@@ -5202,61 +5196,61 @@ class PrintW(tk.Toplevel):
         # Выводим информацию о количестве статей
         self.search_print_info()
 
-    # Перейти на страницу с заданным номером
+    # Перейти на страницу с заданным номером (1)
     def print_go_to_page_with_number(self, number: int):
         self.print_current_page = number
         self.print_start_index = (self.print_current_page - 1) * self.print_max_elements_on_page
         self.print_print(True)
 
-    # Перейти на страницу с заданным номером
+    # Перейти на страницу с заданным номером (2)
     def search_go_to_page_with_number(self, number: int):
         self.search_current_page = number
         self.search_start_index = (self.search_current_page - 1) * self.search_max_elements_on_page
         self.search_print(True)
 
-    # Перейти на предыдущую страницу
+    # Перейти на предыдущую страницу (1)
     def print_go_to_prev_page(self):
         if self.print_current_page != 1:
             self.print_go_to_page_with_number(self.print_current_page - 1)
 
-    # Перейти на предыдущую страницу
+    # Перейти на предыдущую страницу (2)
     def search_go_to_prev_page(self):
         if self.search_current_page != 1:
             self.search_go_to_page_with_number(self.search_current_page - 1)
 
-    # Перейти на следующую страницу
+    # Перейти на следующую страницу (1)
     def print_go_to_next_page(self):
         if self.print_current_page != self.print_count_pages:
             self.print_go_to_page_with_number(self.print_current_page + 1)
 
-    # Перейти на следующую страницу
+    # Перейти на следующую страницу (2)
     def search_go_to_next_page(self):
         if self.search_current_page != self.search_count_pages:
             self.search_go_to_page_with_number(self.search_current_page + 1)
 
-    # Перейти на первую страницу
+    # Перейти на первую страницу (1)
     def print_go_to_first_page(self, to_reset_selected_keys=False):
         if to_reset_selected_keys:
             self.print_selected_keys = []
             self.frame_print_buttons_for_selected.grid_remove()
         self.print_go_to_page_with_number(1)
 
-    # Перейти на первую страницу
+    # Перейти на первую страницу (2)
     def search_go_to_first_page(self, to_reset_selected_keys=False):
         if to_reset_selected_keys:
             self.search_selected_keys = []
             self.frame_search_buttons_for_selected.grid_remove()
         self.search_go_to_page_with_number(1)
 
-    # Перейти на последнюю страницу
+    # Перейти на последнюю страницу (1)
     def print_go_to_last_page(self):
         self.print_go_to_page_with_number(self.print_count_pages)
 
-    # Перейти на последнюю страницу
+    # Перейти на последнюю страницу (2)
     def search_go_to_last_page(self):
         self.search_go_to_page_with_number(self.search_count_pages)
 
-    # Выделить одну статью (или убрать выделение)
+    # Выделить одну статью (или убрать выделение) (1)
     def print_select_one(self, index: int):
         key = self.print_keys[self.print_start_index + index]
         if key in self.print_selected_keys:
@@ -5270,7 +5264,7 @@ class PrintW(tk.Toplevel):
             self.frame_print_buttons_for_selected.grid(row=0, column=1, padx=(6, 0), pady=0, sticky='WS')
         self.print_print_info()
 
-    # Выделить одну статью (или убрать выделение)
+    # Выделить одну статью (или убрать выделение) (2)
     def search_select_one(self, index: int):
         key = self.search_keys[self.search_start_index + index]
         if key in self.search_selected_keys:
@@ -5284,7 +5278,7 @@ class PrintW(tk.Toplevel):
             self.frame_search_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0, sticky='W')
         self.search_print_info()
 
-    # Выделить все статьи на странице
+    # Выделить все статьи на странице (1)
     def print_select_page(self):
         for i in range(self.print_count_elements_on_page):
             key = self.print_keys[self.print_start_index + i]
@@ -5295,7 +5289,7 @@ class PrintW(tk.Toplevel):
         self.frame_print_buttons_for_selected.grid(row=0, column=1, padx=(6, 0), pady=0, sticky='WS')
         self.print_print_info()
 
-    # Выделить все статьи на странице
+    # Выделить все статьи на странице (2)
     def search_select_page(self):
         for i in range(self.search_count_elements_on_page):
             key = self.search_keys[self.search_start_index + i]
@@ -5306,7 +5300,7 @@ class PrintW(tk.Toplevel):
         self.frame_search_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0, sticky='W')
         self.search_print_info()
 
-    # Снять выделение со всех статей на странице
+    # Снять выделение со всех статей на странице (1)
     def print_unselect_page(self):
         for i in range(self.print_count_elements_on_page):
             key = self.print_keys[self.print_start_index + i]
@@ -5318,7 +5312,7 @@ class PrintW(tk.Toplevel):
             self.frame_print_buttons_for_selected.grid_remove()
         self.print_print_info()
 
-    # Снять выделение со всех статей на странице
+    # Снять выделение со всех статей на странице (2)
     def search_unselect_page(self):
         for i in range(self.search_count_elements_on_page):
             key = self.search_keys[self.search_start_index + i]
@@ -5330,7 +5324,7 @@ class PrintW(tk.Toplevel):
             self.frame_search_buttons_for_selected.grid_remove()
         self.search_print_info()
 
-    # Выделить все статьи
+    # Выделить все статьи (1)
     def print_select_all(self):
         self.print_selected_keys = list(self.print_keys)
         for btn in self.print_buttons:
@@ -5338,7 +5332,7 @@ class PrintW(tk.Toplevel):
         self.frame_print_buttons_for_selected.grid(row=0, column=1, padx=(6, 0), pady=0, sticky='WS')
         self.print_print_info()
 
-    # Выделить все статьи
+    # Выделить все статьи (2)
     def search_select_all(self):
         self.search_selected_keys = list(self.search_keys)
         for btn in self.search_buttons:
@@ -5346,7 +5340,7 @@ class PrintW(tk.Toplevel):
         self.frame_search_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0, sticky='W')
         self.search_print_info()
 
-    # Снять выделение со всех статей
+    # Снять выделение со всех статей (1)
     def print_unselect_all(self):
         self.print_selected_keys = []
         for btn in self.print_buttons:
@@ -5354,7 +5348,7 @@ class PrintW(tk.Toplevel):
         self.frame_print_buttons_for_selected.grid_remove()
         self.print_print_info()
 
-    # Снять выделение со всех статей
+    # Снять выделение со всех статей (2)
     def search_unselect_all(self):
         self.search_selected_keys = []
         for btn in self.search_buttons:
@@ -5363,41 +5357,13 @@ class PrintW(tk.Toplevel):
         self.search_print_info()
 
     # Добавить выделенные статьи в избранное
-    def print_fav_selected(self):
+    def fav_selected(self, keys: list[tuple[str, int]]):
         global _0_global_has_progress
 
-        if not self.print_selected_keys:
+        if not keys:
             return
 
-        _0_global_dct.fav_entries(tuple(self.print_selected_keys))
-
-        self.print_refresh_all_buttons()
-        self.search_refresh_all_buttons()
-
-        _0_global_has_progress = True
-
-    # Добавить выделенные статьи в избранное
-    def search_fav_selected(self):
-        global _0_global_has_progress
-
-        if not self.search_selected_keys:
-            return
-
-        _0_global_dct.fav_entries(tuple(self.search_selected_keys))
-
-        self.search_refresh_all_buttons()
-        self.print_refresh_all_buttons()
-
-        _0_global_has_progress = True
-
-    # Убрать выделенные статьи из избранного
-    def print_unfav_selected(self):
-        global _0_global_has_progress
-
-        if not self.print_selected_keys:
-            return
-
-        _0_global_dct.unfav_entries(tuple(self.print_selected_keys))
+        _0_global_dct.fav_entries(tuple(keys))
 
         self.print_refresh_all_buttons()
         self.search_refresh_all_buttons()
@@ -5405,24 +5371,24 @@ class PrintW(tk.Toplevel):
         _0_global_has_progress = True
 
     # Убрать выделенные статьи из избранного
-    def search_unfav_selected(self):
+    def unfav_selected(self, keys: list[tuple[str, int]]):
         global _0_global_has_progress
 
-        if not self.search_selected_keys:
+        if not keys:
             return
 
-        _0_global_dct.unfav_entries(tuple(self.search_selected_keys))
+        _0_global_dct.unfav_entries(tuple(keys))
 
-        self.search_refresh_all_buttons()
         self.print_refresh_all_buttons()
+        self.search_refresh_all_buttons()
 
         _0_global_has_progress = True
 
     # Добавить выделенные статьи в группу
-    def print_add_selected_to_group(self):
+    def add_selected_to_group(self, keys: list[tuple[str, int]]):
         global _0_global_has_progress
 
-        if not self.print_selected_keys:
+        if not keys:
             return
         if not _0_global_dct.groups:
             PopupMsgW(self, 'Не найдено ни одной группы!').open()
@@ -5433,37 +5399,15 @@ class PrintW(tk.Toplevel):
         closed, group = window_groups.open()
         if closed:
             return
-        _0_global_dct.add_entries_to_group(group, tuple(self.print_selected_keys))
+        _0_global_dct.add_entries_to_group(group, tuple(keys))
 
         self.print_refresh_all_buttons()
         self.search_refresh_all_buttons()
 
         _0_global_has_progress = True
 
-    # Добавить выделенные статьи в группу
-    def search_add_selected_to_group(self):
-        global _0_global_has_progress
-
-        if not self.search_selected_keys:
-            return
-        if not _0_global_dct.groups:
-            PopupMsgW(self, 'Не найдено ни одной группы!').open()
-            return
-
-        window_groups = PopupChooseW(self, msg='Выберите группу, в которую хотите добавить выбранные слова:',
-                                     values=_0_global_dct.groups, default_value=_0_global_dct.groups[0])
-        closed, group = window_groups.open()
-        if closed:
-            return
-        _0_global_dct.add_entries_to_group(group, tuple(self.search_selected_keys))
-
-        self.search_refresh_all_buttons()
-        self.print_refresh_all_buttons()
-
-        _0_global_has_progress = True
-
-    # Убрать выделенные статьи из группы
-    def print_remove_selected_from_group(self):
+    # Убрать выделенные статьи из группы (1)
+    def remove_selected_from_group_print(self):
         global _0_global_has_progress
 
         if not self.print_selected_keys:
@@ -5492,8 +5436,8 @@ class PrintW(tk.Toplevel):
 
         _0_global_has_progress = True
 
-    # Убрать выделенные статьи из группы
-    def search_remove_selected_from_group(self):
+    # Убрать выделенные статьи из группы (2)
+    def remove_selected_from_group_search(self):
         global _0_global_has_progress
 
         if not self.search_selected_keys:
@@ -5515,13 +5459,13 @@ class PrintW(tk.Toplevel):
         _0_global_has_progress = True
 
     # Удалить выделенные статьи
-    def print_delete_selected(self):
+    def delete_selected(self, keys: list[tuple[str, int]]):
         global _0_global_has_progress
 
-        if not self.print_selected_keys:
+        if not keys:
             return
 
-        count_selected = len(self.print_selected_keys)
+        count_selected = len(keys)
         tmp = set_postfix(count_selected, ('статью', 'статьи', 'статей'))
         window = PopupDialogueW(self, f'Вы действительно хотите удалить {count_selected} {tmp}?',
                                 set_enter_on_btn='none')
@@ -5529,7 +5473,7 @@ class PrintW(tk.Toplevel):
         if not answer:
             return
 
-        for key in self.print_selected_keys:
+        for key in keys:
             _0_global_dct.delete_entry(key)
 
         self.print_print(True)
@@ -5537,45 +5481,15 @@ class PrintW(tk.Toplevel):
 
         _0_global_has_progress = True
 
-    # Удалить выделенные статьи
-    def search_delete_selected(self):
-        global _0_global_has_progress
-
-        if not self.search_selected_keys:
-            return
-
-        count_selected = len(self.search_selected_keys)
-        tmp = set_postfix(count_selected, ('статью', 'статьи', 'статей'))
-        window = PopupDialogueW(self, f'Вы действительно хотите удалить {count_selected} {tmp}?',
-                                set_enter_on_btn='none')
-        answer = window.open()
-        if not answer:
-            return
-
-        for key in self.search_selected_keys:
-            _0_global_dct.delete_entry(key)
-
-        self.search_print(True)
-        self.print_print(True)
-
-        _0_global_has_progress = True
-
-    # Нажатие на кнопку "Справка" (картинка с вопросом)
-    def print_about_window(self):
-        PopupMsgW(self, '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
-                        '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
-                        '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
-                  msg_justify='left').open()
-
-    # Нажатие на кнопку "Справка" (картинка с вопросом)
-    def search_about_window(self):
+    # Справка об окне
+    def about_window(self):
         PopupMsgW(self, '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
                         '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
                         '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
                   msg_justify='left').open()
 
     # Установить фокус (вкладка "Просмотр словаря")
-    def print_set_focus(self):
+    def set_focus_print(self):
         self.unbind('<Return>')
         #
         self.bind('<Up>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
@@ -5596,21 +5510,21 @@ class PrintW(tk.Toplevel):
         self.bind('<Alt-Shift-A>', lambda event=None: self.print_unselect_all())
         self.bind('<Alt-Shift-a>', lambda event=None: self.print_unselect_all())
         #
-        self.bind('<Alt-G>', lambda event=None: self.print_add_selected_to_group())
-        self.bind('<Alt-g>', lambda event=None: self.print_add_selected_to_group())
-        self.bind('<Alt-Shift-G>', lambda event=None: self.print_remove_selected_from_group())
-        self.bind('<Alt-Shift-g>', lambda event=None: self.print_remove_selected_from_group())
+        self.bind('<Alt-G>', lambda event=None: self.add_selected_to_group(self.print_selected_keys))
+        self.bind('<Alt-g>', lambda event=None: self.add_selected_to_group(self.print_selected_keys))
+        self.bind('<Alt-Shift-G>', lambda event=None: self.remove_selected_from_group_print())
+        self.bind('<Alt-Shift-g>', lambda event=None: self.remove_selected_from_group_print())
         #
-        self.bind('<Alt-F>', lambda event=None: self.print_fav_selected())
-        self.bind('<Alt-f>', lambda event=None: self.print_fav_selected())
-        self.bind('<Alt-Shift-F>', lambda event=None: self.print_unfav_selected())
-        self.bind('<Alt-Shift-f>', lambda event=None: self.print_unfav_selected())
+        self.bind('<Alt-F>', lambda event=None: self.fav_selected(self.print_selected_keys))
+        self.bind('<Alt-f>', lambda event=None: self.fav_selected(self.print_selected_keys))
+        self.bind('<Alt-Shift-F>', lambda event=None: self.unfav_selected(self.print_selected_keys))
+        self.bind('<Alt-Shift-f>', lambda event=None: self.unfav_selected(self.print_selected_keys))
         #
-        self.bind('<Alt-D>', lambda event=None: self.print_delete_selected())
-        self.bind('<Alt-d>', lambda event=None: self.print_delete_selected())
+        self.bind('<Alt-D>', lambda event=None: self.delete_selected(self.print_selected_keys))
+        self.bind('<Alt-d>', lambda event=None: self.delete_selected(self.print_selected_keys))
 
     # Установить фокус (вкладка "Поиск")
-    def search_set_focus(self):
+    def set_focus_search(self):
         self.entry_search_query.focus_set()
 
         self.bind('<Return>', lambda event=None: self.btn_search_search.invoke())
@@ -5633,25 +5547,25 @@ class PrintW(tk.Toplevel):
         self.bind('<Alt-Shift-A>', lambda event=None: self.search_unselect_all())
         self.bind('<Alt-Shift-a>', lambda event=None: self.search_unselect_all())
         #
-        self.bind('<Alt-G>', lambda event=None: self.search_add_selected_to_group())
-        self.bind('<Alt-g>', lambda event=None: self.search_add_selected_to_group())
-        self.bind('<Alt-Shift-G>', lambda event=None: self.search_remove_selected_from_group())
-        self.bind('<Alt-Shift-g>', lambda event=None: self.search_remove_selected_from_group())
+        self.bind('<Alt-G>', lambda event=None: self.add_selected_to_group(self.search_selected_keys))
+        self.bind('<Alt-g>', lambda event=None: self.add_selected_to_group(self.search_selected_keys))
+        self.bind('<Alt-Shift-G>', lambda event=None: self.remove_selected_from_group_search())
+        self.bind('<Alt-Shift-g>', lambda event=None: self.remove_selected_from_group_search())
         #
-        self.bind('<Alt-F>', lambda event=None: self.search_fav_selected())
-        self.bind('<Alt-f>', lambda event=None: self.search_fav_selected())
-        self.bind('<Alt-Shift-F>', lambda event=None: self.search_unfav_selected())
-        self.bind('<Alt-Shift-f>', lambda event=None: self.search_unfav_selected())
+        self.bind('<Alt-F>', lambda event=None: self.fav_selected(self.search_selected_keys))
+        self.bind('<Alt-f>', lambda event=None: self.fav_selected(self.search_selected_keys))
+        self.bind('<Alt-Shift-F>', lambda event=None: self.unfav_selected(self.search_selected_keys))
+        self.bind('<Alt-Shift-f>', lambda event=None: self.unfav_selected(self.search_selected_keys))
         #
-        self.bind('<Alt-D>', lambda event=None: self.search_delete_selected())
-        self.bind('<Alt-d>', lambda event=None: self.search_delete_selected())
+        self.bind('<Alt-D>', lambda event=None: self.delete_selected(self.search_selected_keys))
+        self.bind('<Alt-d>', lambda event=None: self.delete_selected(self.search_selected_keys))
 
     # Смена вкладки
     def change_tab(self):
         if self.tabs.index(self.tabs.select()) == 0:
-            self.print_set_focus()
+            self.set_focus_print()
         else:
-            self.search_set_focus()
+            self.set_focus_search()
 
     def open(self, tab: typing.Literal['print', 'search'] = 'print'):
         self.focus_set()
@@ -5659,9 +5573,9 @@ class PrintW(tk.Toplevel):
 
         if tab == 'search':
             self.tabs.select(self.tab_search)
-            self.search_set_focus()
+            self.set_focus_search()
         else:
-            self.print_set_focus()
+            self.set_focus_print()
 
         self.tabs.bind('<<NotebookTabChanged>>', lambda event=None: self.change_tab())
 
