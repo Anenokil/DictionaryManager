@@ -283,9 +283,6 @@ def check_ctg_val(window_parent, values: list[str] | tuple[str, ...], new_val: s
     if new_val in values:
         warning(window_parent, f'Значение "{new_val}" уже существует!')
         return False
-    if CATEGORY_SEPARATOR in new_val:
-        warning(window_parent, f'Недопустимый символ: {CATEGORY_SEPARATOR}!')
-        return False
     return True
 
 
@@ -297,9 +294,6 @@ def check_ctg_val_edit(window_parent, values: list[str] | tuple[str, ...], old_v
         return False
     if new_val in values and new_val != old_val:
         warning(window_parent, f'Значение "{new_val}" уже существует!')
-        return False
-    if CATEGORY_SEPARATOR in new_val:
-        warning(window_parent, f'Недопустимый символ: {CATEGORY_SEPARATOR}!')
         return False
     return True
 
@@ -1304,13 +1298,13 @@ def create_dct(dct: Dictionary, savename: str):
     filepath = os.path.join(folder_path, DICTIONARY_SAVE_FN)
     os.mkdir(folder_path)
     open(filepath, 'w', encoding='utf-8').write(f'v{SAVES_VERSION}\n')
-    dct.read(filepath, CATEGORY_SEPARATOR)
+    dct.read(filepath, 0)
 
 
 # Сохранить словарь
 def save_dct(dct: Dictionary, savename: str):
     filepath = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
-    dct.save(filepath, CATEGORY_SEPARATOR, SAVES_VERSION)
+    dct.save(filepath, SAVES_VERSION)
 
 
 # Предложить сохранение словаря, если есть изменения
@@ -1331,7 +1325,7 @@ def upload_save(window_parent, dct: Dictionary, savename: str, btn_close_text: s
     save_file_path = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
     try:
         upgrade_dct_save(save_file_path, lambda line: encode_special_combinations(line, special_combinations))  # Если требуется, сохранение обновляется
-        dct.read(save_file_path, CATEGORY_SEPARATOR)  # Загрузка словаря
+        dct.read(save_file_path, len(dct.ctg))  # Загрузка словаря
     except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
         print(f'\nСловарь "{savename}" не найден!')
         create_dct(dct, savename)

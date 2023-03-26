@@ -1,7 +1,7 @@
 import os
 import shutil
 import aneno_constants as anc
-from aneno_dct import frm_key_to_str_for_save, read_frm_key
+from aneno_dct import frm_key_to_str_for_save
 
 """ Обновление ресурсов """
 
@@ -366,9 +366,9 @@ def upgrade_dct_save_1_to_2(path: str, encode_special_combinations):
                 elif line[0] == 'd':
                     dct_save_tmp.write('n' + encode_special_combinations(line[1:]))
                 elif line[0] == 'f':
-                    old_frm_key = read_frm_key(line[1:], anc.CATEGORY_SEPARATOR)
+                    old_frm_key = tuple(line[1:].split('@'))
                     new_frm_key = [encode_special_combinations(i) for i in old_frm_key]
-                    dct_save_tmp.write('f' + frm_key_to_str_for_save(new_frm_key, anc.CATEGORY_SEPARATOR))
+                    dct_save_tmp.write('f' + frm_key_to_str_for_save(new_frm_key, '@'))
                     line = dct_save.readline()
                     dct_save_tmp.write(encode_special_combinations(line))
                 elif line[0] == '*':
@@ -584,13 +584,53 @@ def upgrade_dct_save_6_to_7(path: str, _=None):
         os.remove(anc.TMP_PATH)
 
 
+# Обновить сохранение словаря с 7 до 8 версии
+def upgrade_dct_save_7_to_8(path: str, _=None):
+    with open(path, 'r', encoding='utf-8') as dct_save:
+        with open(anc.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+            dct_save.readline()
+            dct_save_tmp.write('v8\n')  # Версия сохранения словаря
+            while True:
+                line = dct_save.readline()
+                if not line:
+                    break
+                elif line[0] == 'w':
+                    dct_save_tmp.write(line)
+                    line = dct_save.readline()
+                    dct_save_tmp.write(line)
+                    line = dct_save.readline()
+                    dct_save_tmp.write(line)
+                    line = dct_save.readline()
+                    dct_save_tmp.write(line)
+                elif line[0] == 't':
+                    dct_save_tmp.write(line)
+                elif line[0] == 'n':
+                    dct_save_tmp.write(line)
+                elif line[0] == 'f':
+                    dct_save_tmp.write(line.replace('@', '\n'))
+                    line = dct_save.readline()
+                    dct_save_tmp.write(line)
+                elif line[0] == 'g':
+                    dct_save_tmp.write(line)
+    with open(anc.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
+        with open(path, 'w', encoding='utf-8') as dct_save:
+            while True:
+                line = dct_save_tmp.readline()
+                if not line:
+                    break
+                dct_save.write(line)
+    if anc.TMP_FN in os.listdir(anc.RESOURCES_PATH):
+        os.remove(anc.TMP_PATH)
+
+
 upgrade_dct_save_functions = [upgrade_dct_save_0_to_1,
                               upgrade_dct_save_1_to_2,
                               upgrade_dct_save_2_to_3,
                               upgrade_dct_save_3_to_4,
                               upgrade_dct_save_4_to_5,
                               upgrade_dct_save_5_to_6,
-                              upgrade_dct_save_6_to_7]
+                              upgrade_dct_save_6_to_7,
+                              upgrade_dct_save_7_to_8]
 
 
 # Обновить сохранение словаря старой версии до актуальной версии
