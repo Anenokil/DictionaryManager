@@ -1320,15 +1320,15 @@ def save_dct_if_has_progress(window_parent, dct: Dictionary, savename: str, has_
 
 # Загрузить сохранение
 def upload_save(window_parent, dct: Dictionary, savename: str, btn_close_text: str):
+    min_good_score_perc, check_register, special_combinations, dct.ctg, dct.groups = upload_local_settings(savename)
+
     save_file_path = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
     try:
-        min_good_score_perc, check_register, special_combinations, dct.ctg, dct.groups = upload_local_settings(savename)
         upgrade_dct_save(save_file_path, lambda line: encode_special_combinations(line, special_combinations))  # Если требуется, сохранение обновляется
         dct.read(save_file_path, len(dct.ctg))  # Загрузка словаря
     except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
         print(f'\nСловарь "{savename}" не найден!')
         create_dct(dct, savename)
-        min_good_score_perc, check_register, special_combinations, dct.ctg, dct.groups = upload_local_settings(savename)
         print('Создан и загружен пустой словарь')
         return savename, min_good_score_perc, check_register, special_combinations
     except Exception as exc:  # Если сохранение повреждено, то предлагается загрузить другое
@@ -6976,8 +6976,7 @@ _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
     upload_local_auto_settings(_0_global_dct_savename)  # Загружаем локальные авто-настройки
 _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
 _0_global_learn_session_number = 0
-if ICON_FN in os.listdir(RESOURCES_PATH):
-    root.iconphoto(True, tk.PhotoImage(file=ICON_PATH))  # Устанавливаем иконку
+root.iconphoto(True, tk.PhotoImage(file=ICON_PATH))  # Устанавливаем иконку
 root.mainloop()
 
 """
