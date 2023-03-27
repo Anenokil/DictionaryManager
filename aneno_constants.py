@@ -3,9 +3,9 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.16-patch-2'
+PROGRAM_VERSION = 'v7.1.16-patch-3'
 PROGRAM_DATE = '27.3.2023'
-PROGRAM_TIME = '2:08 (UTC+3)'
+PROGRAM_TIME = '3:12 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -140,4 +140,5 @@ NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с
 # Показать все группы
 ALL_GROUPS = 'Все'
 # Открывающие символы специальных комбинаций
-SPECIAL_COMBINATIONS_OPENING_SYMBOLS = ('^', '~', '`', '\'', '"', '*', '_', ':', '/', '\\', '|', '#', '$', '%', '&')
+SPECIAL_COMBINATIONS_OPENING_SYMBOLS = ('^', '~', '`', '\'', '"', '*', '_', ':',
+                                        '/', '\\', '|', '#', '$', '%', '&', '@', '§')

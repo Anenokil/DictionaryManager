@@ -304,6 +304,9 @@ def check_group_name(window_parent, groups: list[str] | tuple[str, ...], new_gro
     if new_group == '':
         warning(window_parent, 'Название группы должно содержать хотя бы один символ!')
         return False
+    if new_group == ALL_GROUPS:
+        warning(window_parent, 'Группа не может иметь такое название!')
+        return False
     if new_group in groups:
         warning(window_parent, f'Группа "{new_group}" уже существует!')
         return False
@@ -315,6 +318,9 @@ def check_group_name_edit(window_parent, groups: list[str] | tuple[str, ...], ol
     new_group = encode_special_combinations(new_group, _0_global_special_combinations)
     if new_group == '':
         warning(window_parent, 'Название группы должно содержать хотя бы один символ!')
+        return False
+    if new_group == ALL_GROUPS:
+        warning(window_parent, 'Группа не может иметь такое название!')
         return False
     if new_group in groups and new_group != old_group:
         warning(window_parent, f'Группа "{new_group}" уже существует!')
