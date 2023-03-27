@@ -610,6 +610,8 @@ def upgrade_dct_save_7_to_8(path: str, _=None):
                     dct_save_tmp.write(line.replace('@', '\n'))
                     line = dct_save.readline()
                     dct_save_tmp.write(line)
+                elif line[0] == 'g':
+                    dct_save_tmp.write(line)
                 elif line[0] == '*':
                     dct_save_tmp.write(line)
     with open(anc.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
