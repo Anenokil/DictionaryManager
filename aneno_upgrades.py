@@ -346,8 +346,21 @@ def upgrade_local_auto_settings_2_to_3(local_auto_settings_path: str):
         local_auto_settings_file.write(lines[2])
 
 
+# Обновить локальные авто-настройки с 3 до 4 версии
+def upgrade_local_auto_settings_3_to_4(local_auto_settings_path: str):
+    with open(local_auto_settings_path, 'r', encoding='utf-8') as local_auto_settings_file:
+        lines = local_auto_settings_file.readlines()
+    with open(local_auto_settings_path, 'w', encoding='utf-8') as local_auto_settings_file:
+        local_auto_settings_file.write('v4\n')
+        local_auto_settings_file.write(lines[1])
+        local_auto_settings_file.write(lines[2])
+        tmp = lines[3].strip().split()
+        local_auto_settings_file.write(f'{tmp[0]} 0 {tmp[2]} {tmp[1]} {tmp[3]}')
+
+
 upgrade_local_auto_settings_functions = [upgrade_local_auto_settings_1_to_2,
-                                         upgrade_local_auto_settings_2_to_3]
+                                         upgrade_local_auto_settings_2_to_3,
+                                         upgrade_local_auto_settings_3_to_4]
 
 
 # Обновить локальные авто-настройки старой версии до актуальной версии

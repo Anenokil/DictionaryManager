@@ -1233,12 +1233,12 @@ def upload_local_auto_settings(savename: str):
                 search_settings = (0, 0, 1, 1, 0, 0)
         # Режим учёбы
         try:
-            learn_settings = tuple(int(el) for el in local_auto_settings_file.readline().strip().split())
+            learn_settings = [int(el) for el in local_auto_settings_file.readline().strip().split()]
         except (ValueError, TypeError):
-            learn_settings = (0, 1, 1, 1)
+            learn_settings = [0, 0, 1, 1, 1]
         else:
-            if len(learn_settings) != 4:
-                learn_settings = (0, 1, 1, 1)
+            if len(learn_settings) != 5:
+                learn_settings = [0, 0, 1, 1, 1]
 
     # Увеличиваем счётчик сессий на 1 и сохраняем изменение
     session_number += 1
@@ -1250,7 +1250,7 @@ def upload_local_auto_settings(savename: str):
 
 # Сохранить автосохраняемые локальные настройки (настройки словаря)
 def save_local_auto_settings(session_number: int, search_settings: tuple[int, int, int, int, int, int],
-                             learn_settings: tuple[int, int, int, int], savename: str):
+                             learn_settings: list[int, int, int, int, int], savename: str):
     local_auto_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_AUTO_SETTINGS_FN)
     with open(local_auto_settings_path, 'w', encoding='utf-8') as local_auto_settings_file:
         local_auto_settings_file.write(f'v{LOCAL_AUTO_SETTINGS_VERSION}\n')
@@ -1796,12 +1796,13 @@ class ChooseLearnModeW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
 
         self.res: tuple[str, str, str, str, str] | None = None
+        self.group_vals = [ALL_GROUPS] + _0_global_dct.groups
 
         self.var_method = tk.StringVar(value=LEARN_VALUES_METHOD[_0_global_learn_settings[0]])  # Метод учёбы
-        self.var_group = tk.StringVar(value=ALL_GROUPS)  # Группа, из которой берутся слова
+        self.var_group = tk.StringVar(value=self.group_vals[_0_global_learn_settings[1]])  # Группа слов
         self.var_words = tk.StringVar(value=LEARN_VALUES_WORDS[_0_global_learn_settings[2]])  # Способ набора слов
-        self.var_forms = tk.StringVar(value=LEARN_VALUES_FORMS[_0_global_learn_settings[1]])  # Способ набора словоформ
-        self.var_order = tk.StringVar(value=LEARN_VALUES_ORDER[_0_global_learn_settings[3]])  # Порядок следования слов
+        self.var_forms = tk.StringVar(value=LEARN_VALUES_FORMS[_0_global_learn_settings[3]])  # Способ набора словоформ
+        self.var_order = tk.StringVar(value=LEARN_VALUES_ORDER[_0_global_learn_settings[4]])  # Порядок следования слов
 
         self.lbl_header = ttk.Label(self, text='Выберите способ учёбы', style='Default.TLabel')
         self.frame_main = ttk.Frame(self, style='Default.TFrame')
@@ -1813,8 +1814,7 @@ class ChooseLearnModeW(tk.Toplevel):
         #
         self.lbl_group = ttk.Label(self.frame_main, text='Группа:', style='Default.TLabel')
         self.combo_group = ttk.Combobox(self.frame_main, textvariable=self.var_group,
-                                        values=[ALL_GROUPS] + _0_global_dct.groups,
-                                        width=30, state='readonly', style='Default.TCombobox',
+                                        values=self.group_vals, width=30, state='readonly', style='Default.TCombobox',
                                         font=('DejaVu Sans Mono', _0_global_scale))
         #
         self.lbl_words = ttk.Label(self.frame_main, text='Набор статей:', style='Default.TLabel')
@@ -1877,10 +1877,11 @@ class ChooseLearnModeW(tk.Toplevel):
             forms = LEARN_VALUES_FORMS[0]
         order = self.var_order.get()
         self.res = (method, group, words, forms, order)
-        _0_global_learn_settings = (LEARN_VALUES_METHOD.index(method),
-                                    LEARN_VALUES_FORMS.index(forms),
+        _0_global_learn_settings = [LEARN_VALUES_METHOD.index(method),
+                                    self.group_vals.index(group),
                                     LEARN_VALUES_WORDS.index(words),
-                                    LEARN_VALUES_ORDER.index(order))
+                                    LEARN_VALUES_FORMS.index(forms),
+                                    LEARN_VALUES_ORDER.index(order)]
 
         save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
                                  _0_global_dct_savename)
@@ -2952,7 +2953,7 @@ class GroupsSettingsW(tk.Toplevel):
 
     # Переименовать группу
     def rename(self, group_old: str):
-        global _0_global_fav_groups
+        global _0_global_fav_groups, _0_global_learn_settings
 
         window = PopupEntryW(self, 'Введите новое название группы', default_value=group_old,
                              check_answer_function=lambda wnd, val:
@@ -2961,6 +2962,11 @@ class GroupsSettingsW(tk.Toplevel):
         if closed:
             return
         group_new = encode_special_combinations(group_new, _0_global_special_combinations)
+
+        if _0_global_dct.groups.index(group_old) + 1 == _0_global_learn_settings[1]:
+            _0_global_learn_settings[1] = len(_0_global_dct.groups)
+        elif _0_global_dct.groups.index(group_old) + 1 < _0_global_learn_settings[1]:
+            _0_global_learn_settings[1] -= 1
         _0_global_dct.rename_group(group_old, group_new)
         if group_old in _0_global_fav_groups:
             _0_global_fav_groups.remove(group_old)
@@ -2971,7 +2977,7 @@ class GroupsSettingsW(tk.Toplevel):
 
     # Удалить группу
     def delete(self, group: str):
-        global _0_global_fav_groups
+        global _0_global_fav_groups, _0_global_learn_settings
 
         group_size = _0_global_dct.count_entries_in_group(group)[0]
         if group_size != 0:
@@ -2981,6 +2987,11 @@ class GroupsSettingsW(tk.Toplevel):
             answer = window_dia.open()
             if not answer:
                 return
+
+        if _0_global_dct.groups.index(group) + 1 == _0_global_learn_settings[1]:
+            _0_global_learn_settings[1] = 0
+        elif _0_global_dct.groups.index(group) + 1 < _0_global_learn_settings[1]:
+            _0_global_learn_settings[1] -= 1
         _0_global_dct.delete_group(group)
         if group in _0_global_fav_groups:
             _0_global_fav_groups.remove(group)
