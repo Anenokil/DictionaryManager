@@ -248,12 +248,46 @@ def upgrade_local_settings_5_to_6(local_settings_path: str, _=None):
             local_settings_file.write(lines[i])
 
 
+# Обновить локальные настройки со 6 до 7 версии
+def upgrade_local_settings_6_to_7(local_settings_path: str, _=None):
+    with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
+        with open(anc.TMP_PATH, 'w', encoding='utf-8') as local_settings_file_tmp:
+            local_settings_file.readline()
+            local_settings_file_tmp.write('v7\n')
+            for _ in range(3):
+                line = local_settings_file.readline()
+                local_settings_file_tmp.write(line)
+            ctg_count = int(local_settings_file.readline().strip())
+            local_settings_file_tmp.write(f'{ctg_count}\n')
+            for i in range(ctg_count):
+                line = local_settings_file.readline()
+                local_settings_file_tmp.write(line)
+                val_count = int(local_settings_file.readline().strip())
+                local_settings_file_tmp.write(f'{val_count}\n')
+                for j in range(val_count):
+                    line = local_settings_file.readline()
+                    local_settings_file_tmp.write(line)
+            gr_count = int(local_settings_file.readline().strip())
+            local_settings_file_tmp.write(f'{gr_count}\n')
+            for i in range(gr_count):
+                line = local_settings_file.readline()
+                local_settings_file_tmp.write(f'0{line}')
+    with open(anc.TMP_PATH, 'r', encoding='utf-8') as local_settings_file_tmp:
+        with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
+            while True:
+                line = local_settings_file_tmp.readline()
+                if not line:
+                    break
+                local_settings_file.write(line)
+
+
 upgrade_local_settings_functions = [upgrade_local_settings_0_to_1,
                                     upgrade_local_settings_1_to_2,
                                     upgrade_local_settings_2_to_3,
                                     upgrade_local_settings_3_to_4,
                                     upgrade_local_settings_4_to_5,
-                                    upgrade_local_settings_5_to_6]
+                                    upgrade_local_settings_5_to_6,
+                                    upgrade_local_settings_6_to_7]
 
 
 # Обновить локальные настройки старой версии до актуальной версии

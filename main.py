@@ -1187,7 +1187,7 @@ def upload_local_settings(savename: str):
         try:
             gr_count = int(local_settings_file.readline().strip())
             for i in range(gr_count):
-                group = local_settings_file.readline().strip('\n')
+                group = local_settings_file.readline().strip('\n')[1:]
                 groups += [group]
         except:
             groups = []
@@ -1219,7 +1219,7 @@ def save_local_settings(min_good_score_perc: int, check_register: int, special_c
         # Группы
         local_settings_file.write(f'{len(groups)}\n')
         for group in groups:
-            local_settings_file.write(f'{group}\n')
+            local_settings_file.write(f'0{group}\n')
 
 
 # Загрузить автосохраняемые локальные настройки (настройки словаря)
