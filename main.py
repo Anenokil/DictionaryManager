@@ -1394,13 +1394,14 @@ def btn_enable(btn: ttk.Button, command, style='Default'):
 
 # Установить изображение на кнопку
 # Если изображение отсутствует, его замещает текст
-def set_image(btn: ttk.Button, img: tk.PhotoImage, img_name: str, text_if_no_img: str):
+def set_image(btn: ttk.Button, img: tk.PhotoImage, img_name: str, text_if_no_img: str,
+              compound: typing.Literal['none', 'image', 'text', 'left', 'right', 'top', 'bottom', 'center'] = 'image'):
     try:
         img.configure(file=img_name)
     except:
         btn.configure(text=text_if_no_img, compound='text', style='Default.TButton')
     else:
-        btn.configure(image=img, compound='image', style='Image.TButton')
+        btn.configure(image=img, compound=compound, style='Image.TButton')
 
 
 """ Графический интерфейс - функции валидации """
@@ -3065,7 +3066,7 @@ class GroupsSettingsW(tk.Toplevel):
     def about_window(self):
         PopupMsgW(self, '* Чтобы переименовать группу, наведите на неё мышку и нажмите ЛКМ или Ctrl+R\n'
                         '* Чтобы удалить группу, наведите на неё мышку и нажмите Ctrl+D\n'
-                        '* Чтобы все новые статьи автоматически добавлялись в группу,'
+                        '* Чтобы все новые статьи автоматически добавлялись в группу, '
                         'наведите на эту группу мышку и нажмите Ctrl+F',
                   msg_justify='left').open()
 
