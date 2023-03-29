@@ -3,14 +3,14 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.17-p1'
+PROGRAM_VERSION = 'v7.1.18'
 PROGRAM_DATE = '29.3.2023'
-PROGRAM_TIME = '9:53 (UTC+3)'
+PROGRAM_TIME = '10:40 (UTC+3)'
 
 """ Версии ресурсов """
 
 SAVES_VERSION = 8  # Актуальная версия сохранений словарей
-LOCAL_SETTINGS_VERSION = 7  # Актуальная версия локальных настроек
+LOCAL_SETTINGS_VERSION = 8  # Актуальная версия локальных настроек
 LOCAL_AUTO_SETTINGS_VERSION = 3  # Актуальная версия автосохраняемых локальных настроек
 GLOBAL_SETTINGS_VERSION = 3  # Актуальная версия глобальных настроек
 REQUIRED_THEME_VERSION = 6  # Актуальная версия тем
@@ -71,7 +71,7 @@ ICON_FN = 'icon.png'  # Файл с изображением иконки
 ICON_PATH = os.path.join(RESOURCES_PATH, ICON_FN)
 
 # Изображения
-IMG_NAMES = ['about_mgsp', 'about_typo', 'about',
+IMG_NAMES = ['about_typo', 'about',
              'ok', 'cancel',
              'fav', 'unfav', 'add_to_group', 'remove_from_group',
              'edit', 'add', 'delete',
@@ -80,9 +80,8 @@ IMG_NAMES = ['about_mgsp', 'about_typo', 'about',
              'redo', 'undo',
              'arrow_left', 'arrow_right', 'double_arrow_left', 'double_arrow_right',
              'trashcan']
-ICON_NAMES = IMG_NAMES[2:]
+ICON_NAMES = IMG_NAMES[1:]
 
-img_about_mgsp = os.path.join(IMAGES_PATH, 'about_mgsp.png')
 img_about_typo = os.path.join(IMAGES_PATH, 'about_typo.png')
 img_about = os.path.join(IMAGES_PATH, 'about.png')
 #
@@ -139,7 +138,6 @@ NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с
 
 # Шаблон файла локальных настроек
 DEFAULT_LOCAL_SETTINGS_FILE = f'v{LOCAL_SETTINGS_VERSION}\n' \
-                              f'67\n' \
                               f'1\n' \
                               f':aä:AÄ:oö:OÖ:uü:UÜ^sß^Sẞ\n' \
                               f'5\n' \

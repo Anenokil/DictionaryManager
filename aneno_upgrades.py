@@ -281,13 +281,24 @@ def upgrade_local_settings_6_to_7(local_settings_path: str, _=None):
                 local_settings_file.write(line)
 
 
+# Обновить локальные настройки со 7 до 8 версии
+def upgrade_local_settings_7_to_8(local_settings_path: str, _=None):
+    with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
+        lines = local_settings_file.readlines()
+    with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
+        local_settings_file.write('v8\n')
+        for i in range(2, len(lines)):
+            local_settings_file.write(lines[i])
+
+
 upgrade_local_settings_functions = [upgrade_local_settings_0_to_1,
                                     upgrade_local_settings_1_to_2,
                                     upgrade_local_settings_2_to_3,
                                     upgrade_local_settings_3_to_4,
                                     upgrade_local_settings_4_to_5,
                                     upgrade_local_settings_5_to_6,
-                                    upgrade_local_settings_6_to_7]
+                                    upgrade_local_settings_6_to_7,
+                                    upgrade_local_settings_7_to_8]
 
 
 # Обновить локальные настройки старой версии до актуальной версии

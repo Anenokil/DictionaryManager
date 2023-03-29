@@ -569,14 +569,12 @@ def find_and_highlight(target_wrd: str, search_wrd: str):
 
 
 # Выбрать случайное слово с учётом сложности
-def random_smart(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple[tuple[str, int], tuple[str, ...]]],
-                 min_good_score_perc: int) -> tuple[tuple[str, int], None] | tuple[tuple[str, int], tuple[str, ...]]:
+def random_smart(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple[tuple[str, int], tuple[str, ...]]]) ->\
+        tuple[tuple[str, int], None] | tuple[tuple[str, int], tuple[str, ...]]:
     summ = 0
     for (key, frm) in pool:
         entry = dct.d[key]
         score = (100 - round(100 * entry.score)) + 1
-        if 100 * entry.score < min_good_score_perc:
-            score *= 1.5
         score += 100 // (entry.all_att + 1)
         summ += round(score)
 
@@ -584,8 +582,6 @@ def random_smart(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple
     for (key, frm) in pool:
         entry = dct.d[key]
         score = (100 - round(100 * entry.score)) + 1
-        if 100 * entry.score < min_good_score_perc:
-            score *= 1.5
         score += 100 // (entry.all_att + 1)
         r -= round(score)
         if r <= 0:
@@ -1021,7 +1017,7 @@ def create_default_custom_theme():
 
 # Загрузить изображения для выбранной темы
 def upload_theme_img(theme: str):
-    global img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group,\
+    global img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group,\
         img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all,\
         img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right, img_double_arrow_left,\
         img_double_arrow_right, img_trashcan
@@ -1031,9 +1027,9 @@ def upload_theme_img(theme: str):
     else:
         theme_dir = os.path.join(ADDITIONAL_THEMES_PATH, theme)
 
-    images = [img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group,
-              img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all,
-              img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right,
+    images = [img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group,
+              img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page,
+              img_select_all, img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right,
               img_double_arrow_left, img_double_arrow_right, img_trashcan]
 
     for i in range(len(images)):
@@ -1043,10 +1039,10 @@ def upload_theme_img(theme: str):
         else:
             images[i] = os.path.join(IMAGES_PATH, file_name)
 
-    img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group,\
-        img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all,\
-        img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right, img_double_arrow_left,\
-        img_double_arrow_right, img_trashcan = images
+    img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group, img_remove_from_group,\
+        img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all, img_unselect_all,\
+        img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right,\
+        img_double_arrow_left, img_double_arrow_right, img_trashcan = images
 
 
 # Загрузить глобальные настройки (настройки программы)
@@ -1133,11 +1129,6 @@ def upload_local_settings(savename: str):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
         # Версия локальных настроек
         local_settings_file.readline()
-        # МППУ
-        try:
-            min_good_score_perc = int(local_settings_file.readline().strip())
-        except (ValueError, TypeError):
-            min_good_score_perc = 67
         # Учитывать ли регистр букв при учёбе
         try:
             check_register = int(local_settings_file.readline().strip())
@@ -1180,16 +1171,15 @@ def upload_local_settings(savename: str):
                     fav_groups += [group]
         except:
             groups = []
-    return min_good_score_perc, check_register, special_combinations, categories, groups, fav_groups
+    return check_register, special_combinations, categories, groups, fav_groups
 
 
 # Сохранить локальные настройки (настройки словаря)
-def save_local_settings(min_good_score_perc: int, check_register: int, special_combinations: dict[tuple[str, str], str],
+def save_local_settings(check_register: int, special_combinations: dict[tuple[str, str], str],
                         categories: dict[str, list[str]], groups: list[str], fav_groups: list[str], savename: str):
     local_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_SETTINGS_FN)
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
         local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n')  # Версия
-        local_settings_file.write(f'{min_good_score_perc}\n')  # МППУ
         # Проверять ли регистр букв при учёбе
         local_settings_file.write(f'{check_register}\n')
         # Специальные комбинации
@@ -1277,10 +1267,9 @@ def save_settings_if_has_changes(window_parent):
     window_dia = PopupDialogueW(window_parent, 'Хотите сохранить изменения настроек?', 'Да', 'Нет')
     answer = window_dia.open()
     if answer:
-        save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
-                             _0_global_scale)
-        save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations,
-                            _0_global_dct.ctg, _0_global_dct.groups, _0_global_fav_groups, _0_global_dct_savename)
+        save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale)
+        save_local_settings(_0_global_check_register, _0_global_special_combinations, _0_global_dct.ctg,
+                            _0_global_dct.groups, _0_global_fav_groups, _0_global_dct_savename)
         save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
                                  _0_global_dct_savename)
         PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
@@ -1317,17 +1306,15 @@ def save_dct_if_has_progress(window_parent, dct: Dictionary, savename: str, has_
 def upload_save(window_parent, dct: Dictionary, savename: str, btn_close_text: str):
     save_file_path = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
     try:
-        min_good_score_perc, check_register, special_combinations, dct.ctg, dct.groups, fav_groups =\
-            upload_local_settings(savename)
+        check_register, special_combinations, dct.ctg, dct.groups, fav_groups = upload_local_settings(savename)
         upgrade_dct_save(save_file_path, lambda line: encode_special_combinations(line, special_combinations))  # Если требуется, сохранение обновляется
         dct.read(save_file_path, len(dct.ctg))  # Загрузка словаря
     except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
         print(f'\nСловарь "{savename}" не найден!')
         create_dct(dct, savename)
-        min_good_score_perc, check_register, special_combinations, dct.ctg, dct.groups, fav_groups =\
-            upload_local_settings(savename)
+        check_register, special_combinations, dct.ctg, dct.groups, fav_groups = upload_local_settings(savename)
         print('Создан и загружен пустой словарь')
-        return savename, min_good_score_perc, check_register, special_combinations, fav_groups
+        return savename, check_register, special_combinations, fav_groups
     except Exception as exc:  # Если сохранение повреждено, то предлагается загрузить другое
         print(f'\nФайл со словарём "{savename}" повреждён или некорректен!'
               f'\n{exc}')
@@ -1353,7 +1340,7 @@ def upload_save(window_parent, dct: Dictionary, savename: str, btn_close_text: s
                 return None
     else:  # Если чтение прошло успешно, то выводится соответствующее сообщение
         print(f'\nСловарь "{savename}" успешно открыт')
-        return savename, min_good_score_perc, check_register, special_combinations, fav_groups
+        return savename, check_register, special_combinations, fav_groups
 
 
 # Экспортировать словарь
@@ -2986,12 +2973,13 @@ class GroupsSettingsW(tk.Toplevel):
         global _0_global_fav_groups
 
         group_size = _0_global_dct.count_entries_in_group(group)[0]
-        tmp = set_postfix(group_size, ('слово будет убрано', 'слова будут убраны', 'слов будут убраны'))
-        window_dia = PopupDialogueW(self, f'{group_size} {tmp} из группы "{group}", а сама группа будет удалена!\n'
-                                          f'Хотите продолжить?')
-        answer = window_dia.open()
-        if not answer:
-            return
+        if group_size != 0:
+            tmp = set_postfix(group_size, ('слово будет убрано', 'слова будут убраны', 'слов будут убраны'))
+            window_dia = PopupDialogueW(self, f'{group_size} {tmp} из группы "{group}", а сама группа будет удалена!\n'
+                                              f'Хотите продолжить?')
+            answer = window_dia.open()
+            if not answer:
+                return
         _0_global_dct.delete_group(group)
         if group in _0_global_fav_groups:
             _0_global_fav_groups.remove(group)
@@ -3727,7 +3715,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                 file.write(f'\n{self.custom_styles[el]}')
 
         if self.dir_with_images != CUSTOM_THEME_PATH:
-            images = [img_about_mgsp, img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav,
+            images = [img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav,
                       img_add_to_group, img_remove_from_group, img_edit, img_add, img_delete, img_select_page,
                       img_unselect_page, img_select_all, img_unselect_all, img_print_out, img_redo, img_undo,
                       img_arrow_left, img_arrow_right, img_double_arrow_left, img_double_arrow_right, img_trashcan]
@@ -4401,7 +4389,7 @@ class LearnW(tk.Toplevel):
         if self.order == LEARN_VALUES_ORDER[0]:
             self.current_key, self.current_form = random.choice(tuple(self.pool))
         else:
-            self.current_key, self.current_form = random_smart(_0_global_dct, self.pool, _0_global_min_good_score_perc)
+            self.current_key, self.current_form = random_smart(_0_global_dct, self.pool)
 
         # Вывод слова в журнал
         if self.learn_method == LEARN_VALUES_METHOD[0]:
@@ -5740,7 +5728,6 @@ class SettingsW(tk.Toplevel):
         self.backup_dct = copy.deepcopy(_0_global_dct)
         self.backup_scale = _0_global_scale
 
-        self.var_mgsp = tk.StringVar(value=str(_0_global_min_good_score_perc))
         self.var_check_register = tk.BooleanVar(value=bool(_0_global_check_register))
         self.var_show_updates = tk.BooleanVar(value=bool(_0_global_show_updates))
         self.var_show_typo_button = tk.BooleanVar(value=bool(_0_global_with_typo))
@@ -5765,16 +5752,6 @@ class SettingsW(tk.Toplevel):
                                       justify='center', style='Default.TLabel')
         self.tabs.add(self.tab_local, text='Настройки словаря')
         # {
-        self.frame_mgsp = ttk.Frame(self.tab_local, style='Default.TFrame')
-        # { {
-        self.btn_about_mgsp = ttk.Button(self.frame_mgsp, command=self.about_mgsp, width=2, takefocus=False)
-        set_image(self.btn_about_mgsp, self.img_about, img_about, '?')
-        self.lbl_mgsp = ttk.Label(self.frame_mgsp, text='Минимальный приемлемый процент угадываний слова:',
-                                  style='Default.TLabel')
-        self.entry_mgsp = ttk.Entry(self.frame_mgsp, textvariable=self.var_mgsp, width=4,
-                                    validate='key', validatecommand=self.vcmd,
-                                    style='Default.TEntry', font=('StdFont', _0_global_scale))
-        # } }
         self.frame_check_register = ttk.Frame(self.tab_local, style='Default.TFrame')
         # { {
         self.lbl_check_register = ttk.Label(self.frame_check_register,
@@ -5869,12 +5846,6 @@ class SettingsW(tk.Toplevel):
         self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 0))
         self.tabs.grid(        row=1, columnspan=2, padx=6, pady=(0, 6))
         #
-        self.frame_mgsp.grid(row=0, padx=6, pady=6)
-        # {
-        self.btn_about_mgsp.grid(row=0, column=0, padx=(6, 0), pady=6, sticky='E')
-        self.lbl_mgsp.grid(      row=0, column=1, padx=(3, 3), pady=6, sticky='E')
-        self.entry_mgsp.grid(    row=0, column=2, padx=(0, 6), pady=6, sticky='W')
-        # }
         self.frame_check_register.grid(row=1, padx=6, pady=6)
         # {
         self.lbl_check_register.grid(  row=0, column=0, padx=(6, 1), pady=6, sticky='E')
@@ -5926,20 +5897,11 @@ class SettingsW(tk.Toplevel):
         self.btn_save.grid( row=4, column=0, padx=(6, 3), pady=(0, 6))
         self.btn_close.grid(row=4, column=1, padx=(0, 6), pady=(0, 6))
 
-        self.tip_btn_about_mgsp = ttip.Hovertip(self.btn_about_mgsp, 'Справка', hover_delay=450)
         self.tip_btn_about_typo = ttip.Hovertip(self.btn_about_typo, 'Справка', hover_delay=450)
         self.tip_btn_about_dcts = ttip.Hovertip(self.btn_about_dcts, 'Справка', hover_delay=450)
 
-        self.entry_mgsp.icursor(len(self.var_mgsp.get()))
         self.print_dct_list(True)
         self.refresh_scale_buttons()
-
-    # Справка о МППУ (срабатывает при нажатии на кнопку)
-    def about_mgsp(self):
-        PopupImgW(self, img_about_mgsp, 'Статьи, у которых процент угадывания ниже этого значения,\n'
-                                        'будут считаться более сложными.\n'
-                                        'При выборе режима учёбы "В первую очередь сложные"\n'
-                                        'такие слова будут чаще попадаться.').open()
 
     # Настройки грамматических категорий (срабатывает при нажатии на кнопку)
     def categories_settings(self):
@@ -5971,9 +5933,8 @@ class SettingsW(tk.Toplevel):
 
     # Открыть словарь
     def dct_open(self, savename: str):
-        global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_special_combinations,\
-            _0_global_check_register, _0_global_has_progress, _0_global_session_number, _0_global_search_settings,\
-            _0_global_learn_settings
+        global _0_global_dct, _0_global_dct_savename, _0_global_special_combinations, _0_global_check_register,\
+            _0_global_has_progress, _0_global_session_number, _0_global_search_settings, _0_global_learn_settings
 
         if savename == _0_global_dct_savename:
             return
@@ -5988,8 +5949,7 @@ class SettingsW(tk.Toplevel):
         if not res:
             self.destroy()  # Если была попытка открыть повреждённый словарь, то при сохранении настроек, текущий словарь стёрся бы
             return
-        _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_check_register,\
-            _0_global_special_combinations, _0_global_fav_groups = res
+        _0_global_dct_savename, _0_global_check_register, _0_global_special_combinations, _0_global_fav_groups = res
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
             upload_local_auto_settings(_0_global_dct_savename)
         save_dct_name()
@@ -6047,9 +6007,9 @@ class SettingsW(tk.Toplevel):
 
     # Создать словарь (срабатывает при нажатии на кнопку)
     def dct_create(self):
-        global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_special_combinations,\
-            _0_global_check_register, _0_global_has_progress, _0_global_session_number, _0_global_search_settings,\
-            _0_global_learn_settings, _0_global_fav_groups
+        global _0_global_dct, _0_global_dct_savename, _0_global_special_combinations, _0_global_check_register,\
+            _0_global_has_progress, _0_global_session_number, _0_global_search_settings, _0_global_learn_settings,\
+            _0_global_fav_groups
 
         window = PopupEntryW(self, 'Введите название нового словаря', validate_function=validate_savename,
                              check_answer_function=check_dct_savename)
@@ -6063,8 +6023,8 @@ class SettingsW(tk.Toplevel):
 
         _0_global_dct = Dictionary()
         create_dct(_0_global_dct, savename)
-        _0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations, _0_global_dct.ctg,\
-            _0_global_dct.groups, _0_global_fav_groups = upload_local_settings(savename)
+        _0_global_check_register, _0_global_special_combinations, _0_global_dct.ctg, _0_global_dct.groups,\
+            _0_global_fav_groups = upload_local_settings(savename)
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
             upload_local_auto_settings(savename)
         _0_global_dct_savename = savename
@@ -6131,7 +6091,6 @@ class SettingsW(tk.Toplevel):
                                         SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.combo_themes.configure(font=('DejaVu Sans Mono', _0_global_scale))
         self.entry_themes_version.configure(font=('StdFont', _0_global_scale))
-        self.entry_mgsp.configure(font=('StdFont', _0_global_scale))
 
         # Установка масштаба для окна уведомления об обновлении
         try:
@@ -6155,7 +6114,6 @@ class SettingsW(tk.Toplevel):
                                         SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
         self.combo_themes.configure(font=('DejaVu Sans Mono', _0_global_scale))
         self.entry_themes_version.configure(font=('StdFont', _0_global_scale))
-        self.entry_mgsp.configure(font=('StdFont', _0_global_scale))
 
         # Установка масштаба для окна уведомления об обновлении
         try:
@@ -6167,15 +6125,7 @@ class SettingsW(tk.Toplevel):
 
     # Сохранить настройки (срабатывает при нажатии на кнопку)
     def save(self):
-        global _0_global_min_good_score_perc, _0_global_check_register, _0_global_show_updates, _0_global_with_typo,\
-            _0_global_has_progress
-
-        # Сохранить значение МППУ
-        val = self.var_mgsp.get()
-        if val == '':
-            _0_global_min_good_score_perc = 0
-        else:
-            _0_global_min_good_score_perc = int(val)
+        global _0_global_check_register, _0_global_show_updates, _0_global_with_typo, _0_global_has_progress
 
         # Учитывать/не учитывать регистр букв при проверке введённого ответа при учёбе
         _0_global_check_register = int(self.var_check_register.get())  # 0 или 1
@@ -6194,8 +6144,8 @@ class SettingsW(tk.Toplevel):
         self.backup_scale = _0_global_scale
 
         # Сохранение настроек в файлы
-        save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations,
-                            _0_global_dct.ctg, _0_global_dct.groups, _0_global_fav_groups, _0_global_dct_savename)
+        save_local_settings(_0_global_check_register, _0_global_special_combinations, _0_global_dct.ctg,
+                            _0_global_dct.groups, _0_global_fav_groups, _0_global_dct_savename)
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale)
         save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
                                  _0_global_dct_savename)
@@ -6297,7 +6247,6 @@ class SettingsW(tk.Toplevel):
 
     # Обновить настройки при открытии другого словаря
     def refresh(self):
-        self.var_mgsp.set(str(_0_global_min_good_score_perc))
         self.var_check_register.set(bool(_0_global_check_register))
         self.print_dct_list(False)
 
@@ -6311,7 +6260,6 @@ class SettingsW(tk.Toplevel):
         upload_theme_img(th)  # Загрузка изображений темы
 
         # Установка изображений
-        set_image(self.btn_about_mgsp, self.img_about, img_about, '?')
         set_image(self.btn_about_typo, self.img_about, img_about, '?')
         set_image(self.btn_about_dcts, self.img_about, img_about, '?')
         set_image(self.btn_scale_plus, self.img_plus, img_add, '+')
@@ -6335,8 +6283,7 @@ class SettingsW(tk.Toplevel):
         return self.has_ctg_changes or\
             self.has_groups_changes or\
             self.has_spec_comb_changes or\
-            int(self.var_check_register.get()) != _0_global_check_register or\
-            int(f'0{self.var_mgsp.get()}') != _0_global_min_good_score_perc  # Если self.var_mgsp.get() == '', то 0
+            int(self.var_check_register.get()) != _0_global_check_register
 
     # Были ли изменения настроек
     def has_changes(self):
@@ -6375,7 +6322,6 @@ class SettingsW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
-        self.entry_mgsp.focus_set()
         self.bind('<Escape>', lambda event=None: self.btn_close.invoke())
         self.tabs.bind('<<NotebookTabChanged>>', lambda event=None: self.resize_tabs())
 
@@ -6614,8 +6560,8 @@ class MainW(tk.Tk):
     # Нажатие на кнопку "Настройки"
     def settings(self):
         global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale,\
-            _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register,\
-            _0_global_learn_settings, _0_global_session_number, _0_global_search_settings, _0_global_fav_groups
+            _0_global_special_combinations, _0_global_check_register, _0_global_learn_settings,\
+            _0_global_session_number, _0_global_search_settings, _0_global_fav_groups
 
         self.disable_all_buttons()
         SettingsW(self).open()
@@ -6625,8 +6571,8 @@ class MainW(tk.Tk):
         _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale =\
             upload_global_settings()
         # Обновляем локальные настройки
-        _0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations, _0_global_dct.ctg,\
-            _0_global_dct.groups, _0_global_fav_groups = upload_local_settings(_0_global_dct_savename)
+        _0_global_check_register, _0_global_special_combinations, _0_global_dct.ctg, _0_global_dct.groups,\
+            _0_global_fav_groups = upload_local_settings(_0_global_dct_savename)
         # Обновляем локальные авто-настройки
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
             upload_local_auto_settings(_0_global_dct_savename)
@@ -7006,9 +6952,8 @@ root = MainW()  # Создаём графический интерфейс
 res = upload_save(root, _0_global_dct, _0_global_dct_savename, 'Завершить работу')  # Загружаем словарь
 if not res:
     exit(101)
-res: tuple[str, int, int, dict[tuple[str, str], str], list[str]]
-_0_global_dct_savename, _0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations,\
-    _0_global_fav_groups = res
+res: tuple[str, int, dict[tuple[str, str], str], list[str]]
+_0_global_dct_savename, _0_global_check_register, _0_global_special_combinations, _0_global_fav_groups = res
 _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
     upload_local_auto_settings(_0_global_dct_savename)  # Загружаем локальные авто-настройки
 _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
