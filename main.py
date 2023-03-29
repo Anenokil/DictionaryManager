@@ -1126,22 +1126,7 @@ def upload_local_settings(savename: str):
         open(local_settings_path, 'r', encoding='utf-8')
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
         with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
-            local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n'  # Версия локальных настроек
-                                      f'67\n'  # МППУ
-                                      f'1\n'  # Учитывать ли регистр букв при учёбе
-                                      f'#aä#AÄ#oö#OÖ#uü#UÜ#sß#Sẞ\n'  # Специальные комбинации
-                                      f'5\n'  # Грамматические категории
-                                      f'Число\n'
-                                      f'2\nед.ч.\nмн.ч.\n'
-                                      f'Род\n'
-                                      f'3\nм.р.\nж.р.\nср.р.\n'
-                                      f'Падеж\n'
-                                      f'4\nим.п.\nрод.п.\nдат.п.\nвин.п.\n'
-                                      f'Лицо\n'
-                                      f'3\n1 л.\n2 л.\n3 л.\n'
-                                      f'Время\n'
-                                      f'3\nпр.вр.\nн.вр.\nбуд.вр.\n'
-                                      f'0')  # Группы
+            local_settings_file.write(DEFAULT_LOCAL_SETTINGS_FILE)
     else:
         upgrade_local_settings(local_settings_path, encode_special_combinations)
 
@@ -1236,10 +1221,7 @@ def upload_local_auto_settings(savename: str):
         open(local_auto_settings_path, 'r', encoding='utf-8')
     except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
         with open(local_auto_settings_path, 'w', encoding='utf-8') as local_auto_settings_file:
-            local_auto_settings_file.write(f'v{LOCAL_AUTO_SETTINGS_VERSION}\n'  # Версия локальных авто-настроек
-                                           f'0\n'  # Номер сессии
-                                           f'0 1 1 0 0\n'  # Режим поиска
-                                           f'0 1 1 1')  # Режим учёбы
+            local_auto_settings_file.write(DEFAULT_LOCAL_AUTO_SETTINGS_FILE)
     else:
         upgrade_local_auto_settings(local_auto_settings_path)
 

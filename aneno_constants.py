@@ -3,9 +3,9 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.17'
+PROGRAM_VERSION = 'v7.1.17-p1'
 PROGRAM_DATE = '29.3.2023'
-PROGRAM_TIME = '9:41 (UTC+3)'
+PROGRAM_TIME = '9:53 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -134,6 +134,32 @@ NEW_VERSION_DIR = f'{REPOSITORY_NAME}-master'
 NEW_VERSION_PATH = os.path.join(MAIN_PATH, NEW_VERSION_DIR)  # Временная папка с обновлением
 NEW_VERSION_ZIP = f'{NEW_VERSION_DIR}.zip'
 NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с обновлением
+
+""" Шаблоны файлов """
+
+# Шаблон файла локальных настроек
+DEFAULT_LOCAL_SETTINGS_FILE = f'v{LOCAL_SETTINGS_VERSION}\n' \
+                              f'67\n' \
+                              f'1\n' \
+                              f':aä:AÄ:oö:OÖ:uü:UÜ^sß^Sẞ\n' \
+                              f'5\n' \
+                              f'Число\n' \
+                              f'2\nед.ч.\nмн.ч.\n' \
+                              f'Род\n' \
+                              f'3\nм.р.\nж.р.\nср.р.\n' \
+                              f'Падеж\n' \
+                              f'4\nим.п.\nрод.п.\nдат.п.\nвин.п.\n' \
+                              f'Лицо\n' \
+                              f'3\n1 л.\n2 л.\n3 л.\n' \
+                              f'Время\n' \
+                              f'3\nпр.вр.\nн.вр.\nбуд.вр.\n' \
+                              f'0'
+
+# Шаблон файла локальных авто-настроек
+DEFAULT_LOCAL_AUTO_SETTINGS_FILE = f'v{LOCAL_AUTO_SETTINGS_VERSION}\n' \
+                                   f'0\n' \
+                                   f'0 1 1 0 0\n' \
+                                   f'0 1 1 1'
 
 """ Другие константы """
 
