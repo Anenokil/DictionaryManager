@@ -279,6 +279,8 @@ def upgrade_local_settings_6_to_7(local_settings_path: str, _=None):
                 if not line:
                     break
                 local_settings_file.write(line)
+    if anc.TMP_FN in os.listdir(anc.RESOURCES_PATH):
+        os.remove(anc.TMP_PATH)
 
 
 # Обновить локальные настройки со 7 до 8 версии
