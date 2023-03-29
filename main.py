@@ -1184,19 +1184,23 @@ def upload_local_settings(savename: str):
             categories = {}
         # Группы
         groups = []
+        fav_groups = []
         try:
             gr_count = int(local_settings_file.readline().strip())
             for i in range(gr_count):
-                group = local_settings_file.readline().strip('\n')[1:]
+                line = local_settings_file.readline().strip('\n')
+                group = line[1:]
                 groups += [group]
+                if line[0] == '1':
+                    fav_groups += [group]
         except:
             groups = []
-    return min_good_score_perc, check_register, special_combinations, categories, groups
+    return min_good_score_perc, check_register, special_combinations, categories, groups, fav_groups
 
 
 # Сохранить локальные настройки (настройки словаря)
 def save_local_settings(min_good_score_perc: int, check_register: int, special_combinations: dict[tuple[str, str], str],
-                        categories: dict[str, list[str]], groups: list[str], savename: str):
+                        categories: dict[str, list[str]], groups: list[str], fav_groups: list[str], savename: str):
     local_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_SETTINGS_FN)
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
         local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n')  # Версия
@@ -1219,7 +1223,10 @@ def save_local_settings(min_good_score_perc: int, check_register: int, special_c
         # Группы
         local_settings_file.write(f'{len(groups)}\n')
         for group in groups:
-            local_settings_file.write(f'0{group}\n')
+            if group in fav_groups:
+                local_settings_file.write(f'1{group}\n')
+            else:
+                local_settings_file.write(f'0{group}\n')
 
 
 # Загрузить автосохраняемые локальные настройки (настройки словаря)
@@ -1291,7 +1298,7 @@ def save_settings_if_has_changes(window_parent):
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th,
                              _0_global_scale)
         save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations,
-                            _0_global_dct.ctg, _0_global_dct.groups, _0_global_dct_savename)
+                            _0_global_dct.ctg, _0_global_dct.groups, _0_global_fav_groups, _0_global_dct_savename)
         save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
                                  _0_global_dct_savename)
         PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
@@ -1328,15 +1335,17 @@ def save_dct_if_has_progress(window_parent, dct: Dictionary, savename: str, has_
 def upload_save(window_parent, dct: Dictionary, savename: str, btn_close_text: str):
     save_file_path = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
     try:
-        min_good_score_perc, check_register, special_combinations, dct.ctg, dct.groups = upload_local_settings(savename)
+        min_good_score_perc, check_register, special_combinations, dct.ctg, dct.groups, fav_groups =\
+            upload_local_settings(savename)
         upgrade_dct_save(save_file_path, lambda line: encode_special_combinations(line, special_combinations))  # Если требуется, сохранение обновляется
         dct.read(save_file_path, len(dct.ctg))  # Загрузка словаря
     except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
         print(f'\nСловарь "{savename}" не найден!')
         create_dct(dct, savename)
-        min_good_score_perc, check_register, special_combinations, dct.ctg, dct.groups = upload_local_settings(savename)
+        min_good_score_perc, check_register, special_combinations, dct.ctg, dct.groups, fav_groups =\
+            upload_local_settings(savename)
         print('Создан и загружен пустой словарь')
-        return savename, min_good_score_perc, check_register, special_combinations
+        return savename, min_good_score_perc, check_register, special_combinations, fav_groups
     except Exception as exc:  # Если сохранение повреждено, то предлагается загрузить другое
         print(f'\nФайл со словарём "{savename}" повреждён или некорректен!'
               f'\n{exc}')
@@ -1362,7 +1371,7 @@ def upload_save(window_parent, dct: Dictionary, savename: str, btn_close_text: s
                 return None
     else:  # Если чтение прошло успешно, то выводится соответствующее сообщение
         print(f'\nСловарь "{savename}" успешно открыт')
-        return savename, min_good_score_perc, check_register, special_combinations
+        return savename, min_good_score_perc, check_register, special_combinations, fav_groups
 
 
 # Экспортировать словарь
@@ -2973,6 +2982,8 @@ class GroupsSettingsW(tk.Toplevel):
 
     # Переименовать группу
     def rename(self, group_old: str):
+        global _0_global_fav_groups
+
         window = PopupEntryW(self, 'Введите новое название группы', default_value=group_old,
                              check_answer_function=lambda wnd, val:
                              check_group_name_edit(wnd, _0_global_dct.groups, group_old, val))
@@ -2981,12 +2992,17 @@ class GroupsSettingsW(tk.Toplevel):
             return
         group_new = encode_special_combinations(group_new, _0_global_special_combinations)
         _0_global_dct.rename_group(group_old, group_new)
+        if group_old in _0_global_fav_groups:
+            _0_global_fav_groups.remove(group_old)
+            _0_global_fav_groups += [group_new]
 
         self.print_groups(False)
         self.has_changes = True
 
     # Удалить группу
     def delete(self, group: str):
+        global _0_global_fav_groups
+
         group_size = _0_global_dct.count_entries_in_group(group)[0]
         tmp = set_postfix(group_size, ('слово будет убрано', 'слова будут убраны', 'слов будут убраны'))
         window_dia = PopupDialogueW(self, f'{group_size} {tmp} из группы "{group}", а сама группа будет удалена!\n'
@@ -2995,6 +3011,20 @@ class GroupsSettingsW(tk.Toplevel):
         if not answer:
             return
         _0_global_dct.delete_group(group)
+        if group in _0_global_fav_groups:
+            _0_global_fav_groups.remove(group)
+
+        self.print_groups(False)
+        self.has_changes = True
+
+    # Добавить группу в избранное
+    def fav(self, group: str):
+        global _0_global_fav_groups
+
+        if group in _0_global_fav_groups:
+            _0_global_fav_groups.remove(group)
+        else:
+            _0_global_fav_groups += [group]
 
         self.print_groups(False)
         self.has_changes = True
@@ -3036,7 +3066,10 @@ class GroupsSettingsW(tk.Toplevel):
         for i in range(groups_count):
             # Выводим текст на кнопки
             group = self.groups[i]
-            self.buttons[i].configure(text=split_text(f'{group}', 35))
+            if group in _0_global_fav_groups:
+                self.buttons[i].configure(text=split_text(f'{group} (*)', 35))
+            else:
+                self.buttons[i].configure(text=split_text(f'{group}', 35))
 
             # Расставляем элементы
             self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
@@ -3050,6 +3083,8 @@ class GroupsSettingsW(tk.Toplevel):
             self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename(self.groups[i]))
             self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.groups[i]))
             self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.groups[i]))
+            self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav(self.groups[i]))
+            self.frames[i].bind('<Control-f>', lambda event, i=i: self.fav(self.groups[i]))
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
 
         # Если требуется, прокручиваем вверх
@@ -3059,7 +3094,9 @@ class GroupsSettingsW(tk.Toplevel):
     # Справка об окне (срабатывает при нажатии на кнопку)
     def about_window(self):
         PopupMsgW(self, '* Чтобы переименовать группу, наведите на неё мышку и нажмите ЛКМ или Ctrl+R\n'
-                        '* Чтобы удалить группу, наведите на неё мышку и нажмите Ctrl+D',
+                        '* Чтобы удалить группу, наведите на неё мышку и нажмите Ctrl+D\n'
+                        '* Чтобы все новые статьи автоматически добавлялись в группу,'
+                        'наведите на эту группу мышку и нажмите Ctrl+F',
                   msg_justify='left').open()
 
     # Установить фокус
@@ -5683,6 +5720,8 @@ class AddW(tk.Toplevel):
         if not self.dct_key:
             return
         _0_global_dct.d[self.dct_key].fav = self.var_fav.get()
+        for group in _0_global_fav_groups:
+            _0_global_dct.d[self.dct_key].add_to_group(group)
 
         _0_global_has_progress = True
         self.destroy()
@@ -5968,7 +6007,7 @@ class SettingsW(tk.Toplevel):
             self.destroy()  # Если была попытка открыть повреждённый словарь, то при сохранении настроек, текущий словарь стёрся бы
             return
         _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_check_register,\
-            _0_global_special_combinations = res
+            _0_global_special_combinations, _0_global_fav_groups = res
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
             upload_local_auto_settings(_0_global_dct_savename)
         save_dct_name()
@@ -6028,7 +6067,7 @@ class SettingsW(tk.Toplevel):
     def dct_create(self):
         global _0_global_dct, _0_global_dct_savename, _0_global_min_good_score_perc, _0_global_special_combinations,\
             _0_global_check_register, _0_global_has_progress, _0_global_session_number, _0_global_search_settings,\
-            _0_global_learn_settings
+            _0_global_learn_settings, _0_global_fav_groups
 
         window = PopupEntryW(self, 'Введите название нового словаря', validate_function=validate_savename,
                              check_answer_function=check_dct_savename)
@@ -6043,7 +6082,7 @@ class SettingsW(tk.Toplevel):
         _0_global_dct = Dictionary()
         create_dct(_0_global_dct, savename)
         _0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations, _0_global_dct.ctg,\
-            _0_global_dct.groups = upload_local_settings(savename)
+            _0_global_dct.groups, _0_global_fav_groups = upload_local_settings(savename)
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
             upload_local_auto_settings(savename)
         _0_global_dct_savename = savename
@@ -6174,7 +6213,7 @@ class SettingsW(tk.Toplevel):
 
         # Сохранение настроек в файлы
         save_local_settings(_0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations,
-                            _0_global_dct.ctg, _0_global_dct.groups, _0_global_dct_savename)
+                            _0_global_dct.ctg, _0_global_dct.groups, _0_global_fav_groups, _0_global_dct_savename)
         save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale)
         save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
                                  _0_global_dct_savename)
@@ -6594,7 +6633,7 @@ class MainW(tk.Tk):
     def settings(self):
         global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale,\
             _0_global_min_good_score_perc, _0_global_special_combinations, _0_global_check_register,\
-            _0_global_learn_settings, _0_global_session_number, _0_global_search_settings
+            _0_global_learn_settings, _0_global_session_number, _0_global_search_settings, _0_global_fav_groups
 
         self.disable_all_buttons()
         SettingsW(self).open()
@@ -6605,7 +6644,7 @@ class MainW(tk.Tk):
             upload_global_settings()
         # Обновляем локальные настройки
         _0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations, _0_global_dct.ctg,\
-            _0_global_dct.groups = upload_local_settings(_0_global_dct_savename)
+            _0_global_dct.groups, _0_global_fav_groups = upload_local_settings(_0_global_dct_savename)
         # Обновляем локальные авто-настройки
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
             upload_local_auto_settings(_0_global_dct_savename)
@@ -6985,7 +7024,9 @@ root = MainW()  # Создаём графический интерфейс
 res = upload_save(root, _0_global_dct, _0_global_dct_savename, 'Завершить работу')  # Загружаем словарь
 if not res:
     exit(101)
-_0_global_dct_savename, _0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations = res
+res: tuple[str, int, int, dict[tuple[str, str], str], list[str]]
+_0_global_dct_savename, _0_global_min_good_score_perc, _0_global_check_register, _0_global_special_combinations,\
+    _0_global_fav_groups = res
 _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
     upload_local_auto_settings(_0_global_dct_savename)  # Загружаем локальные авто-настройки
 _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
