@@ -3,9 +3,9 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.19A'
+PROGRAM_VERSION = 'v7.1.19B'
 PROGRAM_DATE = '30.3.2023'
-PROGRAM_TIME = '7:54 (UTC+3)'
+PROGRAM_TIME = '9:51 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -134,7 +134,7 @@ NEW_VERSION_PATH = os.path.join(MAIN_PATH, NEW_VERSION_DIR)  # Временна�
 NEW_VERSION_ZIP = f'{NEW_VERSION_DIR}.zip'
 NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с обновлением
 
-""" Шаблоны файлов """
+""" Шаблоны сохранений """
 
 # Шаблон файла локальных настроек
 DEFAULT_LOCAL_SETTINGS_FILE = f'v{LOCAL_SETTINGS_VERSION}\n' \
@@ -156,8 +156,8 @@ DEFAULT_LOCAL_SETTINGS_FILE = f'v{LOCAL_SETTINGS_VERSION}\n' \
 # Шаблон файла локальных авто-настроек
 DEFAULT_LOCAL_AUTO_SETTINGS_FILE = f'v{LOCAL_AUTO_SETTINGS_VERSION}\n' \
                                    f'0\n' \
-                                   f'0 1 1 0 0\n' \
-                                   f'0 1 1 1'
+                                   f'0 0 1 1 0 0\n' \
+                                   f'0 0 1 1 1'
 
 """ Другие константы """
 
