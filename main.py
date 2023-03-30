@@ -1069,24 +1069,15 @@ def upload_global_settings():
         # Название текущего словаря
         dct_savename = global_settings_file.readline().strip()
         # Уведомлять ли о выходе новых версий
-        try:
-            show_updates = int(global_settings_file.readline().strip())
-        except (ValueError, TypeError):
-            show_updates = 1
+        show_updates = int(global_settings_file.readline().strip())
         # Добавлять ли кнопку "Опечатка" при неверном ответе в учёбе
-        try:
-            typo = int(global_settings_file.readline().strip())
-        except (ValueError, TypeError):
-            typo = 0
+        typo = int(global_settings_file.readline().strip())
         # Установленная тема
         theme = global_settings_file.readline().strip()
         if theme not in THEMES:
             theme = DEFAULT_TH
         # Размер шрифта
-        try:
-            fontsize = int(global_settings_file.readline().strip())
-        except (ValueError, TypeError):
-            fontsize = SCALE_DEF
+        fontsize = int(global_settings_file.readline().strip())
 
     if is_res_upgrade_required:  # Если требуется обновление ресурсов
         # Обновляем
@@ -1130,47 +1121,35 @@ def upload_local_settings(savename: str):
         # Версия локальных настроек
         local_settings_file.readline()
         # Учитывать ли регистр букв при учёбе
-        try:
-            check_register = int(local_settings_file.readline().strip())
-        except (ValueError, TypeError):
-            check_register = 1
+        check_register = int(local_settings_file.readline().strip())
         # Специальные комбинации
         special_combinations = {}
-        try:
-            line_special_combinations = local_settings_file.readline()
-            for i in range(0, len(line_special_combinations) - 1, 3):
-                opening_symbol = line_special_combinations[i]
-                key_symbol = line_special_combinations[i + 1]
-                value = line_special_combinations[i + 2]
-                special_combinations[(opening_symbol, key_symbol)] = value
-        except:
-            special_combinations = {}
+        line_special_combinations = local_settings_file.readline()
+        for i in range(0, len(line_special_combinations) - 1, 3):
+            opening_symbol = line_special_combinations[i]
+            key_symbol = line_special_combinations[i + 1]
+            value = line_special_combinations[i + 2]
+            special_combinations[(opening_symbol, key_symbol)] = value
         # Грамматические категории
         categories = {}
-        try:
-            ctg_count = int(local_settings_file.readline().strip())
-            for i in range(ctg_count):
-                ctg_name = local_settings_file.readline().strip('\n')
-                val_count = int(local_settings_file.readline().strip())
-                values = []
-                for j in range(val_count):
-                    values += [local_settings_file.readline().strip('\n')]
-                categories[ctg_name] = values
-        except:
-            categories = {}
+        ctg_count = int(local_settings_file.readline().strip())
+        for i in range(ctg_count):
+            ctg_name = local_settings_file.readline().strip('\n')
+            val_count = int(local_settings_file.readline().strip())
+            values = []
+            for j in range(val_count):
+                values += [local_settings_file.readline().strip('\n')]
+            categories[ctg_name] = values
         # Группы
         groups = []
         fav_groups = []
-        try:
-            gr_count = int(local_settings_file.readline().strip())
-            for i in range(gr_count):
-                line = local_settings_file.readline().strip('\n')
-                group = line[1:]
-                groups += [group]
-                if line[0] == '1':
-                    fav_groups += [group]
-        except:
-            groups = []
+        gr_count = int(local_settings_file.readline().strip())
+        for i in range(gr_count):
+            line = local_settings_file.readline().strip('\n')
+            group = line[1:]
+            groups += [group]
+            if line[0] == '1':
+                fav_groups += [group]
     return check_register, special_combinations, categories, groups, fav_groups
 
 
@@ -1219,26 +1198,15 @@ def upload_local_auto_settings(savename: str):
         # Версия
         local_auto_settings_file.readline()
         # Номер сессии
-        try:
-            session_number = int(local_auto_settings_file.readline().strip())
-        except (ValueError, TypeError):
-            session_number = 0
+        session_number = int(local_auto_settings_file.readline().strip())
         # Режим поиска
-        try:
-            search_settings = tuple(int(el) for el in local_auto_settings_file.readline().strip().split())
-        except (ValueError, TypeError):
+        search_settings = tuple(int(el) for el in local_auto_settings_file.readline().strip().split())
+        if len(search_settings) != 6:
             search_settings = (0, 0, 1, 1, 0, 0)
-        else:
-            if len(search_settings) != 6:
-                search_settings = (0, 0, 1, 1, 0, 0)
         # Режим учёбы
-        try:
-            learn_settings = [int(el) for el in local_auto_settings_file.readline().strip().split()]
-        except (ValueError, TypeError):
+        learn_settings = [int(el) for el in local_auto_settings_file.readline().strip().split()]
+        if len(learn_settings) != 5:
             learn_settings = [0, 0, 1, 1, 1]
-        else:
-            if len(learn_settings) != 5:
-                learn_settings = [0, 0, 1, 1, 1]
 
     # Увеличиваем счётчик сессий на 1 и сохраняем изменение
     session_number += 1
@@ -4155,13 +4123,13 @@ class LearnW(tk.Toplevel):
                 if len(wrd) > 4 and wrd[0:4].lower() in ('der ', 'die ', 'das '):
                     all_keys += [key]
         else:
-            all_keys = tuple(_0_global_dct.d.keys())
+            all_keys = list(_0_global_dct.d.keys())
         # Если надо, оставляем только слова из нужной группы
         if self.group != ALL_GROUPS:
-            all_keys = (key for key in all_keys if self.group in _0_global_dct.d[key].groups)
+            all_keys = [key for key in all_keys if self.group in _0_global_dct.d[key].groups]
         # Если надо, оставляем только слова, у которых есть словоформы
         if self.forms == LEARN_VALUES_FORMS[2]:
-            all_keys = tuple(key for key in all_keys if _0_global_dct.d[key].count_f != 0)
+            all_keys = [key for key in all_keys if _0_global_dct.d[key].count_f != 0]
 
         if self.words == LEARN_VALUES_WORDS[0]:  # Учить все слова
             selected_keys = all_keys
@@ -4172,7 +4140,7 @@ class LearnW(tk.Toplevel):
             # Выберем их из самых давно не отвечаемых слов
 
             # Отбираем слова, не являющиеся избранными
-            unfav_keys = list(k for k in all_keys if not _0_global_dct.d[k].fav)
+            unfav_keys = [k for k in all_keys if not _0_global_dct.d[k].fav]
             # Сортируем по давности ответа
             unfav_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_session)
             # Находим N // 4
@@ -4180,8 +4148,7 @@ class LearnW(tk.Toplevel):
             # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
             latest_session = _0_global_dct.d[unfav_keys[count_unfav_keys - 1]].latest_answer_session
             # Оставляем только слова с номером сессии <= S
-            unfav_keys = list(k for k in unfav_keys
-                              if _0_global_dct.d[k].latest_answer_session[0:2] <= latest_session[0:2])
+            unfav_keys = [k for k in unfav_keys if _0_global_dct.d[k].latest_answer_session[0:2] <= latest_session[0:2]]
             # Перемешиваем их
             random.shuffle(unfav_keys)
             # И выбираем из них N // 4 слов
@@ -4194,7 +4161,7 @@ class LearnW(tk.Toplevel):
         elif self.words == LEARN_VALUES_WORDS[4]:  # Учить 15 случайных слов
             selected_keys = random.sample(all_keys, min(len(all_keys), 15))
         else:  # Учить 15 случайных избранных слов
-            all_keys = tuple(key for key in all_keys if _0_global_dct.d[key].fav)
+            all_keys = [key for key in all_keys if _0_global_dct.d[key].fav]
             selected_keys = random.sample(all_keys, min(len(all_keys), 15))
 
         selected_forms = []
