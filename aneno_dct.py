@@ -386,9 +386,7 @@ class Dictionary(object):
     def count_rating(self):
         sum_num = sum(entry.correct_att for entry in self.d.values())
         sum_den = sum(entry.all_att for entry in self.d.values())
-        if sum_den == 0:
-            return 0
-        return sum_num / sum_den
+        return sum_num, sum_den
 
     # Добавить грамматическую категорию
     def add_ctg(self, ctg_name: str, ctg_values: list[str]):

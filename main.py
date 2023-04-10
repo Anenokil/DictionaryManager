@@ -866,48 +866,40 @@ def delete_ctg_val(window_parent, dct: Dictionary, ctg_name: str, ctg_val: str):
 # Поиск статей в словаре
 def search_entries(dct: Dictionary, keys: tuple[tuple[str, int], ...], query: str,
                    search_wrd: bool, search_tr: bool, search_frm: bool, search_nt: bool):
-    full_matches = set()
-    particulary_matches = set()
-    if search_wrd:
-        for key in keys:
-            entry = dct.d[key]
-            if query == entry.wrd:
-                full_matches.add(key)
-            elif find_and_highlight(entry.wrd, query) != '':
-                if key not in full_matches:
-                    particulary_matches.add(key)
-    if search_tr:
-        for key in keys:
-            entry = dct.d[key]
-            if query in entry.tr:
-                full_matches.add(key)
-            else:
-                for tr in entry.tr:
-                    if find_and_highlight(tr, query) != '':
-                        if key not in full_matches:
-                            particulary_matches.add(key)
-            #print(frm_key_to_str_for_print(tuple(find_and_highlight(tr, query) for tr in entry.tr)))
-    if search_frm:
-        for key in keys:
-            entry = dct.d[key]
-            if query in entry.forms.values():
-                full_matches.add(key)
-            else:
-                for frm in entry.forms.values():
-                    if find_and_highlight(frm, query) != '':
-                        if key not in full_matches:
-                            particulary_matches.add(key)
-    if search_nt:
-        for key in keys:
-            entry = dct.d[key]
-            if query in entry.notes:
-                full_matches.add(key)
-            else:
-                for nt in entry.notes:
-                    if find_and_highlight(nt, query) != '':
-                        if key not in full_matches:
-                            particulary_matches.add(key)
-    return full_matches, particulary_matches
+    results = [set() for _ in range(6)]
+    for key in keys:
+        entry = dct.d[key]
+        if search_wrd and query == entry.wrd or\
+           search_tr  and query in entry.tr or\
+           search_frm and query in entry.forms.values() or\
+           search_nt  and query in entry.notes:
+            results[0].add(key)
+        elif search_wrd and query.lower() == entry.wrd.lower() or\
+             search_tr  and query.lower() in [tr.lower() for tr in entry.tr] or\
+             search_frm and query.lower() in [frm.lower() for frm in entry.forms.values()] or\
+             search_nt  and query.lower() in [nt.lower() for nt in entry.notes]:
+            results[1].add(key)
+        elif search_wrd and simplify(query)[0].replace('ё', 'е') == simplify(entry.wrd)[0].replace('ё', 'е') or\
+             search_tr  and simplify(query)[0].replace('ё', 'е') in [simplify(tr)[0].replace('ё', 'е') for tr in entry.tr] or\
+             search_frm and simplify(query)[0].replace('ё', 'е') in [simplify(frm)[0].replace('ё', 'е') for frm in entry.forms.values()] or\
+             search_nt  and simplify(query)[0].replace('ё', 'е') in [simplify(nt)[0].replace('ё', 'е') for nt in entry.notes]:
+            results[2].add(key)
+        elif search_wrd and query in entry.wrd or\
+             search_tr  and True in [query in tr for tr in entry.tr] or\
+             search_frm and True in [query in frm for frm in entry.forms.values()] or\
+             search_nt  and True in [query in nt for nt in entry.notes]:
+            results[3].add(key)
+        elif search_wrd and query.lower() in entry.wrd.lower() or\
+             search_tr  and True in [query.lower() in tr.lower() for tr in entry.tr] or\
+             search_frm and True in [query.lower() in frm.lower() for frm in entry.forms.values()] or\
+             search_nt  and True in [query.lower() in nt.lower() for nt in entry.notes]:
+            results[4].add(key)
+        elif search_wrd and simplify(query)[0].replace('ё', 'е') in simplify(entry.wrd)[0].replace('ё', 'е') or\
+             search_tr  and True in [simplify(query)[0].replace('ё', 'е') in simplify(tr)[0].replace('ё', 'е') for tr in entry.tr] or\
+             search_frm and True in [simplify(query)[0].replace('ё', 'е') in simplify(frm)[0].replace('ё', 'е') for frm in entry.forms.values()] or\
+             search_nt  and True in [simplify(query)[0].replace('ё', 'е') in simplify(nt)[0].replace('ё', 'е') for nt in entry.notes]:
+            results[5].add(key)
+    return results
 
 
 # Проверить наличие обновлений программы
@@ -4055,7 +4047,7 @@ class LearnW(tk.Toplevel):
 
         self.var_input = tk.StringVar()
 
-        self.lbl_global_rating = ttk.Label(self, text=f'Ваш общий рейтинг по словарю: {self.get_percent()}%',
+        self.lbl_global_rating = ttk.Label(self, text=f'Ваш общий рейтинг по словарю: {self.get_percent()}',
                                            style='Default.TLabel')
         self.lbl_count = ttk.Label(self, text=f'Отвечено: 0/{self.len_of_pool}', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
@@ -4226,7 +4218,7 @@ class LearnW(tk.Toplevel):
         # Очистка поля ввода
         self.entry_input.delete(0, tk.END)
         # Обновление отображаемого рейтинга
-        self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {self.get_percent()}%'
+        self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {self.get_percent()}'
         self.lbl_count['text'] = f'Отвечено: {self.count_correct}/{self.len_of_pool}'
 
     # Нажатие на кнопку "Посмотреть сноски"
@@ -4406,7 +4398,13 @@ class LearnW(tk.Toplevel):
 
     # Получить глобальный процент угадываний
     def get_percent(self):
-        return format(_0_global_dct.count_rating() * 100, '.1f')
+        num, den = _0_global_dct.count_rating()
+        if den == 0:
+            percent = 0
+        else:
+            percent = num / den * 100
+        percent = format(percent, '.1f')
+        return f'{num} / {den} = {percent}%'
 
     # Установить фокус
     def set_focus(self):
@@ -4987,22 +4985,23 @@ class PrintW(tk.Toplevel):
                 self.print_keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
             else:
                 self.print_keys = [key for key in _0_global_dct.d.keys()
-                             if _0_global_dct.d[key].fav and group in _0_global_dct.d[key].groups]
+                                   if _0_global_dct.d[key].fav and group in _0_global_dct.d[key].groups]
         else:
             if group == ALL_GROUPS:
                 self.print_keys = [key for key in _0_global_dct.d.keys()]
             else:
                 self.print_keys = [key for key in _0_global_dct.d.keys() if group in _0_global_dct.d[key].groups]
-        self.print_selected_keys = [key for key in self.print_selected_keys if key in _0_global_dct.d.keys()]
+        self.print_selected_keys = [key for key in self.print_selected_keys if key in self.print_keys]
         if not self.print_selected_keys:
             self.frame_print_buttons_for_selected.grid_remove()
         # Сортируем статьи
         if self.var_print_order.get() == PRINT_VALUES_ORDER[1]:
             self.print_keys.reverse()
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[2]:
-            self.print_keys.sort(key=lambda k: _0_global_dct.d[k].score)
+            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].score, _0_global_dct.d[k].correct_att_in_a_row))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[3]:
-            self.print_keys.sort(key=lambda k: _0_global_dct.d[k].score, reverse=True)
+            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].score, _0_global_dct.d[k].correct_att_in_a_row),
+                                 reverse=True)
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[4]:
             self.print_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_session)
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[5]:
@@ -5102,14 +5101,13 @@ class PrintW(tk.Toplevel):
             keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
         else:
             keys = [key for key in _0_global_dct.d.keys()]
-        full_matches, particular_matches = search_entries(_0_global_dct, tuple(keys), self.var_search_query.get(),
-                                                          self.search_wrd, self.search_tr,
-                                                          self.search_frm, self.search_nt)
+        m1, m2, m3, m4, m5, m6 = search_entries(_0_global_dct, tuple(keys), self.var_search_query.get(),
+                                                self.search_wrd, self.search_tr, self.search_frm, self.search_nt)
         if self.search_only_full:
-            self.search_keys = list(full_matches)
+            self.search_keys = list(m1) + list(m2) + list(m3)
         else:
-            self.search_keys = list(full_matches) + list(particular_matches)
-        self.search_selected_keys = [key for key in self.search_selected_keys if key in _0_global_dct.d.keys()]
+            self.search_keys = list(m1) + list(m2) + list(m3) + list(m4) + list(m5) + list(m6)
+        self.search_selected_keys = [key for key in self.search_selected_keys if key in self.search_keys]
 
         if not self.search_selected_keys:
             self.frame_search_buttons_for_selected.grid_remove()
@@ -5418,7 +5416,10 @@ class PrintW(tk.Toplevel):
             return
         _0_global_dct.add_entries_to_group(group, tuple(keys))
 
-        self.print_refresh_all_buttons()
+        if group == self.var_print_group.get():
+            self.print_print(True)
+        else:
+            self.print_refresh_all_buttons()
         self.search_refresh_all_buttons()
 
         _0_global_has_progress = True
