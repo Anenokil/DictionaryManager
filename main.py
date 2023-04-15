@@ -4465,6 +4465,7 @@ class PrintW(tk.Toplevel):
         #
         self.var_search_query = tk.StringVar()
         self.var_search_info = tk.StringVar()
+        self.var_search_info_selected = tk.StringVar()
         self.var_search_current_page = tk.StringVar(value=str(self.search_current_page))
 
         self.img_about = tk.PhotoImage()
@@ -4617,6 +4618,7 @@ class PrintW(tk.Toplevel):
         # } } }
         # } }
         # }
+
         self.tab_search = ttk.Frame(self.tabs, style='Invis.TFrame')
         self.tabs.add(self.tab_search, text='Поиск')
         # {
@@ -4656,6 +4658,8 @@ class PrintW(tk.Toplevel):
         self.lbl_search_info = ttk.Label(self.frame_search_info, textvariable=self.var_search_info,
                                          style='Default.TLabel')
         # } } }
+        self.lbl_search_info_selected = ttk.Label(self.frame_search_header, textvariable=self.var_search_info_selected,
+                                                  style='Default.TLabel')
         self.frame_search_buttons_for_selected = ttk.Frame(self.frame_search_header, style='Default.TFrame')
         # { { {
         self.btn_search_fav = ttk.Button(self.frame_search_buttons_for_selected,
@@ -4773,13 +4777,13 @@ class PrintW(tk.Toplevel):
         # {
         self.frame_search_header.grid(row=0, column=0, padx=6, pady=(6, 0), sticky='W')
         # { {
-        self.frame_search_query.grid(row=0, column=0, padx=0, pady=(0, 6))
+        self.frame_search_query.grid(row=0, column=0, columnspan=2, padx=0, pady=(0, 6))
         # { { {
         self.btn_search_search_settings.grid(row=0, column=0, padx=(6, 3), pady=6)
         self.entry_search_query.grid(        row=0, column=1, padx=(0, 1), pady=6)
         self.btn_search_search.grid(         row=0, column=2, padx=(0, 6), pady=6)
         # } } }
-        self.frame_search_selection_buttons.grid(row=0, column=1, padx=(6, 0), pady=(0, 6), sticky='WS')
+        self.frame_search_selection_buttons.grid(row=0, column=2, padx=(6, 0), pady=(0, 6), sticky='WS')
         # { { {
         self.btn_search_select_page.grid(  row=0, column=0)
         self.btn_search_unselect_page.grid(row=0, column=1)
@@ -4791,6 +4795,7 @@ class PrintW(tk.Toplevel):
         self.btn_search_about_window.grid(row=0, column=0, padx=0, pady=0)
         self.lbl_search_info.grid(        row=0, column=1, padx=0, pady=0)
         # } } }
+        self.lbl_search_info_selected.grid(row=1, column=1, padx=0, pady=0, sticky='E')
         # self.frame_search_buttons_for_selected
         # { { {
         self.btn_search_fav.grid(              row=0, column=0)
@@ -4952,15 +4957,17 @@ class PrintW(tk.Toplevel):
     def search_print_info(self):
         tmp_1 = set_postfix(self.search_count_elements, ('Найдена', 'Найдены', 'Найдено'))
         tmp_2 = set_postfix(self.search_count_elements, ('статья', 'статьи', 'статей'))
-        res = f'{tmp_1} {self.search_count_elements} {tmp_2}'
+        info = f'{tmp_1} {self.search_count_elements} {tmp_2}'
+        self.var_search_info.set(info)
 
         count_selected = len(self.search_selected_keys)
-        if count_selected != 0:
+        if count_selected == 0:
+            info_selected = ''
+        else:
             tmp_1 = set_postfix(count_selected, ('Выделена', 'Выделены', 'Выделено'))
             tmp_2 = set_postfix(count_selected, ('статья', 'статьи', 'статей'))
-            res += f' ({tmp_1} {count_selected} {tmp_2})'
-
-        self.var_search_info.set(res)
+            info_selected = f'{tmp_1} {count_selected} {tmp_2}'
+        self.var_search_info_selected.set(info_selected)
 
     # Напечатать словарь (1)
     def print_print(self, move_scroll: bool):
@@ -5289,7 +5296,7 @@ class PrintW(tk.Toplevel):
         else:
             self.search_selected_keys += [key]
             self.search_buttons[index].configure(style='NoteSelected.TButton')
-            self.frame_search_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0, sticky='W')
+            self.frame_search_buttons_for_selected.grid(row=1, column=2, padx=(6, 0), pady=0, sticky='W')
         self.search_print_info()
 
     # Выделить все статьи на странице (1)
@@ -5311,7 +5318,7 @@ class PrintW(tk.Toplevel):
                 self.search_selected_keys += [key]
         for btn in self.search_buttons:
             btn.configure(style='NoteSelected.TButton')
-        self.frame_search_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0, sticky='W')
+        self.frame_search_buttons_for_selected.grid(row=1, column=2, padx=(6, 0), pady=0, sticky='W')
         self.search_print_info()
 
     # Снять выделение со всех статей на странице (1)
@@ -5351,7 +5358,7 @@ class PrintW(tk.Toplevel):
         self.search_selected_keys = list(self.search_keys)
         for btn in self.search_buttons:
             btn.configure(style='NoteSelected.TButton')
-        self.frame_search_buttons_for_selected.grid(row=1, column=1, padx=(6, 0), pady=0, sticky='W')
+        self.frame_search_buttons_for_selected.grid(row=1, column=2, padx=(6, 0), pady=0, sticky='W')
         self.search_print_info()
 
     # Снять выделение со всех статей (1)
