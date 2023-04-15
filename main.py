@@ -4249,7 +4249,6 @@ class LearnW(tk.Toplevel):
         btn_disable(self.btn_show_notes)
         btn_disable(self.btn_show_homonyms)
 
-        PopupMsgW(self, f'Ваш результат: {self.count_correct}/{self.count_all}')
         self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}', end='')
 
     # Проверка введённого ответа
@@ -6943,7 +6942,7 @@ if ICON_FN in os.listdir(RESOURCES_PATH):
 root.mainloop()
 
 """
-    Про формы и категории:
+    Про формы и грам. категории:
 
     'чашка' - СЛОВО
 
@@ -6953,7 +6952,7 @@ root.mainloop()
       'ед. число, им. падеж' - ШАБЛОН ФОРМЫ 'чашка'
     'множ. число, тв. падеж' - ШАБЛОН ФОРМЫ 'чашками'
 
-    'число' и 'падеж' - КАТЕГОРИИ слов
+    'число' и 'падеж' - ГРАММАТИЧЕСКИЕ КАТЕГОРИИ
 
     'ед. число' и 'множ. число' - ЗНАЧЕНИЯ категории 'число'
     'им. падеж' и   'тв. падеж' - ЗНАЧЕНИЯ категории 'падеж'
