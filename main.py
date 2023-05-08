@@ -5628,6 +5628,9 @@ class AddW(tk.Toplevel):
 
         # При незаполненных полях нельзя нажать кнопку
         def validate_entries(value_wrd: str, value_tr: str):
+            value_wrd = encode_special_combinations(value_wrd, _0_global_special_combinations)
+            value_tr = encode_special_combinations(value_tr, _0_global_special_combinations)
+
             if value_wrd == '' or value_tr == '':
                 btn_disable(self.btn_add)
             else:
