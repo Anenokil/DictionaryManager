@@ -5440,12 +5440,17 @@ class PrintW(tk.Toplevel):
             PopupMsgW(self, 'Не найдено ни одной группы!').open()
             return
 
+        values = []
+        for key in keys:
+            for gr in _0_global_dct.d[key].groups:
+                if gr not in values:
+                    values += [gr]
         if self.var_print_group.get() == ALL_GROUPS or self.tabs.index(self.tabs.select()) == 1:
-            default_value = _0_global_dct.groups[0]
+            default_value = values[0]
         else:
             default_value = self.var_print_group.get()
         window_groups = PopupChooseW(self, msg='Выберите группу, из которой хотите убрать выбранные слова:',
-                                     values=_0_global_dct.groups, default_value=default_value)
+                                     values=values, default_value=default_value)
         closed, group = window_groups.open()
         if closed:
             return
