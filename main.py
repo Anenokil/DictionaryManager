@@ -4262,6 +4262,9 @@ class LearnW(tk.Toplevel):
                 window = PopupDialogueW(self, 'Верно.\n'
                                               'Оставить слово в избранном?',
                                         'Да', 'Нет', val_on_close=True)
+                ttip.Hovertip(window.btn_right, 'Alt+N', hover_delay=700)
+                window.bind('<Alt-N>', lambda event=None: window.btn_right.invoke())
+                window.bind('<Alt-n>', lambda event=None: window.btn_right.invoke())
                 answer = window.open()
                 if not answer:
                     entry.fav = False
