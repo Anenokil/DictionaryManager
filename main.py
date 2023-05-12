@@ -5415,8 +5415,14 @@ class PrintW(tk.Toplevel):
             PopupMsgW(self, 'Не найдено ни одной группы!').open()
             return
 
+        sets = [_0_global_dct.d[key].groups for key in keys]
+        values_intersec = set.intersection(*sets)
+        values = [gr for gr in _0_global_dct.groups if gr not in values_intersec]
+        if not values:
+            PopupMsgW(self, 'Выделенные статьи уже состоят во всех группах!').open()
+            return
         window_groups = PopupChooseW(self, msg='Выберите группу, в которую хотите добавить выбранные слова:',
-                                     values=_0_global_dct.groups, default_value=_0_global_dct.groups[0])
+                                     values=values, default_value=_0_global_dct.groups[0])
         closed, group = window_groups.open()
         if closed:
             return
@@ -5445,6 +5451,9 @@ class PrintW(tk.Toplevel):
             for gr in _0_global_dct.d[key].groups:
                 if gr not in values:
                     values += [gr]
+        if not values:
+            PopupMsgW(self, 'Выделенные статьи не состоят ни в каких группах!').open()
+            return
         if self.var_print_group.get() == ALL_GROUPS or self.tabs.index(self.tabs.select()) == 1:
             default_value = values[0]
         else:
