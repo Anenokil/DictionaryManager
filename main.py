@@ -4150,11 +4150,11 @@ class LearnW(tk.Toplevel):
             selected_keys = [key for key in all_keys if _0_global_dct.d[key].fav]
         elif self.words == LEARN_VALUES_WORDS[3]:  # Учить только неотвеченные слова
             selected_keys = [key for key in all_keys if _0_global_dct.d[key].correct_att == 0]
-        elif self.words == LEARN_VALUES_WORDS[4]:  # Учить 15 случайных слов
-            selected_keys = random.sample(all_keys, min(len(all_keys), 15))
-        else:  # Учить 15 случайных избранных слов
+        elif self.words == LEARN_VALUES_WORDS[4]:  # Учить 10 случайных слов
+            selected_keys = random.sample(all_keys, min(len(all_keys), 10))
+        else:  # Учить 10 случайных избранных слов
             all_keys = [key for key in all_keys if _0_global_dct.d[key].fav]
-            selected_keys = random.sample(all_keys, min(len(all_keys), 15))
+            selected_keys = random.sample(all_keys, min(len(all_keys), 10))
 
         selected_forms = []
         if self.forms == LEARN_VALUES_FORMS[0]:
@@ -4232,12 +4232,9 @@ class LearnW(tk.Toplevel):
     # Нажатие на кнопку "Посмотреть омонимы"
     # Просмотр омонимов
     def show_homonyms(self):
-        if self.learn_method == LEARN_VALUES_METHOD[0]:
-            self.outp('Омонимы: ' + ', '.join([_0_global_dct.d[key].wrd for key in self.homonyms]))
-        else:
-            self.outp('Омонимы:')
-            for key in self.homonyms:
-                self.outp('> ' + get_tr(_0_global_dct.d[key]))
+        self.outp('Омонимы:')
+        for key in self.homonyms:
+            self.outp('> ' + _0_global_dct.d[key].wrd + ': ' + get_tr(_0_global_dct.d[key]))
         btn_disable(self.btn_show_homonyms)
 
     # Нажатие на кнопку "Закончить"
