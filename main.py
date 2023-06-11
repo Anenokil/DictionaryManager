@@ -863,42 +863,67 @@ def delete_ctg_val(window_parent, dct: Dictionary, ctg_name: str, ctg_val: str):
     return True
 
 
+# Есть ли слово в строке
+def wrd_in_line(line: str, wrd: str):
+    words = re.split(r'[.,;:!? \n()\[\]{}]', line)
+    return wrd in words
+
+
 # Поиск статей в словаре
-def search_entries(dct: Dictionary, keys: tuple[tuple[str, int], ...], query: str,
+def search_entries(dct: Dictionary, dct_keys: tuple[tuple[str, int], ...], query: str,
                    search_wrd: bool, search_tr: bool, search_frm: bool, search_nt: bool):
-    results = [set() for _ in range(6)]
-    for key in keys:
+    query_l = query.lower()
+    query_s = simplify(query)[0].replace('ё', 'е')
+    results = [set() for _ in range(9)]
+    for key in dct_keys:
         entry = dct.d[key]
         if search_wrd and query == entry.wrd or\
            search_tr  and query in entry.tr or\
            search_frm and query in entry.forms.values() or\
            search_nt  and query in entry.notes:
             results[0].add(key)
-        elif search_wrd and query.lower() == entry.wrd.lower() or\
-             search_tr  and query.lower() in [tr.lower() for tr in entry.tr] or\
-             search_frm and query.lower() in [frm.lower() for frm in entry.forms.values()] or\
-             search_nt  and query.lower() in [nt.lower() for nt in entry.notes]:
+        elif search_wrd and query_l == entry.wrd.lower() or\
+             search_tr  and query_l in [ tr.lower() for tr  in entry.tr] or\
+             search_frm and query_l in [frm.lower() for frm in entry.forms.values()] or\
+             search_nt  and query_l in [ nt.lower() for nt  in entry.notes]:
             results[1].add(key)
-        elif search_wrd and simplify(query)[0].replace('ё', 'е') == simplify(entry.wrd)[0].replace('ё', 'е') or\
-             search_tr  and simplify(query)[0].replace('ё', 'е') in [simplify(tr)[0].replace('ё', 'е') for tr in entry.tr] or\
-             search_frm and simplify(query)[0].replace('ё', 'е') in [simplify(frm)[0].replace('ё', 'е') for frm in entry.forms.values()] or\
-             search_nt  and simplify(query)[0].replace('ё', 'е') in [simplify(nt)[0].replace('ё', 'е') for nt in entry.notes]:
+        elif search_wrd and query_s == simplify(entry.wrd)[0].replace('ё', 'е') or\
+             search_tr  and query_s in [simplify( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
+             search_frm and query_s in [simplify(frm)[0].replace('ё', 'е') for frm in entry.forms.values()] or\
+             search_nt  and query_s in [simplify( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
             results[2].add(key)
-        elif search_wrd and query in entry.wrd or\
-             search_tr  and True in [query in tr for tr in entry.tr] or\
-             search_frm and True in [query in frm for frm in entry.forms.values()] or\
-             search_nt  and True in [query in nt for nt in entry.notes]:
+
+        elif search_wrd and wrd_in_line(entry.wrd, query) or\
+             search_tr  and True in [wrd_in_line( tr, query) for tr  in entry.tr] or\
+             search_frm and True in [wrd_in_line(frm, query) for frm in entry.forms.values()] or\
+             search_nt  and True in [wrd_in_line( nt, query) for nt  in entry.notes]:
             results[3].add(key)
-        elif search_wrd and query.lower() in entry.wrd.lower() or\
-             search_tr  and True in [query.lower() in tr.lower() for tr in entry.tr] or\
-             search_frm and True in [query.lower() in frm.lower() for frm in entry.forms.values()] or\
-             search_nt  and True in [query.lower() in nt.lower() for nt in entry.notes]:
+        elif search_wrd and wrd_in_line(entry.wrd.lower(), query_l) or\
+             search_tr  and True in [wrd_in_line( tr.lower(), query_l) for tr  in entry.tr] or\
+             search_frm and True in [wrd_in_line(frm.lower(), query_l) for frm in entry.forms.values()] or\
+             search_nt  and True in [wrd_in_line( nt.lower(), query_l) for nt  in entry.notes]:
             results[4].add(key)
-        elif search_wrd and simplify(query)[0].replace('ё', 'е') in simplify(entry.wrd)[0].replace('ё', 'е') or\
-             search_tr  and True in [simplify(query)[0].replace('ё', 'е') in simplify(tr)[0].replace('ё', 'е') for tr in entry.tr] or\
-             search_frm and True in [simplify(query)[0].replace('ё', 'е') in simplify(frm)[0].replace('ё', 'е') for frm in entry.forms.values()] or\
-             search_nt  and True in [simplify(query)[0].replace('ё', 'е') in simplify(nt)[0].replace('ё', 'е') for nt in entry.notes]:
+        elif search_wrd and wrd_in_line(simplify(entry.wrd)[0].replace('ё', 'е'), query_s) or\
+             search_tr  and True in [wrd_in_line(simplify( tr)[0].replace('ё', 'е'), query_s) for tr  in entry.tr] or\
+             search_frm and True in [wrd_in_line(simplify(frm)[0].replace('ё', 'е'), query_s) for frm in entry.forms.values()] or\
+             search_nt  and True in [wrd_in_line(simplify( nt)[0].replace('ё', 'е'), query_s) for nt  in entry.notes]:
             results[5].add(key)
+
+        elif search_wrd and query in entry.wrd or\
+             search_tr  and True in [query in tr  for tr  in entry.tr] or\
+             search_frm and True in [query in frm for frm in entry.forms.values()] or\
+             search_nt  and True in [query in nt  for nt  in entry.notes]:
+            results[6].add(key)
+        elif search_wrd and query_l in entry.wrd.lower() or\
+             search_tr  and True in [query_l in  tr.lower() for tr  in entry.tr] or\
+             search_frm and True in [query_l in frm.lower() for frm in entry.forms.values()] or\
+             search_nt  and True in [query_l in  nt.lower() for nt  in entry.notes]:
+            results[7].add(key)
+        elif search_wrd and query_s in simplify(entry.wrd)[0].replace('ё', 'е') or\
+             search_tr  and True in [query_s in simplify( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
+             search_frm and True in [query_s in simplify(frm)[0].replace('ё', 'е') for frm in entry.forms.values()] or\
+             search_nt  and True in [query_s in simplify( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
+            results[8].add(key)
     return results
 
 
@@ -5107,12 +5132,13 @@ class PrintW(tk.Toplevel):
             keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
         else:
             keys = [key for key in _0_global_dct.d.keys()]
-        m1, m2, m3, m4, m5, m6 = search_entries(_0_global_dct, tuple(keys), self.var_search_query.get(),
-                                                self.search_wrd, self.search_tr, self.search_frm, self.search_nt)
+        m0, m1, m2, m3, m4, m5, m6, m7, m8 = search_entries(_0_global_dct, tuple(keys), self.var_search_query.get(),
+                                                            self.search_wrd, self.search_tr, self.search_frm,
+                                                            self.search_nt)
         if self.search_only_full:
-            self.search_keys = list(m1) + list(m2) + list(m3)
+            self.search_keys = list(m0) + list(m1) + list(m2) + list(m3) + list(m4) + list(m5)
         else:
-            self.search_keys = list(m1) + list(m2) + list(m3) + list(m4) + list(m5) + list(m6)
+            self.search_keys = list(m0) + list(m1) + list(m2) + list(m3) + list(m4) + list(m5) + list(m6) + list(m7) + list(m8)
         self.search_selected_keys = [key for key in self.search_selected_keys if key in self.search_keys]
 
         if not self.search_selected_keys:
