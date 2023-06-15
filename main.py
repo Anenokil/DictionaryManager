@@ -277,6 +277,36 @@ def check_note_edit(window_parent, notes: list[str] | tuple[str, ...], old_note:
     return True
 
 
+# Проверить корректность названия группы
+def check_group_name(window_parent, groups: list[str] | tuple[str, ...], new_group: str):
+    new_group = encode_special_combinations(new_group, _0_global_special_combinations)
+    if new_group == '':
+        warning(window_parent, 'Название группы должно содержать хотя бы один символ!')
+        return False
+    if new_group == ALL_GROUPS:
+        warning(window_parent, 'Группа не может иметь такое название!')
+        return False
+    if new_group in groups:
+        warning(window_parent, f'Группа "{new_group}" уже существует!')
+        return False
+    return True
+
+
+# Проверить корректность названия группы при изменении
+def check_group_name_edit(window_parent, groups: list[str] | tuple[str, ...], old_group: str, new_group: str):
+    new_group = encode_special_combinations(new_group, _0_global_special_combinations)
+    if new_group == '':
+        warning(window_parent, 'Название группы должно содержать хотя бы один символ!')
+        return False
+    if new_group == ALL_GROUPS:
+        warning(window_parent, 'Группа не может иметь такое название!')
+        return False
+    if new_group in groups and new_group != old_group:
+        warning(window_parent, f'Группа "{new_group}" уже существует!')
+        return False
+    return True
+
+
 # Проверить корректность названия категории
 def check_ctg(window_parent, categories: list[str] | tuple[str, ...], new_ctg: str):
     new_ctg = encode_special_combinations(new_ctg, _0_global_special_combinations)
@@ -321,36 +351,6 @@ def check_ctg_val_edit(window_parent, values: list[str] | tuple[str, ...], old_v
         return False
     if new_val in values and new_val != old_val:
         warning(window_parent, f'Значение "{new_val}" уже существует!')
-        return False
-    return True
-
-
-# Проверить корректность названия группы
-def check_group_name(window_parent, groups: list[str] | tuple[str, ...], new_group: str):
-    new_group = encode_special_combinations(new_group, _0_global_special_combinations)
-    if new_group == '':
-        warning(window_parent, 'Название группы должно содержать хотя бы один символ!')
-        return False
-    if new_group == ALL_GROUPS:
-        warning(window_parent, 'Группа не может иметь такое название!')
-        return False
-    if new_group in groups:
-        warning(window_parent, f'Группа "{new_group}" уже существует!')
-        return False
-    return True
-
-
-# Проверить корректность названия группы при изменении
-def check_group_name_edit(window_parent, groups: list[str] | tuple[str, ...], old_group: str, new_group: str):
-    new_group = encode_special_combinations(new_group, _0_global_special_combinations)
-    if new_group == '':
-        warning(window_parent, 'Название группы должно содержать хотя бы один символ!')
-        return False
-    if new_group == ALL_GROUPS:
-        warning(window_parent, 'Группа не может иметь такое название!')
-        return False
-    if new_group in groups and new_group != old_group:
-        warning(window_parent, f'Группа "{new_group}" уже существует!')
         return False
     return True
 
@@ -772,7 +772,7 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, key: tuple[str, int], n
         elif answer == 'r':  # Оставить отдельной статьёй
             new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].phrases, dct.d[key].forms,
                                     dct.d[key].fav, dct.d[key].groups, dct.d[key].all_att, dct.d[key].correct_att,
-                                    dct.d[key].correct_att_in_a_row, dct.d[key].latest_answer_session)
+                                    dct.d[key].correct_att_in_a_row, dct.d[key].latest_answer_date)
             dct.delete_entry(key)
             return new_key
         else:
@@ -780,7 +780,7 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, key: tuple[str, int], n
     else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
         new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].phrases, dct.d[key].forms,
                                 dct.d[key].fav, dct.d[key].groups, dct.d[key].all_att, dct.d[key].correct_att,
-                                dct.d[key].correct_att_in_a_row, dct.d[key].latest_answer_session)
+                                dct.d[key].correct_att_in_a_row, dct.d[key].latest_answer_date)
         dct.delete_entry(key)
         return new_key
 
@@ -4356,13 +4356,13 @@ class LearnW(tk.Toplevel):
             # Отбираем слова, не являющиеся избранными
             unfav_keys = [k for k in all_keys if not _0_global_dct.d[k].fav]
             # Сортируем по давности ответа
-            unfav_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_session)
+            unfav_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_date)
             # Находим N // 4
             count_unfav_keys = min(len(unfav_keys), _0_global_dct.count_fav_entries()[0] // 4)
             # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
-            latest_session = _0_global_dct.d[unfav_keys[count_unfav_keys - 1]].latest_answer_session
+            latest_session = _0_global_dct.d[unfav_keys[count_unfav_keys - 1]].latest_answer_date
             # Оставляем только слова с номером сессии <= S
-            unfav_keys = [k for k in unfav_keys if _0_global_dct.d[k].latest_answer_session[0:2] <= latest_session[0:2]]
+            unfav_keys = [k for k in unfav_keys if _0_global_dct.d[k].latest_answer_date[0:2] <= latest_session[0:2]]
             # Перемешиваем их
             random.shuffle(unfav_keys)
             # И выбираем из них N // 4 слов
@@ -5231,9 +5231,9 @@ class PrintW(tk.Toplevel):
             self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].score, _0_global_dct.d[k].correct_att_in_a_row),
                                  reverse=True)
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[4]:
-            self.print_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_session)
+            self.print_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_date)
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[5]:
-            self.print_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_session, reverse=True)
+            self.print_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_date, reverse=True)
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[6]:
             self.print_keys.sort()
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[7]:

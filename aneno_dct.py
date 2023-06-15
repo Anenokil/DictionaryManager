@@ -5,20 +5,20 @@ import typing
 class Entry(object):
     # self.wrd - слово (начальная форма)
     # self.tr - переводы
-    # self.notes - сноски
     # self.forms - словоформы (кроме начальной)
     # self.phrases - фразы с данным словом
+    # self.notes - сноски
     # self.count_t - количество переводов
-    # self.count_n - количество сносок
     # self.count_f - количество словоформ (кроме начальной)
     # self.count_p - количество фраз с данным словом
+    # self.count_n - количество сносок
     # self.fav - избранное или нет
     # self.groups - группы, к которым относится эта статья
     # self.all_att - количество всех попыток
     # self.correct_att - количество удачных попыток
     # self.score - доля удачных попыток
     # self.correct_att_in_a_row - количество последних удачных попыток подряд
-    # self.latest_answer_session - сессия, на которой было в последний раз отвечено это слово
+    # self.latest_answer_date - сессия, на которой было в последний раз отвечено это слово
     def __init__(self,
                  wrd: str,
                  tr: str | list[str],
@@ -26,7 +26,7 @@ class Entry(object):
                  forms: dict[tuple[str, ...], str] | None = None,
                  phrases: dict[str, str] | None = None,
                  fav=False, groups: set[str] | None = None,
-                 all_att=0, correct_att=0, correct_att_in_a_row=0, latest_answer_session=(0, 0, 0)):
+                 all_att=0, correct_att=0, correct_att_in_a_row=0, latest_answer_date=(0, 0, 0)):
         self.wrd = wrd
         self.tr = tr.copy() if (type(tr) == list) else [tr]
         if notes is None:
@@ -51,34 +51,7 @@ class Entry(object):
         self.correct_att = correct_att
         self.score = 0 if (all_att == 0) else correct_att / all_att
         self.correct_att_in_a_row = correct_att_in_a_row
-        self.latest_answer_session = latest_answer_session
-
-    # Добавить в избранное
-    def add_to_fav(self):
-        self.fav = True
-
-    # Убрать из избранного
-    def remove_from_fav(self):
-        self.fav = False
-
-    # Изменить статус избранного
-    def change_fav(self):
-        self.fav = not self.fav
-
-    # Добавить в группу
-    def add_to_group(self, group: str):
-        self.groups.add(group)
-
-    # Убрать из группы
-    def remove_from_group(self, group: str):
-        self.groups.remove(group)
-
-    # Изменить статус группы
-    def change_group_status(self, group: str):
-        if group in self.groups:
-            self.remove_from_group(group)
-        else:
-            self.add_to_group(group)
+        self.latest_answer_date = latest_answer_date
 
     # Добавить перевод
     def add_tr(self, new_tr: str):
@@ -91,6 +64,28 @@ class Entry(object):
         self.tr.remove(tr)
         self.count_t -= 1
 
+    # Добавить словоформу
+    def add_frm(self, frm_key: tuple[str, ...] | list[str], new_frm: str):
+        if frm_key not in self.forms.keys():
+            self.forms[frm_key] = new_frm
+            self.count_f += 1
+
+    # Удалить словоформу
+    def delete_frm(self, frm_key: tuple[str, ...] | list[str]):
+        self.forms.pop(frm_key)
+        self.count_f -= 1
+
+    # Добавить фразу
+    def add_phrase(self, new_phr: str, new_phr_tr: str):
+        if new_phr not in self.phrases.keys():
+            self.phrases[new_phr] = new_phr_tr
+            self.count_p += 1
+
+    # Удалить фразу
+    def delete_phrase(self, phr: str):
+        self.phrases.pop(phr)
+        self.count_p -= 1
+
     # Добавить сноску
     def add_note(self, new_note: str):
         if new_note not in self.notes:
@@ -102,16 +97,28 @@ class Entry(object):
         self.notes.remove(note)
         self.count_n -= 1
 
-    # Добавить словоформу
-    def add_frm(self, frm_key: tuple[str, ...] | list[str], new_frm: str):
-        if frm_key not in self.forms.keys():
-            self.forms[frm_key] = new_frm
-            self.count_f += 1
+    # Добавить в группу
+    def add_to_group(self, group: str):
+        self.groups.add(group)
 
-    # Удалить словоформу
-    def delete_frm(self, frm_key: tuple[str, ...] | list[str]):
-        self.forms.pop(frm_key)
-        self.count_f -= 1
+    # Убрать из группы
+    def remove_from_group(self, group: str):
+        self.groups.remove(group)
+
+    # Добавить в избранное
+    def add_to_fav(self):
+        self.fav = True
+
+    # Убрать из избранного
+    def remove_from_fav(self):
+        self.fav = False
+
+    # Объединить статистику при объединении двух статей
+    def merge_stat(self, all_att: int, correct_att: int, correct_att_in_a_row: int):
+        self.all_att += all_att
+        self.correct_att += correct_att
+        self.score = 0 if (self.all_att == 0) else self.correct_att / self.all_att
+        self.correct_att_in_a_row += correct_att_in_a_row
 
     # Удалить данное значение категории у всех словоформ
     def delete_forms_with_val(self, pos: int, ctg_val: str):
@@ -135,17 +142,6 @@ class Entry(object):
             lst = tuple(lst)
             self.forms[lst] = self.forms[key]
             self.forms.pop(key)
-
-    # Добавить фразу
-    def add_phrase(self, new_phr: str, new_phr_tr: str):
-        if new_phr not in self.phrases.keys():
-            self.phrases[new_phr] = new_phr_tr
-            self.count_p += 1
-
-    # Удалить фразу
-    def delete_phrase(self, phr: str):
-        self.phrases.pop(phr)
-        self.count_p -= 1
 
     # Добавить новую категорию ко всем словоформам
     def add_ctg(self):
@@ -176,13 +172,6 @@ class Entry(object):
         for key in to_delete:
             self.forms.pop(key)
 
-    # Объединить статистику при объединении двух статей
-    def merge_stat(self, all_att: int, correct_att: int, correct_att_in_a_row: int):
-        self.all_att += all_att
-        self.correct_att += correct_att
-        self.score = 0 if (self.all_att == 0) else self.correct_att / self.all_att
-        self.correct_att_in_a_row += correct_att_in_a_row
-
     # Обновить статистику, если совершена верная попытка
     def correct(self, session_number: tuple[int, int, int]):
         self.all_att += 1
@@ -192,7 +181,7 @@ class Entry(object):
             self.correct_att_in_a_row = 1
         else:
             self.correct_att_in_a_row += 1
-        self.latest_answer_session = session_number
+        self.latest_answer_date = session_number
 
     # Обновить статистику, если совершена неверная попытка
     def incorrect(self):
@@ -207,7 +196,7 @@ class Entry(object):
     def save(self, file: typing.TextIO):
         file.write(f'w{self.wrd}\n')
         file.write(f'{self.all_att}:{self.correct_att}:{self.correct_att_in_a_row}\n')
-        file.write(f'{self.latest_answer_session[0]}:{self.latest_answer_session[1]}:{self.latest_answer_session[2]}\n')
+        file.write(f'{self.latest_answer_date[0]}:{self.latest_answer_date[1]}:{self.latest_answer_date[2]}\n')
         file.write(f'{self.tr[0]}\n')
         for i in range(1, self.count_t):
             file.write(f't{self.tr[i]}\n')
@@ -287,6 +276,38 @@ class Dictionary(object):
                     count_f += entry.count_f
         return count_w, count_t, count_f
 
+    # Подсчитать среднюю долю правильных ответов
+    def count_rating(self):
+        sum_num = sum(entry.correct_att for entry in self.d.values())
+        sum_den = sum(entry.all_att for entry in self.d.values())
+        return sum_num, sum_den
+
+    # Добавить статью в словарь
+    def add_entry(self, wrd: str, tr: str | list[str],
+                  notes: str | list[str] = None, phrases: dict[str, str] = None,
+                  forms: dict[tuple[str, ...], str] = None,
+                  fav: bool = False, groups: set[str] | None = None,
+                  all_att: int = 0, correct_att: int = 0, correct_att_in_a_row: int = 0,
+                  latest_answer_date: tuple[int, int, int] = (0, 0, 0)):
+        i = 0
+        while True:
+            key = wrd_to_key(wrd, i)
+            if key not in self.d.keys():
+                self.d[key] = Entry(wrd, tr, notes, forms, phrases, fav, groups, all_att,
+                                    correct_att, correct_att_in_a_row, latest_answer_date)
+                self.count_w += 1
+                self.count_t += self.d[key].count_t
+                self.count_f += self.d[key].count_f
+                return key
+            i += 1
+
+    # Удалить статью
+    def delete_entry(self, key: tuple[str, int]):
+        self.count_w -= 1
+        self.count_t -= self.d[key].count_t
+        self.count_f -= self.d[key].count_f
+        self.d.pop(key)
+
     # Объединить две статьи с одинаковым словом в одну
     def merge_entries(self, main_entry_key: tuple[str, int], additional_entry_key: tuple[str, int]):
         self.count_t -= self.d[additional_entry_key].count_t
@@ -324,13 +345,11 @@ class Dictionary(object):
         self.d[key].add_tr(tr)
         self.count_t += self.d[key].count_t
 
-    # Добавить сноску к статье
-    def add_note(self, key: tuple[str, int], note: str):
-        self.d[key].add_note(note)
-
-    # Добавить фразу к статье
-    def add_phrase(self, key: tuple[str, int], phr: str, phr_tr: str):
-        self.d[key].add_phrase(phr, phr_tr)
+    # Удалить перевод в статье
+    def delete_tr(self, key: tuple[str, int], tr: str):
+        self.count_t -= self.d[key].count_t
+        self.d[key].delete_tr(tr)
+        self.count_t += self.d[key].count_t
 
     # Добавить словоформу к статье
     def add_frm(self, key: tuple[str, int], frm_key: tuple[str, ...] | list[str], frm: str):
@@ -338,61 +357,27 @@ class Dictionary(object):
         self.d[key].add_frm(frm_key, frm)
         self.count_f += self.d[key].count_f
 
-    # Удалить перевод в статье
-    def delete_tr(self, key: tuple[str, int], tr: str):
-        self.count_t -= self.d[key].count_t
-        self.d[key].delete_tr(tr)
-        self.count_t += self.d[key].count_t
-
-    # Удалить сноску в статье
-    def delete_note(self, key: tuple[str, int], note: str):
-        self.d[key].delete_note(note)
-
-    # Удалить фразу в статье
-    def delete_phrase(self, key: tuple[str, int], phr: str):
-        self.d[key].delete_phrase(phr)
-
     # Удалить словоформу в статье
     def delete_frm(self, key: tuple[str, int], frm_key: tuple[str, ...] | list[str]):
         self.count_f -= self.d[key].count_f
         self.d[key].delete_frm(frm_key)
         self.count_f += self.d[key].count_f
 
-    # Добавить статью в словарь
-    def add_entry(self, wrd: str, tr: str | list[str],
-                  notes: str | list[str] = None, phrases: dict[str, str] = None,
-                  forms: dict[tuple[str, ...], str] = None,
-                  fav: bool = False, groups: set[str] | None = None,
-                  all_att: int = 0, correct_att: int = 0, correct_att_in_a_row: int = 0,
-                  latest_answer_session: tuple[int, int, int] = (0, 0, 0)):
-        i = 0
-        while True:
-            key = wrd_to_key(wrd, i)
-            if key not in self.d.keys():
-                self.d[key] = Entry(wrd, tr, notes, forms, phrases, fav, groups, all_att,
-                                    correct_att, correct_att_in_a_row, latest_answer_session)
-                self.count_w += 1
-                self.count_t += self.d[key].count_t
-                self.count_f += self.d[key].count_f
-                return key
-            i += 1
+    # Добавить фразу к статье
+    def add_phrase(self, key: tuple[str, int], phr: str, phr_tr: str):
+        self.d[key].add_phrase(phr, phr_tr)
 
-    # Удалить статью
-    def delete_entry(self, key: tuple[str, int]):
-        self.count_w -= 1
-        self.count_t -= self.d[key].count_t
-        self.count_f -= self.d[key].count_f
-        self.d.pop(key)
+    # Удалить фразу в статье
+    def delete_phrase(self, key: tuple[str, int], phr: str):
+        self.d[key].delete_phrase(phr)
 
-    # Добавить выбранные статьи в избранное
-    def fav_entries(self, dct_keys: tuple[tuple[str, int], ...]):
-        for key in dct_keys:
-            self.d[key].add_to_fav()
+    # Добавить сноску к статье
+    def add_note(self, key: tuple[str, int], note: str):
+        self.d[key].add_note(note)
 
-    # Убрать выбранные статьи из избранного
-    def unfav_entries(self, dct_keys: tuple[tuple[str, int], ...]):
-        for key in dct_keys:
-            self.d[key].remove_from_fav()
+    # Удалить сноску в статье
+    def delete_note(self, key: tuple[str, int], note: str):
+        self.d[key].delete_note(note)
 
     # Добавить выбранные статьи в группу
     def add_entries_to_group(self, group: str, dct_keys: tuple[tuple[str, int], ...] | list[tuple[str, int]]):
@@ -405,6 +390,16 @@ class Dictionary(object):
             if group in self.d[key].groups:
                 self.d[key].remove_from_group(group)
 
+    # Добавить выбранные статьи в избранное
+    def fav_entries(self, dct_keys: tuple[tuple[str, int], ...]):
+        for key in dct_keys:
+            self.d[key].add_to_fav()
+
+    # Убрать выбранные статьи из избранного
+    def unfav_entries(self, dct_keys: tuple[tuple[str, int], ...]):
+        for key in dct_keys:
+            self.d[key].remove_from_fav()
+
     # Удалить данное значение категории у всех словоформ
     def delete_forms_with_val(self, pos: int, ctg_val: str):
         for entry in self.d.values():
@@ -416,12 +411,6 @@ class Dictionary(object):
     def rename_forms_with_val(self, pos: int, old_ctg_val: str, new_ctg_val: str):
         for entry in self.d.values():
             entry.rename_forms_with_val(pos, old_ctg_val, new_ctg_val)
-
-    # Подсчитать среднюю долю правильных ответов
-    def count_rating(self):
-        sum_num = sum(entry.correct_att for entry in self.d.values())
-        sum_den = sum(entry.all_att for entry in self.d.values())
-        return sum_num, sum_den
 
     # Добавить грамматическую категорию
     def add_ctg(self, ctg_name: str, ctg_values: list[str]):
@@ -521,11 +510,11 @@ class Dictionary(object):
                 elif line[0] == 'w':
                     wrd = line[1:]
                     all_att, correct_att, correct_att_in_a_row = (int(el) for el in file.readline().strip().split(':'))
-                    latest_answer_session = tuple((int(el) for el in file.readline().strip().split(':')))
+                    latest_answer_date = tuple((int(el) for el in file.readline().strip().split(':')))
                     tr = file.readline().strip()
                     key = self.add_entry(wrd, tr, all_att=all_att, correct_att=correct_att,
                                          correct_att_in_a_row=correct_att_in_a_row,
-                                         latest_answer_session=latest_answer_session)
+                                         latest_answer_date=latest_answer_date)
                 elif line[0] == 't':
                     self.add_tr(key, line[1:])
                 elif line[0] == 'n':

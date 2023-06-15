@@ -3,9 +3,9 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.26:1'
-PROGRAM_DATE = '14.6.2023'
-PROGRAM_TIME = '22:59 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.26:2'
+PROGRAM_DATE = '15.6.2023'
+PROGRAM_TIME = '10:35 (UTC+3)'
 
 """ Версии ресурсов """
 
