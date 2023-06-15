@@ -4656,6 +4656,22 @@ class PrintW(tk.Toplevel):
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
 
+        # Константы для вкладки печати
+        self.print_max_elements_on_page = 100  # Максимальное количество элементов на одной странице ScrollFrame
+        self.print_current_page = 1  # Номер текущей страницы ScrollFrame (начиная с 1)
+        self.print_start_index = 0  # Номер по порядку первого слова на текущей странице ScrollFrame (начиная с 0)
+        self.print_count_pages = None  # Количество страниц ScrollFrame
+        self.print_count_elements = None  # Количество элементов на всех страницах ScrollFrame
+        self.print_count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
+        # Константы для вкладки поиска
+        self.search_max_elements_on_page = 50  # Максимальное количество элементов на одной странице ScrollFrame
+        self.search_current_page = 1  # Номер текущей страницы ScrollFrame (начиная с 1)
+        self.search_start_index = 0  # Номер по порядку первого слова на текущей странице ScrollFrame (начиная с 0)
+        self.search_count_pages = None  # Количество страниц ScrollFrame
+        self.search_count_elements = None  # Количество элементов на всех страницах ScrollFrame
+        self.search_count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
+
+        # Параметры поиска
         self.search_only_fav = bool(_0_global_search_settings[0])
         self.search_only_full = bool(_0_global_search_settings[1])
         self.search_wrd = bool(_0_global_search_settings[2])
@@ -4663,20 +4679,7 @@ class PrintW(tk.Toplevel):
         self.search_frm = bool(_0_global_search_settings[4])
         self.search_nt = bool(_0_global_search_settings[5])
 
-        self.print_max_elements_on_page = 200  # Максимальное количество элементов на одной странице ScrollFrame
-        self.print_current_page = 1  # Номер текущей страницы ScrollFrame (начиная с 1)
-        self.print_start_index = 0  # Номер по порядку первого слова на текущей странице ScrollFrame (начиная с 0)
-        self.print_count_pages = None  # Количество страниц ScrollFrame
-        self.print_count_elements = None  # Количество элементов на всех страницах ScrollFrame
-        self.print_count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
-        #
-        self.search_max_elements_on_page = 100  # Максимальное количество элементов на одной странице ScrollFrame
-        self.search_current_page = 1  # Номер текущей страницы ScrollFrame (начиная с 1)
-        self.search_start_index = 0  # Номер по порядку первого слова на текущей странице ScrollFrame (начиная с 0)
-        self.search_count_pages = None  # Количество страниц ScrollFrame
-        self.search_count_elements = None  # Количество элементов на всех страницах ScrollFrame
-        self.search_count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
-
+        # Переменные для вкладки печати
         self.var_print_fav = tk.BooleanVar(value=False)
         self.var_print_briefly = tk.BooleanVar(value=False)
         self.var_print_info = tk.StringVar()
@@ -4684,7 +4687,7 @@ class PrintW(tk.Toplevel):
         self.var_print_current_page = tk.StringVar(value=str(self.print_current_page))
         self.var_print_order = tk.StringVar(value=PRINT_VALUES_ORDER[0])
         self.var_print_group = tk.StringVar(value=ALL_GROUPS)
-        #
+        # Переменные для вкладки поиска
         self.var_search_query = tk.StringVar()
         self.var_search_info = tk.StringVar()
         self.var_search_info_selected = tk.StringVar()
@@ -4707,12 +4710,13 @@ class PrintW(tk.Toplevel):
         self.img_delete = tk.PhotoImage()
         self.img_settings = tk.PhotoImage()
 
+        # Вспомогательные массивы для ScrollFrame для вкладки печати
         self.print_keys = []
         self.print_selected_keys = []
         self.print_frames = []
         self.print_buttons = []
         self.print_tips = []
-        #
+        # Вспомогательные массивы для ScrollFrame для вкладки поиска
         self.search_keys = []
         self.search_selected_keys = []
         self.search_frames = []
@@ -4922,7 +4926,8 @@ class PrintW(tk.Toplevel):
         set_image(self.btn_search_prev_page, self.img_arrow_left, img_arrow_left, '<')
         self.frame_search_current_page = ttk.Frame(self.frame_search_page_buttons, style='Invis.TFrame')
         # { { { {
-        self.lbl_search_current_page_1 = ttk.Label(self.frame_search_current_page, text='Страница', style='Default.TLabel')
+        self.lbl_search_current_page_1 = ttk.Label(self.frame_search_current_page, text='Страница',
+                                                   style='Default.TLabel')
         self.entry_search_current_page = ttk.Entry(self.frame_search_current_page,
                                                    textvariable=self.var_search_current_page, justify='center',
                                                    validate='key', validatecommand=self.vcmd_page, width=3,
