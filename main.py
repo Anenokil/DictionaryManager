@@ -226,6 +226,33 @@ def check_tr_edit(window_parent, translations: list[str] | tuple[str, ...], old_
     return True
 
 
+# Проверить корректность фразы
+def check_phr(window_parent, phrases: dict[str, str], new_phr: tuple[str, str], wrd: str):
+    n1 = encode_special_combinations(new_phr[0], _0_global_special_combinations)
+    n2 = encode_special_combinations(new_phr[1], _0_global_special_combinations)
+    if n1 == '' or n2 == '':
+        warning(window_parent, 'Фраза должна содержать хотя бы один символ!')
+        return False
+    if new_phr[0] in phrases.keys():
+        warning(window_parent, f'Со словом "{wrd}" уже есть такая фраза!')
+        return False
+    return True
+
+
+# Проверить корректность фразы при изменении
+def check_phr_edit(window_parent, phrases: dict[str, str], old_phr: tuple[str, str], new_phr: tuple[str, str],
+                   wrd: str):
+    n1 = encode_special_combinations(new_phr[0], _0_global_special_combinations)
+    n2 = encode_special_combinations(new_phr[1], _0_global_special_combinations)
+    if n1 == '' or n2 == '':
+        warning(window_parent, 'Фраза должна содержать хотя бы один символ!')
+        return False
+    if new_phr[0] in phrases.keys() and new_phr != old_phr:
+        warning(window_parent, f'Со словом "{wrd}" уже есть такая фраза!')
+        return False
+    return True
+
+
 # Проверить корректность сноски
 def check_note(window_parent, notes: list[str] | tuple[str, ...], new_note: str, wrd: str):
     new_note = encode_special_combinations(new_note, _0_global_special_combinations)
@@ -344,15 +371,20 @@ def get_tr(entry: Entry):
     return ', '.join(tuple(entry.tr))
 
 
-# Вывести сноски
-def get_notes(entry: Entry, tab=0):
-    return '\n'.join((' ' * tab + '> ' + nt for nt in entry.notes))
-
-
 # Вывести словоформы
 def get_forms(entry: Entry, tab=0):
     frm_keys = entry.forms.keys()
-    return '\n'.join((' ' * tab + f'[{frm_key_to_str_for_print(key)}] {entry.forms[key]}' for key in frm_keys))
+    return ('\n' + ' ' * tab).join((f'[{frm_key_to_str_for_print(key)}] {entry.forms[key]}' for key in frm_keys))
+
+
+# Вывести фразы
+def get_phrases(entry: Entry, tab=0):
+    return ('\n' + ' ' * tab).join((phr + ' - ' + entry.phrases[phr] for phr in entry.phrases))
+
+
+# Вывести сноски
+def get_notes(entry: Entry, tab=0):
+    return ('\n' + ' ' * tab).join((nt for nt in entry.notes))
 
 
 # Вывести группы
@@ -414,9 +446,11 @@ def get_entry_info_briefly(entry: Entry, len_str: int):
 def get_entry_info_detailed(entry: Entry, len_str: int):
     res = _get_entry_info_briefly(entry)
     if entry.count_f != 0:
-        res += f'\n{get_forms(entry, tab=15)}'
+        res += f'\n  Формы слова: {get_forms(entry, tab=15)}'
+    if entry.phrases.keys():
+        res += f'\n        Фразы: {get_phrases(entry, tab=15)}'
     if entry.count_n != 0:
-        res += f'\n{get_notes(entry, tab=15)}'
+        res += f'\n       Сноски: {get_notes(entry, tab=15)}'
     if entry.groups:
         res += f'\n       Группы: {get_groups(entry)}'
     return split_text(res, len_str, tab=15)
@@ -424,9 +458,9 @@ def get_entry_info_detailed(entry: Entry, len_str: int):
 
 # Вывести статью - со всей информацией
 def get_all_entry_info(entry: Entry, len_str: int, tab=0):
-    res = ''
-    res += f'      Слово: {entry.wrd}\n'
+    res  = f'      Слово: {entry.wrd}\n'
     res += f'    Перевод: {get_tr(entry)}\n'
+
     res += f'Формы слова: '
     if entry.count_f == 0:
         res += '-\n'
@@ -435,18 +469,27 @@ def get_all_entry_info(entry: Entry, len_str: int, tab=0):
         res += f'[{frm_key_to_str_for_print(keys[0])}] {entry.forms[keys[0]]}\n'
         for i in range(1, entry.count_f):
             res += f'             [{frm_key_to_str_for_print(keys[i])}] {entry.forms[keys[i]]}\n'
-    res += '     Сноски: '
+
+    res += '      Фразы: '
+    if entry.count_p == 0:
+        res += '-'
+    else:
+        res += get_phrases(entry, tab=13)
+
+    res += '\n     Сноски: '
     if entry.count_n == 0:
-        res += '-\n'
+        res += '-'
     else:
-        res += f'> {entry.notes[0]}\n'
-        for i in range(1, entry.count_n):
-            res += f'             > {entry.notes[i]}\n'
+        res += get_notes(entry, tab=13)
+
+    res += '\n  Избранное: '
     if entry.fav:
-        res += '  Избранное: ДА\n'
+        res += '+'
     else:
-        res += '  Избранное: НЕТ\n'
-    res += f'     Группы: {get_groups(entry)}\n'
+        res += '-'
+
+    res += f'\n     Группы: {get_groups(entry)}\n'
+
     if entry.all_att == 0:  # Если ещё не было попыток
         res += ' Статистика: 1) Верных ответов подряд: -\n'
         res += '             2) Доля верных ответов: -'
@@ -454,6 +497,7 @@ def get_all_entry_info(entry: Entry, len_str: int, tab=0):
         res += f' Статистика: 1) Верных ответов подряд: {entry.correct_att_in_a_row}\n'
         res += f'             2) Доля верных ответов: '
         res += f'{entry.correct_att}/{entry.all_att} = ' + '{:.0%}'.format(entry.score)
+
     return split_text(res, len_str, tab=tab)
 
 
@@ -726,16 +770,16 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, key: tuple[str, int], n
             dct.merge_entries(new_key, key)
             return new_key
         elif answer == 'r':  # Оставить отдельной статьёй
-            new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].forms, dct.d[key].fav,
-                                    dct.d[key].groups, dct.d[key].all_att, dct.d[key].correct_att,
+            new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].phrases, dct.d[key].forms,
+                                    dct.d[key].fav, dct.d[key].groups, dct.d[key].all_att, dct.d[key].correct_att,
                                     dct.d[key].correct_att_in_a_row, dct.d[key].latest_answer_session)
             dct.delete_entry(key)
             return new_key
         else:
             return key
     else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
-        new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].forms, dct.d[key].fav,
-                                dct.d[key].groups, dct.d[key].all_att, dct.d[key].correct_att,
+        new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].phrases, dct.d[key].forms,
+                                dct.d[key].fav, dct.d[key].groups, dct.d[key].all_att, dct.d[key].correct_att,
                                 dct.d[key].correct_att_in_a_row, dct.d[key].latest_answer_session)
         dct.delete_entry(key)
         return new_key
@@ -2091,6 +2135,67 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
         return self.answer
 
 
+# Окно добавления фразы
+class AddPhraseW(tk.Toplevel):
+    def __init__(self, parent, title, default_value=('', ''), check_answer_function=None):
+        super().__init__(parent)
+        self.title(f'{PROGRAM_NAME} - {title}')
+        self.resizable(width=False, height=False)
+        self.configure(bg=ST_BG[th])
+
+        self.closed = True  # Закрыто ли окно крестиком
+        self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
+
+        self.var_phr = tk.StringVar(value=default_value[0])
+        self.var_tr = tk.StringVar(value=default_value[1])
+
+        self.lbl_phr = ttk.Label(self, text='Фраза:', style='Default.TLabel')
+        self.entry_phr = ttk.Entry(self, textvariable=self.var_phr, width=45, validate='all',
+                                   style='Default.TEntry', font=('StdFont', _0_global_scale))
+        self.lbl_tr = ttk.Label(self, text='Перевод:', style='Default.TLabel')
+        self.entry_tr = ttk.Entry(self, textvariable=self.var_tr, width=45, validate='all',
+                                  style='Default.TEntry', font=('StdFont', _0_global_scale))
+        self.btn_ok = ttk.Button(self, text='Готово', command=self.ok, takefocus=False, style='Default.TButton')
+
+        self.lbl_phr.grid(  row=0, column=0,     padx=(6, 1), pady=(6, 3), sticky='E')
+        self.entry_phr.grid(row=0, column=1,     padx=(0, 6), pady=(6, 3), sticky='W')
+        self.lbl_tr.grid(   row=1, column=0,     padx=(6, 1), pady=(0, 3), sticky='E')
+        self.entry_tr.grid( row=1, column=1,     padx=(0, 6), pady=(0, 3), sticky='W')
+        self.btn_ok.grid(   row=3, columnspan=2, padx=6,      pady=(0, 6))
+
+        self.entry_phr.bind('<Down>', lambda event: self.entry_tr.focus_set())
+        self.entry_tr.bind('<Up>', lambda event: self.entry_phr.focus_set())
+
+        self.entry_phr.icursor(len(self.var_phr.get()))
+
+    # Добавление фразы
+    def ok(self):
+        global _0_global_has_progress
+
+        if self.check_answer_function:
+            is_correct = self.check_answer_function(self, (self.var_phr.get(), self.var_tr.get()))
+            if not is_correct:
+                return
+
+        self.closed = False
+        self.destroy()
+
+    # Установить фокус
+    def set_focus(self):
+        self.focus_set()
+        self.entry_phr.focus_set()
+        self.bind('<Return>', lambda event=None: self.btn_ok.invoke())
+        self.bind('<Escape>', lambda event=None: self.destroy())
+
+    def open(self):
+        self.set_focus()
+
+        self.grab_set()
+        self.wait_window()
+
+        return self.closed, self.var_phr.get(), self.var_tr.get()
+
+
 # Окно изменения статьи
 class EditW(tk.Toplevel):
     def __init__(self, parent, key: tuple[str, int]):
@@ -2102,10 +2207,11 @@ class EditW(tk.Toplevel):
         self.dct_key = key
         self.line_width = 35
         self.max_height_w = 3
-        self.max_height_t = 5
-        self.max_height_n = 4
-        self.max_height_f = 5
-        self.max_height_g = 4
+        self.max_height_t = 4
+        self.max_height_f = 4
+        self.max_height_p = 3
+        self.max_height_n = 3
+        self.max_height_g = 3
 
         self.var_fav = tk.BooleanVar(value=_0_global_dct.d[key].fav)
 
@@ -2117,13 +2223,17 @@ class EditW(tk.Toplevel):
         self.tr_frames = []
         self.tr_buttons = []
         #
-        self.notes = []
-        self.nt_frames = []
-        self.nt_buttons = []
-        #
         self.forms = []
         self.frm_frames = []
         self.frm_buttons = []
+        #
+        self.phrases = []
+        self.phr_frames = []
+        self.phr_buttons = []
+        #
+        self.notes = []
+        self.nt_frames = []
+        self.nt_buttons = []
         #
         self.groups = []
         self.gr_frames = []
@@ -2152,15 +2262,6 @@ class EditW(tk.Toplevel):
         if self.btn_tr_add['style'] == 'Image.TButton':
             self.tip_btn_tr_add = ttip.Hovertip(self.btn_tr_add, 'Добавить перевод', hover_delay=500)
         #
-        self.lbl_notes = ttk.Label(self.frame_main, text='Сноски:', style='Default.TLabel')
-        self.scrolled_frame_nt = ScrollFrame(self.frame_main,
-                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
-                                             SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
-        self.btn_note_add = ttk.Button(self.frame_main, command=self.note_add, width=2, takefocus=False)
-        set_image(self.btn_note_add, self.img_add, img_add, '+')
-        if self.btn_note_add['style'] == 'Image.TButton':
-            self.tip_btn_note_add = ttip.Hovertip(self.btn_note_add, 'Добавить сноску', hover_delay=500)
-        #
         self.lbl_frm = ttk.Label(self.frame_main, text='Формы слова:', style='Default.TLabel')
         self.scrolled_frame_frm = ScrollFrame(self.frame_main,
                                               SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
@@ -2169,6 +2270,24 @@ class EditW(tk.Toplevel):
         set_image(self.btn_frm_add, self.img_add, img_add, '+')
         if self.btn_frm_add['style'] == 'Image.TButton':
             self.tip_btn_frm_add = ttip.Hovertip(self.btn_frm_add, 'Добавить словоформу', hover_delay=500)
+        #
+        self.lbl_phrases = ttk.Label(self.frame_main, text='Фразы:', style='Default.TLabel')
+        self.scrolled_frame_phr = ScrollFrame(self.frame_main,
+                                              SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
+                                              SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.btn_phrase_add = ttk.Button(self.frame_main, command=self.phrase_add, width=2, takefocus=False)
+        set_image(self.btn_phrase_add, self.img_add, img_add, '+')
+        if self.btn_phrase_add['style'] == 'Image.TButton':
+            self.tip_btn_phrase_add = ttip.Hovertip(self.btn_phrase_add, 'Добавить фразу', hover_delay=500)
+        #
+        self.lbl_notes = ttk.Label(self.frame_main, text='Сноски:', style='Default.TLabel')
+        self.scrolled_frame_nt = ScrollFrame(self.frame_main,
+                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
+                                             SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.btn_note_add = ttk.Button(self.frame_main, command=self.note_add, width=2, takefocus=False)
+        set_image(self.btn_note_add, self.img_add, img_add, '+')
+        if self.btn_note_add['style'] == 'Image.TButton':
+            self.tip_btn_note_add = ttip.Hovertip(self.btn_note_add, 'Добавить сноску', hover_delay=500)
         #
         self.lbl_gr = ttk.Label(self.frame_main, text='Группы:', style='Default.TLabel')
         self.scrolled_frame_gr = ScrollFrame(self.frame_main,
@@ -2200,20 +2319,24 @@ class EditW(tk.Toplevel):
         self.scrolled_frame_tr.grid(row=1, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
         self.btn_tr_add.grid(       row=1, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
         #
-        self.lbl_notes.grid(        row=2, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
-        self.scrolled_frame_nt.grid(row=2, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
-        self.btn_note_add.grid(     row=2, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
+        self.lbl_frm.grid(           row=2, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
+        self.scrolled_frame_frm.grid(row=2, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.btn_frm_add.grid(       row=2, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
         #
-        self.lbl_frm.grid(           row=3, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
-        self.scrolled_frame_frm.grid(row=3, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
-        self.btn_frm_add.grid(       row=3, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
+        self.lbl_phrases.grid(       row=3, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
+        self.scrolled_frame_phr.grid(row=3, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.btn_phrase_add.grid(    row=3, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
         #
-        self.lbl_gr.grid(           row=4, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
-        self.scrolled_frame_gr.grid(row=4, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
-        self.btn_gr_add.grid(       row=4, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
+        self.lbl_notes.grid(        row=4, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
+        self.scrolled_frame_nt.grid(row=4, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.btn_note_add.grid(     row=4, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
         #
-        self.lbl_fav.grid(  row=5, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_fav.grid(row=5, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_gr.grid(           row=5, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
+        self.scrolled_frame_gr.grid(row=5, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.btn_gr_add.grid(       row=5, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
+        #
+        self.lbl_fav.grid(  row=6, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_fav.grid(row=6, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
         # }
         self.btn_back.grid(        row=1, column=0, padx=(6, 0), pady=(0, 6))
         self.btn_about_window.grid(row=1, column=1, padx=(6, 6), pady=(0, 6))
@@ -2293,51 +2416,6 @@ class EditW(tk.Toplevel):
         _0_global_has_progress = True
         self.refresh(False)
 
-    # Добавить сноску
-    def note_add(self):
-        global _0_global_has_progress
-
-        window = PopupEntryW(self, 'Введите сноску',
-                             check_answer_function=lambda wnd, val:
-                             check_note(wnd, _0_global_dct.d[self.dct_key].notes, val, key_to_wrd(self.dct_key)))
-        closed, note = window.open()
-        if closed:
-            return
-        note = encode_special_combinations(note, _0_global_special_combinations)
-
-        _0_global_dct.add_note(self.dct_key, note)
-
-        _0_global_has_progress = True
-        self.refresh(False)
-
-    # Изменить сноску
-    def note_edt(self, note: str):
-        global _0_global_has_progress
-
-        window = PopupEntryW(self, 'Введите сноску', default_value=note,
-                             check_answer_function=lambda wnd, val:
-                             check_note_edit(wnd, _0_global_dct.d[self.dct_key].notes, note, val,
-                                             key_to_wrd(self.dct_key)))
-        closed, new_note = window.open()
-        if closed:
-            return
-        new_note = encode_special_combinations(new_note, _0_global_special_combinations)
-
-        _0_global_dct.delete_note(self.dct_key, note)
-        _0_global_dct.add_note(self.dct_key, new_note)
-
-        _0_global_has_progress = True
-        self.refresh(False)
-
-    # Удалить сноску
-    def note_del(self, note: str):
-        global _0_global_has_progress
-
-        _0_global_dct.delete_note(self.dct_key, note)
-
-        _0_global_has_progress = True
-        self.refresh(False)
-
     # Добавить словоформу
     def frm_add(self):
         global _0_global_has_progress
@@ -2383,6 +2461,100 @@ class EditW(tk.Toplevel):
         global _0_global_has_progress
 
         _0_global_dct.delete_frm(self.dct_key, frm_key)
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Добавить фразу
+    def phrase_add(self):
+        global _0_global_has_progress
+
+        window = AddPhraseW(self, 'Добавление фразы',
+                            check_answer_function=lambda wnd, val:
+                            check_phr(wnd, _0_global_dct.d[self.dct_key].phrases, val, key_to_wrd(self.dct_key)))
+        closed, phr, phr_tr = window.open()
+        if closed:
+            return
+        phr = encode_special_combinations(phr, _0_global_special_combinations)
+        phr_tr = encode_special_combinations(phr_tr, _0_global_special_combinations)
+
+        _0_global_dct.add_phrase(self.dct_key, phr, phr_tr)
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Изменить фразу
+    def phrase_edt(self, phr: str):
+        global _0_global_has_progress
+
+        window = AddPhraseW(self, 'Изменение фразы',
+                            default_value=(phr, _0_global_dct.d[self.dct_key].phrases[phr]),
+                            check_answer_function=lambda wnd, val:
+                            check_phr_edit(wnd, _0_global_dct.d[self.dct_key].phrases,
+                                           (phr, _0_global_dct.d[self.dct_key].phrases[phr]),
+                                           val, key_to_wrd(self.dct_key)))
+        closed, new_phr, new_phr_tr = window.open()
+        if closed:
+            return
+        new_phr = encode_special_combinations(new_phr, _0_global_special_combinations)
+        new_phr_tr = encode_special_combinations(new_phr_tr, _0_global_special_combinations)
+
+        _0_global_dct.delete_phrase(self.dct_key, phr)
+        _0_global_dct.add_phrase(self.dct_key, new_phr, new_phr_tr)
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Удалить фразу
+    def phrase_del(self, phr: str):
+        global _0_global_has_progress
+
+        _0_global_dct.delete_phrase(self.dct_key, phr)
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Добавить сноску
+    def note_add(self):
+        global _0_global_has_progress
+
+        window = PopupEntryW(self, 'Введите сноску',
+                             check_answer_function=lambda wnd, val:
+                             check_note(wnd, _0_global_dct.d[self.dct_key].notes, val, key_to_wrd(self.dct_key)))
+        closed, note = window.open()
+        if closed:
+            return
+        note = encode_special_combinations(note, _0_global_special_combinations)
+
+        _0_global_dct.add_note(self.dct_key, note)
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Изменить сноску
+    def note_edt(self, note: str):
+        global _0_global_has_progress
+
+        window = PopupEntryW(self, 'Введите сноску', default_value=note,
+                             check_answer_function=lambda wnd, val:
+                             check_note_edit(wnd, _0_global_dct.d[self.dct_key].notes, note, val,
+                                             key_to_wrd(self.dct_key)))
+        closed, new_note = window.open()
+        if closed:
+            return
+        new_note = encode_special_combinations(new_note, _0_global_special_combinations)
+
+        _0_global_dct.delete_note(self.dct_key, note)
+        _0_global_dct.add_note(self.dct_key, new_note)
+
+        _0_global_has_progress = True
+        self.refresh(False)
+
+    # Удалить сноску
+    def note_del(self, note: str):
+        global _0_global_has_progress
+
+        _0_global_dct.delete_note(self.dct_key, note)
 
         _0_global_has_progress = True
         self.refresh(False)
@@ -2436,7 +2608,7 @@ class EditW(tk.Toplevel):
             _0_global_has_progress = True
             self.destroy()
 
-    # Закрыть настройки
+    # Закрыть окно
     def back(self):
         self.destroy()
 
@@ -2457,10 +2629,10 @@ class EditW(tk.Toplevel):
             self.scrollbar_wrd.grid(row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
 
         # Удаляем старые кнопки
-        for btn in self.tr_buttons + self.nt_buttons + self.frm_buttons + self.gr_buttons:
+        for btn in self.tr_buttons + self.nt_buttons + self.phr_buttons + self.frm_buttons + self.gr_buttons:
             btn.destroy()
         # Удаляем старые фреймы
-        for fr in self.tr_frames + self.nt_frames + self.frm_frames + self.gr_frames:
+        for fr in self.tr_frames + self.nt_frames + self.phr_frames + self.frm_frames + self.gr_frames:
             fr.unbind('<Enter>')
             fr.unbind('<Control-D>')
             fr.unbind('<Control-d>')
@@ -2470,10 +2642,12 @@ class EditW(tk.Toplevel):
         # Выбираем комбинации
         self.translations = [tr for tr in _0_global_dct.d[self.dct_key].tr]
         self.notes = [nt for nt in _0_global_dct.d[self.dct_key].notes]
+        self.phrases = [phr for phr in _0_global_dct.d[self.dct_key].phrases.keys()]
         self.forms = [frm for frm in _0_global_dct.d[self.dct_key].forms.keys()]
         self.groups = [gr for gr in _0_global_dct.d[self.dct_key].groups]
         tr_count = len(self.translations)
         nt_count = len(self.notes)
+        phr_count = len(self.phrases)
         frm_count = len(self.forms)
         gr_count = len(self.groups)
 
@@ -2482,6 +2656,8 @@ class EditW(tk.Toplevel):
                                 for i in range(tr_count)])
         self.nt_frames = tuple([ttk.Frame(self.scrolled_frame_nt.frame_canvas, style='Invis.TFrame')
                                 for i in range(nt_count)])
+        self.phr_frames = tuple([ttk.Frame(self.scrolled_frame_phr.frame_canvas, style='Invis.TFrame')
+                                 for i in range(phr_count)])
         self.frm_frames = tuple([ttk.Frame(self.scrolled_frame_frm.frame_canvas, style='Invis.TFrame')
                                  for i in range(frm_count)])
         self.gr_frames = tuple([ttk.Frame(self.scrolled_frame_gr.frame_canvas, style='Invis.TFrame')
@@ -2493,6 +2669,9 @@ class EditW(tk.Toplevel):
         self.nt_buttons = [ttk.Button(self.nt_frames[i], command=lambda i=i: self.note_edt(self.notes[i]),
                                       takefocus=False, style='Note.TButton')
                            for i in range(nt_count)]
+        self.phr_buttons = [ttk.Button(self.phr_frames[i], command=lambda i=i: self.phrase_edt(self.phrases[i]),
+                                       takefocus=False, style='Note.TButton')
+                            for i in range(phr_count)]
         self.frm_buttons = [ttk.Button(self.frm_frames[i], command=lambda i=i: self.frm_edt(self.forms[i]),
                                        takefocus=False, style='Note.TButton')
                             for i in range(frm_count)]
@@ -2505,6 +2684,9 @@ class EditW(tk.Toplevel):
         for i in range(nt_count):
             nt = self.notes[i]
             self.nt_buttons[i].configure(text=split_text(nt, 35))
+        for i in range(phr_count):
+            phr = self.phrases[i]
+            self.phr_buttons[i].configure(text=split_text(f'{phr} - {_0_global_dct.d[self.dct_key].phrases[phr]}', 35))
         for i in range(frm_count):
             frm = self.forms[i]
             text = f'[{frm_key_to_str_for_print(frm)}] {_0_global_dct.d[self.dct_key].forms[frm]}'
@@ -2522,6 +2704,11 @@ class EditW(tk.Toplevel):
             self.nt_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
             # {
             self.nt_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
+            # }
+        for i in range(phr_count):
+            self.phr_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
+            # {
+            self.phr_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
             # }
         for i in range(frm_count):
             self.frm_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
@@ -2544,6 +2731,11 @@ class EditW(tk.Toplevel):
             self.nt_frames[i].bind('<Control-D>', lambda event, i=i: self.note_del(self.notes[i]))
             self.nt_frames[i].bind('<Control-d>', lambda event, i=i: self.note_del(self.notes[i]))
             self.nt_frames[i].bind('<Leave>', lambda event: self.focus_set())
+        for i in range(phr_count):
+            self.phr_frames[i].bind('<Enter>', lambda event, i=i: self.phr_frames[i].focus_set())
+            self.phr_frames[i].bind('<Control-D>', lambda event, i=i: self.phrase_del(self.phrases[i]))
+            self.phr_frames[i].bind('<Control-d>', lambda event, i=i: self.phrase_del(self.phrases[i]))
+            self.phr_frames[i].bind('<Leave>', lambda event: self.focus_set())
         for i in range(frm_count):
             self.frm_frames[i].bind('<Enter>', lambda event, i=i: self.frm_frames[i].focus_set())
             self.frm_frames[i].bind('<Control-D>', lambda event, i=i: self.frm_del(self.forms[i]))
@@ -2563,6 +2755,10 @@ class EditW(tk.Toplevel):
                                                              for btn in self.nt_buttons]),
                                                         self.max_height_n)) *
                                              SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_phr.resize(height=max(1, min(sum([field_height(btn['text'], 35)
+                                                              for btn in self.phr_buttons]),
+                                                         self.max_height_p)) *
+                                              SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
         self.scrolled_frame_frm.resize(height=max(1, min(sum([field_height(btn['text'], 35)
                                                               for btn in self.frm_buttons]),
                                                          self.max_height_f)) *
@@ -2576,6 +2772,7 @@ class EditW(tk.Toplevel):
         if move_scroll:
             self.scrolled_frame_tr.canvas.yview_moveto(0.0)
             self.scrolled_frame_nt.canvas.yview_moveto(0.0)
+            self.scrolled_frame_phr.canvas.yview_moveto(0.0)
             self.scrolled_frame_frm.canvas.yview_moveto(0.0)
             self.scrolled_frame_gr.canvas.yview_moveto(0.0)
 
@@ -4994,7 +5191,7 @@ class PrintW(tk.Toplevel):
             info_selected = f'{tmp_1} {count_selected} {tmp_2}'
         self.var_search_info_selected.set(info_selected)
 
-    # Напечатать словарь (1)
+    # Напечатать словарь
     def print_print(self, move_scroll: bool):
         # Удаляем старые подсказки
         for tip in self.print_tips:
@@ -5115,7 +5312,7 @@ class PrintW(tk.Toplevel):
         if move_scroll:
             self.scrolled_frame_print.canvas.yview_moveto(0.0)
 
-    # Нажатие на кнопку "Поиск" (2)
+    # Нажатие на кнопку "Поиск"
     def search_print(self, move_scroll: bool):
         # Удаляем старые кнопки
         for btn in self.search_buttons:
