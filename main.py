@@ -4618,8 +4618,7 @@ class LearnW(tk.Toplevel):
         self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}', end='')
 
     # Проверка введённого ответа
-    def check_answer(self, correct_answer: str, is_correct: bool,
-                     current_key: tuple[str, int], current_form: tuple[str, ...] | None = None):
+    def check_answer(self, correct_answer: str, is_correct: bool, current_key: tuple[str, int]):
         entry = _0_global_dct.d[current_key]
         if is_correct:
             entry.correct((_0_global_session_number, _0_global_learn_session_number, self.count_all))
@@ -4636,7 +4635,7 @@ class LearnW(tk.Toplevel):
                     entry.fav = False
             self.count_all += 1
             self.count_correct += 1
-            self.pool.remove((current_key, current_form, self.current_phrase))
+            self.pool.remove((current_key, self.current_form, self.current_phrase))
         else:
             self.outp(f'Неверно. Правильный ответ: "{correct_answer}"\n')
             if entry.fav:
@@ -4690,7 +4689,7 @@ class LearnW(tk.Toplevel):
         else:
             is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations).lower() ==\
                          entry.forms[self.current_form].lower()
-        self.check_answer(entry.forms[self.current_form], is_correct, self.current_key, self.current_form)
+        self.check_answer(entry.forms[self.current_form], is_correct, self.current_key)
 
     # Проверка введённого перевода слова
     def check_tr(self):
