@@ -118,13 +118,6 @@ class Entry(object):
     def remove_from_fav(self):
         self.fav = False
 
-    # Объединить статистику при объединении двух статей
-    def merge_stat(self, all_att: int, correct_att: int, correct_att_in_a_row: int):
-        self.all_att += all_att
-        self.correct_att += correct_att
-        self.score = 0 if (self.all_att == 0) else self.correct_att / self.all_att
-        self.correct_att_in_a_row += correct_att_in_a_row
-
     # Удалить данное значение категории у всех словоформ
     def delete_forms_with_val(self, pos: int, ctg_val: str):
         to_delete = []
@@ -320,32 +313,36 @@ class Dictionary(object):
 
     # Объединить две статьи с одинаковым словом в одну
     def merge_entries(self, main_entry_key: tuple[str, int], additional_entry_key: tuple[str, int]):
-        self.count_t -= self.d[additional_entry_key].count_t
-        self.count_t -= self.d[main_entry_key].count_t
-        self.count_f -= self.d[additional_entry_key].count_f
-        self.count_f -= self.d[main_entry_key].count_f
+        main_entry = self.d[main_entry_key]
+        additional_entry = self.d[additional_entry_key]
 
-        for tr in self.d[additional_entry_key].tr:
-            self.d[main_entry_key].add_tr(tr)
-        for note in self.d[additional_entry_key].notes:
-            self.d[main_entry_key].add_note(note)
-        for phr_key in self.d[additional_entry_key].phrases.keys():
-            for phr_tr in self.d[additional_entry_key].phrases[phr_key]:
-                self.d[main_entry_key].add_phrase(phr_key, phr_tr)
-        for frm_key in self.d[additional_entry_key].forms.keys():
-            frm = self.d[additional_entry_key].forms[frm_key]
-            self.d[main_entry_key].add_frm(frm_key, frm)
-        if self.d[additional_entry_key].fav:
-            self.d[main_entry_key].fav = True
-        for group in self.d[additional_entry_key].groups:
-            self.d[main_entry_key].groups.add(group)
-        self.d[main_entry_key].merge_stat(self.d[additional_entry_key].all_att,
-                                          self.d[additional_entry_key].correct_att,
-                                          self.d[additional_entry_key].correct_att_in_a_row)
+        self.count_t -= additional_entry.count_t
+        self.count_t -= main_entry.count_t
+        self.count_f -= additional_entry.count_f
+        self.count_f -= main_entry.count_f
+
+        for tr in additional_entry.tr:
+            main_entry.add_tr(tr)
+        for note in additional_entry.notes:
+            main_entry.add_note(note)
+        for phr_key in additional_entry.phrases.keys():
+            for phr_tr in additional_entry.phrases[phr_key]:
+                main_entry.add_phrase(phr_key, phr_tr)
+        for frm_key in additional_entry.forms.keys():
+            frm = additional_entry.forms[frm_key]
+            main_entry.add_frm(frm_key, frm)
+        if additional_entry.fav:
+            main_entry.fav = True
+        for group in additional_entry.groups:
+            main_entry.groups.add(group)
+        main_entry.all_att += additional_entry.all_att
+        main_entry.correct_att += additional_entry.correct_att
+        main_entry.score = 0 if (main_entry.all_att == 0) else main_entry.correct_att / main_entry.all_att
+        main_entry.correct_att_in_a_row += additional_entry.correct_att_in_a_row
 
         self.count_w -= 1
-        self.count_t += self.d[main_entry_key].count_t
-        self.count_f += self.d[main_entry_key].count_f
+        self.count_t += main_entry.count_t
+        self.count_f += main_entry.count_f
 
         self.d.pop(additional_entry_key)
 

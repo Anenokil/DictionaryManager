@@ -1913,7 +1913,7 @@ class ChooseLearnModeW(tk.Toplevel):
         # }
         self.btn_start.grid(row=2, column=0, padx=6, pady=(0, 6))
 
-        # При выборе второго или третьего метода учёбы нельзя добавить словоформы
+        # При выборе любого метода учёбы кроме первого нельзя добавить словоформы
         def validate_method_and_forms(value: str):
             if value == LEARN_VALUES_METHOD[0]:
                 self.lbl_forms.grid(  row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
@@ -4357,7 +4357,7 @@ class LearnW(tk.Toplevel):
         # {
         self.btn_input.grid(  row=0, column=0, padx=(0, 3), pady=0, sticky='E')
         self.entry_input.grid(row=0, column=1, padx=(0, 3), pady=0, sticky='W')
-        if self.learn_method in LEARN_VALUES_METHOD[3:5]:
+        if self.learn_method in LEARN_VALUES_METHOD[2:4]:
             self.btn_show_entry.grid(row=0, column=2, padx=0, pady=0, sticky='W')
         else:
             self.btn_show_notes.grid(   row=0, column=2, padx=(0, 3), pady=0, sticky='W')
@@ -4381,19 +4381,19 @@ class LearnW(tk.Toplevel):
         elif self.learn_method == LEARN_VALUES_METHOD[1]:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
         elif self.learn_method == LEARN_VALUES_METHOD[2]:
-            self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите артикль', hover_delay=1000)
-        elif self.learn_method == LEARN_VALUES_METHOD[3]:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите фразу', hover_delay=1000)
-        else:
+        elif self.learn_method == LEARN_VALUES_METHOD[3]:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
+        else:
+            self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите артикль', hover_delay=1000)
 
         self.choose()
 
         if self.current_key:
             entry = _0_global_dct.d[self.current_key]
-            if entry.count_n == 0 or self.learn_method in LEARN_VALUES_METHOD[3:5]:
+            if entry.count_n == 0 or self.learn_method in LEARN_VALUES_METHOD[2:4]:
                 btn_disable(self.btn_show_notes)
-            if not self.homonyms or self.learn_method in LEARN_VALUES_METHOD[3:5]:
+            if not self.homonyms or self.learn_method in LEARN_VALUES_METHOD[2:4]:
                 btn_disable(self.btn_show_homonyms)
 
     # Печать в журнал
@@ -4415,7 +4415,7 @@ class LearnW(tk.Toplevel):
 
     # Формируем пул слов, которые будут использоваться при учёбе
     def create_pool(self):
-        if self.learn_method == LEARN_VALUES_METHOD[2]:  # Если надо, оставляем только слова с der/die/das
+        if self.learn_method == LEARN_VALUES_METHOD[4]:  # Если надо, оставляем только слова с der/die/das
             all_keys = []
             for key in _0_global_dct.d.keys():
                 wrd = _0_global_dct.d[key].wrd
@@ -4482,7 +4482,7 @@ class LearnW(tk.Toplevel):
                     selected_forms += [(key, frm)]
 
         selected_phrases = []
-        if self.learn_method in LEARN_VALUES_METHOD[3:5]:
+        if self.learn_method in LEARN_VALUES_METHOD[2:4]:
             for (key, frm) in selected_forms:
                 for phr in _0_global_dct.d[key].phrases.keys():
                     selected_phrases += [(key, frm, phr)]
@@ -4518,11 +4518,11 @@ class LearnW(tk.Toplevel):
         elif self.learn_method == LEARN_VALUES_METHOD[1]:
             self.outp(get_wrd_with_stat(_0_global_dct.d[self.current_key]))
         elif self.learn_method == LEARN_VALUES_METHOD[2]:
-            self.outp(get_wrd_with_stat(_0_global_dct.d[self.current_key])[4:])
-        elif self.learn_method == LEARN_VALUES_METHOD[3]:
             self.outp(get_phr_tr_with_stat(_0_global_dct.d[self.current_key], self.current_phrase))
-        else:
+        elif self.learn_method == LEARN_VALUES_METHOD[3]:
             self.outp(get_phr_with_stat(_0_global_dct.d[self.current_key], self.current_phrase))
+        else:
+            self.outp(get_wrd_with_stat(_0_global_dct.d[self.current_key])[4:])
 
         # Запись омонимов
         if self.learn_method == LEARN_VALUES_METHOD[0]:
@@ -4538,7 +4538,7 @@ class LearnW(tk.Toplevel):
             ans = _0_global_dct.d[self.current_key].wrd
             self.homonyms = [key for key in _0_global_dct.d.keys()
                              if _0_global_dct.d[key].wrd == ans and key != self.current_key]
-        elif self.learn_method == LEARN_VALUES_METHOD[2]:
+        elif self.learn_method == LEARN_VALUES_METHOD[4]:
             ans = _0_global_dct.d[self.current_key].wrd
             self.homonyms = []
             for key in _0_global_dct.d.keys():
@@ -4559,11 +4559,11 @@ class LearnW(tk.Toplevel):
         if self.learn_method == LEARN_VALUES_METHOD[1]:
             self.check_tr()
         elif self.learn_method == LEARN_VALUES_METHOD[2]:
-            self.check_article()
-        elif self.learn_method == LEARN_VALUES_METHOD[3]:
             self.check_phrase()
-        elif self.learn_method == LEARN_VALUES_METHOD[4]:
+        elif self.learn_method == LEARN_VALUES_METHOD[3]:
             self.check_phrase_tr()
+        elif self.learn_method == LEARN_VALUES_METHOD[4]:
+            self.check_article()
         elif self.forms and self.current_form:
             self.check_form()
         else:
@@ -4576,12 +4576,12 @@ class LearnW(tk.Toplevel):
         btn_enable(self.btn_show_entry, self.show_entry)
         # Обновление кнопки "Посмотреть сноски"
         entry = _0_global_dct.d[self.current_key]
-        if entry.count_n == 0 or self.learn_method in LEARN_VALUES_METHOD[3:5]:
+        if entry.count_n == 0 or self.learn_method in LEARN_VALUES_METHOD[2:4]:
             btn_disable(self.btn_show_notes)
         else:
             btn_enable(self.btn_show_notes, self.show_notes)
         # Обновление кнопки "Посмотреть омонимы"
-        if not self.homonyms or self.learn_method in LEARN_VALUES_METHOD[3:5]:
+        if not self.homonyms or self.learn_method in LEARN_VALUES_METHOD[2:4]:
             btn_disable(self.btn_show_homonyms)
         else:
             btn_enable(self.btn_show_homonyms, self.show_homonyms)
