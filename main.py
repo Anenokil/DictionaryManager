@@ -625,23 +625,29 @@ def find_and_highlight(target_wrd: str, search_wrd: str):
 
 
 # Выбрать случайное слово с учётом сложности
-def random_smart(dct: Dictionary, pool: set[tuple[tuple[str, int], None] | tuple[tuple[str, int], tuple[str, ...]]]) ->\
-        tuple[tuple[str, int], None] | tuple[tuple[str, int], tuple[str, ...]]:
+def random_smart(dct: Dictionary,
+                 pool: set[tuple[tuple[str, int],
+                                 tuple[str, ...] | None,
+                                 str | None]]
+                 ) -> tuple[tuple[str, int],
+                            tuple[str, ...] | None,
+                            str | None]\
+        :
     summ = 0
-    for (key, frm) in pool:
+    for (key, frm, phr) in pool:
         entry = dct.d[key]
         score = (100 - round(100 * entry.score)) + 1
         score += 100 // (entry.all_att + 1)
         summ += round(score)
 
     r = random.randint(1, summ)
-    for (key, frm) in pool:
+    for (key, frm, phr) in pool:
         entry = dct.d[key]
         score = (100 - round(100 * entry.score)) + 1
         score += 100 // (entry.all_att + 1)
         r -= round(score)
         if r <= 0:
-            return key, frm
+            return key, frm, phr
 
 
 # Разделить строку на слова
@@ -4292,6 +4298,7 @@ class LearnW(tk.Toplevel):
 
         self.current_key = None  # Текущее слово
         self.current_form = None  # Текущая форма (если начальная, то None)
+        self.current_phrase = None  # Текущая фраза
         self.homonyms = []  # Омонимы к текущему слову
         self.count_all = 0  # Счётчик всех ответов
         self.count_correct = 0  # Счётчик верных ответов
@@ -4323,6 +4330,8 @@ class LearnW(tk.Toplevel):
                                     takefocus=False, style='Default.TButton')
         self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=36,
                                      style='Default.TEntry', font=('StdFont', _0_global_scale))
+        self.btn_show_entry = ttk.Button(self.frame_main, text='Слово и перевод', command=self.show_entry, width=15,
+                                         takefocus=False, style='Default.TButton')
         self.btn_show_notes = ttk.Button(self.frame_main, text='Сноски', command=self.show_notes, width=7,
                                          takefocus=False, style='Default.TButton')
         self.btn_show_homonyms = ttk.Button(self.frame_main, text='Омонимы', command=self.show_homonyms, width=8,
@@ -4336,13 +4345,19 @@ class LearnW(tk.Toplevel):
         self.scrollbar.grid(        row=2, column=1,     padx=(0, 6), pady=6, sticky='NSW')
         self.frame_main.grid(       row=3, columnspan=2, padx=6,      pady=6)
         # {
-        self.btn_input.grid(        row=0, column=0, padx=(0, 3), pady=0, sticky='E')
-        self.entry_input.grid(      row=0, column=1, padx=(0, 3), pady=0, sticky='W')
-        self.btn_show_notes.grid(   row=0, column=2, padx=(0, 3), pady=0, sticky='W')
-        self.btn_show_homonyms.grid(row=0, column=3, padx=0,      pady=0, sticky='W')
+        self.btn_input.grid(  row=0, column=0, padx=(0, 3), pady=0, sticky='E')
+        self.entry_input.grid(row=0, column=1, padx=(0, 3), pady=0, sticky='W')
+        if self.learn_method in LEARN_VALUES_METHOD[3:5]:
+            self.btn_show_entry.grid(row=0, column=2, padx=0, pady=0, sticky='W')
+        else:
+            self.btn_show_notes.grid(   row=0, column=2, padx=(0, 3), pady=0, sticky='W')
+            self.btn_show_homonyms.grid(row=0, column=3, padx=0,      pady=0, sticky='W')
         # }
         self.btn_stop.grid(row=4, columnspan=2, padx=6, pady=6)
 
+        self.tip_btn_show_entry = ttip.Hovertip(self.btn_show_entry, 'Посмотреть само слово и перевод\n'
+                                                                     'Control-W',
+                                                hover_delay=700)
         self.tip_btn_show_notes = ttip.Hovertip(self.btn_show_notes, 'Посмотреть сноски\n'
                                                                      'Control-N',
                                                 hover_delay=700)
@@ -4350,20 +4365,25 @@ class LearnW(tk.Toplevel):
                                                    'Посмотреть остальные слова с таким же написанием\n'
                                                    'Control-O',
                                                    hover_delay=700)
+
         if self.learn_method == LEARN_VALUES_METHOD[0]:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
         elif self.learn_method == LEARN_VALUES_METHOD[1]:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
-        else:
+        elif self.learn_method == LEARN_VALUES_METHOD[2]:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите артикль', hover_delay=1000)
+        elif self.learn_method == LEARN_VALUES_METHOD[3]:
+            self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите фразу', hover_delay=1000)
+        else:
+            self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
 
         self.choose()
 
         if self.current_key:
             entry = _0_global_dct.d[self.current_key]
-            if entry.count_n == 0:
+            if entry.count_n == 0 or self.learn_method in LEARN_VALUES_METHOD[3:5]:
                 btn_disable(self.btn_show_notes)
-            if not self.homonyms:
+            if not self.homonyms or self.learn_method in LEARN_VALUES_METHOD[3:5]:
                 btn_disable(self.btn_show_homonyms)
 
     # Печать в журнал
@@ -4385,8 +4405,7 @@ class LearnW(tk.Toplevel):
 
     # Формируем пул слов, которые будут использоваться при учёбе
     def create_pool(self):
-        # Если надо, оставляем только слова с der/die/das
-        if self.learn_method == LEARN_VALUES_METHOD[2]:
+        if self.learn_method == LEARN_VALUES_METHOD[2]:  # Если надо, оставляем только слова с der/die/das
             all_keys = []
             for key in _0_global_dct.d.keys():
                 wrd = _0_global_dct.d[key].wrd
@@ -4416,9 +4435,9 @@ class LearnW(tk.Toplevel):
             # Находим N // 4
             count_unfav_keys = min(len(unfav_keys), _0_global_dct.count_fav_entries()[0] // 4)
             # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
-            latest_session = _0_global_dct.d[unfav_keys[count_unfav_keys - 1]].latest_answer_date
+            latest_date = _0_global_dct.d[unfav_keys[count_unfav_keys - 1]].latest_answer_date
             # Оставляем только слова с номером сессии <= S
-            unfav_keys = [k for k in unfav_keys if _0_global_dct.d[k].latest_answer_date[0:2] <= latest_session[0:2]]
+            unfav_keys = [k for k in unfav_keys if _0_global_dct.d[k].latest_answer_date[0:2] <= latest_date[0:2]]
             # Перемешиваем их
             random.shuffle(unfav_keys)
             # И выбираем из них N // 4 слов
@@ -4452,7 +4471,16 @@ class LearnW(tk.Toplevel):
                 for frm in _0_global_dct.d[key].forms.keys():
                     selected_forms += [(key, frm)]
 
-        self.pool = set(selected_forms)
+        selected_phrases = []
+        if self.learn_method in LEARN_VALUES_METHOD[3:5]:
+            for (key, frm) in selected_forms:
+                for phr in _0_global_dct.d[key].phrases.keys():
+                    selected_phrases += [(key, frm, phr)]
+        else:
+            for (key, frm) in selected_forms:
+                selected_phrases += [(key, frm, None)]
+
+        self.pool = set(selected_phrases)
 
     # Выбор слова для угадывания
     def choose(self):
@@ -4467,9 +4495,9 @@ class LearnW(tk.Toplevel):
 
         # Выбор слова
         if self.order == LEARN_VALUES_ORDER[0]:
-            self.current_key, self.current_form = random.choice(tuple(self.pool))
+            self.current_key, self.current_form, self.current_phrase = random.choice(tuple(self.pool))
         else:
-            self.current_key, self.current_form = random_smart(_0_global_dct, self.pool)
+            self.current_key, self.current_form, self.current_phrase = random_smart(_0_global_dct, self.pool)
 
         # Вывод слова в журнал
         if self.learn_method == LEARN_VALUES_METHOD[0]:
@@ -4479,8 +4507,12 @@ class LearnW(tk.Toplevel):
                 self.outp(get_tr_with_stat(_0_global_dct.d[self.current_key]))
         elif self.learn_method == LEARN_VALUES_METHOD[1]:
             self.outp(get_wrd_with_stat(_0_global_dct.d[self.current_key]))
-        else:
+        elif self.learn_method == LEARN_VALUES_METHOD[2]:
             self.outp(get_wrd_with_stat(_0_global_dct.d[self.current_key])[4:])
+        elif self.learn_method == LEARN_VALUES_METHOD[3]:
+            self.outp(get_phr_tr_with_stat(_0_global_dct.d[self.current_key], self.current_phrase))
+        else:
+            self.outp(get_phr_with_stat(_0_global_dct.d[self.current_key], self.current_phrase))
 
         # Запись омонимов
         if self.learn_method == LEARN_VALUES_METHOD[0]:
@@ -4518,6 +4550,10 @@ class LearnW(tk.Toplevel):
             self.check_tr()
         elif self.learn_method == LEARN_VALUES_METHOD[2]:
             self.check_article()
+        elif self.learn_method == LEARN_VALUES_METHOD[3]:
+            self.check_phrase()
+        elif self.learn_method == LEARN_VALUES_METHOD[4]:
+            self.check_phrase_tr()
         elif self.forms and self.current_form:
             self.check_form()
         else:
@@ -4526,14 +4562,16 @@ class LearnW(tk.Toplevel):
         # Выбор нового слова для угадывания
         self.choose()
 
+        # Обновление кнопки "Посмотреть слово и перевод"
+        btn_enable(self.btn_show_entry, self.show_entry)
         # Обновление кнопки "Посмотреть сноски"
         entry = _0_global_dct.d[self.current_key]
-        if entry.count_n == 0:
+        if entry.count_n == 0 or self.learn_method in LEARN_VALUES_METHOD[3:5]:
             btn_disable(self.btn_show_notes)
         else:
             btn_enable(self.btn_show_notes, self.show_notes)
         # Обновление кнопки "Посмотреть омонимы"
-        if not self.homonyms:
+        if not self.homonyms or self.learn_method in LEARN_VALUES_METHOD[3:5]:
             btn_disable(self.btn_show_homonyms)
         else:
             btn_enable(self.btn_show_homonyms, self.show_homonyms)
@@ -4542,6 +4580,14 @@ class LearnW(tk.Toplevel):
         # Обновление отображаемого рейтинга
         self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {self.get_percent()}'
         self.lbl_count['text'] = f'Отвечено: {self.count_correct}/{self.len_of_pool}'
+
+    # Нажатие на кнопку "Посмотреть слово и перевод"
+    # Просмотр слова с переводом
+    def show_entry(self):
+        entry = _0_global_dct.d[self.current_key]
+        self.outp(f'Слово: {entry.wrd}\n'
+                  f'Перевод: {get_tr(entry)}')
+        btn_disable(self.btn_show_entry)
 
     # Нажатие на кнопку "Посмотреть сноски"
     # Просмотр сносок
@@ -4567,6 +4613,7 @@ class LearnW(tk.Toplevel):
         btn_disable(self.btn_input)
         btn_disable(self.btn_show_notes)
         btn_disable(self.btn_show_homonyms)
+        btn_disable(self.btn_show_entry)
 
         self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}', end='')
 
@@ -4589,7 +4636,7 @@ class LearnW(tk.Toplevel):
                     entry.fav = False
             self.count_all += 1
             self.count_correct += 1
-            self.pool.remove((current_key, current_form))
+            self.pool.remove((current_key, current_form, self.current_phrase))
         else:
             self.outp(f'Неверно. Правильный ответ: "{correct_answer}"\n')
             if entry.fav:
@@ -4696,6 +4743,8 @@ class LearnW(tk.Toplevel):
         self.bind('<Control-n>', lambda event=None: self.btn_show_notes.invoke())
         self.bind('<Control-O>', lambda event=None: self.btn_show_homonyms.invoke())
         self.bind('<Control-o>', lambda event=None: self.btn_show_homonyms.invoke())
+        self.bind('<Control-W>', lambda event=None: self.btn_show_entry.invoke())
+        self.bind('<Control-w>', lambda event=None: self.btn_show_entry.invoke())
 
     def open(self):
         global _0_global_learn_session_number
