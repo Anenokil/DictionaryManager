@@ -227,27 +227,27 @@ def check_tr_edit(window_parent, translations: list[str] | tuple[str, ...], old_
 
 
 # Проверить корректность фразы
-def check_phr(window_parent, phrases: dict[str, str], new_phr: tuple[str, str], wrd: str):
+def check_phr(window_parent, phrases: dict[str, list[str]], new_phr: tuple[str, str], wrd: str):
     n1 = encode_special_combinations(new_phr[0], _0_global_special_combinations)
     n2 = encode_special_combinations(new_phr[1], _0_global_special_combinations)
     if n1 == '' or n2 == '':
         warning(window_parent, 'Фраза должна содержать хотя бы один символ!')
         return False
-    if new_phr[0] in phrases.keys():
+    if new_phr[0] in phrases.keys() and new_phr[1] in phrases[new_phr[0]]:
         warning(window_parent, f'Со словом "{wrd}" уже есть такая фраза!')
         return False
     return True
 
 
 # Проверить корректность фразы при изменении
-def check_phr_edit(window_parent, phrases: dict[str, str], old_phr: tuple[str, str], new_phr: tuple[str, str],
+def check_phr_edit(window_parent, phrases: dict[str, list[str]], old_phr: tuple[str, str], new_phr: tuple[str, str],
                    wrd: str):
     n1 = encode_special_combinations(new_phr[0], _0_global_special_combinations)
     n2 = encode_special_combinations(new_phr[1], _0_global_special_combinations)
     if n1 == '' or n2 == '':
         warning(window_parent, 'Фраза должна содержать хотя бы один символ!')
         return False
-    if new_phr[0] in phrases.keys() and new_phr != old_phr:
+    if new_phr[0] in phrases.keys() and new_phr[1] in phrases[new_phr[0]] and new_phr != old_phr:
         warning(window_parent, f'Со словом "{wrd}" уже есть такая фраза!')
         return False
     return True
@@ -368,7 +368,7 @@ def is_splittable(line: str):
 
 # Вывести переводы
 def get_tr(entry: Entry):
-    return ', '.join(tuple(entry.tr))
+    return ', '.join(entry.tr)
 
 
 # Вывести словоформы
@@ -377,14 +377,19 @@ def get_forms(entry: Entry, tab=0):
     return ('\n' + ' ' * tab).join((f'[{frm_key_to_str_for_print(key)}] {entry.forms[key]}' for key in frm_keys))
 
 
+# Вывести переводы фразы
+def get_phr_tr(entry: Entry, phr_key: str):
+    return ', '.join(pt for pt in entry.phrases[phr_key])
+
+
 # Вывести фразы
 def get_phrases(entry: Entry, tab=0):
-    return ('\n' + ' ' * tab).join((phr + ' - ' + entry.phrases[phr] for phr in entry.phrases))
+    return ('\n' + ' ' * tab).join((phr + ' - ' + get_phr_tr(entry, phr) for phr in entry.phrases))
 
 
 # Вывести сноски
 def get_notes(entry: Entry, tab=0):
-    return ('\n' + ' ' * tab).join((nt for nt in entry.notes))
+    return ('\n' + ' ' * tab).join(entry.notes)
 
 
 # Вывести группы
@@ -527,7 +532,7 @@ def get_phr_with_stat(entry: Entry, phr_key: str):
 
 # Вывести перевод фразы со статистикой
 def get_phr_tr_with_stat(entry: Entry, phr_key: str):
-    res = f'{entry.phrases[phr_key]} {get_entry_stat(entry)}'
+    res = f'{get_phr_tr(entry, phr_key)} {get_entry_stat(entry)}'
     return res
 
 
@@ -2518,32 +2523,33 @@ class EditW(tk.Toplevel):
         self.refresh(False)
 
     # Изменить фразу
-    def phrase_edt(self, phr: str):
+    def phrase_edt(self, p: tuple[str, str]):
         global _0_global_has_progress
 
-        window = AddPhraseW(self, 'Изменение фразы',
-                            default_value=(phr, _0_global_dct.d[self.dct_key].phrases[phr]),
+        phr, phr_tr = p
+
+        window = AddPhraseW(self, 'Изменение фразы', default_value=(phr, phr_tr),
                             check_answer_function=lambda wnd, val:
-                            check_phr_edit(wnd, _0_global_dct.d[self.dct_key].phrases,
-                                           (phr, _0_global_dct.d[self.dct_key].phrases[phr]),
-                                           val, key_to_wrd(self.dct_key)))
+                            check_phr_edit(wnd, _0_global_dct.d[self.dct_key].phrases, (phr, phr_tr), val,
+                                           key_to_wrd(self.dct_key)))
         closed, new_phr, new_phr_tr = window.open()
         if closed:
             return
         new_phr = encode_special_combinations(new_phr, _0_global_special_combinations)
         new_phr_tr = encode_special_combinations(new_phr_tr, _0_global_special_combinations)
 
-        _0_global_dct.delete_phrase(self.dct_key, phr)
+        _0_global_dct.delete_phrase(self.dct_key, phr, phr_tr)
         _0_global_dct.add_phrase(self.dct_key, new_phr, new_phr_tr)
 
         _0_global_has_progress = True
         self.refresh(False)
 
     # Удалить фразу
-    def phrase_del(self, phr: str):
+    def phrase_del(self, p: tuple[str, str]):
         global _0_global_has_progress
 
-        _0_global_dct.delete_phrase(self.dct_key, phr)
+        phr, phr_tr = p
+        _0_global_dct.delete_phrase(self.dct_key, phr, phr_tr)
 
         _0_global_has_progress = True
         self.refresh(False)
@@ -2673,10 +2679,13 @@ class EditW(tk.Toplevel):
             fr.unbind('<Leave>')
             fr.destroy()
 
-        # Выбираем комбинации
+        # Выбираем содержимое
         self.translations = [tr for tr in _0_global_dct.d[self.dct_key].tr]
         self.notes = [nt for nt in _0_global_dct.d[self.dct_key].notes]
-        self.phrases = [phr for phr in _0_global_dct.d[self.dct_key].phrases.keys()]
+        self.phrases = []
+        for phr in _0_global_dct.d[self.dct_key].phrases.keys():
+            for pt in _0_global_dct.d[self.dct_key].phrases[phr]:
+                self.phrases += [(phr, pt)]
         self.forms = [frm for frm in _0_global_dct.d[self.dct_key].forms.keys()]
         self.groups = [gr for gr in _0_global_dct.d[self.dct_key].groups]
         tr_count = len(self.translations)
@@ -2719,8 +2728,9 @@ class EditW(tk.Toplevel):
             nt = self.notes[i]
             self.nt_buttons[i].configure(text=split_text(nt, 35))
         for i in range(phr_count):
-            phr = self.phrases[i]
-            self.phr_buttons[i].configure(text=split_text(f'{phr} - {_0_global_dct.d[self.dct_key].phrases[phr]}', 35))
+            phr = self.phrases[i][0]
+            phr_tr = self.phrases[i][1]
+            self.phr_buttons[i].configure(text=split_text(f'{phr} - {phr_tr}', 35))
         for i in range(frm_count):
             frm = self.forms[i]
             text = f'[{frm_key_to_str_for_print(frm)}] {_0_global_dct.d[self.dct_key].forms[frm]}'
@@ -4715,12 +4725,12 @@ class LearnW(tk.Toplevel):
     def check_phrase_tr(self):
         entry = _0_global_dct.d[self.current_key]
         if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations) ==\
+            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations) in\
                          entry.phrases[self.current_phrase]
         else:
-            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations).lower() ==\
-                         entry.phrases[self.current_phrase].lower()
-        self.check_answer(entry.phrases[self.current_phrase], is_correct, self.current_key)
+            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations).lower() in\
+                         (pt.lower() for pt in entry.phrases[self.current_phrase])
+        self.check_answer(get_phr_tr(entry, self.current_phrase), is_correct, self.current_key)
 
     # Проверка введённого артикля
     def check_article(self):

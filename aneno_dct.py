@@ -24,7 +24,7 @@ class Entry(object):
                  tr: str | list[str],
                  notes: str | list[str] | None = None,
                  forms: dict[tuple[str, ...], str] | None = None,
-                 phrases: dict[str, str] | None = None,
+                 phrases: dict[str, list[str]] | None = None,
                  fav=False, groups: set[str] | None = None,
                  all_att=0, correct_att=0, correct_att_in_a_row=0, latest_answer_date=(0, 0, 0)):
         self.wrd = wrd
@@ -78,12 +78,17 @@ class Entry(object):
     # Добавить фразу
     def add_phrase(self, new_phr: str, new_phr_tr: str):
         if new_phr not in self.phrases.keys():
-            self.phrases[new_phr] = new_phr_tr
+            self.phrases[new_phr] = [new_phr_tr]
+            self.count_p += 1
+        elif new_phr_tr not in self.phrases[new_phr]:
+            self.phrases[new_phr] += [new_phr_tr]
             self.count_p += 1
 
     # Удалить фразу
-    def delete_phrase(self, phr: str):
-        self.phrases.pop(phr)
+    def delete_phrase(self, phr: str, phr_tr: str):
+        self.phrases[phr].remove(phr_tr)
+        if len(self.phrases[phr]) == 0:
+            self.phrases.pop(phr)
         self.count_p -= 1
 
     # Добавить сноску
@@ -207,7 +212,9 @@ class Entry(object):
                        f'{self.forms[frm_template]}\n')
         for phr in self.phrases.keys():
             file.write(f'p{phr}\n'
-                       f'{self.phrases[phr]}\n')
+                       f'{len(self.phrases[phr])}\n')
+            for phr_tr in self.phrases[phr]:
+                file.write(f'{phr_tr}\n')
         if self.fav:
             file.write('*\n')
         for group in self.groups:
@@ -224,7 +231,10 @@ class Entry(object):
         for frm_template in self.forms.keys():
             file.write(f'|  [{frm_key_to_str_for_print(frm_template)}] {self.forms[frm_template]}\n')
         for phr in self.phrases.keys():
-            file.write(f'|  {phr} - {self.phrases[phr]}\n')
+            file.write(f'|  {phr} - {self.phrases[phr][0]}')
+            for i in range(1, len(self.phrases[phr])):
+                file.write(f', {self.phrases[phr][i]}')
+            file.write('\n')
         for note in self.notes:
             file.write(f'| > {note}\n')
 
@@ -284,7 +294,7 @@ class Dictionary(object):
 
     # Добавить статью в словарь
     def add_entry(self, wrd: str, tr: str | list[str],
-                  notes: str | list[str] = None, phrases: dict[str, str] = None,
+                  notes: str | list[str] = None, phrases: dict[str, list[str]] = None,
                   forms: dict[tuple[str, ...], str] = None,
                   fav: bool = False, groups: set[str] | None = None,
                   all_att: int = 0, correct_att: int = 0, correct_att_in_a_row: int = 0,
@@ -320,8 +330,8 @@ class Dictionary(object):
         for note in self.d[additional_entry_key].notes:
             self.d[main_entry_key].add_note(note)
         for phr_key in self.d[additional_entry_key].phrases.keys():
-            phr_tr = self.d[additional_entry_key].phrases[phr_key]
-            self.d[main_entry_key].add_phrase(phr_key, phr_tr)
+            for phr_tr in self.d[additional_entry_key].phrases[phr_key]:
+                self.d[main_entry_key].add_phrase(phr_key, phr_tr)
         for frm_key in self.d[additional_entry_key].forms.keys():
             frm = self.d[additional_entry_key].forms[frm_key]
             self.d[main_entry_key].add_frm(frm_key, frm)
@@ -345,7 +355,7 @@ class Dictionary(object):
         self.d[key].add_tr(tr)
         self.count_t += self.d[key].count_t
 
-    # Удалить перевод в статье
+    # Удалить перевод из статьи
     def delete_tr(self, key: tuple[str, int], tr: str):
         self.count_t -= self.d[key].count_t
         self.d[key].delete_tr(tr)
@@ -357,7 +367,7 @@ class Dictionary(object):
         self.d[key].add_frm(frm_key, frm)
         self.count_f += self.d[key].count_f
 
-    # Удалить словоформу в статье
+    # Удалить словоформу из статьи
     def delete_frm(self, key: tuple[str, int], frm_key: tuple[str, ...] | list[str]):
         self.count_f -= self.d[key].count_f
         self.d[key].delete_frm(frm_key)
@@ -367,15 +377,15 @@ class Dictionary(object):
     def add_phrase(self, key: tuple[str, int], phr: str, phr_tr: str):
         self.d[key].add_phrase(phr, phr_tr)
 
-    # Удалить фразу в статье
-    def delete_phrase(self, key: tuple[str, int], phr: str):
-        self.d[key].delete_phrase(phr)
+    # Удалить фразу из статьи
+    def delete_phrase(self, key: tuple[str, int], phr: str, phr_tr: str):
+        self.d[key].delete_phrase(phr, phr_tr)
 
     # Добавить сноску к статье
     def add_note(self, key: tuple[str, int], note: str):
         self.d[key].add_note(note)
 
-    # Удалить сноску в статье
+    # Удалить сноску из статьи
     def delete_note(self, key: tuple[str, int], note: str):
         self.d[key].delete_note(note)
 
@@ -521,7 +531,9 @@ class Dictionary(object):
                     self.add_note(key, line[1:])
                 elif line[0] == 'p':
                     phr_key = line[1:]
-                    self.add_phrase(key, phr_key, file.readline().strip())
+                    count_p = int(file.readline().strip())
+                    for i in range(count_p):
+                        self.add_phrase(key, phr_key, file.readline().strip())
                 elif line[0] == 'f':
                     frm_key = [line[1:]]
                     for i in range(1, count_ctg):
