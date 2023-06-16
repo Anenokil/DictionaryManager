@@ -519,6 +519,18 @@ def get_tr_and_frm_with_stat(entry: Entry, frm_key: tuple[str, ...] | list[str])
     return res
 
 
+# Вывести фразу со статистикой
+def get_phr_with_stat(entry: Entry, phr_key: str):
+    res = f'{phr_key} {get_entry_stat(entry)}'
+    return res
+
+
+# Вывести перевод фразы со статистикой
+def get_phr_tr_with_stat(entry: Entry, phr_key: str):
+    res = f'{entry.phrases[phr_key]} {get_entry_stat(entry)}'
+    return res
+
+
 # Вывести информацию о количестве статей в словаре
 def dct_info(count_w: int, count_t: int, count_f: int):
     w = set_postfix(count_w, ('слово', 'слова', 'слов'))
@@ -4354,6 +4366,23 @@ class LearnW(tk.Toplevel):
             if not self.homonyms:
                 btn_disable(self.btn_show_homonyms)
 
+    # Печать в журнал
+    def outp(self, msg='', end='\n'):
+        self.txt_dct['state'] = 'normal'
+        self.txt_dct.insert(tk.END, f'{msg}{end}')
+        self.txt_dct.yview_moveto(1.0)
+        self.txt_dct['state'] = 'disabled'
+
+    # Получить глобальный процент угадываний
+    def get_percent(self):
+        num, den = _0_global_dct.count_rating()
+        if den == 0:
+            percent = 0
+        else:
+            percent = num / den * 100
+        percent = format(percent, '.1f')
+        return f'{num} / {den} = {percent}%'
+
     # Формируем пул слов, которые будут использоваться при учёбе
     def create_pool(self):
         # Если надо, оставляем только слова с der/die/das
@@ -4425,12 +4454,56 @@ class LearnW(tk.Toplevel):
 
         self.pool = set(selected_forms)
 
-    # Печать в журнал
-    def outp(self, msg='', end='\n'):
-        self.txt_dct['state'] = 'normal'
-        self.txt_dct.insert(tk.END, f'{msg}{end}')
-        self.txt_dct.yview_moveto(1.0)
-        self.txt_dct['state'] = 'disabled'
+    # Выбор слова для угадывания
+    def choose(self):
+        global _0_global_has_progress
+
+        if len(self.pool) == 0:
+            # Если все слова отвечены, то завершаем учёбу
+            self.stop()
+            return
+        else:
+            _0_global_has_progress = True
+
+        # Выбор слова
+        if self.order == LEARN_VALUES_ORDER[0]:
+            self.current_key, self.current_form = random.choice(tuple(self.pool))
+        else:
+            self.current_key, self.current_form = random_smart(_0_global_dct, self.pool)
+
+        # Вывод слова в журнал
+        if self.learn_method == LEARN_VALUES_METHOD[0]:
+            if self.forms and self.current_form:
+                self.outp(get_tr_and_frm_with_stat(_0_global_dct.d[self.current_key], self.current_form))
+            else:
+                self.outp(get_tr_with_stat(_0_global_dct.d[self.current_key]))
+        elif self.learn_method == LEARN_VALUES_METHOD[1]:
+            self.outp(get_wrd_with_stat(_0_global_dct.d[self.current_key]))
+        else:
+            self.outp(get_wrd_with_stat(_0_global_dct.d[self.current_key])[4:])
+
+        # Запись омонимов
+        if self.learn_method == LEARN_VALUES_METHOD[0]:
+            ans = _0_global_dct.d[self.current_key].tr
+            self.homonyms = []
+            for key in _0_global_dct.d.keys():
+                if key != self.current_key:
+                    for tr in _0_global_dct.d[key].tr:
+                        if tr in ans:
+                            self.homonyms += [key]
+                            break
+        elif self.learn_method == LEARN_VALUES_METHOD[1]:
+            ans = _0_global_dct.d[self.current_key].wrd
+            self.homonyms = [key for key in _0_global_dct.d.keys()
+                             if _0_global_dct.d[key].wrd == ans and key != self.current_key]
+        elif self.learn_method == LEARN_VALUES_METHOD[2]:
+            ans = _0_global_dct.d[self.current_key].wrd
+            self.homonyms = []
+            for key in _0_global_dct.d.keys():
+                if key != self.current_key:
+                    wrd = _0_global_dct.d[key].wrd
+                    if len(wrd) > 4 and wrd[0:4].lower() in ('der ', 'die ', 'das ') and wrd[4:] == ans[4:]:
+                        self.homonyms += [key]
 
     # Нажатие на кнопку "Ввод"
     # Ввод ответа и переход к следующему слову
@@ -4582,6 +4655,27 @@ class LearnW(tk.Toplevel):
                          (tr.lower() for tr in entry.tr)
         self.check_answer(frm_key_to_str_for_print(entry.tr), is_correct, self.current_key)
 
+    # Проверка введённой фразы
+    def check_phrase(self):
+        if _0_global_check_register:
+            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations) ==\
+                         self.current_phrase
+        else:
+            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations).lower() ==\
+                         self.current_phrase.lower()
+        self.check_answer(self.current_phrase, is_correct, self.current_key)
+
+    # Проверка введённого перевода фразы
+    def check_phrase_tr(self):
+        entry = _0_global_dct.d[self.current_key]
+        if _0_global_check_register:
+            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations) ==\
+                         entry.phrases[self.current_phrase]
+        else:
+            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations).lower() ==\
+                         entry.phrases[self.current_phrase].lower()
+        self.check_answer(entry.phrases[self.current_phrase], is_correct, self.current_key)
+
     # Проверка введённого артикля
     def check_article(self):
         entry = _0_global_dct.d[self.current_key]
@@ -4592,67 +4686,6 @@ class LearnW(tk.Toplevel):
             is_correct = encode_special_combinations(self.entry_input.get(),
                                                      _0_global_special_combinations).lower() == entry.wrd[0:3].lower()
         self.check_answer(entry.wrd[0:3], is_correct, self.current_key)
-
-    # Выбор слова для угадывания
-    def choose(self):
-        global _0_global_has_progress
-
-        if len(self.pool) == 0:
-            # Если все слова отвечены, то завершаем учёбу
-            self.stop()
-            return
-        else:
-            _0_global_has_progress = True
-
-        # Выбор слова
-        if self.order == LEARN_VALUES_ORDER[0]:
-            self.current_key, self.current_form = random.choice(tuple(self.pool))
-        else:
-            self.current_key, self.current_form = random_smart(_0_global_dct, self.pool)
-
-        # Вывод слова в журнал
-        if self.learn_method == LEARN_VALUES_METHOD[0]:
-            if self.forms and self.current_form:
-                self.outp(get_tr_and_frm_with_stat(_0_global_dct.d[self.current_key], self.current_form))
-            else:
-                self.outp(get_tr_with_stat(_0_global_dct.d[self.current_key]))
-        elif self.learn_method == LEARN_VALUES_METHOD[1]:
-            self.outp(get_wrd_with_stat(_0_global_dct.d[self.current_key]))
-        else:
-            self.outp(get_wrd_with_stat(_0_global_dct.d[self.current_key])[4:])
-
-        # Запись омонимов
-        if self.learn_method == LEARN_VALUES_METHOD[0]:
-            ans = _0_global_dct.d[self.current_key].tr
-            self.homonyms = []
-            for key in _0_global_dct.d.keys():
-                if key != self.current_key:
-                    for tr in _0_global_dct.d[key].tr:
-                        if tr in ans:
-                            self.homonyms += [key]
-                            break
-        elif self.learn_method == LEARN_VALUES_METHOD[1]:
-            ans = _0_global_dct.d[self.current_key].wrd
-            self.homonyms = [key for key in _0_global_dct.d.keys()
-                             if _0_global_dct.d[key].wrd == ans and key != self.current_key]
-        elif self.learn_method == LEARN_VALUES_METHOD[2]:
-            ans = _0_global_dct.d[self.current_key].wrd
-            self.homonyms = []
-            for key in _0_global_dct.d.keys():
-                if key != self.current_key:
-                    wrd = _0_global_dct.d[key].wrd
-                    if len(wrd) > 4 and wrd[0:4].lower() in ('der ', 'die ', 'das ') and wrd[4:] == ans[4:]:
-                        self.homonyms += [key]
-
-    # Получить глобальный процент угадываний
-    def get_percent(self):
-        num, den = _0_global_dct.count_rating()
-        if den == 0:
-            percent = 0
-        else:
-            percent = num / den * 100
-        percent = format(percent, '.1f')
-        return f'{num} / {den} = {percent}%'
 
     # Установить фокус
     def set_focus(self):
@@ -7211,11 +7244,11 @@ _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_glob
     upload_global_settings()  # Загружаем глобальные настройки
 upload_theme_img(th)  # Загружаем изображения для выбранной темы
 root = MainW()  # Создаём графический интерфейс
-res = upload_save(root, _0_global_dct, _0_global_dct_savename, 'Завершить работу')  # Загружаем словарь
-if not res:
+uploaded_save = upload_save(root, _0_global_dct, _0_global_dct_savename, 'Завершить работу')  # Загружаем словарь
+if not uploaded_save:
     exit(101)
-res: tuple[str, int, dict[tuple[str, str], str], list[str]]
-_0_global_dct_savename, _0_global_check_register, _0_global_special_combinations, _0_global_fav_groups = res
+uploaded_save: tuple[str, int, dict[tuple[str, str], str], list[str]]
+_0_global_dct_savename, _0_global_check_register, _0_global_special_combinations, _0_global_fav_groups = uploaded_save
 _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
     upload_local_auto_settings(_0_global_dct_savename)  # Загружаем локальные авто-настройки
 _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
