@@ -1406,9 +1406,14 @@ def field_height(text: str, len_str: int):
     return sum(math.ceil(len(segment) / len_str) for segment in segments)
 
 
+# Разместить окно tk.Toplevel
+def toplevel_geometry(window_parent, window):
+    window.geometry(f'+{window_parent.winfo_x() + 20}+{window_parent.winfo_y() + 20}')
+
+
 # Вывести сообщение с предупреждением
 def warning(window_parent, msg: str):
-    PopupMsgW(window_parent, msg, title='Warning').open()
+    PopupMsgW(window_parent, msg, tab=0, title='Warning').open()
 
 
 # Выключить кнопку (т. к. в ttk нельзя убрать уродливую тень текста на выключенных кнопках, пришлось делать по-своему)
@@ -1559,16 +1564,17 @@ class ScrollFrame(tk.Frame):
 
 # Всплывающее окно с сообщением
 class PopupMsgW(tk.Toplevel):
-    def __init__(self, parent, msg: str, btn_text='Ясно', msg_max_width=60,
+    def __init__(self, parent, msg: str, btn_text='Ясно', msg_max_width=60, tab=5,
                  msg_justify: typing.Literal['left', 'center', 'right'] = 'center', title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.closed = True  # Закрыто ли окно крестиком
 
-        self.lbl_msg = ttk.Label(self, text=split_text(msg, msg_max_width, add_right_spaces=False), justify=msg_justify,
-                                 style='Default.TLabel')
+        self.lbl_msg = ttk.Label(self, text=split_text(msg, msg_max_width, tab=tab, add_right_spaces=False),
+                                 justify=msg_justify, style='Default.TLabel')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Default.TButton')
 
         self.lbl_msg.grid(row=0, column=0, padx=6, pady=4)
@@ -1616,6 +1622,7 @@ class PopupDialogueW(tk.Toplevel):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.set_enter_on_btn = set_enter_on_btn
         self.answer = val_on_close  # Значение, возвращаемое методом self.open
@@ -1671,6 +1678,7 @@ class PopupEntryW(tk.Toplevel):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
         self.if_correct_function = if_correct_function  # Функция, вызываемая при корректном ответе
@@ -1732,6 +1740,7 @@ class PopupChooseW(tk.Toplevel):
         super().__init__(parent)
         self.title(title)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.closed = True  # Закрыто ли окно крестиком
 
@@ -1775,6 +1784,7 @@ class PopupImgW(tk.Toplevel):
         self.title(title)
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.closed = True  # Закрыто ли окно крестиком
 
@@ -1823,6 +1833,7 @@ class ChooseLearnModeW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Выбор режима')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.res: tuple[str, str, str, str, str] | None = None
         self.group_vals = [ALL_GROUPS] + _0_global_dct.groups
@@ -1939,6 +1950,7 @@ class IncorrectAnswerW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Неверно')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.with_typo = with_typo
         self.answer = 'no'  # Значение, возвращаемое методом self.open
@@ -2008,6 +2020,7 @@ class SearchSettingsW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Параметры поиска')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.var_search_only_fav = tk.BooleanVar(value=search_only_fav)
         self.var_search_only_full = tk.BooleanVar(value=search_only_full)
@@ -2084,6 +2097,7 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Найдено несколько схожих статей')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.search_wrd = query
         self.answer = None
@@ -2142,6 +2156,7 @@ class AddPhraseW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - {title}')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.closed = True  # Закрыто ли окно крестиком
         self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
@@ -2203,6 +2218,7 @@ class EditW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Изменение статьи')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.dct_key = key
         self.line_width = 35
@@ -2779,7 +2795,10 @@ class EditW(tk.Toplevel):
     # Справка об окне (срабатывает при нажатии на кнопку)
     def about_window(self):
         PopupMsgW(self, '* Чтобы изменить поле, наведите на него мышку и нажмите ЛКМ\n'
-                        '* Чтобы удалить поле, наведите на него мышку и нажмите Ctrl+D',
+                        '* Чтобы удалить поле, наведите на него мышку и нажмите Ctrl+D\n\n'
+                        'Фразы: Сюда вы можете записать любые фразы с этим словом, как пример его употребления\n'
+                        'Сноски: Здесь вы можете указать любые факты об этом слове, которые посчитаете нужными\n'
+                        'Группы: Вы можете объединять слова, чтобы учить их группами\n',
                   msg_justify='left').open()
 
     # Установить фокус
@@ -2802,6 +2821,7 @@ class AddFormW(tk.Toplevel):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.closed = True  # Закрыто ли окно крестиком
         self.categories = list(_0_global_dct.ctg.keys())  # Список категорий
@@ -2968,6 +2988,7 @@ class CategoriesSettingsW(tk.Toplevel):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.has_changes = False
 
@@ -3093,6 +3114,7 @@ class GroupsSettingsW(tk.Toplevel):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.has_changes = False
 
@@ -3285,6 +3307,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.parent = parent
         self.ctg_key = ctg_key  # Название изменяемой категории
@@ -3413,6 +3436,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.has_changes = False
 
@@ -3557,6 +3581,7 @@ class EnterSpecialCombinationW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.closed = True  # Закрыто ли окно крестиком
 
@@ -3624,6 +3649,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Настройки пользовательской темы')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.custom_styles = {}  # Стили пользовательской темы
         self.history = []  # История изменений
@@ -4250,6 +4276,7 @@ class LearnW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Учёба')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.current_key = None  # Текущее слово
         self.current_form = None  # Текущая форма (если начальная, то None)
@@ -4545,7 +4572,7 @@ class LearnW(tk.Toplevel):
                          entry.forms[self.current_form].lower()
         self.check_answer(entry.forms[self.current_form], is_correct, self.current_key, self.current_form)
 
-    # Проверка введённого перевода
+    # Проверка введённого перевода слова
     def check_tr(self):
         entry = _0_global_dct.d[self.current_key]
         if _0_global_check_register:
@@ -4655,6 +4682,7 @@ class PrintW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Словарь "{_0_global_dct_savename}"')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         # Константы для вкладки печати
         self.print_max_elements_on_page = 100  # Максимальное количество элементов на одной странице ScrollFrame
@@ -5833,6 +5861,7 @@ class AddW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Добавление статьи')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.dct_key = None
 
@@ -5950,6 +5979,7 @@ class SettingsW(tk.Toplevel):
         self.title(f'{PROGRAM_NAME} - Настройки')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.parent = parent
         self.current_tab = 1  # Текущая вкладка (1 или 2)
@@ -6574,6 +6604,7 @@ class NewVersionAvailableW(tk.Toplevel):
         self.title('Доступна новая версия')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
+        toplevel_geometry(parent, self)
 
         self.var_url = tk.StringVar(value=URL_GITHUB)  # Ссылка, для загрузки новой версии
 
