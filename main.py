@@ -938,57 +938,73 @@ def wrd_in_line(line: str, wrd: str):
 
 # Поиск статей в словаре
 def search_entries(dct: Dictionary, dct_keys: tuple[tuple[str, int], ...], query: str,
-                   search_wrd: bool, search_tr: bool, search_frm: bool, search_nt: bool):
+                   search_wrd: bool, search_tr: bool, search_frm: bool, search_phr: bool, search_nt: bool):
     query_l = query.lower()
     query_s = simplify(query)[0].replace('ё', 'е')
     results = [set() for _ in range(9)]
     for key in dct_keys:
         entry = dct.d[key]
+
+        # Все фразы и переводы фраз для данной статьи
+        phrases = list(entry.phrases.keys())
+        for phr_key in entry.phrases.keys():
+            for phr_tr in entry.phrases[phr_key]:
+                phrases += [phr_tr]
+
         if search_wrd and query == entry.wrd or\
            search_tr  and query in entry.tr or\
            search_frm and query in entry.forms.values() or\
+           search_phr and query in phrases or\
            search_nt  and query in entry.notes:
             results[0].add(key)
         elif search_wrd and query_l == entry.wrd.lower() or\
              search_tr  and query_l in [ tr.lower() for tr  in entry.tr] or\
              search_frm and query_l in [frm.lower() for frm in entry.forms.values()] or\
+             search_phr and query_l in [phr.lower() for phr in phrases] or\
              search_nt  and query_l in [ nt.lower() for nt  in entry.notes]:
             results[1].add(key)
         elif search_wrd and query_s == simplify(entry.wrd)[0].replace('ё', 'е') or\
              search_tr  and query_s in [simplify( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
              search_frm and query_s in [simplify(frm)[0].replace('ё', 'е') for frm in entry.forms.values()] or\
+             search_phr and query_s in [simplify(phr)[0].replace('ё', 'е') for phr in phrases] or\
              search_nt  and query_s in [simplify( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
             results[2].add(key)
 
         elif search_wrd and wrd_in_line(entry.wrd, query) or\
              search_tr  and True in [wrd_in_line( tr, query) for tr  in entry.tr] or\
              search_frm and True in [wrd_in_line(frm, query) for frm in entry.forms.values()] or\
+             search_phr and True in [wrd_in_line(phr, query) for phr in phrases] or\
              search_nt  and True in [wrd_in_line( nt, query) for nt  in entry.notes]:
             results[3].add(key)
         elif search_wrd and wrd_in_line(entry.wrd.lower(), query_l) or\
              search_tr  and True in [wrd_in_line( tr.lower(), query_l) for tr  in entry.tr] or\
              search_frm and True in [wrd_in_line(frm.lower(), query_l) for frm in entry.forms.values()] or\
+             search_phr and True in [wrd_in_line(phr.lower(), query_l) for phr in phrases] or\
              search_nt  and True in [wrd_in_line( nt.lower(), query_l) for nt  in entry.notes]:
             results[4].add(key)
         elif search_wrd and wrd_in_line(simplify(entry.wrd)[0].replace('ё', 'е'), query_s) or\
              search_tr  and True in [wrd_in_line(simplify( tr)[0].replace('ё', 'е'), query_s) for tr  in entry.tr] or\
              search_frm and True in [wrd_in_line(simplify(frm)[0].replace('ё', 'е'), query_s) for frm in entry.forms.values()] or\
+             search_phr and True in [wrd_in_line(simplify(phr)[0].replace('ё', 'е'), query_s) for phr in phrases] or\
              search_nt  and True in [wrd_in_line(simplify( nt)[0].replace('ё', 'е'), query_s) for nt  in entry.notes]:
             results[5].add(key)
 
         elif search_wrd and query in entry.wrd or\
              search_tr  and True in [query in tr  for tr  in entry.tr] or\
              search_frm and True in [query in frm for frm in entry.forms.values()] or\
+             search_phr and True in [query in phr for phr in phrases] or\
              search_nt  and True in [query in nt  for nt  in entry.notes]:
             results[6].add(key)
         elif search_wrd and query_l in entry.wrd.lower() or\
              search_tr  and True in [query_l in  tr.lower() for tr  in entry.tr] or\
              search_frm and True in [query_l in frm.lower() for frm in entry.forms.values()] or\
+             search_phr and True in [query_l in phr.lower() for phr in phrases] or\
              search_nt  and True in [query_l in  nt.lower() for nt  in entry.notes]:
             results[7].add(key)
         elif search_wrd and query_s in simplify(entry.wrd)[0].replace('ё', 'е') or\
              search_tr  and True in [query_s in simplify( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
              search_frm and True in [query_s in simplify(frm)[0].replace('ё', 'е') for frm in entry.forms.values()] or\
+             search_phr and True in [query_s in simplify(phr)[0].replace('ё', 'е') for phr in phrases] or\
              search_nt  and True in [query_s in simplify( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
             results[8].add(key)
     return results
@@ -1285,8 +1301,8 @@ def upload_local_auto_settings(savename: str):
         session_number = int(local_auto_settings_file.readline().strip())
         # Режим поиска
         search_settings = tuple(int(el) for el in local_auto_settings_file.readline().strip().split())
-        if len(search_settings) != 6:
-            search_settings = (0, 0, 1, 1, 0, 0)
+        if len(search_settings) != 7:
+            search_settings = (0, 0, 1, 1, 0, 0, 0)
         # Режим учёбы
         learn_settings = [int(el) for el in local_auto_settings_file.readline().strip().split()]
         if len(learn_settings) != 5:
@@ -1301,7 +1317,7 @@ def upload_local_auto_settings(savename: str):
 
 
 # Сохранить автосохраняемые локальные настройки (настройки словаря)
-def save_local_auto_settings(session_number: int, search_settings: tuple[int, int, int, int, int, int],
+def save_local_auto_settings(session_number: int, search_settings: tuple[int, int, int, int, int, int, int],
                              learn_settings: list[int, int, int, int, int], savename: str):
     local_auto_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_AUTO_SETTINGS_FN)
     with open(local_auto_settings_path, 'w', encoding='utf-8') as local_auto_settings_file:
@@ -2038,7 +2054,7 @@ class IncorrectAnswerW(tk.Toplevel):
 # Окно с параметрами поиска
 class SearchSettingsW(tk.Toplevel):
     def __init__(self, parent, search_only_fav: bool, search_only_full: bool,
-                 search_wrd: bool, search_tr: bool, search_frm: bool, search_nt: bool):
+                 search_wrd: bool, search_tr: bool, search_frm: bool, search_phr: bool, search_nt: bool):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Параметры поиска')
         self.resizable(width=False, height=False)
@@ -2050,12 +2066,13 @@ class SearchSettingsW(tk.Toplevel):
         self.var_search_wrd = tk.BooleanVar(value=search_wrd)
         self.var_search_tr = tk.BooleanVar(value=search_tr)
         self.var_search_frm = tk.BooleanVar(value=search_frm)
+        self.var_search_phr = tk.BooleanVar(value=search_phr)
         self.var_search_nt = tk.BooleanVar(value=search_nt)
 
         self.lbl_search_only_fav = ttk.Label(self, text='Искать только среди избранных статей:', style='Default.TLabel')
         self.check_search_only_fav = ttk.Checkbutton(self, variable=self.var_search_only_fav,
                                                      style='Default.TCheckbutton')
-        self.lbl_search_only_full = ttk.Label(self, text='Искать только точные совпадения:', style='Default.TLabel')
+        self.lbl_search_only_full = ttk.Label(self, text='Искать слово целиком:', style='Default.TLabel')
         self.check_search_only_full = ttk.Checkbutton(self, variable=self.var_search_only_full,
                                                       style='Default.TCheckbutton')
         self.frame = ttk.Frame(self, style='Default.TFrame')
@@ -2066,6 +2083,8 @@ class SearchSettingsW(tk.Toplevel):
         self.check_search_tr = ttk.Checkbutton(self.frame, variable=self.var_search_tr, style='Default.TCheckbutton')
         self.lbl_search_frm = ttk.Label(self.frame, text='Искать среди словоформ:', style='Default.TLabel')
         self.check_search_frm = ttk.Checkbutton(self.frame, variable=self.var_search_frm, style='Default.TCheckbutton')
+        self.lbl_search_phr = ttk.Label(self.frame, text='Искать среди фраз:', style='Default.TLabel')
+        self.check_search_phr = ttk.Checkbutton(self.frame, variable=self.var_search_phr, style='Default.TCheckbutton')
         self.lbl_search_nt = ttk.Label(self.frame, text='Искать среди сносок:', style='Default.TLabel')
         self.check_search_nt = ttk.Checkbutton(self.frame, variable=self.var_search_nt, style='Default.TCheckbutton')
         # }
@@ -2082,8 +2101,10 @@ class SearchSettingsW(tk.Toplevel):
         self.check_search_tr.grid( row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
         self.lbl_search_frm.grid(  row=2, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
         self.check_search_frm.grid(row=2, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
-        self.lbl_search_nt.grid(   row=3, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_search_nt.grid( row=3, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_search_phr.grid(  row=3, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_search_phr.grid(row=3, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_search_nt.grid(   row=4, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_search_nt.grid( row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
         # }
 
     # Установить фокус
@@ -2105,12 +2126,13 @@ class SearchSettingsW(tk.Toplevel):
                                      int(self.var_search_wrd.get()),
                                      int(self.var_search_tr.get()),
                                      int(self.var_search_frm.get()),
+                                     int(self.var_search_phr.get()),
                                      int(self.var_search_nt.get()))
         save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
                                  _0_global_dct_savename)
 
         return self.var_search_only_fav.get(), self.var_search_only_full.get(), self.var_search_wrd.get(),\
-            self.var_search_tr.get(), self.var_search_frm.get(), self.var_search_nt.get()
+            self.var_search_tr.get(), self.var_search_frm.get(), self.var_search_phr.get(), self.var_search_nt.get()
 
 
 # Окно выбора одной статьи из нескольких с одинаковыми словами
@@ -4796,7 +4818,8 @@ class PrintW(tk.Toplevel):
         self.search_wrd = bool(_0_global_search_settings[2])
         self.search_tr = bool(_0_global_search_settings[3])
         self.search_frm = bool(_0_global_search_settings[4])
-        self.search_nt = bool(_0_global_search_settings[5])
+        self.search_phr = bool(_0_global_search_settings[5])
+        self.search_nt = bool(_0_global_search_settings[6])
 
         # Переменные для вкладки печати
         self.var_print_fav = tk.BooleanVar(value=False)
@@ -5260,8 +5283,8 @@ class PrintW(tk.Toplevel):
     # Нажатие на кнопку "Настройки поиска"
     def search_settings(self):
         window = SearchSettingsW(self, self.search_only_fav, self.search_only_full,
-                                 self.search_wrd, self.search_tr, self.search_frm, self.search_nt)
-        self.search_only_fav, self.search_only_full, self.search_wrd, self.search_tr, self.search_frm,\
+                                 self.search_wrd, self.search_tr, self.search_frm, self.search_phr, self.search_nt)
+        self.search_only_fav, self.search_only_full, self.search_wrd, self.search_tr, self.search_frm, self.search_phr,\
             self.search_nt = window.open()
 
     # Изменить статью
@@ -5453,13 +5476,15 @@ class PrintW(tk.Toplevel):
             keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
         else:
             keys = [key for key in _0_global_dct.d.keys()]
-        m0, m1, m2, m3, m4, m5, m6, m7, m8 = search_entries(_0_global_dct, tuple(keys), self.var_search_query.get(),
-                                                            self.search_wrd, self.search_tr, self.search_frm,
-                                                            self.search_nt)
+        results = search_entries(_0_global_dct, tuple(keys), self.var_search_query.get(),
+                                 self.search_wrd, self.search_tr, self.search_frm, self.search_phr, self.search_nt)
+        self.search_keys = []
         if self.search_only_full:
-            self.search_keys = list(m0) + list(m1) + list(m2) + list(m3) + list(m4) + list(m5)
+            for i in range(6):
+                self.search_keys += list(results[i])
         else:
-            self.search_keys = list(m0) + list(m1) + list(m2) + list(m3) + list(m4) + list(m5) + list(m6) + list(m7) + list(m8)
+            for i in range(9):
+                self.search_keys += list(results[i])
         self.search_selected_keys = [key for key in self.search_selected_keys if key in self.search_keys]
 
         if not self.search_selected_keys:
