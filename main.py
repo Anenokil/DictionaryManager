@@ -4797,6 +4797,8 @@ class PrintW(tk.Toplevel):
         self.configure(bg=ST_BG[th])
         toplevel_geometry(parent, self)
 
+        self.current_tab = 0  # Номер текущей вкладки
+
         # Константы для вкладки печати
         self.print_max_elements_on_page = 100  # Максимальное количество элементов на одной странице ScrollFrame
         self.print_current_page = 1  # Номер текущей страницы ScrollFrame (начиная с 1)
@@ -5085,6 +5087,9 @@ class PrintW(tk.Toplevel):
         # } } }
         # } }
         # }
+
+        self.tab_add = ttk.Frame(self.tabs, style='Invis.TFrame')
+        self.tabs.add(self.tab_add, text='Добавить статью')
 
         self.tabs.grid(row=0, column=0, padx=0, pady=0)
         # {
@@ -5875,10 +5880,23 @@ class PrintW(tk.Toplevel):
                         '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
                   msg_justify='left').open()
 
+    # Нажатие на кнопку "Добавить статью"
+    def add_entry(self):
+        key = AddW(self).open()
+        if not key:
+            return
+        EditW(self, key).open()
+
+        self.search_print(False)
+        self.print_print(False)
+
     # Установить фокус (вкладка "Просмотр словаря")
     def set_focus_print(self):
+        self.focus_set()
+
         self.unbind('<Return>')
-        #
+        self.unbind('<Key>')
+
         self.bind('<Up>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
         self.bind('<Control-U>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
         self.bind('<Control-u>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
@@ -5946,23 +5964,32 @@ class PrintW(tk.Toplevel):
         #
         self.bind('<Alt-D>', lambda event=None: self.delete_selected(self.search_selected_keys))
         self.bind('<Alt-d>', lambda event=None: self.delete_selected(self.search_selected_keys))
+        #
+        self.bind('<Key>', lambda event=None: self.entry_search_query.focus_set())
 
     # Смена вкладки
     def change_tab(self):
         if self.tabs.index(self.tabs.select()) == 0:
+            self.current_tab = 0
             self.set_focus_print()
-        else:
+        elif self.tabs.index(self.tabs.select()) == 1:
+            self.current_tab = 1
             self.set_focus_search()
+        else:
+            self.tabs.select(self.current_tab)
+            self.add_entry()
 
     def open(self, tab: typing.Literal['print', 'search'] = 'print'):
         self.focus_set()
         self.bind('<Escape>', lambda event=None: self.destroy())
 
-        if tab == 'search':
+        if tab == 'print':
+            self.current_tab = 0
+            self.set_focus_print()
+        elif tab == 'search':
+            self.current_tab = 1
             self.tabs.select(self.tab_search)
             self.set_focus_search()
-        else:
-            self.set_focus_print()
 
         self.tabs.bind('<<NotebookTabChanged>>', lambda event=None: self.change_tab())
 
