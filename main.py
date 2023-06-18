@@ -1450,6 +1450,13 @@ def toplevel_geometry(window_parent, window):
     window.geometry(f'+{window_parent.winfo_x() + 20}+{window_parent.winfo_y() + 20}')
 
 
+# Привязать функцию к нажатию клавиши
+def bind_keypress(event, keys_and_cmd: list[tuple[str, any]]):
+    for (key, cmd) in keys_and_cmd:
+        if event.keycode == ord(key):
+            cmd()
+
+
 # Вывести сообщение с предупреждением
 def warning(window_parent, msg: str):
     PopupMsgW(window_parent, msg, tab=0, title='Warning').open()
@@ -2789,29 +2796,34 @@ class EditW(tk.Toplevel):
         # Привязываем события
         for i in range(tr_count):
             self.tr_frames[i].bind('<Enter>', lambda event, i=i: self.tr_frames[i].focus_set())
-            self.tr_frames[i].bind('<Control-D>', lambda event, i=i: self.tr_del(self.translations[i]))
-            self.tr_frames[i].bind('<Control-d>', lambda event, i=i: self.tr_del(self.translations[i]))
             self.tr_frames[i].bind('<Leave>', lambda event: self.focus_set())
+            self.tr_frames[i].bind('<Control-KeyPress>',
+                                   lambda key:
+                                   bind_keypress(key, [('D', lambda event, i=i: self.tr_del(self.translations[i]))]))
         for i in range(nt_count):
             self.nt_frames[i].bind('<Enter>', lambda event, i=i: self.nt_frames[i].focus_set())
-            self.nt_frames[i].bind('<Control-D>', lambda event, i=i: self.note_del(self.notes[i]))
-            self.nt_frames[i].bind('<Control-d>', lambda event, i=i: self.note_del(self.notes[i]))
             self.nt_frames[i].bind('<Leave>', lambda event: self.focus_set())
+            self.nt_frames[i].bind('<Control-KeyPress>',
+                                   lambda key:
+                                   bind_keypress(key, [('D', lambda event, i=i: self.note_del(self.notes[i]))]))
         for i in range(phr_count):
             self.phr_frames[i].bind('<Enter>', lambda event, i=i: self.phr_frames[i].focus_set())
-            self.phr_frames[i].bind('<Control-D>', lambda event, i=i: self.phrase_del(self.phrases[i]))
-            self.phr_frames[i].bind('<Control-d>', lambda event, i=i: self.phrase_del(self.phrases[i]))
             self.phr_frames[i].bind('<Leave>', lambda event: self.focus_set())
+            self.phr_frames[i].bind('<Control-KeyPress>',
+                                    lambda key:
+                                    bind_keypress(key, [('D', lambda event, i=i: self.phrase_del(self.phrases[i]))]))
         for i in range(frm_count):
             self.frm_frames[i].bind('<Enter>', lambda event, i=i: self.frm_frames[i].focus_set())
-            self.frm_frames[i].bind('<Control-D>', lambda event, i=i: self.frm_del(self.forms[i]))
-            self.frm_frames[i].bind('<Control-d>', lambda event, i=i: self.frm_del(self.forms[i]))
             self.frm_frames[i].bind('<Leave>', lambda event: self.focus_set())
+            self.frm_frames[i].bind('<Control-KeyPress>',
+                                    lambda key:
+                                    bind_keypress(key, [('D', lambda event, i=i: self.frm_del(self.forms[i]))]))
         for i in range(gr_count):
             self.gr_frames[i].bind('<Enter>', lambda event, i=i: self.gr_frames[i].focus_set())
-            self.gr_frames[i].bind('<Control-D>', lambda event, i=i: self.gr_del(self.groups[i]))
-            self.gr_frames[i].bind('<Control-d>', lambda event, i=i: self.gr_del(self.groups[i]))
             self.gr_frames[i].bind('<Leave>', lambda event: self.focus_set())
+            self.gr_frames[i].bind('<Control-KeyPress>',
+                                   lambda key:
+                                   bind_keypress(key, [('D', lambda event, i=i: self.gr_del(self.groups[i]))]))
         # Изменяем высоту полей
         self.scrolled_frame_tr.resize(height=max(1, min(sum([field_height(btn['text'], 35)
                                                              for btn in self.tr_buttons]),
@@ -3125,11 +3137,11 @@ class CategoriesSettingsW(tk.Toplevel):
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
-            self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename(self.categories[i]))
-            self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename(self.categories[i]))
-            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.categories[i]))
-            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.categories[i]))
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
+            self.frames[i].bind('<Control-KeyPress>',
+                                lambda key: bind_keypress(key,
+                                                          [('R', lambda event, i=i: self.rename(self.categories[i])),
+                                                           ('D', lambda event, i=i: self.delete(self.categories[i]))]))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -3315,13 +3327,11 @@ class GroupsSettingsW(tk.Toplevel):
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
-            self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename(self.groups[i]))
-            self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename(self.groups[i]))
-            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.groups[i]))
-            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.groups[i]))
-            self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav(self.groups[i]))
-            self.frames[i].bind('<Control-f>', lambda event, i=i: self.fav(self.groups[i]))
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
+            self.frames[i].bind('<Control-KeyPress>',
+                                lambda key: bind_keypress(key, [('R', lambda event, i=i: self.rename(self.groups[i])),
+                                                                ('D', lambda event, i=i: self.delete(self.groups[i])),
+                                                                ('F', lambda event, i=i: self.fav(self.groups[i]))]))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -3448,11 +3458,11 @@ class CategoryValuesSettingsW(tk.Toplevel):
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
-            self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename(self.values[i]))
-            self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename(self.values[i]))
-            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.values[i]))
-            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.values[i]))
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
+            self.frames[i].bind('<Control-KeyPress>',
+                                lambda key:
+                                bind_keypress(key, [('R', lambda event, i=i: self.rename(self.values[i])),
+                                                    ('D', lambda event, i=i: self.delete(self.values[i]))]))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -3591,11 +3601,11 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
-            self.frames[i].bind('<Control-E>', lambda event, i=i: self.edit(self.combinations[i]))
-            self.frames[i].bind('<Control-e>', lambda event, i=i: self.edit(self.combinations[i]))
-            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.combinations[i]))
-            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.combinations[i]))
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
+            self.frames[i].bind('<Control-KeyPress>',
+                                lambda key:
+                                bind_keypress(key, [('E', lambda event, i=i: self.edit(self.combinations[i])),
+                                                    ('D', lambda event, i=i: self.delete(self.combinations[i]))]))
 
         self.frames[combinations_count].grid(row=combinations_count, column=0, padx=0, pady=0, sticky='WE')
 
@@ -4660,8 +4670,7 @@ class LearnW(tk.Toplevel):
                                               'Оставить слово в избранном?',
                                         'Да', 'Нет', val_on_close=True)
                 ttip.Hovertip(window.btn_right, 'Alt+N', hover_delay=700)
-                window.bind('<Alt-N>', lambda event=None: window.btn_right.invoke())
-                window.bind('<Alt-n>', lambda event=None: window.btn_right.invoke())
+                window.bind('<Alt-KeyPress>', lambda key: bind_keypress(key, [('N', window.btn_right.invoke)]))
                 answer = window.open()
                 if not answer:
                     entry.fav = False
@@ -4770,12 +4779,9 @@ class LearnW(tk.Toplevel):
         self.focus_set()
         self.entry_input.focus_set()
         self.bind('<Return>', lambda event=None: self.btn_input.invoke())
-        self.bind('<Control-N>', lambda event=None: self.btn_show_notes.invoke())
-        self.bind('<Control-n>', lambda event=None: self.btn_show_notes.invoke())
-        self.bind('<Control-O>', lambda event=None: self.btn_show_homonyms.invoke())
-        self.bind('<Control-o>', lambda event=None: self.btn_show_homonyms.invoke())
-        self.bind('<Control-W>', lambda event=None: self.btn_show_entry.invoke())
-        self.bind('<Control-w>', lambda event=None: self.btn_show_entry.invoke())
+        self.bind('<Control-KeyPress>', lambda key: bind_keypress(key, [('N', lambda: self.btn_show_notes.invoke()),
+                                                                        ('O', lambda: self.btn_show_homonyms.invoke()),
+                                                                        ('W', lambda: self.btn_show_entry.invoke())]))
 
     def open(self):
         global _0_global_learn_session_number
@@ -5898,74 +5904,50 @@ class PrintW(tk.Toplevel):
         self.unbind('<Key>')
 
         self.bind('<Up>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
-        self.bind('<Control-U>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
-        self.bind('<Control-u>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
-        #
         self.bind('<Down>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
-        self.bind('<Control-D>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
-        self.bind('<Control-d>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
-        #
-        self.bind('<Alt-P>', lambda event=None: self.print_select_page())
-        self.bind('<Alt-p>', lambda event=None: self.print_select_page())
-        self.bind('<Alt-Shift-P>', lambda event=None: self.print_unselect_page())
-        self.bind('<Alt-Shift-p>', lambda event=None: self.print_unselect_page())
-        #
-        self.bind('<Alt-A>', lambda event=None: self.print_select_all())
-        self.bind('<Alt-a>', lambda event=None: self.print_select_all())
-        self.bind('<Alt-Shift-A>', lambda event=None: self.print_unselect_all())
-        self.bind('<Alt-Shift-a>', lambda event=None: self.print_unselect_all())
-        #
-        self.bind('<Alt-G>', lambda event=None: self.add_selected_to_group(self.print_selected_keys))
-        self.bind('<Alt-g>', lambda event=None: self.add_selected_to_group(self.print_selected_keys))
-        self.bind('<Alt-Shift-G>', lambda event=None: self.remove_selected_from_group(self.print_selected_keys))
-        self.bind('<Alt-Shift-g>', lambda event=None: self.remove_selected_from_group(self.print_selected_keys))
-        #
-        self.bind('<Alt-F>', lambda event=None: self.fav_selected(self.print_selected_keys))
-        self.bind('<Alt-f>', lambda event=None: self.fav_selected(self.print_selected_keys))
-        self.bind('<Alt-Shift-F>', lambda event=None: self.unfav_selected(self.print_selected_keys))
-        self.bind('<Alt-Shift-f>', lambda event=None: self.unfav_selected(self.print_selected_keys))
-        #
-        self.bind('<Alt-D>', lambda event=None: self.delete_selected(self.print_selected_keys))
-        self.bind('<Alt-d>', lambda event=None: self.delete_selected(self.print_selected_keys))
+        self.bind('<Control-KeyPress>',
+                  lambda key: bind_keypress(key,
+                                            [('U', lambda: self.scrolled_frame_print.canvas.yview_moveto(0.0)),
+                                             ('D', lambda: self.scrolled_frame_print.canvas.yview_moveto(1.0))]))
+        self.bind('<Alt-Shift-KeyPress>',
+                  lambda key: bind_keypress(key,
+                                            [('P', lambda: self.print_unselect_page()),
+                                             ('A', lambda: self.print_unselect_all()),
+                                             ('G', lambda: self.remove_selected_from_group(self.print_selected_keys)),
+                                             ('F', lambda: self.unfav_selected(self.print_selected_keys))]))
+        self.bind('<Alt-KeyPress>',
+                  lambda key: bind_keypress(key,
+                                            [('P', lambda: self.print_select_page()),
+                                             ('A', lambda: self.print_select_all()),
+                                             ('G', lambda: self.add_selected_to_group(self.print_selected_keys)),
+                                             ('F', lambda: self.fav_selected(self.print_selected_keys)),
+                                             ('D', lambda: self.delete_selected(self.print_selected_keys))]))
 
     # Установить фокус (вкладка "Поиск")
     def set_focus_search(self):
         self.entry_search_query.focus_set()
 
         self.bind('<Return>', lambda event=None: self.btn_search_search.invoke())
-        #
-        self.bind('<Up>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
-        self.bind('<Control-U>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
-        self.bind('<Control-u>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
-        #
-        self.bind('<Down>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
-        self.bind('<Control-D>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
-        self.bind('<Control-d>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
-        #
-        self.bind('<Alt-P>', lambda event=None: self.search_select_page())
-        self.bind('<Alt-p>', lambda event=None: self.search_select_page())
-        self.bind('<Alt-Shift-P>', lambda event=None: self.search_unselect_page())
-        self.bind('<Alt-Shift-p>', lambda event=None: self.search_unselect_page())
-        #
-        self.bind('<Alt-A>', lambda event=None: self.search_select_all())
-        self.bind('<Alt-a>', lambda event=None: self.search_select_all())
-        self.bind('<Alt-Shift-A>', lambda event=None: self.search_unselect_all())
-        self.bind('<Alt-Shift-a>', lambda event=None: self.search_unselect_all())
-        #
-        self.bind('<Alt-G>', lambda event=None: self.add_selected_to_group(self.search_selected_keys))
-        self.bind('<Alt-g>', lambda event=None: self.add_selected_to_group(self.search_selected_keys))
-        self.bind('<Alt-Shift-G>', lambda event=None: self.remove_selected_from_group(self.search_selected_keys))
-        self.bind('<Alt-Shift-g>', lambda event=None: self.remove_selected_from_group(self.search_selected_keys))
-        #
-        self.bind('<Alt-F>', lambda event=None: self.fav_selected(self.search_selected_keys))
-        self.bind('<Alt-f>', lambda event=None: self.fav_selected(self.search_selected_keys))
-        self.bind('<Alt-Shift-F>', lambda event=None: self.unfav_selected(self.search_selected_keys))
-        self.bind('<Alt-Shift-f>', lambda event=None: self.unfav_selected(self.search_selected_keys))
-        #
-        self.bind('<Alt-D>', lambda event=None: self.delete_selected(self.search_selected_keys))
-        self.bind('<Alt-d>', lambda event=None: self.delete_selected(self.search_selected_keys))
-        #
         self.bind('<Key>', lambda event=None: self.entry_search_query.focus_set())
+        self.bind('<Up>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+        self.bind('<Down>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
+        self.bind('<Control-KeyPress>',
+                  lambda key: bind_keypress(key,
+                                            [('U', lambda: self.scrolled_frame_search.canvas.yview_moveto(0.0)),
+                                             ('D', lambda: self.scrolled_frame_search.canvas.yview_moveto(1.0))]))
+        self.bind('<Alt-Shift-KeyPress>',
+                  lambda key: bind_keypress(key,
+                                            [('P', lambda: self.search_unselect_page()),
+                                             ('A', lambda: self.search_unselect_all()),
+                                             ('G', lambda: self.remove_selected_from_group(self.search_selected_keys)),
+                                             ('F', lambda: self.unfav_selected(self.search_selected_keys))]))
+        self.bind('<Alt-KeyPress>',
+                  lambda key: bind_keypress(key,
+                                            [('P', lambda: self.search_select_page()),
+                                             ('A', lambda: self.search_select_all()),
+                                             ('G', lambda: self.add_selected_to_group(self.search_selected_keys)),
+                                             ('F', lambda: self.fav_selected(self.search_selected_keys)),
+                                             ('D', lambda: self.delete_selected(self.search_selected_keys))]))
 
     # Смена вкладки
     def change_tab(self):
@@ -6623,13 +6605,13 @@ class SettingsW(tk.Toplevel):
 
             # Привязываем события
             self.dcts_frames[i].bind('<Enter>', lambda event, i=i: self.dcts_frames[i].focus_set())
-            self.dcts_frames[i].bind('<Control-R>', lambda event, i=i: self.dct_rename(self.dcts_savenames[i]))
-            self.dcts_frames[i].bind('<Control-r>', lambda event, i=i: self.dct_rename(self.dcts_savenames[i]))
-            self.dcts_frames[i].bind('<Control-D>', lambda event, i=i: self.dct_delete(self.dcts_savenames[i]))
-            self.dcts_frames[i].bind('<Control-d>', lambda event, i=i: self.dct_delete(self.dcts_savenames[i]))
-            self.dcts_frames[i].bind('<Control-E>', lambda event, i=i: self.dct_export(self.dcts_savenames[i]))
-            self.dcts_frames[i].bind('<Control-e>', lambda event, i=i: self.dct_export(self.dcts_savenames[i]))
             self.dcts_frames[i].bind('<Leave>', lambda event: self.focus_set())
+            self.dcts_frames[i].bind('<Control-KeyPress>',
+                                     lambda key:
+                                     bind_keypress(key,
+                                                   [('R', lambda event, i=i: self.dct_rename(self.dcts_savenames[i])),
+                                                    ('D', lambda event, i=i: self.dct_delete(self.dcts_savenames[i])),
+                                                    ('E', lambda event, i=i: self.dct_export(self.dcts_savenames[i]))]))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
