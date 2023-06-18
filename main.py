@@ -1301,8 +1301,8 @@ def upload_local_auto_settings(savename: str):
         session_number = int(local_auto_settings_file.readline().strip())
         # Режим поиска
         search_settings = tuple(int(el) for el in local_auto_settings_file.readline().strip().split())
-        if len(search_settings) != 7:
-            search_settings = (0, 0, 1, 1, 0, 0, 0)
+        if len(search_settings) != 8:
+            search_settings = (0, 0, 1, 1, 0, 0, 0, 0)
         # Режим учёбы
         learn_settings = [int(el) for el in local_auto_settings_file.readline().strip().split()]
         if len(learn_settings) != 5:
@@ -1317,7 +1317,7 @@ def upload_local_auto_settings(savename: str):
 
 
 # Сохранить автосохраняемые локальные настройки (настройки словаря)
-def save_local_auto_settings(session_number: int, search_settings: tuple[int, int, int, int, int, int, int],
+def save_local_auto_settings(session_number: int, search_settings: tuple[int, int, int, int, int, int, int, int],
                              learn_settings: list[int, int, int, int, int], savename: str):
     local_auto_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_AUTO_SETTINGS_FN)
     with open(local_auto_settings_path, 'w', encoding='utf-8') as local_auto_settings_file:
@@ -2060,13 +2060,15 @@ class IncorrectAnswerW(tk.Toplevel):
 
 # Окно с параметрами поиска
 class SearchSettingsW(tk.Toplevel):
-    def __init__(self, parent, search_only_fav: bool, search_only_full: bool,
-                 search_wrd: bool, search_tr: bool, search_frm: bool, search_phr: bool, search_nt: bool):
+    def __init__(self, parent, search_only_fav: bool, search_only_full: bool, search_wrd: bool, search_tr: bool,
+                 search_frm: bool, search_phr: bool, search_nt: bool, search_group: str):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Параметры поиска')
         self.resizable(width=False, height=False)
         self.configure(bg=ST_BG[th])
         toplevel_geometry(parent, self)
+
+        self.group_vals = [ALL_GROUPS] + _0_global_dct.groups
 
         self.var_search_only_fav = tk.BooleanVar(value=search_only_fav)
         self.var_search_only_full = tk.BooleanVar(value=search_only_full)
@@ -2075,6 +2077,7 @@ class SearchSettingsW(tk.Toplevel):
         self.var_search_frm = tk.BooleanVar(value=search_frm)
         self.var_search_phr = tk.BooleanVar(value=search_phr)
         self.var_search_nt = tk.BooleanVar(value=search_nt)
+        self.var_search_group = tk.StringVar(value=search_group)
 
         self.lbl_search_only_fav = ttk.Label(self, text='Искать только среди избранных статей:', style='Default.TLabel')
         self.check_search_only_fav = ttk.Checkbutton(self, variable=self.var_search_only_fav,
@@ -2082,25 +2085,37 @@ class SearchSettingsW(tk.Toplevel):
         self.lbl_search_only_full = ttk.Label(self, text='Искать слово целиком:', style='Default.TLabel')
         self.check_search_only_full = ttk.Checkbutton(self, variable=self.var_search_only_full,
                                                       style='Default.TCheckbutton')
-        self.frame = ttk.Frame(self, style='Default.TFrame')
+        self.frame_main = ttk.Frame(self, style='Default.TFrame')
         # {
-        self.lbl_search_wrd = ttk.Label(self.frame, text='Искать среди слов:', style='Default.TLabel')
-        self.check_search_wrd = ttk.Checkbutton(self.frame, variable=self.var_search_wrd, style='Default.TCheckbutton')
-        self.lbl_search_tr = ttk.Label(self.frame, text='Искать среди переводов:', style='Default.TLabel')
-        self.check_search_tr = ttk.Checkbutton(self.frame, variable=self.var_search_tr, style='Default.TCheckbutton')
-        self.lbl_search_frm = ttk.Label(self.frame, text='Искать среди словоформ:', style='Default.TLabel')
-        self.check_search_frm = ttk.Checkbutton(self.frame, variable=self.var_search_frm, style='Default.TCheckbutton')
-        self.lbl_search_phr = ttk.Label(self.frame, text='Искать среди фраз:', style='Default.TLabel')
-        self.check_search_phr = ttk.Checkbutton(self.frame, variable=self.var_search_phr, style='Default.TCheckbutton')
-        self.lbl_search_nt = ttk.Label(self.frame, text='Искать среди сносок:', style='Default.TLabel')
-        self.check_search_nt = ttk.Checkbutton(self.frame, variable=self.var_search_nt, style='Default.TCheckbutton')
+        self.lbl_search_wrd = ttk.Label(self.frame_main, text='Искать среди слов:', style='Default.TLabel')
+        self.check_search_wrd = ttk.Checkbutton(self.frame_main, variable=self.var_search_wrd,
+                                                style='Default.TCheckbutton')
+        self.lbl_search_tr = ttk.Label(self.frame_main, text='Искать среди переводов:', style='Default.TLabel')
+        self.check_search_tr = ttk.Checkbutton(self.frame_main, variable=self.var_search_tr,
+                                               style='Default.TCheckbutton')
+        self.lbl_search_frm = ttk.Label(self.frame_main, text='Искать среди словоформ:', style='Default.TLabel')
+        self.check_search_frm = ttk.Checkbutton(self.frame_main, variable=self.var_search_frm,
+                                                style='Default.TCheckbutton')
+        self.lbl_search_phr = ttk.Label(self.frame_main, text='Искать среди фраз:', style='Default.TLabel')
+        self.check_search_phr = ttk.Checkbutton(self.frame_main, variable=self.var_search_phr,
+                                                style='Default.TCheckbutton')
+        self.lbl_search_nt = ttk.Label(self.frame_main, text='Искать среди сносок:', style='Default.TLabel')
+        self.check_search_nt = ttk.Checkbutton(self.frame_main, variable=self.var_search_nt,
+                                               style='Default.TCheckbutton')
+        # }
+        self.frame_group = ttk.Frame(self, style='Invis.TFrame')
+        # {
+        self.lbl_search_group = ttk.Label(self.frame_group, text='Группа:', style='Default.TLabel')
+        self.combo_search_group = ttk.Combobox(self.frame_group, textvariable=self.var_search_group,
+                                               values=[ALL_GROUPS] + _0_global_dct.groups, width=26, state='readonly',
+                                               style='Default.TCombobox', font=('DejaVu Sans Mono', _0_global_scale))
         # }
 
         self.lbl_search_only_fav.grid(   row=0, column=0,               padx=(6, 1), pady=6,      sticky='E')
         self.check_search_only_fav.grid( row=0, column=1,               padx=(0, 6), pady=6,      sticky='W')
         self.lbl_search_only_full.grid(  row=1, column=0,               padx=(6, 1), pady=(0, 6), sticky='E')
         self.check_search_only_full.grid(row=1, column=1,               padx=(0, 6), pady=(0, 6), sticky='W')
-        self.frame.grid(                 row=2, column=0, columnspan=2, padx=6,      pady=6)
+        self.frame_main.grid(            row=2, column=0, columnspan=2, padx=6,      pady=6)
         # {
         self.lbl_search_wrd.grid(  row=0, column=0, padx=(6, 1), pady=6,      sticky='E')
         self.check_search_wrd.grid(row=0, column=1, padx=(0, 6), pady=6,      sticky='W')
@@ -2112,6 +2127,11 @@ class SearchSettingsW(tk.Toplevel):
         self.check_search_phr.grid(row=3, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
         self.lbl_search_nt.grid(   row=4, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
         self.check_search_nt.grid( row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        # }
+        self.frame_group.grid(row=3, column=0, columnspan=2, padx=6, pady=6)
+        # {
+        self.lbl_search_group.grid(  row=0, column=0, padx=(6, 1), pady=6, sticky='E')
+        self.combo_search_group.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
         # }
 
     # Установить фокус
@@ -2134,12 +2154,14 @@ class SearchSettingsW(tk.Toplevel):
                                      int(self.var_search_tr.get()),
                                      int(self.var_search_frm.get()),
                                      int(self.var_search_phr.get()),
-                                     int(self.var_search_nt.get()))
+                                     int(self.var_search_nt.get()),
+                                     self.group_vals.index(self.var_search_group.get()))
         save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
                                  _0_global_dct_savename)
 
         return self.var_search_only_fav.get(), self.var_search_only_full.get(), self.var_search_wrd.get(),\
-            self.var_search_tr.get(), self.var_search_frm.get(), self.var_search_phr.get(), self.var_search_nt.get()
+            self.var_search_tr.get(), self.var_search_frm.get(), self.var_search_phr.get(), self.var_search_nt.get(),\
+            self.var_search_group.get()
 
 
 # Окно выбора одной статьи из нескольких с одинаковыми словами
@@ -4820,6 +4842,8 @@ class PrintW(tk.Toplevel):
         self.search_count_elements = None  # Количество элементов на всех страницах ScrollFrame
         self.search_count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
 
+        self.group_vals = [ALL_GROUPS] + _0_global_dct.groups
+
         # Параметры поиска
         self.search_only_fav = bool(_0_global_search_settings[0])
         self.search_only_full = bool(_0_global_search_settings[1])
@@ -4828,6 +4852,7 @@ class PrintW(tk.Toplevel):
         self.search_frm = bool(_0_global_search_settings[4])
         self.search_phr = bool(_0_global_search_settings[5])
         self.search_nt = bool(_0_global_search_settings[6])
+        self.search_group = self.group_vals[_0_global_search_settings[7]]
 
         # Переменные для вкладки печати
         self.var_print_fav = tk.BooleanVar(value=False)
@@ -5293,10 +5318,10 @@ class PrintW(tk.Toplevel):
 
     # Нажатие на кнопку "Настройки поиска"
     def search_settings(self):
-        window = SearchSettingsW(self, self.search_only_fav, self.search_only_full,
-                                 self.search_wrd, self.search_tr, self.search_frm, self.search_phr, self.search_nt)
+        window = SearchSettingsW(self, self.search_only_fav, self.search_only_full, self.search_wrd, self.search_tr,
+                                 self.search_frm, self.search_phr, self.search_nt, self.search_group)
         self.search_only_fav, self.search_only_full, self.search_wrd, self.search_tr, self.search_frm, self.search_phr,\
-            self.search_nt = window.open()
+            self.search_nt, self.search_group = window.open()
 
     # Изменить статью
     def edit_entry(self, key: tuple[str, int]):
@@ -5487,6 +5512,8 @@ class PrintW(tk.Toplevel):
             keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
         else:
             keys = [key for key in _0_global_dct.d.keys()]
+        if self.search_group != ALL_GROUPS:
+            keys = [key for key in keys if self.search_group in _0_global_dct.d[key].groups]
         results = search_entries(_0_global_dct, tuple(keys), self.var_search_query.get(),
                                  self.search_wrd, self.search_tr, self.search_frm, self.search_phr, self.search_nt)
         self.search_keys = []
