@@ -793,16 +793,16 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, key: tuple[str, int], n
             dct.merge_entries(new_key, key)
             return new_key
         elif answer == 'r':  # Оставить отдельной статьёй
-            new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].phrases, dct.d[key].forms,
-                                    dct.d[key].fav, dct.d[key].groups, dct.d[key].all_att, dct.d[key].correct_att,
+            new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].forms, dct.d[key].phrases, dct.d[key].notes,
+                                    dct.d[key].groups, dct.d[key].fav, dct.d[key].all_att, dct.d[key].correct_att,
                                     dct.d[key].correct_att_in_a_row, dct.d[key].latest_answer_date)
             dct.delete_entry(key)
             return new_key
         else:
             return key
     else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
-        new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].notes, dct.d[key].phrases, dct.d[key].forms,
-                                dct.d[key].fav, dct.d[key].groups, dct.d[key].all_att, dct.d[key].correct_att,
+        new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].forms, dct.d[key].phrases, dct.d[key].notes,
+                                dct.d[key].groups, dct.d[key].fav, dct.d[key].all_att, dct.d[key].correct_att,
                                 dct.d[key].correct_att_in_a_row, dct.d[key].latest_answer_date)
         dct.delete_entry(key)
         return new_key

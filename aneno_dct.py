@@ -22,31 +22,38 @@ class Entry(object):
     def __init__(self,
                  wrd: str,
                  tr: str | list[str],
-                 notes: str | list[str] | None = None,
                  forms: dict[tuple[str, ...], str] | None = None,
                  phrases: dict[str, list[str]] | None = None,
-                 fav=False, groups: set[str] | None = None,
-                 all_att=0, correct_att=0, correct_att_in_a_row=0, latest_answer_date=(0, 0, 0)):
+                 notes: str | list[str] | None = None,
+                 groups: set[str] | None = None,
+                 fav=False, all_att=0, correct_att=0, correct_att_in_a_row=0, latest_answer_date=(0, 0, 0)):
         self.wrd = wrd
+
         self.tr = tr.copy() if (type(tr) == list) else [tr]
+        self.count_t = len(self.tr)
+
+        self.forms = {}
+        if type(forms) == dict:
+            self.forms = dict(forms.copy())
+        self.count_f = len(self.forms)
+
+        self.phrases = {}
+        if type(phrases) == dict:
+            self.phrases = dict(phrases.copy())
+        self.count_p = len(self.phrases)
+
         if notes is None:
             self.notes = []
         elif type(notes) == list:
             self.notes = notes.copy()
         else:
             self.notes = [notes]
-        self.forms = {}
-        if type(forms) == dict:
-            self.forms = dict(forms.copy())
-        self.phrases = {}
-        if type(phrases) == dict:
-            self.phrases = dict(phrases.copy())
-        self.count_t = len(self.tr)
         self.count_n = len(self.notes)
-        self.count_f = len(self.forms)
-        self.count_p = len(self.phrases)
-        self.fav = fav
+
         self.groups = groups if groups else set()
+
+        self.fav = fav
+
         self.all_att = all_att
         self.correct_att = correct_att
         self.score = 0 if (all_att == 0) else correct_att / all_att
@@ -286,17 +293,16 @@ class Dictionary(object):
         return sum_num, sum_den
 
     # Добавить статью в словарь
-    def add_entry(self, wrd: str, tr: str | list[str],
-                  notes: str | list[str] = None, phrases: dict[str, list[str]] = None,
-                  forms: dict[tuple[str, ...], str] = None,
-                  fav: bool = False, groups: set[str] | None = None,
+    def add_entry(self, wrd: str, tr: str | list[str], forms: dict[tuple[str, ...], str] = None,
+                  phrases: dict[str, list[str]] = None, notes: str | list[str] = None,
+                  groups: set[str] | None = None, fav: bool = False,
                   all_att: int = 0, correct_att: int = 0, correct_att_in_a_row: int = 0,
                   latest_answer_date: tuple[int, int, int] = (0, 0, 0)):
         i = 0
         while True:
             key = wrd_to_key(wrd, i)
             if key not in self.d.keys():
-                self.d[key] = Entry(wrd, tr, notes, forms, phrases, fav, groups, all_att,
+                self.d[key] = Entry(wrd, tr, forms, phrases, notes, groups, fav, all_att,
                                     correct_att, correct_att_in_a_row, latest_answer_date)
                 self.count_w += 1
                 self.count_t += self.d[key].count_t
