@@ -2820,32 +2820,32 @@ class EditW(tk.Toplevel):
             self.tr_frames[i].bind('<Enter>', lambda event, i=i: self.tr_frames[i].focus_set())
             self.tr_frames[i].bind('<Leave>', lambda event: self.focus_set())
             self.tr_frames[i].bind('<Control-KeyPress>',
-                                   lambda key:
-                                   bind_keypress(key, [('D', lambda event, i=i: self.tr_del(self.translations[i]))]))
+                                   lambda key, i=i:
+                                   bind_keypress(key, [('D', lambda: self.tr_del(self.translations[i]))]))
         for i in range(nt_count):
             self.nt_frames[i].bind('<Enter>', lambda event, i=i: self.nt_frames[i].focus_set())
             self.nt_frames[i].bind('<Leave>', lambda event: self.focus_set())
             self.nt_frames[i].bind('<Control-KeyPress>',
-                                   lambda key:
-                                   bind_keypress(key, [('D', lambda event, i=i: self.note_del(self.notes[i]))]))
+                                   lambda key, i=i:
+                                   bind_keypress(key, [('D', lambda: self.note_del(self.notes[i]))]))
         for i in range(phr_count):
             self.phr_frames[i].bind('<Enter>', lambda event, i=i: self.phr_frames[i].focus_set())
             self.phr_frames[i].bind('<Leave>', lambda event: self.focus_set())
             self.phr_frames[i].bind('<Control-KeyPress>',
-                                    lambda key:
-                                    bind_keypress(key, [('D', lambda event, i=i: self.phrase_del(self.phrases[i]))]))
+                                    lambda key, i=i:
+                                    bind_keypress(key, [('D', lambda: self.phrase_del(self.phrases[i]))]))
         for i in range(frm_count):
             self.frm_frames[i].bind('<Enter>', lambda event, i=i: self.frm_frames[i].focus_set())
             self.frm_frames[i].bind('<Leave>', lambda event: self.focus_set())
             self.frm_frames[i].bind('<Control-KeyPress>',
-                                    lambda key:
-                                    bind_keypress(key, [('D', lambda event, i=i: self.frm_del(self.forms[i]))]))
+                                    lambda key, i=i:
+                                    bind_keypress(key, [('D', lambda: self.frm_del(self.forms[i]))]))
         for i in range(gr_count):
             self.gr_frames[i].bind('<Enter>', lambda event, i=i: self.gr_frames[i].focus_set())
             self.gr_frames[i].bind('<Leave>', lambda event: self.focus_set())
             self.gr_frames[i].bind('<Control-KeyPress>',
-                                   lambda key:
-                                   bind_keypress(key, [('D', lambda event, i=i: self.gr_del(self.groups[i]))]))
+                                   lambda key, i=i:
+                                   bind_keypress(key, [('D', lambda: self.gr_del(self.groups[i]))]))
         # Изменяем высоту полей
         self.scrolled_frame_tr.resize(height=max(1, min(sum([field_height(btn['text'], 35)
                                                              for btn in self.tr_buttons]),
@@ -3161,9 +3161,8 @@ class CategoriesSettingsW(tk.Toplevel):
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
             self.frames[i].bind('<Control-KeyPress>',
-                                lambda key: bind_keypress(key,
-                                                          [('R', lambda event, i=i: self.rename(self.categories[i])),
-                                                           ('D', lambda event, i=i: self.delete(self.categories[i]))]))
+                                lambda key, i=i: bind_keypress(key, [('R', lambda: self.rename(self.categories[i])),
+                                                                     ('D', lambda: self.delete(self.categories[i]))]))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -3351,9 +3350,9 @@ class GroupsSettingsW(tk.Toplevel):
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
             self.frames[i].bind('<Control-KeyPress>',
-                                lambda key: bind_keypress(key, [('R', lambda event, i=i: self.rename(self.groups[i])),
-                                                                ('D', lambda event, i=i: self.delete(self.groups[i])),
-                                                                ('F', lambda event, i=i: self.fav(self.groups[i]))]))
+                                lambda key, i=i: bind_keypress(key, [('R', lambda: self.rename(self.groups[i])),
+                                                                     ('D', lambda: self.delete(self.groups[i])),
+                                                                     ('F', lambda: self.fav(self.groups[i]))]))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -3482,9 +3481,8 @@ class CategoryValuesSettingsW(tk.Toplevel):
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
             self.frames[i].bind('<Control-KeyPress>',
-                                lambda key:
-                                bind_keypress(key, [('R', lambda event, i=i: self.rename(self.values[i])),
-                                                    ('D', lambda event, i=i: self.delete(self.values[i]))]))
+                                lambda key, i=i: bind_keypress(key, [('R', lambda: self.rename(self.values[i])),
+                                                                     ('D', lambda: self.delete(self.values[i]))]))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -3625,9 +3623,8 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
             self.frames[i].bind('<Control-KeyPress>',
-                                lambda key:
-                                bind_keypress(key, [('E', lambda event, i=i: self.edit(self.combinations[i])),
-                                                    ('D', lambda event, i=i: self.delete(self.combinations[i]))]))
+                                lambda key, i=i: bind_keypress(key, [('E', lambda: self.edit(self.combinations[i])),
+                                                                     ('D', lambda: self.delete(self.combinations[i]))]))
 
         self.frames[combinations_count].grid(row=combinations_count, column=0, padx=0, pady=0, sticky='WE')
 
@@ -6634,11 +6631,10 @@ class SettingsW(tk.Toplevel):
             self.dcts_frames[i].bind('<Enter>', lambda event, i=i: self.dcts_frames[i].focus_set())
             self.dcts_frames[i].bind('<Leave>', lambda event: self.focus_set())
             self.dcts_frames[i].bind('<Control-KeyPress>',
-                                     lambda key:
-                                     bind_keypress(key,
-                                                   [('R', lambda event, i=i: self.dct_rename(self.dcts_savenames[i])),
-                                                    ('D', lambda event, i=i: self.dct_delete(self.dcts_savenames[i])),
-                                                    ('E', lambda event, i=i: self.dct_export(self.dcts_savenames[i]))]))
+                                     lambda key, i=i:
+                                     bind_keypress(key, [('R', lambda: self.dct_rename(self.dcts_savenames[i])),
+                                                         ('D', lambda: self.dct_delete(self.dcts_savenames[i])),
+                                                         ('E', lambda: self.dct_export(self.dcts_savenames[i]))]))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:

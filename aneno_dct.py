@@ -460,7 +460,7 @@ class Dictionary(object):
         assert ctg_name in self.ctg.keys()
         assert ctg_value in self.ctg[ctg_name]
 
-        index = self.ctg[ctg_name].index(ctg_value)
+        index = tuple(self.ctg.keys()).index(ctg_name)
         self.delete_forms_with_val(index, ctg_value)
 
         self.ctg[ctg_name].remove(ctg_value)
