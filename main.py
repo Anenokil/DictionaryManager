@@ -4443,7 +4443,7 @@ class LearnW(tk.Toplevel):
         # }
         self.btn_stop.grid(row=4, columnspan=2, padx=6, pady=6)
 
-        self.tip_btn_show_entry = ttip.Hovertip(self.btn_show_entry, 'Посмотреть само слово и перевод\n'
+        self.tip_btn_show_entry = ttip.Hovertip(self.btn_show_entry, 'Посмотреть само слово и его перевод\n'
                                                                      'Control-W',
                                                 hover_delay=700)
         self.tip_btn_show_notes = ttip.Hovertip(self.btn_show_notes, 'Посмотреть сноски\n'
@@ -4473,6 +4473,8 @@ class LearnW(tk.Toplevel):
                 btn_disable(self.btn_show_notes)
             if not self.homonyms or self.learn_method in LEARN_VALUES_METHOD[2:4]:
                 btn_disable(self.btn_show_homonyms)
+            if self.learn_method not in LEARN_VALUES_METHOD[2:4]:
+                btn_disable(self.btn_show_entry)
 
     # Печать в журнал
     def outp(self, msg='', end='\n'):
@@ -4651,7 +4653,8 @@ class LearnW(tk.Toplevel):
         self.choose()
 
         # Обновление кнопки "Посмотреть слово и перевод"
-        btn_enable(self.btn_show_entry, self.show_entry)
+        if self.learn_method in LEARN_VALUES_METHOD[2:4]:
+            btn_enable(self.btn_show_entry, self.show_entry)
         # Обновление кнопки "Посмотреть сноски"
         entry = _0_global_dct.d[self.current_key]
         if entry.count_n == 0 or self.learn_method in LEARN_VALUES_METHOD[2:4]:
