@@ -50,11 +50,18 @@ ST_BTN_IMG_BG_HOV  = {THEMES[1]: '#E0E0E0', THEMES[2]: '#1E1E1E'}  # Цвет ф
 ST_BTN_IMG_BG_SEL  = {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}  # Цвет фона кнопок-картинок при нажатии
 
 ST_BTN_NOTE_BG     = {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}  # Цвет фона кнопок-записей
-ST_BTN_NOTE_BG_HOV = {THEMES[1]: '#E5F3FF', THEMES[2]: '#1B1B1B'}  # Цвет фона кнопок-записей при наведении
-ST_BTN_NOTE_BG_SEL = {THEMES[1]: '#CCE8FF', THEMES[2]: '#1E1E1E'}  # Цвет фона кнопок-записей при нажатии
+ST_BTN_NOTE_BG_HOV = {THEMES[1]: '#E0F1FF', THEMES[2]: '#1B1B1B'}  # Цвет фона кнопок-записей при наведении
+ST_BTN_NOTE_BG_SEL = {THEMES[1]: '#CCE8FF', THEMES[2]: '#1F1F1F'}  # Цвет фона кнопок-записей при нажатии
 ST_BTN_NOTE_FG     = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет текста кнопок-записей
 ST_BTN_NOTE_FG_HOV = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет текста кнопок-записей при наведении
 ST_BTN_NOTE_FG_SEL = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет текста кнопок-записей при нажатии
+
+ST_BTN_NSEL_BG     = {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}  # Цвет фона выделенных кнопок-записей
+ST_BTN_NSEL_BG_HOV = {THEMES[1]: '#A8FFD6', THEMES[2]: '#1B1B2A'}  # Цвет фона выделенных кнопок-записей при наведении
+ST_BTN_NSEL_BG_SEL = {THEMES[1]: '#82FFC4', THEMES[2]: '#1B1B31'}  # Цвет фона выделенных кнопок-записей при нажатии
+ST_BTN_NSEL_FG     = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет текста выделенных кнопок-записей
+ST_BTN_NSEL_FG_HOV = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет текста выделенных кнопок-записей при наведении
+ST_BTN_NSEL_FG_SEL = {THEMES[1]: '#222222', THEMES[2]: '#979797'}  # Цвет текста выделенных кнопок-записей при нажатии
 
 ST_BTN_BG_DISABL   = {THEMES[1]: '#D9D9D9', THEMES[2]: '#1E1E1E'}  # Цвет фона выключенных кнопок
 ST_BTN_FG_DISABL   = {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}  # Цвет текста выключенных кнопок
@@ -80,6 +87,8 @@ STYLE_ELEMENTS = ('BG', 'BG_FIELDS',
                   'BTN_IMG_BG_HOV', 'BTN_IMG_BG_SEL',
                   'BTN_NOTE_BG', 'BTN_NOTE_BG_HOV', 'BTN_NOTE_BG_SEL',
                   'BTN_NOTE_FG', 'BTN_NOTE_FG_HOV', 'BTN_NOTE_FG_SEL',
+                  'BTN_NSEL_BG', 'BTN_NSEL_BG_HOV', 'BTN_NSEL_BG_SEL',
+                  'BTN_NSEL_FG', 'BTN_NSEL_FG_HOV', 'BTN_NSEL_FG_SEL',
                   'BTN_BG_DISABL', 'BTN_FG_DISABL',
                   'CHECK_BG_SEL',
                   'TAB_BG', 'TAB_BG_SEL', 'TAB_FG', 'TAB_FG_SEL',
@@ -112,17 +121,23 @@ STYLES = {STYLE_ELEMENTS[0]:  ST_BG,
           STYLE_ELEMENTS[23]: ST_BTN_NOTE_FG,
           STYLE_ELEMENTS[24]: ST_BTN_NOTE_FG_HOV,
           STYLE_ELEMENTS[25]: ST_BTN_NOTE_FG_SEL,
-          STYLE_ELEMENTS[26]: ST_BTN_BG_DISABL,
-          STYLE_ELEMENTS[27]: ST_BTN_FG_DISABL,
-          STYLE_ELEMENTS[28]: ST_CHECK_BG_SEL,
-          STYLE_ELEMENTS[29]: ST_TAB_BG,
-          STYLE_ELEMENTS[30]: ST_TAB_BG_SEL,
-          STYLE_ELEMENTS[31]: ST_TAB_FG,
-          STYLE_ELEMENTS[32]: ST_TAB_FG_SEL,
-          STYLE_ELEMENTS[33]: ST_SCROLL_BG,
-          STYLE_ELEMENTS[34]: ST_SCROLL_BG_SEL,
-          STYLE_ELEMENTS[35]: ST_SCROLL_FG,
-          STYLE_ELEMENTS[36]: ST_SCROLL_FG_SEL}
+          STYLE_ELEMENTS[26]: ST_BTN_NSEL_BG,
+          STYLE_ELEMENTS[27]: ST_BTN_NSEL_BG_HOV,
+          STYLE_ELEMENTS[28]: ST_BTN_NSEL_BG_SEL,
+          STYLE_ELEMENTS[29]: ST_BTN_NSEL_FG,
+          STYLE_ELEMENTS[30]: ST_BTN_NSEL_FG_HOV,
+          STYLE_ELEMENTS[31]: ST_BTN_NSEL_FG_SEL,
+          STYLE_ELEMENTS[32]: ST_BTN_BG_DISABL,
+          STYLE_ELEMENTS[33]: ST_BTN_FG_DISABL,
+          STYLE_ELEMENTS[34]: ST_CHECK_BG_SEL,
+          STYLE_ELEMENTS[35]: ST_TAB_BG,
+          STYLE_ELEMENTS[36]: ST_TAB_BG_SEL,
+          STYLE_ELEMENTS[37]: ST_TAB_FG,
+          STYLE_ELEMENTS[38]: ST_TAB_FG_SEL,
+          STYLE_ELEMENTS[39]: ST_SCROLL_BG,
+          STYLE_ELEMENTS[40]: ST_SCROLL_BG_SEL,
+          STYLE_ELEMENTS[41]: ST_SCROLL_FG,
+          STYLE_ELEMENTS[42]: ST_SCROLL_FG_SEL}
 
 # Названия стилей
 STYLE_NAMES = {STYLE_ELEMENTS[0]:  'Цвет фона окна',
@@ -151,17 +166,23 @@ STYLE_NAMES = {STYLE_ELEMENTS[0]:  'Цвет фона окна',
                STYLE_ELEMENTS[23]: 'Цвет текста кнопок-записей',
                STYLE_ELEMENTS[24]: 'Цвет текста кнопок-записей при наведении',
                STYLE_ELEMENTS[25]: 'Цвет текста кнопок-записей при нажатии',
-               STYLE_ELEMENTS[26]: 'Цвет фона выключенных кнопок',
-               STYLE_ELEMENTS[27]: 'Цвет текста выключенных кнопок',
-               STYLE_ELEMENTS[28]: 'Цвет фона переключателя при наведении на него',
-               STYLE_ELEMENTS[29]: 'Цвет фона закрытой вкладки',
-               STYLE_ELEMENTS[30]: 'Цвет фона открытой вкладки',
-               STYLE_ELEMENTS[31]: 'Цвет текста закрытой вкладки',
-               STYLE_ELEMENTS[32]: 'Цвет текста открытой вкладки',
-               STYLE_ELEMENTS[33]: 'Цвет фона ползунка',
-               STYLE_ELEMENTS[34]: 'Цвет фона ползунка при нажатии',
-               STYLE_ELEMENTS[35]: 'Цвет ползунка',
-               STYLE_ELEMENTS[36]: 'Цвет ползунка при нажатии'}
+               STYLE_ELEMENTS[26]: 'Цвет фона выдел. кн.-записей',
+               STYLE_ELEMENTS[27]: 'Цвет фона выдел. кн.-записей при наведении',
+               STYLE_ELEMENTS[28]: 'Цвет фона выдел. кн.-записей при нажатии',
+               STYLE_ELEMENTS[29]: 'Цвет текста выдел. кн.-записей',
+               STYLE_ELEMENTS[30]: 'Цвет текста выдел. кн.-записей при наведении',
+               STYLE_ELEMENTS[31]: 'Цвет текста выдел. кн.-записей при нажатии',
+               STYLE_ELEMENTS[32]: 'Цвет фона выключенных кнопок',
+               STYLE_ELEMENTS[33]: 'Цвет текста выключенных кнопок',
+               STYLE_ELEMENTS[34]: 'Цвет фона переключателя при наведении на него',
+               STYLE_ELEMENTS[35]: 'Цвет фона закрытой вкладки',
+               STYLE_ELEMENTS[36]: 'Цвет фона открытой вкладки',
+               STYLE_ELEMENTS[37]: 'Цвет текста закрытой вкладки',
+               STYLE_ELEMENTS[38]: 'Цвет текста открытой вкладки',
+               STYLE_ELEMENTS[39]: 'Цвет фона ползунка',
+               STYLE_ELEMENTS[40]: 'Цвет фона ползунка при нажатии',
+               STYLE_ELEMENTS[41]: 'Цвет ползунка',
+               STYLE_ELEMENTS[42]: 'Цвет ползунка при нажатии'}
 
 """ Функции проверки """
 
@@ -1053,14 +1074,18 @@ def upload_themes(themes: list[str]):
             is_correct = True
             styles_path = os.path.join(path, styles_filename)
             with open(styles_path, 'r', encoding='utf-8') as styles_file:
-                line = styles_file.readline().strip()
+                line = styles_file.readline().strip()  # Версия темы
+                to_update = styles_file.readline().strip()  # Переменная обновлений
                 theme_version = int(re.split(' |//', line)[0])  # После // идут комментарии
                 if theme_version != REQUIRED_THEME_VERSION:  # Проверка версии темы
                     print(f'Не удалось загрузить тему "{theme}",\n'
                           f'  т. к. её версия не соответствует требуемой!\n'
                           f'  Актуальные темы можно загрузить здесь:\n'
                           f'  {URL_RELEASES}')
-                    continue
+                    if to_update == '1':
+                        upgrade_theme(styles_path)
+                    else:
+                        continue
                 themes += [theme]  # Добавляем название новой темы
                 for style_elem in STYLE_ELEMENTS:  # Проходимся по стилизуемым элементам
                     line = styles_file.readline().strip()
@@ -1091,6 +1116,7 @@ def upload_custom_theme():
         upgrade_theme(styles_path)
         with open(styles_path, 'r', encoding='utf-8') as styles_file:
             styles_file.readline()  # Версия темы
+            styles_file.readline()  # Переменная обновлений
             for style_elem in STYLE_ELEMENTS:  # Проходимся по стилизуемым элементам
                 line = styles_file.readline().strip()
                 style = re.split(' |//', line)[0]  # После // идут комментарии
@@ -1107,7 +1133,8 @@ def create_default_custom_theme():
     styles_filename = 'styles.txt'
     styles_path = os.path.join(CUSTOM_THEME_PATH, styles_filename)
     with open(styles_path, 'w', encoding='utf-8') as styles_file:
-        styles_file.write(f'{REQUIRED_THEME_VERSION}')
+        styles_file.write(f'{REQUIRED_THEME_VERSION}\n'
+                          f'1')
         for style_elem in STYLE_ELEMENTS:  # Проходимся по стилизуемым элементам
             element = STYLES[style_elem]
             style = element[DEFAULT_TH]
@@ -7217,12 +7244,12 @@ class MainW(tk.Tk):
                                       relief=[('pressed', 'flat'),
                                               ('active', 'flat'),
                                               ('!active', 'flat')],
-                                      background=[('pressed', ST_BTN_NOTE_BG[th]),
-                                                  ('active', ST_BTN_NOTE_BG_HOV[th]),
-                                                  ('!active', ST_BTN_NOTE_BG_SEL[th])],
-                                      foreground=[('pressed', ST_BTN_NOTE_FG[th]),
-                                                  ('active', ST_BTN_NOTE_FG_HOV[th]),
-                                                  ('!active', ST_BTN_NOTE_FG_SEL[th])])
+                                      background=[('pressed', ST_BTN_NSEL_BG_SEL[th]),
+                                                  ('active', ST_BTN_NSEL_BG_HOV[th]),
+                                                  ('!active', ST_BTN_NSEL_BG[th])],
+                                      foreground=[('pressed', ST_BTN_NSEL_FG_SEL[th]),
+                                                  ('active', ST_BTN_NSEL_FG_HOV[th]),
+                                                  ('!active', ST_BTN_NSEL_FG[th])])
 
         # Стиль checkbutton "default"
         self.st_check = ttk.Style()

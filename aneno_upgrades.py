@@ -38,8 +38,8 @@ def upgrade_resources():
 """ Обновления тем """
 
 
-# Обновить тему с 4 до 6 версии
-def upgrade_theme_4_to_6(filepath: str):
+# Обновить тему с 4 до 5 версии
+def upgrade_theme_4_to_5(filepath: str):
     with open(filepath, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     with open(filepath, 'w', encoding='utf-8') as file:
@@ -54,8 +54,6 @@ def upgrade_theme_4_to_6(filepath: str):
         file.write(lines[14])
         for i in range(19, 30):
             file.write(lines[i])
-
-    upgrade_theme_5_to_6(filepath)
 
 
 # Обновить тему с 5 до 6 версии
@@ -76,14 +74,45 @@ def upgrade_theme_5_to_6(filepath: str):
             file.write(lines[i])
 
 
+# Обновить тему с 6 до 7 версии
+def upgrade_theme_6_to_7(filepath: str):
+    with open(filepath, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+    with open(filepath, 'w', encoding='utf-8') as file:
+        file.write('7\n')
+        file.write('1\n')
+        for i in range(1, 27):
+            file.write(lines[i])
+        file.write(lines[23])
+        file.write(lines[22])
+        file.write(lines[21])
+        file.write(lines[26])
+        file.write(lines[25])
+        file.write(lines[24])
+        for i in range(27, 38):
+            file.write(lines[i])
+
+
+upgrade_theme_functions = [upgrade_theme_4_to_5,
+                           upgrade_theme_5_to_6,
+                           upgrade_theme_6_to_7]
+
+
 # Обновить тему старой версии до актуальной версии
 def upgrade_theme(filepath: str):
-    with open(filepath, 'r', encoding='utf-8') as file:
-        first_line = file.readline()
-    if first_line[0] == '4':  # Версия 4
-        upgrade_theme_4_to_6(filepath)
-    elif first_line[0] == '5':  # Версия 5
-        upgrade_theme_5_to_6(filepath)
+    with open(filepath, 'r', encoding='utf-8') as theme_file:
+        lines = theme_file.readlines()
+    first_line = lines[0].strip()
+    if len(first_line) > 0 and first_line[0].isnumeric() and int(first_line[0]) <= anc.REQUIRED_THEME_VERSION:
+        current_version = int(first_line[0])
+        if current_version < 4:
+            print(f'Слишком старая версия тем: {current_version}!')
+            return
+    else:
+        print(f'Неизвестная версия тем: {first_line}!')
+        return
+    for i in range(current_version, anc.REQUIRED_THEME_VERSION):
+        upgrade_theme_functions[i-4](filepath)
 
 
 """ Обновления глобальных настроек """
