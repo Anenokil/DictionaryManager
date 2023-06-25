@@ -1672,6 +1672,7 @@ class PopupMsgW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
@@ -1738,6 +1739,7 @@ class PopupDialogueW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         if self.set_enter_on_btn == 'left':
             self.bind('<Return>', lambda event: self.btn_left.invoke())
             self.bind('<Escape>', lambda event: self.btn_right.invoke())
@@ -1805,6 +1807,7 @@ class PopupEntryW(tk.Toplevel):
     def set_focus(self):
         self.focus_set()
         self.entry_inp.focus_set()
+
         bind_ctrl_acvx(self.entry_inp)
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
@@ -1850,6 +1853,7 @@ class PopupChooseW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
@@ -1896,6 +1900,7 @@ class PopupImgW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
@@ -2016,6 +2021,7 @@ class ChooseLearnModeW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Return>', lambda event: self.btn_start.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
@@ -2083,6 +2089,7 @@ class IncorrectAnswerW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Return>', lambda event: self.btn_yes.invoke())
         self.bind('<Escape>', lambda event: self.btn_no.invoke())
         if self.with_typo:
@@ -2176,6 +2183,7 @@ class SearchSettingsW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Return>', lambda event: self.destroy())
         self.bind('<Escape>', lambda event: self.destroy())
 
@@ -2251,6 +2259,7 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Escape>', lambda event: self.destroy())
 
     def open(self):
@@ -2312,6 +2321,7 @@ class AddPhraseW(tk.Toplevel):
     def set_focus(self):
         self.focus_set()
         self.entry_phr.focus_set()
+
         bind_ctrl_acvx(self.entry_phr)
         bind_ctrl_acvx(self.entry_tr)
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
@@ -2929,6 +2939,7 @@ class EditW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Return>', lambda event: self.btn_back.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
@@ -3087,6 +3098,7 @@ class AddFormW(tk.Toplevel):
     def set_focus(self):
         self.focus_set()
         self.entry_form.focus_set()
+
         bind_ctrl_acvx(self.entry_form)
         self.bind('<Return>', lambda event: self.btn_choose.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
@@ -3220,6 +3232,7 @@ class CategoriesSettingsW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Return>', lambda event: self.destroy())
         self.bind('<Escape>', lambda event: self.destroy())
 
@@ -3411,6 +3424,7 @@ class GroupsSettingsW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Return>', lambda event: self.destroy())
         self.bind('<Escape>', lambda event: self.destroy())
 
@@ -3539,6 +3553,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Return>', lambda event: self.destroy())
         self.bind('<Escape>', lambda event: self.destroy())
 
@@ -3683,6 +3698,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Return>', lambda event: self.destroy())
         self.bind('<Escape>', lambda event: self.destroy())
 
@@ -3751,6 +3767,7 @@ class EnterSpecialCombinationW(tk.Toplevel):
     def set_focus(self):
         self.focus_set()
         self.entry_key_symbol.focus_set()
+
         bind_ctrl_acvx(self.entry_val)
         bind_ctrl_acvx(self.entry_key_symbol)
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
@@ -4380,6 +4397,7 @@ class CustomThemeSettingsW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Escape>', lambda event: self.destroy())
 
     def open(self):
@@ -4844,6 +4862,7 @@ class LearnW(tk.Toplevel):
     def set_focus(self):
         self.focus_set()
         self.entry_input.focus_set()
+
         bind_ctrl_acvx(self.entry_input)
         self.bind('<Return>', lambda event: self.btn_input.invoke())
         self.bind('<Control-KeyPress>', lambda key: bind_keypress(key, [('N', lambda: self.btn_show_notes.invoke()),
@@ -6158,6 +6177,7 @@ class AddW(tk.Toplevel):
     def set_focus(self):
         self.focus_set()
         self.entry_wrd.focus_set()
+
         bind_ctrl_acvx(self.entry_wrd)
         bind_ctrl_acvx(self.entry_tr)
         self.bind('<Return>', lambda event: self.btn_add.invoke())
@@ -6782,6 +6802,7 @@ class SettingsW(tk.Toplevel):
     # Установить фокус
     def set_focus(self):
         self.focus_set()
+
         self.bind('<Escape>', lambda event: self.btn_close.invoke())
         self.tabs.bind('<<NotebookTabChanged>>', lambda event: self.resize_tabs())
 
