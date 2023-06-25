@@ -1478,10 +1478,21 @@ def toplevel_geometry(window_parent, window):
 
 
 # Привязать функцию к нажатию клавиши
-def bind_keypress(event, keys_and_cmd: list[tuple[str, any]]):
+def bind_keypress(event, keys_and_cmd: list[tuple[str, any]], latin: bool = True):
     for (key, cmd) in keys_and_cmd:
         if event.keycode == ord(key):
-            cmd()
+            if latin or event.keysym.lower() != key.lower():
+                cmd()
+
+
+# Привязать Control + A, C, V, X
+def bind_ctrl_acvx(widget):
+    widget.bind('<Control-KeyPress>',
+                lambda key: bind_keypress(key, [('A', lambda: key.widget.event_generate('<<SelectAll>>')),
+                                                ('C', lambda: key.widget.event_generate('<<Copy>>')),
+                                                ('V', lambda: key.widget.event_generate('<<Paste>>')),
+                                                ('X', lambda: key.widget.event_generate('<<Cut>>'))],
+                                          False))
 
 
 # Вывести сообщение с предупреждением
@@ -1794,6 +1805,7 @@ class PopupEntryW(tk.Toplevel):
     def set_focus(self):
         self.focus_set()
         self.entry_inp.focus_set()
+        bind_ctrl_acvx(self.entry_inp)
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
@@ -2300,6 +2312,8 @@ class AddPhraseW(tk.Toplevel):
     def set_focus(self):
         self.focus_set()
         self.entry_phr.focus_set()
+        bind_ctrl_acvx(self.entry_phr)
+        bind_ctrl_acvx(self.entry_tr)
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
@@ -3073,6 +3087,7 @@ class AddFormW(tk.Toplevel):
     def set_focus(self):
         self.focus_set()
         self.entry_form.focus_set()
+        bind_ctrl_acvx(self.entry_form)
         self.bind('<Return>', lambda event: self.btn_choose.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
         self.combo_ctg.bind('<<ComboboxSelected>>', lambda event: self.refresh_vals())
@@ -3736,6 +3751,8 @@ class EnterSpecialCombinationW(tk.Toplevel):
     def set_focus(self):
         self.focus_set()
         self.entry_key_symbol.focus_set()
+        bind_ctrl_acvx(self.entry_val)
+        bind_ctrl_acvx(self.entry_key_symbol)
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
@@ -4827,6 +4844,7 @@ class LearnW(tk.Toplevel):
     def set_focus(self):
         self.focus_set()
         self.entry_input.focus_set()
+        bind_ctrl_acvx(self.entry_input)
         self.bind('<Return>', lambda event: self.btn_input.invoke())
         self.bind('<Control-KeyPress>', lambda key: bind_keypress(key, [('N', lambda: self.btn_show_notes.invoke()),
                                                                         ('O', lambda: self.btn_show_homonyms.invoke()),
@@ -5981,6 +5999,7 @@ class PrintW(tk.Toplevel):
     def set_focus_search(self):
         self.entry_search_query.focus_set()
 
+        bind_ctrl_acvx(self.entry_search_query)
         self.bind('<Return>', lambda event: self.btn_search_search.invoke())
         self.bind('<Key>', lambda event: self.entry_search_query.focus_set())
         self.bind('<Up>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
@@ -6139,6 +6158,8 @@ class AddW(tk.Toplevel):
     def set_focus(self):
         self.focus_set()
         self.entry_wrd.focus_set()
+        bind_ctrl_acvx(self.entry_wrd)
+        bind_ctrl_acvx(self.entry_tr)
         self.bind('<Return>', lambda event: self.btn_add.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
