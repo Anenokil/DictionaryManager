@@ -4177,6 +4177,7 @@ class CustomThemeSettingsW(tk.Toplevel):
             version = file.readline().strip()  # Версия темы
             if version != f'{REQUIRED_THEME_VERSION}':
                 upgrade_theme(filepath)
+            file.readline()
             for i in range(len(STYLE_ELEMENTS)):
                 el = STYLE_ELEMENTS[i]
 
