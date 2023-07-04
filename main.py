@@ -5479,16 +5479,27 @@ class PrintW(tk.Toplevel):
             self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].score, _0_global_dct.d[k].correct_att_in_a_row),
                                  reverse=True)
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[4]:
-            self.print_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_date)
+            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].score,
+                                                _0_global_dct.d[k].correct_att_in_a_row /
+                                                (1 + len(_0_global_dct.d[k].forms.keys()) +
+                                                 len(_0_global_dct.d[k].phrases.keys()))))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[5]:
-            self.print_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_date, reverse=True)
+            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].score,
+                                                _0_global_dct.d[k].correct_att_in_a_row /
+                                                (1 + len(_0_global_dct.d[k].forms.keys()) +
+                                                 len(_0_global_dct.d[k].phrases.keys()))),
+                                 reverse=True)
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[6]:
-            self.print_keys.sort()
+            self.print_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_date)
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[7]:
-            self.print_keys.sort(reverse=True)
+            self.print_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_date, reverse=True)
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[8]:
-            self.print_keys.sort(key=lambda k: len(_0_global_dct.d[k].wrd))
+            self.print_keys.sort()
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[9]:
+            self.print_keys.sort(reverse=True)
+        elif self.var_print_order.get() == PRINT_VALUES_ORDER[10]:
+            self.print_keys.sort(key=lambda k: len(_0_global_dct.d[k].wrd))
+        elif self.var_print_order.get() == PRINT_VALUES_ORDER[11]:
             self.print_keys.sort(key=lambda k: len(_0_global_dct.d[k].wrd), reverse=True)
         # Выводим информацию о количестве статей
         self.print_print_info()
