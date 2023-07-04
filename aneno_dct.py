@@ -189,13 +189,14 @@ class Entry(object):
         self.latest_answer_date = session_number
 
     # Обновить статистику, если совершена неверная попытка
-    def incorrect(self):
+    def incorrect(self, session_number: tuple[int, int, int]):
         self.all_att += 1
         self.score = self.correct_att / self.all_att
         if self.correct_att_in_a_row > 0:
             self.correct_att_in_a_row = -1
         else:
             self.correct_att_in_a_row -= 1
+        self.latest_answer_date = session_number
 
     # Сохранить статью в файл
     def save(self, file: typing.TextIO):

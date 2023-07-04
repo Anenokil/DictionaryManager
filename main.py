@@ -4779,10 +4779,10 @@ class LearnW(tk.Toplevel):
                     window.bind('<Tab>', lambda event: window.btn_right.invoke())
                     answer = window.open()
                     if answer != 'typo':
-                        entry.incorrect()
+                        entry.incorrect((_0_global_session_number, _0_global_learn_session_number, self.count_all))
                         self.count_all += 1
                 else:
-                    entry.incorrect()
+                    entry.incorrect((_0_global_session_number, _0_global_learn_session_number, self.count_all))
                     self.count_all += 1
             else:
                 window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get(),
@@ -4790,7 +4790,7 @@ class LearnW(tk.Toplevel):
                                           correct_answer, bool(_0_global_with_typo))
                 answer = window.open()
                 if answer != 'typo':
-                    entry.incorrect()
+                    entry.incorrect((_0_global_session_number, _0_global_learn_session_number, self.count_all))
                     self.count_all += 1
                 if answer == 'yes':
                     entry.fav = True
