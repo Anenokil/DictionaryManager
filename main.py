@@ -566,7 +566,7 @@ def dct_info(count_w: int, count_t: int, count_f: int) -> str:
 
 
 # Вывести информацию о количестве избранных статей в словаре
-def dct_info_part(count_w: tuple[int, int], count_t: tuple[int, int], count_f: tuple[int, int]) -> str:
+def dct_info_fav(count_w: tuple[int, int], count_t: tuple[int, int], count_f: tuple[int, int]) -> str:
     w = set_postfix(count_w[0], ('слово', 'слова', 'слов'))
     f = set_postfix(count_w[0] + count_f[0], ('словоформа', 'словоформы', 'словоформ'))
     t = set_postfix(count_t[0], ('перевод', 'перевода', 'переводов'))
@@ -657,8 +657,7 @@ def random_smart(dct: Dictionary,
                                  str | None]]
                  ) -> tuple[tuple[str, int],
                             tuple[str, ...] | None,
-                            str | None]\
-        :
+                            str | None]:
     summ = 0
     for (key, frm, phr) in pool:
         entry = dct.d[key]
@@ -5401,14 +5400,14 @@ class PrintW(tk.Toplevel):
         if group == ALL_GROUPS:
             if self.var_print_fav.get():
                 w, t, f = _0_global_dct.count_fav_entries()
-                info = dct_info_part((w, _0_global_dct.count_w), (t, _0_global_dct.count_t), (f, _0_global_dct.count_f))
+                info = dct_info_fav((w, _0_global_dct.count_w), (t, _0_global_dct.count_t), (f, _0_global_dct.count_f))
             else:
                 info = dct_info(_0_global_dct.count_w, _0_global_dct.count_t, _0_global_dct.count_f)
         else:
             if self.var_print_fav.get():
                 w1, t1, f1 = _0_global_dct.count_fav_entries(group)
                 w2, t2, f2 = _0_global_dct.count_entries_in_group(group)
-                info = dct_info_part((w1, w2), (t1, t2), (f1, f2))
+                info = dct_info_fav((w1, w2), (t1, t2), (f1, f2))
             else:
                 w, t, f = _0_global_dct.count_entries_in_group(group)
                 info = dct_info(w, t, f)
