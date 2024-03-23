@@ -3,9 +3,9 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.42'
+PROGRAM_VERSION = 'v7.1.43'
 PROGRAM_DATE = '23.3.2024'
-PROGRAM_TIME = '16:19 (UTC+3)'
+PROGRAM_TIME = '16:49 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -14,6 +14,11 @@ LOCAL_SETTINGS_VERSION = 8  # Актуальная версия локальны
 LOCAL_AUTO_SETTINGS_VERSION = 4  # Актуальная версия автосохраняемых локальных настроек
 GLOBAL_SETTINGS_VERSION = 3  # Актуальная версия глобальных настроек
 REQUIRED_THEME_VERSION = 7  # Актуальная версия тем
+
+""" Коды завершения программы """
+
+EXIT_UPDATE = 1  # После обновления
+EXIT_DCT_LOAD_FAILED = 2  # При неудачной загрузке словаря
 
 """ Варианты для Combobox`ов """
 

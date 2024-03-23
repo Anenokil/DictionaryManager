@@ -6945,7 +6945,7 @@ class NewVersionAvailableW(tk.Toplevel):
             print('Обновление успешно установлено!')
             PopupMsgW(self, 'Обновление успешно установлено!\n'
                             'Программа закроется').open()
-            exit(777)
+            exit(EXIT_UPDATE)
 
 
 # Главное окно
@@ -7449,7 +7449,7 @@ upload_theme_img(th)  # Загружаем изображения для выб�
 root = MainW()  # Создаём графический интерфейс
 uploaded_save = upload_save(root, _0_global_dct, _0_global_dct_savename, 'Завершить работу')  # Загружаем словарь
 if not uploaded_save:
-    exit(101)
+    exit(EXIT_DCT_LOAD_FAILED)
 uploaded_save: tuple[str, int, dict[tuple[str, str], str], list[str]]
 _0_global_dct_savename, _0_global_check_register, _0_global_special_combinations, _0_global_fav_groups = uploaded_save
 _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
