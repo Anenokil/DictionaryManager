@@ -2563,7 +2563,7 @@ class EditW(tk.Toplevel):
         if not _0_global_dct.ctg:
             warning(self, 'Отсутствуют категории слов!\n'
                           'Чтобы их добавить, перейдите в\n'
-                          'Настройки/Настройки словаря/Грамматические категории')
+                          'Настройки/Настройки открытого словаря/Грамматические категории')
             return
 
         window_form = AddFormW(self, self.dct_key, combo_width=combobox_width(tuple(_0_global_dct.ctg.keys()),
@@ -2707,7 +2707,7 @@ class EditW(tk.Toplevel):
         if not _0_global_dct.groups:
             warning(self, 'Отсутствуют группы!\n'
                           'Чтобы их добавить, перейдите в\n'
-                          'Настройки/Настройки словаря/Группы')
+                          'Настройки/Настройки открытого словаря/Группы')
             return
         values = [group for group in _0_global_dct.groups if group not in _0_global_dct.d[self.dct_key].groups]
         if not values:
@@ -5184,7 +5184,7 @@ class PrintW(tk.Toplevel):
         # }
 
         self.tab_add = ttk.Frame(self.tabs, style='Invis.TFrame')
-        self.tabs.add(self.tab_add, text='Добавить статью')
+        self.tabs.add(self.tab_add, text='Добавить запись в словарь')
 
         self.tabs.grid(row=0, column=0, padx=0, pady=0)
         # {
@@ -5992,7 +5992,7 @@ class PrintW(tk.Toplevel):
                         '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
                   msg_justify='left').open()
 
-    # Нажатие на кнопку "Добавить статью"
+    # Нажатие на кнопку "Добавить запись в словарь"
     def add_entry(self):
         key = AddW(self).open()
         if not key:
@@ -6246,7 +6246,7 @@ class SettingsW(tk.Toplevel):
         self.lbl_dct_name = ttk.Label(self, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
                                                             30, add_right_spaces=False),
                                       justify='center', style='Default.TLabel')
-        self.tabs.add(self.tab_local, text='Настройки словаря')
+        self.tabs.add(self.tab_local, text='Настройки открытого словаря')
         # {
         self.frame_check_register = ttk.Frame(self.tab_local, style='Default.TFrame')
         # { {
@@ -6977,9 +6977,9 @@ class MainW(tk.Tk):
                                     takefocus=False, style='Default.TButton')
         self.btn_print = ttk.Button(self.frame_buttons, text='Просмотреть словарь', command=self.print,
                                     takefocus=False, style='Default.TButton')
-        self.btn_search = ttk.Button(self.frame_buttons, text='Найти статью', command=self.search,
+        self.btn_search = ttk.Button(self.frame_buttons, text='Поиск', command=self.search,
                                      takefocus=False, style='Default.TButton')
-        self.btn_add = ttk.Button(self.frame_buttons, text='Добавить статью', command=self.add,
+        self.btn_add = ttk.Button(self.frame_buttons, text='Добавить запись в словарь', command=self.add,
                                   takefocus=False, style='Default.TButton')
         self.btn_settings = ttk.Button(self.frame_buttons, text='Настройки', command=self.settings,
                                        takefocus=False, style='Default.TButton')
@@ -7036,13 +7036,13 @@ class MainW(tk.Tk):
         PrintW(self).open()
         self.enable_all_buttons()
 
-    # Нажатие на кнопку "Найти статью"
+    # Нажатие на кнопку "Поиск"
     def search(self):
         self.disable_all_buttons()
         PrintW(self).open(tab='search')
         self.enable_all_buttons()
 
-    # Нажатие на кнопку "Добавить статью"
+    # Нажатие на кнопку "Добавить запись в словарь"
     def add(self):
         self.disable_all_buttons()
 
