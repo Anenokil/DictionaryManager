@@ -257,7 +257,7 @@ class Dictionary(object):
         self.groups: list[str] = []
 
     # Подсчитать количество статей в заданной группе
-    def count_entries_in_group(self, group: str):
+    def count_entries_in_group(self, group: str) -> tuple[int, int, int]:
         count_w = 0
         count_t = 0
         count_f = 0
@@ -269,7 +269,7 @@ class Dictionary(object):
         return count_w, count_t, count_f
 
     # Подсчитать количество избранных статей
-    def count_fav_entries(self, group: str | None = None):
+    def count_fav_entries(self, group: str | None = None) -> tuple[int, int, int]:
         count_w = 0
         count_t = 0
         count_f = 0
@@ -288,7 +288,7 @@ class Dictionary(object):
         return count_w, count_t, count_f
 
     # Подсчитать среднюю долю правильных ответов
-    def count_rating(self):
+    def count_rating(self) -> tuple[int, int]:
         sum_num = sum(entry.correct_att for entry in self.d.values())
         sum_den = sum(entry.all_att for entry in self.d.values())
         return sum_num, sum_den
@@ -298,7 +298,7 @@ class Dictionary(object):
                   phrases: dict[str, list[str]] = None, notes: str | list[str] = None,
                   groups: set[str] | None = None, fav: bool = False,
                   all_att: int = 0, correct_att: int = 0, correct_att_in_a_row: int = 0,
-                  latest_answer_date: tuple[int, int, int] = (0, 0, 0)):
+                  latest_answer_date: tuple[int, int, int] = (0, 0, 0)) -> tuple[str, int]:
         i = 0
         while True:
             key = wrd_to_key(wrd, i)
@@ -567,7 +567,7 @@ class Dictionary(object):
 
 
 # Преобразовать шаблон словоформы в читаемый вид (для вывода на экран)
-def frm_key_to_str_for_print(input_tuple: tuple[str, ...] | list[str]):
+def frm_key_to_str_for_print(input_tuple: tuple[str, ...] | list[str]) -> str:
     res = ''
     is_first = True
     for i in range(len(input_tuple)):
@@ -581,7 +581,7 @@ def frm_key_to_str_for_print(input_tuple: tuple[str, ...] | list[str]):
 
 
 # Преобразовать кортеж в строку (для сохранения значений категории в файл локальных настроек)
-def frm_key_to_str_for_save(input_tuple: tuple[str, ...] | list[str], separator: str = '\n'):
+def frm_key_to_str_for_save(input_tuple: tuple[str, ...] | list[str], separator: str = '\n') -> str:
     if not input_tuple:  # input_tuple == () или input_tuple == ('')
         return ''
     res = input_tuple[0]
@@ -591,10 +591,10 @@ def frm_key_to_str_for_save(input_tuple: tuple[str, ...] | list[str], separator:
 
 
 # Перевести слово в ключ для словаря
-def wrd_to_key(wrd: str, num: int):
+def wrd_to_key(wrd: str, num: int) -> tuple[str, int]:
     return wrd, num
 
 
 # Перевести ключ для словаря в слово
-def key_to_wrd(key: tuple[str, int]):
+def key_to_wrd(key: tuple[str, int]) -> str:
     return key[0]
