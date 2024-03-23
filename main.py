@@ -4996,13 +4996,13 @@ class PrintW(tk.Toplevel):
                                                style='Default.TCheckbutton')
         self.lbl_print_group = ttk.Label(self.frame_print_parameters, text='Группа:', style='Default.TLabel')
         self.combo_print_group = ttk.Combobox(self.frame_print_parameters, textvariable=self.var_print_group,
-                                              values=[ALL_GROUPS] + _0_global_dct.groups, width=26, state='readonly',
+                                              values=[ALL_GROUPS] + _0_global_dct.groups, width=28, state='readonly',
                                               style='Default.TCombobox', font=('DejaVu Sans Mono', _0_global_scale))
         self.lbl_print_briefly = ttk.Label(self.frame_print_parameters, text='Кратко:', style='Default.TLabel')
         self.check_print_briefly = ttk.Checkbutton(self.frame_print_parameters, variable=self.var_print_briefly,
                                                    command=lambda: self.print_print(True), style='Default.TCheckbutton')
         self.lbl_print_order = ttk.Label(self.frame_print_parameters, text='Порядок:', style='Default.TLabel')
-        self.combo_print_order = ttk.Combobox(self.frame_print_parameters, textvariable=self.var_print_order, width=26,
+        self.combo_print_order = ttk.Combobox(self.frame_print_parameters, textvariable=self.var_print_order, width=28,
                                               values=PRINT_VALUES_ORDER, state='readonly', style='Default.TCombobox',
                                               font=('DejaVu Sans Mono', _0_global_scale))
         # } } } }
@@ -5473,32 +5473,34 @@ class PrintW(tk.Toplevel):
         if self.var_print_order.get() == PRINT_VALUES_ORDER[1]:
             self.print_keys.reverse()
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[2]:
+            """
             self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].score, _0_global_dct.d[k].correct_att_in_a_row))
-        elif self.var_print_order.get() == PRINT_VALUES_ORDER[3]:
-            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].score, _0_global_dct.d[k].correct_att_in_a_row),
-                                 reverse=True)
-        elif self.var_print_order.get() == PRINT_VALUES_ORDER[4]:
+            """
             self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].score,
                                                 _0_global_dct.d[k].correct_att_in_a_row /
                                                 (1 + len(_0_global_dct.d[k].forms.keys()) +
                                                  len(_0_global_dct.d[k].phrases.keys()))))
-        elif self.var_print_order.get() == PRINT_VALUES_ORDER[5]:
+        elif self.var_print_order.get() == PRINT_VALUES_ORDER[3]:
+            """
+            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].score, _0_global_dct.d[k].correct_att_in_a_row),
+                                     reverse=True)
+            """
             self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].score,
                                                 _0_global_dct.d[k].correct_att_in_a_row /
                                                 (1 + len(_0_global_dct.d[k].forms.keys()) +
                                                  len(_0_global_dct.d[k].phrases.keys()))),
                                  reverse=True)
-        elif self.var_print_order.get() == PRINT_VALUES_ORDER[6]:
+        elif self.var_print_order.get() == PRINT_VALUES_ORDER[4]:
             self.print_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_date)
-        elif self.var_print_order.get() == PRINT_VALUES_ORDER[7]:
+        elif self.var_print_order.get() == PRINT_VALUES_ORDER[5]:
             self.print_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_date, reverse=True)
-        elif self.var_print_order.get() == PRINT_VALUES_ORDER[8]:
+        elif self.var_print_order.get() == PRINT_VALUES_ORDER[6]:
             self.print_keys.sort()
-        elif self.var_print_order.get() == PRINT_VALUES_ORDER[9]:
+        elif self.var_print_order.get() == PRINT_VALUES_ORDER[7]:
             self.print_keys.sort(reverse=True)
-        elif self.var_print_order.get() == PRINT_VALUES_ORDER[10]:
+        elif self.var_print_order.get() == PRINT_VALUES_ORDER[8]:
             self.print_keys.sort(key=lambda k: len(_0_global_dct.d[k].wrd))
-        elif self.var_print_order.get() == PRINT_VALUES_ORDER[11]:
+        elif self.var_print_order.get() == PRINT_VALUES_ORDER[9]:
             self.print_keys.sort(key=lambda k: len(_0_global_dct.d[k].wrd), reverse=True)
         # Выводим информацию о количестве статей
         self.print_print_info()
