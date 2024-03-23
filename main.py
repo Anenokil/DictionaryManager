@@ -188,7 +188,7 @@ STYLE_NAMES = {STYLE_ELEMENTS[0]:  'Цвет фона окна',
 
 
 # Проверить строку на непустоту
-def check_not_void(window_parent, value: str, msg_if_void: str):
+def check_not_void(window_parent, value: str, msg_if_void: str) -> bool:
     if value == '':
         warning(window_parent, msg_if_void)
         return False
@@ -196,7 +196,7 @@ def check_not_void(window_parent, value: str, msg_if_void: str):
 
 
 # Проверить корректность названия словаря
-def check_dct_savename(window_parent, savename: str):
+def check_dct_savename(window_parent, savename: str) -> bool:
     if len(savename) > 100:
         warning(window_parent, 'Название слишком длинное (> 100)!')
         return False
@@ -210,7 +210,7 @@ def check_dct_savename(window_parent, savename: str):
 
 
 # Проверить корректность названия словаря при изменении
-def check_dct_savename_edit(window_parent, old_savename: str, new_savename: str):
+def check_dct_savename_edit(window_parent, old_savename: str, new_savename: str) -> bool:
     if len(new_savename) > 100:
         warning(window_parent, 'Название слишком длинное (> 100)!')
         return False
@@ -224,7 +224,7 @@ def check_dct_savename_edit(window_parent, old_savename: str, new_savename: str)
 
 
 # Проверить корректность перевода
-def check_tr(window_parent, translations: list[str] | tuple[str, ...], new_tr: str, wrd: str):
+def check_tr(window_parent, translations: list[str] | tuple[str, ...], new_tr: str, wrd: str) -> bool:
     new_tr = encode_special_combinations(new_tr, _0_global_special_combinations)
     if new_tr == '':
         warning(window_parent, 'Перевод должен содержать хотя бы один символ!')
@@ -236,7 +236,7 @@ def check_tr(window_parent, translations: list[str] | tuple[str, ...], new_tr: s
 
 
 # Проверить корректность перевода при изменении
-def check_tr_edit(window_parent, translations: list[str] | tuple[str, ...], old_tr: str, new_tr: str, wrd: str):
+def check_tr_edit(window_parent, translations: list[str] | tuple[str, ...], old_tr: str, new_tr: str, wrd: str) -> bool:
     new_tr = encode_special_combinations(new_tr, _0_global_special_combinations)
     if new_tr == '':
         warning(window_parent, 'Перевод должен содержать хотя бы один символ!')
@@ -248,7 +248,7 @@ def check_tr_edit(window_parent, translations: list[str] | tuple[str, ...], old_
 
 
 # Проверить корректность фразы
-def check_phr(window_parent, phrases: dict[str, list[str]], new_phr: tuple[str, str], wrd: str):
+def check_phr(window_parent, phrases: dict[str, list[str]], new_phr: tuple[str, str], wrd: str) -> bool:
     n1 = encode_special_combinations(new_phr[0], _0_global_special_combinations)
     n2 = encode_special_combinations(new_phr[1], _0_global_special_combinations)
     if n1 == '' or n2 == '':
@@ -262,7 +262,7 @@ def check_phr(window_parent, phrases: dict[str, list[str]], new_phr: tuple[str, 
 
 # Проверить корректность фразы при изменении
 def check_phr_edit(window_parent, phrases: dict[str, list[str]], old_phr: tuple[str, str], new_phr: tuple[str, str],
-                   wrd: str):
+                   wrd: str) -> bool:
     n1 = encode_special_combinations(new_phr[0], _0_global_special_combinations)
     n2 = encode_special_combinations(new_phr[1], _0_global_special_combinations)
     if n1 == '' or n2 == '':
@@ -275,7 +275,7 @@ def check_phr_edit(window_parent, phrases: dict[str, list[str]], old_phr: tuple[
 
 
 # Проверить корректность сноски
-def check_note(window_parent, notes: list[str] | tuple[str, ...], new_note: str, wrd: str):
+def check_note(window_parent, notes: list[str] | tuple[str, ...], new_note: str, wrd: str) -> bool:
     new_note = encode_special_combinations(new_note, _0_global_special_combinations)
     if new_note == '':
         warning(window_parent, 'Сноска должна содержать хотя бы один символ!')
@@ -287,7 +287,7 @@ def check_note(window_parent, notes: list[str] | tuple[str, ...], new_note: str,
 
 
 # Проверить корректность сноски при изменении
-def check_note_edit(window_parent, notes: list[str] | tuple[str, ...], old_note: str, new_note: str, wrd: str):
+def check_note_edit(window_parent, notes: list[str] | tuple[str, ...], old_note: str, new_note: str, wrd: str) -> bool:
     new_note = encode_special_combinations(new_note, _0_global_special_combinations)
     if new_note == '':
         warning(window_parent, 'Сноска должна содержать хотя бы один символ!')
@@ -299,7 +299,7 @@ def check_note_edit(window_parent, notes: list[str] | tuple[str, ...], old_note:
 
 
 # Проверить корректность названия группы
-def check_group_name(window_parent, groups: list[str] | tuple[str, ...], new_group: str):
+def check_group_name(window_parent, groups: list[str] | tuple[str, ...], new_group: str) -> bool:
     new_group = encode_special_combinations(new_group, _0_global_special_combinations)
     if new_group == '':
         warning(window_parent, 'Название группы должно содержать хотя бы один символ!')
@@ -314,7 +314,7 @@ def check_group_name(window_parent, groups: list[str] | tuple[str, ...], new_gro
 
 
 # Проверить корректность названия группы при изменении
-def check_group_name_edit(window_parent, groups: list[str] | tuple[str, ...], old_group: str, new_group: str):
+def check_group_name_edit(window_parent, groups: list[str] | tuple[str, ...], old_group: str, new_group: str) -> bool:
     new_group = encode_special_combinations(new_group, _0_global_special_combinations)
     if new_group == '':
         warning(window_parent, 'Название группы должно содержать хотя бы один символ!')
@@ -329,7 +329,7 @@ def check_group_name_edit(window_parent, groups: list[str] | tuple[str, ...], ol
 
 
 # Проверить корректность названия категории
-def check_ctg(window_parent, categories: list[str] | tuple[str, ...], new_ctg: str):
+def check_ctg(window_parent, categories: list[str] | tuple[str, ...], new_ctg: str) -> bool:
     new_ctg = encode_special_combinations(new_ctg, _0_global_special_combinations)
     if new_ctg == '':
         warning(window_parent, 'Название категории должно содержать хотя бы один символ!')
@@ -341,7 +341,7 @@ def check_ctg(window_parent, categories: list[str] | tuple[str, ...], new_ctg: s
 
 
 # Проверить корректность названия категории при изменении
-def check_ctg_edit(window_parent, categories: list[str] | tuple[str, ...], old_ctg: str, new_ctg: str):
+def check_ctg_edit(window_parent, categories: list[str] | tuple[str, ...], old_ctg: str, new_ctg: str) -> bool:
     new_ctg = encode_special_combinations(new_ctg, _0_global_special_combinations)
     if new_ctg == '':
         warning(window_parent, 'Название категории должно содержать хотя бы один символ!')
@@ -353,7 +353,7 @@ def check_ctg_edit(window_parent, categories: list[str] | tuple[str, ...], old_c
 
 
 # Проверить корректность значения категории
-def check_ctg_val(window_parent, values: list[str] | tuple[str, ...], new_val: str):
+def check_ctg_val(window_parent, values: list[str] | tuple[str, ...], new_val: str) -> bool:
     new_val = encode_special_combinations(new_val, _0_global_special_combinations)
     if new_val == '':
         warning(window_parent, 'Значение категории должно содержать хотя бы один символ!')
@@ -365,7 +365,7 @@ def check_ctg_val(window_parent, values: list[str] | tuple[str, ...], new_val: s
 
 
 # Проверить корректность значения категории при изменении
-def check_ctg_val_edit(window_parent, values: list[str] | tuple[str, ...], old_val: str, new_val: str):
+def check_ctg_val_edit(window_parent, values: list[str] | tuple[str, ...], old_val: str, new_val: str) -> bool:
     new_val = encode_special_combinations(new_val, _0_global_special_combinations)
     if new_val == '':
         warning(window_parent, 'Значение категории должно содержать хотя бы один символ!')
@@ -377,7 +377,7 @@ def check_ctg_val_edit(window_parent, values: list[str] | tuple[str, ...], old_v
 
 
 # Проверить является ли строка разделимой (для split_line)
-def is_splittable(line: str):
+def is_splittable(line: str) -> bool:
     for c in line:
         if not (c.isalnum() or c in '()[]{}<>_-+*%!?.,;:`"\''):
             return True
@@ -388,33 +388,33 @@ def is_splittable(line: str):
 
 
 # Вывести переводы
-def get_tr(entry: Entry):
+def get_tr(entry: Entry) -> str:
     return ', '.join(entry.tr)
 
 
 # Вывести словоформы
-def get_forms(entry: Entry, tab=0):
+def get_forms(entry: Entry, tab: int = 0) -> str:
     frm_keys = entry.forms.keys()
     return ('\n' + ' ' * tab).join((f'[{frm_key_to_str_for_print(key)}] {entry.forms[key]}' for key in frm_keys))
 
 
 # Вывести переводы фразы
-def get_phr_tr(entry: Entry, phr_key: str):
+def get_phr_tr(entry: Entry, phr_key: str) -> str:
     return ', '.join(pt for pt in entry.phrases[phr_key])
 
 
 # Вывести фразы
-def get_phrases(entry: Entry, tab=0):
+def get_phrases(entry: Entry, tab: int = 0) -> str:
     return ('\n' + ' ' * tab).join((phr + ' - ' + get_phr_tr(entry, phr) for phr in entry.phrases))
 
 
 # Вывести сноски
-def get_notes(entry: Entry, tab=0):
+def get_notes(entry: Entry, tab: int = 0) -> str:
     return ('\n' + ' ' * tab).join(entry.notes)
 
 
 # Вывести группы
-def get_groups(entry: Entry):
+def get_groups(entry: Entry) -> str:
     if entry.groups:
         return ', '.join(tuple(entry.groups))
     else:
@@ -422,7 +422,7 @@ def get_groups(entry: Entry):
 
 
 # Вывести количество ошибок после последнего верного ответа
-def get_correct_att_in_a_row(entry: Entry):
+def get_correct_att_in_a_row(entry: Entry) -> str | int:
     if entry.all_att == 0:  # Если ещё не было попыток
         res = '-'
     elif entry.correct_att_in_a_row > 999:
@@ -435,7 +435,7 @@ def get_correct_att_in_a_row(entry: Entry):
 
 
 # Вывести процент верных ответов
-def get_entry_percent(entry: Entry):
+def get_entry_percent(entry: Entry) -> str:
     if entry.all_att == 0:  # Если ещё не было попыток
         res = '-'
     else:
@@ -444,7 +444,7 @@ def get_entry_percent(entry: Entry):
 
 
 # Вывести статистику
-def get_entry_stat(entry: Entry):
+def get_entry_stat(entry: Entry) -> str:
     correct_att_in_a_row = get_correct_att_in_a_row(entry)
     percent = get_entry_percent(entry)
     tab_correct = ' ' * (3 - len(str(correct_att_in_a_row)))
@@ -454,7 +454,7 @@ def get_entry_stat(entry: Entry):
 
 
 # Служебная функция для get_entry_info_briefly и get_entry_info_briefly_with_forms
-def _get_entry_info_briefly(entry: Entry):
+def _get_entry_info_briefly(entry: Entry) -> str:
     if entry.fav:
         res = '(*)'
     else:
@@ -464,12 +464,12 @@ def _get_entry_info_briefly(entry: Entry):
 
 
 # Вывести статью - кратко
-def get_entry_info_briefly(entry: Entry, len_str: int):
+def get_entry_info_briefly(entry: Entry, len_str: int) -> str:
     return split_text(_get_entry_info_briefly(entry), len_str, tab=15)
 
 
 # Вывести статью - подробно
-def get_entry_info_detailed(entry: Entry, len_str: int):
+def get_entry_info_detailed(entry: Entry, len_str: int) -> str:
     res = _get_entry_info_briefly(entry)
     if entry.count_f != 0:
         res += f'\n  Формы слова: {get_forms(entry, tab=15)}'
@@ -483,7 +483,7 @@ def get_entry_info_detailed(entry: Entry, len_str: int):
 
 
 # Вывести статью - со всей информацией
-def get_all_entry_info(entry: Entry, len_str: int, tab=0):
+def get_all_entry_info(entry: Entry, len_str: int, tab: int = 0) -> str:
     res  = f'      Слово: {entry.wrd}\n'
     res += f'    Перевод: {get_tr(entry)}\n'
 
@@ -528,37 +528,37 @@ def get_all_entry_info(entry: Entry, len_str: int, tab=0):
 
 
 # Вывести слово со статистикой
-def get_wrd_with_stat(entry: Entry):
+def get_wrd_with_stat(entry: Entry) -> str:
     res = f'{entry.wrd} {get_entry_stat(entry)}'
     return res
 
 
 # Вывести перевод со статистикой
-def get_tr_with_stat(entry: Entry):
+def get_tr_with_stat(entry: Entry) -> str:
     res = f'{get_tr(entry)} {get_entry_stat(entry)}'
     return res
 
 
 # Вывести перевод со словоформой и со статистикой
-def get_tr_and_frm_with_stat(entry: Entry, frm_key: tuple[str, ...] | list[str]):
+def get_tr_and_frm_with_stat(entry: Entry, frm_key: tuple[str, ...] | list[str]) -> str:
     res = f'{get_tr(entry)} ({frm_key_to_str_for_print(frm_key)}) {get_entry_stat(entry)}'
     return res
 
 
 # Вывести фразу со статистикой
-def get_phr_with_stat(entry: Entry, phr_key: str):
+def get_phr_with_stat(entry: Entry, phr_key: str) -> str:
     res = f'{phr_key} {get_entry_stat(entry)}'
     return res
 
 
 # Вывести перевод фразы со статистикой
-def get_phr_tr_with_stat(entry: Entry, phr_key: str):
+def get_phr_tr_with_stat(entry: Entry, phr_key: str) -> str:
     res = f'{get_phr_tr(entry, phr_key)} {get_entry_stat(entry)}'
     return res
 
 
 # Вывести информацию о количестве статей в словаре
-def dct_info(count_w: int, count_t: int, count_f: int):
+def dct_info(count_w: int, count_t: int, count_f: int) -> str:
     w = set_postfix(count_w, ('слово', 'слова', 'слов'))
     f = set_postfix(count_w + count_f, ('словоформа', 'словоформы', 'словоформ'))
     t = set_postfix(count_t, ('перевод', 'перевода', 'переводов'))
@@ -566,7 +566,7 @@ def dct_info(count_w: int, count_t: int, count_f: int):
 
 
 # Вывести информацию о количестве избранных статей в словаре
-def dct_info_part(count_w: tuple[int, int], count_t: tuple[int, int], count_f: tuple[int, int]):
+def dct_info_part(count_w: tuple[int, int], count_t: tuple[int, int], count_f: tuple[int, int]) -> str:
     w = set_postfix(count_w[0], ('слово', 'слова', 'слов'))
     f = set_postfix(count_w[0] + count_f[0], ('словоформа', 'словоформы', 'словоформ'))
     t = set_postfix(count_t[0], ('перевод', 'перевода', 'переводов'))
@@ -579,13 +579,13 @@ def dct_info_part(count_w: tuple[int, int], count_t: tuple[int, int], count_f: t
 
 
 # Преобразовать специальную комбинацию в читаемый вид (для отображения в настройках)
-def special_combination(key: tuple[str, str]):
+def special_combination(key: tuple[str, str]) -> str:
     value = _0_global_special_combinations[key]
     return f'{key[0]}{key[1]} -> {value}'
 
 
 # Преобразовать в тексте специальные комбинации в соответствующие символы
-def encode_special_combinations(text: str, special_combinations: dict[tuple[str, str], str]):
+def encode_special_combinations(text: str, special_combinations: dict[tuple[str, str], str]) -> str:
     encoded_text = ''
 
     opening_symbol = None  # Встречен ли открывающий символ специальной комбинации
@@ -609,7 +609,7 @@ def encode_special_combinations(text: str, special_combinations: dict[tuple[str,
 
 
 # Заменить буквы в тексте соответствующими английскими (для find_and_highlight)
-def simplify(text: str):
+def simplify(text: str) -> tuple[str, list[str]]:
     encoded_text = encode_special_combinations(text, _0_global_special_combinations)
     converted_text = ''
     transformations = []
@@ -627,7 +627,7 @@ def simplify(text: str):
 
 
 # Найти в строке подстроку и выделить её (только частичные совпадения)
-def find_and_highlight(target_wrd: str, search_wrd: str):
+def find_and_highlight(target_wrd: str, search_wrd: str) -> str:
     if target_wrd == search_wrd:  # Полное совпадение не учитывается
         return ''
 
@@ -702,7 +702,7 @@ def split_line(line: str) -> list[str, str]:
 
 
 # Разделить текст на части, длина которых не превышает заданное значение
-def split_text(text: str, max_str_len: int, tab: int = 0, add_right_spaces: bool = True):
+def split_text(text: str, max_str_len: int, tab: int = 0, add_right_spaces: bool = True) -> str:
     assert max_str_len > 0
     assert tab >= 0
     assert tab < max_str_len
@@ -773,7 +773,7 @@ def split_text(text: str, max_str_len: int, tab: int = 0, add_right_spaces: bool
 
 
 # Выбрать окончание слова в зависимости от количественного числительного
-def set_postfix(n: int, wrd_forms: tuple[str, str, str]):
+def set_postfix(n: int, wrd_forms: tuple[str, str, str]) -> str:
     if 5 <= (n % 100) <= 20:
         return wrd_forms[2]  # Пример: 5 яблок
     elif n % 10 == 1:
@@ -799,7 +799,7 @@ def choose_one_of_similar_entries(dct: Dictionary, window_parent, wrd: str):
 
 
 # Изменить слово в статье
-def edit_wrd_with_choose(dct: Dictionary, window_parent, key: tuple[str, int], new_wrd: str):
+def edit_wrd_with_choose(dct: Dictionary, window_parent, key: tuple[str, int], new_wrd: str) -> tuple[str, int] | None:
     if wrd_to_key(new_wrd, 0) in dct.d.keys():  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                'Что вы хотите сделать?',
@@ -830,7 +830,7 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, key: tuple[str, int], n
 
 
 # Добавить статью в словарь (для пользователя)
-def add_entry_with_choose(dct: Dictionary, window_parent, wrd: str, tr: str):
+def add_entry_with_choose(dct: Dictionary, window_parent, wrd: str, tr: str) -> tuple[str, int] | None:
     if wrd_to_key(wrd, 0) in dct.d.keys():  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                'Что вы хотите сделать?',
@@ -853,7 +853,7 @@ def add_entry_with_choose(dct: Dictionary, window_parent, wrd: str, tr: str):
 
 
 # Добавить категорию
-def add_ctg(window_parent, dct: Dictionary):
+def add_ctg(window_parent, dct: Dictionary) -> bool:
     # Ввод названия новой категории
     window_ctg = PopupEntryW(window_parent, 'Введите название новой категории',
                              check_answer_function=lambda wnd, val: check_ctg(wnd, tuple(dct.ctg.keys()), val))
@@ -876,7 +876,7 @@ def add_ctg(window_parent, dct: Dictionary):
 
 
 # Переименовать категорию
-def rename_ctg(window_parent, dct: Dictionary, old_ctg_name: str):
+def rename_ctg(window_parent, dct: Dictionary, old_ctg_name: str) -> bool | None:
     # Ввод нового названия категории
     window_entry = PopupEntryW(window_parent, 'Введите новое название категории', default_value=old_ctg_name,
                                check_answer_function=lambda wnd, val:
@@ -894,7 +894,7 @@ def rename_ctg(window_parent, dct: Dictionary, old_ctg_name: str):
 
 
 # Удалить категорию
-def delete_ctg(window_parent, dct: Dictionary, ctg_name: str):
+def delete_ctg(window_parent, dct: Dictionary, ctg_name: str) -> bool:
     window_dia = PopupDialogueW(window_parent, f'Все словоформы, содержащие категорию {ctg_name}, будут удалены!\n'
                                                f'Хотите продолжить?')  # Подтверждение действия
     answer = window_dia.open()
@@ -907,7 +907,7 @@ def delete_ctg(window_parent, dct: Dictionary, ctg_name: str):
 
 
 # Добавить значение категории
-def add_ctg_val(window_parent, dct: Dictionary, ctg_name: str, values: list[str] | tuple[str, ...]):
+def add_ctg_val(window_parent, dct: Dictionary, ctg_name: str, values: list[str] | tuple[str, ...]) -> bool:
     # Ввод нового значения
     window_entry = PopupEntryW(window_parent, 'Введите новое значение категории',
                                check_answer_function=lambda wnd, val: check_ctg_val(wnd, values, val))
@@ -921,7 +921,7 @@ def add_ctg_val(window_parent, dct: Dictionary, ctg_name: str, values: list[str]
 
 
 # Переименовать значение категории
-def rename_ctg_val(window_parent, dct: Dictionary, ctg_name: str, old_ctg_val: str):
+def rename_ctg_val(window_parent, dct: Dictionary, ctg_name: str, old_ctg_val: str) -> bool:
     # Ввод нового значения
     window_entry = PopupEntryW(window_parent, 'Введите новое название значения', default_value=old_ctg_val,
                                check_answer_function=lambda wnd, val:
@@ -939,7 +939,7 @@ def rename_ctg_val(window_parent, dct: Dictionary, ctg_name: str, old_ctg_val: s
 
 
 # Удалить значение категории
-def delete_ctg_val(window_parent, dct: Dictionary, ctg_name: str, ctg_val: str):
+def delete_ctg_val(window_parent, dct: Dictionary, ctg_name: str, ctg_val: str) -> bool:
     window_dia = PopupDialogueW(window_parent, f'Все словоформы, содержащие значение {ctg_val}, будут удалены!\n'
                                                f'Хотите продолжить?')  # Подтверждение действия
     answer = window_dia.open()
@@ -952,14 +952,14 @@ def delete_ctg_val(window_parent, dct: Dictionary, ctg_name: str, ctg_val: str):
 
 
 # Есть ли слово в строке
-def wrd_in_line(line: str, wrd: str):
+def wrd_in_line(line: str, wrd: str) -> bool:
     words = re.split(r'[.,;:!? \n()\[\]{}]', line)
     return wrd in words
 
 
 # Поиск статей в словаре
 def search_entries(dct: Dictionary, dct_keys: tuple[tuple[str, int], ...], query: str,
-                   search_wrd: bool, search_tr: bool, search_frm: bool, search_phr: bool, search_nt: bool):
+                   search_wrd: bool, search_tr: bool, search_frm: bool, search_phr: bool, search_nt: bool) -> list[set]:
     query_l = query.lower()
     query_s = simplify(query)[0].replace('ё', 'е')
     results = [set() for _ in range(9)]
@@ -1454,7 +1454,7 @@ def dct_import(savename: str, src_path: str):
 
 
 # Вычислить ширину моноширинного поля, в которое должно помещаться каждое из данных значений
-def combobox_width(values: tuple[str, ...] | list[str], min_width: int, max_width: int):
+def combobox_width(values: tuple[str, ...] | list[str], min_width: int, max_width: int) -> int:
     assert min_width >= 0
     assert max_width >= 0
     assert max_width >= min_width
@@ -1465,7 +1465,7 @@ def combobox_width(values: tuple[str, ...] | list[str], min_width: int, max_widt
 
 # Вычислить количество строк, необходимых для записи данного текста
 # в многострочное текстовое поле при данной длине строки
-def field_height(text: str, len_str: int):
+def field_height(text: str, len_str: int) -> int:
     assert len_str > 0
 
     segments = text.split('\n')
@@ -1526,32 +1526,32 @@ def set_image(btn: ttk.Button, img: tk.PhotoImage, img_name: str, text_if_no_img
 
 
 # Ввод только целых чисел от 0 до max_val
-def validate_int_min_max(value: str, min_val: int, max_val: int):
+def validate_int_min_max(value: str, min_val: int, max_val: int) -> bool:
     return value == '' or value.isnumeric() and min_val <= int(value) <= max_val
 
 
 # Ввод только целых чисел от 0 до 100
-def validate_percent(value: str):
+def validate_percent(value: str) -> bool:
     return validate_int_min_max(value, 0, 100)
 
 
 # Валидация открывающего символа специальной комбинации
-def validate_special_combination_opening_symbol(value: str):
+def validate_special_combination_opening_symbol(value: str) -> bool:
     return value == '' or value in SPECIAL_COMBINATIONS_OPENING_SYMBOLS
 
 
 # Валидация ключевого символа специальной комбинации
-def validate_special_combination_key_symbol(value: str):
+def validate_special_combination_key_symbol(value: str) -> bool:
     return len(value) <= 1 and value not in SPECIAL_COMBINATIONS_OPENING_SYMBOLS
 
 
 # Валидация значения специальной комбинации
-def validate_special_combination_val(value: str):
+def validate_special_combination_val(value: str) -> bool:
     return len(value) <= 1
 
 
 # Валидация названия словаря
-def validate_savename(value: str):
+def validate_savename(value: str) -> bool:
     if len(value) > 99:
         return False
     for symbol in value:
