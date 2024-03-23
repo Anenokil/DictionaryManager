@@ -1433,7 +1433,7 @@ def upload_save(window_parent, dct: Dictionary, savename: str, btn_close_text: s
             else:
                 return None
     else:  # Если чтение прошло успешно, то выводится соответствующее сообщение
-        print(f'\nСловарь "{savename}" успешно открыт')
+        print(f'\nСловарь "{savename}" успешно загружен')
         return savename, check_register, special_combinations, fav_groups
 
 
@@ -7436,6 +7436,7 @@ print('=' * CONSOLE_LOGO_FRAME_WIDTH)
 _0_global_dct = Dictionary()
 _0_global_has_progress = False
 
+print('\nПрограмма запускается...')
 upload_themes(THEMES)  # Загружаем дополнительные темы
 upload_custom_theme()  # Загружаем пользовательскую тему
 _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale =\
@@ -7453,7 +7454,9 @@ _0_global_window_last_version = check_updates(root, bool(_0_global_show_updates)
 _0_global_learn_session_number = 0
 if ICON_FN in os.listdir(RESOURCES_PATH):
     root.iconphoto(True, tk.PhotoImage(file=ICON_PATH))  # Устанавливаем иконку
+print('\nЗапуск программы прошёл успешно')
 root.mainloop()
+print('\nПрограмма успешно завершилась')
 
 """
     Про формы и грам. категории:
