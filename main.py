@@ -838,6 +838,7 @@ def delete_ctg_val(window_parent, dct: Dictionary, ctg_name: str, ctg_val: str) 
 # Есть ли слово в строке
 def wrd_in_line(line: str, wrd: str) -> bool:
     words = re.split(r'[.,;:!? \n()\[\]{}]', line)
+    words = [w for w in words if w != '']
     return wrd in words
 
 
@@ -5479,20 +5480,25 @@ class PrintW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем нужные статьи
+        # Если нужно, оставляем только избранные
         if self.search_only_fav:
             keys = [key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].fav]
         else:
             keys = [key for key in _0_global_dct.d.keys()]
+        # Если нужно, оставляем только одну группу
         if self.search_group != ALL_GROUPS:
             keys = [key for key in keys if self.search_group in _0_global_dct.d[key].groups]
+        # Среди оставшихся ищем статьи, содержащие искомый текст
         results = search_entries(_0_global_dct, tuple(keys), self.var_search_query.get(),
                                  self.search_wrd, self.search_tr, self.search_frm, self.search_phr, self.search_nt)
+        # Объединяем результаты в один список
         self.search_keys = []
         for i in range(6 if self.search_only_full else 9):
             self.search_keys += sorted(list(results[i]),
                                        key=lambda k: (_0_global_dct.d[k].wrd.lower(), _0_global_dct.d[k].wrd))
+        # Из выделенных статей оставляем, только удовлетворяющие поисковому запросу
         self.search_selected_keys = [key for key in self.search_selected_keys if key in self.search_keys]
-
+        # Если выделенных статей нет, убираем связанные с ними кнопки
         if not self.search_selected_keys:
             self.frame_search_buttons_for_selected.grid_remove()
 
