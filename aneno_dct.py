@@ -527,11 +527,15 @@ class Dictionary(object):
                 elif line[0] == 'w':
                     wrd = line[1:]
                     all_att, correct_att, correct_att_in_a_row = (int(el) for el in file.readline().strip().split(':'))
-                    latest_answer_date = tuple((int(el) for el in file.readline().strip().split(':')))
+                    latest_answer_date = [int(el) for el in file.readline().strip().split(':')]
                     tr = file.readline().strip()
-                    key = self.add_entry(wrd, tr, all_att=all_att, correct_att=correct_att,
-                                         correct_att_in_a_row=correct_att_in_a_row,
-                                         latest_answer_date=latest_answer_date)
+                    if len(latest_answer_date) == 3:
+                        latest_answer_date = tuple[int, int, int](latest_answer_date)
+                        key = self.add_entry(wrd, tr, all_att=all_att, correct_att=correct_att,
+                                             correct_att_in_a_row=correct_att_in_a_row,
+                                             latest_answer_date=latest_answer_date)
+                    else:
+                        raise TypeError(f'Error reading the save: latest_answer_date')
                 elif line[0] == 't':
                     self.add_tr(key, line[1:])
                 elif line[0] == 'n':
