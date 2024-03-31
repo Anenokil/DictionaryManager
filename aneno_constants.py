@@ -3,9 +3,9 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.44'
-PROGRAM_DATE = '23.3.2024'
-PROGRAM_TIME = '17:13 (UTC+3)'
+PROGRAM_VERSION = 'v7.1.45'
+PROGRAM_DATE = '31.3.2024'
+PROGRAM_TIME = '13:20 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -129,8 +129,6 @@ URL_GITHUB = f'https://github.com/Anenokil/{REPOSITORY_NAME}'
 URL_RELEASES = f'https://github.com/Anenokil/{REPOSITORY_NAME}/releases'
 # Ссылка на файл с названием последней версии
 URL_LAST_VERSION = f'https://raw.githubusercontent.com/Anenokil/{REPOSITORY_NAME}/master/ver'
-# Ссылка на файл со списком обновляемых файлов
-URL_UPDATE_FILES = f'https://raw.githubusercontent.com/Anenokil/{REPOSITORY_NAME}/master/update_files'
 # Ссылка для установки последней версии
 URL_DOWNLOAD_ZIP = f'https://github.com/Anenokil/{REPOSITORY_NAME}/archive/refs/heads/master.zip'
 
@@ -139,6 +137,7 @@ NEW_VERSION_DIR = f'{REPOSITORY_NAME}-master'
 NEW_VERSION_PATH = os.path.join(MAIN_PATH, NEW_VERSION_DIR)  # Временная папка с обновлением
 NEW_VERSION_ZIP = f'{NEW_VERSION_DIR}.zip'
 NEW_VERSION_ZIP_PATH = os.path.join(MAIN_PATH, NEW_VERSION_ZIP)  # Архив с обновлением
+UPDATE_FILES = 'update_files'  # Файл со списком обновляемых файлов
 
 """ Шаблоны сохранений """
 

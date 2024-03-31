@@ -6880,18 +6880,6 @@ class NewVersionAvailableW(tk.Toplevel):
     def download_and_install(self):
         save_dct_if_has_progress(self, _0_global_dct, _0_global_dct_savename, _0_global_has_progress)
 
-        # Загрузка списка обновляемых файлов
-        try:
-            print('\nЧтение данных...')
-            data = urllib2.urlopen(URL_UPDATE_FILES)
-            update_files = [str(filename.decode('utf-8')).strip() for filename in data.readlines()]
-        except Exception as exc:
-            print(f'Не удалось получить данные!\n'
-                  f'{exc}')
-            warning(self, f'Не удалось получить данные!\n'
-                          f'{exc}')
-            self.destroy()
-            return
         # Загрузка
         try:
             # Скачиваем архив с обновлением
@@ -6913,6 +6901,8 @@ class NewVersionAvailableW(tk.Toplevel):
             # Удаляем архив
             print('Удаление архива...')
             os.remove(NEW_VERSION_ZIP_PATH)
+            # Получаем список обновляемых файлов
+            update_files = [fn.strip() for fn in open(f'{NEW_VERSION_DIR}/{UPDATE_FILES}', 'r').readlines()]
             # Удаляем файлы текущей версии
             print('Удаление старых файлов...')
             for filename in os.listdir(IMAGES_PATH):
