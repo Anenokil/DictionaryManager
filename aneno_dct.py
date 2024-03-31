@@ -1,5 +1,7 @@
 import typing
 
+FrmKey = tuple[str, ...]
+
 
 # Словарная статья
 class Entry(object):
@@ -22,7 +24,7 @@ class Entry(object):
     def __init__(self,
                  wrd: str,
                  tr: str | list[str],
-                 forms: dict[tuple[str, ...], str] | None = None,
+                 forms: dict[FrmKey, str] | None = None,
                  phrases: dict[str, list[str]] | None = None,
                  notes: str | list[str] | None = None,
                  groups: set[str] | None = None,
@@ -72,13 +74,13 @@ class Entry(object):
         self.count_t -= 1
 
     # Добавить словоформу
-    def add_frm(self, frm_key: tuple[str, ...] | list[str], new_frm: str):
+    def add_frm(self, frm_key: FrmKey | list[str], new_frm: str):
         if frm_key not in self.forms.keys():
             self.forms[frm_key] = new_frm
             self.count_f += 1
 
     # Удалить словоформу
-    def delete_frm(self, frm_key: tuple[str, ...] | list[str]):
+    def delete_frm(self, frm_key: FrmKey | list[str]):
         self.forms.pop(frm_key)
         self.count_f -= 1
 
@@ -297,7 +299,7 @@ class Dictionary(object):
         return sum_num, sum_den
 
     # Добавить статью в словарь
-    def add_entry(self, wrd: str, tr: str | list[str], forms: dict[tuple[str, ...], str] = None,
+    def add_entry(self, wrd: str, tr: str | list[str], forms: dict[FrmKey, str] = None,
                   phrases: dict[str, list[str]] = None, notes: str | list[str] = None,
                   groups: set[str] | None = None, fav: bool = False,
                   all_att: int = 0, correct_att: int = 0, correct_att_in_a_row: int = 0,
@@ -369,13 +371,13 @@ class Dictionary(object):
         self.count_t += self.d[key].count_t
 
     # Добавить словоформу к статье
-    def add_frm(self, key: DctKey, frm_key: tuple[str, ...] | list[str], frm: str):
+    def add_frm(self, key: DctKey, frm_key: FrmKey | list[str], frm: str):
         self.count_f -= self.d[key].count_f
         self.d[key].add_frm(frm_key, frm)
         self.count_f += self.d[key].count_f
 
     # Удалить словоформу из статьи
-    def delete_frm(self, key: DctKey, frm_key: tuple[str, ...] | list[str]):
+    def delete_frm(self, key: DctKey, frm_key: FrmKey | list[str]):
         self.count_f -= self.d[key].count_f
         self.d[key].delete_frm(frm_key)
         self.count_f += self.d[key].count_f
@@ -574,7 +576,7 @@ class Dictionary(object):
 
 
 # Преобразовать шаблон словоформы в читаемый вид (для вывода на экран)
-def frm_key_to_str_for_print(input_tuple: tuple[str, ...] | list[str]) -> str:
+def frm_key_to_str_for_print(input_tuple: FrmKey | list[str]) -> str:
     res = ''
     is_first = True
     for i in range(len(input_tuple)):
@@ -588,7 +590,7 @@ def frm_key_to_str_for_print(input_tuple: tuple[str, ...] | list[str]) -> str:
 
 
 # Преобразовать кортеж в строку (для сохранения значений категории в файл локальных настроек)
-def frm_key_to_str_for_save(input_tuple: tuple[str, ...] | list[str], separator: str = '\n') -> str:
+def frm_key_to_str_for_save(input_tuple: FrmKey | list[str], separator: str = '\n') -> str:
     if not input_tuple:  # input_tuple == () или input_tuple == ('')
         return ''
     res = input_tuple[0]

@@ -540,7 +540,7 @@ def get_tr_with_stat(entry: Entry) -> str:
 
 
 # Вывести перевод со словоформой и со статистикой
-def get_tr_and_frm_with_stat(entry: Entry, frm_key: tuple[str, ...] | list[str]) -> str:
+def get_tr_and_frm_with_stat(entry: Entry, frm_key: FrmKey | list[str]) -> str:
     res = f'{get_tr(entry)} ({frm_key_to_str_for_print(frm_key)}) {get_entry_stat(entry)}'
     return res
 
@@ -653,10 +653,10 @@ def find_and_highlight(target_wrd: str, search_wrd: str) -> str:
 # Выбрать случайное слово с учётом сложности
 def random_smart(dct: Dictionary,
                  pool: set[tuple[DctKey,
-                                 tuple[str, ...] | None,
+                                 FrmKey | None,
                                  str | None]]
                  ) -> tuple[DctKey,
-                            tuple[str, ...] | None,
+                            FrmKey | None,
                             str | None]:
     summ = 0
     for (key, frm, phr) in pool:
@@ -2579,7 +2579,7 @@ class EditW(tk.Toplevel):
         self.refresh(False)
 
     # Изменить словоформу
-    def frm_edt(self, frm_key: tuple[str, ...]):
+    def frm_edt(self, frm_key: FrmKey):
         global _0_global_has_progress
 
         window_entry = PopupEntryW(self, 'Введите новую форму слова',
@@ -2597,7 +2597,7 @@ class EditW(tk.Toplevel):
         self.refresh(False)
 
     # Удалить словоформу
-    def frm_del(self, frm_key: tuple[str, ...]):
+    def frm_del(self, frm_key: FrmKey):
         global _0_global_has_progress
 
         _0_global_dct.delete_frm(self.dct_key, frm_key)
