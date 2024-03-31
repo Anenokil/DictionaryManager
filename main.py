@@ -5488,12 +5488,9 @@ class PrintW(tk.Toplevel):
         results = search_entries(_0_global_dct, tuple(keys), self.var_search_query.get(),
                                  self.search_wrd, self.search_tr, self.search_frm, self.search_phr, self.search_nt)
         self.search_keys = []
-        if self.search_only_full:
-            for i in range(6):
-                self.search_keys += list(results[i])
-        else:
-            for i in range(9):
-                self.search_keys += list(results[i])
+        for i in range(6 if self.search_only_full else 9):
+            self.search_keys += sorted(list(results[i]),
+                                       key=lambda k: (_0_global_dct.d[k].wrd.lower(), _0_global_dct.d[k].wrd))
         self.search_selected_keys = [key for key in self.search_selected_keys if key in self.search_keys]
 
         if not self.search_selected_keys:
