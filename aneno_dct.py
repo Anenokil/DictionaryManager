@@ -31,28 +31,28 @@ class Entry(object):
                  fav=False, all_att=0, correct_att=0, correct_att_in_a_row=0, latest_answer_date=(0, 0, 0)):
         self.wrd = wrd
 
-        self.tr = tr.copy() if (type(tr) == list) else [tr]
+        self.tr: list[str] = tr.copy() if (type(tr) == list) else [tr]
         self.count_t = len(self.tr)
 
-        self.forms = {}
+        self.forms: dict[FrmKey, str] = {}
         if type(forms) == dict:
             self.forms = dict(forms.copy())
         self.count_f = len(self.forms)
 
-        self.phrases = {}
+        self.phrases: dict[str, list[str]] = {}
         if type(phrases) == dict:
             self.phrases = dict(phrases.copy())
         self.count_p = len(self.phrases)
 
         if notes is None:
-            self.notes = []
+            self.notes: list[str] = []
         elif type(notes) == list:
             self.notes = notes.copy()
         else:
             self.notes = [notes]
         self.count_n = len(self.notes)
 
-        self.groups = groups if groups else set()
+        self.groups: set[str] = groups if groups else set()
 
         self.fav = fav
 
