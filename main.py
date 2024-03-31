@@ -3955,6 +3955,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
         with open(filepath, 'w', encoding='utf-8') as file:
             file.write(f'{REQUIRED_THEME_VERSION}')
+            file.write('\n1')
             for el in self.style_keys:
                 file.write(f'\n{self.custom_styles[el]}')
 
