@@ -652,10 +652,10 @@ def find_and_highlight(target_wrd: str, search_wrd: str) -> str:
 
 # Выбрать случайное слово с учётом сложности
 def random_smart(dct: Dictionary,
-                 pool: set[tuple[tuple[str, int],
+                 pool: set[tuple[DctKey,
                                  tuple[str, ...] | None,
                                  str | None]]
-                 ) -> tuple[tuple[str, int],
+                 ) -> tuple[DctKey,
                             tuple[str, ...] | None,
                             str | None]:
     summ = 0
@@ -798,7 +798,7 @@ def choose_one_of_similar_entries(dct: Dictionary, window_parent, wrd: str):
 
 
 # Изменить слово в статье
-def edit_wrd_with_choose(dct: Dictionary, window_parent, key: tuple[str, int], new_wrd: str) -> tuple[str, int] | None:
+def edit_wrd_with_choose(dct: Dictionary, window_parent, key: DctKey, new_wrd: str) -> DctKey | None:
     if wrd_to_key(new_wrd, 0) in dct.d.keys():  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                'Что вы хотите сделать?',
@@ -829,7 +829,7 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, key: tuple[str, int], n
 
 
 # Добавить статью в словарь (для пользователя)
-def add_entry_with_choose(dct: Dictionary, window_parent, wrd: str, tr: str) -> tuple[str, int] | None:
+def add_entry_with_choose(dct: Dictionary, window_parent, wrd: str, tr: str) -> DctKey | None:
     if wrd_to_key(wrd, 0) in dct.d.keys():  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                'Что вы хотите сделать?',
@@ -957,7 +957,7 @@ def wrd_in_line(line: str, wrd: str) -> bool:
 
 
 # Поиск статей в словаре
-def search_entries(dct: Dictionary, dct_keys: tuple[tuple[str, int], ...], query: str,
+def search_entries(dct: Dictionary, dct_keys: tuple[DctKey, ...], query: str,
                    search_wrd: bool, search_tr: bool, search_frm: bool, search_phr: bool, search_nt: bool) -> list[set]:
     query_l = query.lower()
     query_s = simplify(query)[0].replace('ё', 'е')
@@ -2235,7 +2235,7 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
         self.print()
 
     # Выбрать статью из предложенных вариантов
-    def choose_entry(self, key: tuple[str, int]):
+    def choose_entry(self, key: DctKey):
         self.answer = key
         self.destroy()
 
@@ -2337,7 +2337,7 @@ class AddPhraseW(tk.Toplevel):
 
 # Окно изменения статьи
 class EditW(tk.Toplevel):
-    def __init__(self, parent, key: tuple[str, int]):
+    def __init__(self, parent, key: DctKey):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Изменение статьи')
         self.resizable(width=False, height=False)
@@ -2951,7 +2951,7 @@ class EditW(tk.Toplevel):
 
 # Окно создания шаблона словоформы
 class AddFormW(tk.Toplevel):
-    def __init__(self, parent, key: tuple[str, int], combo_width=20):
+    def __init__(self, parent, key: DctKey, combo_width=20):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
@@ -4744,7 +4744,7 @@ class LearnW(tk.Toplevel):
         self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}', end='')
 
     # Проверка введённого ответа
-    def check_answer(self, correct_answer: str, is_correct: bool, current_key: tuple[str, int]):
+    def check_answer(self, correct_answer: str, is_correct: bool, current_key: DctKey):
         entry = _0_global_dct.d[current_key]
         if is_correct:
             entry.correct((_0_global_session_number, _0_global_learn_session_number, self.count_all))
@@ -5388,7 +5388,7 @@ class PrintW(tk.Toplevel):
             self.search_nt, self.search_group = window.open()
 
     # Изменить статью
-    def edit_entry(self, key: tuple[str, int]):
+    def edit_entry(self, key: DctKey):
         EditW(self, key).open()
 
         self.search_print(False)
@@ -5677,7 +5677,7 @@ class PrintW(tk.Toplevel):
         self.print_print_info()
 
     # Обновить одну из кнопок журнала (2)
-    def search_refresh_one_button(self, index: int, key: tuple[str, int]):
+    def search_refresh_one_button(self, index: int, key: DctKey):
         # Выводим текст на кнопку
         self.search_buttons[index].configure(text=get_all_entry_info(_0_global_dct.d[key], 75, 13))
 
@@ -5867,7 +5867,7 @@ class PrintW(tk.Toplevel):
         self.search_print_info()
 
     # Добавить выделенные статьи в избранное
-    def fav_selected(self, keys: list[tuple[str, int]]):
+    def fav_selected(self, keys: list[DctKey]):
         global _0_global_has_progress
 
         if not keys:
@@ -5881,7 +5881,7 @@ class PrintW(tk.Toplevel):
         _0_global_has_progress = True
 
     # Убрать выделенные статьи из избранного
-    def unfav_selected(self, keys: list[tuple[str, int]]):
+    def unfav_selected(self, keys: list[DctKey]):
         global _0_global_has_progress
 
         if not keys:
@@ -5895,7 +5895,7 @@ class PrintW(tk.Toplevel):
         _0_global_has_progress = True
 
     # Добавить выделенные статьи в группу
-    def add_selected_to_group(self, keys: list[tuple[str, int]]):
+    def add_selected_to_group(self, keys: list[DctKey]):
         global _0_global_has_progress
 
         if not keys:
@@ -5926,7 +5926,7 @@ class PrintW(tk.Toplevel):
         _0_global_has_progress = True
 
     # Убрать выделенные статьи из группы
-    def remove_selected_from_group(self, keys: list[tuple[str, int]]):
+    def remove_selected_from_group(self, keys: list[DctKey]):
         global _0_global_has_progress
 
         if not keys:
@@ -5963,7 +5963,7 @@ class PrintW(tk.Toplevel):
         _0_global_has_progress = True
 
     # Удалить выделенные статьи
-    def delete_selected(self, keys: list[tuple[str, int]]):
+    def delete_selected(self, keys: list[DctKey]):
         global _0_global_has_progress
 
         if not keys:

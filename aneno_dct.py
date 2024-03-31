@@ -240,6 +240,9 @@ class Entry(object):
             file.write(f'| > {note}\n')
 
 
+DctKey = tuple[str, int]
+
+
 # Словарь
 class Dictionary(object):
     # self.d - сам словарь
@@ -249,7 +252,7 @@ class Dictionary(object):
     # self.ctg - все грамматические категории
     # self.groups - все группы
     def __init__(self):
-        self.d: dict[tuple[str, int], Entry] = {}
+        self.d: dict[DctKey, Entry] = {}
         self.count_w = 0
         self.count_t = 0
         self.count_f = 0
@@ -298,7 +301,7 @@ class Dictionary(object):
                   phrases: dict[str, list[str]] = None, notes: str | list[str] = None,
                   groups: set[str] | None = None, fav: bool = False,
                   all_att: int = 0, correct_att: int = 0, correct_att_in_a_row: int = 0,
-                  latest_answer_date: tuple[int, int, int] = (0, 0, 0)) -> tuple[str, int]:
+                  latest_answer_date: tuple[int, int, int] = (0, 0, 0)) -> DctKey:
         i = 0
         while True:
             key = wrd_to_key(wrd, i)
@@ -312,14 +315,14 @@ class Dictionary(object):
             i += 1
 
     # Удалить статью
-    def delete_entry(self, key: tuple[str, int]):
+    def delete_entry(self, key: DctKey):
         self.count_w -= 1
         self.count_t -= self.d[key].count_t
         self.count_f -= self.d[key].count_f
         self.d.pop(key)
 
     # Объединить две статьи с одинаковым словом в одну
-    def merge_entries(self, main_entry_key: tuple[str, int], additional_entry_key: tuple[str, int]):
+    def merge_entries(self, main_entry_key: DctKey, additional_entry_key: DctKey):
         main_entry = self.d[main_entry_key]
         additional_entry = self.d[additional_entry_key]
 
@@ -354,63 +357,63 @@ class Dictionary(object):
         self.d.pop(additional_entry_key)
 
     # Добавить перевод к статье
-    def add_tr(self, key: tuple[str, int], tr: str):
+    def add_tr(self, key: DctKey, tr: str):
         self.count_t -= self.d[key].count_t
         self.d[key].add_tr(tr)
         self.count_t += self.d[key].count_t
 
     # Удалить перевод из статьи
-    def delete_tr(self, key: tuple[str, int], tr: str):
+    def delete_tr(self, key: DctKey, tr: str):
         self.count_t -= self.d[key].count_t
         self.d[key].delete_tr(tr)
         self.count_t += self.d[key].count_t
 
     # Добавить словоформу к статье
-    def add_frm(self, key: tuple[str, int], frm_key: tuple[str, ...] | list[str], frm: str):
+    def add_frm(self, key: DctKey, frm_key: tuple[str, ...] | list[str], frm: str):
         self.count_f -= self.d[key].count_f
         self.d[key].add_frm(frm_key, frm)
         self.count_f += self.d[key].count_f
 
     # Удалить словоформу из статьи
-    def delete_frm(self, key: tuple[str, int], frm_key: tuple[str, ...] | list[str]):
+    def delete_frm(self, key: DctKey, frm_key: tuple[str, ...] | list[str]):
         self.count_f -= self.d[key].count_f
         self.d[key].delete_frm(frm_key)
         self.count_f += self.d[key].count_f
 
     # Добавить фразу к статье
-    def add_phrase(self, key: tuple[str, int], phr: str, phr_tr: str):
+    def add_phrase(self, key: DctKey, phr: str, phr_tr: str):
         self.d[key].add_phrase(phr, phr_tr)
 
     # Удалить фразу из статьи
-    def delete_phrase(self, key: tuple[str, int], phr: str, phr_tr: str):
+    def delete_phrase(self, key: DctKey, phr: str, phr_tr: str):
         self.d[key].delete_phrase(phr, phr_tr)
 
     # Добавить сноску к статье
-    def add_note(self, key: tuple[str, int], note: str):
+    def add_note(self, key: DctKey, note: str):
         self.d[key].add_note(note)
 
     # Удалить сноску из статьи
-    def delete_note(self, key: tuple[str, int], note: str):
+    def delete_note(self, key: DctKey, note: str):
         self.d[key].delete_note(note)
 
     # Добавить выбранные статьи в группу
-    def add_entries_to_group(self, group: str, dct_keys: tuple[tuple[str, int], ...] | list[tuple[str, int]]):
+    def add_entries_to_group(self, group: str, dct_keys: tuple[DctKey, ...] | list[DctKey]):
         for key in dct_keys:
             self.d[key].add_to_group(group)
 
     # Убрать выбранные статьи из группы
-    def remove_entries_from_group(self, group: str, dct_keys: tuple[tuple[str, int], ...] | list[tuple[str, int]]):
+    def remove_entries_from_group(self, group: str, dct_keys: tuple[DctKey, ...] | list[DctKey]):
         for key in dct_keys:
             if group in self.d[key].groups:
                 self.d[key].remove_from_group(group)
 
     # Добавить выбранные статьи в избранное
-    def fav_entries(self, dct_keys: tuple[tuple[str, int], ...]):
+    def fav_entries(self, dct_keys: tuple[DctKey, ...]):
         for key in dct_keys:
             self.d[key].add_to_fav()
 
     # Убрать выбранные статьи из избранного
-    def unfav_entries(self, dct_keys: tuple[tuple[str, int], ...]):
+    def unfav_entries(self, dct_keys: tuple[DctKey, ...]):
         for key in dct_keys:
             self.d[key].remove_from_fav()
 
@@ -591,10 +594,10 @@ def frm_key_to_str_for_save(input_tuple: tuple[str, ...] | list[str], separator:
 
 
 # Перевести слово в ключ для словаря
-def wrd_to_key(wrd: str, num: int) -> tuple[str, int]:
+def wrd_to_key(wrd: str, num: int) -> DctKey:
     return wrd, num
 
 
 # Перевести ключ для словаря в слово
-def key_to_wrd(key: tuple[str, int]) -> str:
+def key_to_wrd(key: DctKey) -> str:
     return key[0]
