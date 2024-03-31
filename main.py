@@ -1006,7 +1006,10 @@ def upload_custom_theme():
                 STYLES[key][1][CUSTOM_TH] = style
                 if not style:
                     create_default_custom_theme()
-    except:
+    except Exception as exc:
+        print(f'Не удалось загрузить пользовательскую тему из-за ошибки!\n'
+              f'{exc}'
+              f'Установлена тема по умолчанию.')
         create_default_custom_theme()
 
 
@@ -7274,7 +7277,6 @@ class MainW(tk.Tk):
 
 
 """ Выполнение программы """
-
 
 # Если папки отсутствуют, то они создаются
 if RESOURCES_DIR not in os.listdir(MAIN_PATH):
