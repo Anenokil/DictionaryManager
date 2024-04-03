@@ -960,7 +960,7 @@ def upload_themes(themes: list[str]):
                     if to_update == '1':
                         print(f'Тема "{theme}" устарела. '
                               f'Идёт обновление с версии {theme_version} до {REQUIRED_THEME_VERSION}')
-                        upgrade_theme(styles_path, tuple(STYLES.keys()))
+                        upgrade_theme(styles_path)
                         styles_file.close()
                         styles_file = open(styles_path, 'r', encoding='utf-8')
                         line = styles_file.readline().strip()  # Версия темы
@@ -994,7 +994,7 @@ def upload_custom_theme():
         create_default_custom_theme()
     styles_path = os.path.join(CUSTOM_THEME_PATH, styles_filename)
     try:
-        upgrade_theme(styles_path, tuple(STYLES.keys()))
+        upgrade_theme(styles_path)
         with open(styles_path, 'r', encoding='utf-8') as styles_file:
             styles_file.readline()  # Версия темы
             styles_file.readline()  # Переменная обновлений
@@ -4061,7 +4061,7 @@ class CustomThemeSettingsW(tk.Toplevel):
     # Загрузить пользовательскую тему
     def read(self):
         filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
-        upgrade_theme(filepath, tuple(STYLES.keys()))
+        upgrade_theme(filepath)
         with open(filepath, 'r', encoding='utf-8') as file:
             file.readline()  # Версия темы
             file.readline()  # Переменная обновлений

@@ -39,7 +39,7 @@ def upgrade_resources():
 
 
 # Обновить тему с 4 до 5 версии
-def upgrade_theme_4_to_5(filepath: str, _=None):
+def upgrade_theme_4_to_5(filepath: str):
     with open(filepath, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     with open(filepath, 'w', encoding='utf-8') as file:
@@ -57,7 +57,7 @@ def upgrade_theme_4_to_5(filepath: str, _=None):
 
 
 # Обновить тему с 5 до 6 версии
-def upgrade_theme_5_to_6(filepath: str, _=None):
+def upgrade_theme_5_to_6(filepath: str):
     with open(filepath, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     with open(filepath, 'w', encoding='utf-8') as file:
@@ -75,7 +75,7 @@ def upgrade_theme_5_to_6(filepath: str, _=None):
 
 
 # Обновить тему с 6 до 7 версии
-def upgrade_theme_6_to_7(filepath: str, _=None):
+def upgrade_theme_6_to_7(filepath: str):
     with open(filepath, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     with open(filepath, 'w', encoding='utf-8') as file:
@@ -94,14 +94,22 @@ def upgrade_theme_6_to_7(filepath: str, _=None):
 
 
 # Обновить тему с 7 до 8 версии
-def upgrade_theme_7_to_8(filepath: str, keys: tuple[str, ...]):
+def upgrade_theme_7_to_8(filepath: str):
     with open(filepath, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     with open(filepath, 'w', encoding='utf-8') as file:
         file.write('8\n')
         file.write(f'{lines[1]}')
+        keys = ('*.BG.*', '*.BG.ENTRY', '*.FG.*', '*.FG.LOGO', '*.FG.FOOTER', '*.FG.WARN', '*.FG.ENTRY', '*.BG.SEL',
+                '*.FG.SEL', 'FRAME.RELIEF.*', 'TXT.RELIEF.*', '*.BORDER_CLR.*', 'BTN.BG.*', 'BTN.BG.SEL', 'BTN.BG.Y',
+                'BTN.BG.Y_SEL', 'BTN.BG.N', 'BTN.BG.N_SEL', 'BTN.BG.IMG_HOV', 'BTN.BG.IMG_SEL', 'BTN.BG.NOTE',
+                'BTN.BG.NOTE_HOV', 'BTN.BG.NOTE_SEL', 'BTN.FG.NOTE', 'BTN.FG.NOTE_HOV', 'BTN.FG.NOTE_SEL',
+                'FLAT_BTN.BG.*', 'FLAT_BTN.BG.HOV', 'FLAT_BTN.BG.SEL', 'FLAT_BTN.FG.*', 'FLAT_BTN.FG.HOV',
+                'FLAT_BTN.FG.SEL', 'BTN.BG.DISABL', 'BTN.FG.DISABL', 'CHECK.BG.SEL', 'TAB.BG.*', 'TAB.BG.SEL',
+                'TAB.FG.*', 'TAB.FG.SEL', 'SCROLL.BG.*', 'SCROLL.BG.SEL', 'SCROLL.FG.*', 'SCROLL.FG.SEL')
+        max_len = max((len(k) for k in keys))
         for i in range(2, 45):
-            tab = ' ' * (max((len(k) for k in keys)) - len(keys[i - 2]))
+            tab = ' ' * (max_len - len(keys[i - 2]))
             file.write(f'{keys[i - 2]}{tab} = {lines[i]}')
 
 
@@ -112,7 +120,7 @@ upgrade_theme_functions = [upgrade_theme_4_to_5,
 
 
 # Обновить тему старой версии до актуальной версии
-def upgrade_theme(filepath: str, keys: tuple[str, ...]):
+def upgrade_theme(filepath: str):
     with open(filepath, 'r', encoding='utf-8') as theme_file:
         lines = theme_file.readlines()
     first_line = lines[0].strip()
@@ -125,7 +133,7 @@ def upgrade_theme(filepath: str, keys: tuple[str, ...]):
         print(f'Неизвестная версия тем: {first_line}!')
         return
     for i in range(current_version, anc.REQUIRED_THEME_VERSION):
-        upgrade_theme_functions[i - 4](filepath, keys)
+        upgrade_theme_functions[i - 4](filepath)
 
 
 """ Обновления глобальных настроек """
