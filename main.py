@@ -1023,7 +1023,7 @@ def create_default_custom_theme():
         for key in STYLES.keys():  # Проходимся по стилизуемым элементам
             style = STYLES[key][1][DEFAULT_TH]
             STYLES[key][1][CUSTOM_TH] = style
-            styles_file.write(f'\n{style}')
+            styles_file.write(f'\n{key} = {style}')
 
 
 # Загрузить изображения для выбранной темы
@@ -3960,7 +3960,7 @@ class CustomThemeSettingsW(tk.Toplevel):
             file.write(f'{REQUIRED_THEME_VERSION}')
             file.write('\n1')
             for el in self.style_keys:
-                file.write(f'\n{self.custom_styles[el]}')
+                file.write(f'\n{el} = {self.custom_styles[el]}')
 
         if self.dir_with_images != CUSTOM_THEME_PATH:
             images = [img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav,
