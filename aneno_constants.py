@@ -3,9 +3,9 @@ import os
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
-PROGRAM_VERSION = 'v7.1.56'
+PROGRAM_VERSION = 'v7.1.57'
 PROGRAM_DATE = '2024.4.3'
-PROGRAM_TIME = '20:16 (UTC+3)'
+PROGRAM_TIME = '22:55 (UTC+3)'
 
 """ Версии ресурсов """
 
@@ -13,7 +13,7 @@ SAVES_VERSION = 8  # Актуальная версия сохранений сл
 LOCAL_SETTINGS_VERSION = 8  # Актуальная версия локальных настроек
 LOCAL_AUTO_SETTINGS_VERSION = 4  # Актуальная версия автосохраняемых локальных настроек
 GLOBAL_SETTINGS_VERSION = 3  # Актуальная версия глобальных настроек
-REQUIRED_THEME_VERSION = 7  # Актуальная версия тем
+REQUIRED_THEME_VERSION = 8  # Актуальная версия тем
 
 """ Коды завершения программы """
 

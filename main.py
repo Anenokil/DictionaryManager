@@ -536,13 +536,8 @@ def find_and_highlight(target_wrd: str, search_wrd: str) -> str:
 
 
 # Выбрать случайное слово с учётом сложности
-def random_smart(dct: Dictionary,
-                 pool: set[tuple[DctKey,
-                                 FrmKey | None,
-                                 str | None]]
-                 ) -> tuple[DctKey,
-                            FrmKey | None,
-                            str | None]:
+def random_smart(dct: Dictionary, pool: set[tuple[DctKey, FrmKey | None, str | None]]
+                 ) -> tuple[DctKey, FrmKey | None, str | None]:
     summ = 0
     for (key, frm, phr) in pool:
         entry = dct.d[key]
@@ -956,33 +951,35 @@ def upload_themes(themes: list[str]):
             continue
         theme = dirname
         try:
-            is_correct = True
             styles_path = os.path.join(path, styles_filename)
             with open(styles_path, 'r', encoding='utf-8') as styles_file:
                 line = styles_file.readline().strip()  # Версия темы
                 to_update = styles_file.readline().strip()  # Переменная обновлений
                 theme_version = int(re.split(' |//', line)[0])  # После // идут комментарии
                 if theme_version != REQUIRED_THEME_VERSION:  # Проверка версии темы
-                    print(f'Не удалось загрузить тему "{theme}",\n'
-                          f'  т. к. её версия не соответствует требуемой!\n'
-                          f'  Актуальные темы можно загрузить здесь:\n'
-                          f'  {URL_RELEASES}')
                     if to_update == '1':
-                        upgrade_theme(styles_path)
+                        print(f'Тема "{theme}" устарела. '
+                              f'Идёт обновление с версии {theme_version} до {REQUIRED_THEME_VERSION}')
+                        upgrade_theme(styles_path, tuple(STYLES.keys()))
+                        styles_file.close()
+                        styles_file = open(styles_path, 'r', encoding='utf-8')
+                        line = styles_file.readline().strip()  # Версия темы
+                        to_update = styles_file.readline().strip()  # Переменная обновлений
                     else:
+                        print(f'Не удалось загрузить тему "{theme}",\n'
+                              f'  т. к. её версия не соответствует требуемой!\n'
+                              f'  Актуальные темы можно загрузить здесь:\n'
+                              f'  {URL_RELEASES}')
                         continue
                 themes += [theme]  # Добавляем название новой темы
-                for key in STYLES.keys():  # Проходимся по стилизуемым элементам
+                while True:
                     line = styles_file.readline().strip()
-                    style = re.split(' |//', line)[0]  # После // идут комментарии
-                    STYLES[key][1][theme] = style  # Добавляем новый стиль для элемента, соответствующий теме theme
-                    if not style:
-                        print(f'Не удалось загрузить тему "{theme}" из-за ошибки!')
-                        themes.remove(theme)
-                        is_correct = False
+                    data = [v for v in re.split(' |=|//', line) if v != '']  # После // идут комментарии
+                    if not data:
                         break
-            if not is_correct:
-                continue
+                    key = data[0].strip()
+                    val = data[1].strip()
+                    STYLES[key][1][theme] = val  # Добавляем новый стиль для элемента, соответствующий теме theme
         except Exception as exc:
             print(f'Не удалось загрузить тему "{theme}" из-за ошибки!\n'
                   f'{exc}')
@@ -997,19 +994,21 @@ def upload_custom_theme():
         create_default_custom_theme()
     styles_path = os.path.join(CUSTOM_THEME_PATH, styles_filename)
     try:
-        upgrade_theme(styles_path)
+        upgrade_theme(styles_path, tuple(STYLES.keys()))
         with open(styles_path, 'r', encoding='utf-8') as styles_file:
             styles_file.readline()  # Версия темы
             styles_file.readline()  # Переменная обновлений
-            for key in STYLES.keys():  # Проходимся по стилизуемым элементам
+            while True:
                 line = styles_file.readline().strip()
-                style = re.split(' |//', line)[0]  # После // идут комментарии
-                STYLES[key][1][CUSTOM_TH] = style
-                if not style:
-                    create_default_custom_theme()
+                data = [v for v in re.split(' |=|//', line) if v != '']  # После // идут комментарии
+                if not data:
+                    break
+                key = data[0].strip()
+                val = data[1].strip()
+                STYLES[key][1][CUSTOM_TH] = val  # Добавляем новый стиль для элемента, соответствующий теме theme
     except Exception as exc:
         print(f'Не удалось загрузить пользовательскую тему из-за ошибки!\n'
-              f'{exc}'
+              f'{exc}\n'
               f'Установлена тема по умолчанию.')
         create_default_custom_theme()
 
@@ -4062,22 +4061,27 @@ class CustomThemeSettingsW(tk.Toplevel):
     # Загрузить пользовательскую тему
     def read(self):
         filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
+        upgrade_theme(filepath, tuple(STYLES.keys()))
         with open(filepath, 'r', encoding='utf-8') as file:
-            version = file.readline().strip()  # Версия темы
-            if version != f'{REQUIRED_THEME_VERSION}':
-                upgrade_theme(filepath)
-            file.readline()
-            for i in range(len(self.style_keys)):
-                el = self.style_keys[i]
+            file.readline()  # Версия темы
+            file.readline()  # Переменная обновлений
+            i = 0
+            while True:
+                line = file.readline().strip()
+                data = [v for v in re.split(' |=|//', line) if v != '']  # После // идут комментарии
+                if not data:
+                    break
+                key = data[0].strip()
+                val = data[1].strip()
+                self.custom_styles[key] = val  # Добавляем новый стиль для элемента, соответствующий теме theme
 
-                self.custom_styles[el] = file.readline().strip()
-
-                if el == 'FRAME.RELIEF.*':
-                    self.var_relief_frame.set(self.custom_styles[el])
-                elif el == 'TXT.RELIEF.*':
-                    self.var_relief_text.set(self.custom_styles[el])
+                if key == 'FRAME.RELIEF.*':
+                    self.var_relief_frame.set(self.custom_styles[key])
+                elif key == 'TXT.RELIEF.*':
+                    self.var_relief_text.set(self.custom_styles[key])
                 else:
-                    self.buttons[i].config(bg=self.custom_styles[el], activebackground=self.custom_styles[el])
+                    self.buttons[i].config(bg=self.custom_styles[key], activebackground=self.custom_styles[key])
+                i += 1
 
         self.set_demo_styles()
 

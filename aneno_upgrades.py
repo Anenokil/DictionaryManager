@@ -39,7 +39,7 @@ def upgrade_resources():
 
 
 # Обновить тему с 4 до 5 версии
-def upgrade_theme_4_to_5(filepath: str):
+def upgrade_theme_4_to_5(filepath: str, _=None):
     with open(filepath, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     with open(filepath, 'w', encoding='utf-8') as file:
@@ -57,7 +57,7 @@ def upgrade_theme_4_to_5(filepath: str):
 
 
 # Обновить тему с 5 до 6 версии
-def upgrade_theme_5_to_6(filepath: str):
+def upgrade_theme_5_to_6(filepath: str, _=None):
     with open(filepath, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     with open(filepath, 'w', encoding='utf-8') as file:
@@ -75,7 +75,7 @@ def upgrade_theme_5_to_6(filepath: str):
 
 
 # Обновить тему с 6 до 7 версии
-def upgrade_theme_6_to_7(filepath: str):
+def upgrade_theme_6_to_7(filepath: str, _=None):
     with open(filepath, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     with open(filepath, 'w', encoding='utf-8') as file:
@@ -93,13 +93,26 @@ def upgrade_theme_6_to_7(filepath: str):
             file.write(lines[i])
 
 
+# Обновить тему с 7 до 8 версии
+def upgrade_theme_7_to_8(filepath: str, keys: tuple[str, ...]):
+    with open(filepath, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+    with open(filepath, 'w', encoding='utf-8') as file:
+        file.write('8\n')
+        file.write(f'{lines[1]}')
+        for i in range(2, 45):
+            tab = ' ' * (max((len(k) for k in keys)) - len(keys[i - 2]))
+            file.write(f'{keys[i - 2]}{tab} = {lines[i]}')
+
+
 upgrade_theme_functions = [upgrade_theme_4_to_5,
                            upgrade_theme_5_to_6,
-                           upgrade_theme_6_to_7]
+                           upgrade_theme_6_to_7,
+                           upgrade_theme_7_to_8]
 
 
 # Обновить тему старой версии до актуальной версии
-def upgrade_theme(filepath: str):
+def upgrade_theme(filepath: str, keys: tuple[str, ...]):
     with open(filepath, 'r', encoding='utf-8') as theme_file:
         lines = theme_file.readlines()
     first_line = lines[0].strip()
@@ -112,7 +125,7 @@ def upgrade_theme(filepath: str):
         print(f'Неизвестная версия тем: {first_line}!')
         return
     for i in range(current_version, anc.REQUIRED_THEME_VERSION):
-        upgrade_theme_functions[i-4](filepath)
+        upgrade_theme_functions[i - 4](filepath, keys)
 
 
 """ Обновления глобальных настроек """
