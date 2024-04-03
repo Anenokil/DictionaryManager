@@ -24,49 +24,49 @@ DEFAULT_TH = THEMES[1]  # Тема по умолчанию
 
 # Стили
 # {стилизуемый_элемент: (описание, {тема: стиль})}
-STYLES = {'BG':              ('Цвет фона окна',                                {THEMES[1]: '#F0F0F0', THEMES[2]: '#222222'}),  # Цвет фона окна
-          'BG_FIELDS':       ('Цвет фона полей ввода',                         {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),  # Цвет фона полей ввода
-          'FG':              ('Цвет обычного текста',                          {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет обычного текста
-          'FG_LOGO':         ('Цвет текста логотипа',                          {THEMES[1]: '#FF8800', THEMES[2]: '#AA4600'}),  # Цвет текста логотипа
-          'FG_FOOTER':       ('Цвет текста нижнего колонтитула',               {THEMES[1]: '#666666', THEMES[2]: '#666666'}),  # Цвет текста нижнего колонтитула
-          'FG_WARN':         ('Цвет текста предупреждения',                    {THEMES[1]: '#DD2222', THEMES[2]: '#DD2222'}),  # Цвет текста предупреждения
-          'FG_ENTRY':        ('Цвет вводимого текста',                         {THEMES[1]: '#222222', THEMES[2]: '#777777'}),  # Цвет вводимого текста
-          'SELECT_BG':       ('Цвет выделения фона',                           {THEMES[1]: '#BBBBBB', THEMES[2]: '#444444'}),  # Цвет выделения фона (selectbackground)
-          'SELECT_FG':       ('Цвет выделения текста',                         {THEMES[1]: '#101010', THEMES[2]: '#A0A0A0'}),  # Цвет выделения текста (selectforeground)
-          'RELIEF_FRAME':    ('Стиль рамок фреймов',                           {THEMES[1]: 'groove',  THEMES[2]: 'solid'  }),  # Стиль рамок фреймов
-          'RELIEF_TEXT':     ('Стиль рамок текстовых полей',                   {THEMES[1]: 'sunken',  THEMES[2]: 'solid'  }),  # Стиль рамок текстовых полей
-          'BORDERCOLOR':     ('Цвет рамок',                                    {THEMES[1]: '#222222', THEMES[2]: '#111111'}),  # Цвет рамок (работает для solid)
-          'BTN_BG':          ('Цвет фона обычных кнопок',                      {THEMES[1]: '#D0D0D0', THEMES[2]: '#1E1E1E'}),  # Цвет фона обычных кнопок
-          'BTN_BG_SEL':      ('Цвет фона обычных кнопок при нажатии',          {THEMES[1]: '#BABABA', THEMES[2]: '#1A1A1A'}),  # Цвет фона обычных кнопок при нажатии
-          'BTN_Y_BG':        ('Цвет фона да-кнопок',                           {THEMES[1]: '#88DD88', THEMES[2]: '#446F44'}),  # Цвет фона да-кнопок
-          'BTN_Y_BG_SEL':    ('Цвет фона да-кнопок при нажатии',               {THEMES[1]: '#77CC77', THEMES[2]: '#558055'}),  # Цвет фона да-кнопок при нажатии
-          'BTN_N_BG':        ('Цвет фона нет-кнопок',                          {THEMES[1]: '#FF6666', THEMES[2]: '#803333'}),  # Цвет фона нет-кнопок
-          'BTN_N_BG_SEL':    ('Цвет фона нет-кнопок при нажатии',              {THEMES[1]: '#EE5555', THEMES[2]: '#904444'}),  # Цвет фона нет-кнопок при нажатии
-          'BTN_IMG_BG_HOV':  ('Цвет фона кнопок-картинок при наведении',       {THEMES[1]: '#E0E0E0', THEMES[2]: '#1E1E1E'}),  # Цвет фона кнопок-картинок при наведении
-          'BTN_IMG_BG_SEL':  ('Цвет фона кнопок-картинок при нажатии',         {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),  # Цвет фона кнопок-картинок при нажатии
-          'BTN_NOTE_BG':     ('Цвет фона кнопок-записей',                      {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),  # Цвет фона кнопок-записей
-          'BTN_NOTE_BG_HOV': ('Цвет фона кнопок-записей при наведении',        {THEMES[1]: '#E0F1FF', THEMES[2]: '#1B1B1B'}),  # Цвет фона кнопок-записей при наведении
-          'BTN_NOTE_BG_SEL': ('Цвет фона кнопок-записей при нажатии',          {THEMES[1]: '#CCE8FF', THEMES[2]: '#1F1F1F'}),  # Цвет фона кнопок-записей при нажатии
-          'BTN_NOTE_FG':     ('Цвет текста кнопок-записей',                    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей
-          'BTN_NOTE_FG_HOV': ('Цвет текста кнопок-записей при наведении',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей при наведении
-          'BTN_NOTE_FG_SEL': ('Цвет текста кнопок-записей при нажатии',        {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей при нажатии
-          'BTN_NSEL_BG':     ('Цвет фона выдел. кн.-записей',                  {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),  # Цвет фона выделенных кнопок-записей
-          'BTN_NSEL_BG_HOV': ('Цвет фона выдел. кн.-записей при наведении',    {THEMES[1]: '#A8FFD6', THEMES[2]: '#1B1B2A'}),  # Цвет фона выделенных кнопок-записей при наведении
-          'BTN_NSEL_BG_SEL': ('Цвет фона выдел. кн.-записей при нажатии',      {THEMES[1]: '#82FFC4', THEMES[2]: '#1B1B31'}),  # Цвет фона выделенных кнопок-записей при нажатии
-          'BTN_NSEL_FG':     ('Цвет текста выдел. кн.-записей',                {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей
-          'BTN_NSEL_FG_HOV': ('Цвет текста выдел. кн.-записей при наведении',  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей при наведении
-          'BTN_NSEL_FG_SEL': ('Цвет текста выдел. кн.-записей при нажатии',    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей при нажатии
-          'BTN_BG_DISABL':   ('Цвет фона выключенных кнопок',                  {THEMES[1]: '#D9D9D9', THEMES[2]: '#1E1E1E'}),  # Цвет фона выключенных кнопок
-          'BTN_FG_DISABL':   ('Цвет текста выключенных кнопок',                {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}),  # Цвет текста выключенных кнопок
-          'CHECK_BG_SEL':    ('Цвет фона переключателя при наведении на него', {THEMES[1]: '#DDDDDD', THEMES[2]: '#333333'}),  # Цвет фона переключателя при наведении на него
-          'TAB_BG':          ('Цвет фона закрытой вкладки',                    {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),  # Цвет фона закрытой вкладки
-          'TAB_BG_SEL':      ('Цвет фона открытой вкладки',                    {THEMES[1]: '#EAEAEA', THEMES[2]: '#222222'}),  # Цвет фона открытой вкладки
-          'TAB_FG':          ('Цвет текста закрытой вкладки',                  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста закрытой вкладки
-          'TAB_FG_SEL':      ('Цвет текста открытой вкладки',                  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста открытой вкладки
-          'SCROLL_BG':       ('Цвет фона ползунка',                            {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),  # Цвет фона ползунка
-          'SCROLL_BG_SEL':   ('Цвет фона ползунка при нажатии',                {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),  # Цвет фона ползунка при нажатии
-          'SCROLL_FG':       ('Цвет ползунка',                                 {THEMES[1]: '#CACACA', THEMES[2]: '#292929'}),  # Цвет ползунка
-          'SCROLL_FG_SEL':   ('Цвет ползунка при нажатии',                     {THEMES[1]: '#ABABAB', THEMES[2]: '#333333'}),  # Цвет ползунка при нажатии
+STYLES = {'*.BG.*':          ('Цвет фона окна',                                {THEMES[1]: '#F0F0F0', THEMES[2]: '#222222'}),  # Цвет фона окна
+          '*.BG.ENTRY':      ('Цвет фона полей ввода',                         {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),  # Цвет фона полей ввода
+          '*.FG.*':          ('Цвет обычного текста',                          {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет обычного текста
+          '*.FG.LOGO':       ('Цвет текста логотипа',                          {THEMES[1]: '#FF8800', THEMES[2]: '#AA4600'}),  # Цвет текста логотипа
+          '*.FG.FOOTER':     ('Цвет текста нижнего колонтитула',               {THEMES[1]: '#666666', THEMES[2]: '#666666'}),  # Цвет текста нижнего колонтитула
+          '*.FG.WARN':       ('Цвет текста предупреждения',                    {THEMES[1]: '#DD2222', THEMES[2]: '#DD2222'}),  # Цвет текста предупреждения
+          '*.FG.ENTRY':      ('Цвет вводимого текста',                         {THEMES[1]: '#222222', THEMES[2]: '#777777'}),  # Цвет вводимого текста
+          '*.BG.SEL':        ('Цвет выделения фона',                           {THEMES[1]: '#BBBBBB', THEMES[2]: '#444444'}),  # Цвет выделения фона (selectbackground)
+          '*.FG.SEL':        ('Цвет выделения текста',                         {THEMES[1]: '#101010', THEMES[2]: '#A0A0A0'}),  # Цвет выделения текста (selectforeground)
+          'FRAME.RELIEF.*':  ('Стиль рамок фреймов',                           {THEMES[1]: 'groove',  THEMES[2]: 'solid'  }),  # Стиль рамок фреймов
+          'TXT.RELIEF.*':    ('Стиль рамок текстовых полей',                   {THEMES[1]: 'sunken',  THEMES[2]: 'solid'  }),  # Стиль рамок текстовых полей
+          '*.BORDER_CLR.*':  ('Цвет рамок',                                    {THEMES[1]: '#222222', THEMES[2]: '#111111'}),  # Цвет рамок (работает для solid)
+          'BTN.BG.*':        ('Цвет фона обычных кнопок',                      {THEMES[1]: '#D0D0D0', THEMES[2]: '#1E1E1E'}),  # Цвет фона обычных кнопок
+          'BTN.BG.SEL':      ('Цвет фона обычных кнопок при нажатии',          {THEMES[1]: '#BABABA', THEMES[2]: '#1A1A1A'}),  # Цвет фона обычных кнопок при нажатии
+          'BTN.BG.Y':        ('Цвет фона да-кнопок',                           {THEMES[1]: '#88DD88', THEMES[2]: '#446F44'}),  # Цвет фона да-кнопок
+          'BTN.BG.Y_SEL':    ('Цвет фона да-кнопок при нажатии',               {THEMES[1]: '#77CC77', THEMES[2]: '#558055'}),  # Цвет фона да-кнопок при нажатии
+          'BTN.BG.N':        ('Цвет фона нет-кнопок',                          {THEMES[1]: '#FF6666', THEMES[2]: '#803333'}),  # Цвет фона нет-кнопок
+          'BTN.BG.N_SEL':    ('Цвет фона нет-кнопок при нажатии',              {THEMES[1]: '#EE5555', THEMES[2]: '#904444'}),  # Цвет фона нет-кнопок при нажатии
+          'BTN.BG.IMG_HOV':  ('Цвет фона кнопок-картинок при наведении',       {THEMES[1]: '#E0E0E0', THEMES[2]: '#1E1E1E'}),  # Цвет фона кнопок-картинок при наведении
+          'BTN.BG.IMG_SEL':  ('Цвет фона кнопок-картинок при нажатии',         {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),  # Цвет фона кнопок-картинок при нажатии
+          'BTN.BG.NOTE':     ('Цвет фона кнопок-записей',                      {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),  # Цвет фона кнопок-записей
+          'BTN.BG.NOTE_HOV': ('Цвет фона кнопок-записей при наведении',        {THEMES[1]: '#E0F1FF', THEMES[2]: '#1B1B1B'}),  # Цвет фона кнопок-записей при наведении
+          'BTN.BG.NOTE_SEL': ('Цвет фона кнопок-записей при нажатии',          {THEMES[1]: '#CCE8FF', THEMES[2]: '#1F1F1F'}),  # Цвет фона кнопок-записей при нажатии
+          'BTN.FG.NOTE':     ('Цвет текста кнопок-записей',                    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей
+          'BTN.FG.NOTE_HOV': ('Цвет текста кнопок-записей при наведении',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей при наведении
+          'BTN.FG.NOTE_SEL': ('Цвет текста кнопок-записей при нажатии',        {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей при нажатии
+          'FLAT_BTN.BG.*':   ('Цвет фона выдел. кн.-записей',                  {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),  # Цвет фона выделенных кнопок-записей
+          'FLAT_BTN.BG.HOV': ('Цвет фона выдел. кн.-записей при наведении',    {THEMES[1]: '#A8FFD6', THEMES[2]: '#1B1B2A'}),  # Цвет фона выделенных кнопок-записей при наведении
+          'FLAT_BTN.BG.SEL': ('Цвет фона выдел. кн.-записей при нажатии',      {THEMES[1]: '#82FFC4', THEMES[2]: '#1B1B31'}),  # Цвет фона выделенных кнопок-записей при нажатии
+          'FLAT_BTN.FG.*':   ('Цвет текста выдел. кн.-записей',                {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей
+          'FLAT_BTN.FG.HOV': ('Цвет текста выдел. кн.-записей при наведении',  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей при наведении
+          'FLAT_BTN.FG.SEL': ('Цвет текста выдел. кн.-записей при нажатии',    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей при нажатии
+          'BTN.BG.DISABL':   ('Цвет фона выключенных кнопок',                  {THEMES[1]: '#D9D9D9', THEMES[2]: '#1E1E1E'}),  # Цвет фона выключенных кнопок
+          'BTN.FG.DISABL':   ('Цвет текста выключенных кнопок',                {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}),  # Цвет текста выключенных кнопок
+          'CHECK.BG.SEL':    ('Цвет фона переключателя при наведении на него', {THEMES[1]: '#DDDDDD', THEMES[2]: '#333333'}),  # Цвет фона переключателя при наведении на него
+          'TAB.BG.*':        ('Цвет фона закрытой вкладки',                    {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),  # Цвет фона закрытой вкладки
+          'TAB.BG.SEL':      ('Цвет фона открытой вкладки',                    {THEMES[1]: '#EAEAEA', THEMES[2]: '#222222'}),  # Цвет фона открытой вкладки
+          'TAB.FG.*':        ('Цвет текста закрытой вкладки',                  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста закрытой вкладки
+          'TAB.FG.SEL':      ('Цвет текста открытой вкладки',                  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста открытой вкладки
+          'SCROLL.BG.*':     ('Цвет фона ползунка',                            {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),  # Цвет фона ползунка
+          'SCROLL.BG.SEL':   ('Цвет фона ползунка при нажатии',                {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),  # Цвет фона ползунка при нажатии
+          'SCROLL.FG.*':     ('Цвет ползунка',                                 {THEMES[1]: '#CACACA', THEMES[2]: '#292929'}),  # Цвет ползунка
+          'SCROLL.FG.SEL':   ('Цвет ползунка при нажатии',                     {THEMES[1]: '#ABABAB', THEMES[2]: '#333333'}),  # Цвет ползунка при нажатии
           }
 
 """ Функции проверки """
@@ -1458,7 +1458,7 @@ class ScrollFrame(tk.Frame):
         else:
             canvas_position: typing.Literal['left', 'right'] = 'right'
 
-        self.canvas = tk.Canvas(self, bg=STYLES['BTN_NOTE_BG'][1][th], bd=0, highlightthickness=0, height=height, width=width)
+        self.canvas = tk.Canvas(self, bg=STYLES['BTN.BG.NOTE'][1][th], bd=0, highlightthickness=0, height=height, width=width)
         # {
         self.frame_canvas = ttk.Frame(self.canvas, style='Default.TFrame')
         # }
@@ -1537,7 +1537,7 @@ class PopupMsgW(tk.Toplevel):
                  msg_justify: typing.Literal['left', 'center', 'right'] = 'center', title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.closed = True  # Закрыто ли окно крестиком
@@ -1591,7 +1591,7 @@ class PopupDialogueW(tk.Toplevel):
 
         super().__init__(parent)
         self.title(title)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.set_enter_on_btn = set_enter_on_btn
@@ -1648,7 +1648,7 @@ class PopupEntryW(tk.Toplevel):
                  check_answer_function=None, if_correct_function=None, if_incorrect_function=None, title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
@@ -1712,7 +1712,7 @@ class PopupChooseW(tk.Toplevel):
                  btn_text='Подтвердить', combo_width=40, default_value=None, title=PROGRAM_NAME):
         super().__init__(parent)
         self.title(title)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.closed = True  # Закрыто ли окно крестиком
@@ -1757,7 +1757,7 @@ class PopupImgW(tk.Toplevel):
         super().__init__(parent)
         self.title(title)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.closed = True  # Закрыто ли окно крестиком
@@ -1807,7 +1807,7 @@ class ChooseLearnModeW(tk.Toplevel):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Выбор режима')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.res: tuple[str, str, str, str, str] | None = None
@@ -1925,7 +1925,7 @@ class IncorrectAnswerW(tk.Toplevel):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Неверно')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.with_typo = with_typo
@@ -1996,7 +1996,7 @@ class SearchSettingsW(tk.Toplevel):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Параметры поиска')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.group_vals = [ALL_GROUPS] + _0_global_dct.groups
@@ -2102,7 +2102,7 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Найдено несколько схожих статей')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.search_wrd = query
@@ -2162,7 +2162,7 @@ class AddPhraseW(tk.Toplevel):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - {title}')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.closed = True  # Закрыто ли окно крестиком
@@ -2227,7 +2227,7 @@ class EditW(tk.Toplevel):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Изменение статьи')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.dct_key = key
@@ -2270,9 +2270,9 @@ class EditW(tk.Toplevel):
         self.lbl_wrd = ttk.Label(self.frame_main, text='Слово:', style='Default.TLabel')
         self.scrollbar_wrd = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_wrd = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_wrd.set,
-                               font=('DejaVu Sans Mono', _0_global_scale + 1), relief='solid', bg=STYLES['BG_FIELDS'][1][th],
-                               fg=STYLES['FG'][1][th], selectbackground=STYLES['SELECT_BG'][1][th], selectforeground=STYLES['SELECT_FG'][1][th],
-                               highlightbackground=STYLES['BORDERCOLOR'][1][th])
+                               font=('DejaVu Sans Mono', _0_global_scale + 1), relief='solid', bg=STYLES['*.BG.ENTRY'][1][th],
+                               fg=STYLES['*.FG.*'][1][th], selectbackground=STYLES['*.BG.SEL'][1][th], selectforeground=STYLES['*.FG.SEL'][1][th],
+                               highlightbackground=STYLES['*.BORDER_CLR.*'][1][th])
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
         self.btn_wrd_edt = ttk.Button(self.frame_main, command=self.wrd_edt, width=4, takefocus=False)
         set_image(self.btn_wrd_edt, self.img_edit, img_edit, 'изм.')
@@ -2841,7 +2841,7 @@ class AddFormW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.closed = True  # Закрыто ли окно крестиком
@@ -3010,7 +3010,7 @@ class CategoriesSettingsW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.has_changes = False
@@ -3136,7 +3136,7 @@ class GroupsSettingsW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.has_changes = False
@@ -3328,7 +3328,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.parent = parent
@@ -3457,7 +3457,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.has_changes = False
@@ -3602,7 +3602,7 @@ class EnterSpecialCombinationW(tk.Toplevel):
                  default_value: tuple[str, str, str] = (SPECIAL_COMBINATIONS_OPENING_SYMBOLS[0], None, None)):
         super().__init__(parent)
         self.title(PROGRAM_NAME)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.closed = True  # Закрыто ли окно крестиком
@@ -3673,7 +3673,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Настройки пользовательской темы')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.style_keys = list(STYLES.keys())
@@ -3722,7 +3722,7 @@ class CustomThemeSettingsW(tk.Toplevel):
 
         for i in range(len(self.style_keys)):
             st_key = self.style_keys[i]
-            if st_key not in ('RELIEF_FRAME', 'RELIEF_TEXT'):
+            if st_key not in ('FRAME.RELIEF.*', 'TXT.RELIEF.*'):
                 self.labels[i].configure(text=f'{STYLES[st_key][0]}:')
                 self.buttons[i].configure(command=lambda i=i: self.choose_color(i))
 
@@ -3746,8 +3746,8 @@ class CustomThemeSettingsW(tk.Toplevel):
             self.set_demo_styles()
             return True
 
-        self.vcmd_relief_frame = (self.register(lambda value: _choose_relief('RELIEF_FRAME', value)), '%P')
-        self.vcmd_relief_text = (self.register(lambda value: _choose_relief('RELIEF_TEXT', value)), '%P')
+        self.vcmd_relief_frame = (self.register(lambda value: _choose_relief('FRAME.RELIEF.*', value)), '%P')
+        self.vcmd_relief_text = (self.register(lambda value: _choose_relief('TXT.RELIEF.*', value)), '%P')
 
         self.lbl_relief_frame = ttk.Label(self.scrolled_frame.frame_canvas, text='Стиль рамок фреймов:',
                                           style='Default.TLabel')
@@ -3903,9 +3903,9 @@ class CustomThemeSettingsW(tk.Toplevel):
             st_key = self.style_keys[i]
             st_val = STYLES[st_key][1][theme_name]
 
-            if st_key == 'RELIEF_FRAME':
+            if st_key == 'FRAME.RELIEF.*':
                 self.var_relief_frame.set(st_val)
-            elif st_key == 'RELIEF_TEXT':
+            elif st_key == 'TXT.RELIEF.*':
                 self.var_relief_text.set(st_val)
             else:
                 self.buttons[i].config(bg=st_val, activebackground=st_val)
@@ -3954,8 +3954,8 @@ class CustomThemeSettingsW(tk.Toplevel):
 
     # Сохранить пользовательскую тему
     def save(self):
-        self.custom_styles['RELIEF_FRAME'] = self.var_relief_frame.get()
-        self.custom_styles['RELIEF_TEXT'] = self.var_relief_text.get()
+        self.custom_styles['FRAME.RELIEF.*'] = self.var_relief_frame.get()
+        self.custom_styles['TXT.RELIEF.*'] = self.var_relief_text.get()
         filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
         with open(filepath, 'w', encoding='utf-8') as file:
             file.write(f'{REQUIRED_THEME_VERSION}')
@@ -3988,9 +3988,9 @@ class CustomThemeSettingsW(tk.Toplevel):
                 for i in range(len(self.style_keys)):
                     el = self.style_keys[i]
 
-                    if el == 'RELIEF_FRAME':
+                    if el == 'FRAME.RELIEF.*':
                         self.var_relief_frame.set(vals[i])
-                    elif el == 'RELIEF_TEXT':
+                    elif el == 'TXT.RELIEF.*':
                         self.var_relief_text.set(vals[i])
                     else:
                         self.buttons[i].config(bg=vals[i], activebackground=vals[i])
@@ -4005,9 +4005,9 @@ class CustomThemeSettingsW(tk.Toplevel):
                 el = var
                 val = last_action[1]
                 self.custom_styles[el] = val
-                if el == 'RELIEF_FRAME':
+                if el == 'FRAME.RELIEF.*':
                     self.var_relief_frame.set(val)
-                elif el == 'RELIEF_TEXT':
+                elif el == 'TXT.RELIEF.*':
                     self.var_relief_text.set(val)
                 else:
                     i = self.style_keys.index(el)
@@ -4029,9 +4029,9 @@ class CustomThemeSettingsW(tk.Toplevel):
                 for i in range(len(self.style_keys)):
                     el = self.style_keys[i]
 
-                    if el == 'RELIEF_FRAME':
+                    if el == 'FRAME.RELIEF.*':
                         self.var_relief_frame.set(vals[i])
-                    elif el == 'RELIEF_TEXT':
+                    elif el == 'TXT.RELIEF.*':
                         self.var_relief_text.set(vals[i])
                     else:
                         self.buttons[i].config(bg=vals[i], activebackground=vals[i])
@@ -4046,9 +4046,9 @@ class CustomThemeSettingsW(tk.Toplevel):
                 el = var
                 val = last_undo_action[2]
                 self.custom_styles[el] = val
-                if el == 'RELIEF_FRAME':
+                if el == 'FRAME.RELIEF.*':
                     self.var_relief_frame.set(val)
-                elif el == 'RELIEF_TEXT':
+                elif el == 'TXT.RELIEF.*':
                     self.var_relief_text.set(val)
                 else:
                     i = self.style_keys.index(el)
@@ -4072,9 +4072,9 @@ class CustomThemeSettingsW(tk.Toplevel):
 
                 self.custom_styles[el] = file.readline().strip()
 
-                if el == 'RELIEF_FRAME':
+                if el == 'FRAME.RELIEF.*':
                     self.var_relief_frame.set(self.custom_styles[el])
-                elif el == 'RELIEF_TEXT':
+                elif el == 'TXT.RELIEF.*':
                     self.var_relief_text.set(self.custom_styles[el])
                 else:
                     self.buttons[i].config(bg=self.custom_styles[el], activebackground=self.custom_styles[el])
@@ -4083,55 +4083,55 @@ class CustomThemeSettingsW(tk.Toplevel):
 
     # Обновить стили в демонстрации
     def set_demo_styles(self):
-        self.custom_styles['RELIEF_FRAME'] = self.var_relief_frame.get()
-        self.custom_styles['RELIEF_TEXT'] = self.var_relief_text.get()
+        self.custom_styles['FRAME.RELIEF.*'] = self.var_relief_frame.get()
+        self.custom_styles['TXT.RELIEF.*'] = self.var_relief_text.get()
 
-        self.txt_demo.config(relief=self.custom_styles['RELIEF_TEXT'],
-                             bg=self.custom_styles['BG_FIELDS'],
-                             fg=self.custom_styles['FG'],
-                             selectbackground=self.custom_styles['SELECT_BG'],
-                             selectforeground=self.custom_styles['SELECT_FG'],
-                             highlightbackground=self.custom_styles['BORDERCOLOR'])
+        self.txt_demo.config(relief=self.custom_styles['TXT.RELIEF.*'],
+                             bg=self.custom_styles['*.BG.ENTRY'],
+                             fg=self.custom_styles['*.FG.*'],
+                             selectbackground=self.custom_styles['*.BG.SEL'],
+                             selectforeground=self.custom_styles['*.FG.SEL'],
+                             highlightbackground=self.custom_styles['*.BORDER_CLR.*'])
 
         # Стиль label "demo default"
         self.st_lbl_default = ttk.Style()
         self.st_lbl_default.theme_use('alt')
         self.st_lbl_default.configure('DemoDefault.TLabel',
                                       font=('StdFont', _0_global_scale),
-                                      background=self.custom_styles['BG'],
-                                      foreground=self.custom_styles['FG'])
+                                      background=self.custom_styles['*.BG.*'],
+                                      foreground=self.custom_styles['*.FG.*'])
 
         # Стиль label "demo header"
         self.st_lbl_header = ttk.Style()
         self.st_lbl_header.theme_use('alt')
         self.st_lbl_header.configure('DemoHeader.TLabel',
                                      font=('StdFont', _0_global_scale + 5),
-                                     background=self.custom_styles['BG'],
-                                     foreground=self.custom_styles['FG'])
+                                     background=self.custom_styles['*.BG.*'],
+                                     foreground=self.custom_styles['*.FG.*'])
 
         # Стиль label "demo logo"
         self.st_lbl_logo = ttk.Style()
         self.st_lbl_logo.theme_use('alt')
         self.st_lbl_logo.configure('DemoLogo.TLabel',
                                    font=('Times', _0_global_scale + 11),
-                                   background=self.custom_styles['BG'],
-                                   foreground=self.custom_styles['FG_LOGO'])
+                                   background=self.custom_styles['*.BG.*'],
+                                   foreground=self.custom_styles['*.FG.LOGO'])
 
         # Стиль label "demo footer"
         self.st_lbl_footer = ttk.Style()
         self.st_lbl_footer.theme_use('alt')
         self.st_lbl_footer.configure('DemoFooter.TLabel',
                                      font=('StdFont', _0_global_scale - 2),
-                                     background=self.custom_styles['BG'],
-                                     foreground=self.custom_styles['FG_FOOTER'])
+                                     background=self.custom_styles['*.BG.*'],
+                                     foreground=self.custom_styles['*.FG.FOOTER'])
 
         # Стиль label "demo warn"
         self.st_lbl_warn = ttk.Style()
         self.st_lbl_warn.theme_use('alt')
         self.st_lbl_warn.configure('DemoWarn.TLabel',
                                    font=('StdFont', _0_global_scale),
-                                   background=self.custom_styles['BG'],
-                                   foreground=self.custom_styles['FG_WARN'])
+                                   background=self.custom_styles['*.BG.*'],
+                                   foreground=self.custom_styles['*.FG.WARN'])
 
         # Стиль entry "demo"
         self.st_entry = ttk.Style()
@@ -4139,14 +4139,14 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_entry.configure('DemoDefault.TEntry',
                                 font=('StdFont', _0_global_scale))
         self.st_entry.map('DemoDefault.TEntry',
-                          fieldbackground=[('readonly', self.custom_styles['BG']),
-                                           ('!readonly', self.custom_styles['BG_FIELDS'])],
-                          foreground=[('readonly', self.custom_styles['FG']),
-                                      ('!readonly', self.custom_styles['FG_ENTRY'])],
-                          selectbackground=[('readonly', self.custom_styles['SELECT_BG']),
-                                            ('!readonly', self.custom_styles['SELECT_BG'])],
-                          selectforeground=[('readonly', self.custom_styles['SELECT_FG']),
-                                            ('!readonly', self.custom_styles['SELECT_FG'])])
+                          fieldbackground=[('readonly', self.custom_styles['*.BG.*']),
+                                           ('!readonly', self.custom_styles['*.BG.ENTRY'])],
+                          foreground=[('readonly', self.custom_styles['*.FG.*']),
+                                      ('!readonly', self.custom_styles['*.FG.ENTRY'])],
+                          selectbackground=[('readonly', self.custom_styles['*.BG.SEL']),
+                                            ('!readonly', self.custom_styles['*.BG.SEL'])],
+                          selectforeground=[('readonly', self.custom_styles['*.FG.SEL']),
+                                            ('!readonly', self.custom_styles['*.FG.SEL'])])
 
         # Стиль button "demo default"
         self.st_btn_default = ttk.Style()
@@ -4158,12 +4158,12 @@ class CustomThemeSettingsW(tk.Toplevel):
                                 relief=[('pressed', 'sunken'),
                                         ('active', 'flat'),
                                         ('!active', 'raised')],
-                                background=[('pressed', self.custom_styles['BTN_BG_SEL']),
-                                            ('active', self.custom_styles['BTN_BG']),
-                                            ('!active', self.custom_styles['BTN_BG'])],
-                                foreground=[('pressed', self.custom_styles['FG']),
-                                            ('active', self.custom_styles['FG']),
-                                            ('!active', self.custom_styles['FG'])])
+                                background=[('pressed', self.custom_styles['BTN.BG.SEL']),
+                                            ('active', self.custom_styles['BTN.BG.*']),
+                                            ('!active', self.custom_styles['BTN.BG.*'])],
+                                foreground=[('pressed', self.custom_styles['*.FG.*']),
+                                            ('active', self.custom_styles['*.FG.*']),
+                                            ('!active', self.custom_styles['*.FG.*'])])
 
         # Стиль button "demo disabled"
         self.st_btn_disabled = ttk.Style()
@@ -4174,10 +4174,10 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_disabled.map('DemoDisabled.TButton',
                                  relief=[('active', 'raised'),
                                          ('!active', 'raised')],
-                                 background=[('active', self.custom_styles['BTN_BG_DISABL']),
-                                             ('!active', self.custom_styles['BTN_BG_DISABL'])],
-                                 foreground=[('active', self.custom_styles['BTN_FG_DISABL']),
-                                             ('!active', self.custom_styles['BTN_FG_DISABL'])])
+                                 background=[('active', self.custom_styles['BTN.BG.DISABL']),
+                                             ('!active', self.custom_styles['BTN.BG.DISABL'])],
+                                 foreground=[('active', self.custom_styles['BTN.FG.DISABL']),
+                                             ('!active', self.custom_styles['BTN.FG.DISABL'])])
 
         # Стиль button "demo yes"
         self.st_btn_yes = ttk.Style()
@@ -4189,12 +4189,12 @@ class CustomThemeSettingsW(tk.Toplevel):
                             relief=[('pressed', 'sunken'),
                                     ('active', 'flat'),
                                     ('!active', 'raised')],
-                            background=[('pressed', self.custom_styles['BTN_Y_BG_SEL']),
-                                        ('active', self.custom_styles['BTN_Y_BG']),
-                                        ('!active', self.custom_styles['BTN_Y_BG'])],
-                            foreground=[('pressed', self.custom_styles['FG']),
-                                        ('active', self.custom_styles['FG']),
-                                        ('!active', self.custom_styles['FG'])])
+                            background=[('pressed', self.custom_styles['BTN.BG.Y_SEL']),
+                                        ('active', self.custom_styles['BTN.BG.Y']),
+                                        ('!active', self.custom_styles['BTN.BG.Y'])],
+                            foreground=[('pressed', self.custom_styles['*.FG.*']),
+                                        ('active', self.custom_styles['*.FG.*']),
+                                        ('!active', self.custom_styles['*.FG.*'])])
 
         # Стиль button "demo no"
         self.st_btn_no = ttk.Style()
@@ -4206,12 +4206,12 @@ class CustomThemeSettingsW(tk.Toplevel):
                            relief=[('pressed', 'sunken'),
                                    ('active', 'flat'),
                                    ('!active', 'raised')],
-                           background=[('pressed', self.custom_styles['BTN_N_BG_SEL']),
-                                       ('active', self.custom_styles['BTN_N_BG']),
-                                       ('!active', self.custom_styles['BTN_N_BG'])],
-                           foreground=[('pressed', self.custom_styles['FG']),
-                                       ('active', self.custom_styles['FG']),
-                                       ('!active', self.custom_styles['FG'])])
+                           background=[('pressed', self.custom_styles['BTN.BG.N_SEL']),
+                                       ('active', self.custom_styles['BTN.BG.N']),
+                                       ('!active', self.custom_styles['BTN.BG.N'])],
+                           foreground=[('pressed', self.custom_styles['*.FG.*']),
+                                       ('active', self.custom_styles['*.FG.*']),
+                                       ('!active', self.custom_styles['*.FG.*'])])
 
         # Стиль button "demo image"
         self.st_btn_image = ttk.Style()
@@ -4223,28 +4223,28 @@ class CustomThemeSettingsW(tk.Toplevel):
                               relief=[('pressed', 'flat'),
                                       ('active', 'flat'),
                                       ('!active', 'flat')],
-                              background=[('pressed', self.custom_styles['BTN_IMG_BG_SEL']),
-                                          ('active', self.custom_styles['BTN_IMG_BG_HOV']),
-                                          ('!active', self.custom_styles['BG'])],
-                              foreground=[('pressed', self.custom_styles['FG']),
-                                          ('active', self.custom_styles['FG']),
-                                          ('!active', self.custom_styles['FG'])])
+                              background=[('pressed', self.custom_styles['BTN.BG.IMG_SEL']),
+                                          ('active', self.custom_styles['BTN.BG.IMG_HOV']),
+                                          ('!active', self.custom_styles['*.BG.*'])],
+                              foreground=[('pressed', self.custom_styles['*.FG.*']),
+                                          ('active', self.custom_styles['*.FG.*']),
+                                          ('!active', self.custom_styles['*.FG.*'])])
 
         # Стиль checkbutton "demo"
         self.st_check = ttk.Style()
         self.st_check.theme_use('alt')
         self.st_check.map('DemoDefault.TCheckbutton',
-                          background=[('active', self.custom_styles['CHECK_BG_SEL']),
-                                      ('!active', self.custom_styles['BG'])])
+                          background=[('active', self.custom_styles['CHECK.BG.SEL']),
+                                      ('!active', self.custom_styles['*.BG.*'])])
 
         # Стиль frame "demo default"
         self.st_frame_default = ttk.Style()
         self.st_frame_default.theme_use('alt')
         self.st_frame_default.configure('DemoDefault.TFrame',
                                         borderwidth=1,
-                                        relief=self.custom_styles['RELIEF_FRAME'],
-                                        background=self.custom_styles['BG'],
-                                        bordercolor=self.custom_styles['BORDERCOLOR'])
+                                        relief=self.custom_styles['FRAME.RELIEF.*'],
+                                        background=self.custom_styles['*.BG.*'],
+                                        bordercolor=self.custom_styles['*.BORDER_CLR.*'])
 
         # Стиль frame "window"
         self.st_frame_window = ttk.Style()
@@ -4252,19 +4252,19 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_frame_window.configure('Window.TFrame',
                                        borderwidth=1,
                                        relief='groove',
-                                       background=self.custom_styles['BG'],
+                                       background=self.custom_styles['*.BG.*'],
                                        bordercolor='#888888')
 
         # Стиль scrollbar "vertical"
         self.st_vscroll = ttk.Style()
         self.st_vscroll.theme_use('alt')
         self.st_vscroll.map('Demo.Vertical.TScrollbar',
-                            troughcolor=[('disabled', self.custom_styles['BG']),
-                                         ('pressed', self.custom_styles['SCROLL_BG_SEL']),
-                                         ('!pressed', self.custom_styles['SCROLL_BG'])],
-                            background=[('disabled', self.custom_styles['BG']),
-                                        ('pressed', self.custom_styles['SCROLL_FG_SEL']),
-                                        ('!pressed', self.custom_styles['SCROLL_FG'])])
+                            troughcolor=[('disabled', self.custom_styles['*.BG.*']),
+                                         ('pressed', self.custom_styles['SCROLL.BG.SEL']),
+                                         ('!pressed', self.custom_styles['SCROLL.BG.*'])],
+                            background=[('disabled', self.custom_styles['*.BG.*']),
+                                        ('pressed', self.custom_styles['SCROLL.FG.SEL']),
+                                        ('!pressed', self.custom_styles['SCROLL.FG.*'])])
 
         return True
 
@@ -4306,7 +4306,7 @@ class LearnW(tk.Toplevel):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Учёба')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.current_key = None  # Текущее слово
@@ -4333,9 +4333,9 @@ class LearnW(tk.Toplevel):
         self.lbl_count = ttk.Label(self, text=f'Отвечено: 0/{self.len_of_pool}', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
-                               font=('StdFont', _0_global_scale), bg=STYLES['BG_FIELDS'][1][th], fg=STYLES['FG'][1][th],
-                               selectbackground=STYLES['SELECT_BG'][1][th], selectforeground=STYLES['SELECT_FG'][1][th],
-                               relief=STYLES['RELIEF_TEXT'][1][th], highlightbackground=STYLES['BORDERCOLOR'][1][th])
+                               font=('StdFont', _0_global_scale), bg=STYLES['*.BG.ENTRY'][1][th], fg=STYLES['*.FG.*'][1][th],
+                               selectbackground=STYLES['*.BG.SEL'][1][th], selectforeground=STYLES['*.FG.SEL'][1][th],
+                               relief=STYLES['TXT.RELIEF.*'][1][th], highlightbackground=STYLES['*.BORDER_CLR.*'][1][th])
         self.scrollbar.config(command=self.txt_dct.yview)
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
@@ -4776,7 +4776,7 @@ class PrintW(tk.Toplevel):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Словарь "{_0_global_dct_savename}"')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.current_tab = 0  # Номер текущей вкладки
@@ -5987,7 +5987,7 @@ class AddW(tk.Toplevel):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Добавление статьи')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.dct_key = None
@@ -6108,7 +6108,7 @@ class SettingsW(tk.Toplevel):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Настройки')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.parent = parent
@@ -6656,15 +6656,15 @@ class SettingsW(tk.Toplevel):
         set_image(self.btn_scale_minus, self.img_minus, img_delete, '-')
 
         # Установка некоторых стилей для окна настроек
-        self.configure(bg=STYLES['BG'][1][th])
-        self.scrolled_frame_dcts.canvas.configure(bg=STYLES['BG_FIELDS'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.scrolled_frame_dcts.canvas.configure(bg=STYLES['*.BG.ENTRY'][1][th])
 
         # Установка фона для главного окна
-        self.parent.configure(bg=STYLES['BG'][1][th])
+        self.parent.configure(bg=STYLES['*.BG.*'][1][th])
 
         # Установка фона для окна уведомления об обновлении
         try:
-            _0_global_window_last_version.configure(bg=STYLES['BG'][1][th])
+            _0_global_window_last_version.configure(bg=STYLES['*.BG.*'][1][th])
         except:  # Если окно обновления не открыто
             pass
 
@@ -6733,7 +6733,7 @@ class NewVersionAvailableW(tk.Toplevel):
         super().__init__(parent)
         self.title('Доступна новая версия')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
         self.var_url = tk.StringVar(value=URL_GITHUB)  # Ссылка, для загрузки новой версии
@@ -6840,7 +6840,7 @@ class MainW(tk.Tk):
         self.title(PROGRAM_NAME)
         self.eval('tk::PlaceWindow . center')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['BG'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][th])
 
         self.set_ttk_styles()  # Установка ttk-стилей
 
@@ -7022,48 +7022,48 @@ class MainW(tk.Tk):
         self.st_lbl_default.theme_use('alt')
         self.st_lbl_default.configure('Default.TLabel',
                                       font=('StdFont', _0_global_scale),
-                                      background=STYLES['BG'][1][th],
-                                      foreground=STYLES['FG'][1][th])
+                                      background=STYLES['*.BG.*'][1][th],
+                                      foreground=STYLES['*.FG.*'][1][th])
 
         # Стиль label "header"
         self.st_lbl_header = ttk.Style()
         self.st_lbl_header.theme_use('alt')
         self.st_lbl_header.configure('Header.TLabel',
                                      font=('StdFont', _0_global_scale + 5),
-                                     background=STYLES['BG'][1][th],
-                                     foreground=STYLES['FG'][1][th])
+                                     background=STYLES['*.BG.*'][1][th],
+                                     foreground=STYLES['*.FG.*'][1][th])
 
         # Стиль label "logo"
         self.st_lbl_logo = ttk.Style()
         self.st_lbl_logo.theme_use('alt')
         self.st_lbl_logo.configure('Logo.TLabel',
                                    font=('Times', _0_global_scale + 11),
-                                   background=STYLES['BG'][1][th],
-                                   foreground=STYLES['FG_LOGO'][1][th])
+                                   background=STYLES['*.BG.*'][1][th],
+                                   foreground=STYLES['*.FG.LOGO'][1][th])
 
         # Стиль label "footer"
         self.st_lbl_footer = ttk.Style()
         self.st_lbl_footer.theme_use('alt')
         self.st_lbl_footer.configure('Footer.TLabel',
                                      font=('StdFont', _0_global_scale - 2),
-                                     background=STYLES['BG'][1][th],
-                                     foreground=STYLES['FG_FOOTER'][1][th])
+                                     background=STYLES['*.BG.*'][1][th],
+                                     foreground=STYLES['*.FG.FOOTER'][1][th])
 
         # Стиль label "warn"
         self.st_lbl_warn = ttk.Style()
         self.st_lbl_warn.theme_use('alt')
         self.st_lbl_warn.configure('Warn.TLabel',
                                    font=('StdFont', _0_global_scale),
-                                   background=STYLES['BG'][1][th],
-                                   foreground=STYLES['FG_WARN'][1][th])
+                                   background=STYLES['*.BG.*'][1][th],
+                                   foreground=STYLES['*.FG.WARN'][1][th])
 
         # Стиль label "note"
         self.st_lbl_note = ttk.Style()
         self.st_lbl_note.theme_use('alt')
         self.st_lbl_note.configure('Note.TLabel',
                                    font=('DejaVu Sans Mono', _0_global_scale + 1),
-                                   background=STYLES['BTN_NOTE_BG'][1][th],
-                                   foreground=STYLES['BTN_NOTE_FG'][1][th])
+                                   background=STYLES['BTN.BG.NOTE'][1][th],
+                                   foreground=STYLES['BTN.FG.NOTE'][1][th])
 
         # Стиль entry "default"
         self.st_entry = ttk.Style()
@@ -7071,14 +7071,14 @@ class MainW(tk.Tk):
         self.st_entry.configure('Default.TEntry',
                                 font=('StdFont', _0_global_scale))
         self.st_entry.map('Default.TEntry',
-                          fieldbackground=[('readonly', STYLES['BG'][1][th]),
-                                           ('!readonly', STYLES['BG_FIELDS'][1][th])],
-                          foreground=[('readonly', STYLES['FG'][1][th]),
-                                      ('!readonly', STYLES['FG_ENTRY'][1][th])],
-                          selectbackground=[('readonly', STYLES['SELECT_BG'][1][th]),
-                                            ('!readonly', STYLES['SELECT_BG'][1][th])],
-                          selectforeground=[('readonly', STYLES['SELECT_FG'][1][th]),
-                                            ('!readonly', STYLES['SELECT_FG'][1][th])])
+                          fieldbackground=[('readonly', STYLES['*.BG.*'][1][th]),
+                                           ('!readonly', STYLES['*.BG.ENTRY'][1][th])],
+                          foreground=[('readonly', STYLES['*.FG.*'][1][th]),
+                                      ('!readonly', STYLES['*.FG.ENTRY'][1][th])],
+                          selectbackground=[('readonly', STYLES['*.BG.SEL'][1][th]),
+                                            ('!readonly', STYLES['*.BG.SEL'][1][th])],
+                          selectforeground=[('readonly', STYLES['*.FG.SEL'][1][th]),
+                                            ('!readonly', STYLES['*.FG.SEL'][1][th])])
 
         # Стиль button "default"
         self.st_btn_default = ttk.Style()
@@ -7090,12 +7090,12 @@ class MainW(tk.Tk):
                                 relief=[('pressed', 'sunken'),
                                         ('active', 'flat'),
                                         ('!active', 'raised')],
-                                background=[('pressed', STYLES['BTN_BG_SEL'][1][th]),
-                                            ('active', STYLES['BTN_BG'][1][th]),
-                                            ('!active', STYLES['BTN_BG'][1][th])],
-                                foreground=[('pressed', STYLES['FG'][1][th]),
-                                            ('active', STYLES['FG'][1][th]),
-                                            ('!active', STYLES['FG'][1][th])])
+                                background=[('pressed', STYLES['BTN.BG.SEL'][1][th]),
+                                            ('active', STYLES['BTN.BG.*'][1][th]),
+                                            ('!active', STYLES['BTN.BG.*'][1][th])],
+                                foreground=[('pressed', STYLES['*.FG.*'][1][th]),
+                                            ('active', STYLES['*.FG.*'][1][th]),
+                                            ('!active', STYLES['*.FG.*'][1][th])])
 
         # Стиль button "disabled" (для выключенных "default")
         self.st_btn_disabled = ttk.Style()
@@ -7106,10 +7106,10 @@ class MainW(tk.Tk):
         self.st_btn_disabled.map('Disabled.TButton',
                                  relief=[('active', 'raised'),
                                          ('!active', 'raised')],
-                                 background=[('active', STYLES['BTN_BG_DISABL'][1][th]),
-                                             ('!active', STYLES['BTN_BG_DISABL'][1][th])],
-                                 foreground=[('active', STYLES['BTN_FG_DISABL'][1][th]),
-                                             ('!active', STYLES['BTN_FG_DISABL'][1][th])])
+                                 background=[('active', STYLES['BTN.BG.DISABL'][1][th]),
+                                             ('!active', STYLES['BTN.BG.DISABL'][1][th])],
+                                 foreground=[('active', STYLES['BTN.FG.DISABL'][1][th]),
+                                             ('!active', STYLES['BTN.FG.DISABL'][1][th])])
 
         # Стиль button "yes"
         self.st_btn_yes = ttk.Style()
@@ -7121,12 +7121,12 @@ class MainW(tk.Tk):
                             relief=[('pressed', 'sunken'),
                                     ('active', 'flat'),
                                     ('!active', 'raised')],
-                            background=[('pressed', STYLES['BTN_Y_BG_SEL'][1][th]),
-                                        ('active', STYLES['BTN_Y_BG'][1][th]),
-                                        ('!active', STYLES['BTN_Y_BG'][1][th])],
-                            foreground=[('pressed', STYLES['FG'][1][th]),
-                                        ('active', STYLES['FG'][1][th]),
-                                        ('!active', STYLES['FG'][1][th])])
+                            background=[('pressed', STYLES['BTN.BG.Y_SEL'][1][th]),
+                                        ('active', STYLES['BTN.BG.Y'][1][th]),
+                                        ('!active', STYLES['BTN.BG.Y'][1][th])],
+                            foreground=[('pressed', STYLES['*.FG.*'][1][th]),
+                                        ('active', STYLES['*.FG.*'][1][th]),
+                                        ('!active', STYLES['*.FG.*'][1][th])])
 
         # Стиль button "no"
         self.st_btn_no = ttk.Style()
@@ -7138,12 +7138,12 @@ class MainW(tk.Tk):
                            relief=[('pressed', 'sunken'),
                                    ('active', 'flat'),
                                    ('!active', 'raised')],
-                           background=[('pressed', STYLES['BTN_N_BG_SEL'][1][th]),
-                                       ('active', STYLES['BTN_N_BG'][1][th]),
-                                       ('!active', STYLES['BTN_N_BG'][1][th])],
-                           foreground=[('pressed', STYLES['FG'][1][th]),
-                                       ('active', STYLES['FG'][1][th]),
-                                       ('!active', STYLES['FG'][1][th])])
+                           background=[('pressed', STYLES['BTN.BG.N_SEL'][1][th]),
+                                       ('active', STYLES['BTN.BG.N'][1][th]),
+                                       ('!active', STYLES['BTN.BG.N'][1][th])],
+                           foreground=[('pressed', STYLES['*.FG.*'][1][th]),
+                                       ('active', STYLES['*.FG.*'][1][th]),
+                                       ('!active', STYLES['*.FG.*'][1][th])])
 
         # Стиль button "image"
         self.st_btn_image = ttk.Style()
@@ -7155,12 +7155,12 @@ class MainW(tk.Tk):
                               relief=[('pressed', 'flat'),
                                       ('active', 'flat'),
                                       ('!active', 'flat')],
-                              background=[('pressed', STYLES['BTN_IMG_BG_SEL'][1][th]),
-                                          ('active', STYLES['BTN_IMG_BG_HOV'][1][th]),
-                                          ('!active', STYLES['BG'][1][th])],
-                              foreground=[('pressed', STYLES['FG'][1][th]),
-                                          ('active', STYLES['FG'][1][th]),
-                                          ('!active', STYLES['FG'][1][th])])
+                              background=[('pressed', STYLES['BTN.BG.IMG_SEL'][1][th]),
+                                          ('active', STYLES['BTN.BG.IMG_HOV'][1][th]),
+                                          ('!active', STYLES['*.BG.*'][1][th])],
+                              foreground=[('pressed', STYLES['*.FG.*'][1][th]),
+                                          ('active', STYLES['*.FG.*'][1][th]),
+                                          ('!active', STYLES['*.FG.*'][1][th])])
 
         # Стиль button "note"
         self.st_btn_note = ttk.Style()
@@ -7172,12 +7172,12 @@ class MainW(tk.Tk):
                              relief=[('pressed', 'flat'),
                                      ('active', 'flat'),
                                      ('!active', 'flat')],
-                             background=[('pressed', STYLES['BTN_NOTE_BG_SEL'][1][th]),
-                                         ('active', STYLES['BTN_NOTE_BG_HOV'][1][th]),
-                                         ('!active', STYLES['BTN_NOTE_BG'][1][th])],
-                             foreground=[('pressed', STYLES['BTN_NOTE_FG_SEL'][1][th]),
-                                         ('active', STYLES['BTN_NOTE_FG_HOV'][1][th]),
-                                         ('!active', STYLES['BTN_NOTE_FG'][1][th])])
+                             background=[('pressed', STYLES['BTN.BG.NOTE_SEL'][1][th]),
+                                         ('active', STYLES['BTN.BG.NOTE_HOV'][1][th]),
+                                         ('!active', STYLES['BTN.BG.NOTE'][1][th])],
+                             foreground=[('pressed', STYLES['BTN.FG.NOTE_SEL'][1][th]),
+                                         ('active', STYLES['BTN.FG.NOTE_HOV'][1][th]),
+                                         ('!active', STYLES['BTN.FG.NOTE'][1][th])])
 
         # Стиль button "note selected"
         self.st_btn_note_selected = ttk.Style()
@@ -7189,19 +7189,19 @@ class MainW(tk.Tk):
                                       relief=[('pressed', 'flat'),
                                               ('active', 'flat'),
                                               ('!active', 'flat')],
-                                      background=[('pressed', STYLES['BTN_NSEL_BG_SEL'][1][th]),
-                                                  ('active', STYLES['BTN_NSEL_BG_HOV'][1][th]),
-                                                  ('!active', STYLES['BTN_NSEL_BG'][1][th])],
-                                      foreground=[('pressed', STYLES['BTN_NSEL_FG_SEL'][1][th]),
-                                                  ('active', STYLES['BTN_NSEL_FG_HOV'][1][th]),
-                                                  ('!active', STYLES['BTN_NSEL_FG'][1][th])])
+                                      background=[('pressed', STYLES['FLAT_BTN.BG.SEL'][1][th]),
+                                                  ('active', STYLES['FLAT_BTN.BG.HOV'][1][th]),
+                                                  ('!active', STYLES['FLAT_BTN.BG.*'][1][th])],
+                                      foreground=[('pressed', STYLES['FLAT_BTN.FG.SEL'][1][th]),
+                                                  ('active', STYLES['FLAT_BTN.FG.HOV'][1][th]),
+                                                  ('!active', STYLES['FLAT_BTN.FG.*'][1][th])])
 
         # Стиль checkbutton "default"
         self.st_check = ttk.Style()
         self.st_check.theme_use('alt')
         self.st_check.map('Default.TCheckbutton',
-                          background=[('active', STYLES['CHECK_BG_SEL'][1][th]),
-                                      ('!active', STYLES['BG'][1][th])])
+                          background=[('active', STYLES['CHECK.BG.SEL'][1][th]),
+                                      ('!active', STYLES['*.BG.*'][1][th])])
 
         # Стиль combobox "default"
         self.st_combo = ttk.Style()
@@ -7209,36 +7209,36 @@ class MainW(tk.Tk):
         self.st_combo.configure('Default.TCombobox',
                                 font=('DejaVu Sans Mono', _0_global_scale))
         self.st_combo.map('Default.TCombobox',
-                          background=[('readonly', STYLES['BTN_BG'][1][th]),
-                                      ('!readonly', STYLES['BTN_BG'][1][th])],
-                          fieldbackground=[('readonly', STYLES['BG_FIELDS'][1][th]),
-                                           ('!readonly', STYLES['BG_FIELDS'][1][th])],
-                          selectbackground=[('readonly', STYLES['BG_FIELDS'][1][th]),
-                                            ('!readonly', STYLES['BG_FIELDS'][1][th])],
-                          highlightbackground=[('readonly', STYLES['BORDERCOLOR'][1][th]),
-                                               ('!readonly', STYLES['BORDERCOLOR'][1][th])],
-                          foreground=[('readonly', STYLES['FG'][1][th]),
-                                      ('!readonly', STYLES['FG'][1][th])],
-                          selectforeground=[('readonly', STYLES['FG'][1][th]),
-                                            ('!readonly', STYLES['FG'][1][th])])
+                          background=[('readonly', STYLES['BTN.BG.*'][1][th]),
+                                      ('!readonly', STYLES['BTN.BG.*'][1][th])],
+                          fieldbackground=[('readonly', STYLES['*.BG.ENTRY'][1][th]),
+                                           ('!readonly', STYLES['*.BG.ENTRY'][1][th])],
+                          selectbackground=[('readonly', STYLES['*.BG.ENTRY'][1][th]),
+                                            ('!readonly', STYLES['*.BG.ENTRY'][1][th])],
+                          highlightbackground=[('readonly', STYLES['*.BORDER_CLR.*'][1][th]),
+                                               ('!readonly', STYLES['*.BORDER_CLR.*'][1][th])],
+                          foreground=[('readonly', STYLES['*.FG.*'][1][th]),
+                                      ('!readonly', STYLES['*.FG.*'][1][th])],
+                          selectforeground=[('readonly', STYLES['*.FG.*'][1][th]),
+                                            ('!readonly', STYLES['*.FG.*'][1][th])])
 
         # Стиль всплывающего списка combobox
         self.option_add('*TCombobox*Listbox*Font', ('DejaVu Sans Mono', _0_global_scale))
-        self.option_add('*TCombobox*Listbox*Background', STYLES['BG_FIELDS'][1][th])
-        self.option_add('*TCombobox*Listbox*Foreground', STYLES['FG'][1][th])
-        self.option_add('*TCombobox*Listbox*selectBackground', STYLES['SELECT_BG'][1][th])
-        self.option_add('*TCombobox*Listbox*selectForeground', STYLES['SELECT_FG'][1][th])
+        self.option_add('*TCombobox*Listbox*Background', STYLES['*.BG.ENTRY'][1][th])
+        self.option_add('*TCombobox*Listbox*Foreground', STYLES['*.FG.*'][1][th])
+        self.option_add('*TCombobox*Listbox*selectBackground', STYLES['*.BG.SEL'][1][th])
+        self.option_add('*TCombobox*Listbox*selectForeground', STYLES['*.FG.SEL'][1][th])
 
         # Стиль scrollbar "vertical"
         self.st_vscroll = ttk.Style()
         self.st_vscroll.theme_use('alt')
         self.st_vscroll.map('Vertical.TScrollbar',
-                            troughcolor=[('disabled', STYLES['BG'][1][th]),
-                                         ('pressed', STYLES['SCROLL_BG_SEL'][1][th]),
-                                         ('!pressed', STYLES['SCROLL_BG'][1][th])],
-                            background=[('disabled', STYLES['BG'][1][th]),
-                                        ('pressed', STYLES['SCROLL_FG_SEL'][1][th]),
-                                        ('!pressed', STYLES['SCROLL_FG'][1][th])])
+                            troughcolor=[('disabled', STYLES['*.BG.*'][1][th]),
+                                         ('pressed', STYLES['SCROLL.BG.SEL'][1][th]),
+                                         ('!pressed', STYLES['SCROLL.BG.*'][1][th])],
+                            background=[('disabled', STYLES['*.BG.*'][1][th]),
+                                        ('pressed', STYLES['SCROLL.FG.SEL'][1][th]),
+                                        ('!pressed', STYLES['SCROLL.FG.*'][1][th])])
 
         # Стиль notebook "default"
         self.st_note = ttk.Style()
@@ -7246,36 +7246,36 @@ class MainW(tk.Tk):
         self.st_note.configure('Default.TNotebook',
                                font=('StdFont', _0_global_scale))
         self.st_note.map('Default.TNotebook',
-                         troughcolor=[('active', STYLES['BG'][1][th]),
-                                      ('!active', STYLES['BG'][1][th])],
-                         background=[('selected', STYLES['BTN_BG_SEL'][1][th]),
-                                     ('!selected', STYLES['BG'][1][th])])
+                         troughcolor=[('active', STYLES['*.BG.*'][1][th]),
+                                      ('!active', STYLES['*.BG.*'][1][th])],
+                         background=[('selected', STYLES['BTN.BG.SEL'][1][th]),
+                                     ('!selected', STYLES['*.BG.*'][1][th])])
 
         # Стиль вкладок notebook
         self.st_note.configure('TNotebook.Tab',
                                font=('StdFont', _0_global_scale))
         self.st_note.map('TNotebook.Tab',
-                         background=[('selected', STYLES['TAB_BG_SEL'][1][th]),
-                                     ('!selected', STYLES['TAB_BG'][1][th])],
-                         foreground=[('selected', STYLES['TAB_FG_SEL'][1][th]),
-                                     ('!selected', STYLES['TAB_FG'][1][th])])
+                         background=[('selected', STYLES['TAB.BG.SEL'][1][th]),
+                                     ('!selected', STYLES['TAB.BG.*'][1][th])],
+                         foreground=[('selected', STYLES['TAB.FG.SEL'][1][th]),
+                                     ('!selected', STYLES['TAB.FG.*'][1][th])])
 
         # Стиль frame "default"
         self.st_frame_default = ttk.Style()
         self.st_frame_default.theme_use('alt')
         self.st_frame_default.configure('Default.TFrame',
                                         borderwidth=1,
-                                        relief=STYLES['RELIEF_FRAME'][1][th],
-                                        background=STYLES['BG'][1][th],
-                                        bordercolor=STYLES['BORDERCOLOR'][1][th])
+                                        relief=STYLES['FRAME.RELIEF.*'][1][th],
+                                        background=STYLES['*.BG.*'][1][th],
+                                        bordercolor=STYLES['*.BORDER_CLR.*'][1][th])
 
         # Стиль frame "invis"
         self.st_frame_invis = ttk.Style()
         self.st_frame_invis.theme_use('alt')
         self.st_frame_invis.configure('Invis.TFrame',
                                       borderwidth=0,
-                                      relief=STYLES['RELIEF_FRAME'][1][th],
-                                      background=STYLES['BG'][1][th])
+                                      relief=STYLES['FRAME.RELIEF.*'][1][th],
+                                      background=STYLES['*.BG.*'][1][th])
 
     # Установить фокус
     def set_focus(self):
