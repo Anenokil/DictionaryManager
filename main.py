@@ -24,49 +24,57 @@ DEFAULT_TH = THEMES[1]  # Тема по умолчанию
 
 # Стили
 # {стилизуемый_элемент: (описание, {тема: стиль})}
-STYLES = {'*.BG.*':              ('Цвет фона окна',                                {THEMES[1]: '#F0F0F0', THEMES[2]: '#222222'}),  # Цвет фона окна
-          '*.BG.ENTRY':          ('Цвет фона полей ввода',                         {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),  # Цвет фона полей ввода
-          '*.FG.*':              ('Цвет обычного текста',                          {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет обычного текста
-          '*.FG.LOGO':           ('Цвет текста логотипа',                          {THEMES[1]: '#FF8800', THEMES[2]: '#AA4600'}),  # Цвет текста логотипа
-          '*.FG.FOOTER':         ('Цвет текста нижнего колонтитула',               {THEMES[1]: '#666666', THEMES[2]: '#666666'}),  # Цвет текста нижнего колонтитула
-          '*.FG.WARN':           ('Цвет текста предупреждения',                    {THEMES[1]: '#DD2222', THEMES[2]: '#DD2222'}),  # Цвет текста предупреждения
-          '*.FG.ENTRY':          ('Цвет вводимого текста',                         {THEMES[1]: '#222222', THEMES[2]: '#777777'}),  # Цвет вводимого текста
-          '*.BG.SEL':            ('Цвет выделения фона',                           {THEMES[1]: '#BBBBBB', THEMES[2]: '#444444'}),  # Цвет выделения фона (selectbackground)
-          '*.FG.SEL':            ('Цвет выделения текста',                         {THEMES[1]: '#101010', THEMES[2]: '#A0A0A0'}),  # Цвет выделения текста (selectforeground)
-          'BTN.BG.*':            ('Цвет фона обычных кнопок',                      {THEMES[1]: '#D0D0D0', THEMES[2]: '#1E1E1E'}),  # Цвет фона обычных кнопок
-          'BTN.BG.ACT':          ('Цвет фона обычных кнопок при нажатии',          {THEMES[1]: '#BABABA', THEMES[2]: '#1A1A1A'}),  # Цвет фона обычных кнопок при нажатии
-          'BTN.BG.Y':            ('Цвет фона да-кнопок',                           {THEMES[1]: '#88DD88', THEMES[2]: '#446F44'}),  # Цвет фона да-кнопок
-          'BTN.BG.Y_ACT':        ('Цвет фона да-кнопок при нажатии',               {THEMES[1]: '#77CC77', THEMES[2]: '#558055'}),  # Цвет фона да-кнопок при нажатии
-          'BTN.BG.N':            ('Цвет фона нет-кнопок',                          {THEMES[1]: '#FF6666', THEMES[2]: '#803333'}),  # Цвет фона нет-кнопок
-          'BTN.BG.N_ACT':        ('Цвет фона нет-кнопок при нажатии',              {THEMES[1]: '#EE5555', THEMES[2]: '#904444'}),  # Цвет фона нет-кнопок при нажатии
-          'BTN.BG.IMG_HOV':      ('Цвет фона кнопок-картинок при наведении',       {THEMES[1]: '#E0E0E0', THEMES[2]: '#1E1E1E'}),  # Цвет фона кнопок-картинок при наведении
-          'BTN.BG.IMG_ACT':      ('Цвет фона кнопок-картинок при нажатии',         {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),  # Цвет фона кнопок-картинок при нажатии
-          'BTN.BG.DISABL':       ('Цвет фона выключенных кнопок',                  {THEMES[1]: '#D9D9D9', THEMES[2]: '#1E1E1E'}),  # Цвет фона выключенных кнопок
-          'BTN.FG.DISABL':       ('Цвет текста выключенных кнопок',                {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}),  # Цвет текста выключенных кнопок
-          'FLAT_BTN.BG.*':       ('Цвет фона кнопок-записей',                      {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),  # Цвет фона кнопок-записей
-          'FLAT_BTN.BG.HOV':     ('Цвет фона кнопок-записей при наведении',        {THEMES[1]: '#E0F1FF', THEMES[2]: '#1B1B1B'}),  # Цвет фона кнопок-записей при наведении
-          'FLAT_BTN.BG.ACT':     ('Цвет фона кнопок-записей при нажатии',          {THEMES[1]: '#CCE8FF', THEMES[2]: '#1F1F1F'}),  # Цвет фона кнопок-записей при нажатии
-          'FLAT_BTN.FG.*':       ('Цвет текста кнопок-записей',                    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей
-          'FLAT_BTN.FG.HOV':     ('Цвет текста кнопок-записей при наведении',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей при наведении
-          'FLAT_BTN.FG.ACT':     ('Цвет текста кнопок-записей при нажатии',        {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей при нажатии
-          'FLAT_BTN.BG.SEL':     ('Цвет фона выдел. кн.-записей',                  {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),  # Цвет фона выделенных кнопок-записей
-          'FLAT_BTN.BG.SEL_HOV': ('Цвет фона выдел. кн.-записей при наведении',    {THEMES[1]: '#A8FFD6', THEMES[2]: '#1B1B2A'}),  # Цвет фона выделенных кнопок-записей при наведении
-          'FLAT_BTN.BG.SEL_ACT': ('Цвет фона выдел. кн.-записей при нажатии',      {THEMES[1]: '#82FFC4', THEMES[2]: '#1B1B31'}),  # Цвет фона выделенных кнопок-записей при нажатии
-          'FLAT_BTN.FG.SEL':     ('Цвет текста выдел. кн.-записей',                {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей
-          'FLAT_BTN.FG.SEL_HOV': ('Цвет текста выдел. кн.-записей при наведении',  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей при наведении
-          'FLAT_BTN.FG.SEL_ACT': ('Цвет текста выдел. кн.-записей при нажатии',    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей при нажатии
-          'CHECK.BG.SEL':        ('Цвет фона переключателя при наведении на него', {THEMES[1]: '#DDDDDD', THEMES[2]: '#333333'}),  # Цвет фона переключателя при наведении на него
-          'SCROLL.BG.*':         ('Цвет фона ползунка',                            {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),  # Цвет фона ползунка
-          'SCROLL.BG.ACT':       ('Цвет фона ползунка при нажатии',                {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),  # Цвет фона ползунка при нажатии
-          'SCROLL.FG.*':         ('Цвет ползунка',                                 {THEMES[1]: '#CACACA', THEMES[2]: '#292929'}),  # Цвет ползунка
-          'SCROLL.FG.ACT':       ('Цвет ползунка при нажатии',                     {THEMES[1]: '#ABABAB', THEMES[2]: '#333333'}),  # Цвет ползунка при нажатии
-          'TAB.BG.*':            ('Цвет фона закрытой вкладки',                    {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),  # Цвет фона закрытой вкладки
-          'TAB.BG.SEL':          ('Цвет фона открытой вкладки',                    {THEMES[1]: '#EAEAEA', THEMES[2]: '#222222'}),  # Цвет фона открытой вкладки
-          'TAB.FG.*':            ('Цвет текста закрытой вкладки',                  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста закрытой вкладки
-          'TAB.FG.SEL':          ('Цвет текста открытой вкладки',                  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста открытой вкладки
-          'FRAME.RELIEF.*':      ('Стиль рамок фреймов',                           {THEMES[1]: 'groove',  THEMES[2]: 'solid'  }),  # Стиль рамок фреймов
-          'TXT.RELIEF.*':        ('Стиль рамок текстовых полей',                   {THEMES[1]: 'sunken',  THEMES[2]: 'solid'  }),  # Стиль рамок текстовых полей
-          '*.BORDER_CLR.*':      ('Цвет рамок',                                    {THEMES[1]: '#222222', THEMES[2]: '#111111'}),  # Цвет рамок (работает для solid)
+STYLES = {'*.BG.*':              ('Цвет фона окна',                                {THEMES[1]: '#F0F0F0', THEMES[2]: '#222222'}),
+          '*.BG.ENTRY':          ('Цвет фона полей ввода',                         {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
+          '*.FG.*':              ('Цвет обычного текста',                          {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+          '*.FG.LOGO':           ('Цвет текста логотипа',                          {THEMES[1]: '#FF8800', THEMES[2]: '#AA4600'}),
+          '*.FG.FOOTER':         ('Цвет текста нижнего колонтитула',               {THEMES[1]: '#666666', THEMES[2]: '#666666'}),
+          '*.FG.WARN':           ('Цвет текста предупреждения',                    {THEMES[1]: '#DD2222', THEMES[2]: '#DD2222'}),
+          '*.FG.ENTRY':          ('Цвет вводимого текста',                         {THEMES[1]: '#222222', THEMES[2]: '#777777'}),
+          '*.BG.SEL':            ('Цвет выделения фона',                           {THEMES[1]: '#BBBBBB', THEMES[2]: '#444444'}),
+          '*.FG.SEL':            ('Цвет выделения текста',                         {THEMES[1]: '#101010', THEMES[2]: '#A0A0A0'}),
+          'BTN.BG.*':            ('Цвет фона обычных кнопок',                      {THEMES[1]: '#D0D0D0', THEMES[2]: '#1E1E1E'}),
+          'BTN.BG.ACT':          ('Цвет фона обычных кнопок при нажатии',          {THEMES[1]: '#BABABA', THEMES[2]: '#1A1A1A'}),
+          'BTN.BG.Y':            ('Цвет фона да-кнопок',                           {THEMES[1]: '#88DD88', THEMES[2]: '#446F44'}),
+          'BTN.BG.Y_ACT':        ('Цвет фона да-кнопок при нажатии',               {THEMES[1]: '#77CC77', THEMES[2]: '#558055'}),
+          'BTN.BG.N':            ('Цвет фона нет-кнопок',                          {THEMES[1]: '#FF6666', THEMES[2]: '#803333'}),
+          'BTN.BG.N_ACT':        ('Цвет фона нет-кнопок при нажатии',              {THEMES[1]: '#EE5555', THEMES[2]: '#904444'}),
+          'BTN.BG.IMG_HOV':      ('Цвет фона кнопок-картинок при наведении',       {THEMES[1]: '#E0E0E0', THEMES[2]: '#1E1E1E'}),
+          'BTN.BG.IMG_ACT':      ('Цвет фона кнопок-картинок при нажатии',         {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),
+          'BTN.BG.DISABL':       ('Цвет фона выключенных кнопок',                  {THEMES[1]: '#D9D9D9', THEMES[2]: '#1E1E1E'}),
+          'BTN.FG.DISABL':       ('Цвет текста выключенных кнопок',                {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}),
+          'FLAT_BTN.BG.*':       ('Цвет фона кнопок-записей',                      {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
+         #'FLAT_BTN.BG.LIGHT':   ('Цвет фона кнопок-записей (светлые)',            {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
+         #'FLAT_BTN.BG.DARK':    ('Цвет фона кнопок-записей (тёмные)',             {THEMES[1]: '#EEEEEE', THEMES[2]: '#121212'}),
+          'FLAT_BTN.BG.HOV':     ('Цвет фона кнопок-записей при наведении',        {THEMES[1]: '#E0F1FF', THEMES[2]: '#1B1B1B'}),
+          'FLAT_BTN.BG.ACT':     ('Цвет фона кнопок-записей при нажатии',          {THEMES[1]: '#CCE8FF', THEMES[2]: '#1F1F1F'}),
+          'FLAT_BTN.FG.*':       ('Цвет текста кнопок-записей',                    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+         #'FLAT_BTN.FG.LIGHT':   ('Цвет текста кнопок-записей (светлые)',          {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+         #'FLAT_BTN.FG.DARK':    ('Цвет текста кнопок-записей (тёмные)',           {THEMES[1]: '#333333', THEMES[2]: '#A7A7A7'}),
+          'FLAT_BTN.FG.HOV':     ('Цвет текста кнопок-записей при наведении',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+          'FLAT_BTN.FG.ACT':     ('Цвет текста кнопок-записей при нажатии',        {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+          'FLAT_BTN.BG.SEL':     ('Цвет фона выдел. кн.-записей',                  {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),
+         #'FLAT_BTN.BG.SEL_L':   ('Цвет фона выдел. кн.-записей (светлые)',        {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),
+         #'FLAT_BTN.BG.SEL_D':   ('Цвет фона выдел. кн.-записей (тёмные)',         {THEMES[1]: '#BBEED7', THEMES[2]: '#101017'}),
+          'FLAT_BTN.BG.SEL_HOV': ('Цвет фона выдел. кн.-записей при наведении',    {THEMES[1]: '#A8FFD6', THEMES[2]: '#1B1B2A'}),
+          'FLAT_BTN.BG.SEL_ACT': ('Цвет фона выдел. кн.-записей при нажатии',      {THEMES[1]: '#82FFC4', THEMES[2]: '#1B1B31'}),
+          'FLAT_BTN.FG.SEL':     ('Цвет текста выдел. кн.-записей',                {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+         #'FLAT_BTN.FG.SEL_L':   ('Цвет текста выдел. кн.-записей (светлые)',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+         #'FLAT_BTN.FG.SEL_D':   ('Цвет текста выдел. кн.-записей (тёмные)',       {THEMES[1]: '#333333', THEMES[2]: '#A7A7A7'}),
+          'FLAT_BTN.FG.SEL_HOV': ('Цвет текста выдел. кн.-записей при наведении',  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+          'FLAT_BTN.FG.SEL_ACT': ('Цвет текста выдел. кн.-записей при нажатии',    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+          'CHECK.BG.SEL':        ('Цвет фона переключателя при наведении на него', {THEMES[1]: '#DDDDDD', THEMES[2]: '#333333'}),
+          'SCROLL.BG.*':         ('Цвет фона ползунка',                            {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),
+          'SCROLL.BG.ACT':       ('Цвет фона ползунка при нажатии',                {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),
+          'SCROLL.FG.*':         ('Цвет ползунка',                                 {THEMES[1]: '#CACACA', THEMES[2]: '#292929'}),
+          'SCROLL.FG.ACT':       ('Цвет ползунка при нажатии',                     {THEMES[1]: '#ABABAB', THEMES[2]: '#333333'}),
+          'TAB.BG.*':            ('Цвет фона закрытой вкладки',                    {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),
+          'TAB.BG.SEL':          ('Цвет фона открытой вкладки',                    {THEMES[1]: '#EAEAEA', THEMES[2]: '#222222'}),
+          'TAB.FG.*':            ('Цвет текста закрытой вкладки',                  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+          'TAB.FG.SEL':          ('Цвет текста открытой вкладки',                  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+          'FRAME.RELIEF.*':      ('Стиль рамок фреймов',                           {THEMES[1]: 'groove',  THEMES[2]: 'solid'  }),
+          'TXT.RELIEF.*':        ('Стиль рамок текстовых полей',                   {THEMES[1]: 'sunken',  THEMES[2]: 'solid'  }),
+          '*.BORDER_CLR.*':      ('Цвет рамок',                                    {THEMES[1]: '#222222', THEMES[2]: '#111111'}),
           }
 
 """ Функции проверки """
@@ -2132,7 +2140,7 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
             self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
                                             text=get_all_entry_info(_0_global_dct.d[key], 75, 13),
                                             command=lambda key=key: self.choose_entry(key),
-                                            takefocus=False, style='Note.TButton')]
+                                            takefocus=False, style='Flat.TButton')]
 
         # Расположение виджетов
         for i in range(len(self.widgets_wrd)):
@@ -2693,18 +2701,18 @@ class EditW(tk.Toplevel):
                                 for i in range(gr_count)])
         # Создаём новые кнопки
         self.tr_buttons = [ttk.Button(self.tr_frames[i], command=lambda i=i: self.tr_edt(self.translations[i]),
-                                      takefocus=False, style='Note.TButton')
+                                      takefocus=False, style='Flat.TButton')
                            for i in range(tr_count)]
         self.nt_buttons = [ttk.Button(self.nt_frames[i], command=lambda i=i: self.note_edt(self.notes[i]),
-                                      takefocus=False, style='Note.TButton')
+                                      takefocus=False, style='Flat.TButton')
                            for i in range(nt_count)]
         self.phr_buttons = [ttk.Button(self.phr_frames[i], command=lambda i=i: self.phrase_edt(self.phrases[i]),
-                                       takefocus=False, style='Note.TButton')
+                                       takefocus=False, style='Flat.TButton')
                             for i in range(phr_count)]
         self.frm_buttons = [ttk.Button(self.frm_frames[i], command=lambda i=i: self.frm_edt(self.forms[i]),
-                                       takefocus=False, style='Note.TButton')
+                                       takefocus=False, style='Flat.TButton')
                             for i in range(frm_count)]
-        self.gr_buttons = [ttk.Button(self.gr_frames[i], takefocus=False, style='Note.TButton')
+        self.gr_buttons = [ttk.Button(self.gr_frames[i], takefocus=False, style='Flat.TButton')
                            for i in range(gr_count)]
         # Выводим текст на кнопки
         for i in range(tr_count):
@@ -3082,7 +3090,7 @@ class CategoriesSettingsW(tk.Toplevel):
         # Создаём новые кнопки
         self.buttons = [ttk.Button(self.frames[i],
                                    command=lambda i=i: self.values(self.categories[i]),
-                                   takefocus=False, style='Note.TButton')
+                                   takefocus=False, style='Flat.TButton')
                         for i in range(categories_count)]
         for i in range(categories_count):
             # Выводим текст на кнопки
@@ -3264,7 +3272,7 @@ class GroupsSettingsW(tk.Toplevel):
                        for i in range(groups_count)]
         # Создаём новые кнопки
         self.buttons = [ttk.Button(self.frames[i], command=lambda i=i: self.rename(self.groups[i]),
-                                   takefocus=False, style='Note.TButton')
+                                   takefocus=False, style='Flat.TButton')
                         for i in range(groups_count)]
         # Создаём новые подсказки
         self.tips = [ttip.Hovertip(self.buttons[i],
@@ -3404,7 +3412,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
         # Создаём новые кнопки
         self.buttons = [ttk.Button(self.frames[i],
                                    command=lambda i=i: self.rename(self.values[i]),
-                                   takefocus=False, style='Note.TButton')
+                                   takefocus=False, style='Flat.TButton')
                         for i in range(categories_count)]
         for i in range(categories_count):
             # Выводим текст на кнопки
@@ -3543,11 +3551,11 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.frames = tuple([ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
                              for i in range(combinations_count)]) +\
                       tuple([ttk.Label(self.scrolled_frame.frame_canvas,
-                                       text=split_text('## -> #, %% -> % и т. д.', 35), style='Note.TLabel')])
+                                       text=split_text('## -> #, %% -> % и т. д.', 35), style='Flat.TLabel')])
         # Создаём новые кнопки
         self.buttons = [ttk.Button(self.frames[i],
                                    command=lambda i=i: self.edit(self.combinations[i]),
-                                   takefocus=False, style='Note.TButton')
+                                   takefocus=False, style='Flat.TButton')
                         for i in range(combinations_count)]
         for i in range(combinations_count):
             # Выводим текст на кнопки
@@ -5432,10 +5440,10 @@ class PrintW(tk.Toplevel):
         self.print_buttons = [ttk.Button(self.print_frames[i],
                                          command=lambda i=i: self.edit_entry(self.print_keys[self.print_start_index + i]),
                                          takefocus=False,
-                                         style='NoteSelected.TButton'
+                                         style='FlatSelected.TButton'
                                                if self.print_keys[self.print_start_index + i]
                                                   in self.print_selected_keys
-                                               else 'Note.TButton')
+                                               else 'Flat.TButton')
                               for i in range(self.print_count_elements_on_page)]
         # Создаём подсказки
         self.print_tips = [ttip.Hovertip(self.print_buttons[i],
@@ -5536,10 +5544,10 @@ class PrintW(tk.Toplevel):
         self.search_buttons = [ttk.Button(self.search_frames[i],
                                           command=lambda i=i: self.edit_entry(self.search_keys[self.search_start_index + i]),
                                           takefocus=False,
-                                          style='NoteSelected.TButton'
+                                          style='FlatSelected.TButton'
                                                 if self.search_keys[self.search_start_index + i]
                                                    in self.search_selected_keys
-                                                else 'Note.TButton')
+                                                else 'Flat.TButton')
                                for i in range(self.search_count_elements_on_page)]
 
         for i in range(self.search_count_elements_on_page):
@@ -5664,12 +5672,12 @@ class PrintW(tk.Toplevel):
         key = self.print_keys[self.print_start_index + index]
         if key in self.print_selected_keys:
             self.print_selected_keys.remove(key)
-            self.print_buttons[index].configure(style='Note.TButton')
+            self.print_buttons[index].configure(style='Flat.TButton')
             if not self.print_selected_keys:
                 self.frame_print_buttons_for_selected.grid_remove()
         else:
             self.print_selected_keys += [key]
-            self.print_buttons[index].configure(style='NoteSelected.TButton')
+            self.print_buttons[index].configure(style='FlatSelected.TButton')
             self.frame_print_buttons_for_selected.grid(row=0, column=1, padx=(6, 0), pady=0, sticky='WS')
         self.print_print_info()
 
@@ -5678,12 +5686,12 @@ class PrintW(tk.Toplevel):
         key = self.search_keys[self.search_start_index + index]
         if key in self.search_selected_keys:
             self.search_selected_keys.remove(key)
-            self.search_buttons[index].configure(style='Note.TButton')
+            self.search_buttons[index].configure(style='Flat.TButton')
             if not self.search_selected_keys:
                 self.frame_search_buttons_for_selected.grid_remove()
         else:
             self.search_selected_keys += [key]
-            self.search_buttons[index].configure(style='NoteSelected.TButton')
+            self.search_buttons[index].configure(style='FlatSelected.TButton')
             self.frame_search_buttons_for_selected.grid(row=1, column=2, padx=(6, 0), pady=0, sticky='W')
         self.search_print_info()
 
@@ -5694,7 +5702,7 @@ class PrintW(tk.Toplevel):
             if key not in self.print_selected_keys:
                 self.print_selected_keys += [key]
         for btn in self.print_buttons:
-            btn.configure(style='NoteSelected.TButton')
+            btn.configure(style='FlatSelected.TButton')
         self.frame_print_buttons_for_selected.grid(row=0, column=1, padx=(6, 0), pady=0, sticky='WS')
         self.print_print_info()
 
@@ -5705,7 +5713,7 @@ class PrintW(tk.Toplevel):
             if key not in self.search_selected_keys:
                 self.search_selected_keys += [key]
         for btn in self.search_buttons:
-            btn.configure(style='NoteSelected.TButton')
+            btn.configure(style='FlatSelected.TButton')
         self.frame_search_buttons_for_selected.grid(row=1, column=2, padx=(6, 0), pady=0, sticky='W')
         self.search_print_info()
 
@@ -5716,7 +5724,7 @@ class PrintW(tk.Toplevel):
             if key in self.print_selected_keys:
                 self.print_selected_keys.remove(key)
         for btn in self.print_buttons:
-            btn.configure(style='Note.TButton')
+            btn.configure(style='Flat.TButton')
         if not self.print_selected_keys:
             self.frame_print_buttons_for_selected.grid_remove()
         self.print_print_info()
@@ -5728,7 +5736,7 @@ class PrintW(tk.Toplevel):
             if key in self.search_selected_keys:
                 self.search_selected_keys.remove(key)
         for btn in self.search_buttons:
-            btn.configure(style='Note.TButton')
+            btn.configure(style='Flat.TButton')
         if not self.search_selected_keys:
             self.frame_search_buttons_for_selected.grid_remove()
         self.search_print_info()
@@ -5737,7 +5745,7 @@ class PrintW(tk.Toplevel):
     def print_select_all(self):
         self.print_selected_keys = list(self.print_keys)
         for btn in self.print_buttons:
-            btn.configure(style='NoteSelected.TButton')
+            btn.configure(style='FlatSelected.TButton')
         self.frame_print_buttons_for_selected.grid(row=0, column=1, padx=(6, 0), pady=0, sticky='WS')
         self.print_print_info()
 
@@ -5745,7 +5753,7 @@ class PrintW(tk.Toplevel):
     def search_select_all(self):
         self.search_selected_keys = list(self.search_keys)
         for btn in self.search_buttons:
-            btn.configure(style='NoteSelected.TButton')
+            btn.configure(style='FlatSelected.TButton')
         self.frame_search_buttons_for_selected.grid(row=1, column=2, padx=(6, 0), pady=0, sticky='W')
         self.search_print_info()
 
@@ -5753,7 +5761,7 @@ class PrintW(tk.Toplevel):
     def print_unselect_all(self):
         self.print_selected_keys = []
         for btn in self.print_buttons:
-            btn.configure(style='Note.TButton')
+            btn.configure(style='Flat.TButton')
         self.frame_print_buttons_for_selected.grid_remove()
         self.print_print_info()
 
@@ -5761,7 +5769,7 @@ class PrintW(tk.Toplevel):
     def search_unselect_all(self):
         self.search_selected_keys = []
         for btn in self.search_buttons:
-            btn.configure(style='Note.TButton')
+            btn.configure(style='Flat.TButton')
         self.frame_search_buttons_for_selected.grid_remove()
         self.search_print_info()
 
@@ -6596,7 +6604,7 @@ class SettingsW(tk.Toplevel):
         # Создаём новые кнопки
         self.dcts_buttons = [ttk.Button(self.dcts_frames[i],
                                         command=lambda i=i: self.dct_open(self.dcts_savenames[i]),
-                                        takefocus=False, style='Note.TButton')
+                                        takefocus=False, style='Flat.TButton')
                              for i in range(dcts_count)]
         for i in range(dcts_count):
             # Выводим текст на кнопки
@@ -7064,7 +7072,7 @@ class MainW(tk.Tk):
         # Стиль label "note"
         self.st_lbl_note = ttk.Style()
         self.st_lbl_note.theme_use('alt')
-        self.st_lbl_note.configure('Note.TLabel',
+        self.st_lbl_note.configure('Flat.TLabel',
                                    font=('DejaVu Sans Mono', _0_global_scale + 1),
                                    background=STYLES['FLAT_BTN.BG.*'][1][th],
                                    foreground=STYLES['FLAT_BTN.FG.*'][1][th])
@@ -7169,10 +7177,10 @@ class MainW(tk.Tk):
         # Стиль button "note"
         self.st_btn_note = ttk.Style()
         self.st_btn_note.theme_use('alt')
-        self.st_btn_note.configure('Note.TButton',
+        self.st_btn_note.configure('Flat.TButton',
                                    font=('DejaVu Sans Mono', _0_global_scale + 1),
                                    borderwidth=0)
-        self.st_btn_note.map('Note.TButton',
+        self.st_btn_note.map('Flat.TButton',
                              relief=[('pressed', 'flat'),
                                      ('active', 'flat'),
                                      ('!active', 'flat')],
@@ -7186,10 +7194,10 @@ class MainW(tk.Tk):
         # Стиль button "note selected"
         self.st_btn_note_selected = ttk.Style()
         self.st_btn_note_selected.theme_use('alt')
-        self.st_btn_note_selected.configure('NoteSelected.TButton',
+        self.st_btn_note_selected.configure('FlatSelected.TButton',
                                             font=('DejaVu Sans Mono', _0_global_scale + 1),
                                             borderwidth=0)
-        self.st_btn_note_selected.map('NoteSelected.TButton',
+        self.st_btn_note_selected.map('FlatSelected.TButton',
                                       relief=[('pressed', 'flat'),
                                               ('active', 'flat'),
                                               ('!active', 'flat')],
