@@ -37,25 +37,25 @@ STYLES = {'*.BG.*':          ('Цвет фона окна',                     
           'TXT.RELIEF.*':    ('Стиль рамок текстовых полей',                   {THEMES[1]: 'sunken',  THEMES[2]: 'solid'  }),  # Стиль рамок текстовых полей
           '*.BORDER_CLR.*':  ('Цвет рамок',                                    {THEMES[1]: '#222222', THEMES[2]: '#111111'}),  # Цвет рамок (работает для solid)
           'BTN.BG.*':        ('Цвет фона обычных кнопок',                      {THEMES[1]: '#D0D0D0', THEMES[2]: '#1E1E1E'}),  # Цвет фона обычных кнопок
-          'BTN.BG.SEL':      ('Цвет фона обычных кнопок при нажатии',          {THEMES[1]: '#BABABA', THEMES[2]: '#1A1A1A'}),  # Цвет фона обычных кнопок при нажатии
+          'BTN.BG.ACT':      ('Цвет фона обычных кнопок при нажатии',          {THEMES[1]: '#BABABA', THEMES[2]: '#1A1A1A'}),  # Цвет фона обычных кнопок при нажатии
           'BTN.BG.Y':        ('Цвет фона да-кнопок',                           {THEMES[1]: '#88DD88', THEMES[2]: '#446F44'}),  # Цвет фона да-кнопок
-          'BTN.BG.Y_SEL':    ('Цвет фона да-кнопок при нажатии',               {THEMES[1]: '#77CC77', THEMES[2]: '#558055'}),  # Цвет фона да-кнопок при нажатии
+          'BTN.BG.Y_ACT':    ('Цвет фона да-кнопок при нажатии',               {THEMES[1]: '#77CC77', THEMES[2]: '#558055'}),  # Цвет фона да-кнопок при нажатии
           'BTN.BG.N':        ('Цвет фона нет-кнопок',                          {THEMES[1]: '#FF6666', THEMES[2]: '#803333'}),  # Цвет фона нет-кнопок
-          'BTN.BG.N_SEL':    ('Цвет фона нет-кнопок при нажатии',              {THEMES[1]: '#EE5555', THEMES[2]: '#904444'}),  # Цвет фона нет-кнопок при нажатии
+          'BTN.BG.N_ACT':    ('Цвет фона нет-кнопок при нажатии',              {THEMES[1]: '#EE5555', THEMES[2]: '#904444'}),  # Цвет фона нет-кнопок при нажатии
           'BTN.BG.IMG_HOV':  ('Цвет фона кнопок-картинок при наведении',       {THEMES[1]: '#E0E0E0', THEMES[2]: '#1E1E1E'}),  # Цвет фона кнопок-картинок при наведении
-          'BTN.BG.IMG_SEL':  ('Цвет фона кнопок-картинок при нажатии',         {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),  # Цвет фона кнопок-картинок при нажатии
-          'BTN.BG.NOTE':     ('Цвет фона кнопок-записей',                      {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),  # Цвет фона кнопок-записей
-          'BTN.BG.NOTE_HOV': ('Цвет фона кнопок-записей при наведении',        {THEMES[1]: '#E0F1FF', THEMES[2]: '#1B1B1B'}),  # Цвет фона кнопок-записей при наведении
-          'BTN.BG.NOTE_SEL': ('Цвет фона кнопок-записей при нажатии',          {THEMES[1]: '#CCE8FF', THEMES[2]: '#1F1F1F'}),  # Цвет фона кнопок-записей при нажатии
-          'BTN.FG.NOTE':     ('Цвет текста кнопок-записей',                    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей
-          'BTN.FG.NOTE_HOV': ('Цвет текста кнопок-записей при наведении',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей при наведении
-          'BTN.FG.NOTE_SEL': ('Цвет текста кнопок-записей при нажатии',        {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей при нажатии
-          'FLAT_BTN.BG.*':   ('Цвет фона выдел. кн.-записей',                  {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),  # Цвет фона выделенных кнопок-записей
-          'FLAT_BTN.BG.HOV': ('Цвет фона выдел. кн.-записей при наведении',    {THEMES[1]: '#A8FFD6', THEMES[2]: '#1B1B2A'}),  # Цвет фона выделенных кнопок-записей при наведении
-          'FLAT_BTN.BG.SEL': ('Цвет фона выдел. кн.-записей при нажатии',      {THEMES[1]: '#82FFC4', THEMES[2]: '#1B1B31'}),  # Цвет фона выделенных кнопок-записей при нажатии
-          'FLAT_BTN.FG.*':   ('Цвет текста выдел. кн.-записей',                {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей
-          'FLAT_BTN.FG.HOV': ('Цвет текста выдел. кн.-записей при наведении',  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей при наведении
-          'FLAT_BTN.FG.SEL': ('Цвет текста выдел. кн.-записей при нажатии',    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей при нажатии
+          'BTN.BG.IMG_ACT':  ('Цвет фона кнопок-картинок при нажатии',         {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),  # Цвет фона кнопок-картинок при нажатии
+          'FLAT_BTN.BG.*':       ('Цвет фона кнопок-записей',                     {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),  # Цвет фона кнопок-записей
+          'FLAT_BTN.BG.HOV':     ('Цвет фона кнопок-записей при наведении',       {THEMES[1]: '#E0F1FF', THEMES[2]: '#1B1B1B'}),  # Цвет фона кнопок-записей при наведении
+          'FLAT_BTN.BG.ACT':     ('Цвет фона кнопок-записей при нажатии',         {THEMES[1]: '#CCE8FF', THEMES[2]: '#1F1F1F'}),  # Цвет фона кнопок-записей при нажатии
+          'FLAT_BTN.FG.*':       ('Цвет текста кнопок-записей',                   {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей
+          'FLAT_BTN.FG.HOV':     ('Цвет текста кнопок-записей при наведении',     {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей при наведении
+          'FLAT_BTN.FG.ACT':     ('Цвет текста кнопок-записей при нажатии',       {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста кнопок-записей при нажатии
+          'FLAT_BTN.BG.SEL':     ('Цвет фона выдел. кн.-записей',                 {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),  # Цвет фона выделенных кнопок-записей
+          'FLAT_BTN.BG.SEL_HOV': ('Цвет фона выдел. кн.-записей при наведении',   {THEMES[1]: '#A8FFD6', THEMES[2]: '#1B1B2A'}),  # Цвет фона выделенных кнопок-записей при наведении
+          'FLAT_BTN.BG.SEL_ACT': ('Цвет фона выдел. кн.-записей при нажатии',     {THEMES[1]: '#82FFC4', THEMES[2]: '#1B1B31'}),  # Цвет фона выделенных кнопок-записей при нажатии
+          'FLAT_BTN.FG.SEL':     ('Цвет текста выдел. кн.-записей',               {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей
+          'FLAT_BTN.FG.SEL_HOV': ('Цвет текста выдел. кн.-записей при наведении', {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей при наведении
+          'FLAT_BTN.FG.SEL_ACT': ('Цвет текста выдел. кн.-записей при нажатии',   {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста выделенных кнопок-записей при нажатии
           'BTN.BG.DISABL':   ('Цвет фона выключенных кнопок',                  {THEMES[1]: '#D9D9D9', THEMES[2]: '#1E1E1E'}),  # Цвет фона выключенных кнопок
           'BTN.FG.DISABL':   ('Цвет текста выключенных кнопок',                {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}),  # Цвет текста выключенных кнопок
           'CHECK.BG.SEL':    ('Цвет фона переключателя при наведении на него', {THEMES[1]: '#DDDDDD', THEMES[2]: '#333333'}),  # Цвет фона переключателя при наведении на него
@@ -64,11 +64,11 @@ STYLES = {'*.BG.*':          ('Цвет фона окна',                     
           'TAB.FG.*':        ('Цвет текста закрытой вкладки',                  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста закрытой вкладки
           'TAB.FG.SEL':      ('Цвет текста открытой вкладки',                  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),  # Цвет текста открытой вкладки
           'SCROLL.BG.*':     ('Цвет фона ползунка',                            {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),  # Цвет фона ползунка
-          'SCROLL.BG.SEL':   ('Цвет фона ползунка при нажатии',                {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),  # Цвет фона ползунка при нажатии
+          'SCROLL.BG.ACT':   ('Цвет фона ползунка при нажатии',                {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),  # Цвет фона ползунка при нажатии
           'SCROLL.FG.*':     ('Цвет ползунка',                                 {THEMES[1]: '#CACACA', THEMES[2]: '#292929'}),  # Цвет ползунка
-          'SCROLL.FG.SEL':   ('Цвет ползунка при нажатии',                     {THEMES[1]: '#ABABAB', THEMES[2]: '#333333'}),  # Цвет ползунка при нажатии
+          'SCROLL.FG.ACT':   ('Цвет ползунка при нажатии',                     {THEMES[1]: '#ABABAB', THEMES[2]: '#333333'}),  # Цвет ползунка при нажатии
           }
-
+print(tuple(STYLES.keys()))
 """ Функции проверки """
 
 
@@ -1457,7 +1457,7 @@ class ScrollFrame(tk.Frame):
         else:
             canvas_position: typing.Literal['left', 'right'] = 'right'
 
-        self.canvas = tk.Canvas(self, bg=STYLES['BTN.BG.NOTE'][1][th], bd=0, highlightthickness=0, height=height, width=width)
+        self.canvas = tk.Canvas(self, bg=STYLES['FLAT_BTN.BG.*'][1][th], bd=0, highlightthickness=0, height=height, width=width)
         # {
         self.frame_canvas = ttk.Frame(self.canvas, style='Default.TFrame')
         # }
@@ -4162,7 +4162,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                                 relief=[('pressed', 'sunken'),
                                         ('active', 'flat'),
                                         ('!active', 'raised')],
-                                background=[('pressed', self.custom_styles['BTN.BG.SEL']),
+                                background=[('pressed', self.custom_styles['BTN.BG.ACT']),
                                             ('active', self.custom_styles['BTN.BG.*']),
                                             ('!active', self.custom_styles['BTN.BG.*'])],
                                 foreground=[('pressed', self.custom_styles['*.FG.*']),
@@ -4193,7 +4193,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                             relief=[('pressed', 'sunken'),
                                     ('active', 'flat'),
                                     ('!active', 'raised')],
-                            background=[('pressed', self.custom_styles['BTN.BG.Y_SEL']),
+                            background=[('pressed', self.custom_styles['BTN.BG.Y_ACT']),
                                         ('active', self.custom_styles['BTN.BG.Y']),
                                         ('!active', self.custom_styles['BTN.BG.Y'])],
                             foreground=[('pressed', self.custom_styles['*.FG.*']),
@@ -4210,7 +4210,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                            relief=[('pressed', 'sunken'),
                                    ('active', 'flat'),
                                    ('!active', 'raised')],
-                           background=[('pressed', self.custom_styles['BTN.BG.N_SEL']),
+                           background=[('pressed', self.custom_styles['BTN.BG.N_ACT']),
                                        ('active', self.custom_styles['BTN.BG.N']),
                                        ('!active', self.custom_styles['BTN.BG.N'])],
                            foreground=[('pressed', self.custom_styles['*.FG.*']),
@@ -4227,7 +4227,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                               relief=[('pressed', 'flat'),
                                       ('active', 'flat'),
                                       ('!active', 'flat')],
-                              background=[('pressed', self.custom_styles['BTN.BG.IMG_SEL']),
+                              background=[('pressed', self.custom_styles['BTN.BG.IMG_ACT']),
                                           ('active', self.custom_styles['BTN.BG.IMG_HOV']),
                                           ('!active', self.custom_styles['*.BG.*'])],
                               foreground=[('pressed', self.custom_styles['*.FG.*']),
@@ -4264,10 +4264,10 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_vscroll.theme_use('alt')
         self.st_vscroll.map('Demo.Vertical.TScrollbar',
                             troughcolor=[('disabled', self.custom_styles['*.BG.*']),
-                                         ('pressed', self.custom_styles['SCROLL.BG.SEL']),
+                                         ('pressed', self.custom_styles['SCROLL.BG.ACT']),
                                          ('!pressed', self.custom_styles['SCROLL.BG.*'])],
                             background=[('disabled', self.custom_styles['*.BG.*']),
-                                        ('pressed', self.custom_styles['SCROLL.FG.SEL']),
+                                        ('pressed', self.custom_styles['SCROLL.FG.ACT']),
                                         ('!pressed', self.custom_styles['SCROLL.FG.*'])])
 
         return True
@@ -7066,8 +7066,8 @@ class MainW(tk.Tk):
         self.st_lbl_note.theme_use('alt')
         self.st_lbl_note.configure('Note.TLabel',
                                    font=('DejaVu Sans Mono', _0_global_scale + 1),
-                                   background=STYLES['BTN.BG.NOTE'][1][th],
-                                   foreground=STYLES['BTN.FG.NOTE'][1][th])
+                                   background=STYLES['FLAT_BTN.BG.*'][1][th],
+                                   foreground=STYLES['FLAT_BTN.FG.*'][1][th])
 
         # Стиль entry "default"
         self.st_entry = ttk.Style()
@@ -7094,7 +7094,7 @@ class MainW(tk.Tk):
                                 relief=[('pressed', 'sunken'),
                                         ('active', 'flat'),
                                         ('!active', 'raised')],
-                                background=[('pressed', STYLES['BTN.BG.SEL'][1][th]),
+                                background=[('pressed', STYLES['BTN.BG.ACT'][1][th]),
                                             ('active', STYLES['BTN.BG.*'][1][th]),
                                             ('!active', STYLES['BTN.BG.*'][1][th])],
                                 foreground=[('pressed', STYLES['*.FG.*'][1][th]),
@@ -7125,7 +7125,7 @@ class MainW(tk.Tk):
                             relief=[('pressed', 'sunken'),
                                     ('active', 'flat'),
                                     ('!active', 'raised')],
-                            background=[('pressed', STYLES['BTN.BG.Y_SEL'][1][th]),
+                            background=[('pressed', STYLES['BTN.BG.Y_ACT'][1][th]),
                                         ('active', STYLES['BTN.BG.Y'][1][th]),
                                         ('!active', STYLES['BTN.BG.Y'][1][th])],
                             foreground=[('pressed', STYLES['*.FG.*'][1][th]),
@@ -7142,7 +7142,7 @@ class MainW(tk.Tk):
                            relief=[('pressed', 'sunken'),
                                    ('active', 'flat'),
                                    ('!active', 'raised')],
-                           background=[('pressed', STYLES['BTN.BG.N_SEL'][1][th]),
+                           background=[('pressed', STYLES['BTN.BG.N_ACT'][1][th]),
                                        ('active', STYLES['BTN.BG.N'][1][th]),
                                        ('!active', STYLES['BTN.BG.N'][1][th])],
                            foreground=[('pressed', STYLES['*.FG.*'][1][th]),
@@ -7159,7 +7159,7 @@ class MainW(tk.Tk):
                               relief=[('pressed', 'flat'),
                                       ('active', 'flat'),
                                       ('!active', 'flat')],
-                              background=[('pressed', STYLES['BTN.BG.IMG_SEL'][1][th]),
+                              background=[('pressed', STYLES['BTN.BG.IMG_ACT'][1][th]),
                                           ('active', STYLES['BTN.BG.IMG_HOV'][1][th]),
                                           ('!active', STYLES['*.BG.*'][1][th])],
                               foreground=[('pressed', STYLES['*.FG.*'][1][th]),
@@ -7176,12 +7176,12 @@ class MainW(tk.Tk):
                              relief=[('pressed', 'flat'),
                                      ('active', 'flat'),
                                      ('!active', 'flat')],
-                             background=[('pressed', STYLES['BTN.BG.NOTE_SEL'][1][th]),
-                                         ('active', STYLES['BTN.BG.NOTE_HOV'][1][th]),
-                                         ('!active', STYLES['BTN.BG.NOTE'][1][th])],
-                             foreground=[('pressed', STYLES['BTN.FG.NOTE_SEL'][1][th]),
-                                         ('active', STYLES['BTN.FG.NOTE_HOV'][1][th]),
-                                         ('!active', STYLES['BTN.FG.NOTE'][1][th])])
+                             background=[('pressed', STYLES['FLAT_BTN.BG.ACT'][1][th]),
+                                         ('active', STYLES['FLAT_BTN.BG.HOV'][1][th]),
+                                         ('!active', STYLES['FLAT_BTN.BG.*'][1][th])],
+                             foreground=[('pressed', STYLES['FLAT_BTN.FG.ACT'][1][th]),
+                                         ('active', STYLES['FLAT_BTN.FG.HOV'][1][th]),
+                                         ('!active', STYLES['FLAT_BTN.FG.*'][1][th])])
 
         # Стиль button "note selected"
         self.st_btn_note_selected = ttk.Style()
@@ -7193,12 +7193,12 @@ class MainW(tk.Tk):
                                       relief=[('pressed', 'flat'),
                                               ('active', 'flat'),
                                               ('!active', 'flat')],
-                                      background=[('pressed', STYLES['FLAT_BTN.BG.SEL'][1][th]),
-                                                  ('active', STYLES['FLAT_BTN.BG.HOV'][1][th]),
-                                                  ('!active', STYLES['FLAT_BTN.BG.*'][1][th])],
-                                      foreground=[('pressed', STYLES['FLAT_BTN.FG.SEL'][1][th]),
-                                                  ('active', STYLES['FLAT_BTN.FG.HOV'][1][th]),
-                                                  ('!active', STYLES['FLAT_BTN.FG.*'][1][th])])
+                                      background=[('pressed', STYLES['FLAT_BTN.BG.SEL_ACT'][1][th]),
+                                                  ('active', STYLES['FLAT_BTN.BG.SEL_HOV'][1][th]),
+                                                  ('!active', STYLES['FLAT_BTN.BG.SEL'][1][th])],
+                                      foreground=[('pressed', STYLES['FLAT_BTN.FG.SEL_ACT'][1][th]),
+                                                  ('active', STYLES['FLAT_BTN.FG.SEL_HOV'][1][th]),
+                                                  ('!active', STYLES['FLAT_BTN.FG.SEL'][1][th])])
 
         # Стиль checkbutton "default"
         self.st_check = ttk.Style()
@@ -7238,10 +7238,10 @@ class MainW(tk.Tk):
         self.st_vscroll.theme_use('alt')
         self.st_vscroll.map('Vertical.TScrollbar',
                             troughcolor=[('disabled', STYLES['*.BG.*'][1][th]),
-                                         ('pressed', STYLES['SCROLL.BG.SEL'][1][th]),
+                                         ('pressed', STYLES['SCROLL.BG.ACT'][1][th]),
                                          ('!pressed', STYLES['SCROLL.BG.*'][1][th])],
                             background=[('disabled', STYLES['*.BG.*'][1][th]),
-                                        ('pressed', STYLES['SCROLL.FG.SEL'][1][th]),
+                                        ('pressed', STYLES['SCROLL.FG.ACT'][1][th]),
                                         ('!pressed', STYLES['SCROLL.FG.*'][1][th])])
 
         # Стиль notebook "default"
@@ -7252,7 +7252,7 @@ class MainW(tk.Tk):
         self.st_note.map('Default.TNotebook',
                          troughcolor=[('active', STYLES['*.BG.*'][1][th]),
                                       ('!active', STYLES['*.BG.*'][1][th])],
-                         background=[('selected', STYLES['BTN.BG.SEL'][1][th]),
+                         background=[('selected', STYLES['BTN.BG.ACT'][1][th]),
                                      ('!selected', STYLES['*.BG.*'][1][th])])
 
         # Стиль вкладок notebook

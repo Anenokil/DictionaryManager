@@ -101,12 +101,13 @@ def upgrade_theme_7_to_8(filepath: str):
         file.write('8\n')
         file.write(f'{lines[1]}')
         keys = ('*.BG.*', '*.BG.ENTRY', '*.FG.*', '*.FG.LOGO', '*.FG.FOOTER', '*.FG.WARN', '*.FG.ENTRY', '*.BG.SEL',
-                '*.FG.SEL', 'FRAME.RELIEF.*', 'TXT.RELIEF.*', '*.BORDER_CLR.*', 'BTN.BG.*', 'BTN.BG.SEL', 'BTN.BG.Y',
-                'BTN.BG.Y_SEL', 'BTN.BG.N', 'BTN.BG.N_SEL', 'BTN.BG.IMG_HOV', 'BTN.BG.IMG_SEL', 'BTN.BG.NOTE',
-                'BTN.BG.NOTE_HOV', 'BTN.BG.NOTE_SEL', 'BTN.FG.NOTE', 'BTN.FG.NOTE_HOV', 'BTN.FG.NOTE_SEL',
-                'FLAT_BTN.BG.*', 'FLAT_BTN.BG.HOV', 'FLAT_BTN.BG.SEL', 'FLAT_BTN.FG.*', 'FLAT_BTN.FG.HOV',
-                'FLAT_BTN.FG.SEL', 'BTN.BG.DISABL', 'BTN.FG.DISABL', 'CHECK.BG.SEL', 'TAB.BG.*', 'TAB.BG.SEL',
-                'TAB.FG.*', 'TAB.FG.SEL', 'SCROLL.BG.*', 'SCROLL.BG.SEL', 'SCROLL.FG.*', 'SCROLL.FG.SEL')
+                '*.FG.SEL', 'FRAME.RELIEF.*', 'TXT.RELIEF.*', '*.BORDER_CLR.*', 'BTN.BG.*', 'BTN.BG.ACT', 'BTN.BG.Y',
+                'BTN.BG.Y_ACT', 'BTN.BG.N', 'BTN.BG.N_ACT', 'BTN.BG.IMG_HOV', 'BTN.BG.IMG_ACT', 'FLAT_BTN.BG.*',
+                'FLAT_BTN.BG.HOV', 'FLAT_BTN.BG.ACT', 'FLAT_BTN.FG.*', 'FLAT_BTN.FG.HOV', 'FLAT_BTN.FG.ACT',
+                'FLAT_BTN.BG.SEL', 'FLAT_BTN.BG.SEL_HOV', 'FLAT_BTN.BG.SEL_ACT', 'FLAT_BTN.FG.SEL',
+                'FLAT_BTN.FG.SEL_HOV', 'FLAT_BTN.FG.SEL_ACT', 'BTN.BG.DISABL', 'BTN.FG.DISABL', 'CHECK.BG.SEL',
+                'TAB.BG.*', 'TAB.BG.SEL', 'TAB.FG.*', 'TAB.FG.SEL', 'SCROLL.BG.*', 'SCROLL.BG.ACT', 'SCROLL.FG.*',
+                'SCROLL.FG.ACT')
         max_len = max((len(k) for k in keys))
         for i in range(2, 45):
             tab = ' ' * (max_len - len(keys[i - 2]))
