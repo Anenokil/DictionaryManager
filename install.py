@@ -24,13 +24,13 @@ REPOSITORY_NAME = 'DictionaryManager'
 # Ссылки
 URL_LAST_VERSION = f'https://raw.githubusercontent.com/Anenokil/{REPOSITORY_NAME}/master/ver'
 URL_DOWNLOAD_ZIP = f'https://github.com/Anenokil/{REPOSITORY_NAME}/archive/refs/heads/master.zip'
-URL_DOWNLOAD_THEMES_ZIP = f'https://github.com/Anenokil/{REPOSITORY_NAME}/releases/download/v7.1.0/themes_v6.zip'
+URL_DOWNLOAD_THEMES_ZIP = f'https://github.com/Anenokil/{REPOSITORY_NAME}/releases/download/v7.1.0/themes_v7.zip'
 
 # Папки и файлы для установки обновлений
 DOWNLOADED_PROGRAM_DIR = f'{REPOSITORY_NAME}-master'
 DOWNLOADED_PROGRAM_ZIP = f'{DOWNLOADED_PROGRAM_DIR}.zip'
 DOWNLOADED_THEMES_DIR = 'themes'
-DOWNLOADED_THEMES_ZIP = f'{DOWNLOADED_THEMES_DIR}_v6.zip'
+DOWNLOADED_THEMES_ZIP = f'{DOWNLOADED_THEMES_DIR}_v7.zip'
 
 """ Стили """
 
