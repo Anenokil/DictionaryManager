@@ -43,24 +43,24 @@ STYLES = {'*.BG.*':              ('Цвет фона окна',                 
           'BTN.BG.IMG_ACT':      ('Цвет фона кнопок-картинок при нажатии',         {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),
           'BTN.BG.DISABL':       ('Цвет фона выключенных кнопок',                  {THEMES[1]: '#D9D9D9', THEMES[2]: '#1E1E1E'}),
           'BTN.FG.DISABL':       ('Цвет текста выключенных кнопок',                {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}),
-          'FLAT_BTN.BG.*':       ('Цвет фона кнопок-записей',                      {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
-         #'FLAT_BTN.BG.LIGHT':   ('Цвет фона кнопок-записей (светлые)',            {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
-         #'FLAT_BTN.BG.DARK':    ('Цвет фона кнопок-записей (тёмные)',             {THEMES[1]: '#EEEEEE', THEMES[2]: '#121212'}),
+         #'FLAT_BTN.BG.*':       ('Цвет фона кнопок-записей',                      {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
+          'FLAT_BTN.BG.LIGHT':   ('Цвет фона кнопок-записей (светлые)',            {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
+          'FLAT_BTN.BG.DARK':    ('Цвет фона кнопок-записей (тёмные)',             {THEMES[1]: '#EEEEEE', THEMES[2]: '#121212'}),
           'FLAT_BTN.BG.HOV':     ('Цвет фона кнопок-записей при наведении',        {THEMES[1]: '#E0F1FF', THEMES[2]: '#1B1B1B'}),
           'FLAT_BTN.BG.ACT':     ('Цвет фона кнопок-записей при нажатии',          {THEMES[1]: '#CCE8FF', THEMES[2]: '#1F1F1F'}),
-          'FLAT_BTN.FG.*':       ('Цвет текста кнопок-записей',                    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-         #'FLAT_BTN.FG.LIGHT':   ('Цвет текста кнопок-записей (светлые)',          {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-         #'FLAT_BTN.FG.DARK':    ('Цвет текста кнопок-записей (тёмные)',           {THEMES[1]: '#333333', THEMES[2]: '#A7A7A7'}),
+         #'FLAT_BTN.FG.*':       ('Цвет текста кнопок-записей',                    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+          'FLAT_BTN.FG.LIGHT':   ('Цвет текста кнопок-записей (светлые)',          {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+          'FLAT_BTN.FG.DARK':    ('Цвет текста кнопок-записей (тёмные)',           {THEMES[1]: '#333333', THEMES[2]: '#A7A7A7'}),
           'FLAT_BTN.FG.HOV':     ('Цвет текста кнопок-записей при наведении',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
           'FLAT_BTN.FG.ACT':     ('Цвет текста кнопок-записей при нажатии',        {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          'FLAT_BTN.BG.SEL':     ('Цвет фона выдел. кн.-записей',                  {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),
-         #'FLAT_BTN.BG.SEL_L':   ('Цвет фона выдел. кн.-записей (светлые)',        {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),
-         #'FLAT_BTN.BG.SEL_D':   ('Цвет фона выдел. кн.-записей (тёмные)',         {THEMES[1]: '#BBEED7', THEMES[2]: '#101017'}),
+         #'FLAT_BTN.BG.SEL':     ('Цвет фона выдел. кн.-записей',                  {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),
+          'FLAT_BTN.BG.SEL_L':   ('Цвет фона выдел. кн.-записей (светлые)',        {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),
+          'FLAT_BTN.BG.SEL_D':   ('Цвет фона выдел. кн.-записей (тёмные)',         {THEMES[1]: '#BBEED7', THEMES[2]: '#101017'}),
           'FLAT_BTN.BG.SEL_HOV': ('Цвет фона выдел. кн.-записей при наведении',    {THEMES[1]: '#A8FFD6', THEMES[2]: '#1B1B2A'}),
           'FLAT_BTN.BG.SEL_ACT': ('Цвет фона выдел. кн.-записей при нажатии',      {THEMES[1]: '#82FFC4', THEMES[2]: '#1B1B31'}),
-          'FLAT_BTN.FG.SEL':     ('Цвет текста выдел. кн.-записей',                {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-         #'FLAT_BTN.FG.SEL_L':   ('Цвет текста выдел. кн.-записей (светлые)',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-         #'FLAT_BTN.FG.SEL_D':   ('Цвет текста выдел. кн.-записей (тёмные)',       {THEMES[1]: '#333333', THEMES[2]: '#A7A7A7'}),
+         #'FLAT_BTN.FG.SEL':     ('Цвет текста выдел. кн.-записей',                {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+          'FLAT_BTN.FG.SEL_L':   ('Цвет текста выдел. кн.-записей (светлые)',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+          'FLAT_BTN.FG.SEL_D':   ('Цвет текста выдел. кн.-записей (тёмные)',       {THEMES[1]: '#333333', THEMES[2]: '#A7A7A7'}),
           'FLAT_BTN.FG.SEL_HOV': ('Цвет текста выдел. кн.-записей при наведении',  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
           'FLAT_BTN.FG.SEL_ACT': ('Цвет текста выдел. кн.-записей при нажатии',    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
           'CHECK.BG.SEL':        ('Цвет фона переключателя при наведении на него', {THEMES[1]: '#DDDDDD', THEMES[2]: '#333333'}),
@@ -1465,7 +1465,7 @@ class ScrollFrame(tk.Frame):
         else:
             canvas_position: typing.Literal['left', 'right'] = 'right'
 
-        self.canvas = tk.Canvas(self, bg=STYLES['FLAT_BTN.BG.*'][1][th], bd=0, highlightthickness=0, height=height, width=width)
+        self.canvas = tk.Canvas(self, bg=STYLES['FLAT_BTN.BG.DARK'][1][th], bd=0, highlightthickness=0, height=height, width=width)
         # {
         self.frame_canvas = ttk.Frame(self.canvas, style='Default.TFrame')
         # }
@@ -2136,11 +2136,12 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
     def print(self):
         # Вывод вариантов
         keys = [key for key in _0_global_dct.d.keys() if key[0] == self.search_wrd]
-        for key in keys:
+        for i in range(len(keys)):
+            key = keys[i]
             self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
                                             text=get_all_entry_info(_0_global_dct.d[key], 75, 13),
                                             command=lambda key=key: self.choose_entry(key),
-                                            takefocus=False, style='Flat.TButton')]
+                                            takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton')]
 
         # Расположение виджетов
         for i in range(len(self.widgets_wrd)):
@@ -2701,18 +2702,18 @@ class EditW(tk.Toplevel):
                                 for i in range(gr_count)])
         # Создаём новые кнопки
         self.tr_buttons = [ttk.Button(self.tr_frames[i], command=lambda i=i: self.tr_edt(self.translations[i]),
-                                      takefocus=False, style='Flat.TButton')
+                                      takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
                            for i in range(tr_count)]
         self.nt_buttons = [ttk.Button(self.nt_frames[i], command=lambda i=i: self.note_edt(self.notes[i]),
-                                      takefocus=False, style='Flat.TButton')
+                                      takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
                            for i in range(nt_count)]
         self.phr_buttons = [ttk.Button(self.phr_frames[i], command=lambda i=i: self.phrase_edt(self.phrases[i]),
-                                       takefocus=False, style='Flat.TButton')
+                                       takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
                             for i in range(phr_count)]
         self.frm_buttons = [ttk.Button(self.frm_frames[i], command=lambda i=i: self.frm_edt(self.forms[i]),
-                                       takefocus=False, style='Flat.TButton')
+                                       takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
                             for i in range(frm_count)]
-        self.gr_buttons = [ttk.Button(self.gr_frames[i], takefocus=False, style='Flat.TButton')
+        self.gr_buttons = [ttk.Button(self.gr_frames[i], takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
                            for i in range(gr_count)]
         # Выводим текст на кнопки
         for i in range(tr_count):
@@ -3090,7 +3091,7 @@ class CategoriesSettingsW(tk.Toplevel):
         # Создаём новые кнопки
         self.buttons = [ttk.Button(self.frames[i],
                                    command=lambda i=i: self.values(self.categories[i]),
-                                   takefocus=False, style='Flat.TButton')
+                                   takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
                         for i in range(categories_count)]
         for i in range(categories_count):
             # Выводим текст на кнопки
@@ -3272,7 +3273,7 @@ class GroupsSettingsW(tk.Toplevel):
                        for i in range(groups_count)]
         # Создаём новые кнопки
         self.buttons = [ttk.Button(self.frames[i], command=lambda i=i: self.rename(self.groups[i]),
-                                   takefocus=False, style='Flat.TButton')
+                                   takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
                         for i in range(groups_count)]
         # Создаём новые подсказки
         self.tips = [ttip.Hovertip(self.buttons[i],
@@ -3412,7 +3413,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
         # Создаём новые кнопки
         self.buttons = [ttk.Button(self.frames[i],
                                    command=lambda i=i: self.rename(self.values[i]),
-                                   takefocus=False, style='Flat.TButton')
+                                   takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
                         for i in range(categories_count)]
         for i in range(categories_count):
             # Выводим текст на кнопки
@@ -3551,11 +3552,11 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.frames = tuple([ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
                              for i in range(combinations_count)]) +\
                       tuple([ttk.Label(self.scrolled_frame.frame_canvas,
-                                       text=split_text('## -> #, %% -> % и т. д.', 35), style='Flat.TLabel')])
+                                       text=split_text('## -> #, %% -> % и т. д.', 35), style='FlatL.TLabel')])
         # Создаём новые кнопки
         self.buttons = [ttk.Button(self.frames[i],
                                    command=lambda i=i: self.edit(self.combinations[i]),
-                                   takefocus=False, style='Flat.TButton')
+                                   takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
                         for i in range(combinations_count)]
         for i in range(combinations_count):
             # Выводим текст на кнопки
@@ -5440,10 +5441,9 @@ class PrintW(tk.Toplevel):
         self.print_buttons = [ttk.Button(self.print_frames[i],
                                          command=lambda i=i: self.edit_entry(self.print_keys[self.print_start_index + i]),
                                          takefocus=False,
-                                         style='FlatSelected.TButton'
-                                               if self.print_keys[self.print_start_index + i]
-                                                  in self.print_selected_keys
-                                               else 'Flat.TButton')
+                                         style=('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
+                                               if self.print_keys[self.print_start_index + i] in self.print_selected_keys
+                                               else ('FlatD.TButton' if i % 2 else 'FlatL.TButton'))
                               for i in range(self.print_count_elements_on_page)]
         # Создаём подсказки
         self.print_tips = [ttip.Hovertip(self.print_buttons[i],
@@ -5544,10 +5544,9 @@ class PrintW(tk.Toplevel):
         self.search_buttons = [ttk.Button(self.search_frames[i],
                                           command=lambda i=i: self.edit_entry(self.search_keys[self.search_start_index + i]),
                                           takefocus=False,
-                                          style='FlatSelected.TButton'
-                                                if self.search_keys[self.search_start_index + i]
-                                                   in self.search_selected_keys
-                                                else 'Flat.TButton')
+                                          style=('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
+                                                if self.search_keys[self.search_start_index + i] in self.search_selected_keys
+                                                else ('FlatD.TButton' if i % 2 else 'FlatL.TButton'))
                                for i in range(self.search_count_elements_on_page)]
 
         for i in range(self.search_count_elements_on_page):
@@ -5672,12 +5671,12 @@ class PrintW(tk.Toplevel):
         key = self.print_keys[self.print_start_index + index]
         if key in self.print_selected_keys:
             self.print_selected_keys.remove(key)
-            self.print_buttons[index].configure(style='Flat.TButton')
+            self.print_buttons[index].configure(style='FlatD.TButton' if index % 2 else 'FlatL.TButton')
             if not self.print_selected_keys:
                 self.frame_print_buttons_for_selected.grid_remove()
         else:
             self.print_selected_keys += [key]
-            self.print_buttons[index].configure(style='FlatSelected.TButton')
+            self.print_buttons[index].configure(style='FlatSelectedD.TButton' if index % 2 else 'FlatSelectedL.TButton')
             self.frame_print_buttons_for_selected.grid(row=0, column=1, padx=(6, 0), pady=0, sticky='WS')
         self.print_print_info()
 
@@ -5686,12 +5685,12 @@ class PrintW(tk.Toplevel):
         key = self.search_keys[self.search_start_index + index]
         if key in self.search_selected_keys:
             self.search_selected_keys.remove(key)
-            self.search_buttons[index].configure(style='Flat.TButton')
+            self.search_buttons[index].configure(style='FlatD.TButton' if index % 2 else 'FlatL.TButton')
             if not self.search_selected_keys:
                 self.frame_search_buttons_for_selected.grid_remove()
         else:
             self.search_selected_keys += [key]
-            self.search_buttons[index].configure(style='FlatSelected.TButton')
+            self.search_buttons[index].configure(style='FlatSelectedD.TButton' if index % 2 else 'FlatSelectedL.TButton')
             self.frame_search_buttons_for_selected.grid(row=1, column=2, padx=(6, 0), pady=0, sticky='W')
         self.search_print_info()
 
@@ -5701,8 +5700,8 @@ class PrintW(tk.Toplevel):
             key = self.print_keys[self.print_start_index + i]
             if key not in self.print_selected_keys:
                 self.print_selected_keys += [key]
-        for btn in self.print_buttons:
-            btn.configure(style='FlatSelected.TButton')
+            btn = self.print_buttons[i]
+            btn.configure(style='FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
         self.frame_print_buttons_for_selected.grid(row=0, column=1, padx=(6, 0), pady=0, sticky='WS')
         self.print_print_info()
 
@@ -5712,8 +5711,8 @@ class PrintW(tk.Toplevel):
             key = self.search_keys[self.search_start_index + i]
             if key not in self.search_selected_keys:
                 self.search_selected_keys += [key]
-        for btn in self.search_buttons:
-            btn.configure(style='FlatSelected.TButton')
+            btn = self.search_buttons[i]
+            btn.configure(style='FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
         self.frame_search_buttons_for_selected.grid(row=1, column=2, padx=(6, 0), pady=0, sticky='W')
         self.search_print_info()
 
@@ -5723,8 +5722,9 @@ class PrintW(tk.Toplevel):
             key = self.print_keys[self.print_start_index + i]
             if key in self.print_selected_keys:
                 self.print_selected_keys.remove(key)
-        for btn in self.print_buttons:
-            btn.configure(style='Flat.TButton')
+        for i in range(len(self.print_buttons)):
+            btn = self.print_buttons[i]
+            btn.configure(style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
         if not self.print_selected_keys:
             self.frame_print_buttons_for_selected.grid_remove()
         self.print_print_info()
@@ -5735,8 +5735,9 @@ class PrintW(tk.Toplevel):
             key = self.search_keys[self.search_start_index + i]
             if key in self.search_selected_keys:
                 self.search_selected_keys.remove(key)
-        for btn in self.search_buttons:
-            btn.configure(style='Flat.TButton')
+        for i in range(len(self.search_buttons)):
+            btn = self.search_buttons[i]
+            btn.configure(style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
         if not self.search_selected_keys:
             self.frame_search_buttons_for_selected.grid_remove()
         self.search_print_info()
@@ -5744,32 +5745,36 @@ class PrintW(tk.Toplevel):
     # Выделить все статьи (1)
     def print_select_all(self):
         self.print_selected_keys = list(self.print_keys)
-        for btn in self.print_buttons:
-            btn.configure(style='FlatSelected.TButton')
+        for i in range(len(self.print_buttons)):
+            btn = self.print_buttons[i]
+            btn.configure(style='FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
         self.frame_print_buttons_for_selected.grid(row=0, column=1, padx=(6, 0), pady=0, sticky='WS')
         self.print_print_info()
 
     # Выделить все статьи (2)
     def search_select_all(self):
         self.search_selected_keys = list(self.search_keys)
-        for btn in self.search_buttons:
-            btn.configure(style='FlatSelected.TButton')
+        for i in range(len(self.search_buttons)):
+            btn = self.search_buttons[i]
+            btn.configure(style='FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
         self.frame_search_buttons_for_selected.grid(row=1, column=2, padx=(6, 0), pady=0, sticky='W')
         self.search_print_info()
 
     # Снять выделение со всех статей (1)
     def print_unselect_all(self):
         self.print_selected_keys = []
-        for btn in self.print_buttons:
-            btn.configure(style='Flat.TButton')
+        for i in range(len(self.print_buttons)):
+            btn = self.print_buttons[i]
+            btn.configure(style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
         self.frame_print_buttons_for_selected.grid_remove()
         self.print_print_info()
 
     # Снять выделение со всех статей (2)
     def search_unselect_all(self):
         self.search_selected_keys = []
-        for btn in self.search_buttons:
-            btn.configure(style='Flat.TButton')
+        for i in range(len(self.search_buttons)):
+            btn = self.search_buttons[i]
+            btn.configure(style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
         self.frame_search_buttons_for_selected.grid_remove()
         self.search_print_info()
 
@@ -6604,7 +6609,7 @@ class SettingsW(tk.Toplevel):
         # Создаём новые кнопки
         self.dcts_buttons = [ttk.Button(self.dcts_frames[i],
                                         command=lambda i=i: self.dct_open(self.dcts_savenames[i]),
-                                        takefocus=False, style='Flat.TButton')
+                                        takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
                              for i in range(dcts_count)]
         for i in range(dcts_count):
             # Выводим текст на кнопки
@@ -7069,13 +7074,21 @@ class MainW(tk.Tk):
                                    background=STYLES['*.BG.*'][1][th],
                                    foreground=STYLES['*.FG.WARN'][1][th])
 
-        # Стиль label "note"
+        # Стиль label "flat light"
         self.st_lbl_note = ttk.Style()
         self.st_lbl_note.theme_use('alt')
-        self.st_lbl_note.configure('Flat.TLabel',
+        self.st_lbl_note.configure('FlatL.TLabel',
                                    font=('DejaVu Sans Mono', _0_global_scale + 1),
-                                   background=STYLES['FLAT_BTN.BG.*'][1][th],
-                                   foreground=STYLES['FLAT_BTN.FG.*'][1][th])
+                                   background=STYLES['FLAT_BTN.BG.LIGHT'][1][th],
+                                   foreground=STYLES['FLAT_BTN.FG.LIGHT'][1][th])
+
+        # Стиль label "flat dark"
+        self.st_lbl_note = ttk.Style()
+        self.st_lbl_note.theme_use('alt')
+        self.st_lbl_note.configure('FlatD.TLabel',
+                                   font=('DejaVu Sans Mono', _0_global_scale + 1),
+                                   background=STYLES['FLAT_BTN.BG.DARK'][1][th],
+                                   foreground=STYLES['FLAT_BTN.FG.DARK'][1][th])
 
         # Стиль entry "default"
         self.st_entry = ttk.Style()
@@ -7174,39 +7187,73 @@ class MainW(tk.Tk):
                                           ('active', STYLES['*.FG.*'][1][th]),
                                           ('!active', STYLES['*.FG.*'][1][th])])
 
-        # Стиль button "note"
+        # Стиль button "flat light"
         self.st_btn_note = ttk.Style()
         self.st_btn_note.theme_use('alt')
-        self.st_btn_note.configure('Flat.TButton',
+        self.st_btn_note.configure('FlatL.TButton',
                                    font=('DejaVu Sans Mono', _0_global_scale + 1),
                                    borderwidth=0)
-        self.st_btn_note.map('Flat.TButton',
+        self.st_btn_note.map('FlatL.TButton',
                              relief=[('pressed', 'flat'),
                                      ('active', 'flat'),
                                      ('!active', 'flat')],
                              background=[('pressed', STYLES['FLAT_BTN.BG.ACT'][1][th]),
                                          ('active', STYLES['FLAT_BTN.BG.HOV'][1][th]),
-                                         ('!active', STYLES['FLAT_BTN.BG.*'][1][th])],
+                                         ('!active', STYLES['FLAT_BTN.BG.LIGHT'][1][th])],
                              foreground=[('pressed', STYLES['FLAT_BTN.FG.ACT'][1][th]),
                                          ('active', STYLES['FLAT_BTN.FG.HOV'][1][th]),
-                                         ('!active', STYLES['FLAT_BTN.FG.*'][1][th])])
+                                         ('!active', STYLES['FLAT_BTN.FG.LIGHT'][1][th])])
 
-        # Стиль button "note selected"
+        # Стиль button "flat dark"
+        self.st_btn_note = ttk.Style()
+        self.st_btn_note.theme_use('alt')
+        self.st_btn_note.configure('FlatD.TButton',
+                                   font=('DejaVu Sans Mono', _0_global_scale + 1),
+                                   borderwidth=0)
+        self.st_btn_note.map('FlatD.TButton',
+                             relief=[('pressed', 'flat'),
+                                     ('active', 'flat'),
+                                     ('!active', 'flat')],
+                             background=[('pressed', STYLES['FLAT_BTN.BG.ACT'][1][th]),
+                                         ('active', STYLES['FLAT_BTN.BG.HOV'][1][th]),
+                                         ('!active', STYLES['FLAT_BTN.BG.DARK'][1][th])],
+                             foreground=[('pressed', STYLES['FLAT_BTN.FG.ACT'][1][th]),
+                                         ('active', STYLES['FLAT_BTN.FG.HOV'][1][th]),
+                                         ('!active', STYLES['FLAT_BTN.FG.DARK'][1][th])])
+
+        # Стиль button "flat selected light"
         self.st_btn_note_selected = ttk.Style()
         self.st_btn_note_selected.theme_use('alt')
-        self.st_btn_note_selected.configure('FlatSelected.TButton',
+        self.st_btn_note_selected.configure('FlatSelectedL.TButton',
                                             font=('DejaVu Sans Mono', _0_global_scale + 1),
                                             borderwidth=0)
-        self.st_btn_note_selected.map('FlatSelected.TButton',
+        self.st_btn_note_selected.map('FlatSelectedL.TButton',
                                       relief=[('pressed', 'flat'),
                                               ('active', 'flat'),
                                               ('!active', 'flat')],
                                       background=[('pressed', STYLES['FLAT_BTN.BG.SEL_ACT'][1][th]),
                                                   ('active', STYLES['FLAT_BTN.BG.SEL_HOV'][1][th]),
-                                                  ('!active', STYLES['FLAT_BTN.BG.SEL'][1][th])],
+                                                  ('!active', STYLES['FLAT_BTN.BG.SEL_L'][1][th])],
                                       foreground=[('pressed', STYLES['FLAT_BTN.FG.SEL_ACT'][1][th]),
                                                   ('active', STYLES['FLAT_BTN.FG.SEL_HOV'][1][th]),
-                                                  ('!active', STYLES['FLAT_BTN.FG.SEL'][1][th])])
+                                                  ('!active', STYLES['FLAT_BTN.FG.SEL_L'][1][th])])
+
+        # Стиль button "flat selected dark"
+        self.st_btn_note_selected = ttk.Style()
+        self.st_btn_note_selected.theme_use('alt')
+        self.st_btn_note_selected.configure('FlatSelectedD.TButton',
+                                            font=('DejaVu Sans Mono', _0_global_scale + 1),
+                                            borderwidth=0)
+        self.st_btn_note_selected.map('FlatSelectedD.TButton',
+                                      relief=[('pressed', 'flat'),
+                                              ('active', 'flat'),
+                                              ('!active', 'flat')],
+                                      background=[('pressed', STYLES['FLAT_BTN.BG.SEL_ACT'][1][th]),
+                                                  ('active', STYLES['FLAT_BTN.BG.SEL_HOV'][1][th]),
+                                                  ('!active', STYLES['FLAT_BTN.BG.SEL_D'][1][th])],
+                                      foreground=[('pressed', STYLES['FLAT_BTN.FG.SEL_ACT'][1][th]),
+                                                  ('active', STYLES['FLAT_BTN.FG.SEL_HOV'][1][th]),
+                                                  ('!active', STYLES['FLAT_BTN.FG.SEL_D'][1][th])])
 
         # Стиль checkbutton "default"
         self.st_check = ttk.Style()
