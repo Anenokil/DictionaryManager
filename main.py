@@ -43,20 +43,20 @@ STYLES = {'*.BG.*':              ('Цвет фона окна',                 
           'BTN.BG.IMG_ACT':      ('Цвет фона кнопок-картинок при нажатии',         {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),
           'BTN.BG.DISABL':       ('Цвет фона выключенных кнопок',                  {THEMES[1]: '#D9D9D9', THEMES[2]: '#1E1E1E'}),
           'BTN.FG.DISABL':       ('Цвет текста выключенных кнопок',                {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}),
-          'FLAT_BTN.BG.LIGHT':   ('Цвет фона кнопок-записей (светлые)',            {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
-          'FLAT_BTN.BG.DARK':    ('Цвет фона кнопок-записей (тёмные)',             {THEMES[1]: '#FAFAFA', THEMES[2]: '#171717'}),
+          'FLAT_BTN.BG.1':       ('Цвет фона кнопок-записей (1)',                  {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
+          'FLAT_BTN.BG.2':       ('Цвет фона кнопок-записей (2)',                  {THEMES[1]: '#FAFAFA', THEMES[2]: '#171717'}),
           'FLAT_BTN.BG.HOV':     ('Цвет фона кнопок-записей при наведении',        {THEMES[1]: '#E0F1FF', THEMES[2]: '#1B1B1B'}),
           'FLAT_BTN.BG.ACT':     ('Цвет фона кнопок-записей при нажатии',          {THEMES[1]: '#CCE8FF', THEMES[2]: '#1F1F1F'}),
-          'FLAT_BTN.FG.LIGHT':   ('Цвет текста кнопок-записей (светлые)',          {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          'FLAT_BTN.FG.DARK':    ('Цвет текста кнопок-записей (тёмные)',           {THEMES[1]: '#202020', THEMES[2]: '#979797'}),
+          'FLAT_BTN.FG.1':       ('Цвет текста кнопок-записей (1)',                {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+          'FLAT_BTN.FG.2':       ('Цвет текста кнопок-записей (2)',                {THEMES[1]: '#202020', THEMES[2]: '#979797'}),
           'FLAT_BTN.FG.HOV':     ('Цвет текста кнопок-записей при наведении',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
           'FLAT_BTN.FG.ACT':     ('Цвет текста кнопок-записей при нажатии',        {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          'FLAT_BTN.BG.SEL_L':   ('Цвет фона выдел. кн.-записей (светлые)',        {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),
-          'FLAT_BTN.BG.SEL_D':   ('Цвет фона выдел. кн.-записей (тёмные)',         {THEMES[1]: '#C7FAE3', THEMES[2]: '#1B1B22'}),
+          'FLAT_BTN.BG.SEL_1':   ('Цвет фона выдел. кн.-записей (1)',              {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),
+          'FLAT_BTN.BG.SEL_2':   ('Цвет фона выдел. кн.-записей (2)',              {THEMES[1]: '#C7FAE3', THEMES[2]: '#1B1B22'}),
           'FLAT_BTN.BG.SEL_HOV': ('Цвет фона выдел. кн.-записей при наведении',    {THEMES[1]: '#A8FFD6', THEMES[2]: '#1B1B2A'}),
           'FLAT_BTN.BG.SEL_ACT': ('Цвет фона выдел. кн.-записей при нажатии',      {THEMES[1]: '#82FFC4', THEMES[2]: '#1B1B31'}),
-          'FLAT_BTN.FG.SEL_L':   ('Цвет текста выдел. кн.-записей (светлые)',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          'FLAT_BTN.FG.SEL_D':   ('Цвет текста выдел. кн.-записей (тёмные)',       {THEMES[1]: '#202020', THEMES[2]: '#979797'}),
+          'FLAT_BTN.FG.SEL_1':   ('Цвет текста выдел. кн.-записей (1)',            {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+          'FLAT_BTN.FG.SEL_2':   ('Цвет текста выдел. кн.-записей (2)',            {THEMES[1]: '#202020', THEMES[2]: '#979797'}),
           'FLAT_BTN.FG.SEL_HOV': ('Цвет текста выдел. кн.-записей при наведении',  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
           'FLAT_BTN.FG.SEL_ACT': ('Цвет текста выдел. кн.-записей при нажатии',    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
           'CHECK.BG.SEL':        ('Цвет фона переключателя при наведении на него', {THEMES[1]: '#DDDDDD', THEMES[2]: '#333333'}),
@@ -1469,7 +1469,7 @@ class ScrollFrame(tk.Frame):
         else:
             canvas_position: typing.Literal['left', 'right'] = 'right'
 
-        self.canvas = tk.Canvas(self, bg=STYLES['FLAT_BTN.BG.DARK'][1][th], bd=0, highlightthickness=0, height=height, width=width)
+        self.canvas = tk.Canvas(self, bg=STYLES['FLAT_BTN.BG.2'][1][th], bd=0, highlightthickness=0, height=height, width=width)
         # {
         self.frame_canvas = ttk.Frame(self.canvas, style='Default.TFrame')
         # }
@@ -7083,16 +7083,16 @@ class MainW(tk.Tk):
         self.st_lbl_note.theme_use('alt')
         self.st_lbl_note.configure('FlatL.TLabel',
                                    font=('DejaVu Sans Mono', _0_global_scale + 1),
-                                   background=STYLES['FLAT_BTN.BG.LIGHT'][1][th],
-                                   foreground=STYLES['FLAT_BTN.FG.LIGHT'][1][th])
+                                   background=STYLES['FLAT_BTN.BG.1'][1][th],
+                                   foreground=STYLES['FLAT_BTN.FG.1'][1][th])
 
         # Стиль label "flat dark"
         self.st_lbl_note = ttk.Style()
         self.st_lbl_note.theme_use('alt')
         self.st_lbl_note.configure('FlatD.TLabel',
                                    font=('DejaVu Sans Mono', _0_global_scale + 1),
-                                   background=STYLES['FLAT_BTN.BG.DARK'][1][th],
-                                   foreground=STYLES['FLAT_BTN.FG.DARK'][1][th])
+                                   background=STYLES['FLAT_BTN.BG.2'][1][th],
+                                   foreground=STYLES['FLAT_BTN.FG.2'][1][th])
 
         # Стиль entry "default"
         self.st_entry = ttk.Style()
@@ -7203,10 +7203,10 @@ class MainW(tk.Tk):
                                      ('!active', 'flat')],
                              background=[('pressed', STYLES['FLAT_BTN.BG.ACT'][1][th]),
                                          ('active', STYLES['FLAT_BTN.BG.HOV'][1][th]),
-                                         ('!active', STYLES['FLAT_BTN.BG.LIGHT'][1][th])],
+                                         ('!active', STYLES['FLAT_BTN.BG.1'][1][th])],
                              foreground=[('pressed', STYLES['FLAT_BTN.FG.ACT'][1][th]),
                                          ('active', STYLES['FLAT_BTN.FG.HOV'][1][th]),
-                                         ('!active', STYLES['FLAT_BTN.FG.LIGHT'][1][th])])
+                                         ('!active', STYLES['FLAT_BTN.FG.1'][1][th])])
 
         # Стиль button "flat dark"
         self.st_btn_note = ttk.Style()
@@ -7220,10 +7220,10 @@ class MainW(tk.Tk):
                                      ('!active', 'flat')],
                              background=[('pressed', STYLES['FLAT_BTN.BG.ACT'][1][th]),
                                          ('active', STYLES['FLAT_BTN.BG.HOV'][1][th]),
-                                         ('!active', STYLES['FLAT_BTN.BG.DARK'][1][th])],
+                                         ('!active', STYLES['FLAT_BTN.BG.2'][1][th])],
                              foreground=[('pressed', STYLES['FLAT_BTN.FG.ACT'][1][th]),
                                          ('active', STYLES['FLAT_BTN.FG.HOV'][1][th]),
-                                         ('!active', STYLES['FLAT_BTN.FG.DARK'][1][th])])
+                                         ('!active', STYLES['FLAT_BTN.FG.2'][1][th])])
 
         # Стиль button "flat selected light"
         self.st_btn_note_selected = ttk.Style()
@@ -7237,10 +7237,10 @@ class MainW(tk.Tk):
                                               ('!active', 'flat')],
                                       background=[('pressed', STYLES['FLAT_BTN.BG.SEL_ACT'][1][th]),
                                                   ('active', STYLES['FLAT_BTN.BG.SEL_HOV'][1][th]),
-                                                  ('!active', STYLES['FLAT_BTN.BG.SEL_L'][1][th])],
+                                                  ('!active', STYLES['FLAT_BTN.BG.SEL_1'][1][th])],
                                       foreground=[('pressed', STYLES['FLAT_BTN.FG.SEL_ACT'][1][th]),
                                                   ('active', STYLES['FLAT_BTN.FG.SEL_HOV'][1][th]),
-                                                  ('!active', STYLES['FLAT_BTN.FG.SEL_L'][1][th])])
+                                                  ('!active', STYLES['FLAT_BTN.FG.SEL_1'][1][th])])
 
         # Стиль button "flat selected dark"
         self.st_btn_note_selected = ttk.Style()
@@ -7254,10 +7254,10 @@ class MainW(tk.Tk):
                                               ('!active', 'flat')],
                                       background=[('pressed', STYLES['FLAT_BTN.BG.SEL_ACT'][1][th]),
                                                   ('active', STYLES['FLAT_BTN.BG.SEL_HOV'][1][th]),
-                                                  ('!active', STYLES['FLAT_BTN.BG.SEL_D'][1][th])],
+                                                  ('!active', STYLES['FLAT_BTN.BG.SEL_2'][1][th])],
                                       foreground=[('pressed', STYLES['FLAT_BTN.FG.SEL_ACT'][1][th]),
                                                   ('active', STYLES['FLAT_BTN.FG.SEL_HOV'][1][th]),
-                                                  ('!active', STYLES['FLAT_BTN.FG.SEL_D'][1][th])])
+                                                  ('!active', STYLES['FLAT_BTN.FG.SEL_2'][1][th])])
 
         # Стиль checkbutton "default"
         self.st_check = ttk.Style()
