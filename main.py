@@ -986,6 +986,8 @@ def upload_themes(themes: list[str]):
                     if not data:
                         break
                     key = data[0].strip()
+                    if key not in STYLES.keys():
+                        continue
                     val = data[1].strip()
                     STYLES[key][1][theme] = val  # Добавляем новый стиль для элемента, соответствующий теме theme
         except Exception as exc:
@@ -1016,6 +1018,8 @@ def upload_custom_theme():
                 if not data:
                     break
                 key = data[0].strip()
+                if key not in STYLES.keys():
+                    continue
                 val = data[1].strip()
                 STYLES[key][1][CUSTOM_TH] = val  # Добавляем новый стиль для элемента, соответствующий теме theme
     except Exception as exc:
