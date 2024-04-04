@@ -43,24 +43,20 @@ STYLES = {'*.BG.*':              ('Цвет фона окна',                 
           'BTN.BG.IMG_ACT':      ('Цвет фона кнопок-картинок при нажатии',         {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),
           'BTN.BG.DISABL':       ('Цвет фона выключенных кнопок',                  {THEMES[1]: '#D9D9D9', THEMES[2]: '#1E1E1E'}),
           'BTN.FG.DISABL':       ('Цвет текста выключенных кнопок',                {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}),
-         #'FLAT_BTN.BG.*':       ('Цвет фона кнопок-записей',                      {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
           'FLAT_BTN.BG.LIGHT':   ('Цвет фона кнопок-записей (светлые)',            {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
-          'FLAT_BTN.BG.DARK':    ('Цвет фона кнопок-записей (тёмные)',             {THEMES[1]: '#EEEEEE', THEMES[2]: '#121212'}),
+          'FLAT_BTN.BG.DARK':    ('Цвет фона кнопок-записей (тёмные)',             {THEMES[1]: '#FAFAFA', THEMES[2]: '#171717'}),
           'FLAT_BTN.BG.HOV':     ('Цвет фона кнопок-записей при наведении',        {THEMES[1]: '#E0F1FF', THEMES[2]: '#1B1B1B'}),
           'FLAT_BTN.BG.ACT':     ('Цвет фона кнопок-записей при нажатии',          {THEMES[1]: '#CCE8FF', THEMES[2]: '#1F1F1F'}),
-         #'FLAT_BTN.FG.*':       ('Цвет текста кнопок-записей',                    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
           'FLAT_BTN.FG.LIGHT':   ('Цвет текста кнопок-записей (светлые)',          {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          'FLAT_BTN.FG.DARK':    ('Цвет текста кнопок-записей (тёмные)',           {THEMES[1]: '#333333', THEMES[2]: '#A7A7A7'}),
+          'FLAT_BTN.FG.DARK':    ('Цвет текста кнопок-записей (тёмные)',           {THEMES[1]: '#202020', THEMES[2]: '#979797'}),
           'FLAT_BTN.FG.HOV':     ('Цвет текста кнопок-записей при наведении',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
           'FLAT_BTN.FG.ACT':     ('Цвет текста кнопок-записей при нажатии',        {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-         #'FLAT_BTN.BG.SEL':     ('Цвет фона выдел. кн.-записей',                  {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),
           'FLAT_BTN.BG.SEL_L':   ('Цвет фона выдел. кн.-записей (светлые)',        {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),
-          'FLAT_BTN.BG.SEL_D':   ('Цвет фона выдел. кн.-записей (тёмные)',         {THEMES[1]: '#BBEED7', THEMES[2]: '#101017'}),
+          'FLAT_BTN.BG.SEL_D':   ('Цвет фона выдел. кн.-записей (тёмные)',         {THEMES[1]: '#C7FAE3', THEMES[2]: '#1B1B22'}),
           'FLAT_BTN.BG.SEL_HOV': ('Цвет фона выдел. кн.-записей при наведении',    {THEMES[1]: '#A8FFD6', THEMES[2]: '#1B1B2A'}),
           'FLAT_BTN.BG.SEL_ACT': ('Цвет фона выдел. кн.-записей при нажатии',      {THEMES[1]: '#82FFC4', THEMES[2]: '#1B1B31'}),
-         #'FLAT_BTN.FG.SEL':     ('Цвет текста выдел. кн.-записей',                {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
           'FLAT_BTN.FG.SEL_L':   ('Цвет текста выдел. кн.-записей (светлые)',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          'FLAT_BTN.FG.SEL_D':   ('Цвет текста выдел. кн.-записей (тёмные)',       {THEMES[1]: '#333333', THEMES[2]: '#A7A7A7'}),
+          'FLAT_BTN.FG.SEL_D':   ('Цвет текста выдел. кн.-записей (тёмные)',       {THEMES[1]: '#202020', THEMES[2]: '#979797'}),
           'FLAT_BTN.FG.SEL_HOV': ('Цвет текста выдел. кн.-записей при наведении',  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
           'FLAT_BTN.FG.SEL_ACT': ('Цвет текста выдел. кн.-записей при нажатии',    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
           'CHECK.BG.SEL':        ('Цвет фона переключателя при наведении на него', {THEMES[1]: '#DDDDDD', THEMES[2]: '#333333'}),
@@ -971,8 +967,8 @@ def upload_themes(themes: list[str]):
                         upgrade_theme(styles_path)
                         styles_file.close()
                         styles_file = open(styles_path, 'r', encoding='utf-8')
-                        line = styles_file.readline().strip()  # Версия темы
-                        to_update = styles_file.readline().strip()  # Переменная обновлений
+                        styles_file.readline().strip()  # Версия темы
+                        styles_file.readline().strip()  # Переменная обновлений
                     else:
                         print(f'Не удалось загрузить тему "{theme}",\n'
                               f'  т. к. её версия не соответствует требуемой!\n'
@@ -980,6 +976,10 @@ def upload_themes(themes: list[str]):
                               f'  {URL_RELEASES}')
                         continue
                 themes += [theme]  # Добавляем название новой темы
+                # Сначала устанавливаем значения по умолчанию
+                for key in STYLES.keys():
+                    STYLES[key][1][theme] = STYLES[key][1][DEFAULT_TH]
+                # Далее устанавливаем заданные значения
                 while True:
                     line = styles_file.readline().strip()
                     data = [v for v in re.split(' |=|//', line) if v != '']  # После // идут комментарии
@@ -1006,6 +1006,10 @@ def upload_custom_theme():
         with open(styles_path, 'r', encoding='utf-8') as styles_file:
             styles_file.readline()  # Версия темы
             styles_file.readline()  # Переменная обновлений
+            # Сначала устанавливаем значения по умолчанию
+            for key in STYLES.keys():
+                STYLES[key][1][CUSTOM_TH] = STYLES[key][1][DEFAULT_TH]
+            # Далее устанавливаем заданные значения
             while True:
                 line = styles_file.readline().strip()
                 data = [v for v in re.split(' |=|//', line) if v != '']  # После // идут комментарии
