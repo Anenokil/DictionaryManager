@@ -972,7 +972,7 @@ def upload_one_theme(theme_path: str, theme_name: str) -> int:
         styles_file.readline().strip()  # Версия темы
         styles_file.readline().strip()  # Переменная обновлений
         # Сначала устанавливаем значения по умолчанию
-        for key in STYLES.keys():
+        for key in STYLES:
             STYLES[key][1][theme_name] = STYLES[key][1][DEFAULT_TH]
         # Далее устанавливаем заданные значения
         while True:
@@ -981,7 +981,7 @@ def upload_one_theme(theme_path: str, theme_name: str) -> int:
             if not data:  # Если настройки стилей закончились, выходим из цикла
                 break
             key = data[0].strip()
-            if key not in STYLES.keys():  # Если считанный ключ отсутствует в текущей версии тем, то пропускаем его
+            if key not in STYLES:  # Если считанный ключ отсутствует в текущей версии тем, то пропускаем его
                 continue
             val = data[1].strip()
             STYLES[key][1][theme_name] = val  # Добавляем новый стиль для элемента
@@ -4082,6 +4082,10 @@ class CustomThemeSettingsW(tk.Toplevel):
                 else:
                     self.buttons[i].config(bg=self.custom_styles[key], activebackground=self.custom_styles[key])
                 i += 1
+        # Устанавливаем значения оставшихся стилей на значения по умолчанию
+        for key in STYLE_KEYS:
+            if key not in self.custom_styles:
+                self.custom_styles[key] = STYLES[key][1][DEFAULT_TH]
 
         self.set_demo_styles()
 
