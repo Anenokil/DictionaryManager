@@ -72,6 +72,7 @@ STYLES = {'*.BG.*':              ('Цвет фона окна',                 
           'TXT.RELIEF.*':        ('Стиль рамок текстовых полей',                   {THEMES[1]: 'sunken',  THEMES[2]: 'solid'  }),
           '*.BORDER_CLR.*':      ('Цвет рамок',                                    {THEMES[1]: '#222222', THEMES[2]: '#111111'}),
           }
+STYLE_KEYS = list(STYLES.keys())
 
 """ Функции проверки """
 
@@ -940,10 +941,6 @@ def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
 
 
 """ Загрузка/сохранение """
-
-STYLES_FN = 'styles.txt'  # Название файла стилей темы
-RET_TH_OK = 0  # Загрузка темы прошла успешно
-RET_TH_OLD = 1  # Версия темы не соответствует требуемой
 
 
 # Установить в качестве пользовательской темы тему по умолчанию
@@ -3680,8 +3677,6 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.configure(bg=STYLES['*.BG.*'][1][th])
         toplevel_geometry(parent, self)
 
-        self.style_keys = list(STYLES.keys())
-
         self.custom_styles = {}  # Стили пользовательской темы
         self.history = []  # История изменений
         self.history_undo = []  # История отмен
@@ -3718,14 +3713,14 @@ class CustomThemeSettingsW(tk.Toplevel):
         # {
         # Выбор цветов
         self.labels = [ttk.Label(self.scrolled_frame.frame_canvas, style='Default.TLabel')
-                       for _ in range(len(self.style_keys))]
+                       for _ in range(len(STYLE_KEYS))]
         self.buttons = [tk.Button(self.scrolled_frame.frame_canvas, relief='solid', overrelief='raised',
                                   borderwidth=1, width=18, takefocus=False)
-                        for i in range(len(self.style_keys))]
+                        for i in range(len(STYLE_KEYS))]
         # Получается по 2 лишних экземпляра каждого виджета (но пусть будет так)
 
-        for i in range(len(self.style_keys)):
-            st_key = self.style_keys[i]
+        for i in range(len(STYLE_KEYS)):
+            st_key = STYLE_KEYS[i]
             if st_key not in ('FRAME.RELIEF.*', 'TXT.RELIEF.*'):
                 self.labels[i].configure(text=f'{STYLES[st_key][0]}:')
                 self.buttons[i].configure(command=lambda i=i: self.choose_color(i))
@@ -3735,7 +3730,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                 if i == 0:
                     self.labels[i].grid(pady=(6, 3))
                     self.buttons[i].grid(pady=(6, 3))
-                elif i == len(self.style_keys) - 1:
+                elif i == len(STYLE_KEYS) - 1:
                     self.labels[i].grid(pady=(0, 6))
                     self.buttons[i].grid(pady=(0, 6))
                 else:
@@ -3903,8 +3898,8 @@ class CustomThemeSettingsW(tk.Toplevel):
         theme_name = self.var_theme.get()
         old_vals = []
         new_vals = []
-        for i in range(len(self.style_keys)):
-            st_key = self.style_keys[i]
+        for i in range(len(STYLE_KEYS)):
+            st_key = STYLE_KEYS[i]
             st_val = STYLES[st_key][1][theme_name]
 
             if st_key == 'FRAME.RELIEF.*':
@@ -3940,7 +3935,7 @@ class CustomThemeSettingsW(tk.Toplevel):
 
     # Выбрать цвет
     def choose_color(self, n: int):
-        st_key = self.style_keys[n]
+        st_key = STYLE_KEYS[n]
         hx = self.custom_styles[st_key]
 
         rgb, new_hx = colorchooser.askcolor(hx)
@@ -3964,7 +3959,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         with open(filepath, 'w', encoding='utf-8') as file:
             file.write(f'{REQUIRED_THEME_VERSION}')
             file.write('\n1')
-            for el in self.style_keys:
+            for el in STYLE_KEYS:
                 file.write(f'\n{el} = {self.custom_styles[el]}')
 
         if self.dir_with_images != CUSTOM_THEME_PATH:
@@ -3989,8 +3984,8 @@ class CustomThemeSettingsW(tk.Toplevel):
             var = last_action[0]
             if var == 'all':
                 vals = last_action[1]
-                for i in range(len(self.style_keys)):
-                    el = self.style_keys[i]
+                for i in range(len(STYLE_KEYS)):
+                    el = STYLE_KEYS[i]
 
                     if el == 'FRAME.RELIEF.*':
                         self.var_relief_frame.set(vals[i])
@@ -4014,7 +4009,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                 elif el == 'TXT.RELIEF.*':
                     self.var_relief_text.set(val)
                 else:
-                    i = self.style_keys.index(el)
+                    i = STYLE_KEYS.index(el)
                     self.buttons[i].config(bg=val, activebackground=val)
 
             self.history_undo += [last_action]
@@ -4030,8 +4025,8 @@ class CustomThemeSettingsW(tk.Toplevel):
             var = last_undo_action[0]
             if var == 'all':
                 vals = last_undo_action[2]
-                for i in range(len(self.style_keys)):
-                    el = self.style_keys[i]
+                for i in range(len(STYLE_KEYS)):
+                    el = STYLE_KEYS[i]
 
                     if el == 'FRAME.RELIEF.*':
                         self.var_relief_frame.set(vals[i])
@@ -4055,7 +4050,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                 elif el == 'TXT.RELIEF.*':
                     self.var_relief_text.set(val)
                 else:
-                    i = self.style_keys.index(el)
+                    i = STYLE_KEYS.index(el)
                     self.buttons[i].config(bg=val, activebackground=val)
 
             self.history += [last_undo_action]
