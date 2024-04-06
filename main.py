@@ -941,98 +941,14 @@ def check_updates(window_parent, show_updates: bool, show_if_no_updates: bool):
 
 """ Загрузка/сохранение """
 
-
-# Загрузить дополнительные темы
-def upload_themes(themes: list[str]):
-    if os.listdir(ADDITIONAL_THEMES_PATH):
-        print('\nЗагрузка тем...')
-    for dirname in os.listdir(ADDITIONAL_THEMES_PATH):
-        path = os.path.join(ADDITIONAL_THEMES_PATH, dirname)
-        if not os.path.isdir(path):
-            continue
-        styles_filename = 'styles.txt'
-        if styles_filename not in os.listdir(path):
-            continue
-        theme = dirname
-        try:
-            styles_path = os.path.join(path, styles_filename)
-            with open(styles_path, 'r', encoding='utf-8') as styles_file:
-                line = styles_file.readline().strip()  # Версия темы
-                to_update = styles_file.readline().strip()  # Переменная обновлений
-                theme_version = int(re.split(' |//', line)[0])  # После // идут комментарии
-                if theme_version != REQUIRED_THEME_VERSION:  # Проверка версии темы
-                    if to_update == '1':
-                        print(f'Тема "{theme}" устарела. '
-                              f'Идёт обновление с версии {theme_version} до {REQUIRED_THEME_VERSION}')
-                        upgrade_theme(styles_path)
-                        styles_file.close()
-                        styles_file = open(styles_path, 'r', encoding='utf-8')
-                        styles_file.readline().strip()  # Версия темы
-                        styles_file.readline().strip()  # Переменная обновлений
-                    else:
-                        print(f'Не удалось загрузить тему "{theme}",\n'
-                              f'  т. к. её версия не соответствует требуемой!\n'
-                              f'  Актуальные темы можно загрузить здесь:\n'
-                              f'  {URL_RELEASES}')
-                        continue
-                themes += [theme]  # Добавляем название новой темы
-                # Сначала устанавливаем значения по умолчанию
-                for key in STYLES.keys():
-                    STYLES[key][1][theme] = STYLES[key][1][DEFAULT_TH]
-                # Далее устанавливаем заданные значения
-                while True:
-                    line = styles_file.readline().strip()
-                    data = [v for v in re.split(' |=|//', line) if v != '']  # После // идут комментарии
-                    if not data:
-                        break
-                    key = data[0].strip()
-                    if key not in STYLES.keys():
-                        continue
-                    val = data[1].strip()
-                    STYLES[key][1][theme] = val  # Добавляем новый стиль для элемента, соответствующий теме theme
-        except Exception as exc:
-            print(f'Не удалось загрузить тему "{theme}" из-за ошибки!\n'
-                  f'{exc}')
-        else:
-            print(f'Тема "{theme}" успешно загружена')
-
-
-# Загрузить пользовательскую тему
-def upload_custom_theme():
-    styles_filename = 'styles.txt'
-    if styles_filename not in os.listdir(CUSTOM_THEME_PATH):
-        create_default_custom_theme()
-    styles_path = os.path.join(CUSTOM_THEME_PATH, styles_filename)
-    try:
-        upgrade_theme(styles_path)
-        with open(styles_path, 'r', encoding='utf-8') as styles_file:
-            styles_file.readline()  # Версия темы
-            styles_file.readline()  # Переменная обновлений
-            # Сначала устанавливаем значения по умолчанию
-            for key in STYLES.keys():
-                STYLES[key][1][CUSTOM_TH] = STYLES[key][1][DEFAULT_TH]
-            # Далее устанавливаем заданные значения
-            while True:
-                line = styles_file.readline().strip()
-                data = [v for v in re.split(' |=|//', line) if v != '']  # После // идут комментарии
-                if not data:
-                    break
-                key = data[0].strip()
-                if key not in STYLES.keys():
-                    continue
-                val = data[1].strip()
-                STYLES[key][1][CUSTOM_TH] = val  # Добавляем новый стиль для элемента, соответствующий теме theme
-    except Exception as exc:
-        print(f'Не удалось загрузить пользовательскую тему из-за ошибки!\n'
-              f'{exc}\n'
-              f'Установлена тема по умолчанию.')
-        create_default_custom_theme()
+STYLES_FN = 'styles.txt'  # Название файла стилей темы
+RET_TH_OK = 0  # Загрузка темы прошла успешно
+RET_TH_OLD = 1  # Версия темы не соответствует требуемой
 
 
 # Установить в качестве пользовательской темы тему по умолчанию
 def create_default_custom_theme():
-    styles_filename = 'styles.txt'
-    styles_path = os.path.join(CUSTOM_THEME_PATH, styles_filename)
+    styles_path = os.path.join(CUSTOM_THEME_PATH, STYLES_FN)
     with open(styles_path, 'w', encoding='utf-8') as styles_file:
         styles_file.write(f'{REQUIRED_THEME_VERSION}\n'
                           f'1')
@@ -1040,6 +956,78 @@ def create_default_custom_theme():
             style = STYLES[key][1][DEFAULT_TH]
             STYLES[key][1][CUSTOM_TH] = style
             styles_file.write(f'\n{key} = {style}')
+
+
+# Загрузить одну тему
+def upload_one_theme(theme_path: str, theme_name: str) -> int:
+    styles_path = os.path.join(theme_path, STYLES_FN)
+    with open(styles_path, 'r', encoding='utf-8') as styles_file:
+        theme_version = styles_file.readline().strip()  # Версия темы
+        theme_version = int(re.split(' |//', theme_version)[0])  # После // идут комментарии
+        to_update = styles_file.readline().strip()  # Переменная обновлений
+    if theme_version != REQUIRED_THEME_VERSION:  # Проверка версии темы
+        if to_update == '1':
+            print(f'Тема устарела. Идёт обновление с версии {theme_version} до версии {REQUIRED_THEME_VERSION}')
+            upgrade_theme(styles_path)
+        else:
+            return RET_TH_OLD
+    with open(styles_path, 'r', encoding='utf-8') as styles_file:
+        styles_file.readline().strip()  # Версия темы
+        styles_file.readline().strip()  # Переменная обновлений
+        # Сначала устанавливаем значения по умолчанию
+        for key in STYLES.keys():
+            STYLES[key][1][theme_name] = STYLES[key][1][DEFAULT_TH]
+        # Далее устанавливаем заданные значения
+        while True:
+            line = styles_file.readline().strip()
+            data = [v for v in re.split(' |=|//', line) if v != '']  # После // идут комментарии
+            if not data:  # Если настройки стилей закончились, выходим из цикла
+                break
+            key = data[0].strip()
+            if key not in STYLES.keys():  # Если считанный ключ отсутствует в текущей версии тем, то пропускаем его
+                continue
+            val = data[1].strip()
+            STYLES[key][1][theme_name] = val  # Добавляем новый стиль для элемента
+    return RET_TH_OK
+
+
+# Загрузить дополнительные темы
+def upload_themes(themes: list[str]):
+    for dirname in os.listdir(ADDITIONAL_THEMES_PATH):
+        theme_dir_path = os.path.join(ADDITIONAL_THEMES_PATH, dirname)
+        if not os.path.isdir(theme_dir_path):
+            continue
+        if STYLES_FN not in os.listdir(theme_dir_path):
+            continue
+        theme_name = dirname
+        try:
+            ret = upload_one_theme(theme_dir_path, theme_name)
+        except Exception as exc:
+            print(f'Не удалось загрузить тему "{theme_name}" из-за ошибки: {exc}')
+        else:
+            if ret == RET_TH_OK:
+                print(f'Тема "{theme_name}" успешно загружена')
+                if theme_name not in themes:  # Добавляем название новой темы
+                    themes += [theme_name]
+            elif ret == RET_TH_OLD:
+                print(f'Не удалось загрузить тему "{theme_name}", т. к. её версия не соответствует требуемой! '
+                      f'Актуальные темы можно загрузить здесь: {URL_RELEASES}')
+
+
+# Загрузить пользовательскую тему
+def upload_custom_theme(to_print=True):
+    if STYLES_FN not in os.listdir(CUSTOM_THEME_PATH):
+        create_default_custom_theme()
+        return
+    try:
+        ret = upload_one_theme(CUSTOM_THEME_PATH, CUSTOM_TH)
+    except Exception as exc:
+        print(f'Не удалось загрузить пользовательскую тему из-за ошибки: {exc}')
+    else:
+        if ret == RET_TH_OK and to_print:
+            print(f'Пользовательская тема успешно загружена')
+        elif ret == RET_TH_OLD:
+            print(f'Не удалось загрузить пользовательскую тему, т. к. её версия не соответствует требуемой!')
 
 
 # Загрузить изображения для выбранной темы
@@ -3972,7 +3960,7 @@ class CustomThemeSettingsW(tk.Toplevel):
     def save(self):
         self.custom_styles['FRAME.RELIEF.*'] = self.var_relief_frame.get()
         self.custom_styles['TXT.RELIEF.*'] = self.var_relief_text.get()
-        filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
+        filepath = os.path.join(CUSTOM_THEME_PATH, STYLES_FN)
         with open(filepath, 'w', encoding='utf-8') as file:
             file.write(f'{REQUIRED_THEME_VERSION}')
             file.write('\n1')
@@ -4077,7 +4065,7 @@ class CustomThemeSettingsW(tk.Toplevel):
 
     # Загрузить пользовательскую тему
     def read(self):
-        filepath = os.path.join(CUSTOM_THEME_PATH, 'styles.txt')
+        filepath = os.path.join(CUSTOM_THEME_PATH, STYLES_FN)
         upgrade_theme(filepath)
         with open(filepath, 'r', encoding='utf-8') as file:
             file.readline()  # Версия темы
@@ -6488,7 +6476,7 @@ class SettingsW(tk.Toplevel):
     # Задать пользовательскую тему (срабатывает при нажатии на кнопку)
     def custom_theme(self):
         CustomThemeSettingsW(self).open()
-        upload_custom_theme()
+        upload_custom_theme(False)
         if th == CUSTOM_TH:
             self.set_theme()
         self.refresh_scale_buttons()
@@ -7392,6 +7380,7 @@ _0_global_dct = Dictionary()
 _0_global_has_progress = False
 
 print('\nПрограмма запускается...')
+print('\nЗагрузка тем...')
 upload_themes(THEMES)  # Загружаем дополнительные темы
 upload_custom_theme()  # Загружаем пользовательскую тему
 _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale =\
