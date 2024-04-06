@@ -996,19 +996,21 @@ def upload_themes(themes: list[str]):
             continue
         if STYLES_FN not in os.listdir(theme_dir_path):
             continue
+
         theme_name = dirname
+        print(f'Загрузка темы "{theme_name}". ', end='')
         try:
             ret = upload_one_theme(theme_dir_path, theme_name)
         except Exception as exc:
-            print(f'Не удалось загрузить тему "{theme_name}" из-за ошибки: {exc}')
+            print(f'Ошибка: {exc}')
         else:
             if ret == RET_TH_OK:
-                print(f'Тема "{theme_name}" успешно загружена')
+                print(f'Тема успешно загружена')
                 if theme_name not in themes:  # Добавляем название новой темы
                     themes += [theme_name]
             elif ret == RET_TH_OLD:
-                print(f'Не удалось загрузить тему "{theme_name}", т. к. её версия не соответствует требуемой! '
-                      f'Актуальные темы можно загрузить здесь: {URL_RELEASES}')
+                print(f'Не удалось загрузить тему, т. к. её версия не соответствует требуемой!'
+                      f' Актуальные темы можно загрузить здесь: {URL_RELEASES}')
 
 
 # Загрузить пользовательскую тему
@@ -1016,15 +1018,17 @@ def upload_custom_theme(to_print=True):
     if STYLES_FN not in os.listdir(CUSTOM_THEME_PATH):
         create_default_custom_theme()
         return
+
+    print(f'Загрузка пользовательской темы. ', end='')
     try:
         ret = upload_one_theme(CUSTOM_THEME_PATH, CUSTOM_TH)
     except Exception as exc:
-        print(f'Не удалось загрузить пользовательскую тему из-за ошибки: {exc}')
+        print(f'Ошибка: {exc}')
     else:
         if ret == RET_TH_OK and to_print:
-            print(f'Пользовательская тема успешно загружена')
+            print(f'Тема успешно загружена')
         elif ret == RET_TH_OLD:
-            print(f'Не удалось загрузить пользовательскую тему, т. к. её версия не соответствует требуемой!')
+            print(f'Не удалось загрузить тему, т. к. её версия не соответствует требуемой!')
 
 
 # Загрузить изображения для выбранной темы
