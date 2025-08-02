@@ -1,6 +1,6 @@
 import os
 import shutil
-import aneno_constants as anc
+import constants as cnst
 from aneno_dct import frm_key_to_str_for_save
 
 """ Обновление ресурсов """
@@ -9,29 +9,29 @@ from aneno_dct import frm_key_to_str_for_save
 # Обновить структуру папки с ресурсами
 def upgrade_resources():
     old_local_settings_dir = 'local_settings'
-    old_local_settings_path = os.path.join(anc.RESOURCES_PATH, old_local_settings_dir)
+    old_local_settings_path = os.path.join(cnst.RESOURCES_PATH, old_local_settings_dir)
     # Удаляем лишние папки, если они есть
-    for dir_or_filename in os.listdir(anc.SAVES_PATH):
-        path = os.path.join(anc.SAVES_PATH, dir_or_filename)
+    for dir_or_filename in os.listdir(cnst.SAVES_PATH):
+        path = os.path.join(cnst.SAVES_PATH, dir_or_filename)
         if os.path.isdir(path):
             shutil.rmtree(path)
     # Перемещаем файлы
-    for filename in os.listdir(anc.SAVES_PATH):
+    for filename in os.listdir(cnst.SAVES_PATH):
         base_name, ext = os.path.splitext(filename)
         if ext == '.txt':
-            dir_name = os.path.join(anc.SAVES_PATH, base_name)
+            dir_name = os.path.join(cnst.SAVES_PATH, base_name)
             # Создаём папку сохранения
             os.mkdir(dir_name)
             # Перемещаем в неё файл с сохранением словаря
-            os.replace(os.path.join(anc.SAVES_PATH, filename),
-                       os.path.join(dir_name, anc.DICTIONARY_SAVE_FN))
+            os.replace(os.path.join(cnst.SAVES_PATH, filename),
+                       os.path.join(dir_name, cnst.DICTIONARY_SAVE_FN))
             # Перемещаем в неё файл с локальными настройками
-            if old_local_settings_dir in os.listdir(anc.RESOURCES_PATH):
+            if old_local_settings_dir in os.listdir(cnst.RESOURCES_PATH):
                 if filename in os.listdir(old_local_settings_path):
                     os.replace(os.path.join(old_local_settings_path, filename),
-                               os.path.join(dir_name, anc.LOCAL_SETTINGS_FN))
+                               os.path.join(dir_name, cnst.LOCAL_SETTINGS_FN))
     # Удаляем старую папку локальных настроек
-    if old_local_settings_dir in os.listdir(anc.RESOURCES_PATH):
+    if old_local_settings_dir in os.listdir(cnst.RESOURCES_PATH):
         shutil.rmtree(old_local_settings_path)
 
 
@@ -125,7 +125,7 @@ def upgrade_theme(filepath: str):
     with open(filepath, 'r', encoding='utf-8') as theme_file:
         lines = theme_file.readlines()
     first_line = lines[0].strip()
-    if len(first_line) > 0 and first_line[0].isnumeric() and int(first_line[0]) <= anc.REQUIRED_THEME_VERSION:
+    if len(first_line) > 0 and first_line[0].isnumeric() and int(first_line[0]) <= cnst.REQUIRED_THEME_VERSION:
         current_version = int(first_line[0])
         if current_version < 4:
             print(f'Слишком старая версия тем: {current_version}!')
@@ -133,7 +133,7 @@ def upgrade_theme(filepath: str):
     else:
         print(f'Неизвестная версия тем: {first_line}!')
         return
-    for i in range(current_version, anc.REQUIRED_THEME_VERSION):
+    for i in range(current_version, cnst.REQUIRED_THEME_VERSION):
         upgrade_theme_functions[i - 4](filepath)
 
 
@@ -142,9 +142,9 @@ def upgrade_theme(filepath: str):
 
 # Обновить глобальные настройки с 0 до 1 версии
 def upgrade_global_settings_0_to_1():
-    with open(anc.GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
+    with open(cnst.GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
         lines = global_settings_file.readlines()
-    with open(anc.GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
+    with open(cnst.GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
         global_settings_file.write('v1\n')  # Версия глобальных настроек
         global_settings_file.write(lines[0])  # Название текущего словаря
         global_settings_file.write(lines[1])  # Уведомлять ли о выходе новых версий
@@ -154,9 +154,9 @@ def upgrade_global_settings_0_to_1():
 
 # Обновить глобальные настройки с 1 до 2 версии
 def upgrade_global_settings_1_to_2():
-    with open(anc.GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
+    with open(cnst.GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
         lines = global_settings_file.readlines()
-    with open(anc.GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
+    with open(cnst.GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
         global_settings_file.write('v2\n')  # Версия глобальных настроек
         global_settings_file.write(lines[1])  # Название текущего словаря
         global_settings_file.write(lines[2])  # Уведомлять ли о выходе новых версий
@@ -167,9 +167,9 @@ def upgrade_global_settings_1_to_2():
 
 # Обновить глобальные настройки с 2 до 3 версии
 def upgrade_global_settings_2_to_3():
-    with open(anc.GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
+    with open(cnst.GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
         lines = global_settings_file.readlines()
-    with open(anc.GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
+    with open(cnst.GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
         global_settings_file.write('v3\n')  # Версия глобальных настроек
         global_settings_file.write('UPGRADE_REQUIRED\n')  # Версия глобальных настроек
         for i in range(1, 6):
@@ -183,19 +183,19 @@ upgrade_global_settings_functions = [upgrade_global_settings_0_to_1,
 
 # Обновить глобальные настройки старой версии до актуальной версии
 def upgrade_global_settings():
-    with open(anc.GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
+    with open(cnst.GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
         lines = global_settings_file.readlines()
     first_line = lines[0].strip()
     if len(lines) == 3:
         current_version = 0
     elif len(first_line) == 2 and first_line[0] == 'v' and first_line[1].isnumeric() and\
-         int(first_line[1]) <= anc.GLOBAL_SETTINGS_VERSION:
+         int(first_line[1]) <= cnst.GLOBAL_SETTINGS_VERSION:
         current_version = int(first_line[1])
     else:
         print(f'Неизвестная версия глобальных настроек: {first_line}!\n'
               f'Проверьте наличие обновлений программы')
         return
-    for i in range(current_version, anc.GLOBAL_SETTINGS_VERSION):
+    for i in range(current_version, cnst.GLOBAL_SETTINGS_VERSION):
         upgrade_global_settings_functions[i]()
 
 
@@ -302,7 +302,7 @@ def upgrade_local_settings_5_to_6(local_settings_path: str, _=None):
 # Обновить локальные настройки со 6 до 7 версии
 def upgrade_local_settings_6_to_7(local_settings_path: str, _=None):
     with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
-        with open(anc.TMP_PATH, 'w', encoding='utf-8') as local_settings_file_tmp:
+        with open(cnst.TMP_PATH, 'w', encoding='utf-8') as local_settings_file_tmp:
             local_settings_file.readline()
             local_settings_file_tmp.write('v7\n')
             for _ in range(3):
@@ -323,15 +323,15 @@ def upgrade_local_settings_6_to_7(local_settings_path: str, _=None):
             for i in range(gr_count):
                 line = local_settings_file.readline()
                 local_settings_file_tmp.write(f'0{line}')
-    with open(anc.TMP_PATH, 'r', encoding='utf-8') as local_settings_file_tmp:
+    with open(cnst.TMP_PATH, 'r', encoding='utf-8') as local_settings_file_tmp:
         with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
             while True:
                 line = local_settings_file_tmp.readline()
                 if not line:
                     break
                 local_settings_file.write(line)
-    if anc.TMP_FN in os.listdir(anc.RESOURCES_PATH):
-        os.remove(anc.TMP_PATH)
+    if cnst.TMP_FN in os.listdir(cnst.RESOURCES_PATH):
+        os.remove(cnst.TMP_PATH)
 
 
 # Обновить локальные настройки со 7 до 8 версии
@@ -363,13 +363,13 @@ def upgrade_local_settings(local_settings_path: str, encode_special_combinations
     line = first_line.strip()
     if first_line[0] != 'v':
         current_version = 0
-    elif len(line) == 2 and line[0] == 'v' and line[1].isnumeric() and int(line[1]) <= anc.LOCAL_SETTINGS_VERSION:
+    elif len(line) == 2 and line[0] == 'v' and line[1].isnumeric() and int(line[1]) <= cnst.LOCAL_SETTINGS_VERSION:
         current_version = int(line[1])
     else:
         print(f'Неизвестная версия локальных настроек: {line}!\n'
               f'Проверьте наличие обновлений программы')
         return
-    for i in range(current_version, anc.LOCAL_SETTINGS_VERSION):
+    for i in range(current_version, cnst.LOCAL_SETTINGS_VERSION):
         upgrade_local_settings_functions[i](local_settings_path, encode_special_combinations)
 
 
@@ -422,13 +422,13 @@ def upgrade_local_auto_settings(local_auto_settings_path: str):
         return
     line = first_line.strip()
     if len(line) == 2 and line[0] == 'v' and line[1].isnumeric() and\
-       1 <= int(line[1]) <= anc.LOCAL_AUTO_SETTINGS_VERSION:
+       1 <= int(line[1]) <= cnst.LOCAL_AUTO_SETTINGS_VERSION:
         current_version = int(line[1])
     else:
         print(f'Неизвестная версия локальных авто-настроек: {line}!\n'
               f'Проверьте наличие обновлений программы')
         return
-    for i in range(current_version, anc.LOCAL_AUTO_SETTINGS_VERSION):
+    for i in range(current_version, cnst.LOCAL_AUTO_SETTINGS_VERSION):
         upgrade_local_auto_settings_functions[i - 1](local_auto_settings_path)
 
 
@@ -438,28 +438,28 @@ def upgrade_local_auto_settings(local_auto_settings_path: str):
 # Обновить сохранение словаря с 0 до 1 версии
 def upgrade_dct_save_0_to_1(path: str, _=None):
     with open(path, 'r', encoding='utf-8') as dct_save:
-        with open(anc.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+        with open(cnst.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             dct_save_tmp.write('v1\n')
             while True:
                 line = dct_save.readline()
                 if not line:
                     break
                 dct_save_tmp.write(line)
-    with open(anc.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
+    with open(cnst.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
         with open(path, 'w', encoding='utf-8') as dct_save:
             while True:
                 line = dct_save_tmp.readline()
                 if not line:
                     break
                 dct_save.write(line)
-    if anc.TMP_FN in os.listdir(anc.RESOURCES_PATH):
-        os.remove(anc.TMP_PATH)
+    if cnst.TMP_FN in os.listdir(cnst.RESOURCES_PATH):
+        os.remove(cnst.TMP_PATH)
 
 
 # Обновить сохранение словаря с 1 до 2 версии
 def upgrade_dct_save_1_to_2(path: str, encode_special_combinations):
     with open(path, 'r', encoding='utf-8') as dct_save:
-        with open(anc.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+        with open(cnst.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             dct_save.readline()
             dct_save_tmp.write('v2\n')  # Версия сохранения словаря
             while True:
@@ -484,21 +484,21 @@ def upgrade_dct_save_1_to_2(path: str, encode_special_combinations):
                     dct_save_tmp.write(encode_special_combinations(line))
                 elif line[0] == '*':
                     dct_save_tmp.write('*\n')
-    with open(anc.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
+    with open(cnst.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
         with open(path, 'w', encoding='utf-8') as dct_save:
             while True:
                 line = dct_save_tmp.readline()
                 if not line:
                     break
                 dct_save.write(line)
-    if anc.TMP_FN in os.listdir(anc.RESOURCES_PATH):
-        os.remove(anc.TMP_PATH)
+    if cnst.TMP_FN in os.listdir(cnst.RESOURCES_PATH):
+        os.remove(cnst.TMP_PATH)
 
 
 # Обновить сохранение словаря с 2 до 3 версии
 def upgrade_dct_save_2_to_3(path: str, _=None):
     with open(path, 'r', encoding='utf-8') as dct_save:
-        with open(anc.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+        with open(cnst.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             dct_save.readline()
             dct_save_tmp.write('v3\n')  # Версия сохранения словаря
             while True:
@@ -529,21 +529,21 @@ def upgrade_dct_save_2_to_3(path: str, _=None):
                     dct_save_tmp.write(line)
                 elif line[0] == '*':
                     dct_save_tmp.write(line)
-    with open(anc.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
+    with open(cnst.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
         with open(path, 'w', encoding='utf-8') as dct_save:
             while True:
                 line = dct_save_tmp.readline()
                 if not line:
                     break
                 dct_save.write(line)
-    if anc.TMP_FN in os.listdir(anc.RESOURCES_PATH):
-        os.remove(anc.TMP_PATH)
+    if cnst.TMP_FN in os.listdir(cnst.RESOURCES_PATH):
+        os.remove(cnst.TMP_PATH)
 
 
 # Обновить сохранение словаря с 3 до 4 версии
 def upgrade_dct_save_3_to_4(path: str, _=None):
     with open(path, 'r', encoding='utf-8') as dct_save:
-        with open(anc.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+        with open(cnst.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             dct_save.readline()
             dct_save_tmp.write('v4\n')  # Версия сохранения словаря
             while True:
@@ -567,21 +567,21 @@ def upgrade_dct_save_3_to_4(path: str, _=None):
                     dct_save_tmp.write(line)
                 elif line[0] == '*':
                     dct_save_tmp.write(line)
-    with open(anc.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
+    with open(cnst.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
         with open(path, 'w', encoding='utf-8') as dct_save:
             while True:
                 line = dct_save_tmp.readline()
                 if not line:
                     break
                 dct_save.write(line)
-    if anc.TMP_FN in os.listdir(anc.RESOURCES_PATH):
-        os.remove(anc.TMP_PATH)
+    if cnst.TMP_FN in os.listdir(cnst.RESOURCES_PATH):
+        os.remove(cnst.TMP_PATH)
 
 
 # Обновить сохранение словаря с 4 до 5 версии
 def upgrade_dct_save_4_to_5(path: str, _=None):
     with open(path, 'r', encoding='utf-8') as dct_save:
-        with open(anc.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+        with open(cnst.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             dct_save.readline()
             dct_save_tmp.write('v5\n')  # Версия сохранения словаря
             while True:
@@ -606,21 +606,21 @@ def upgrade_dct_save_4_to_5(path: str, _=None):
                     dct_save_tmp.write(line)
                 elif line[0] == '*':
                     dct_save_tmp.write(line)
-    with open(anc.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
+    with open(cnst.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
         with open(path, 'w', encoding='utf-8') as dct_save:
             while True:
                 line = dct_save_tmp.readline()
                 if not line:
                     break
                 dct_save.write(line)
-    if anc.TMP_FN in os.listdir(anc.RESOURCES_PATH):
-        os.remove(anc.TMP_PATH)
+    if cnst.TMP_FN in os.listdir(cnst.RESOURCES_PATH):
+        os.remove(cnst.TMP_PATH)
 
 
 # Обновить сохранение словаря с 5 до 6 версии
 def upgrade_dct_save_5_to_6(path: str, _=None):
     with open(path, 'r', encoding='utf-8') as dct_save:
-        with open(anc.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+        with open(cnst.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             dct_save.readline()
             dct_save_tmp.write('v6\n')  # Версия сохранения словаря
             while True:
@@ -645,21 +645,21 @@ def upgrade_dct_save_5_to_6(path: str, _=None):
                     dct_save_tmp.write(line)
                 elif line[0] == '*':
                     dct_save_tmp.write('gИзбранное\n')
-    with open(anc.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
+    with open(cnst.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
         with open(path, 'w', encoding='utf-8') as dct_save:
             while True:
                 line = dct_save_tmp.readline()
                 if not line:
                     break
                 dct_save.write(line)
-    if anc.TMP_FN in os.listdir(anc.RESOURCES_PATH):
-        os.remove(anc.TMP_PATH)
+    if cnst.TMP_FN in os.listdir(cnst.RESOURCES_PATH):
+        os.remove(cnst.TMP_PATH)
 
 
 # Обновить сохранение словаря с 6 до 7 версии (откат до 5 версии)
 def upgrade_dct_save_6_to_7(path: str, _=None):
     with open(path, 'r', encoding='utf-8') as dct_save:
-        with open(anc.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+        with open(cnst.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             dct_save.readline()
             dct_save_tmp.write('v7\n')  # Версия сохранения словаря
             while True:
@@ -684,21 +684,21 @@ def upgrade_dct_save_6_to_7(path: str, _=None):
                     dct_save_tmp.write(line)
                 elif line[0] == 'g':
                     dct_save_tmp.write('*\n')
-    with open(anc.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
+    with open(cnst.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
         with open(path, 'w', encoding='utf-8') as dct_save:
             while True:
                 line = dct_save_tmp.readline()
                 if not line:
                     break
                 dct_save.write(line)
-    if anc.TMP_FN in os.listdir(anc.RESOURCES_PATH):
-        os.remove(anc.TMP_PATH)
+    if cnst.TMP_FN in os.listdir(cnst.RESOURCES_PATH):
+        os.remove(cnst.TMP_PATH)
 
 
 # Обновить сохранение словаря с 7 до 8 версии
 def upgrade_dct_save_7_to_8(path: str, _=None):
     with open(path, 'r', encoding='utf-8') as dct_save:
-        with open(anc.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
+        with open(cnst.TMP_PATH, 'w', encoding='utf-8') as dct_save_tmp:
             dct_save.readline()
             dct_save_tmp.write('v8\n')  # Версия сохранения словаря
             while True:
@@ -725,15 +725,15 @@ def upgrade_dct_save_7_to_8(path: str, _=None):
                     dct_save_tmp.write(line)
                 elif line[0] == '*':
                     dct_save_tmp.write(line)
-    with open(anc.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
+    with open(cnst.TMP_PATH, 'r', encoding='utf-8') as dct_save_tmp:
         with open(path, 'w', encoding='utf-8') as dct_save:
             while True:
                 line = dct_save_tmp.readline()
                 if not line:
                     break
                 dct_save.write(line)
-    if anc.TMP_FN in os.listdir(anc.RESOURCES_PATH):
-        os.remove(anc.TMP_PATH)
+    if cnst.TMP_FN in os.listdir(cnst.RESOURCES_PATH):
+        os.remove(cnst.TMP_PATH)
 
 
 upgrade_dct_save_functions = [upgrade_dct_save_0_to_1,
@@ -755,11 +755,11 @@ def upgrade_dct_save(dct_save_path: str, encode_special_combinations):
     line = first_line.strip()
     if first_line[0] == 'w':
         current_version = 0
-    elif len(line) == 2 and line[0] == 'v' and line[1].isnumeric() and int(line[1]) <= anc.SAVES_VERSION:
+    elif len(line) == 2 and line[0] == 'v' and line[1].isnumeric() and int(line[1]) <= cnst.SAVES_VERSION:
         current_version = int(line[1])
     else:
         print(f'Неизвестная версия словаря: {line}!\n'
               f'Проверьте наличие обновлений программы')
         return
-    for i in range(current_version, anc.SAVES_VERSION):
+    for i in range(current_version, cnst.SAVES_VERSION):
         upgrade_dct_save_functions[i](dct_save_path, encode_special_combinations)

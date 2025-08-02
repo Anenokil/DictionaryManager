@@ -13,7 +13,7 @@ import urllib.request as urllib2  # Для проверки наличия об�
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
 from aneno_dct import *
-from aneno_constants import *
+from constants import *
 from aneno_upgrades import *
 
 """ Темы """
@@ -6821,7 +6821,7 @@ class NewVersionAvailableW(tk.Toplevel):
                     os.remove(os.path.join(IMAGES_PATH, filename))
                 except FileNotFoundError:
                     print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
-            for filename in ('resources/icon.png', 'aneno_dct.py', 'aneno_functions.py', 'aneno_constants.py',
+            for filename in ('resources/icon.png', 'aneno_dct.py', 'aneno_functions.py', 'constants.py',
                              'main.py'):
                 try:
                     os.remove(os.path.join(MAIN_PATH, filename))

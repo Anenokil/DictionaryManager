@@ -203,7 +203,7 @@ class InstallW(tk.Tk):
             shutil.copytree(os.path.join(downloaded_program_path, RESOURCES_DIR),
                             os.path.join(program_path, RESOURCES_DIR))
             shutil.copytree(downloaded_themes_path, additional_themes_path)
-            for filename in ['aneno_dct.py', 'aneno_constants.py', 'aneno_upgrades.py', 'main.py']:
+            for filename in ['aneno_dct.py', 'constants.py', 'aneno_upgrades.py', 'main.py']:
                 os.replace(os.path.join(downloaded_program_path, filename),
                            os.path.join(program_path, filename))
             # Удаляем временные папки
