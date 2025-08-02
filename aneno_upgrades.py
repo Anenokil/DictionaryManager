@@ -1,7 +1,7 @@
 import os
 import shutil
 import constants as cnst
-from aneno_dct import frm_key_to_str_for_save
+from dictionary import frm_key_to_str_for_save
 
 """ Обновление ресурсов """
 
