@@ -14,7 +14,7 @@ import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
 from dictionary import *
 from constants import *
-from aneno_upgrades import *
+from upgrades import *
 
 """ Темы """
 
