@@ -1,4 +1,4 @@
-# Dictionary Manager [v7.1.55]
+# Dictionary Manager
 Программа-менеджер словарей для запоминания иностранных слов и увеличения словарного запаса.
 
 ## Оглавление
@@ -12,27 +12,25 @@
 3. [Пример статьи из словаря](#пример-статьи-из-словаря)
 
 ## Установка
-Требуется версия python 3.10<br>
+Требуется версия python 3.10+.<br>
 <ol>
     <li>Для работы программы должны быть установлены следующие модули:</li>
     <ul>
-        <li>copy (не требует установки)</li>
         <li>platform</li>
-        <li>random (не требует установки)</li>
-        <li>math (не требует установки)</li>
         <li>tkinter (pip install tk)</li>
-            <!--  <li>tkinter.ttk</li>
-            <li>idlelib.tooltip</li>
-            <li>tkinter.filedialog</li>  -->
+            <!--
+                <li>tkinter.ttk</li>
+                <li>idlelib.tooltip</li>
+                <li>tkinter.filedialog</li>
+            -->
         <li>re</li>
         <li>webbrowser</li>
         <li>urllib.request</li>
         <li>wget</li>
         <li>zipfile</li>
         <li>typing</li>
-        <li>os (не требует установки)</li>
         <li>shutil</li>
-        <li>requests <!--(для установщика)--></li>
+        <li>requests</li> <!--(для установщика)-->
     </ul>
     <li>Скачайте файл install.py из репозитория, запустите его, далее действуйте по инструкциям установщика. После этого программа будет установлена в выбранную папку.</li>
     <li>Перейдите в папку с установленным приложением и запустите main.py.</li>
