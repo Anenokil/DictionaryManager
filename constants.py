@@ -1,5 +1,6 @@
 import os
 
+
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'

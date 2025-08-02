@@ -12,9 +12,11 @@ import webbrowser  # Для открытия веб-страницы
 import urllib.request as urllib2  # Для проверки наличия обновлений
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
+
 from dictionary import *
 from constants import *
 from upgrades import *
+
 
 """ Темы """
 

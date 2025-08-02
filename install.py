@@ -7,6 +7,7 @@ import requests
 import wget
 import zipfile
 
+
 """ Информация о программе """
 
 PROGRAM_NAME = 'Dictionary Manager'
@@ -203,7 +204,7 @@ class InstallW(tk.Tk):
             shutil.copytree(os.path.join(downloaded_program_path, RESOURCES_DIR),
                             os.path.join(program_path, RESOURCES_DIR))
             shutil.copytree(downloaded_themes_path, additional_themes_path)
-            for filename in ['dictionary.py', 'constants.py', 'upgrades.py', 'main.py']:
+            for filename in ('dictionary.py', 'constants.py', 'upgrades.py', 'main.py'):
                 os.replace(os.path.join(downloaded_program_path, filename),
                            os.path.join(program_path, filename))
             # Удаляем временные папки
