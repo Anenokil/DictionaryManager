@@ -35,7 +35,7 @@ class Entry(object):
 
     Attributes:
     ----------
-    - wrd: The lemma (canonical/dictionary form of the word).
+    - lemma: The lemma (canonical/dictionary form of the word).
     - tr: Translations.
     - forms: Inflected forms.
     - phrases: Phrases containing the word; usage examples.
@@ -46,53 +46,44 @@ class Entry(object):
     - count_n: Notes count.
     - fav: True if the entry is favorite.
     - groups: Groups assigned to the entry.
-    - all_att: Total number of game attempts.
+    - total_att: Total number of game attempts.
     - correct_att: Number of correct guesses (wins).
-    - score: Ratio of correct guesses to total attempts (correct_att / all_att).
-    - correct_att_in_a_row: Count of consecutive wins.
-    - latest_answer_date: Timestamp of the most recent answer.
+    - ratio: Ratio of correct guesses to total attempts (correct_att / total_att).
+    - win_streak: Count of consecutive wins.
+    - latest_att_timestamp: Timestamp of the most recent answer.
     """
-
-    # TODO: wrd -> lemma (?)
-    # TODO: all_att -> total_att
-    # TODO: score -> ratio
-    # TODO: correct_att_in_a_row -> win_streak
-    # TODO: latest_answer_date -> latest_att_timestamp
-    # TODO: groups -> tags
-
-    # TODO: improve __init__ typing
 
     # TODO: delete / remove - to unify
 
     def __init__(self,
-                 wrd: Word,
+                 lemma: Word,
                  tr: Translation | Iterable[Translation],
                  forms: Forms | None = None,
                  phrases: dict[Phrase, Iterable[PhraseTr]] | None = None,
                  notes: Note | Iterable[Note] | None = None,
                  groups: Iterable[Group] | None = None,
                  fav: bool = False,
-                 all_att: int = 0,
+                 total_att: int = 0,
                  correct_att: int = 0,
-                 correct_att_in_a_row: int = 0,
-                 latest_answer_date: tuple[int, int, int] = (0, 0, 0)):
+                 win_streak: int = 0,
+                 latest_att_timestamp: tuple[int, int, int] = (0, 0, 0)):
         """
         Initialize a dictionary entry.
 
         Args:
-            wrd: The lemma (canonical/dictionary form of the word).
+            lemma: The lemma (canonical/dictionary form of the word).
             tr: One or more translations.
             forms: Inflected forms of the word (optional).
             phrases: Phrases containing the word; usage examples (optional).
             notes: Notes field (optional).
             groups: Groups assigned to the entry (optional).
             fav: Whether the entry is favorite.
-            all_att: Total number of game attempts.
+            total_att: Total number of game attempts.
             correct_att: Number of correct guesses (wins).
-            correct_att_in_a_row: Count of consecutive wins.
-            latest_answer_date: Timestamp of the most recent answer.
+            win_streak: Count of consecutive wins.
+            latest_att_timestamp: Timestamp of the most recent answer.
         """
-        self.wrd = wrd
+        self.lemma = lemma
 
         self.tr: Translations = [tr] if isinstance(tr, str) else list(tr)
         self.count_t = len(self.tr)
@@ -115,11 +106,11 @@ class Entry(object):
 
         self.fav = fav
 
-        self.all_att = all_att
+        self.total_att = total_att
         self.correct_att = correct_att
-        self.score = 0 if (all_att == 0) else correct_att / all_att
-        self.correct_att_in_a_row = correct_att_in_a_row
-        self.latest_answer_date = latest_answer_date
+        self.ratio = 0 if (total_att == 0) else correct_att / total_att
+        self.win_streak = win_streak
+        self.latest_att_timestamp = latest_att_timestamp
 
     def add_tr(self, new_tr: Translation):
         """
@@ -299,30 +290,30 @@ class Entry(object):
 
     # Обновить статистику, если совершена верная попытка
     def correct(self, session_number: tuple[int, int, int]):
-        self.all_att += 1
+        self.total_att += 1
         self.correct_att += 1
-        self.score = self.correct_att / self.all_att
-        if self.correct_att_in_a_row < 0:
-            self.correct_att_in_a_row = 1
+        self.ratio = self.correct_att / self.total_att
+        if self.win_streak < 0:
+            self.win_streak = 1
         else:
-            self.correct_att_in_a_row += 1
-        self.latest_answer_date = session_number
+            self.win_streak += 1
+        self.latest_att_timestamp = session_number
 
     # Обновить статистику, если совершена неверная попытка
     def incorrect(self, session_number: tuple[int, int, int]):
-        self.all_att += 1
-        self.score = self.correct_att / self.all_att
-        if self.correct_att_in_a_row > 0:
-            self.correct_att_in_a_row = -1
+        self.total_att += 1
+        self.ratio = self.correct_att / self.total_att
+        if self.win_streak > 0:
+            self.win_streak = -1
         else:
-            self.correct_att_in_a_row -= 1
-        self.latest_answer_date = session_number
+            self.win_streak -= 1
+        self.latest_att_timestamp = session_number
 
     # Распечатать статью в файл
     def print_out(self, file: TextIO):
         if self.fav:
             file.write('* (Избр.)\n')
-        file.write(f'| {self.wrd} - {self.tr[0]}')
+        file.write(f'| {self.lemma} - {self.tr[0]}')
         for i in range(1, self.count_t):
             file.write(f', {self.tr[i]}')
         file.write('\n')
@@ -405,28 +396,28 @@ class Dictionary(object):
     # Подсчитать среднюю долю правильных ответов
     def count_rating(self) -> tuple[int, int]:
         sum_num = sum(entry.correct_att for entry in self.d.values())
-        sum_den = sum(entry.all_att for entry in self.d.values())
+        sum_den = sum(entry.total_att for entry in self.d.values())
         return sum_num, sum_den
 
     # Добавить статью в словарь
     def add_entry(self,
-                  wrd: Word,
+                  lemma: Word,
                   tr: Translation | Iterable[Translation],
                   forms: Forms | None = None,
                   phrases: dict[Phrase, Iterable[PhraseTr]] | None = None,
                   notes: Note | Iterable[Note] | None = None,
                   groups: Iterable[Group] | None = None,
                   fav: bool = False,
-                  all_att: int = 0,
+                  total_att: int = 0,
                   correct_att: int = 0,
-                  correct_att_in_a_row: int = 0,
-                  latest_answer_date: tuple[int, int, int] = (0, 0, 0)) -> DctKey:
+                  win_streak: int = 0,
+                  latest_att_timestamp: tuple[int, int, int] = (0, 0, 0)) -> DctKey:
         i = 0
         while True:
-            key = wrd_to_key(wrd, i)
+            key = wrd_to_key(lemma, i)
             if key not in self.d.keys():
-                self.d[key] = Entry(wrd, tr, forms, phrases, notes, groups, fav, all_att,
-                                    correct_att, correct_att_in_a_row, latest_answer_date)
+                self.d[key] = Entry(lemma, tr, forms, phrases, notes, groups, fav, total_att,
+                                    correct_att, win_streak, latest_att_timestamp)
                 self.count_w += 1
                 self.count_t += self.d[key].count_t
                 self.count_f += self.d[key].count_f
@@ -464,10 +455,10 @@ class Dictionary(object):
             main_entry.fav = True
         for group in additional_entry.groups:
             main_entry.groups.add(group)
-        main_entry.all_att += additional_entry.all_att
+        main_entry.total_att += additional_entry.total_att
         main_entry.correct_att += additional_entry.correct_att
-        main_entry.score = 0 if (main_entry.all_att == 0) else main_entry.correct_att / main_entry.all_att
-        main_entry.correct_att_in_a_row += additional_entry.correct_att_in_a_row
+        main_entry.ratio = 0 if (main_entry.total_att == 0) else main_entry.correct_att / main_entry.total_att
+        main_entry.win_streak += additional_entry.win_streak
 
         self.count_w -= 1
         self.count_t += main_entry.count_t
@@ -700,8 +691,8 @@ def frm_key_to_str_for_save(input_tuple: FormPattern | list[Value], separator: s
 
 
 # Перевести слово в ключ для словаря
-def wrd_to_key(wrd: Word, num: int) -> DctKey:
-    return wrd, num
+def wrd_to_key(lemma: Word, num: int) -> DctKey:
+    return lemma, num
 
 
 # Перевести ключ для словаря в слово

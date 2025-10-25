@@ -117,76 +117,76 @@ def check_dct_savename_edit(window_parent, old_savename: str, new_savename: str)
 
 
 # Проверить корректность перевода
-def check_tr(window_parent, translations: list[str] | tuple[str, ...], new_tr: str, wrd: str) -> bool:
+def check_tr(window_parent, translations: list[str] | tuple[str, ...], new_tr: str, lemma: str) -> bool:
     new_tr = encode_special_combinations(new_tr, _0_global_special_combinations)
     if new_tr == '':
         warning(window_parent, 'Перевод должен содержать хотя бы один символ!')
         return False
     if new_tr in translations:
-        warning(window_parent, f'У слова "{wrd}" уже есть такой перевод!')
+        warning(window_parent, f'У слова "{lemma}" уже есть такой перевод!')
         return False
     return True
 
 
 # Проверить корректность перевода при изменении
-def check_tr_edit(window_parent, translations: list[str] | tuple[str, ...], old_tr: str, new_tr: str, wrd: str) -> bool:
+def check_tr_edit(window_parent, translations: list[str] | tuple[str, ...], old_tr: str, new_tr: str, lemma: str) -> bool:
     new_tr = encode_special_combinations(new_tr, _0_global_special_combinations)
     if new_tr == '':
         warning(window_parent, 'Перевод должен содержать хотя бы один символ!')
         return False
     if new_tr in translations and new_tr != old_tr:
-        warning(window_parent, f'У слова "{wrd}" уже есть такой перевод!')
+        warning(window_parent, f'У слова "{lemma}" уже есть такой перевод!')
         return False
     return True
 
 
 # Проверить корректность фразы
-def check_phr(window_parent, phrases: dict[str, list[str]], new_phr: tuple[str, str], wrd: str) -> bool:
+def check_phr(window_parent, phrases: dict[str, list[str]], new_phr: tuple[str, str], lemma: str) -> bool:
     n1 = encode_special_combinations(new_phr[0], _0_global_special_combinations)
     n2 = encode_special_combinations(new_phr[1], _0_global_special_combinations)
     if n1 == '' or n2 == '':
         warning(window_parent, 'Фраза должна содержать хотя бы один символ!')
         return False
     if new_phr[0] in phrases.keys() and new_phr[1] in phrases[new_phr[0]]:
-        warning(window_parent, f'Со словом "{wrd}" уже есть такая фраза!')
+        warning(window_parent, f'Со словом "{lemma}" уже есть такая фраза!')
         return False
     return True
 
 
 # Проверить корректность фразы при изменении
 def check_phr_edit(window_parent, phrases: dict[str, list[str]], old_phr: tuple[str, str], new_phr: tuple[str, str],
-                   wrd: str) -> bool:
+                   lemma: str) -> bool:
     n1 = encode_special_combinations(new_phr[0], _0_global_special_combinations)
     n2 = encode_special_combinations(new_phr[1], _0_global_special_combinations)
     if n1 == '' or n2 == '':
         warning(window_parent, 'Фраза должна содержать хотя бы один символ!')
         return False
     if new_phr[0] in phrases.keys() and new_phr[1] in phrases[new_phr[0]] and new_phr != old_phr:
-        warning(window_parent, f'Со словом "{wrd}" уже есть такая фраза!')
+        warning(window_parent, f'Со словом "{lemma}" уже есть такая фраза!')
         return False
     return True
 
 
 # Проверить корректность сноски
-def check_note(window_parent, notes: list[str] | tuple[str, ...], new_note: str, wrd: str) -> bool:
+def check_note(window_parent, notes: list[str] | tuple[str, ...], new_note: str, lemma: str) -> bool:
     new_note = encode_special_combinations(new_note, _0_global_special_combinations)
     if new_note == '':
         warning(window_parent, 'Сноска должна содержать хотя бы один символ!')
         return False
     if new_note in notes:
-        warning(window_parent, f'У слова "{wrd}" уже есть такая сноска!')
+        warning(window_parent, f'У слова "{lemma}" уже есть такая сноска!')
         return False
     return True
 
 
 # Проверить корректность сноски при изменении
-def check_note_edit(window_parent, notes: list[str] | tuple[str, ...], old_note: str, new_note: str, wrd: str) -> bool:
+def check_note_edit(window_parent, notes: list[str] | tuple[str, ...], old_note: str, new_note: str, lemma: str) -> bool:
     new_note = encode_special_combinations(new_note, _0_global_special_combinations)
     if new_note == '':
         warning(window_parent, 'Сноска должна содержать хотя бы один символ!')
         return False
     if new_note in notes and new_note != old_note:
-        warning(window_parent, f'У слова "{wrd}" уже есть такая сноска!')
+        warning(window_parent, f'У слова "{lemma}" уже есть такая сноска!')
         return False
     return True
 
@@ -316,33 +316,33 @@ def get_groups(entry: Entry) -> str:
 
 # Вывести количество ошибок после последнего верного ответа
 def get_correct_att_in_a_row(entry: Entry) -> str | int:
-    if entry.all_att == 0:  # Если ещё не было попыток
+    if entry.total_att == 0:  # Если ещё не было попыток
         res = '-'
-    elif entry.correct_att_in_a_row > 999:
+    elif entry.win_streak > 999:
         res = '+∞'
-    elif entry.correct_att_in_a_row < -99:
+    elif entry.win_streak < -99:
         res = '-∞'
     else:
-        res = entry.correct_att_in_a_row
+        res = entry.win_streak
     return res
 
 
 # Вывести процент верных ответов
 def get_entry_percent(entry: Entry) -> str:
-    if entry.all_att == 0:  # Если ещё не было попыток
+    if entry.total_att == 0:  # Если ещё не было попыток
         res = '-'
     else:
-        res = '{:.0%}'.format(entry.score)
+        res = '{:.0%}'.format(entry.ratio)
     return res
 
 
 # Вывести статистику
 def get_entry_stat(entry: Entry) -> str:
-    correct_att_in_a_row = get_correct_att_in_a_row(entry)
+    win_streak = get_correct_att_in_a_row(entry)
     percent = get_entry_percent(entry)
-    tab_correct = ' ' * (3 - len(str(correct_att_in_a_row)))
+    tab_correct = ' ' * (3 - len(str(win_streak)))
     tab_percent = ' ' * (4 - len(percent))
-    res = f'[{tab_correct}{correct_att_in_a_row}:{tab_percent}{percent}]'
+    res = f'[{tab_correct}{win_streak}:{tab_percent}{percent}]'
     return res
 
 
@@ -352,7 +352,7 @@ def _get_entry_info_briefly(entry: Entry) -> str:
         res = '(*)'
     else:
         res = '   '
-    res += f' {get_entry_stat(entry)} {entry.wrd}: {get_tr(entry)}'
+    res += f' {get_entry_stat(entry)} {entry.lemma}: {get_tr(entry)}'
     return res
 
 
@@ -377,7 +377,7 @@ def get_entry_info_detailed(entry: Entry, len_str: int) -> str:
 
 # Вывести статью - со всей информацией
 def get_all_entry_info(entry: Entry, len_str: int, tab: int = 0) -> str:
-    res  = f'      Слово: {entry.wrd}\n'
+    res  = f'      Слово: {entry.lemma}\n'
     res += f'    Перевод: {get_tr(entry)}\n'
 
     res += f'Формы слова: '
@@ -409,20 +409,20 @@ def get_all_entry_info(entry: Entry, len_str: int, tab: int = 0) -> str:
 
     res += f'\n     Группы: {get_groups(entry)}\n'
 
-    if entry.all_att == 0:  # Если ещё не было попыток
+    if entry.total_att == 0:  # Если ещё не было попыток
         res += ' Статистика: 1) Верных ответов подряд: -\n'
         res += '             2) Доля верных ответов: -'
     else:
-        res += f' Статистика: 1) Верных ответов подряд: {entry.correct_att_in_a_row}\n'
+        res += f' Статистика: 1) Верных ответов подряд: {entry.win_streak}\n'
         res += f'             2) Доля верных ответов: '
-        res += f'{entry.correct_att}/{entry.all_att} = ' + '{:.0%}'.format(entry.score)
+        res += f'{entry.correct_att}/{entry.total_att} = ' + '{:.0%}'.format(entry.ratio)
 
     return split_text(res, len_str, tab=tab)
 
 
 # Вывести слово со статистикой
 def get_wrd_with_stat(entry: Entry) -> str:
-    res = f'{entry.wrd} {get_entry_stat(entry)}'
+    res = f'{entry.lemma} {get_entry_stat(entry)}'
     return res
 
 
@@ -549,15 +549,15 @@ def random_smart(dct: Dictionary, pool: set[tuple[DctKey, FormPattern | None, st
     summ = 0
     for (key, frm, phr) in pool:
         entry = dct.d[key]
-        score = (100 - round(100 * entry.score)) + 1
-        score += 100 // (entry.all_att + 1)
+        score = (100 - round(100 * entry.ratio)) + 1
+        score += 100 // (entry.total_att + 1)
         summ += round(score)
 
     r = random.randint(1, summ)
     for (key, frm, phr) in pool:
         entry = dct.d[key]
-        score = (100 - round(100 * entry.score)) + 1
-        score += 100 // (entry.all_att + 1)
+        score = (100 - round(100 * entry.ratio)) + 1
+        score += 100 // (entry.total_att + 1)
         r -= round(score)
         if r <= 0:
             return key, frm, phr
@@ -675,10 +675,10 @@ def set_postfix(n: int, wrd_forms: tuple[str, str, str]) -> str:
 
 
 # Выбрать одну статью из нескольких с одинаковыми словами
-def choose_one_of_similar_entries(dct: Dictionary, window_parent, wrd: str):
-    if wrd_to_key(wrd, 1) not in dct.d.keys():  # Если статья только одна, то возвращает её ключ
-        return wrd_to_key(wrd, 0)
-    window_entries = ChooseOneOfSimilarEntriesW(window_parent, wrd)
+def choose_one_of_similar_entries(dct: Dictionary, window_parent, lemma: str):
+    if wrd_to_key(lemma, 1) not in dct.d.keys():  # Если статья только одна, то возвращает её ключ
+        return wrd_to_key(lemma, 0)
+    window_entries = ChooseOneOfSimilarEntriesW(window_parent, lemma)
     answer = window_entries.open()
     if not answer:
         return None
@@ -702,23 +702,23 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, key: DctKey, new_wrd: s
             return new_key
         elif answer == 'r':  # Оставить отдельной статьёй
             new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].forms, dct.d[key].phrases, dct.d[key].notes,
-                                    dct.d[key].groups, dct.d[key].fav, dct.d[key].all_att, dct.d[key].correct_att,
-                                    dct.d[key].correct_att_in_a_row, dct.d[key].latest_answer_date)
+                                    dct.d[key].groups, dct.d[key].fav, dct.d[key].total_att, dct.d[key].correct_att,
+                                    dct.d[key].win_streak, dct.d[key].latest_att_timestamp)
             dct.delete_entry(key)
             return new_key
         else:
             return key
     else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
         new_key = dct.add_entry(new_wrd, dct.d[key].tr, dct.d[key].forms, dct.d[key].phrases, dct.d[key].notes,
-                                dct.d[key].groups, dct.d[key].fav, dct.d[key].all_att, dct.d[key].correct_att,
-                                dct.d[key].correct_att_in_a_row, dct.d[key].latest_answer_date)
+                                dct.d[key].groups, dct.d[key].fav, dct.d[key].total_att, dct.d[key].correct_att,
+                                dct.d[key].win_streak, dct.d[key].latest_att_timestamp)
         dct.delete_entry(key)
         return new_key
 
 
 # Добавить статью в словарь (для пользователя)
-def add_entry_with_choose(dct: Dictionary, window_parent, wrd: str, tr: str) -> DctKey | None:
-    if wrd_to_key(wrd, 0) in dct.d.keys():  # Если в словаре уже есть статья с таким словом
+def add_entry_with_choose(dct: Dictionary, window_parent, lemma: str, tr: str) -> DctKey | None:
+    if wrd_to_key(lemma, 0) in dct.d.keys():  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                'Что вы хотите сделать?',
                                 'Добавить к существующей статье', 'Создать новую статью',
@@ -726,17 +726,17 @@ def add_entry_with_choose(dct: Dictionary, window_parent, wrd: str, tr: str) -> 
                                 val_left='l', val_right='r', val_on_close='c')
         answer = window.open()
         if answer == 'l':  # Добавить к существующей статье
-            key = choose_one_of_similar_entries(dct, window_parent, wrd)
+            key = choose_one_of_similar_entries(dct, window_parent, lemma)
             if not key:
                 return None
             dct.add_tr(key, tr)
             return key
         elif answer == 'r':  # Создать новую статью
-            return dct.add_entry(wrd, tr)
+            return dct.add_entry(lemma, tr)
         else:
             return None
     else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
-        return dct.add_entry(wrd, tr)
+        return dct.add_entry(lemma, tr)
 
 
 # Добавить категорию
@@ -860,57 +860,57 @@ def search_entries(dct: Dictionary, dct_keys: tuple[DctKey, ...], query: str,
             for phr_tr in entry.phrases[phr_key]:
                 phrases += [phr_tr]
 
-        if search_wrd and query == entry.wrd or\
+        if search_wrd and query == entry.lemma or\
            search_tr  and query in entry.tr or\
            search_frm and query in entry.forms.values() or\
            search_phr and query in phrases or\
            search_nt  and query in entry.notes:
             results[0].add(key)
-        elif search_wrd and query_l == entry.wrd.lower() or\
+        elif search_wrd and query_l == entry.lemma.lower() or\
              search_tr  and query_l in [ tr.lower() for tr  in entry.tr] or\
              search_frm and query_l in [frm.lower() for frm in entry.forms.values()] or\
              search_phr and query_l in [phr.lower() for phr in phrases] or\
              search_nt  and query_l in [ nt.lower() for nt  in entry.notes]:
             results[1].add(key)
-        elif search_wrd and query_s == simplify(entry.wrd)[0].replace('ё', 'е') or\
+        elif search_wrd and query_s == simplify(entry.lemma)[0].replace('ё', 'е') or\
              search_tr  and query_s in [simplify( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
              search_frm and query_s in [simplify(frm)[0].replace('ё', 'е') for frm in entry.forms.values()] or\
              search_phr and query_s in [simplify(phr)[0].replace('ё', 'е') for phr in phrases] or\
              search_nt  and query_s in [simplify( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
             results[2].add(key)
 
-        elif search_wrd and wrd_in_line(entry.wrd, query) or\
+        elif search_wrd and wrd_in_line(entry.lemma, query) or\
              search_tr  and True in [wrd_in_line( tr, query) for tr  in entry.tr] or\
              search_frm and True in [wrd_in_line(frm, query) for frm in entry.forms.values()] or\
              search_phr and True in [wrd_in_line(phr, query) for phr in phrases] or\
              search_nt  and True in [wrd_in_line( nt, query) for nt  in entry.notes]:
             results[3].add(key)
-        elif search_wrd and wrd_in_line(entry.wrd.lower(), query_l) or\
+        elif search_wrd and wrd_in_line(entry.lemma.lower(), query_l) or\
              search_tr  and True in [wrd_in_line( tr.lower(), query_l) for tr  in entry.tr] or\
              search_frm and True in [wrd_in_line(frm.lower(), query_l) for frm in entry.forms.values()] or\
              search_phr and True in [wrd_in_line(phr.lower(), query_l) for phr in phrases] or\
              search_nt  and True in [wrd_in_line( nt.lower(), query_l) for nt  in entry.notes]:
             results[4].add(key)
-        elif search_wrd and wrd_in_line(simplify(entry.wrd)[0].replace('ё', 'е'), query_s) or\
+        elif search_wrd and wrd_in_line(simplify(entry.lemma)[0].replace('ё', 'е'), query_s) or\
              search_tr  and True in [wrd_in_line(simplify( tr)[0].replace('ё', 'е'), query_s) for tr  in entry.tr] or\
              search_frm and True in [wrd_in_line(simplify(frm)[0].replace('ё', 'е'), query_s) for frm in entry.forms.values()] or\
              search_phr and True in [wrd_in_line(simplify(phr)[0].replace('ё', 'е'), query_s) for phr in phrases] or\
              search_nt  and True in [wrd_in_line(simplify( nt)[0].replace('ё', 'е'), query_s) for nt  in entry.notes]:
             results[5].add(key)
 
-        elif search_wrd and query in entry.wrd or\
+        elif search_wrd and query in entry.lemma or\
              search_tr  and True in [query in tr  for tr  in entry.tr] or\
              search_frm and True in [query in frm for frm in entry.forms.values()] or\
              search_phr and True in [query in phr for phr in phrases] or\
              search_nt  and True in [query in nt  for nt  in entry.notes]:
             results[6].add(key)
-        elif search_wrd and query_l in entry.wrd.lower() or\
+        elif search_wrd and query_l in entry.lemma.lower() or\
              search_tr  and True in [query_l in  tr.lower() for tr  in entry.tr] or\
              search_frm and True in [query_l in frm.lower() for frm in entry.forms.values()] or\
              search_phr and True in [query_l in phr.lower() for phr in phrases] or\
              search_nt  and True in [query_l in  nt.lower() for nt  in entry.notes]:
             results[7].add(key)
-        elif search_wrd and query_s in simplify(entry.wrd)[0].replace('ё', 'е') or\
+        elif search_wrd and query_s in simplify(entry.lemma)[0].replace('ё', 'е') or\
              search_tr  and True in [query_s in simplify( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
              search_frm and True in [query_s in simplify(frm)[0].replace('ё', 'е') for frm in entry.forms.values()] or\
              search_phr and True in [query_s in simplify(phr)[0].replace('ё', 'е') for phr in phrases] or\
@@ -2385,14 +2385,14 @@ class EditW(tk.Toplevel):
     def wrd_edt(self):
         global _0_global_has_progress
 
-        window = PopupEntryW(self, 'Введите новое слово', default_value=_0_global_dct.d[self.dct_key].wrd,
+        window = PopupEntryW(self, 'Введите новое слово', default_value=_0_global_dct.d[self.dct_key].lemma,
                              check_answer_function=lambda wnd, val:
                              check_not_void(wnd, val, 'Слово должно содержать хотя бы один символ!'))
         closed, new_wrd = window.open()
         if closed:
             return
         new_wrd = encode_special_combinations(new_wrd, _0_global_special_combinations)
-        if new_wrd == _0_global_dct.d[self.dct_key].wrd:
+        if new_wrd == _0_global_dct.d[self.dct_key].lemma:
             return
 
         new_key = edit_wrd_with_choose(_0_global_dct, self, self.dct_key, new_wrd)
@@ -2653,10 +2653,10 @@ class EditW(tk.Toplevel):
         # Обновляем поле со словом
         self.txt_wrd['state'] = 'normal'
         self.txt_wrd.delete(1.0, tk.END)
-        self.txt_wrd.insert(tk.END, _0_global_dct.d[self.dct_key].wrd)
+        self.txt_wrd.insert(tk.END, _0_global_dct.d[self.dct_key].lemma)
         self.txt_wrd['state'] = 'disabled'
         #
-        height_w = max(min(field_height(_0_global_dct.d[self.dct_key].wrd, self.line_width), self.max_height_w), 1)
+        height_w = max(min(field_height(_0_global_dct.d[self.dct_key].lemma, self.line_width), self.max_height_w), 1)
         self.txt_wrd['height'] = height_w
         #
         if height_w < self.max_height_w:
@@ -2865,7 +2865,7 @@ class AddFormW(tk.Toplevel):
         self.var_ctg = tk.StringVar(value=self.categories[0])
         self.var_val = tk.StringVar(value=self.ctg_values[0])
         self.var_template = tk.StringVar(value='Текущий шаблон словоформы: ""')
-        self.var_form = tk.StringVar(value=_0_global_dct.d[self.key].wrd)
+        self.var_form = tk.StringVar(value=_0_global_dct.d[self.key].lemma)
 
         self.img_ok = tk.PhotoImage()
         self.img_none = tk.PhotoImage()
@@ -4439,8 +4439,8 @@ class LearnW(tk.Toplevel):
         if self.learn_method == LEARN_VALUES_METHOD[4]:  # Если надо, оставляем только слова с der/die/das
             all_keys = []
             for key in _0_global_dct.d.keys():
-                wrd = _0_global_dct.d[key].wrd
-                if len(wrd) > 4 and wrd[0:4].lower() in ('der ', 'die ', 'das '):
+                lemma = _0_global_dct.d[key].lemma
+                if len(lemma) > 4 and lemma[0:4].lower() in ('der ', 'die ', 'das '):
                     all_keys += [key]
         else:
             all_keys = list(_0_global_dct.d.keys())
@@ -4462,13 +4462,13 @@ class LearnW(tk.Toplevel):
             # Отбираем слова, не являющиеся избранными
             unfav_keys = [k for k in all_keys if not _0_global_dct.d[k].fav]
             # Сортируем по давности ответа
-            unfav_keys.sort(key=lambda k: _0_global_dct.d[k].latest_answer_date)
+            unfav_keys.sort(key=lambda k: _0_global_dct.d[k].latest_att_timestamp)
             # Находим N // 4
             count_unfav_keys = min(len(unfav_keys), _0_global_dct.count_fav_entries()[0] // 4)
             # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
-            latest_date = _0_global_dct.d[unfav_keys[count_unfav_keys - 1]].latest_answer_date
+            latest_date = _0_global_dct.d[unfav_keys[count_unfav_keys - 1]].latest_att_timestamp
             # Оставляем только слова с номером сессии <= S
-            unfav_keys = [k for k in unfav_keys if _0_global_dct.d[k].latest_answer_date[0:2] <= latest_date[0:2]]
+            unfav_keys = [k for k in unfav_keys if _0_global_dct.d[k].latest_att_timestamp[0:2] <= latest_date[0:2]]
             # Перемешиваем их
             random.shuffle(unfav_keys)
             # И выбираем из них N // 4 слов
@@ -4556,16 +4556,16 @@ class LearnW(tk.Toplevel):
                             self.homonyms += [key]
                             break
         elif self.learn_method == LEARN_VALUES_METHOD[1]:
-            ans = _0_global_dct.d[self.current_key].wrd
+            ans = _0_global_dct.d[self.current_key].lemma
             self.homonyms = [key for key in _0_global_dct.d.keys()
-                             if _0_global_dct.d[key].wrd == ans and key != self.current_key]
+                             if _0_global_dct.d[key].lemma == ans and key != self.current_key]
         elif self.learn_method == LEARN_VALUES_METHOD[4]:
-            ans = _0_global_dct.d[self.current_key].wrd
+            ans = _0_global_dct.d[self.current_key].lemma
             self.homonyms = []
             for key in _0_global_dct.d.keys():
                 if key != self.current_key:
-                    wrd = _0_global_dct.d[key].wrd
-                    if len(wrd) > 4 and wrd[0:4].lower() in ('der ', 'die ', 'das ') and wrd[4:] == ans[4:]:
+                    lemma = _0_global_dct.d[key].lemma
+                    if len(lemma) > 4 and lemma[0:4].lower() in ('der ', 'die ', 'das ') and lemma[4:] == ans[4:]:
                         self.homonyms += [key]
 
     # Нажатие на кнопку "Ввод"
@@ -4617,7 +4617,7 @@ class LearnW(tk.Toplevel):
     # Просмотр слова с переводом
     def show_entry(self):
         entry = _0_global_dct.d[self.current_key]
-        self.outp(f'Слово: {entry.wrd}\n'
+        self.outp(f'Слово: {entry.lemma}\n'
                   f'Перевод: {get_tr(entry)}')
         btn_disable(self.btn_show_entry)
 
@@ -4634,7 +4634,7 @@ class LearnW(tk.Toplevel):
     def show_homonyms(self):
         self.outp('Омонимы:')
         for key in self.homonyms:
-            self.outp('> ' + _0_global_dct.d[key].wrd + ': ' + get_tr(_0_global_dct.d[key]))
+            self.outp('> ' + _0_global_dct.d[key].lemma + ': ' + get_tr(_0_global_dct.d[key]))
         btn_disable(self.btn_show_homonyms)
 
     # Нажатие на кнопку "Закончить"
@@ -4705,11 +4705,11 @@ class LearnW(tk.Toplevel):
         entry = _0_global_dct.d[self.current_key]
         if _0_global_check_register:
             is_correct = encode_special_combinations(self.entry_input.get(),
-                                                     _0_global_special_combinations) == entry.wrd
+                                                     _0_global_special_combinations) == entry.lemma
         else:
             is_correct = encode_special_combinations(self.entry_input.get(),
-                                                     _0_global_special_combinations).lower() == entry.wrd.lower()
-        self.check_answer(entry.wrd, is_correct, self.current_key)
+                                                     _0_global_special_combinations).lower() == entry.lemma.lower()
+        self.check_answer(entry.lemma, is_correct, self.current_key)
 
     # Проверка введённой словоформы
     def check_form(self):
@@ -4758,11 +4758,11 @@ class LearnW(tk.Toplevel):
         entry = _0_global_dct.d[self.current_key]
         if _0_global_check_register:
             is_correct = encode_special_combinations(self.entry_input.get(),
-                                                     _0_global_special_combinations) == entry.wrd[0:3]
+                                                     _0_global_special_combinations) == entry.lemma[0:3]
         else:
             is_correct = encode_special_combinations(self.entry_input.get(),
-                                                     _0_global_special_combinations).lower() == entry.wrd[0:3].lower()
-        self.check_answer(entry.wrd[0:3], is_correct, self.current_key)
+                                                     _0_global_special_combinations).lower() == entry.lemma[0:3].lower()
+        self.check_answer(entry.lemma[0:3], is_correct, self.current_key)
 
     # Установить фокус
     def set_focus(self):
@@ -5380,39 +5380,39 @@ class PrintW(tk.Toplevel):
             self.print_keys.reverse()
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[2]:
             """
-            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].score, _0_global_dct.d[k].correct_att_in_a_row))
+            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].ratio, _0_global_dct.d[k].win_streak))
             """
-            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].score,
-                                                _0_global_dct.d[k].correct_att_in_a_row /
+            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].ratio,
+                                                _0_global_dct.d[k].win_streak /
                                                 (1 + len(_0_global_dct.d[k].forms.keys()) +
                                                  len(_0_global_dct.d[k].phrases.keys())),
-                                                _0_global_dct.d[k].wrd.lower(), _0_global_dct.d[k].wrd))
+                                                _0_global_dct.d[k].lemma.lower(), _0_global_dct.d[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[3]:
             """
-            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].score, _0_global_dct.d[k].correct_att_in_a_row),
+            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].ratio, _0_global_dct.d[k].win_streak),
                                      reverse=True)
             """
-            self.print_keys.sort(key=lambda k: (-_0_global_dct.d[k].score,
-                                                -_0_global_dct.d[k].correct_att_in_a_row /
+            self.print_keys.sort(key=lambda k: (-_0_global_dct.d[k].ratio,
+                                                -_0_global_dct.d[k].win_streak /
                                                 (1 + len(_0_global_dct.d[k].forms.keys()) +
                                                  len(_0_global_dct.d[k].phrases.keys())),
-                                                _0_global_dct.d[k].wrd.lower(), _0_global_dct.d[k].wrd))
+                                                _0_global_dct.d[k].lemma.lower(), _0_global_dct.d[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[4]:
-            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].latest_answer_date,
-                                                _0_global_dct.d[k].wrd.lower(), _0_global_dct.d[k].wrd))
+            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].latest_att_timestamp,
+                                                _0_global_dct.d[k].lemma.lower(), _0_global_dct.d[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[5]:
-            self.print_keys.sort(key=lambda k: ([-val for val in _0_global_dct.d[k].latest_answer_date],
-                                                _0_global_dct.d[k].wrd.lower(), _0_global_dct.d[k].wrd))
+            self.print_keys.sort(key=lambda k: ([-val for val in _0_global_dct.d[k].latest_att_timestamp],
+                                                _0_global_dct.d[k].lemma.lower(), _0_global_dct.d[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[6]:
-            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].wrd.lower(), _0_global_dct.d[k].wrd))
+            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].lemma.lower(), _0_global_dct.d[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[7]:
-            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].wrd.lower(), _0_global_dct.d[k].wrd), reverse=True)
+            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].lemma.lower(), _0_global_dct.d[k].lemma), reverse=True)
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[8]:
-            self.print_keys.sort(key=lambda k: (len(_0_global_dct.d[k].wrd),
-                                                _0_global_dct.d[k].wrd.lower(), _0_global_dct.d[k].wrd))
+            self.print_keys.sort(key=lambda k: (len(_0_global_dct.d[k].lemma),
+                                                _0_global_dct.d[k].lemma.lower(), _0_global_dct.d[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[9]:
-            self.print_keys.sort(key=lambda k: (-len(_0_global_dct.d[k].wrd),
-                                                _0_global_dct.d[k].wrd.lower(), _0_global_dct.d[k].wrd))
+            self.print_keys.sort(key=lambda k: (-len(_0_global_dct.d[k].lemma),
+                                                _0_global_dct.d[k].lemma.lower(), _0_global_dct.d[k].lemma))
         # Выводим информацию о количестве статей
         self.print_print_info()
 
@@ -5510,7 +5510,7 @@ class PrintW(tk.Toplevel):
         self.search_keys = []
         for i in range(6 if self.search_only_full else 9):
             self.search_keys += sorted(list(results[i]),
-                                       key=lambda k: (_0_global_dct.d[k].wrd.lower(), _0_global_dct.d[k].wrd))
+                                       key=lambda k: (_0_global_dct.d[k].lemma.lower(), _0_global_dct.d[k].lemma))
         # Из выделенных статей оставляем, только удовлетворяющие поисковому запросу
         self.search_selected_keys = [key for key in self.search_selected_keys if key in self.search_keys]
         # Если выделенных статей нет, убираем связанные с ними кнопки
@@ -6054,13 +6054,13 @@ class AddW(tk.Toplevel):
             else:
                 btn_enable(self.btn_add, self.add)
 
-            words = (entry.wrd for entry in _0_global_dct.d.values())
+            words = (entry.lemma for entry in _0_global_dct.d.values())
             translations = []
             for tr in (entry.tr for entry in _0_global_dct.d.values()):
                 translations += tr
 
             if value_wrd in words:
-                keys_with_this_word = (key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].wrd == value_wrd)
+                keys_with_this_word = (key for key in _0_global_dct.d.keys() if _0_global_dct.d[key].lemma == value_wrd)
                 translations = []
                 for tr in (_0_global_dct.d[key].tr for key in keys_with_this_word):
                     translations += tr
