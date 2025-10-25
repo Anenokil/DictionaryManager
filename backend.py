@@ -3,10 +3,26 @@ A module implementing bilingual dictionary.
 By Anenokil
 """
 
-import typing
+from typing import Iterable, TextIO
 import pickle
 
-FrmKey = tuple[str, ...]
+# Typing
+Word = str
+Translation = Word
+Translations = list[Translation]
+Category = str  # e.g. gender, number, tense
+Value = str  # e.g. singular/plural, present/past/future
+Features = tuple[Value, ...]  #TODO: dict[Category, Value]
+Form = Word
+Forms = dict[Features, Form]
+Text = str
+Phrase = Text
+PhraseTr = Text
+Phrases = dict[Phrase, list[PhraseTr]]
+Note = Text
+Notes = list[Note]
+Group = str
+Groups = set[Group]
 
 
 class Entry(object):
@@ -38,13 +54,17 @@ class Entry(object):
     """
 
     def __init__(self,
-                 wrd: str,
-                 tr: str | list[str],
-                 forms: dict[FrmKey, str] | None = None,
-                 phrases: dict[str, list[str]] | None = None,
-                 notes: str | list[str] | None = None,
-                 groups: set[str] | None = None,
-                 fav=False, all_att=0, correct_att=0, correct_att_in_a_row=0, latest_answer_date=(0, 0, 0)):
+                 wrd: Word,
+                 tr: Translation | Iterable[Translation],
+                 forms: Forms | None = None,
+                 phrases: dict[Phrase, Iterable[PhraseTr]] | None = None,
+                 notes: Note | Iterable[Note] | None = None,
+                 groups: Iterable[Group] | None = None,
+                 fav: bool = False,
+                 all_att: int = 0,
+                 correct_att: int = 0,
+                 correct_att_in_a_row: int = 0,
+                 latest_answer_date: tuple[int, int, int] = (0, 0, 0)):
         """
         Initialize a dictionary entry.
 
@@ -63,28 +83,24 @@ class Entry(object):
         """
         self.wrd = wrd
 
-        self.tr: list[str] = tr.copy() if isinstance(tr, list) else [tr]
+        self.tr: Translations = [tr] if isinstance(tr, str) else list(tr)
         self.count_t = len(self.tr)
 
-        self.forms: dict[FrmKey, str] = {}
-        if isinstance(forms, dict):
-            self.forms = dict(forms.copy())
+        self.forms: Forms = forms if forms else dict()
         self.count_f = len(self.forms)
 
-        self.phrases: dict[str, list[str]] = {}
-        if isinstance(phrases, dict):
-            self.phrases = dict(phrases.copy())
+        self.phrases: Phrases = {phr: list(tr) for phr, tr in phrases.items()} if phrases else dict()
         self.count_p = len(self.phrases)
 
-        if notes is None:
-            self.notes: list[str] = []
-        elif isinstance(notes, list):
-            self.notes = notes.copy()
-        else:
+        if not notes:
+            self.notes: Notes = []
+        elif isinstance(notes, str):
             self.notes = [notes]
+        else:
+            self.notes = list(notes)
         self.count_n = len(self.notes)
 
-        self.groups: set[str] = groups if groups else set()
+        self.groups: Groups = set(groups) if groups else set()
 
         self.fav = fav
 
@@ -94,7 +110,7 @@ class Entry(object):
         self.correct_att_in_a_row = correct_att_in_a_row
         self.latest_answer_date = latest_answer_date
 
-    def add_tr(self, new_tr: str):
+    def add_tr(self, new_tr: Translation):
         """
         Add a new translation to the entry.
 
@@ -105,7 +121,7 @@ class Entry(object):
             self.tr += [new_tr]
             self.count_t += 1
 
-    def delete_tr(self, tr: str):
+    def delete_tr(self, tr: Translation):
         """
         Delete a translation from the entry.
 
@@ -115,7 +131,7 @@ class Entry(object):
         self.tr.remove(tr)
         self.count_t -= 1
 
-    def add_frm(self, frm_key: FrmKey | list[str], new_frm: str):
+    def add_frm(self, frm_key: Features, new_frm: Form):
         """
         Add a new inflected form to the entry.
 
@@ -127,7 +143,7 @@ class Entry(object):
             self.forms[frm_key] = new_frm
             self.count_f += 1
 
-    def delete_frm(self, frm_key: FrmKey | list[str]):
+    def delete_frm(self, frm_key: Features):
         """
         Remove an inflected form from the entry.
 
@@ -137,7 +153,7 @@ class Entry(object):
         self.forms.pop(frm_key)
         self.count_f -= 1
 
-    def add_phrase(self, new_phr: str, new_phr_tr: str):
+    def add_phrase(self, new_phr: Phrase, new_phr_tr: PhraseTr):
         """
         Add a new phrase/usage example with its translation.
 
@@ -152,7 +168,7 @@ class Entry(object):
             self.phrases[new_phr] += [new_phr_tr]
             self.count_p += 1
 
-    def delete_phrase(self, phr: str, phr_tr: str):
+    def delete_phrase(self, phr: Phrase, phr_tr: PhraseTr):
         """
         Remove a phrase and its translation from the entry.
 
@@ -167,7 +183,7 @@ class Entry(object):
             self.phrases.pop(phr)
         self.count_p -= 1
 
-    def add_note(self, new_note: str):
+    def add_note(self, new_note: Note):
         """
         Add a new note to the entry.
 
@@ -178,7 +194,7 @@ class Entry(object):
             self.notes += [new_note]
             self.count_n += 1
 
-    def delete_note(self, note: str):
+    def delete_note(self, note: Note):
         """
         Remove a note from the entry.
 
@@ -188,7 +204,7 @@ class Entry(object):
         self.notes.remove(note)
         self.count_n -= 1
 
-    def add_to_group(self, group: str):
+    def add_to_group(self, group: Group):
         """
         Assign this entry to a group.
 
@@ -197,7 +213,7 @@ class Entry(object):
         """
         self.groups.add(group)
 
-    def remove_from_group(self, group: str):
+    def remove_from_group(self, group: Group):
         """
         Remove this entry from a group.
 
@@ -292,7 +308,7 @@ class Entry(object):
         self.latest_answer_date = session_number
 
     # Распечатать статью в файл
-    def print_out(self, file: typing.TextIO):
+    def print_out(self, file: TextIO):
         if self.fav:
             file.write('* (Избр.)\n')
         file.write(f'| {self.wrd} - {self.tr[0]}')
@@ -310,7 +326,10 @@ class Entry(object):
             file.write(f'| > {note}\n')
 
 
-DctKey = tuple[str, int]
+DctKey = tuple[Word, int]
+DctData = dict[DctKey, Entry]
+AllFeatures = dict[Category, list[Value]]
+AllGroups = list[Group]
 
 
 class Dictionary(object):
@@ -333,16 +352,16 @@ class Dictionary(object):
         """
         Initialize a dictionary.
         """
-        self.d: dict[DctKey, Entry] = {}
+        self.d: DctData = dict()
         self.count_w = 0
         self.count_t = 0
         self.count_f = 0
-        self.ctg: dict[str, list[str]] = {}
-        self.groups: list[str] = []
+        self.ctg: AllFeatures = dict()
+        self.groups: AllGroups = []
         self.saving_version = 1
 
     # Подсчитать количество статей в заданной группе
-    def count_entries_in_group(self, group: str) -> tuple[int, int, int]:
+    def count_entries_in_group(self, group: Group) -> tuple[int, int, int]:
         count_w = 0
         count_t = 0
         count_f = 0
@@ -354,7 +373,7 @@ class Dictionary(object):
         return count_w, count_t, count_f
 
     # Подсчитать количество избранных статей
-    def count_fav_entries(self, group: str | None = None) -> tuple[int, int, int]:
+    def count_fav_entries(self, group: Group | None = None) -> tuple[int, int, int]:
         count_w = 0
         count_t = 0
         count_f = 0
@@ -379,10 +398,17 @@ class Dictionary(object):
         return sum_num, sum_den
 
     # Добавить статью в словарь
-    def add_entry(self, wrd: str, tr: str | list[str], forms: dict[FrmKey, str] = None,
-                  phrases: dict[str, list[str]] = None, notes: str | list[str] = None,
-                  groups: set[str] | None = None, fav: bool = False,
-                  all_att: int = 0, correct_att: int = 0, correct_att_in_a_row: int = 0,
+    def add_entry(self,
+                  wrd: Word,
+                  tr: Translation | Iterable[Translation],
+                  forms: Forms | None = None,
+                  phrases: dict[Phrase, Iterable[PhraseTr]] | None = None,
+                  notes: Note | Iterable[Note] | None = None,
+                  groups: Iterable[Group] | None = None,
+                  fav: bool = False,
+                  all_att: int = 0,
+                  correct_att: int = 0,
+                  correct_att_in_a_row: int = 0,
                   latest_answer_date: tuple[int, int, int] = (0, 0, 0)) -> DctKey:
         i = 0
         while True:
@@ -439,80 +465,80 @@ class Dictionary(object):
         self.d.pop(additional_entry_key)
 
     # Добавить перевод к статье
-    def add_tr(self, key: DctKey, tr: str):
+    def add_tr(self, key: DctKey, tr: Translation):
         self.count_t -= self.d[key].count_t
         self.d[key].add_tr(tr)
         self.count_t += self.d[key].count_t
 
     # Удалить перевод из статьи
-    def delete_tr(self, key: DctKey, tr: str):
+    def delete_tr(self, key: DctKey, tr: Translation):
         self.count_t -= self.d[key].count_t
         self.d[key].delete_tr(tr)
         self.count_t += self.d[key].count_t
 
     # Добавить словоформу к статье
-    def add_frm(self, key: DctKey, frm_key: FrmKey | list[str], frm: str):
+    def add_frm(self, key: DctKey, frm_key: Features, frm: Form):
         self.count_f -= self.d[key].count_f
         self.d[key].add_frm(frm_key, frm)
         self.count_f += self.d[key].count_f
 
     # Удалить словоформу из статьи
-    def delete_frm(self, key: DctKey, frm_key: FrmKey | list[str]):
+    def delete_frm(self, key: DctKey, frm_key: Features):
         self.count_f -= self.d[key].count_f
         self.d[key].delete_frm(frm_key)
         self.count_f += self.d[key].count_f
 
     # Добавить фразу к статье
-    def add_phrase(self, key: DctKey, phr: str, phr_tr: str):
+    def add_phrase(self, key: DctKey, phr: Phrase, phr_tr: PhraseTr):
         self.d[key].add_phrase(phr, phr_tr)
 
     # Удалить фразу из статьи
-    def delete_phrase(self, key: DctKey, phr: str, phr_tr: str):
+    def delete_phrase(self, key: DctKey, phr: Phrase, phr_tr: PhraseTr):
         self.d[key].delete_phrase(phr, phr_tr)
 
     # Добавить сноску к статье
-    def add_note(self, key: DctKey, note: str):
+    def add_note(self, key: DctKey, note: Note):
         self.d[key].add_note(note)
 
     # Удалить сноску из статьи
-    def delete_note(self, key: DctKey, note: str):
+    def delete_note(self, key: DctKey, note: Note):
         self.d[key].delete_note(note)
 
     # Добавить выбранные статьи в группу
-    def add_entries_to_group(self, group: str, dct_keys: tuple[DctKey, ...] | list[DctKey]):
+    def add_entries_to_group(self, group: Group, dct_keys: Iterable[DctKey]):
         for key in dct_keys:
             self.d[key].add_to_group(group)
 
     # Убрать выбранные статьи из группы
-    def remove_entries_from_group(self, group: str, dct_keys: tuple[DctKey, ...] | list[DctKey]):
+    def remove_entries_from_group(self, group: Group, dct_keys: Iterable[DctKey]):
         for key in dct_keys:
             if group in self.d[key].groups:
                 self.d[key].remove_from_group(group)
 
     # Добавить выбранные статьи в избранное
-    def fav_entries(self, dct_keys: tuple[DctKey, ...]):
+    def fav_entries(self, dct_keys: Iterable[DctKey]):
         for key in dct_keys:
             self.d[key].add_to_fav()
 
     # Убрать выбранные статьи из избранного
-    def unfav_entries(self, dct_keys: tuple[DctKey, ...]):
+    def unfav_entries(self, dct_keys: Iterable[DctKey]):
         for key in dct_keys:
             self.d[key].remove_from_fav()
 
     # Удалить данное значение категории у всех словоформ
-    def delete_forms_with_val(self, pos: int, ctg_val: str):
+    def delete_forms_with_val(self, pos: int, ctg_val: Value):
         for entry in self.d.values():
             self.count_f -= entry.count_f
             entry.delete_forms_with_val(pos, ctg_val)
             self.count_f += entry.count_f
 
     # Переименовать данное значение категории у всех словоформ
-    def rename_forms_with_val(self, pos: int, old_ctg_val: str, new_ctg_val: str):
+    def rename_forms_with_val(self, pos: int, old_ctg_val: Value, new_ctg_val: Value):
         for entry in self.d.values():
             entry.rename_forms_with_val(pos, old_ctg_val, new_ctg_val)
 
     # Добавить грамматическую категорию
-    def add_ctg(self, ctg_name: str, ctg_values: list[str]):
+    def add_ctg(self, ctg_name: Category, ctg_values: list[Value]):
         assert ctg_name not in self.ctg.keys()
 
         for entry in self.d.values():
@@ -521,7 +547,7 @@ class Dictionary(object):
         self.ctg[ctg_name] = ctg_values
 
     # Удалить грамматическую категорию
-    def delete_ctg(self, ctg_name: str):
+    def delete_ctg(self, ctg_name: Category):
         assert ctg_name in self.ctg.keys()
 
         index = tuple(self.ctg.keys()).index(ctg_name)
@@ -533,7 +559,7 @@ class Dictionary(object):
         self.ctg.pop(ctg_name)
 
     # Переименовать грамматическую категорию
-    def rename_ctg(self, ctg_name_old: str, ctg_name_new: str):
+    def rename_ctg(self, ctg_name_old: Category, ctg_name_new: Category):
         assert ctg_name_old in self.ctg.keys()
         assert ctg_name_new not in self.ctg.keys()
 
@@ -541,14 +567,14 @@ class Dictionary(object):
         self.ctg.pop(ctg_name_old)
 
     # Добавить значение грамматической категории
-    def add_ctg_val(self, ctg_name: str, ctg_value: str):
+    def add_ctg_val(self, ctg_name: Category, ctg_value: Value):
         assert ctg_name in self.ctg.keys()
         assert ctg_value not in self.ctg[ctg_name]
 
         self.ctg[ctg_name] += [ctg_value]
 
     # Удалить значение грамматической категории
-    def delete_ctg_val(self, ctg_name: str, ctg_value: str):
+    def delete_ctg_val(self, ctg_name: Category, ctg_value: Value):
         assert ctg_name in self.ctg.keys()
         assert ctg_value in self.ctg[ctg_name]
 
@@ -560,7 +586,7 @@ class Dictionary(object):
             self.delete_ctg(ctg_name)
 
     # Переименовать значение грамматической категории
-    def rename_ctg_val(self, ctg_name: str, ctg_value_old: str, ctg_value_new: str):
+    def rename_ctg_val(self, ctg_name: Category, ctg_value_old: Value, ctg_value_new: Value):
         assert ctg_name in self.ctg.keys()
         assert ctg_value_old in self.ctg[ctg_name]
         assert ctg_value_new not in self.ctg[ctg_name]
@@ -572,13 +598,13 @@ class Dictionary(object):
         self.ctg[ctg_name][index] = ctg_value_new
 
     # Добавить группу
-    def add_group(self, group: str):
+    def add_group(self, group: Group):
         assert group not in self.groups
 
         self.groups += [group]
 
     # Удалить группу
-    def delete_group(self, group: str):
+    def delete_group(self, group: Group):
         assert group in self.groups
 
         for entry in self.d.values():
@@ -587,7 +613,7 @@ class Dictionary(object):
         self.groups.remove(group)
 
     # Переименовать группу
-    def rename_group(self, group_old: str, group_new: str):
+    def rename_group(self, group_old: Group, group_new: Group):
         assert group_old in self.groups
         assert group_new not in self.groups
 
@@ -639,7 +665,7 @@ class Dictionary(object):
 
 
 # Преобразовать шаблон словоформы в читаемый вид (для вывода на экран)
-def frm_key_to_str_for_print(input_tuple: FrmKey | list[str]) -> str:
+def frm_key_to_str_for_print(input_tuple: Features | list[Value]) -> str:
     res = ''
     is_first = True
     for i in range(len(input_tuple)):
@@ -653,7 +679,7 @@ def frm_key_to_str_for_print(input_tuple: FrmKey | list[str]) -> str:
 
 
 # Преобразовать кортеж в строку (для сохранения значений категории в файл локальных настроек)
-def frm_key_to_str_for_save(input_tuple: FrmKey | list[str], separator: str = '\n') -> str:
+def frm_key_to_str_for_save(input_tuple: Features | list[Value], separator: str = '\n') -> str:
     if not input_tuple:  # input_tuple == () или input_tuple == ('')
         return ''
     res = input_tuple[0]
@@ -663,7 +689,7 @@ def frm_key_to_str_for_save(input_tuple: FrmKey | list[str], separator: str = '\
 
 
 # Перевести слово в ключ для словаря
-def wrd_to_key(wrd: str, num: int) -> DctKey:
+def wrd_to_key(wrd: Word, num: int) -> DctKey:
     return wrd, num
 
 
