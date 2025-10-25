@@ -62,22 +62,22 @@ class Entry(object):
         """
         self.wrd = wrd
 
-        self.tr: list[str] = tr.copy() if (type(tr) == list) else [tr]
+        self.tr: list[str] = tr.copy() if isinstance(tr, list) else [tr]
         self.count_t = len(self.tr)
 
         self.forms: dict[FrmKey, str] = {}
-        if type(forms) == dict:
+        if isinstance(forms, dict):
             self.forms = dict(forms.copy())
         self.count_f = len(self.forms)
 
         self.phrases: dict[str, list[str]] = {}
-        if type(phrases) == dict:
+        if isinstance(phrases, dict):
             self.phrases = dict(phrases.copy())
         self.count_p = len(self.phrases)
 
         if notes is None:
             self.notes: list[str] = []
-        elif type(notes) == list:
+        elif isinstance(notes, list):
             self.notes = notes.copy()
         else:
             self.notes = [notes]
