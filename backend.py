@@ -10,11 +10,11 @@ import pickle
 Word = str
 Translation = Word
 Translations = list[Translation]
-Category = str  # e.g. gender, number, tense
-Value = str  # e.g. singular/plural, present/past/future
-Features = tuple[Value, ...]  #TODO: dict[Category, Value]
+Category = str  # e.g., gender, number, tense
+Value = str  # e.g., singular/plural, present/past/future
+FormPattern = tuple[Value, ...]
 Form = Word
-Forms = dict[Features, Form]
+Forms = dict[FormPattern, Form]
 Text = str
 Phrase = Text
 PhraseTr = Text
@@ -52,6 +52,17 @@ class Entry(object):
     - correct_att_in_a_row: Count of consecutive wins.
     - latest_answer_date: Timestamp of the most recent answer.
     """
+
+    # TODO: wrd -> lemma (?)
+    # TODO: all_att -> total_att
+    # TODO: score -> ratio
+    # TODO: correct_att_in_a_row -> win_streak
+    # TODO: latest_answer_date -> latest_att_timestamp
+    # TODO: groups -> tags
+
+    # TODO: improve __init__ typing
+
+    # TODO: delete / remove - to unify
 
     def __init__(self,
                  wrd: Word,
@@ -131,24 +142,24 @@ class Entry(object):
         self.tr.remove(tr)
         self.count_t -= 1
 
-    def add_frm(self, frm_key: Features, new_frm: Form):
+    def add_frm(self, frm_key: FormPattern, new_frm: Form):
         """
         Add a new inflected form to the entry.
 
         Args:
-            frm_key: The grammatical category key or key pattern for the inflection (e.g., 'plural', 'past_tense').
+            frm_key: The grammatical category pattern for the inflection.
             new_frm: The actual inflected form to add.
         """
         if frm_key not in self.forms.keys():
             self.forms[frm_key] = new_frm
             self.count_f += 1
 
-    def delete_frm(self, frm_key: Features):
+    def delete_frm(self, frm_key: FormPattern):
         """
         Remove an inflected form from the entry.
 
         Args:
-            frm_key: The grammatical category key or key pattern identifying the inflection to remove.
+            frm_key: The grammatical category pattern identifying the inflection to remove.
         """
         self.forms.pop(frm_key)
         self.count_f -= 1
@@ -477,13 +488,13 @@ class Dictionary(object):
         self.count_t += self.d[key].count_t
 
     # Добавить словоформу к статье
-    def add_frm(self, key: DctKey, frm_key: Features, frm: Form):
+    def add_frm(self, key: DctKey, frm_key: FormPattern, frm: Form):
         self.count_f -= self.d[key].count_f
         self.d[key].add_frm(frm_key, frm)
         self.count_f += self.d[key].count_f
 
     # Удалить словоформу из статьи
-    def delete_frm(self, key: DctKey, frm_key: Features):
+    def delete_frm(self, key: DctKey, frm_key: FormPattern):
         self.count_f -= self.d[key].count_f
         self.d[key].delete_frm(frm_key)
         self.count_f += self.d[key].count_f
@@ -665,7 +676,7 @@ class Dictionary(object):
 
 
 # Преобразовать шаблон словоформы в читаемый вид (для вывода на экран)
-def frm_key_to_str_for_print(input_tuple: Features | list[Value]) -> str:
+def frm_key_to_str_for_print(input_tuple: FormPattern | list[Value]) -> str:
     res = ''
     is_first = True
     for i in range(len(input_tuple)):
@@ -679,7 +690,7 @@ def frm_key_to_str_for_print(input_tuple: Features | list[Value]) -> str:
 
 
 # Преобразовать кортеж в строку (для сохранения значений категории в файл локальных настроек)
-def frm_key_to_str_for_save(input_tuple: Features | list[Value], separator: str = '\n') -> str:
+def frm_key_to_str_for_save(input_tuple: FormPattern | list[Value], separator: str = '\n') -> str:
     if not input_tuple:  # input_tuple == () или input_tuple == ('')
         return ''
     res = input_tuple[0]
