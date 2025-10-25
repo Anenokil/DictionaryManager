@@ -1,26 +1,41 @@
+"""
+A module implementing bilingual dictionary.
+By Anenokil
+"""
+
 import typing
 
 FrmKey = tuple[str, ...]
 
 
-# Словарная статья
 class Entry(object):
-    # self.wrd - слово (начальная форма)
-    # self.tr - переводы
-    # self.forms - словоформы (кроме начальной)
-    # self.phrases - фразы с данным словом
-    # self.notes - сноски
-    # self.count_t - количество переводов
-    # self.count_f - количество словоформ (кроме начальной)
-    # self.count_p - количество фраз с данным словом
-    # self.count_n - количество сносок
-    # self.fav - избранное или нет
-    # self.groups - группы, к которым относится эта статья
-    # self.all_att - количество всех попыток
-    # self.correct_att - количество удачных попыток
-    # self.score - доля удачных попыток
-    # self.correct_att_in_a_row - количество последних удачных попыток подряд
-    # self.latest_answer_date - сессия, на которой было в последний раз отвечено это слово
+    """
+    A dictionary entry representing a word and its associated data.
+
+    This class encapsulates all linguistic and statistical information
+    about a dictionary entry, including translations, inflections,
+    usage examples, and learning statistics.
+
+    Attributes:
+    ----------
+    - wrd: The lemma (canonical/dictionary form of the word).
+    - tr: Translations.
+    - forms: Inflected forms.
+    - phrases: Phrases containing the word; usage examples.
+    - notes: Notes field.
+    - count_t: Translation count.
+    - count_f: Inflected form count.
+    - count_p: Phrases count.
+    - count_n: Notes count.
+    - fav: True if the entry is favorite.
+    - groups: Groups assigned to the entry.
+    - all_att: Total number of game attempts.
+    - correct_att: Number of correct guesses (wins).
+    - score: Ratio of correct guesses to total attempts (correct_att / all_att).
+    - correct_att_in_a_row: Count of consecutive wins.
+    - latest_answer_date: Timestamp of the most recent answer.
+    """
+
     def __init__(self,
                  wrd: str,
                  tr: str | list[str],
@@ -29,6 +44,22 @@ class Entry(object):
                  notes: str | list[str] | None = None,
                  groups: set[str] | None = None,
                  fav=False, all_att=0, correct_att=0, correct_att_in_a_row=0, latest_answer_date=(0, 0, 0)):
+        """
+        Initialize a dictionary entry.
+
+        Args:
+            wrd: The lemma (canonical/dictionary form of the word).
+            tr: One or more translations.
+            forms: Inflected forms of the word (optional).
+            phrases: Phrases containing the word; usage examples (optional).
+            notes: Notes field (optional).
+            groups: Groups assigned to the entry (optional).
+            fav: Whether the entry is favorite.
+            all_att: Total number of game attempts.
+            correct_att: Number of correct guesses (wins).
+            correct_att_in_a_row: Count of consecutive wins.
+            latest_answer_date: Timestamp of the most recent answer.
+        """
         self.wrd = wrd
 
         self.tr: list[str] = tr.copy() if (type(tr) == list) else [tr]
@@ -62,30 +93,57 @@ class Entry(object):
         self.correct_att_in_a_row = correct_att_in_a_row
         self.latest_answer_date = latest_answer_date
 
-    # Добавить перевод
     def add_tr(self, new_tr: str):
+        """
+        Add a new translation to the entry.
+
+        Args:
+            new_tr: The translation to add.
+        """
         if new_tr not in self.tr:
             self.tr += [new_tr]
             self.count_t += 1
 
-    # Удалить перевод
     def delete_tr(self, tr: str):
+        """
+        Delete a translation from the entry.
+
+        Args:
+            tr: The translation to delete.
+        """
         self.tr.remove(tr)
         self.count_t -= 1
 
-    # Добавить словоформу
     def add_frm(self, frm_key: FrmKey | list[str], new_frm: str):
+        """
+        Add a new inflected form to the entry.
+
+        Args:
+            frm_key: The grammatical category key or key pattern for the inflection (e.g., 'plural', 'past_tense').
+            new_frm: The actual inflected form to add.
+        """
         if frm_key not in self.forms.keys():
             self.forms[frm_key] = new_frm
             self.count_f += 1
 
-    # Удалить словоформу
     def delete_frm(self, frm_key: FrmKey | list[str]):
+        """
+        Remove an inflected form from the entry.
+
+        Args:
+            frm_key: The grammatical category key or key pattern identifying the inflection to remove.
+        """
         self.forms.pop(frm_key)
         self.count_f -= 1
 
-    # Добавить фразу
     def add_phrase(self, new_phr: str, new_phr_tr: str):
+        """
+        Add a new phrase/usage example with its translation.
+
+        Args:
+            new_phr: The phrase or usage example containing the word.
+            new_phr_tr: The translation of the phrase.
+        """
         if new_phr not in self.phrases.keys():
             self.phrases[new_phr] = [new_phr_tr]
             self.count_p += 1
@@ -93,38 +151,70 @@ class Entry(object):
             self.phrases[new_phr] += [new_phr_tr]
             self.count_p += 1
 
-    # Удалить фразу
     def delete_phrase(self, phr: str, phr_tr: str):
+        """
+        Remove a phrase and its translation from the entry.
+
+        Removes the specified phrase-translation pair from `phrases`.
+
+        Args:
+            phr: The phrase to remove.
+            phr_tr: The translation of the phrase to remove.
+        """
         self.phrases[phr].remove(phr_tr)
         if len(self.phrases[phr]) == 0:
             self.phrases.pop(phr)
         self.count_p -= 1
 
-    # Добавить сноску
     def add_note(self, new_note: str):
+        """
+        Add a new note to the entry.
+
+        Args:
+            new_note: The note text to add.
+        """
         if new_note not in self.notes:
             self.notes += [new_note]
             self.count_n += 1
 
-    # Удалить сноску
     def delete_note(self, note: str):
+        """
+        Remove a note from the entry.
+
+        Args:
+            note (str): The note text to remove.
+        """
         self.notes.remove(note)
         self.count_n -= 1
 
-    # Добавить в группу
     def add_to_group(self, group: str):
+        """
+        Assign this entry to a group.
+
+        Args:
+            group: The group name to add this entry to.
+        """
         self.groups.add(group)
 
-    # Убрать из группы
     def remove_from_group(self, group: str):
+        """
+        Remove this entry from a group.
+
+        Args:
+            group: The group name to remove this entry from.
+        """
         self.groups.remove(group)
 
-    # Добавить в избранное
     def add_to_fav(self):
+        """
+        Mark this entry as favorite.
+        """
         self.fav = True
 
-    # Убрать из избранного
     def remove_from_fav(self):
+        """
+        Remove this entry from favorites.
+        """
         self.fav = False
 
     # Удалить данное значение категории у всех словоформ
@@ -245,15 +335,26 @@ class Entry(object):
 DctKey = tuple[str, int]
 
 
-# Словарь
 class Dictionary(object):
-    # self.d - сам словарь
-    # self.count_w - количество статей (слов) в словаре
-    # self.count_t - количество переводов в словаре
-    # self.count_f - количество неначальных словоформ в словаре
-    # self.ctg - все грамматические категории
-    # self.groups - все группы
+    """
+    A bilingual dictionary.
+
+    Attributes:
+    ----------
+    - d: The main dictionary data structure mapping lemmas to Entry objects.
+    - count_w: Total number of word entries (lemmas) in the dictionary.
+    - count_t: Total number of translations across all entries in the dictionary.
+    - count_f: Total number of inflected forms across all entries in the dictionary.
+    - ctg: Collection of all grammatical categories present in the dictionary.
+      Used for categorization and filtering of word forms.
+    - groups: All groups/tags assigned to entries across the entire dictionary.
+      Used for organizing and grouping dictionary content.
+    """
+
     def __init__(self):
+        """
+        Initialize a dictionary.
+        """
         self.d: dict[DctKey, Entry] = {}
         self.count_w = 0
         self.count_t = 0
