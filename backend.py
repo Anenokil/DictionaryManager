@@ -11,8 +11,8 @@ Word = str
 Translation = Word
 Translations = list[Translation]
 Category = str  # e.g., gender, number, tense
-Value = str  # e.g., singular/plural, present/past/future
-FormPattern = tuple[Value, ...]
+CtgValue = str  # e.g., singular/plural, present/past/future
+FormPattern = tuple[CtgValue, ...]
 Form = Word
 Forms = dict[FormPattern, Form]
 Text = str
@@ -237,7 +237,7 @@ class Entry(object):
         self.fav = False
 
     # Удалить данное значение категории у всех словоформ
-    def delete_forms_with_val(self, pos: int, ctg_val: str):
+    def delete_ctg_value(self, pos: int, ctg_val: str):
         to_delete = []
         for key in self.forms.keys():
             if key[pos] == ctg_val:
@@ -247,7 +247,7 @@ class Entry(object):
             self.forms.pop(key)
 
     # Переименовать данное значение категории у всех словоформ
-    def rename_forms_with_val(self, pos: int, old_ctg_val: str, new_ctg_val: str):
+    def rename_ctg_value(self, pos: int, old_ctg_val: str, new_ctg_val: str):
         to_rename = []
         for key in self.forms.keys():
             if key[pos] == old_ctg_val:
@@ -330,7 +330,7 @@ class Entry(object):
 
 DctKey = tuple[Word, int]
 DctData = dict[DctKey, Entry]
-AllFeatures = dict[Category, list[Value]]
+AllFeatures = dict[Category, list[CtgValue]]
 AllGroups = list[Group]
 
 
@@ -527,20 +527,8 @@ class Dictionary(object):
         for key in dct_keys:
             self.d[key].remove_from_fav()
 
-    # Удалить данное значение категории у всех словоформ
-    def delete_forms_with_val(self, pos: int, ctg_val: Value):
-        for entry in self.d.values():
-            self.count_f -= entry.count_f
-            entry.delete_forms_with_val(pos, ctg_val)
-            self.count_f += entry.count_f
-
-    # Переименовать данное значение категории у всех словоформ
-    def rename_forms_with_val(self, pos: int, old_ctg_val: Value, new_ctg_val: Value):
-        for entry in self.d.values():
-            entry.rename_forms_with_val(pos, old_ctg_val, new_ctg_val)
-
     # Добавить грамматическую категорию
-    def add_ctg(self, ctg_name: Category, ctg_values: list[Value]):
+    def add_ctg(self, ctg_name: Category, ctg_values: list[CtgValue]):
         assert ctg_name not in self.ctg.keys()
 
         for entry in self.d.values():
@@ -569,32 +557,36 @@ class Dictionary(object):
         self.ctg.pop(ctg_name_old)
 
     # Добавить значение грамматической категории
-    def add_ctg_val(self, ctg_name: Category, ctg_value: Value):
+    def add_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
         assert ctg_name in self.ctg.keys()
         assert ctg_value not in self.ctg[ctg_name]
 
         self.ctg[ctg_name] += [ctg_value]
 
     # Удалить значение грамматической категории
-    def delete_ctg_val(self, ctg_name: Category, ctg_value: Value):
+    def delete_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
         assert ctg_name in self.ctg.keys()
         assert ctg_value in self.ctg[ctg_name]
 
         index = tuple(self.ctg.keys()).index(ctg_name)
-        self.delete_forms_with_val(index, ctg_value)
+        for entry in self.d.values():
+            self.count_f -= entry.count_f
+            entry.delete_ctg_value(index, ctg_value)
+            self.count_f += entry.count_f
 
         self.ctg[ctg_name].remove(ctg_value)
         if len(self.ctg[ctg_name]) == 0:  # Если у категории не осталось значений, то она удаляется
             self.delete_ctg(ctg_name)
 
     # Переименовать значение грамматической категории
-    def rename_ctg_val(self, ctg_name: Category, ctg_value_old: Value, ctg_value_new: Value):
+    def rename_ctg_value(self, ctg_name: Category, ctg_value_old: CtgValue, ctg_value_new: CtgValue):
         assert ctg_name in self.ctg.keys()
         assert ctg_value_old in self.ctg[ctg_name]
         assert ctg_value_new not in self.ctg[ctg_name]
 
         index = tuple(self.ctg.keys()).index(ctg_name)
-        self.rename_forms_with_val(index, ctg_value_old, ctg_value_new)
+        for entry in self.d.values():
+            entry.rename_ctg_value(index, ctg_value_old, ctg_value_new)
 
         index = self.ctg[ctg_name].index(ctg_value_old)
         self.ctg[ctg_name][index] = ctg_value_new
@@ -667,7 +659,7 @@ class Dictionary(object):
 
 
 # Преобразовать шаблон словоформы в читаемый вид (для вывода на экран)
-def frm_key_to_str_for_print(input_tuple: FormPattern | list[Value]) -> str:
+def frm_key_to_str_for_print(input_tuple: FormPattern | list[CtgValue]) -> str:
     res = ''
     is_first = True
     for i in range(len(input_tuple)):
@@ -681,7 +673,7 @@ def frm_key_to_str_for_print(input_tuple: FormPattern | list[Value]) -> str:
 
 
 # Преобразовать кортеж в строку (для сохранения значений категории в файл локальных настроек)
-def frm_key_to_str_for_save(input_tuple: FormPattern | list[Value], separator: str = '\n') -> str:
+def frm_key_to_str_for_save(input_tuple: FormPattern | list[CtgValue], separator: str = '\n') -> str:
     if not input_tuple:  # input_tuple == () или input_tuple == ('')
         return ''
     res = input_tuple[0]

@@ -794,7 +794,7 @@ def delete_ctg(window_parent, dct: Dictionary, ctg_name: str) -> bool:
 
 
 # Добавить значение категории
-def add_ctg_val(window_parent, dct: Dictionary, ctg_name: str, values: list[str] | tuple[str, ...]) -> bool:
+def add_ctg_value(window_parent, dct: Dictionary, ctg_name: str, values: list[str] | tuple[str, ...]) -> bool:
     # Ввод нового значения
     window_entry = PopupEntryW(window_parent, 'Введите новое значение категории',
                                check_answer_function=lambda wnd, val: check_ctg_val(wnd, values, val))
@@ -803,12 +803,12 @@ def add_ctg_val(window_parent, dct: Dictionary, ctg_name: str, values: list[str]
         return False
 
     new_val = encode_special_combinations(new_val, _0_global_special_combinations)
-    dct.add_ctg_val(ctg_name, new_val)
+    dct.add_ctg_value(ctg_name, new_val)
     return True
 
 
 # Переименовать значение категории
-def rename_ctg_val(window_parent, dct: Dictionary, ctg_name: str, old_ctg_val: str) -> bool:
+def rename_ctg_value(window_parent, dct: Dictionary, ctg_name: str, old_ctg_val: str) -> bool:
     # Ввод нового значения
     window_entry = PopupEntryW(window_parent, 'Введите новое название значения', default_value=old_ctg_val,
                                check_answer_function=lambda wnd, val:
@@ -821,12 +821,12 @@ def rename_ctg_val(window_parent, dct: Dictionary, ctg_name: str, old_ctg_val: s
         return False
 
     # Переименовывание значения во всех словоформах, его содержащих
-    dct.rename_ctg_val(ctg_name, old_ctg_val, new_ctg_val)
+    dct.rename_ctg_value(ctg_name, old_ctg_val, new_ctg_val)
     return True
 
 
 # Удалить значение категории
-def delete_ctg_val(window_parent, dct: Dictionary, ctg_name: str, ctg_val: str) -> bool:
+def delete_ctg_value(window_parent, dct: Dictionary, ctg_name: str, ctg_val: str) -> bool:
     window_dia = PopupDialogueW(window_parent, f'Все словоформы, содержащие значение {ctg_val}, будут удалены!\n'
                                                f'Хотите продолжить?')  # Подтверждение действия
     answer = window_dia.open()
@@ -834,7 +834,7 @@ def delete_ctg_val(window_parent, dct: Dictionary, ctg_name: str, ctg_val: str) 
         return False
 
     # Удаление всех словоформ, содержащих это значение категории
-    dct.delete_ctg_val(ctg_name, ctg_val)
+    dct.delete_ctg_value(ctg_name, ctg_val)
     return True
 
 
@@ -3373,17 +3373,17 @@ class CategoryValuesSettingsW(tk.Toplevel):
 
     # Добавить значение категории
     def add(self):
-        self.has_changes = add_ctg_val(self, _0_global_dct, self.ctg_key, self.ctg_values) or self.has_changes
+        self.has_changes = add_ctg_value(self, _0_global_dct, self.ctg_key, self.ctg_values) or self.has_changes
         self.print_ctg_values(False)
 
     # Переименовать значение категории
     def rename(self, val: str):
-        self.has_changes = rename_ctg_val(self, _0_global_dct, self.ctg_key, val) or self.has_changes
+        self.has_changes = rename_ctg_value(self, _0_global_dct, self.ctg_key, val) or self.has_changes
         self.print_ctg_values(False)
 
     # Удалить значение категории
     def delete(self, val: str):
-        self.has_changes = delete_ctg_val(self, _0_global_dct, self.ctg_key, val) or self.has_changes
+        self.has_changes = delete_ctg_value(self, _0_global_dct, self.ctg_key, val) or self.has_changes
         self.print_ctg_values(False)
         if self.ctg_key not in _0_global_dct.ctg:
             self.parent.print_categories(False)
