@@ -13,7 +13,7 @@ import urllib.request as urllib2  # Для проверки наличия об�
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
 
-from dictionary import *
+from backend import *
 from constants import *
 from upgrades import *
 
@@ -6823,7 +6823,7 @@ class NewVersionAvailableW(tk.Toplevel):
                     os.remove(os.path.join(IMAGES_PATH, filename))
                 except FileNotFoundError:
                     print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
-            for filename in ('resources/icon.png', 'dictionary.py', 'constants.py', 'main.py'):
+            for filename in ('resources/icon.png', 'backend.py', 'constants.py', 'main.py'):
                 try:
                     os.remove(os.path.join(MAIN_PATH, filename))
                 except FileNotFoundError:
