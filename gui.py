@@ -6823,7 +6823,7 @@ class NewVersionAvailableW(tk.Toplevel):
                     os.remove(os.path.join(IMAGES_PATH, filename))
                 except FileNotFoundError:
                     print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
-            for filename in ('resources/icon.png', 'backend.py', 'constants.py', 'main.py'):
+            for filename in ('resources/icon.png', 'backend.py', 'constants.py', 'gui.py'):
                 try:
                     os.remove(os.path.join(MAIN_PATH, filename))
                 except FileNotFoundError:
