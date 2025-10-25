@@ -1263,18 +1263,19 @@ def save_settings_if_has_changes(window_parent):
 
 
 # Создать и загрузить пустой словарь
-def create_dct(dct: Dictionary, savename: str):
+def create_dct(savename: str):
     folder_path = os.path.join(SAVES_PATH, savename)
-    filepath = os.path.join(folder_path, DICTIONARY_SAVE_FN)
     os.mkdir(folder_path)
-    open(filepath, 'w', encoding='utf-8').write(f'v{SAVES_VERSION}\n')
-    dct.read(filepath, 0)
+    filepath = os.path.join(folder_path, DICTIONARY_SAVE_FN)
+    dct = Dictionary()
+    dct.save(filepath)
+    return dct
 
 
 # Сохранить словарь
 def save_dct(dct: Dictionary, savename: str):
     filepath = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
-    dct.save(filepath, SAVES_VERSION)
+    dct.save(filepath)
 
 
 # Предложить сохранение словаря, если есть изменения
@@ -1293,11 +1294,11 @@ def upload_save(window_parent, dct: Dictionary, savename: str, btn_close_text: s
     save_file_path = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
     try:
         check_register, special_combinations, dct.ctg, dct.groups, fav_groups = upload_local_settings(savename)
-        upgrade_dct_save(save_file_path, lambda line: encode_special_combinations(line, special_combinations))  # Если требуется, сохранение обновляется
-        dct.read(save_file_path, len(dct.ctg))  # Загрузка словаря
+        #upgrade_dct_save(save_file_path, lambda line: encode_special_combinations(line, special_combinations))  # Если требуется, сохранение обновляется  # TODO
+        dct.read(save_file_path)  # Загрузка словаря
     except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
         print(f'\nСловарь "{savename}" не найден!')
-        create_dct(dct, savename)
+        dct = create_dct(savename)
         check_register, special_combinations, dct.ctg, dct.groups, fav_groups = upload_local_settings(savename)
         print('Создан и загружен пустой словарь')
         return savename, check_register, special_combinations, fav_groups
@@ -6430,8 +6431,7 @@ class SettingsW(tk.Toplevel):
             save_settings_if_has_changes(self)
         save_dct_if_has_progress(self, _0_global_dct, _0_global_dct_savename, _0_global_has_progress)
 
-        _0_global_dct = Dictionary()
-        create_dct(_0_global_dct, savename)
+        _0_global_dct = create_dct(savename)
         _0_global_check_register, _0_global_special_combinations, _0_global_dct.ctg, _0_global_dct.groups,\
             _0_global_fav_groups = upload_local_settings(savename)
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\

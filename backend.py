@@ -4,6 +4,7 @@ By Anenokil
 """
 
 import typing
+import pickle
 
 FrmKey = tuple[str, ...]
 
@@ -290,29 +291,6 @@ class Entry(object):
             self.correct_att_in_a_row -= 1
         self.latest_answer_date = session_number
 
-    # Сохранить статью в файл
-    def save(self, file: typing.TextIO):
-        file.write(f'w{self.wrd}\n')
-        file.write(f'{self.all_att}:{self.correct_att}:{self.correct_att_in_a_row}\n')
-        file.write(f'{self.latest_answer_date[0]}:{self.latest_answer_date[1]}:{self.latest_answer_date[2]}\n')
-        file.write(f'{self.tr[0]}\n')
-        for i in range(1, self.count_t):
-            file.write(f't{self.tr[i]}\n')
-        for note in self.notes:
-            file.write(f'n{note}\n')
-        for frm_template in self.forms.keys():
-            file.write(f'f{frm_key_to_str_for_save(frm_template)}\n'
-                       f'{self.forms[frm_template]}\n')
-        for phr in self.phrases.keys():
-            file.write(f'p{phr}\n'
-                       f'{len(self.phrases[phr])}\n')
-            for phr_tr in self.phrases[phr]:
-                file.write(f'{phr_tr}\n')
-        if self.fav:
-            file.write('*\n')
-        for group in self.groups:
-            file.write(f'g{group}\n')
-
     # Распечатать статью в файл
     def print_out(self, file: typing.TextIO):
         if self.fav:
@@ -361,6 +339,7 @@ class Dictionary(object):
         self.count_f = 0
         self.ctg: dict[str, list[str]] = {}
         self.groups: list[str] = []
+        self.saving_version = 1
 
     # Подсчитать количество статей в заданной группе
     def count_entries_in_group(self, group: str) -> tuple[int, int, int]:
@@ -620,53 +599,36 @@ class Dictionary(object):
         self.groups.remove(group_old)
 
     # Прочитать словарь из файла
-    def read(self, filepath: str, count_ctg: int):
-        with open(filepath, 'r', encoding='utf-8') as file:
-            file.readline()  # Первая строка - версия сохранения словаря
-            while True:
-                line = file.readline().strip()
-                if not line:
-                    break
-                elif line[0] == 'w':
-                    wrd = line[1:]
-                    all_att, correct_att, correct_att_in_a_row = (int(el) for el in file.readline().strip().split(':'))
-                    latest_answer_date = [int(el) for el in file.readline().strip().split(':')]
-                    tr = file.readline().strip()
-                    if len(latest_answer_date) == 3:
-                        latest_answer_date = tuple[int, int, int](latest_answer_date)
-                        key = self.add_entry(wrd, tr, all_att=all_att, correct_att=correct_att,
-                                             correct_att_in_a_row=correct_att_in_a_row,
-                                             latest_answer_date=latest_answer_date)
-                    else:
-                        raise TypeError(f'Error reading the save: latest_answer_date')
-                elif line[0] == 't':
-                    self.add_tr(key, line[1:])
-                elif line[0] == 'n':
-                    self.add_note(key, line[1:])
-                elif line[0] == 'p':
-                    phr_key = line[1:]
-                    count_p = int(file.readline().strip())
-                    for i in range(count_p):
-                        self.add_phrase(key, phr_key, file.readline().strip())
-                elif line[0] == 'f':
-                    frm_key = [line[1:]]
-                    for i in range(1, count_ctg):
-                        frm_key += [file.readline().strip()]
-                    self.add_frm(key, tuple(frm_key), file.readline().strip())
-                elif line[0] == '*':
-                    self.d[key].add_to_fav()
-                elif line[0] == 'g':
-                    group = line[1:]
-                    self.d[key].add_to_group(group)
-                    if group not in self.groups:
-                        self.add_group(group)
+    def read(self, filepath: str):
+        with open(filepath, 'rb') as f:
+            save_data = pickle.load(f)
+
+        loaded_version = save_data.get('version', 1)
+        data = save_data.get('data', {})
+
+        self.d = data.get('d', {})
+        self.ctg = data.get('ctg', {})
+        self.groups = data.get('groups', {})
+        self.count_w = data.get('count_w', {})
+        self.count_t = data.get('count_t', {})
+        self.count_f = data.get('count_f', {})
 
     # Сохранить словарь в файл
-    def save(self, filepath: str, saves_version: int | str):
-        with open(filepath, 'w', encoding='utf-8') as file:
-            file.write(f'v{saves_version}\n')
-            for entry in self.d.values():
-                entry.save(file)
+    def save(self, filepath: str):
+        save_data = {
+            'version': self.saving_version,
+            'data': {
+                'd': self.d,
+                'ctg': self.ctg,
+                'groups': self.groups,
+                'count_w': self.count_w,
+                'count_t': self.count_t,
+                'count_f': self.count_f,
+            }
+        }
+
+        with open(filepath, 'wb') as f:
+            pickle.dump(save_data, f)
 
     # Распечатать словарь в файл
     def print_out(self, filepath: str):

@@ -65,7 +65,7 @@ RESOURCES_PATH = os.path.join(MAIN_PATH, RESOURCES_DIR)
 SAVES_DIR = 'saves'  # Папка с сохранениями
 SAVES_PATH = os.path.join(RESOURCES_PATH, SAVES_DIR)
 # {
-DICTIONARY_SAVE_FN = 'dct.txt'  # Файл с сохранением словаря
+DICTIONARY_SAVE_FN = 'dct.pkl'  # Файл с сохранением словаря
 LOCAL_SETTINGS_FN = 'local_settings.txt'  # Файл с локальными настройками (настройки словаря)
 LOCAL_AUTO_SETTINGS_FN = 'local_settings_auto.txt'  # Файл с автоматически сохраняющимися, локальными настройками
 # }
