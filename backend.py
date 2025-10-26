@@ -74,10 +74,10 @@ class Entry(object):
         Args:
             lemma: The lemma (canonical/dictionary form of the word).
             tr: One or more translations.
-            forms: Inflected forms of the word (optional).
-            phrases: Phrases containing the word; usage examples (optional).
-            notes: Notes field (optional).
-            groups: Groups assigned to the entry (optional).
+            forms: Inflected forms of the word.
+            phrases: Phrases containing the word; usage examples.
+            notes: Notes field.
+            groups: Groups assigned to the entry.
             fav: Whether the entry is favorite.
             total_att: Total number of game attempts.
             correct_att: Number of correct guesses (wins).
@@ -202,7 +202,7 @@ class Entry(object):
         Remove a note from the entry.
 
         Args:
-            note (str): The note text to remove.
+            note: The note text to remove.
         """
         self.notes.remove(note)
         self.count_n -= 1
@@ -239,7 +239,7 @@ class Entry(object):
 
     def delete_ctg_value(self, pos: int, ctg_val: CtgValue):
         """
-        Deletes the specified category value from all word forms.
+        Delete the specified category value from all word forms.
 
         Args:
             pos: The position (index) of the category in form pattern.
@@ -252,7 +252,7 @@ class Entry(object):
 
     def rename_ctg_value(self, pos: int, old_ctg_val: CtgValue, new_ctg_val: CtgValue):
         """
-        Renames the specified category value in all word forms.
+        Rename the specified category value in all word forms.
 
         Args:
             pos: The position (index) of the category in form pattern.
@@ -269,7 +269,7 @@ class Entry(object):
 
     def add_ctg(self):
         """
-        Adds a new empty category to all word forms.
+        Add a new empty category to all word forms.
         """
         keys = list(self.forms.keys())
         for key in keys:
@@ -280,7 +280,7 @@ class Entry(object):
 
     def delete_ctg(self, pos: int):
         """
-        Deletes the category at the specified position from all word forms.
+        Delete the category at the specified position from all word forms.
 
         Removes the entire category (including all its values) at position `pos`
         from all word forms in the entry.
@@ -307,7 +307,7 @@ class Entry(object):
 
     def correct(self, session_number: Timestamp):
         """
-        Updates learning statistics when a correct attempt is made.
+        Update learning statistics when a correct attempt is made.
 
         Increments both total attempts and correct attempts counters, recalculates the
         correct ratio, updates the win streak, and sets the latest attempt timestamp.
@@ -326,7 +326,7 @@ class Entry(object):
 
     def incorrect(self, session_number: Timestamp):
         """
-        Updates learning statistics when an incorrect attempt is made.
+        Update learning statistics when an incorrect attempt is made.
 
         Increments the total attempts counter, recalculates the correct ratio,
         resets the win streak to 0, and sets the latest attempt timestamp.
@@ -344,7 +344,7 @@ class Entry(object):
 
     def print_out(self, file: TextIO):
         """
-        Prints the dictionary entry to the specified file.
+        Print the dictionary entry to the specified file.
 
         Outputs a formatted representation of the entire dictionary entry including
         lemma, translations, inflected forms, phrases, notes, and learning statistics
@@ -391,6 +391,7 @@ class Dictionary(object):
       Used for categorization and filtering of word forms.
     - groups: All groups/tags assigned to entries across the entire dictionary.
       Used for organizing and grouping dictionary content.
+    - saving_version: The version of the data format used for serialization.
     """
 
     def __init__(self):
@@ -405,8 +406,19 @@ class Dictionary(object):
         self.groups: AllGroups = []
         self.saving_version = 1
 
-    # Подсчитать количество статей в заданной группе
     def count_entries_in_group(self, group: Group) -> tuple[int, int, int]:
+        """
+        Count the number of entries, translations, and inflected forms in the specified group.
+
+        Args:
+            group: The group for which to count statistics.
+
+        Returns:
+            A tuple containing three integers:
+            - Number of dictionary entries (lemmas) in the group;
+            - Total number of translations across all entries in the group;
+            - Total number of inflected forms across all entries in the group.
+        """
         count_w = 0
         count_t = 0
         count_f = 0
@@ -417,8 +429,20 @@ class Dictionary(object):
                 count_f += entry.count_f
         return count_w, count_t, count_f
 
-    # Подсчитать количество избранных статей
     def count_fav_entries(self, group: Group | None = None) -> tuple[int, int, int]:
+        """
+        Count the number of favorite entries, their translations, and inflected forms.
+
+        Args:
+            group: If specified, counts only favorite entries within the given group.
+                   If None, counts all favorite entries in the dictionary.
+
+        Returns:
+            A tuple containing three integers:
+            - Number of favorite dictionary entries (lemmas);
+            - Total number of translations across favorite entries;
+            - Total number of inflected forms across favorite entries.
+        """
         count_w = 0
         count_t = 0
         count_f = 0
@@ -436,13 +460,21 @@ class Dictionary(object):
                     count_f += entry.count_f
         return count_w, count_t, count_f
 
-    # Подсчитать среднюю долю правильных ответов
     def count_rating(self) -> tuple[int, int]:
+        """
+        Calculate the average accuracy rate across all dictionary entries.
+
+        Computes the overall accuracy rate by aggregating the correct attempts
+        and total attempts from all entries that have learning statistics.
+
+        Returns:
+            The average accuracy rate as a float between 0.0 and 1.0.
+            Returns None if no entries have learning attempts.
+        """
         sum_num = sum(entry.correct_att for entry in self.d.values())
         sum_den = sum(entry.total_att for entry in self.d.values())
         return sum_num, sum_den
 
-    # Добавить статью в словарь
     def add_entry(self,
                   lemma: Word,
                   tr: Translation | Iterable[Translation],
@@ -455,6 +487,25 @@ class Dictionary(object):
                   correct_att: int = 0,
                   win_streak: int = 0,
                   latest_att_timestamp: Timestamp = (0, 0, 0)) -> DctKey:
+        """
+        Add a new dictionary entry.
+
+        Args:
+            lemma: The lemma (canonical/dictionary form of the word).
+            tr: One or more translations.
+            forms: Inflected forms of the word.
+            phrases: Phrases containing the word; usage examples.
+            notes: Notes field.
+            groups: Groups assigned to the entry.
+            fav: Whether the entry is favorite.
+            total_att: Total number of game attempts.
+            correct_att: Number of correct guesses (wins).
+            win_streak: Count of consecutive wins.
+            latest_att_timestamp: Timestamp of the most recent answer.
+
+        Returns:
+            The dictionary key under which the entry was stored.
+        """
         i = 0
         while True:
             key = wrd_to_key(lemma, i)
@@ -661,8 +712,13 @@ class Dictionary(object):
                 entry.add_to_group(group_new)
         self.groups.remove(group_old)
 
-    # Прочитать словарь из файла
     def read(self, filepath: str):
+        """
+        Read the dictionary from the specified file.
+
+        Args:
+            filepath: The path to the file from which the dictionary will be loaded.
+        """
         with open(filepath, 'rb') as f:
             save_data = pickle.load(f)
 
@@ -676,8 +732,14 @@ class Dictionary(object):
         self.count_t = data.get('count_t', {})
         self.count_f = data.get('count_f', {})
 
-    # Сохранить словарь в файл
     def save(self, filepath: str):
+        """
+        Save the dictionary to the specified file.
+
+        Args:
+            filepath: The path to the file where the dictionary will be saved. The file will be
+                      created if it doesn't exist, or overwritten if it exists.
+        """
         save_data = {
             'version': self.saving_version,
             'data': {
@@ -693,8 +755,15 @@ class Dictionary(object):
         with open(filepath, 'wb') as f:
             pickle.dump(save_data, f)
 
-    # Распечатать словарь в файл
     def print_out(self, filepath: str):
+        """
+        Print the dictionary to the specified file.
+
+        Outputs a formatted representation of the entire dictionary.
+
+        Args:
+            filepath: The path to the text file. The files contents will be overwritten.
+        """
         with open(filepath, 'w', encoding='utf-8') as file:
             for entry in self.d.values():
                 entry.print_out(file)
