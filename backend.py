@@ -49,7 +49,7 @@ class Entry(object):
     - groups: Groups assigned to the entry.
     - total_att: Total number of game attempts.
     - correct_att: Number of correct guesses (wins).
-    - ratio: Ratio of correct guesses to total attempts (correct_att / total_att).
+    - accuracy_rate: Ratio of correct guesses to total attempts (correct_att / total_att).
     - win_streak: Count of consecutive wins.
     - latest_att_timestamp: Timestamp of the most recent answer.
     """
@@ -109,7 +109,7 @@ class Entry(object):
 
         self.total_att = total_att
         self.correct_att = correct_att
-        self.ratio = 0 if (total_att == 0) else correct_att / total_att
+        self.accuracy_rate = 0 if (total_att == 0) else correct_att / total_att
         self.win_streak = win_streak
         self.latest_att_timestamp = latest_att_timestamp
 
@@ -310,14 +310,14 @@ class Entry(object):
         Update learning statistics when a correct attempt is made.
 
         Increments both total attempts and correct attempts counters, recalculates the
-        correct ratio, updates the win streak, and sets the latest attempt timestamp.
+        correct accuracy_rate, updates the win streak, and sets the latest attempt timestamp.
 
         Args:
             session_number: A tuple representing the session identifier.
         """
         self.total_att += 1
         self.correct_att += 1
-        self.ratio = self.correct_att / self.total_att
+        self.accuracy_rate = self.correct_att / self.total_att
         if self.win_streak <= 0:
             self.win_streak = 1
         else:
@@ -328,14 +328,14 @@ class Entry(object):
         """
         Update learning statistics when an incorrect attempt is made.
 
-        Increments the total attempts counter, recalculates the correct ratio,
+        Increments the total attempts counter, recalculates the correct accuracy_rate,
         resets the win streak to 0, and sets the latest attempt timestamp.
 
         Args:
             session_number: A tuple representing the session identifier.
         """
         self.total_att += 1
-        self.ratio = self.correct_att / self.total_att
+        self.accuracy_rate = self.correct_att / self.total_att
         if self.win_streak > 0:
             self.win_streak = -1
         else:
@@ -384,7 +384,7 @@ class Dictionary(object):
     Attributes:
     ----------
     - d: The main dictionary data structure mapping lemmas to Entry objects.
-    - count_w: Total number of word entries (lemmas) in the dictionary.
+    - count_e: Total number of word entries (lemmas) in the dictionary.
     - count_t: Total number of translations across all entries in the dictionary.
     - count_f: Total number of inflected forms across all entries in the dictionary.
     - ctg: Collection of all grammatical categories present in the dictionary.
@@ -399,7 +399,7 @@ class Dictionary(object):
         Initialize a dictionary.
         """
         self.d: DctData = dict()
-        self.count_w = 0
+        self.count_e = 0
         self.count_t = 0
         self.count_f = 0
         self.ctg: AllFeatures = dict()
@@ -419,15 +419,15 @@ class Dictionary(object):
             - Total number of translations across all entries in the group;
             - Total number of inflected forms across all entries in the group.
         """
-        count_w = 0
+        count_e = 0
         count_t = 0
         count_f = 0
         for entry in self.d.values():
             if group in entry.groups:
-                count_w += 1
+                count_e += 1
                 count_t += entry.count_t
                 count_f += entry.count_f
-        return count_w, count_t, count_f
+        return count_e, count_t, count_f
 
     def count_fav_entries(self, group: Group | None = None) -> tuple[int, int, int]:
         """
@@ -443,24 +443,24 @@ class Dictionary(object):
             - Total number of translations across favorite entries;
             - Total number of inflected forms across favorite entries.
         """
-        count_w = 0
+        count_e = 0
         count_t = 0
         count_f = 0
         if group:
             for entry in self.d.values():
                 if entry.fav and group in entry.groups:
-                    count_w += 1
+                    count_e += 1
                     count_t += entry.count_t
                     count_f += entry.count_f
         else:
             for entry in self.d.values():
                 if entry.fav:
-                    count_w += 1
+                    count_e += 1
                     count_t += entry.count_t
                     count_f += entry.count_f
-        return count_w, count_t, count_f
+        return count_e, count_t, count_f
 
-    def count_rating(self) -> tuple[int, int]:
+    def score(self) -> tuple[int, int]:
         """
         Calculate the average accuracy rate across all dictionary entries.
 
@@ -512,7 +512,7 @@ class Dictionary(object):
             if key not in self.d.keys():
                 self.d[key] = Entry(lemma, tr, forms, phrases, notes, groups, fav, total_att,
                                     correct_att, win_streak, latest_att_timestamp)
-                self.count_w += 1
+                self.count_e += 1
                 self.count_t += self.d[key].count_t
                 self.count_f += self.d[key].count_f
                 return key
@@ -520,7 +520,7 @@ class Dictionary(object):
 
     # Удалить статью
     def delete_entry(self, key: DctKey):
-        self.count_w -= 1
+        self.count_e -= 1
         self.count_t -= self.d[key].count_t
         self.count_f -= self.d[key].count_f
         self.d.pop(key)
@@ -551,10 +551,10 @@ class Dictionary(object):
             main_entry.groups.add(group)
         main_entry.total_att += additional_entry.total_att
         main_entry.correct_att += additional_entry.correct_att
-        main_entry.ratio = 0 if (main_entry.total_att == 0) else main_entry.correct_att / main_entry.total_att
+        main_entry.accuracy_rate = 0 if (main_entry.total_att == 0) else main_entry.correct_att / main_entry.total_att
         main_entry.win_streak += additional_entry.win_streak
 
-        self.count_w -= 1
+        self.count_e -= 1
         self.count_t += main_entry.count_t
         self.count_f += main_entry.count_f
 
@@ -728,7 +728,7 @@ class Dictionary(object):
         self.d = data.get('d', {})
         self.ctg = data.get('ctg', {})
         self.groups = data.get('groups', {})
-        self.count_w = data.get('count_w', {})
+        self.count_e = data.get('count_e', {})
         self.count_t = data.get('count_t', {})
         self.count_f = data.get('count_f', {})
 
@@ -746,7 +746,7 @@ class Dictionary(object):
                 'd': self.d,
                 'ctg': self.ctg,
                 'groups': self.groups,
-                'count_w': self.count_w,
+                'count_e': self.count_e,
                 'count_t': self.count_t,
                 'count_f': self.count_f,
             }

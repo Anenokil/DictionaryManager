@@ -332,7 +332,7 @@ def get_entry_percent(entry: Entry) -> str:
     if entry.total_att == 0:  # Если ещё не было попыток
         res = '-'
     else:
-        res = '{:.0%}'.format(entry.ratio)
+        res = '{:.0%}'.format(entry.accuracy_rate)
     return res
 
 
@@ -415,7 +415,7 @@ def get_all_entry_info(entry: Entry, len_str: int, tab: int = 0) -> str:
     else:
         res += f' Статистика: 1) Верных ответов подряд: {entry.win_streak}\n'
         res += f'             2) Доля верных ответов: '
-        res += f'{entry.correct_att}/{entry.total_att} = ' + '{:.0%}'.format(entry.ratio)
+        res += f'{entry.correct_att}/{entry.total_att} = ' + '{:.0%}'.format(entry.accuracy_rate)
 
     return split_text(res, len_str, tab=tab)
 
@@ -451,20 +451,20 @@ def get_phr_tr_with_stat(entry: Entry, phr_key: str) -> str:
 
 
 # Вывести информацию о количестве статей в словаре
-def dct_info(count_w: int, count_t: int, count_f: int) -> str:
-    w = set_postfix(count_w, ('слово', 'слова', 'слов'))
-    f = set_postfix(count_w + count_f, ('словоформа', 'словоформы', 'словоформ'))
+def dct_info(count_e: int, count_t: int, count_f: int) -> str:
+    w = set_postfix(count_e, ('слово', 'слова', 'слов'))
+    f = set_postfix(count_e + count_f, ('словоформа', 'словоформы', 'словоформ'))
     t = set_postfix(count_t, ('перевод', 'перевода', 'переводов'))
-    return f'[ {count_w} {w} | {count_w + count_f} {f} | {count_t} {t} ]'
+    return f'[ {count_e} {w} | {count_e + count_f} {f} | {count_t} {t} ]'
 
 
 # Вывести информацию о количестве избранных статей в словаре
-def dct_info_fav(count_w: tuple[int, int], count_t: tuple[int, int], count_f: tuple[int, int]) -> str:
-    w = set_postfix(count_w[0], ('слово', 'слова', 'слов'))
-    f = set_postfix(count_w[0] + count_f[0], ('словоформа', 'словоформы', 'словоформ'))
+def dct_info_fav(count_e: tuple[int, int], count_t: tuple[int, int], count_f: tuple[int, int]) -> str:
+    w = set_postfix(count_e[0], ('слово', 'слова', 'слов'))
+    f = set_postfix(count_e[0] + count_f[0], ('словоформа', 'словоформы', 'словоформ'))
     t = set_postfix(count_t[0], ('перевод', 'перевода', 'переводов'))
-    return f'[ {count_w[0]}/{count_w[1]} {w} '\
-           f'| {count_w[0] + count_f[0]}/{count_w[1] + count_f[1]} {f} '\
+    return f'[ {count_e[0]}/{count_e[1]} {w} '\
+           f'| {count_e[0] + count_f[0]}/{count_e[1] + count_f[1]} {f} '\
            f'| {count_t[0]}/{count_t[1]} {t} ]'
 
 
@@ -549,14 +549,14 @@ def random_smart(dct: Dictionary, pool: set[tuple[DctKey, FormPattern | None, st
     summ = 0
     for (key, frm, phr) in pool:
         entry = dct.d[key]
-        score = (100 - round(100 * entry.ratio)) + 1
+        score = (100 - round(100 * entry.accuracy_rate)) + 1
         score += 100 // (entry.total_att + 1)
         summ += round(score)
 
     r = random.randint(1, summ)
     for (key, frm, phr) in pool:
         entry = dct.d[key]
-        score = (100 - round(100 * entry.ratio)) + 1
+        score = (100 - round(100 * entry.accuracy_rate)) + 1
         score += 100 // (entry.total_att + 1)
         r -= round(score)
         if r <= 0:
@@ -4426,7 +4426,7 @@ class LearnW(tk.Toplevel):
 
     # Получить глобальный процент угадываний
     def get_percent(self):
-        num, den = _0_global_dct.count_rating()
+        num, den = _0_global_dct.score()
         if den == 0:
             percent = 0
         else:
@@ -5306,9 +5306,9 @@ class PrintW(tk.Toplevel):
         if group == ALL_GROUPS:
             if self.var_print_fav.get():
                 w, t, f = _0_global_dct.count_fav_entries()
-                info = dct_info_fav((w, _0_global_dct.count_w), (t, _0_global_dct.count_t), (f, _0_global_dct.count_f))
+                info = dct_info_fav((w, _0_global_dct.count_e), (t, _0_global_dct.count_t), (f, _0_global_dct.count_f))
             else:
-                info = dct_info(_0_global_dct.count_w, _0_global_dct.count_t, _0_global_dct.count_f)
+                info = dct_info(_0_global_dct.count_e, _0_global_dct.count_t, _0_global_dct.count_f)
         else:
             if self.var_print_fav.get():
                 w1, t1, f1 = _0_global_dct.count_fav_entries(group)
@@ -5380,19 +5380,19 @@ class PrintW(tk.Toplevel):
             self.print_keys.reverse()
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[2]:
             """
-            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].ratio, _0_global_dct.d[k].win_streak))
+            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].accuracy_rate, _0_global_dct.d[k].win_streak))
             """
-            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].ratio,
+            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].accuracy_rate,
                                                 _0_global_dct.d[k].win_streak /
                                                 (1 + len(_0_global_dct.d[k].forms.keys()) +
                                                  len(_0_global_dct.d[k].phrases.keys())),
                                                 _0_global_dct.d[k].lemma.lower(), _0_global_dct.d[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[3]:
             """
-            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].ratio, _0_global_dct.d[k].win_streak),
+            self.print_keys.sort(key=lambda k: (_0_global_dct.d[k].accuracy_rate, _0_global_dct.d[k].win_streak),
                                      reverse=True)
             """
-            self.print_keys.sort(key=lambda k: (-_0_global_dct.d[k].ratio,
+            self.print_keys.sort(key=lambda k: (-_0_global_dct.d[k].accuracy_rate,
                                                 -_0_global_dct.d[k].win_streak /
                                                 (1 + len(_0_global_dct.d[k].forms.keys()) +
                                                  len(_0_global_dct.d[k].phrases.keys())),
