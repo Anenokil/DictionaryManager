@@ -120,7 +120,7 @@ class Entry(object):
             new_tr: The translation to add.
         """
         if new_tr not in self.tr:
-            self.tr += [new_tr]
+            self.tr.append(new_tr)
             self.count_t += 1
 
     def delete_tr(self, tr: Translation):
@@ -244,11 +244,8 @@ class Entry(object):
             pos: The position (index) of the category in form pattern.
             ctg_val: The category value to be removed.
         """
-        to_delete = []
-        for key in self.forms.keys():
-            if key[pos] == ctg_val:
-                to_delete += [key]
-                self.count_f -= 1
+        to_delete = [key for key in self.forms.keys() if key[pos] == ctg_val]
+        self.count_f -= len(to_delete)
         for key in to_delete:
             self.forms.pop(key)
 
@@ -261,10 +258,7 @@ class Entry(object):
             old_ctg_val: The current category value to be replaced.
             new_ctg_val: The new category value that will replace the old one.
         """
-        to_rename = []
-        for key in self.forms.keys():
-            if key[pos] == old_ctg_val:
-                to_rename += [key]
+        to_rename = [key for key in self.forms.keys() if key[pos] == old_ctg_val]
         for key in to_rename:
             lst = list(key)
             lst[pos] = new_ctg_val
@@ -278,8 +272,7 @@ class Entry(object):
         """
         keys = list(self.forms.keys())
         for key in keys:
-            new_key = list(key)
-            new_key += ['']
+            new_key = list(key) + ['']
             new_key = tuple(new_key)
             self.forms[new_key] = self.forms[key]
             self.forms.pop(key)
@@ -324,7 +317,7 @@ class Entry(object):
         self.total_att += 1
         self.correct_att += 1
         self.ratio = self.correct_att / self.total_att
-        if self.win_streak < 0:
+        if self.win_streak <= 0:
             self.win_streak = 1
         else:
             self.win_streak += 1
