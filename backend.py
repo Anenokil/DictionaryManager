@@ -236,8 +236,14 @@ class Entry(object):
         """
         self.fav = False
 
-    # Удалить данное значение категории у всех словоформ
     def delete_ctg_value(self, pos: int, ctg_val: str):
+        """
+        Deletes the specified category value from all word forms.
+
+        Args:
+            pos: The position (index) of the category in form pattern.
+            ctg_val: The category value to be removed.
+        """
         to_delete = []
         for key in self.forms.keys():
             if key[pos] == ctg_val:
@@ -246,8 +252,15 @@ class Entry(object):
         for key in to_delete:
             self.forms.pop(key)
 
-    # Переименовать данное значение категории у всех словоформ
     def rename_ctg_value(self, pos: int, old_ctg_val: str, new_ctg_val: str):
+        """
+        Renames the specified category value in all word forms.
+
+        Args:
+            pos: The position (index) of the category in form pattern.
+            old_ctg_val: The current category value to be replaced.
+            new_ctg_val: The new category value that will replace the old one.
+        """
         to_rename = []
         for key in self.forms.keys():
             if key[pos] == old_ctg_val:
@@ -259,8 +272,10 @@ class Entry(object):
             self.forms[lst] = self.forms[key]
             self.forms.pop(key)
 
-    # Добавить новую категорию ко всем словоформам
     def add_ctg(self):
+        """
+        Adds a new empty category to all word forms.
+        """
         keys = list(self.forms.keys())
         for key in keys:
             new_key = list(key)
@@ -269,8 +284,16 @@ class Entry(object):
             self.forms[new_key] = self.forms[key]
             self.forms.pop(key)
 
-    # Удалить данную категорию у всех словоформ
     def delete_ctg(self, pos: int):
+        """
+        Deletes the category at the specified position from all word forms.
+
+        Removes the entire category (including all its values) at position `pos`
+        from all word forms in the entry.
+
+        Args:
+            pos: The position (index) of the category to be deleted in form pattern.
+        """
         to_delete = []
         to_edit = []
         for key in self.forms.keys():
@@ -288,8 +311,16 @@ class Entry(object):
         for key in to_delete:
             self.forms.pop(key)
 
-    # Обновить статистику, если совершена верная попытка
     def correct(self, session_number: tuple[int, int, int]):
+        """
+        Updates learning statistics when a correct attempt is made.
+
+        Increments both total attempts and correct attempts counters, recalculates the
+        correct ratio, updates the win streak, and sets the latest attempt timestamp.
+
+        Args:
+            session_number: A tuple representing the session identifier.
+        """
         self.total_att += 1
         self.correct_att += 1
         self.ratio = self.correct_att / self.total_att
@@ -299,8 +330,16 @@ class Entry(object):
             self.win_streak += 1
         self.latest_att_timestamp = session_number
 
-    # Обновить статистику, если совершена неверная попытка
     def incorrect(self, session_number: tuple[int, int, int]):
+        """
+        Updates learning statistics when an incorrect attempt is made.
+
+        Increments the total attempts counter, recalculates the correct ratio,
+        resets the win streak to 0, and sets the latest attempt timestamp.
+
+        Args:
+            session_number: A tuple representing the session identifier.
+        """
         self.total_att += 1
         self.ratio = self.correct_att / self.total_att
         if self.win_streak > 0:
@@ -309,8 +348,17 @@ class Entry(object):
             self.win_streak -= 1
         self.latest_att_timestamp = session_number
 
-    # Распечатать статью в файл
     def print_out(self, file: TextIO):
+        """
+        Prints the dictionary entry to the specified file.
+
+        Outputs a formatted representation of the entire dictionary entry including
+        lemma, translations, inflected forms, phrases, notes, and learning statistics
+        to the given file handle.
+
+        Args:
+            file: A text file object opened for writing where the entry will be printed.
+        """
         if self.fav:
             file.write('* (Избр.)\n')
         file.write(f'| {self.lemma} - {self.tr[0]}')
@@ -328,6 +376,7 @@ class Entry(object):
             file.write(f'| > {note}\n')
 
 
+# Typing
 DctKey = tuple[Word, int]
 DctData = dict[DctKey, Entry]
 AllFeatures = dict[Category, list[CtgValue]]
