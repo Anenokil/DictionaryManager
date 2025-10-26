@@ -23,6 +23,7 @@ Note = Text
 Notes = list[Note]
 Group = str
 Groups = set[Group]
+Timestamp = tuple[int, int, int]
 
 
 class Entry(object):
@@ -66,7 +67,7 @@ class Entry(object):
                  total_att: int = 0,
                  correct_att: int = 0,
                  win_streak: int = 0,
-                 latest_att_timestamp: tuple[int, int, int] = (0, 0, 0)):
+                 latest_att_timestamp: Timestamp = (0, 0, 0)):
         """
         Initialize a dictionary entry.
 
@@ -236,7 +237,7 @@ class Entry(object):
         """
         self.fav = False
 
-    def delete_ctg_value(self, pos: int, ctg_val: str):
+    def delete_ctg_value(self, pos: int, ctg_val: CtgValue):
         """
         Deletes the specified category value from all word forms.
 
@@ -249,7 +250,7 @@ class Entry(object):
         for key in to_delete:
             self.forms.pop(key)
 
-    def rename_ctg_value(self, pos: int, old_ctg_val: str, new_ctg_val: str):
+    def rename_ctg_value(self, pos: int, old_ctg_val: CtgValue, new_ctg_val: CtgValue):
         """
         Renames the specified category value in all word forms.
 
@@ -304,7 +305,7 @@ class Entry(object):
         for key in to_delete:
             self.forms.pop(key)
 
-    def correct(self, session_number: tuple[int, int, int]):
+    def correct(self, session_number: Timestamp):
         """
         Updates learning statistics when a correct attempt is made.
 
@@ -323,7 +324,7 @@ class Entry(object):
             self.win_streak += 1
         self.latest_att_timestamp = session_number
 
-    def incorrect(self, session_number: tuple[int, int, int]):
+    def incorrect(self, session_number: Timestamp):
         """
         Updates learning statistics when an incorrect attempt is made.
 
@@ -453,7 +454,7 @@ class Dictionary(object):
                   total_att: int = 0,
                   correct_att: int = 0,
                   win_streak: int = 0,
-                  latest_att_timestamp: tuple[int, int, int] = (0, 0, 0)) -> DctKey:
+                  latest_att_timestamp: Timestamp = (0, 0, 0)) -> DctKey:
         i = 0
         while True:
             key = wrd_to_key(lemma, i)
