@@ -469,9 +469,9 @@ class Dictionary(object):
             - Total number of correct attempts (wins) across all entries;
             - Total number of all learning attempts across all entries.
         """
-        sum_num = sum(entry.correct_att for entry in self.d.values())
-        sum_den = sum(entry.total_att for entry in self.d.values())
-        return sum_num, sum_den
+        correct = sum(entry.correct_att for entry in self.d.values())
+        total = sum(entry.total_att for entry in self.d.values())
+        return correct, total
 
     def add_entry(self,
                   lemma: Word,
@@ -505,16 +505,15 @@ class Dictionary(object):
             The dictionary key under which the entry was stored.
         """
         i = 0
-        while True:
-            key = wrd_to_key(lemma, i)
-            if key not in self.d.keys():
-                self.d[key] = Entry(lemma, tr, forms, phrases, notes, groups, fav, total_att,
-                                    correct_att, win_streak, latest_att_timestamp)
-                self.count_e += 1
-                self.count_t += self.d[key].count_t
-                self.count_f += self.d[key].count_f
-                return key
+        while (key := wrd_to_key(lemma, i)) in self.d.keys():
             i += 1
+
+        self.d[key] = Entry(lemma, tr, forms, phrases, notes, groups, fav, total_att,
+                            correct_att, win_streak, latest_att_timestamp)
+        self.count_e += 1
+        self.count_t += self.d[key].count_t
+        self.count_f += self.d[key].count_f
+        return key
 
     # Удалить статью
     def delete_entry(self, key: DctKey):

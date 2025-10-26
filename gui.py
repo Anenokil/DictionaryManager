@@ -3431,8 +3431,11 @@ class CategoryValuesSettingsW(tk.Toplevel):
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
             self.frames[i].bind('<Control-KeyPress>',
-                                lambda key, i=i: bind_keypress(key, [('R', lambda: self.rename(self.values[i])),
-                                                                     ('D', lambda: self.delete(self.values[i]))]))
+                                lambda key, i=i: bind_keypress(
+                                    key,
+                                    [('R', lambda: self.rename(self.values[i])),
+                                     ('D', lambda: self.delete(self.values[i]))]
+                                ))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -4426,13 +4429,9 @@ class LearnW(tk.Toplevel):
 
     # Получить глобальный процент угадываний
     def get_percent(self):
-        num, den = _0_global_dct.score()
-        if den == 0:
-            percent = 0
-        else:
-            percent = num / den * 100
-        percent = format(percent, '.1f')
-        return f'{num} / {den} = {percent}%'
+        correct, total = _0_global_dct.score()
+        percent = (100 * correct / total) if total else 0
+        return f'{correct} / {total} = {percent:.1f}%'
 
     # Формируем пул слов, которые будут использоваться при учёбе
     def create_pool(self):

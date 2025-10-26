@@ -84,15 +84,17 @@ ICON_PATH = os.path.join(RESOURCES_PATH, ICON_FN)
 STYLES_FN = 'styles.txt'  # Файл стилей темы
 
 # Изображения
-IMG_NAMES = ['about_typo', 'about',
-             'ok', 'cancel',
-             'fav', 'unfav', 'add_to_group', 'remove_from_group',
-             'edit', 'add', 'delete',
-             'select_page', 'unselect_page', 'select_all', 'unselect_all',
-             'print_out',
-             'redo', 'undo',
-             'arrow_left', 'arrow_right', 'double_arrow_left', 'double_arrow_right',
-             'trashcan']
+IMG_NAMES = [
+    'about_typo', 'about',
+    'ok', 'cancel',
+    'fav', 'unfav', 'add_to_group', 'remove_from_group',
+    'edit', 'add', 'delete',
+    'select_page', 'unselect_page', 'select_all', 'unselect_all',
+    'print_out',
+    'redo', 'undo',
+    'arrow_left', 'arrow_right', 'double_arrow_left', 'double_arrow_right',
+    'trashcan',
+]
 ICON_NAMES = IMG_NAMES[1:]
 
 img_about_typo = os.path.join(IMAGES_PATH, 'about_typo.png')
@@ -176,5 +178,6 @@ DEFAULT_LOCAL_AUTO_SETTINGS_FILE = f'v{LOCAL_AUTO_SETTINGS_VERSION}\n' \
 # Показать все группы
 ALL_GROUPS = 'Все'
 # Открывающие символы специальных комбинаций
-SPECIAL_COMBINATIONS_OPENING_SYMBOLS = ('^', '~', '`', '\'', '"', '*', '_', ':',
-                                        '/', '\\', '|', '#', '$', '%', '&', '@', '§')
+SPECIAL_COMBINATIONS_OPENING_SYMBOLS = (
+    '^', '~', '`', '\'', '"', '*', '_', ':', '/', '\\', '|', '#', '$', '%', '&', '@', '§',
+)
