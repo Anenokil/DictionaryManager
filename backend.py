@@ -462,14 +462,12 @@ class Dictionary(object):
 
     def score(self) -> tuple[int, int]:
         """
-        Calculate the average accuracy rate across all dictionary entries.
-
-        Computes the overall accuracy rate by aggregating the correct attempts
-        and total attempts from all entries that have learning statistics.
+        Get the global count of correct attempts and total attempts across all entries.
 
         Returns:
-            The average accuracy rate as a float between 0.0 and 1.0.
-            Returns None if no entries have learning attempts.
+            A tuple containing two integers:
+            - Total number of correct attempts (wins) across all entries;
+            - Total number of all learning attempts across all entries.
         """
         sum_num = sum(entry.correct_att for entry in self.d.values())
         sum_den = sum(entry.total_att for entry in self.d.values())
