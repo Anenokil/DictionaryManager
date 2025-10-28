@@ -544,8 +544,9 @@ def find_and_highlight(target_wrd: str, search_wrd: str) -> str:
 
 
 # Выбрать случайное слово с учётом сложности
-def random_smart(dct: Dictionary, pool: set[tuple[DctKey, FormPattern | None, str | None]]
-                 ) -> tuple[DctKey, FormPattern | None, str | None]:
+def random_smart(
+        dct: Dictionary, pool: set[tuple[DctKey, FormPattern | None, str | None]]
+) -> tuple[DctKey, FormPattern | None, str | None] | None:
     summ = 0
     for (key, frm, phr) in pool:
         entry = dct.d[key]
@@ -564,7 +565,7 @@ def random_smart(dct: Dictionary, pool: set[tuple[DctKey, FormPattern | None, st
 
 
 # Разделить строку на слова
-def split_line(line: str) -> list[str, str]:
+def split_line(line: str) -> list[list[str]]:
     len_line = len(line)
     res = []
 
