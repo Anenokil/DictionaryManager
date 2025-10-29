@@ -893,25 +893,3 @@ def frm_key_to_str_for_print(input_tuple: FormPattern | list[CtgValue]) -> str:
             else:  # Перед последующими элементами ставится запятая
                 res += f', {input_tuple[i]}'
     return res
-
-
-# Преобразовать кортеж в строку (для сохранения значений категории в файл локальных настроек)
-def frm_key_to_str_for_save(input_tuple: FormPattern | list[CtgValue], separator: str = '\n') -> str:
-    if not input_tuple:  # input_tuple == () или input_tuple == ('')
-        return ''
-    res = input_tuple[0]
-    for i in range(1, len(input_tuple)):
-        res += f'{separator}{input_tuple[i]}'
-    return res
-
-
-# TODO : remove
-# Перевести слово в ключ для словаря
-#def wrd_to_key(lemma: Word, num: int) -> DctKey:
-#    return lemma, num
-
-
-# TODO : remove
-# Перевести ключ для словаря в слово
-#def key_to_wrd(key: DctKey) -> str:
-#    return key[0]
