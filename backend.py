@@ -882,5 +882,5 @@ class Dictionary(object):
 
 
 # Преобразовать шаблон словоформы в читаемый вид (для вывода на экран)
-def frm_key_to_str_for_print(input_tuple: FormPattern | list[CtgValue]) -> str:
+def frm_key_to_str_for_print(input_tuple: FormPattern) -> str:
     return ', '.join(token for token in input_tuple if token)
