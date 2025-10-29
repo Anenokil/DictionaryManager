@@ -373,6 +373,8 @@ class Entry(object):
 # Typing
 EntryID = int
 DctData = dict[EntryID, Entry]
+Index = dict[str, set[EntryID]]
+Indexes = dict[str, Index]
 AllFeatures = dict[Category, list[CtgValue]]
 AllGroups = list[Group]
 
@@ -399,6 +401,12 @@ class Dictionary(object):
         Initialize a dictionary.
         """
         self.d: DctData = dict()
+        self.indexes: Indexes = {
+            'lemmas': {},
+            'translations': {},
+            'forms': {},
+            'groups': {},
+        }
         self.counters = {
             'lemmas': 0,
             'translations': 0,
@@ -410,6 +418,24 @@ class Dictionary(object):
         self.groups: AllGroups = []
         self.saving_version = 1
         self._max_entry_id = 0
+
+    def _update_index(self, index_name: str, keys: Iterable[str], entry_id: EntryID, action: str):
+        assert index_name in self.indexes.keys()
+        assert action in ('add', 'remove')
+
+        index = self.indexes[index_name]
+
+        if action == 'add':
+            for key in keys:
+                if key in index:
+                    index[key].add(entry_id)
+                else:
+                    index[key] = {entry_id}
+        else:
+            for key in keys:
+                index[key].remove(entry_id)
+                if not index[key]:
+                    index.pop(key)
 
     def count_entries_in_group(self, group: Group) -> tuple[int, int, int]:
         """
@@ -427,11 +453,11 @@ class Dictionary(object):
         count_e = 0
         count_t = 0
         count_f = 0
-        for entry in self.d.values():
-            if group in entry.groups:
-                count_e += 1
-                count_t += entry.count_t
-                count_f += entry.count_f
+        for entry_id in self.indexes['groups'][group]:
+            entry = self.d[entry_id]
+            count_e += 1
+            count_t += entry.count_t
+            count_f += entry.count_f
         return count_e, count_t, count_f
 
     def count_fav_entries(self, group: Group | None = None) -> tuple[int, int, int]:
@@ -452,8 +478,9 @@ class Dictionary(object):
         count_t = 0
         count_f = 0
         if group:
-            for entry in self.d.values():
-                if entry.fav and group in entry.groups:
+            for entry_id in self.indexes['groups'][group]:
+                entry = self.d[entry_id]
+                if entry.fav:
                     count_e += 1
                     count_t += entry.count_t
                     count_f += entry.count_f
@@ -528,6 +555,11 @@ class Dictionary(object):
                                  correct_att, win_streak, latest_att_timestamp)
         entry = self.d[entry_id]
 
+        self._update_index('lemmas', [lemma], entry_id, 'add')
+        self._update_index('translations', tr, entry_id, 'add')
+        self._update_index('forms', forms.values(), entry_id, 'add')
+        self._update_index('groups', groups, entry_id, 'add')
+
         self.counters['lemmas'] += 1
         self.counters['translations'] += entry.count_t
         self.counters['forms']        += entry.count_f
@@ -546,12 +578,22 @@ class Dictionary(object):
         self.counters['phrases']      -= entry.count_p
         self.counters['notes']        -= entry.count_n
 
+        self._update_index('lemmas', [entry.lemma], entry_id, 'remove')
+        self._update_index('translations', entry.tr, entry_id, 'remove')
+        self._update_index('forms', entry.forms.values(), entry_id, 'remove')
+        self._update_index('groups', entry.groups, entry_id, 'remove')
+
         del self.d[entry_id]
 
     # Объединить две статьи с одинаковым словом в одну
     def merge_entries(self, entry_id_1: EntryID, entry_id_2: EntryID):
         main_entry = self.d[entry_id_1]
         additional_entry = self.d[entry_id_2]
+
+        self._update_index('lemmas', [additional_entry.lemma], entry_id_1, 'add')
+        self._update_index('translations', additional_entry.tr, entry_id_1, 'add')
+        self._update_index('forms', additional_entry.forms.values(), entry_id_1, 'add')
+        self._update_index('groups', additional_entry.groups, entry_id_1, 'add')
 
         self.counters['translations'] -= main_entry.count_t
         self.counters['forms']        -= main_entry.count_f
@@ -587,6 +629,7 @@ class Dictionary(object):
     # Добавить перевод к статье
     def add_tr(self, entry_id: EntryID, tr: Translation):
         entry = self.d[entry_id]
+        self._update_index('translations', tr, entry_id, 'add')
         self.counters['translations'] -= entry.count_t
         entry.add_tr(tr)
         self.counters['translations'] += entry.count_t
@@ -594,6 +637,7 @@ class Dictionary(object):
     # Удалить перевод из статьи
     def delete_tr(self, entry_id: EntryID, tr: Translation):
         entry = self.d[entry_id]
+        self._update_index('translations', tr, entry_id, 'remove')
         self.counters['translations'] -= entry.count_t
         entry.delete_tr(tr)
         self.counters['translations'] += entry.count_t
@@ -601,6 +645,7 @@ class Dictionary(object):
     # Добавить словоформу к статье
     def add_frm(self, entry_id: EntryID, pattern: FormPattern, frm: Form):
         entry = self.d[entry_id]
+        self._update_index('forms', [frm], entry_id, 'add')
         self.counters['forms'] -= entry.count_f
         entry.add_frm(pattern, frm)
         self.counters['forms'] += entry.count_f
@@ -608,9 +653,13 @@ class Dictionary(object):
     # Удалить словоформу из статьи
     def delete_frm(self, entry_id: EntryID, pattern: FormPattern):
         entry = self.d[entry_id]
+        for frm in entry.forms.values():
+            self._update_index('forms', frm, entry_id, 'remove')  # Могут быть омоформы
         self.counters['forms'] -= entry.count_f
         entry.delete_frm(pattern)
         self.counters['forms'] += entry.count_f
+        for frm in entry.forms.values():
+            self._update_index('forms', frm, entry_id, 'add')
 
     # Добавить фразу к статье
     def add_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
@@ -643,12 +692,14 @@ class Dictionary(object):
     # Добавить выбранные статьи в группу
     def add_entries_to_group(self, group: Group, entry_ids: Iterable[EntryID]):
         for entry_id in entry_ids:
+            self._update_index('groups', [group], entry_id, 'add')
             self.d[entry_id].add_to_group(group)
 
     # Убрать выбранные статьи из группы
     def remove_entries_from_group(self, group: Group, entry_ids: Iterable[EntryID]):
         for entry_id in entry_ids:
             if group in self.d[entry_id].groups:
+                self._update_index('groups', [group], entry_id, 'remove')
                 self.d[entry_id].remove_from_group(group)
 
     # Добавить выбранные статьи в избранное
@@ -675,10 +726,14 @@ class Dictionary(object):
         assert ctg_name in self.features.keys()
 
         index = tuple(self.features.keys()).index(ctg_name)
-        for entry in self.d.values():
+        for entry_id, entry in self.d.items():
+            for frm in entry.forms.values():
+                self._update_index('forms', frm, entry_id, 'remove')
             self.counters['forms'] -= entry.count_f
             entry.delete_ctg(index)
             self.counters['forms'] += entry.count_f
+            for frm in entry.forms.values():
+                self._update_index('forms', frm, entry_id, 'add')
 
         self.features.pop(ctg_name)
 
@@ -703,10 +758,14 @@ class Dictionary(object):
         assert ctg_value in self.features[ctg_name]
 
         index = tuple(self.features.keys()).index(ctg_name)
-        for entry in self.d.values():
+        for entry_id, entry in self.d.items():
+            for frm in entry.forms.values():
+                self._update_index('forms', frm, entry_id, 'remove')
             self.counters['forms'] -= entry.count_f
             entry.delete_ctg_value(index, ctg_value)
             self.counters['forms'] += entry.count_f
+            for frm in entry.forms.values():
+                self._update_index('forms', frm, entry_id, 'add')
 
         self.features[ctg_name].remove(ctg_value)
         if len(self.features[ctg_name]) == 0:  # Если у категории не осталось значений, то она удаляется
@@ -735,9 +794,10 @@ class Dictionary(object):
     def delete_group(self, group: Group):
         assert group in self.groups
 
-        for entry in self.d.values():
-            if group in entry.groups:
-                entry.remove_from_group(group)
+        for entry_id in self.indexes['groups'][group]:
+            entry = self.d[entry_id]
+            self._update_index('groups', [group], entry_id, 'remove')
+            entry.remove_from_group(group)
         self.groups.remove(group)
 
     # Переименовать группу
@@ -746,11 +806,14 @@ class Dictionary(object):
         assert group_new not in self.groups
 
         self.groups += [group_new]
-        for entry in self.d.values():
-            if group_old in entry.groups:
-                entry.remove_from_group(group_old)
-                entry.add_to_group(group_new)
+        for entry_id in self.indexes['groups'][group_old]:
+            entry = self.d[entry_id]
+            entry.remove_from_group(group_old)
+            entry.add_to_group(group_new)
         self.groups.remove(group_old)
+
+        self.indexes['groups'][group_new] = self.indexes['groups'][group_old]
+        del self.indexes['groups'][group_old]
 
     def read(self, filepath: str):
         """
@@ -766,6 +829,7 @@ class Dictionary(object):
         data = save_data.get('data', {})
 
         self.d = data.get('d', {})
+        self.indexes = data.get('indexes', {})
         self.features = data.get('features', {})
         self.groups = data.get('groups', {})
         self.counters = data.get('counters', {})
@@ -783,6 +847,7 @@ class Dictionary(object):
             'version': self.saving_version,
             'data': {
                 'd': self.d,
+                'indexes': self.indexes,
                 'features': self.features,
                 'groups': self.groups,
                 'counters': self.counters,
