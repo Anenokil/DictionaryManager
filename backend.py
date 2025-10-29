@@ -526,22 +526,25 @@ class Dictionary(object):
 
         self.d[entry_id] = Entry(lemma, tr, forms, phrases, notes, groups, fav, total_att,
                                  correct_att, win_streak, latest_att_timestamp)
+        entry = self.d[entry_id]
 
         self.counters['lemmas'] += 1
-        self.counters['translations'] += self.d[entry_id].count_t
-        self.counters['forms']        += self.d[entry_id].count_f
-        self.counters['phrases']      += self.d[entry_id].count_p
-        self.counters['notes']        += self.d[entry_id].count_n
+        self.counters['translations'] += entry.count_t
+        self.counters['forms']        += entry.count_f
+        self.counters['phrases']      += entry.count_p
+        self.counters['notes']        += entry.count_n
 
         return entry_id
 
     # Удалить статью
     def delete_entry(self, entry_id: EntryID):
+        entry = self.d[entry_id]
+
         self.counters['lemmas'] -= 1
-        self.counters['translations'] -= self.d[entry_id].count_t
-        self.counters['forms']        -= self.d[entry_id].count_f
-        self.counters['phrases']      -= self.d[entry_id].count_p
-        self.counters['notes']        -= self.d[entry_id].count_n
+        self.counters['translations'] -= entry.count_t
+        self.counters['forms']        -= entry.count_f
+        self.counters['phrases']      -= entry.count_p
+        self.counters['notes']        -= entry.count_n
 
         del self.d[entry_id]
 
@@ -550,11 +553,10 @@ class Dictionary(object):
         main_entry = self.d[entry_id_1]
         additional_entry = self.d[entry_id_2]
 
-        for entry_id in (entry_id_1, entry_id_2):
-            self.counters['translations'] -= self.d[entry_id].count_t
-            self.counters['forms']        -= self.d[entry_id].count_f
-            self.counters['phrases']      -= self.d[entry_id].count_p
-            self.counters['notes']        -= self.d[entry_id].count_n
+        self.counters['translations'] -= main_entry.count_t
+        self.counters['forms']        -= main_entry.count_f
+        self.counters['phrases']      -= main_entry.count_p
+        self.counters['notes']        -= main_entry.count_n
 
         for tr in additional_entry.tr:
             main_entry.add_tr(tr)
@@ -580,57 +582,63 @@ class Dictionary(object):
         self.counters['phrases']      += main_entry.count_p
         self.counters['notes']        += main_entry.count_n
 
-        self.counters['lemmas'] -= 1
-
-        del self.d[entry_id_2]
+        self.delete_entry(entry_id_2)
 
     # Добавить перевод к статье
     def add_tr(self, entry_id: EntryID, tr: Translation):
-        self.counters['translations'] -= self.d[entry_id].count_t
-        self.d[entry_id].add_tr(tr)
-        self.counters['translations'] += self.d[entry_id].count_t
+        entry = self.d[entry_id]
+        self.counters['translations'] -= entry.count_t
+        entry.add_tr(tr)
+        self.counters['translations'] += entry.count_t
 
     # Удалить перевод из статьи
     def delete_tr(self, entry_id: EntryID, tr: Translation):
-        self.counters['translations'] -= self.d[entry_id].count_t
-        self.d[entry_id].delete_tr(tr)
-        self.counters['translations'] += self.d[entry_id].count_t
+        entry = self.d[entry_id]
+        self.counters['translations'] -= entry.count_t
+        entry.delete_tr(tr)
+        self.counters['translations'] += entry.count_t
 
     # Добавить словоформу к статье
     def add_frm(self, entry_id: EntryID, pattern: FormPattern, frm: Form):
-        self.counters['forms'] -= self.d[entry_id].count_f
-        self.d[entry_id].add_frm(pattern, frm)
-        self.counters['forms'] += self.d[entry_id].count_f
+        entry = self.d[entry_id]
+        self.counters['forms'] -= entry.count_f
+        entry.add_frm(pattern, frm)
+        self.counters['forms'] += entry.count_f
 
     # Удалить словоформу из статьи
     def delete_frm(self, entry_id: EntryID, pattern: FormPattern):
-        self.counters['forms'] -= self.d[entry_id].count_f
-        self.d[entry_id].delete_frm(pattern)
-        self.counters['forms'] += self.d[entry_id].count_f
+        entry = self.d[entry_id]
+        self.counters['forms'] -= entry.count_f
+        entry.delete_frm(pattern)
+        self.counters['forms'] += entry.count_f
 
     # Добавить фразу к статье
     def add_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
-        self.counters['phrases'] -= self.d[entry_id].count_p
-        self.d[entry_id].add_phrase(phr, phr_tr)
-        self.counters['phrases'] += self.d[entry_id].count_p
+        entry = self.d[entry_id]
+        self.counters['phrases'] -= entry.count_p
+        entry.add_phrase(phr, phr_tr)
+        self.counters['phrases'] += entry.count_p
 
     # Удалить фразу из статьи
     def delete_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
-        self.counters['phrases'] -= self.d[entry_id].count_p
-        self.d[entry_id].delete_phrase(phr, phr_tr)
-        self.counters['phrases'] += self.d[entry_id].count_p
+        entry = self.d[entry_id]
+        self.counters['phrases'] -= entry.count_p
+        entry.delete_phrase(phr, phr_tr)
+        self.counters['phrases'] += entry.count_p
 
     # Добавить сноску к статье
     def add_note(self, entry_id: EntryID, note: Note):
-        self.counters['notes'] -= self.d[entry_id].count_n
-        self.d[entry_id].add_note(note)
-        self.counters['notes'] += self.d[entry_id].count_n
+        entry = self.d[entry_id]
+        self.counters['notes'] -= entry.count_n
+        entry.add_note(note)
+        self.counters['notes'] += entry.count_n
 
     # Удалить сноску из статьи
     def delete_note(self, entry_id: EntryID, note: Note):
-        self.counters['notes'] -= self.d[entry_id].count_n
-        self.d[entry_id].delete_note(note)
-        self.counters['notes'] += self.d[entry_id].count_n
+        entry = self.d[entry_id]
+        self.counters['notes'] -= entry.count_n
+        entry.delete_note(note)
+        self.counters['notes'] += entry.count_n
 
     # Добавить выбранные статьи в группу
     def add_entries_to_group(self, group: Group, entry_ids: Iterable[EntryID]):
