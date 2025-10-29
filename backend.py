@@ -399,9 +399,13 @@ class Dictionary(object):
         Initialize a dictionary.
         """
         self.d: DctData = dict()
-        self.count_e = 0
-        self.count_t = 0
-        self.count_f = 0
+        self.counters = {
+            'lemmas': 0,
+            'translations': 0,
+            'forms': 0,
+            'phrases': 0,
+            'notes': 0,
+        }
         self.ctg: AllFeatures = dict()
         self.groups: AllGroups = []
         self.saving_version = 1
@@ -522,16 +526,23 @@ class Dictionary(object):
 
         self.d[entry_id] = Entry(lemma, tr, forms, phrases, notes, groups, fav, total_att,
                                  correct_att, win_streak, latest_att_timestamp)
-        self.count_e += 1
-        self.count_t += self.d[entry_id].count_t
-        self.count_f += self.d[entry_id].count_f
+
+        self.counters['lemmas'] += 1
+        self.counters['translations'] += self.d[entry_id].count_t
+        self.counters['forms']        += self.d[entry_id].count_f
+        self.counters['phrases']      += self.d[entry_id].count_p
+        self.counters['notes']        += self.d[entry_id].count_n
+
         return entry_id
 
     # Удалить статью
     def delete_entry(self, entry_id: EntryID):
-        self.count_e -= 1
-        self.count_t -= self.d[entry_id].count_t
-        self.count_f -= self.d[entry_id].count_f
+        self.counters['lemmas'] -= 1
+        self.counters['translations'] -= self.d[entry_id].count_t
+        self.counters['forms']        -= self.d[entry_id].count_f
+        self.counters['phrases']      -= self.d[entry_id].count_p
+        self.counters['notes']        -= self.d[entry_id].count_n
+
         del self.d[entry_id]
 
     # Объединить две статьи с одинаковым словом в одну
@@ -539,10 +550,11 @@ class Dictionary(object):
         main_entry = self.d[entry_id_1]
         additional_entry = self.d[entry_id_2]
 
-        self.count_t -= additional_entry.count_t
-        self.count_t -= main_entry.count_t
-        self.count_f -= additional_entry.count_f
-        self.count_f -= main_entry.count_f
+        for entry_id in (entry_id_1, entry_id_2):
+            self.counters['translations'] -= self.d[entry_id].count_t
+            self.counters['forms']        -= self.d[entry_id].count_f
+            self.counters['phrases']      -= self.d[entry_id].count_p
+            self.counters['notes']        -= self.d[entry_id].count_n
 
         for tr in additional_entry.tr:
             main_entry.add_tr(tr)
@@ -563,51 +575,62 @@ class Dictionary(object):
         main_entry.accuracy_rate = 0 if (main_entry.total_att == 0) else main_entry.correct_att / main_entry.total_att
         main_entry.win_streak += additional_entry.win_streak
 
-        self.count_e -= 1
-        self.count_t += main_entry.count_t
-        self.count_f += main_entry.count_f
+        for entry_id in (entry_id_1, entry_id_2):
+            self.counters['translations'] += self.d[entry_id].count_t
+            self.counters['forms']        += self.d[entry_id].count_f
+            self.counters['phrases']      += self.d[entry_id].count_p
+            self.counters['notes']        += self.d[entry_id].count_n
+        self.counters['lemmas'] -= 1
 
         del self.d[entry_id_2]
 
     # Добавить перевод к статье
     def add_tr(self, entry_id: EntryID, tr: Translation):
-        self.count_t -= self.d[entry_id].count_t
+        self.counters['translations'] -= self.d[entry_id].count_t
         self.d[entry_id].add_tr(tr)
-        self.count_t += self.d[entry_id].count_t
+        self.counters['translations'] += self.d[entry_id].count_t
 
     # Удалить перевод из статьи
     def delete_tr(self, entry_id: EntryID, tr: Translation):
-        self.count_t -= self.d[entry_id].count_t
+        self.counters['translations'] -= self.d[entry_id].count_t
         self.d[entry_id].delete_tr(tr)
-        self.count_t += self.d[entry_id].count_t
+        self.counters['translations'] += self.d[entry_id].count_t
 
     # Добавить словоформу к статье
     def add_frm(self, entry_id: EntryID, frm_key: FormPattern, frm: Form):
-        self.count_f -= self.d[entry_id].count_f
+        self.counters['forms'] -= self.d[entry_id].count_f
         self.d[entry_id].add_frm(frm_key, frm)
-        self.count_f += self.d[entry_id].count_f
+        self.counters['forms'] += self.d[entry_id].count_f
 
     # Удалить словоформу из статьи
     def delete_frm(self, entry_id: EntryID, frm_key: FormPattern):
-        self.count_f -= self.d[entry_id].count_f
+        self.counters['forms'] -= self.d[entry_id].count_f
         self.d[entry_id].delete_frm(frm_key)
-        self.count_f += self.d[entry_id].count_f
+        self.counters['forms'] += self.d[entry_id].count_f
 
     # Добавить фразу к статье
     def add_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
+        self.counters['phrases'] -= self.d[entry_id].count_p
         self.d[entry_id].add_phrase(phr, phr_tr)
+        self.counters['phrases'] += self.d[entry_id].count_p
 
     # Удалить фразу из статьи
     def delete_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
+        self.counters['phrases'] -= self.d[entry_id].count_p
         self.d[entry_id].delete_phrase(phr, phr_tr)
+        self.counters['phrases'] += self.d[entry_id].count_p
 
     # Добавить сноску к статье
     def add_note(self, entry_id: EntryID, note: Note):
+        self.counters['notes'] -= self.d[entry_id].count_n
         self.d[entry_id].add_note(note)
+        self.counters['notes'] += self.d[entry_id].count_n
 
     # Удалить сноску из статьи
     def delete_note(self, entry_id: EntryID, note: Note):
+        self.counters['notes'] -= self.d[entry_id].count_n
         self.d[entry_id].delete_note(note)
+        self.counters['notes'] += self.d[entry_id].count_n
 
     # Добавить выбранные статьи в группу
     def add_entries_to_group(self, group: Group, entry_ids: Iterable[EntryID]):
@@ -645,9 +668,9 @@ class Dictionary(object):
 
         index = tuple(self.ctg.keys()).index(ctg_name)
         for entry in self.d.values():
-            self.count_f -= entry.count_f
+            self.counters['forms'] -= entry.count_f
             entry.delete_ctg(index)
-            self.count_f += entry.count_f
+            self.counters['forms'] += entry.count_f
 
         self.ctg.pop(ctg_name)
 
@@ -673,9 +696,9 @@ class Dictionary(object):
 
         index = tuple(self.ctg.keys()).index(ctg_name)
         for entry in self.d.values():
-            self.count_f -= entry.count_f
+            self.counters['forms'] -= entry.count_f
             entry.delete_ctg_value(index, ctg_value)
-            self.count_f += entry.count_f
+            self.counters['forms'] += entry.count_f
 
         self.ctg[ctg_name].remove(ctg_value)
         if len(self.ctg[ctg_name]) == 0:  # Если у категории не осталось значений, то она удаляется
@@ -737,9 +760,7 @@ class Dictionary(object):
         self.d = data.get('d', {})
         self.ctg = data.get('ctg', {})
         self.groups = data.get('groups', {})
-        self.count_e = data.get('count_e', {})
-        self.count_t = data.get('count_t', {})
-        self.count_f = data.get('count_f', {})
+        self.counters = data.get('counters', {})
         self._max_entry_id = data.get('max_entry_id', {})
 
     def save(self, filepath: str):
@@ -756,9 +777,7 @@ class Dictionary(object):
                 'd': self.d,
                 'ctg': self.ctg,
                 'groups': self.groups,
-                'count_e': self.count_e,
-                'count_t': self.count_t,
-                'count_f': self.count_f,
+                'counters': self.counters,
                 'max_entry_id': self._max_entry_id,
             }
         }
