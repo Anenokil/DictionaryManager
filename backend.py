@@ -385,12 +385,21 @@ class Dictionary(object):
 
     Attributes:
     ----------
-    - d: The main dictionary data structure mapping lemmas to Entry objects.
-    - count_e: Total number of word entries (lemmas) in the dictionary.
-    - count_t: Total number of translations across all entries in the dictionary.
-    - count_f: Total number of inflected forms across all entries in the dictionary.
-    - ctg: Collection of all grammatical categories present in the dictionary.
-      Used for categorization and filtering of word forms.
+    - entries: The main dictionary data structure mapping entry IDs to Entry objects.
+    - indexes: Search indexes for fast entry lookup by content. Keys:
+
+      - 'lemmas': Maps lemmas to entry IDs containing them.
+      - 'translations': Maps translations to entry IDs containing them.
+      - 'forms': Maps inflected forms to entry IDs containing them.
+      - 'groups': Maps group names to entry IDs belonging to them.
+    - counters: Word counts statistics with keys:
+
+      - 'lemmas': Total number of entries (lemmas) in the dictionary.
+      - 'translations': Total number of translations across all entries in the dictionary.
+      - 'forms': Total number of inflected forms across all entries in the dictionary.
+      - 'phrases': Total number of phrase examples across all entries.
+      - 'notes': Total number of notes across all entries.
+    - features: Collection of all grammatical categories and their values present in the dictionary.
     - groups: All groups/tags assigned to entries across the entire dictionary.
       Used for organizing and grouping dictionary content.
     - saving_version: The version of the data format used for serialization.
@@ -546,7 +555,7 @@ class Dictionary(object):
             latest_att_timestamp: Timestamp of the most recent answer.
 
         Returns:
-            The dictionary key under which the entry was stored.
+            New entry ID.
         """
         self._max_entry_id += 1
         entry_id = self._max_entry_id
