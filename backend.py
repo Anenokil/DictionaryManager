@@ -883,13 +883,4 @@ class Dictionary(object):
 
 # Преобразовать шаблон словоформы в читаемый вид (для вывода на экран)
 def frm_key_to_str_for_print(input_tuple: FormPattern | list[CtgValue]) -> str:
-    res = ''
-    is_first = True
-    for i in range(len(input_tuple)):
-        if input_tuple[i] != '':
-            if is_first:  # Перед первым элементом не ставится запятая
-                res += f'{input_tuple[i]}'
-                is_first = False
-            else:  # Перед последующими элементами ставится запятая
-                res += f', {input_tuple[i]}'
-    return res
+    return ', '.join(token for token in input_tuple if token)
