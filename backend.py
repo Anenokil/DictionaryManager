@@ -3,7 +3,7 @@ A module implementing bilingual dictionary.
 By Anenokil
 """
 
-from typing import Iterable, TextIO, Generator
+from typing import Iterable, Generator, Mapping, TextIO
 import pickle
 
 # Typing
@@ -59,8 +59,8 @@ class Entry(object):
     def __init__(self,
                  lemma: Word,
                  tr: Translation | Iterable[Translation],
-                 forms: Forms | None = None,
-                 phrases: dict[Phrase, Iterable[PhraseTr]] | None = None,
+                 forms: Mapping[FormPattern, Form] | None = None,
+                 phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
                  notes: Note | Iterable[Note] | None = None,
                  groups: Iterable[Group] | None = None,
                  fav: bool = False,
@@ -489,8 +489,8 @@ class Dictionary(object):
     def add_entry(self,
                   lemma: Word,
                   tr: Translation | Iterable[Translation],
-                  forms: Forms | None = None,
-                  phrases: dict[Phrase, Iterable[PhraseTr]] | None = None,
+                  forms: Mapping[FormPattern, Form] | None = None,
+                  phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
                   notes: Note | Iterable[Note] | None = None,
                   groups: Iterable[Group] | None = None,
                   fav: bool = False,
