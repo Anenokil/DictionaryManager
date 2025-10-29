@@ -532,7 +532,7 @@ class Dictionary(object):
         self.count_e -= 1
         self.count_t -= self.d[entry_id].count_t
         self.count_f -= self.d[entry_id].count_f
-        self.d.pop(entry_id)
+        del self.d[entry_id]
 
     # Объединить две статьи с одинаковым словом в одну
     def merge_entries(self, entry_id_1: EntryID, entry_id_2: EntryID):
@@ -567,7 +567,7 @@ class Dictionary(object):
         self.count_t += main_entry.count_t
         self.count_f += main_entry.count_f
 
-        self.d.pop(entry_id_2)
+        del self.d[entry_id_2]
 
     # Добавить перевод к статье
     def add_tr(self, entry_id: EntryID, tr: Translation):
