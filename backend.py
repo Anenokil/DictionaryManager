@@ -24,6 +24,7 @@ Notes = list[Note]
 Group = str
 Groups = set[Group]
 Timestamp = tuple[int, int, int]
+EntryID = int
 
 
 class Entry(object):
@@ -36,6 +37,7 @@ class Entry(object):
 
     Attributes:
     ----------
+    - id: Entry ID.
     - lemma: The lemma (canonical/dictionary form of the word).
     - tr: Translations.
     - forms: Inflected forms.
@@ -57,6 +59,7 @@ class Entry(object):
     # TODO: delete / remove - to unify
 
     def __init__(self,
+                 eid: EntryID,
                  lemma: Word,
                  tr: Translation | Iterable[Translation],
                  forms: Mapping[FormPattern, Form] | None = None,
@@ -72,6 +75,7 @@ class Entry(object):
         Initialize a dictionary entry.
 
         Args:
+            eid: Entry ID.
             lemma: The lemma (canonical/dictionary form of the word).
             tr: One or more translations.
             forms: Inflected forms of the word.
@@ -84,6 +88,8 @@ class Entry(object):
             win_streak: Count of consecutive wins.
             latest_att_timestamp: Timestamp of the most recent answer.
         """
+        self.id = eid
+
         self.lemma = lemma
 
         self.tr: Translations = [tr] if isinstance(tr, str) else list(tr)
@@ -371,7 +377,6 @@ class Entry(object):
 
 
 # Typing
-EntryID = int
 Entries = dict[EntryID, Entry]
 Index = dict[str, set[EntryID]]
 Indexes = dict[str, Index]
@@ -560,7 +565,7 @@ class Dictionary(object):
         self._max_entry_id += 1
         entry_id = self._max_entry_id
 
-        self.entries[entry_id] = Entry(lemma, tr, forms, phrases, notes, groups, fav, total_att,
+        self.entries[entry_id] = Entry(entry_id, lemma, tr, forms, phrases, notes, groups, fav, total_att,
                                        correct_att, win_streak, latest_att_timestamp)
         entry = self.entries[entry_id]
 
