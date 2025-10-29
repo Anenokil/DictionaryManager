@@ -372,7 +372,7 @@ class Entry(object):
 
 # Typing
 EntryID = int
-DctData = dict[EntryID, Entry]
+Entries = dict[EntryID, Entry]
 Index = dict[str, set[EntryID]]
 Indexes = dict[str, Index]
 AllFeatures = dict[Category, list[CtgValue]]
@@ -400,7 +400,7 @@ class Dictionary(object):
         """
         Initialize a dictionary.
         """
-        self.d: DctData = dict()
+        self.entries: Entries = dict()
         self.indexes: Indexes = {
             'lemmas': {},
             'translations': {},
@@ -454,7 +454,7 @@ class Dictionary(object):
         count_t = 0
         count_f = 0
         for entry_id in self.indexes['groups'][group]:
-            entry = self.d[entry_id]
+            entry = self.entries[entry_id]
             count_e += 1
             count_t += entry.count_t
             count_f += entry.count_f
@@ -479,13 +479,13 @@ class Dictionary(object):
         count_f = 0
         if group:
             for entry_id in self.indexes['groups'][group]:
-                entry = self.d[entry_id]
+                entry = self.entries[entry_id]
                 if entry.fav:
                     count_e += 1
                     count_t += entry.count_t
                     count_f += entry.count_f
         else:
-            for entry in self.d.values():
+            for entry in self.entries.values():
                 if entry.fav:
                     count_e += 1
                     count_t += entry.count_t
@@ -501,8 +501,8 @@ class Dictionary(object):
             - Total number of correct attempts (wins) across all entries;
             - Total number of all learning attempts across all entries.
         """
-        correct = sum(entry.correct_att for entry in self.d.values())
-        total = sum(entry.total_att for entry in self.d.values())
+        correct = sum(entry.correct_att for entry in self.entries.values())
+        total = sum(entry.total_att for entry in self.entries.values())
         return correct, total
 
     def get_entries(self) -> Generator[Entry, None, None]:
@@ -515,7 +515,7 @@ class Dictionary(object):
         Returns:
             Generator yielding Entry objects.
         """
-        yield from self.d.values()
+        yield from self.entries.values()
 
     def add_entry(self,
                   lemma: Word,
@@ -551,9 +551,9 @@ class Dictionary(object):
         self._max_entry_id += 1
         entry_id = self._max_entry_id
 
-        self.d[entry_id] = Entry(lemma, tr, forms, phrases, notes, groups, fav, total_att,
-                                 correct_att, win_streak, latest_att_timestamp)
-        entry = self.d[entry_id]
+        self.entries[entry_id] = Entry(lemma, tr, forms, phrases, notes, groups, fav, total_att,
+                                       correct_att, win_streak, latest_att_timestamp)
+        entry = self.entries[entry_id]
 
         self._update_index('lemmas', [lemma], entry_id, 'add')
         self._update_index('translations', tr, entry_id, 'add')
@@ -570,7 +570,7 @@ class Dictionary(object):
 
     # Удалить статью
     def delete_entry(self, entry_id: EntryID):
-        entry = self.d[entry_id]
+        entry = self.entries[entry_id]
 
         self.counters['lemmas'] -= 1
         self.counters['translations'] -= entry.count_t
@@ -583,12 +583,12 @@ class Dictionary(object):
         self._update_index('forms', entry.forms.values(), entry_id, 'remove')
         self._update_index('groups', entry.groups, entry_id, 'remove')
 
-        del self.d[entry_id]
+        del self.entries[entry_id]
 
     # Объединить две статьи с одинаковым словом в одну
     def merge_entries(self, entry_id_1: EntryID, entry_id_2: EntryID):
-        main_entry = self.d[entry_id_1]
-        additional_entry = self.d[entry_id_2]
+        main_entry = self.entries[entry_id_1]
+        additional_entry = self.entries[entry_id_2]
 
         self._update_index('lemmas', [additional_entry.lemma], entry_id_1, 'add')
         self._update_index('translations', additional_entry.tr, entry_id_1, 'add')
@@ -628,7 +628,7 @@ class Dictionary(object):
 
     # Добавить перевод к статье
     def add_tr(self, entry_id: EntryID, tr: Translation):
-        entry = self.d[entry_id]
+        entry = self.entries[entry_id]
         self._update_index('translations', tr, entry_id, 'add')
         self.counters['translations'] -= entry.count_t
         entry.add_tr(tr)
@@ -636,7 +636,7 @@ class Dictionary(object):
 
     # Удалить перевод из статьи
     def delete_tr(self, entry_id: EntryID, tr: Translation):
-        entry = self.d[entry_id]
+        entry = self.entries[entry_id]
         self._update_index('translations', tr, entry_id, 'remove')
         self.counters['translations'] -= entry.count_t
         entry.delete_tr(tr)
@@ -644,7 +644,7 @@ class Dictionary(object):
 
     # Добавить словоформу к статье
     def add_frm(self, entry_id: EntryID, pattern: FormPattern, frm: Form):
-        entry = self.d[entry_id]
+        entry = self.entries[entry_id]
         self._update_index('forms', [frm], entry_id, 'add')
         self.counters['forms'] -= entry.count_f
         entry.add_frm(pattern, frm)
@@ -652,7 +652,7 @@ class Dictionary(object):
 
     # Удалить словоформу из статьи
     def delete_frm(self, entry_id: EntryID, pattern: FormPattern):
-        entry = self.d[entry_id]
+        entry = self.entries[entry_id]
         for frm in entry.forms.values():
             self._update_index('forms', frm, entry_id, 'remove')  # Могут быть омоформы
         self.counters['forms'] -= entry.count_f
@@ -663,28 +663,28 @@ class Dictionary(object):
 
     # Добавить фразу к статье
     def add_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
-        entry = self.d[entry_id]
+        entry = self.entries[entry_id]
         self.counters['phrases'] -= entry.count_p
         entry.add_phrase(phr, phr_tr)
         self.counters['phrases'] += entry.count_p
 
     # Удалить фразу из статьи
     def delete_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
-        entry = self.d[entry_id]
+        entry = self.entries[entry_id]
         self.counters['phrases'] -= entry.count_p
         entry.delete_phrase(phr, phr_tr)
         self.counters['phrases'] += entry.count_p
 
     # Добавить сноску к статье
     def add_note(self, entry_id: EntryID, note: Note):
-        entry = self.d[entry_id]
+        entry = self.entries[entry_id]
         self.counters['notes'] -= entry.count_n
         entry.add_note(note)
         self.counters['notes'] += entry.count_n
 
     # Удалить сноску из статьи
     def delete_note(self, entry_id: EntryID, note: Note):
-        entry = self.d[entry_id]
+        entry = self.entries[entry_id]
         self.counters['notes'] -= entry.count_n
         entry.delete_note(note)
         self.counters['notes'] += entry.count_n
@@ -693,30 +693,30 @@ class Dictionary(object):
     def add_entries_to_group(self, group: Group, entry_ids: Iterable[EntryID]):
         for entry_id in entry_ids:
             self._update_index('groups', [group], entry_id, 'add')
-            self.d[entry_id].add_to_group(group)
+            self.entries[entry_id].add_to_group(group)
 
     # Убрать выбранные статьи из группы
     def remove_entries_from_group(self, group: Group, entry_ids: Iterable[EntryID]):
         for entry_id in entry_ids:
-            if group in self.d[entry_id].groups:
+            if group in self.entries[entry_id].groups:
                 self._update_index('groups', [group], entry_id, 'remove')
-                self.d[entry_id].remove_from_group(group)
+                self.entries[entry_id].remove_from_group(group)
 
     # Добавить выбранные статьи в избранное
     def fav_entries(self, entry_ids: Iterable[EntryID]):
         for entry_id in entry_ids:
-            self.d[entry_id].add_to_fav()
+            self.entries[entry_id].add_to_fav()
 
     # Убрать выбранные статьи из избранного
     def unfav_entries(self, entry_ids: Iterable[EntryID]):
         for entry_id in entry_ids:
-            self.d[entry_id].remove_from_fav()
+            self.entries[entry_id].remove_from_fav()
 
     # Добавить грамматическую категорию
     def add_ctg(self, ctg_name: Category, ctg_values: list[CtgValue]):
         assert ctg_name not in self.features.keys()
 
-        for entry in self.d.values():
+        for entry in self.entries.values():
             entry.add_ctg()
 
         self.features[ctg_name] = ctg_values
@@ -726,7 +726,7 @@ class Dictionary(object):
         assert ctg_name in self.features.keys()
 
         index = tuple(self.features.keys()).index(ctg_name)
-        for entry_id, entry in self.d.items():
+        for entry_id, entry in self.entries.items():
             for frm in entry.forms.values():
                 self._update_index('forms', frm, entry_id, 'remove')
             self.counters['forms'] -= entry.count_f
@@ -758,7 +758,7 @@ class Dictionary(object):
         assert ctg_value in self.features[ctg_name]
 
         index = tuple(self.features.keys()).index(ctg_name)
-        for entry_id, entry in self.d.items():
+        for entry_id, entry in self.entries.items():
             for frm in entry.forms.values():
                 self._update_index('forms', frm, entry_id, 'remove')
             self.counters['forms'] -= entry.count_f
@@ -778,7 +778,7 @@ class Dictionary(object):
         assert ctg_value_new not in self.features[ctg_name]
 
         index = tuple(self.features.keys()).index(ctg_name)
-        for entry in self.d.values():
+        for entry in self.entries.values():
             entry.rename_ctg_value(index, ctg_value_old, ctg_value_new)
 
         index = self.features[ctg_name].index(ctg_value_old)
@@ -795,7 +795,7 @@ class Dictionary(object):
         assert group in self.groups
 
         for entry_id in self.indexes['groups'][group]:
-            entry = self.d[entry_id]
+            entry = self.entries[entry_id]
             self._update_index('groups', [group], entry_id, 'remove')
             entry.remove_from_group(group)
         self.groups.remove(group)
@@ -807,7 +807,7 @@ class Dictionary(object):
 
         self.groups += [group_new]
         for entry_id in self.indexes['groups'][group_old]:
-            entry = self.d[entry_id]
+            entry = self.entries[entry_id]
             entry.remove_from_group(group_old)
             entry.add_to_group(group_new)
         self.groups.remove(group_old)
@@ -828,11 +828,11 @@ class Dictionary(object):
         loaded_version = save_data.get('version', 1)
         data = save_data.get('data', {})
 
-        self.d = data.get('d', {})
+        self.entries = data.get('entries', {})
         self.indexes = data.get('indexes', {})
+        self.counters = data.get('counters', {})
         self.features = data.get('features', {})
         self.groups = data.get('groups', {})
-        self.counters = data.get('counters', {})
         self._max_entry_id = data.get('max_entry_id', {})
 
     def save(self, filepath: str):
@@ -846,11 +846,11 @@ class Dictionary(object):
         save_data = {
             'version': self.saving_version,
             'data': {
-                'd': self.d,
+                'entries': self.entries,
                 'indexes': self.indexes,
+                'counters': self.counters,
                 'features': self.features,
                 'groups': self.groups,
-                'counters': self.counters,
                 'max_entry_id': self._max_entry_id,
             }
         }
@@ -868,7 +868,7 @@ class Dictionary(object):
             filepath: The path to the text file. The files contents will be overwritten.
         """
         with open(filepath, 'w', encoding='utf-8') as file:
-            for entry in self.d.values():
+            for entry in self.entries.values():
                 entry.print_out(file)
                 file.write('\n')
 
