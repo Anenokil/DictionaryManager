@@ -406,7 +406,7 @@ class Dictionary(object):
             'phrases': 0,
             'notes': 0,
         }
-        self.ctg: AllFeatures = dict()
+        self.features: AllFeatures = dict()
         self.groups: AllGroups = []
         self.saving_version = 1
         self._max_entry_id = 0
@@ -597,15 +597,15 @@ class Dictionary(object):
         self.counters['translations'] += self.d[entry_id].count_t
 
     # Добавить словоформу к статье
-    def add_frm(self, entry_id: EntryID, frm_key: FormPattern, frm: Form):
+    def add_frm(self, entry_id: EntryID, pattern: FormPattern, frm: Form):
         self.counters['forms'] -= self.d[entry_id].count_f
-        self.d[entry_id].add_frm(frm_key, frm)
+        self.d[entry_id].add_frm(pattern, frm)
         self.counters['forms'] += self.d[entry_id].count_f
 
     # Удалить словоформу из статьи
-    def delete_frm(self, entry_id: EntryID, frm_key: FormPattern):
+    def delete_frm(self, entry_id: EntryID, pattern: FormPattern):
         self.counters['forms'] -= self.d[entry_id].count_f
-        self.d[entry_id].delete_frm(frm_key)
+        self.d[entry_id].delete_frm(pattern)
         self.counters['forms'] += self.d[entry_id].count_f
 
     # Добавить фразу к статье
@@ -655,67 +655,67 @@ class Dictionary(object):
 
     # Добавить грамматическую категорию
     def add_ctg(self, ctg_name: Category, ctg_values: list[CtgValue]):
-        assert ctg_name not in self.ctg.keys()
+        assert ctg_name not in self.features.keys()
 
         for entry in self.d.values():
             entry.add_ctg()
 
-        self.ctg[ctg_name] = ctg_values
+        self.features[ctg_name] = ctg_values
 
     # Удалить грамматическую категорию
     def delete_ctg(self, ctg_name: Category):
-        assert ctg_name in self.ctg.keys()
+        assert ctg_name in self.features.keys()
 
-        index = tuple(self.ctg.keys()).index(ctg_name)
+        index = tuple(self.features.keys()).index(ctg_name)
         for entry in self.d.values():
             self.counters['forms'] -= entry.count_f
             entry.delete_ctg(index)
             self.counters['forms'] += entry.count_f
 
-        self.ctg.pop(ctg_name)
+        self.features.pop(ctg_name)
 
     # Переименовать грамматическую категорию
     def rename_ctg(self, ctg_name_old: Category, ctg_name_new: Category):
-        assert ctg_name_old in self.ctg.keys()
-        assert ctg_name_new not in self.ctg.keys()
+        assert ctg_name_old in self.features.keys()
+        assert ctg_name_new not in self.features.keys()
 
-        self.ctg[ctg_name_new] = self.ctg[ctg_name_old].copy()
-        self.ctg.pop(ctg_name_old)
+        self.features[ctg_name_new] = self.features[ctg_name_old].copy()
+        self.features.pop(ctg_name_old)
 
     # Добавить значение грамматической категории
     def add_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
-        assert ctg_name in self.ctg.keys()
-        assert ctg_value not in self.ctg[ctg_name]
+        assert ctg_name in self.features.keys()
+        assert ctg_value not in self.features[ctg_name]
 
-        self.ctg[ctg_name] += [ctg_value]
+        self.features[ctg_name] += [ctg_value]
 
     # Удалить значение грамматической категории
     def delete_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
-        assert ctg_name in self.ctg.keys()
-        assert ctg_value in self.ctg[ctg_name]
+        assert ctg_name in self.features.keys()
+        assert ctg_value in self.features[ctg_name]
 
-        index = tuple(self.ctg.keys()).index(ctg_name)
+        index = tuple(self.features.keys()).index(ctg_name)
         for entry in self.d.values():
             self.counters['forms'] -= entry.count_f
             entry.delete_ctg_value(index, ctg_value)
             self.counters['forms'] += entry.count_f
 
-        self.ctg[ctg_name].remove(ctg_value)
-        if len(self.ctg[ctg_name]) == 0:  # Если у категории не осталось значений, то она удаляется
+        self.features[ctg_name].remove(ctg_value)
+        if len(self.features[ctg_name]) == 0:  # Если у категории не осталось значений, то она удаляется
             self.delete_ctg(ctg_name)
 
     # Переименовать значение грамматической категории
     def rename_ctg_value(self, ctg_name: Category, ctg_value_old: CtgValue, ctg_value_new: CtgValue):
-        assert ctg_name in self.ctg.keys()
-        assert ctg_value_old in self.ctg[ctg_name]
-        assert ctg_value_new not in self.ctg[ctg_name]
+        assert ctg_name in self.features.keys()
+        assert ctg_value_old in self.features[ctg_name]
+        assert ctg_value_new not in self.features[ctg_name]
 
-        index = tuple(self.ctg.keys()).index(ctg_name)
+        index = tuple(self.features.keys()).index(ctg_name)
         for entry in self.d.values():
             entry.rename_ctg_value(index, ctg_value_old, ctg_value_new)
 
-        index = self.ctg[ctg_name].index(ctg_value_old)
-        self.ctg[ctg_name][index] = ctg_value_new
+        index = self.features[ctg_name].index(ctg_value_old)
+        self.features[ctg_name][index] = ctg_value_new
 
     # Добавить группу
     def add_group(self, group: Group):
@@ -758,7 +758,7 @@ class Dictionary(object):
         data = save_data.get('data', {})
 
         self.d = data.get('d', {})
-        self.ctg = data.get('ctg', {})
+        self.features = data.get('features', {})
         self.groups = data.get('groups', {})
         self.counters = data.get('counters', {})
         self._max_entry_id = data.get('max_entry_id', {})
@@ -775,7 +775,7 @@ class Dictionary(object):
             'version': self.saving_version,
             'data': {
                 'd': self.d,
-                'ctg': self.ctg,
+                'features': self.features,
                 'groups': self.groups,
                 'counters': self.counters,
                 'max_entry_id': self._max_entry_id,
