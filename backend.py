@@ -361,16 +361,14 @@ class Entry(object):
         """
         if self.fav:
             file.write('* (Избр.)\n')
-        file.write(f'| {self.lemma} - {self.tr[0]}')
-        for i in range(1, self.count_t):
-            file.write(f', {self.tr[i]}')
+        file.write(f'| {self.lemma} - ')
+        file.write(', '.join(tr for tr in self.tr))
         file.write('\n')
-        for pattern in self.forms.keys():
-            file.write(f'|  [{pattern_to_str(pattern)}] {self.forms[pattern]}\n')
-        for phr in self.phrases.keys():
-            file.write(f'|  {phr} - {self.phrases[phr][0]}')
-            for i in range(1, len(self.phrases[phr])):
-                file.write(f', {self.phrases[phr][i]}')
+        for pattern, form in self.forms.items():
+            file.write(f'|  [{pattern_to_str(pattern)}] {form}\n')
+        for phr, phr_tr in self.phrases.items():
+            file.write(f'|  {phr} - ')
+            file.write(', '.join(tr for tr in phr_tr))
             file.write('\n')
         for note in self.notes:
             file.write(f'| > {note}\n')
