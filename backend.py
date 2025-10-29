@@ -365,8 +365,8 @@ class Entry(object):
         for i in range(1, self.count_t):
             file.write(f', {self.tr[i]}')
         file.write('\n')
-        for frm_template in self.forms.keys():
-            file.write(f'|  [{frm_key_to_str_for_print(frm_template)}] {self.forms[frm_template]}\n')
+        for pattern in self.forms.keys():
+            file.write(f'|  [{pattern_to_str(pattern)}] {self.forms[pattern]}\n')
         for phr in self.phrases.keys():
             file.write(f'|  {phr} - {self.phrases[phr][0]}')
             for i in range(1, len(self.phrases[phr])):
@@ -882,5 +882,5 @@ class Dictionary(object):
 
 
 # Преобразовать шаблон словоформы в читаемый вид (для вывода на экран)
-def frm_key_to_str_for_print(input_tuple: FormPattern) -> str:
-    return ', '.join(token for token in input_tuple if token)
+def pattern_to_str(pattern: FormPattern) -> str:
+    return ', '.join(token for token in pattern if token)
