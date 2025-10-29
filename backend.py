@@ -643,7 +643,7 @@ class Dictionary(object):
     # Добавить перевод к статье
     def add_tr(self, entry_id: EntryID, tr: Translation):
         entry = self.entries[entry_id]
-        self._update_index('translations', tr, entry_id, 'add')
+        self._update_index('translations', [tr], entry_id, 'add')
         self.counters['translations'] -= entry.count_t
         entry.add_tr(tr)
         self.counters['translations'] += entry.count_t
@@ -651,7 +651,7 @@ class Dictionary(object):
     # Удалить перевод из статьи
     def delete_tr(self, entry_id: EntryID, tr: Translation):
         entry = self.entries[entry_id]
-        self._update_index('translations', tr, entry_id, 'remove')
+        self._update_index('translations', [tr], entry_id, 'remove')
         self.counters['translations'] -= entry.count_t
         entry.delete_tr(tr)
         self.counters['translations'] += entry.count_t
