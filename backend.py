@@ -667,13 +667,11 @@ class Dictionary(object):
     # Удалить словоформу из статьи
     def delete_frm(self, entry_id: EntryID, pattern: FormPattern):
         entry = self.entries[entry_id]
-        for frm in entry.forms.values():
-            self._update_index('forms', frm, entry_id, 'remove')  # Могут быть омоформы
+        self._update_index('forms', entry.forms.values(), entry_id, 'remove')  # Могут быть омоформы
         self.counters['forms'] -= entry.count_f
         entry.delete_frm(pattern)
         self.counters['forms'] += entry.count_f
-        for frm in entry.forms.values():
-            self._update_index('forms', frm, entry_id, 'add')
+        self._update_index('forms', entry.forms.values(), entry_id, 'add')
 
     # Добавить фразу к статье
     def add_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
@@ -741,13 +739,11 @@ class Dictionary(object):
 
         index = tuple(self.features.keys()).index(ctg_name)
         for entry_id, entry in self.entries.items():
-            for frm in entry.forms.values():
-                self._update_index('forms', frm, entry_id, 'remove')
+            self._update_index('forms', entry.forms.values(), entry_id, 'remove')
             self.counters['forms'] -= entry.count_f
             entry.delete_ctg(index)
             self.counters['forms'] += entry.count_f
-            for frm in entry.forms.values():
-                self._update_index('forms', frm, entry_id, 'add')
+            self._update_index('forms', entry.forms.values(), entry_id, 'add')
 
         self.features.pop(ctg_name)
 
@@ -773,13 +769,11 @@ class Dictionary(object):
 
         index = tuple(self.features.keys()).index(ctg_name)
         for entry_id, entry in self.entries.items():
-            for frm in entry.forms.values():
-                self._update_index('forms', frm, entry_id, 'remove')
+            self._update_index('forms', entry.forms.values(), entry_id, 'remove')
             self.counters['forms'] -= entry.count_f
             entry.delete_ctg_value(index, ctg_value)
             self.counters['forms'] += entry.count_f
-            for frm in entry.forms.values():
-                self._update_index('forms', frm, entry_id, 'add')
+            self._update_index('forms', entry.forms.values(), entry_id, 'add')
 
         self.features[ctg_name].remove(ctg_value)
         if len(self.features[ctg_name]) == 0:  # Если у категории не осталось значений, то она удаляется
