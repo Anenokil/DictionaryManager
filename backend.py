@@ -371,8 +371,8 @@ class Entry(object):
 
 
 # Typing
-DctKey = tuple[Word, int]
-DctData = dict[DctKey, Entry]
+EntryID = int
+DctData = dict[EntryID, Entry]
 AllFeatures = dict[Category, list[CtgValue]]
 AllGroups = list[Group]
 
@@ -405,6 +405,7 @@ class Dictionary(object):
         self.ctg: AllFeatures = dict()
         self.groups: AllGroups = []
         self.saving_version = 1
+        self._max_entry_id = 0
 
     def count_entries_in_group(self, group: Group) -> tuple[int, int, int]:
         """
@@ -496,7 +497,7 @@ class Dictionary(object):
                   total_att: int = 0,
                   correct_att: int = 0,
                   win_streak: int = 0,
-                  latest_att_timestamp: Timestamp = (0, 0, 0)) -> DctKey:
+                  latest_att_timestamp: Timestamp = (0, 0, 0)) -> EntryID:
         """
         Add a new dictionary entry.
 
@@ -516,28 +517,27 @@ class Dictionary(object):
         Returns:
             The dictionary key under which the entry was stored.
         """
-        i = 0
-        while (key := wrd_to_key(lemma, i)) in self.d.keys():
-            i += 1
+        self._max_entry_id += 1
+        entry_id = self._max_entry_id
 
-        self.d[key] = Entry(lemma, tr, forms, phrases, notes, groups, fav, total_att,
-                            correct_att, win_streak, latest_att_timestamp)
+        self.d[entry_id] = Entry(lemma, tr, forms, phrases, notes, groups, fav, total_att,
+                                 correct_att, win_streak, latest_att_timestamp)
         self.count_e += 1
-        self.count_t += self.d[key].count_t
-        self.count_f += self.d[key].count_f
-        return key
+        self.count_t += self.d[entry_id].count_t
+        self.count_f += self.d[entry_id].count_f
+        return entry_id
 
     # Удалить статью
-    def delete_entry(self, key: DctKey):
+    def delete_entry(self, entry_id: EntryID):
         self.count_e -= 1
-        self.count_t -= self.d[key].count_t
-        self.count_f -= self.d[key].count_f
-        self.d.pop(key)
+        self.count_t -= self.d[entry_id].count_t
+        self.count_f -= self.d[entry_id].count_f
+        self.d.pop(entry_id)
 
     # Объединить две статьи с одинаковым словом в одну
-    def merge_entries(self, main_entry_key: DctKey, additional_entry_key: DctKey):
-        main_entry = self.d[main_entry_key]
-        additional_entry = self.d[additional_entry_key]
+    def merge_entries(self, entry_id_1: EntryID, entry_id_2: EntryID):
+        main_entry = self.d[entry_id_1]
+        additional_entry = self.d[entry_id_2]
 
         self.count_t -= additional_entry.count_t
         self.count_t -= main_entry.count_t
@@ -567,68 +567,68 @@ class Dictionary(object):
         self.count_t += main_entry.count_t
         self.count_f += main_entry.count_f
 
-        self.d.pop(additional_entry_key)
+        self.d.pop(entry_id_2)
 
     # Добавить перевод к статье
-    def add_tr(self, key: DctKey, tr: Translation):
-        self.count_t -= self.d[key].count_t
-        self.d[key].add_tr(tr)
-        self.count_t += self.d[key].count_t
+    def add_tr(self, entry_id: EntryID, tr: Translation):
+        self.count_t -= self.d[entry_id].count_t
+        self.d[entry_id].add_tr(tr)
+        self.count_t += self.d[entry_id].count_t
 
     # Удалить перевод из статьи
-    def delete_tr(self, key: DctKey, tr: Translation):
-        self.count_t -= self.d[key].count_t
-        self.d[key].delete_tr(tr)
-        self.count_t += self.d[key].count_t
+    def delete_tr(self, entry_id: EntryID, tr: Translation):
+        self.count_t -= self.d[entry_id].count_t
+        self.d[entry_id].delete_tr(tr)
+        self.count_t += self.d[entry_id].count_t
 
     # Добавить словоформу к статье
-    def add_frm(self, key: DctKey, frm_key: FormPattern, frm: Form):
-        self.count_f -= self.d[key].count_f
-        self.d[key].add_frm(frm_key, frm)
-        self.count_f += self.d[key].count_f
+    def add_frm(self, entry_id: EntryID, frm_key: FormPattern, frm: Form):
+        self.count_f -= self.d[entry_id].count_f
+        self.d[entry_id].add_frm(frm_key, frm)
+        self.count_f += self.d[entry_id].count_f
 
     # Удалить словоформу из статьи
-    def delete_frm(self, key: DctKey, frm_key: FormPattern):
-        self.count_f -= self.d[key].count_f
-        self.d[key].delete_frm(frm_key)
-        self.count_f += self.d[key].count_f
+    def delete_frm(self, entry_id: EntryID, frm_key: FormPattern):
+        self.count_f -= self.d[entry_id].count_f
+        self.d[entry_id].delete_frm(frm_key)
+        self.count_f += self.d[entry_id].count_f
 
     # Добавить фразу к статье
-    def add_phrase(self, key: DctKey, phr: Phrase, phr_tr: PhraseTr):
-        self.d[key].add_phrase(phr, phr_tr)
+    def add_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
+        self.d[entry_id].add_phrase(phr, phr_tr)
 
     # Удалить фразу из статьи
-    def delete_phrase(self, key: DctKey, phr: Phrase, phr_tr: PhraseTr):
-        self.d[key].delete_phrase(phr, phr_tr)
+    def delete_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
+        self.d[entry_id].delete_phrase(phr, phr_tr)
 
     # Добавить сноску к статье
-    def add_note(self, key: DctKey, note: Note):
-        self.d[key].add_note(note)
+    def add_note(self, entry_id: EntryID, note: Note):
+        self.d[entry_id].add_note(note)
 
     # Удалить сноску из статьи
-    def delete_note(self, key: DctKey, note: Note):
-        self.d[key].delete_note(note)
+    def delete_note(self, entry_id: EntryID, note: Note):
+        self.d[entry_id].delete_note(note)
 
     # Добавить выбранные статьи в группу
-    def add_entries_to_group(self, group: Group, dct_keys: Iterable[DctKey]):
-        for key in dct_keys:
-            self.d[key].add_to_group(group)
+    def add_entries_to_group(self, group: Group, entry_ids: Iterable[EntryID]):
+        for entry_id in entry_ids:
+            self.d[entry_id].add_to_group(group)
 
     # Убрать выбранные статьи из группы
-    def remove_entries_from_group(self, group: Group, dct_keys: Iterable[DctKey]):
-        for key in dct_keys:
-            if group in self.d[key].groups:
-                self.d[key].remove_from_group(group)
+    def remove_entries_from_group(self, group: Group, entry_ids: Iterable[EntryID]):
+        for entry_id in entry_ids:
+            if group in self.d[entry_id].groups:
+                self.d[entry_id].remove_from_group(group)
 
     # Добавить выбранные статьи в избранное
-    def fav_entries(self, dct_keys: Iterable[DctKey]):
-        for key in dct_keys:
-            self.d[key].add_to_fav()
+    def fav_entries(self, entry_ids: Iterable[EntryID]):
+        for entry_id in entry_ids:
+            self.d[entry_id].add_to_fav()
 
     # Убрать выбранные статьи из избранного
-    def unfav_entries(self, dct_keys: Iterable[DctKey]):
-        for key in dct_keys:
-            self.d[key].remove_from_fav()
+    def unfav_entries(self, entry_ids: Iterable[EntryID]):
+        for entry_id in entry_ids:
+            self.d[entry_id].remove_from_fav()
 
     # Добавить грамматическую категорию
     def add_ctg(self, ctg_name: Category, ctg_values: list[CtgValue]):
@@ -740,6 +740,7 @@ class Dictionary(object):
         self.count_e = data.get('count_e', {})
         self.count_t = data.get('count_t', {})
         self.count_f = data.get('count_f', {})
+        self._max_entry_id = data.get('max_entry_id', {})
 
     def save(self, filepath: str):
         """
@@ -758,6 +759,7 @@ class Dictionary(object):
                 'count_e': self.count_e,
                 'count_t': self.count_t,
                 'count_f': self.count_f,
+                'max_entry_id': self._max_entry_id,
             }
         }
 
@@ -803,11 +805,13 @@ def frm_key_to_str_for_save(input_tuple: FormPattern | list[CtgValue], separator
     return res
 
 
+# TODO : remove
 # Перевести слово в ключ для словаря
-def wrd_to_key(lemma: Word, num: int) -> DctKey:
-    return lemma, num
+#def wrd_to_key(lemma: Word, num: int) -> DctKey:
+#    return lemma, num
 
 
+# TODO : remove
 # Перевести ключ для словаря в слово
-def key_to_wrd(key: DctKey) -> str:
-    return key[0]
+#def key_to_wrd(key: DctKey) -> str:
+#    return key[0]
