@@ -3,7 +3,7 @@ A module implementing bilingual dictionary.
 By Anenokil
 """
 
-from typing import Iterable, TextIO
+from typing import Iterable, TextIO, Generator
 import pickle
 
 # Typing
@@ -472,6 +472,18 @@ class Dictionary(object):
         correct = sum(entry.correct_att for entry in self.d.values())
         total = sum(entry.total_att for entry in self.d.values())
         return correct, total
+
+    def get_entries(self) -> Generator[Entry, None, None]:
+        """
+        Iterate over all entries in the dictionary.
+
+        Yields:
+            The next entry in the dictionary.
+
+        Returns:
+            Generator yielding Entry objects.
+        """
+        yield from self.d.values()
 
     def add_entry(self,
                   lemma: Word,
