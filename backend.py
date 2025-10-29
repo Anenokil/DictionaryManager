@@ -575,11 +575,11 @@ class Dictionary(object):
         main_entry.accuracy_rate = 0 if (main_entry.total_att == 0) else main_entry.correct_att / main_entry.total_att
         main_entry.win_streak += additional_entry.win_streak
 
-        for entry_id in (entry_id_1, entry_id_2):
-            self.counters['translations'] += self.d[entry_id].count_t
-            self.counters['forms']        += self.d[entry_id].count_f
-            self.counters['phrases']      += self.d[entry_id].count_p
-            self.counters['notes']        += self.d[entry_id].count_n
+        self.counters['translations'] += main_entry.count_t
+        self.counters['forms']        += main_entry.count_f
+        self.counters['phrases']      += main_entry.count_p
+        self.counters['notes']        += main_entry.count_n
+
         self.counters['lemmas'] -= 1
 
         del self.d[entry_id_2]
