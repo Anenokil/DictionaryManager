@@ -887,6 +887,47 @@ class Dictionary:
                 file.write('\n')
 
 
+
+# Typing
+DctID = int
+Dictionaries = dict[DctID, Dictionary]
+
+
+class Manager:
+    def __init__(self):
+        self.opened_dct: Dictionaries = {}
+        self.current_dct: DctID | None = None
+        self._max_dct_id = 0
+
+    @property
+    def dct(self) -> Dictionary:
+        return self.opened_dct[self.current_dct]
+
+    def open_dct(self, filepath: str):
+        self._max_dct_id += 1
+        dct_id = self._max_dct_id
+
+        dct = Dictionary()
+        dct.read(filepath)
+
+        self.opened_dct[dct_id] = dct
+        self.current_dct = dct_id
+
+    def create_dct(self, name: DctName):
+        self._max_dct_id += 1
+        dct_id = self._max_dct_id
+
+        dct = Dictionary(name)
+
+        self.opened_dct[dct_id] = dct
+        self.current_dct = dct_id
+
+    def switch_dct(self, dct_id: DctName):
+        assert dct_id in self.opened_dct.keys()
+
+        self.current_dct = dct_id
+
+
 # Преобразовать шаблон словоформы в читаемый вид (для вывода на экран)
 def pattern_to_str(pattern: FormPattern) -> str:
     return ', '.join(token for token in pattern if token)
