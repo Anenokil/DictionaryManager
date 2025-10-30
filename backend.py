@@ -27,7 +27,7 @@ Timestamp = tuple[int, int, int]
 EntryID = int
 
 
-class Entry(object):
+class Entry:
     """
     A dictionary entry representing a word and its associated data.
 
@@ -382,7 +382,7 @@ AllFeatures = dict[Category, list[CtgValue]]
 AllGroups = list[Group]
 
 
-class Dictionary(object):
+class Dictionary:
     """
     A bilingual dictionary.
 
