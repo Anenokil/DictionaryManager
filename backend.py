@@ -380,6 +380,7 @@ Index = dict[str, set[EntryID]]
 Indexes = dict[str, Index]
 AllFeatures = dict[Category, list[CtgValue]]
 AllGroups = list[Group]
+DctName = str
 
 
 class Dictionary:
@@ -408,10 +409,11 @@ class Dictionary:
     - saving_version: The version of the data format used for serialization.
     """
 
-    def __init__(self):
+    def __init__(self, name: DctName | None = None):
         """
         Initialize a dictionary.
         """
+        self.name = name
         self.entries: Entries = dict()
         self.indexes: Indexes = {
             'lemmas': {},
@@ -834,6 +836,7 @@ class Dictionary:
         loaded_version = save_data.get('version', 1)
         data = save_data.get('data', {})
 
+        self.name = data.get('name', {})
         self.entries = data.get('entries', {})
         self.indexes = data.get('indexes', {})
         self.counters = data.get('counters', {})
@@ -852,6 +855,7 @@ class Dictionary:
         save_data = {
             'version': self.saving_version,
             'data': {
+                'name': self.name,
                 'entries': self.entries,
                 'indexes': self.indexes,
                 'counters': self.counters,
