@@ -389,6 +389,7 @@ class Dictionary:
 
     Attributes:
     ----------
+    - name: Dictionary name.
     - entries: The main dictionary data structure mapping entry IDs to Entry objects.
     - indexes: Search indexes for fast entry lookup by content. Keys:
 
@@ -412,6 +413,9 @@ class Dictionary:
     def __init__(self, name: DctName | None = None):
         """
         Initialize a dictionary.
+
+        Args:
+            name: The dictionary name.
         """
         self.name = name
         self.entries: Entries = dict()
