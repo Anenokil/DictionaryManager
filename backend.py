@@ -840,13 +840,13 @@ class Dictionary:
         loaded_version = save_data.get('version', 1)
         data = save_data.get('data', {})
 
-        self.name = data.get('name', {})
+        self.name = data.get('name', '')
         self.entries = data.get('entries', {})
         self.indexes = data.get('indexes', {})
         self.counters = data.get('counters', {})
         self.features = data.get('features', {})
-        self.groups = data.get('groups', {})
-        self._max_entry_id = data.get('max_entry_id', {})
+        self.groups = data.get('groups', [])
+        self._max_entry_id = data.get('max_entry_id', 0)
 
     def save(self, filepath: str):
         """
@@ -885,7 +885,6 @@ class Dictionary:
             for entry in self.entries.values():
                 entry.print_out(file)
                 file.write('\n')
-
 
 
 # Typing
