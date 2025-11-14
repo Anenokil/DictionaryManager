@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 wget = "*"
+pyside6 = "*"
 
 [dev-packages]
 flake8 = "*"
