@@ -4,6 +4,7 @@ By Anenokil
 """
 
 from typing import Iterable, Generator, Mapping, TextIO
+import os
 import pickle
 
 # Typing
@@ -896,6 +897,7 @@ class Manager:
     def __init__(self):
         self.opened_dct: Dictionaries = {}
         self.current_dct: DctID | None = None
+        self.allowed_file_ext = ('.pkl',)
         self._max_dct_id = 0
 
     @property
@@ -903,6 +905,9 @@ class Manager:
         return self.opened_dct[self.current_dct]
 
     def open_dct(self, filepath: str):
+        ext = os.path.splitext(filepath)[1]
+        assert ext in self.allowed_file_ext, f'File extension "{ext}" not supported'
+
         self._max_dct_id += 1
         dct_id = self._max_dct_id
 
