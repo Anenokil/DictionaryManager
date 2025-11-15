@@ -149,7 +149,7 @@ class Entry:
         Add a new inflected form to the entry.
 
         Args:
-            frm_key: The grammatical category pattern for the inflection.
+            frm_key: The form pattern for the inflection.
             new_frm: The actual inflected form to add.
         """
 
@@ -162,7 +162,7 @@ class Entry:
         Remove an inflected form from the entry.
 
         Args:
-            frm_key: The grammatical category pattern identifying the inflection to remove.
+            frm_key: The form pattern identifying the inflection to remove.
         """
 
         self.forms.pop(frm_key)
@@ -328,7 +328,7 @@ class Entry:
         Update learning statistics when a correct attempt is made.
 
         Increments both total attempts and correct attempts counters, recalculates the
-        correct accuracy_rate, updates the win streak, and sets the latest attempt timestamp.
+        accuracy rate, updates the win streak, and sets the latest attempt timestamp.
 
         Args:
             session_number: A tuple representing the session identifier.
@@ -347,7 +347,7 @@ class Entry:
         """
         Update learning statistics when an incorrect attempt is made.
 
-        Increments the total attempts counter, recalculates the correct accuracy_rate,
+        Increments the total attempts counter, recalculates the accuracy rate,
         resets the win streak to 0, and sets the latest attempt timestamp.
 
         Args:
@@ -548,9 +548,6 @@ class Dictionary:
 
         Yields:
             The next entry in the dictionary.
-
-        Returns:
-            Generator yielding Entry objects.
         """
 
         yield from self.entries.values()
@@ -882,7 +879,7 @@ class Dictionary:
         Outputs a formatted representation of the entire dictionary.
 
         Args:
-            filepath: The path to the text file. The files contents will be overwritten.
+            filepath: The path to the text file. The file's contents will be overwritten.
         """
 
         with open(filepath, 'w', encoding='utf-8') as file:
