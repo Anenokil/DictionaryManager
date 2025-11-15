@@ -933,6 +933,16 @@ class Manager:
 
         self.current_dct = dct_id
 
+    def close_dct(self, dct_id: int):
+        assert 0 <= dct_id <= len(self.opened_dct)
+
+        if len(self.opened_dct) == 1:
+            self.current_dct = None
+        elif dct_id < self.current_dct:
+            self.current_dct -= 1
+
+        del self.opened_dct[dct_id]
+
 
 # Преобразовать шаблон словоформы в читаемый вид (для вывода на экран)
 def pattern_to_str(pattern: FormPattern) -> str:
