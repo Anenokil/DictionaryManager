@@ -29,9 +29,17 @@ def phrases_to_str(phrases: Phrases) -> str:
 
 
 class EntryDetailsDialog(QDialog):
-    """Dialog for displaying entry information."""
+    """Dialog for displaying detailed entry information."""
 
     def __init__(self, entry: Entry, parent=None):
+        """
+        Initialize the entry details dialog.
+
+        Args:
+            entry: Dictionary entry to display.
+            parent: Parent widget.
+        """
+
         super().__init__(parent)
         self.setWindowTitle(f'Entry "{entry.lemma}"')
         self.setModal(True)
@@ -51,9 +59,21 @@ class EntryDetailsDialog(QDialog):
 
 
 class WorkspaceWidget(QWidget):
-    """Widget for tab workspace."""
+    """
+    Widget representing a dictionary workspace in a tab.
+
+    Displays dictionary entries in a table format. Provides selection 
+    functionality and status bar with dictionary statistics.
+    """
 
     def __init__(self, dct: Dictionary):
+        """
+        Initialize the workspace widget.
+
+        Args:
+            dct: Dictionary instance to display.
+        """
+
         super().__init__()
 
         # Dictionary instance for this tab
@@ -79,7 +99,7 @@ class WorkspaceWidget(QWidget):
         self.table_widget.setSelectionBehavior(QTableWidget.SelectRows)
         self.table_widget.setSelectionMode(QTableWidget.ExtendedSelection)  # Multiple selection
 
-        # Configure column resizing (columns are resizable)
+        # Configure column resizing
         header = self.table_widget.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.Interactive)
         header.setSectionResizeMode(1, QHeaderView.Interactive)
@@ -115,7 +135,11 @@ class WorkspaceWidget(QWidget):
         self.update_status_bar()
 
     def print_entries(self):
-        """Fill the table with entries."""
+        """
+        Populate the table with dictionary entries.
+
+        Fills the table widget with all entries from the dictionary.
+        """
 
         # Set row count
         n_entries = self.dct.counters['lemmas']
@@ -144,6 +168,15 @@ class WorkspaceWidget(QWidget):
             self.table_widget.setItem(row, 3, phrases_item)
 
     def on_item_double_clicked(self, index):
+        """
+        Handle double-click event on table item.
+
+        Opens a details dialog for the entry in the clicked cell.
+
+        Args:
+            index: QModelIndex of the clicked cell.
+        """
+
         # Get object from cell data
         item = self.table_widget.item(index.row(), index.column())
         if item:
@@ -154,6 +187,13 @@ class WorkspaceWidget(QWidget):
             dialog.exec()
 
     def on_selection_changed(self):
+        """
+        Handle table selection change event.
+
+        Updates the internal selection storage and refreshes the status bar
+        to reflect the current selection.
+        """
+
         # Update selected rows storage
         self.selected_rows = set(item.row() for item in self.table_widget.selectedItems())
 
@@ -161,7 +201,13 @@ class WorkspaceWidget(QWidget):
         self.update_status_bar()
 
     def update_status_bar(self):
-        """Update the status bar with dictionary information."""
+        """
+        Update the status bar with dictionary statistics.
+
+        Displays entry, translation, and form counts. If rows are selected,
+        also shows selected item statistics. Updates both the status bar text
+        and tooltip with full descriptions.
+        """
 
         n_entries = self.dct.counters['lemmas']
         n_translations = self.dct.counters['translations']
@@ -192,12 +238,26 @@ class WorkspaceWidget(QWidget):
 
 
 class MainWindow(QMainWindow):
+    """
+    Main application window for Dictionary Manager.
+
+    Manages multiple dictionary tabs, provides toolbar actions for opening
+    and creating dictionaries, and handles application state persistence.
+    """
+
     def __init__(self, savepath: str):
+        """
+        Initialize the main window.
+
+        Args:
+            savepath: Path to the file for saving/loading application state.
+        """
+
         super().__init__()
         self.setWindowTitle('Dictionary Manager 2.0')
         self.setGeometry(100, 100, 800, 600)
 
-        # Path to save/load app data
+        # Path for saving/loading application state
         self.savepath = savepath
 
         # Create dictionary manager instance
@@ -246,11 +306,26 @@ class MainWindow(QMainWindow):
         self.load_state()
 
     def save_state(self):
+        """
+        Save application state to file.
+
+        Serializes the dictionary manager state (opened dictionaries and
+        current selection) and saves it to the configured save path.
+        """
+
         with open(self.savepath, 'wb') as f:
             savedata = self.manager.serialize()
             pickle.dump(savedata, f)
 
     def load_state(self):
+        """
+        Load application state from file and restore opened tabs.
+
+        Deserializes the dictionary manager state and recreates all tabs
+        that were open in the previous session. Restores the active tab
+        selection.
+        """
+
         try:
             with open(self.savepath, 'rb') as f:
                 savedata = pickle.load(f)
@@ -275,6 +350,15 @@ class MainWindow(QMainWindow):
             pass
 
     def closeEvent(self, event: QCloseEvent):
+        """
+        Handle window close event.
+
+        Saves application state before closing the window.
+
+        Args:
+            event: Close event from Qt.
+        """
+
         self.save_state()
         event.accept()
 
@@ -282,10 +366,17 @@ class MainWindow(QMainWindow):
         pass
 
     def open_dict(self):
+        """
+        Open a dictionary from file.
+
+        Shows a file dialog to select a dictionary file, opens it in the
+        manager, and creates a new tab for the opened dictionary.
+        """
+
         file_filter = '(' + ' '.join(f'*{ext}' for ext in self.manager.allowed_file_ext) + ')'
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            caption='Select Saving File',
+            caption='Open Dictionary File',
             filter=file_filter,
         )
         self.manager.open_dct(file_path)
@@ -294,11 +385,26 @@ class MainWindow(QMainWindow):
         self.create_new_tab(dict_name)
 
     def new_dict(self):
+        """
+        Create a new empty dictionary.
+
+        Creates a new dictionary with default name and opens it in a new tab.
+        """
+
         new_dict_name = 'Unnamed'
         self.manager.create_dct(new_dict_name)
         self.create_new_tab(new_dict_name)
 
     def create_new_tab(self, title: str, dct: Dictionary | None = None, set_active: bool = True):
+        """
+        Create a new tab with a dictionary workspace.
+
+        Args:
+            title: Tab title.
+            dct: Dictionary to use. If None, uses the manager's current dictionary.
+            set_active: Whether to set the new tab as active. Default True.
+        """
+
         # Use provided dictionary or current one from manager
         dictionary = dct if dct is not None else self.manager.dct
 
@@ -318,12 +424,28 @@ class MainWindow(QMainWindow):
             self.placeholder.setVisible(False)
 
     def on_tab_changed(self, index):
-        """Handle tab switching."""
+        """
+        Handle tab switching event.
 
+        Updates the manager's current dictionary to match the selected tab.
+
+        Args:
+            index: Index of the newly selected tab, or -1 if no tab is selected.
+        """
         if index >= 0:
             self.manager.switch_dct(index)
 
     def close_tab(self, index):
+        """
+        Handle tab closing event.
+
+        Closes the dictionary in the manager and removes the tab from the UI.
+        Shows placeholder if no tabs remain.
+
+        Args:
+            index: Index of the tab to close.
+        """
+
         self.manager.close_dct(index)
         self.tab_widget.removeTab(index)
 
