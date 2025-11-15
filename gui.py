@@ -102,8 +102,16 @@ class WorkspaceWidget(QWidget):
 
         layout.addWidget(self.table_widget)
 
+        # Create status bar at the bottom
+        self.status_bar = QLabel()
+        self.status_bar.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        layout.addWidget(self.status_bar)
+
         # Fill the table
         self.print_entries()
+
+        # Update status bar
+        self.update_status_bar()
 
     def print_entries(self):
         """Fill the table with entries."""
@@ -147,6 +155,39 @@ class WorkspaceWidget(QWidget):
     def on_selection_changed(self):
         # Update selected rows storage
         self.selected_rows = set(item.row() for item in self.table_widget.selectedItems())
+
+        # Update status bar with selection info
+        self.update_status_bar()
+
+    def update_status_bar(self):
+        """Update the status bar with dictionary information."""
+
+        n_entries = self.dct.counters['lemmas']
+        n_translations = self.dct.counters['translations']
+        n_forms = self.dct.counters['forms']
+
+        status_text = f'{n_entries} E, {n_translations} T, {n_forms} F'
+        tooltip_text = f'{n_entries} entries, {n_translations} translations, {n_forms} forms'
+
+        if self.selected_rows:
+            n_sel_entries = len(self.selected_rows)
+            n_sel_translations, n_sel_forms = 0, 0
+            for row in self.selected_rows:
+                entry = self.table_widget.item(row, 0).data(Qt.UserRole)
+                n_sel_translations += entry.count_t
+                n_sel_forms += entry.count_f
+            status_text = (
+                f'Selected: {n_sel_entries} E, {n_sel_translations} T, '
+                f'{n_sel_forms} F | {status_text}'
+            )
+            tooltip_text = (
+                f'Selected: {n_sel_entries} entries, '
+                f'{n_sel_translations} translations, {n_sel_forms} forms | '
+                f'{tooltip_text}'
+            )
+
+        self.status_bar.setText(status_text)
+        self.status_bar.setToolTip(tooltip_text)
 
 
 class MainWindow(QMainWindow):
