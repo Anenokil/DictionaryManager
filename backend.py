@@ -1120,8 +1120,10 @@ class Manager:
         Get the currently active dictionary.
 
         Returns:
-            The currently active Dictionary instance.
+            The currently active Dictionary instance, or None if no dictionary
+            is currently active.
         """
+
         return self.opened_dct[self.current_dct]['dct'] if self.current_dct else None
 
     @property
@@ -1130,8 +1132,10 @@ class Manager:
         Get the file path of the currently active dictionary.
 
         Returns:
-            File path of the current dictionary, or None if it's a new unsaved dictionary.
+            File path of the current dictionary, or None if no dictionary is
+            active or if it's a new unsaved dictionary.
         """
+
         return self.opened_dct[self.current_dct]['filepath'] if self.current_dct else None
 
     def create_dct(self, name: DctName):
