@@ -943,6 +943,21 @@ class Manager:
 
         del self.opened_dct[dct_id]
 
+    def save_dct(self, dct_id: int, filepath: str | None = None):
+        assert 0 <= dct_id <= len(self.opened_dct)
+
+        if filepath is None:
+            filepath = self.opened_dct[dct_id]['filepath']
+            if filepath is None:
+                raise ValueError('No filepath is specified')
+
+        savedata = self.dct.serialize()
+
+        with open(filepath, 'wb') as f:
+            pickle.dump(savedata)
+
+        self.opened_dct[dct_id]['filepath'] = filepath
+
 
 # Преобразовать шаблон словоформы в читаемый вид (для вывода на экран)
 def pattern_to_str(pattern: FormPattern) -> str:
