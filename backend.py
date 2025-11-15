@@ -848,18 +848,6 @@ class Dictionary:
         self.indexes['groups'][group_new] = self.indexes['groups'][group_old]
         del self.indexes['groups'][group_old]
 
-    def deserialize(self, data: dict[str, Any]):
-        loaded_version = data.get('version', 1)
-        data = data.get('data', {})
-
-        self.name = data.get('name', '')
-        self.entries = data.get('entries', {})
-        self.indexes = data.get('indexes', {})
-        self.counters = data.get('counters', {})
-        self.features = data.get('features', {})
-        self.groups = data.get('groups', [])
-        self._max_entry_id = data.get('max_entry_id', 0)
-
     def serialize(self) -> dict[str, Any]:
         data = {
             'version': self.saving_version,
@@ -874,6 +862,18 @@ class Dictionary:
             }
         }
         return data
+
+    def deserialize(self, data: dict[str, Any]):
+        loaded_version = data.get('version', 1)
+        data = data.get('data', {})
+
+        self.name = data.get('name', '')
+        self.entries = data.get('entries', {})
+        self.indexes = data.get('indexes', {})
+        self.counters = data.get('counters', {})
+        self.features = data.get('features', {})
+        self.groups = data.get('groups', [])
+        self._max_entry_id = data.get('max_entry_id', 0)
 
     def print_out(self, filepath: str):
         """
@@ -909,6 +909,12 @@ class Manager:
     def filepath(self) -> str:
         return self.opened_dct[self.current_dct]['filepath']
 
+    def create_dct(self, name: DctName):
+        dct = Dictionary(name)
+
+        self.opened_dct.append({'dct': dct, 'filepath': None})
+        self.current_dct = len(self.opened_dct) - 1
+
     def open_dct(self, filepath: str):
         ext = os.path.splitext(filepath)[1]
         assert ext in self.allowed_file_ext, f'File extension "{ext}" not supported'
@@ -920,12 +926,6 @@ class Manager:
         dct.deserialize(savedata)
 
         self.opened_dct.append({'dct': dct, 'filepath': filepath})
-        self.current_dct = len(self.opened_dct) - 1
-
-    def create_dct(self, name: DctName):
-        dct = Dictionary(name)
-
-        self.opened_dct.append({'dct': dct, 'filepath': None})
         self.current_dct = len(self.opened_dct) - 1
 
     def switch_dct(self, dct_id: int):
