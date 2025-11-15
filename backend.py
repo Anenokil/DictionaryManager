@@ -89,6 +89,7 @@ class Entry:
             win_streak: Count of consecutive wins.
             latest_att_timestamp: Timestamp of the most recent answer.
         """
+
         self.id = eid
 
         self.lemma = lemma
@@ -127,6 +128,7 @@ class Entry:
         Args:
             new_tr: The translation to add.
         """
+
         if new_tr not in self.tr:
             self.tr.append(new_tr)
             self.count_t += 1
@@ -138,6 +140,7 @@ class Entry:
         Args:
             tr: The translation to delete.
         """
+
         self.tr.remove(tr)
         self.count_t -= 1
 
@@ -149,6 +152,7 @@ class Entry:
             frm_key: The grammatical category pattern for the inflection.
             new_frm: The actual inflected form to add.
         """
+
         if frm_key not in self.forms.keys():
             self.forms[frm_key] = new_frm
             self.count_f += 1
@@ -160,6 +164,7 @@ class Entry:
         Args:
             frm_key: The grammatical category pattern identifying the inflection to remove.
         """
+
         self.forms.pop(frm_key)
         self.count_f -= 1
 
@@ -171,6 +176,7 @@ class Entry:
             new_phr: The phrase or usage example containing the word.
             new_phr_tr: The translation of the phrase.
         """
+
         if new_phr not in self.phrases.keys():
             self.phrases[new_phr] = [new_phr_tr]
             self.count_p += 1
@@ -188,6 +194,7 @@ class Entry:
             phr: The phrase to remove.
             phr_tr: The translation of the phrase to remove.
         """
+
         self.phrases[phr].remove(phr_tr)
         if len(self.phrases[phr]) == 0:
             self.phrases.pop(phr)
@@ -200,6 +207,7 @@ class Entry:
         Args:
             new_note: The note text to add.
         """
+
         if new_note not in self.notes:
             self.notes += [new_note]
             self.count_n += 1
@@ -211,6 +219,7 @@ class Entry:
         Args:
             note: The note text to remove.
         """
+
         self.notes.remove(note)
         self.count_n -= 1
 
@@ -221,6 +230,7 @@ class Entry:
         Args:
             group: The group name to add this entry to.
         """
+
         self.groups.add(group)
 
     def remove_from_group(self, group: Group):
@@ -230,18 +240,17 @@ class Entry:
         Args:
             group: The group name to remove this entry from.
         """
+
         self.groups.remove(group)
 
     def add_to_fav(self):
-        """
-        Mark this entry as favorite.
-        """
+        """Mark this entry as favorite."""
+
         self.fav = True
 
     def remove_from_fav(self):
-        """
-        Remove this entry from favorites.
-        """
+        """Remove this entry from favorites."""
+
         self.fav = False
 
     def delete_ctg_value(self, pos: int, ctg_val: CtgValue):
@@ -252,6 +261,7 @@ class Entry:
             pos: The position (index) of the category in form pattern.
             ctg_val: The category value to be removed.
         """
+
         to_delete = [key for key in self.forms.keys() if key[pos] == ctg_val]
         self.count_f -= len(to_delete)
         for key in to_delete:
@@ -266,6 +276,7 @@ class Entry:
             old_ctg_val: The current category value to be replaced.
             new_ctg_val: The new category value that will replace the old one.
         """
+
         to_rename = [key for key in self.forms.keys() if key[pos] == old_ctg_val]
         for key in to_rename:
             lst = list(key)
@@ -275,9 +286,8 @@ class Entry:
             self.forms.pop(key)
 
     def add_ctg(self):
-        """
-        Add a new empty category to all word forms.
-        """
+        """Add a new empty category to all word forms."""
+
         keys = list(self.forms.keys())
         for key in keys:
             new_key = list(key) + ['']
@@ -295,6 +305,7 @@ class Entry:
         Args:
             pos: The position (index) of the category to be deleted in form pattern.
         """
+
         to_delete = []
         to_edit = []
         for key in self.forms.keys():
@@ -322,6 +333,7 @@ class Entry:
         Args:
             session_number: A tuple representing the session identifier.
         """
+
         self.total_att += 1
         self.correct_att += 1
         self.accuracy_rate = self.correct_att / self.total_att
@@ -341,6 +353,7 @@ class Entry:
         Args:
             session_number: A tuple representing the session identifier.
         """
+
         self.total_att += 1
         self.accuracy_rate = self.correct_att / self.total_att
         if self.win_streak > 0:
@@ -360,6 +373,7 @@ class Entry:
         Args:
             file: A text file object opened for writing where the entry will be printed.
         """
+
         if self.fav:
             file.write('* (Избр.)\n')
         file.write(f'| {self.lemma} - ')
@@ -418,6 +432,7 @@ class Dictionary:
         Args:
             name: The dictionary name.
         """
+
         self.name = name
         self.entries: Entries = dict()
         self.indexes: Indexes = {
@@ -469,6 +484,7 @@ class Dictionary:
             - Total number of translations across all entries in the group;
             - Total number of inflected forms across all entries in the group.
         """
+
         count_e = 0
         count_t = 0
         count_f = 0
@@ -493,6 +509,7 @@ class Dictionary:
             - Total number of translations across favorite entries;
             - Total number of inflected forms across favorite entries.
         """
+
         count_e = 0
         count_t = 0
         count_f = 0
@@ -520,6 +537,7 @@ class Dictionary:
             - Total number of correct attempts (wins) across all entries;
             - Total number of all learning attempts across all entries.
         """
+
         correct = sum(entry.correct_att for entry in self.entries.values())
         total = sum(entry.total_att for entry in self.entries.values())
         return correct, total
@@ -534,6 +552,7 @@ class Dictionary:
         Returns:
             Generator yielding Entry objects.
         """
+
         yield from self.entries.values()
 
     def add_entry(self,
@@ -567,6 +586,7 @@ class Dictionary:
         Returns:
             New entry ID.
         """
+
         self._max_entry_id += 1
         entry_id = self._max_entry_id
 
@@ -835,6 +855,7 @@ class Dictionary:
         Args:
             filepath: The path to the file from which the dictionary will be loaded.
         """
+
         with open(filepath, 'rb') as f:
             save_data = pickle.load(f)
 
@@ -857,6 +878,7 @@ class Dictionary:
             filepath: The path to the file where the dictionary will be saved. The file will be
                       created if it doesn't exist, or overwritten if it exists.
         """
+
         save_data = {
             'version': self.saving_version,
             'data': {
@@ -882,6 +904,7 @@ class Dictionary:
         Args:
             filepath: The path to the text file. The files contents will be overwritten.
         """
+
         with open(filepath, 'w', encoding='utf-8') as file:
             for entry in self.entries.values():
                 entry.print_out(file)
