@@ -230,6 +230,7 @@ class MainWindow(QMainWindow):
         self.tab_widget = QTabWidget()
         self.tab_widget.setTabsClosable(True)
         self.tab_widget.tabCloseRequested.connect(self.close_tab)
+        self.tab_widget.currentChanged.connect(self.on_tab_changed)
         self.tab_widget.setVisible(False)  # Hide initially
         layout.addWidget(self.tab_widget)
 
@@ -273,7 +274,14 @@ class MainWindow(QMainWindow):
             self.tab_widget.setVisible(True)
             self.placeholder.setVisible(False)
 
+    def on_tab_changed(self, index):
+        """Handle tab switching."""
+
+        if index >= 0:
+            self.manager.switch_dct(index)
+
     def close_tab(self, index):
+        self.manager.close_dct(index)
         self.tab_widget.removeTab(index)
 
         # Hide tab widget if no tabs are open
