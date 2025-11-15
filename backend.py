@@ -3,7 +3,7 @@ A module implementing bilingual dictionary.
 By Anenokil
 """
 
-from typing import Iterable, Generator, Mapping, TextIO
+from typing import Any, Iterable, Generator, Mapping, TextIO
 import os
 import pickle
 
@@ -848,19 +848,9 @@ class Dictionary:
         self.indexes['groups'][group_new] = self.indexes['groups'][group_old]
         del self.indexes['groups'][group_old]
 
-    def read(self, filepath: str):
-        """
-        Read the dictionary from the specified file.
-
-        Args:
-            filepath: The path to the file from which the dictionary will be loaded.
-        """
-
-        with open(filepath, 'rb') as f:
-            save_data = pickle.load(f)
-
-        loaded_version = save_data.get('version', 1)
-        data = save_data.get('data', {})
+    def deserialize(self, data: dict[str, Any]):
+        loaded_version = data.get('version', 1)
+        data = data.get('data', {})
 
         self.name = data.get('name', '')
         self.entries = data.get('entries', {})
@@ -870,16 +860,8 @@ class Dictionary:
         self.groups = data.get('groups', [])
         self._max_entry_id = data.get('max_entry_id', 0)
 
-    def save(self, filepath: str):
-        """
-        Save the dictionary to the specified file.
-
-        Args:
-            filepath: The path to the file where the dictionary will be saved. The file will be
-                      created if it doesn't exist, or overwritten if it exists.
-        """
-
-        save_data = {
+    def serialize(self) -> dict[str, Any]:
+        data = {
             'version': self.saving_version,
             'data': {
                 'name': self.name,
@@ -891,9 +873,7 @@ class Dictionary:
                 'max_entry_id': self._max_entry_id,
             }
         }
-
-        with open(filepath, 'wb') as f:
-            pickle.dump(save_data, f)
+        return data
 
     def print_out(self, filepath: str):
         """
@@ -933,8 +913,11 @@ class Manager:
         ext = os.path.splitext(filepath)[1]
         assert ext in self.allowed_file_ext, f'File extension "{ext}" not supported'
 
+        with open(filepath, 'rb') as f:
+            savedata = pickle.load(f)
+
         dct = Dictionary()
-        dct.read(filepath)
+        dct.deserialize(savedata)
 
         self.opened_dct.append({'dct': dct, 'filepath': filepath})
         self.current_dct = len(self.opened_dct) - 1
