@@ -949,7 +949,7 @@ class Manager:
         self.opened_dct[dct_id] = dct
         self.current_dct = dct_id
 
-    def switch_dct(self, dct_id: DctName):
+    def switch_dct(self, dct_id: DctID):
         assert dct_id in self.opened_dct.keys()
 
         self.current_dct = dct_id
