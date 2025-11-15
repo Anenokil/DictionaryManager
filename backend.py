@@ -912,45 +912,41 @@ class Dictionary:
 
 
 # Typing
-DctID = int
-Dictionaries = dict[DctID, Dictionary]
+Dictionaries = list[dict[str, str | Dictionary]]
 
 
 class Manager:
     def __init__(self):
-        self.opened_dct: Dictionaries = {}
-        self.current_dct: DctID | None = None
+        self.opened_dct: Dictionaries = []
+        self.current_dct: int | None = None
         self.allowed_file_ext = ('.pkl',)
-        self._max_dct_id = 0
 
     @property
     def dct(self) -> Dictionary:
-        return self.opened_dct[self.current_dct]
+        return self.opened_dct[self.current_dct]['dct']
+
+    @property
+    def filepath(self) -> str:
+        return self.opened_dct[self.current_dct]['filepath']
 
     def open_dct(self, filepath: str):
         ext = os.path.splitext(filepath)[1]
         assert ext in self.allowed_file_ext, f'File extension "{ext}" not supported'
 
-        self._max_dct_id += 1
-        dct_id = self._max_dct_id
-
         dct = Dictionary()
         dct.read(filepath)
 
-        self.opened_dct[dct_id] = dct
-        self.current_dct = dct_id
+        self.opened_dct.append({'dct': dct, 'filepath': filepath})
+        self.current_dct = len(self.opened_dct) - 1
 
     def create_dct(self, name: DctName):
-        self._max_dct_id += 1
-        dct_id = self._max_dct_id
-
         dct = Dictionary(name)
 
-        self.opened_dct[dct_id] = dct
-        self.current_dct = dct_id
+        self.opened_dct.append({'dct': dct, 'filepath': None})
+        self.current_dct = len(self.opened_dct) - 1
 
-    def switch_dct(self, dct_id: DctID):
-        assert dct_id in self.opened_dct.keys()
+    def switch_dct(self, dct_id: int):
+        assert 0 <= dct_id <= len(self.opened_dct)
 
         self.current_dct = dct_id
 
