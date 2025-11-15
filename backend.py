@@ -454,6 +454,16 @@ class Dictionary:
         self._max_entry_id = 0
 
     def _update_index(self, index_name: str, keys: Iterable[str], entry_id: EntryID, action: str):
+        """
+        Update a search index by adding or removing an entry.
+
+        Args:
+            index_name: Name of the index to update ('lemmas', 'translations', 'forms', or 'groups').
+            keys: Iterable of keys to add or remove from the index.
+            entry_id: ID of the entry to associate with the keys.
+            action: Either 'add' or 'remove'.
+        """
+
         assert index_name in self.indexes.keys()
         assert action in ('add', 'remove')
 
@@ -604,8 +614,17 @@ class Dictionary:
 
         return entry_id
 
-    # Удалить статью
     def delete_entry(self, entry_id: EntryID):
+        """
+        Delete a dictionary entry.
+
+        Removes the entry from the dictionary, updates all indexes, and
+        adjusts counters accordingly.
+
+        Args:
+            entry_id: ID of the entry to delete.
+        """
+
         entry = self.entries[entry_id]
 
         self.counters['lemmas'] -= 1
@@ -621,8 +640,18 @@ class Dictionary:
 
         del self.entries[entry_id]
 
-    # Объединить две статьи с одинаковым словом в одну
     def merge_entries(self, entry_id_1: EntryID, entry_id_2: EntryID):
+        """
+        Merge two entries with the same word into one.
+
+        Combines all data from the second entry into the first entry.
+        The second entry is deleted after merging.
+
+        Args:
+            entry_id_1: ID of the main entry (will be kept).
+            entry_id_2: ID of the entry to merge into the main entry (will be deleted).
+        """
+
         main_entry = self.entries[entry_id_1]
         additional_entry = self.entries[entry_id_2]
 
@@ -662,32 +691,61 @@ class Dictionary:
 
         self.delete_entry(entry_id_2)
 
-    # Добавить перевод к статье
     def add_tr(self, entry_id: EntryID, tr: Translation):
+        """
+        Add a translation to an entry.
+
+        Args:
+            entry_id: ID of the entry.
+            tr: Translation to add.
+        """
+
         entry = self.entries[entry_id]
         self._update_index('translations', [tr], entry_id, 'add')
         self.counters['translations'] -= entry.count_t
         entry.add_tr(tr)
         self.counters['translations'] += entry.count_t
 
-    # Удалить перевод из статьи
     def delete_tr(self, entry_id: EntryID, tr: Translation):
+        """
+        Delete a translation from an entry.
+
+        Args:
+            entry_id: ID of the entry.
+            tr: Translation to delete.
+        """
+
         entry = self.entries[entry_id]
         self._update_index('translations', [tr], entry_id, 'remove')
         self.counters['translations'] -= entry.count_t
         entry.delete_tr(tr)
         self.counters['translations'] += entry.count_t
 
-    # Добавить словоформу к статье
     def add_frm(self, entry_id: EntryID, pattern: FormPattern, frm: Form):
+        """
+        Add an inflected form to an entry.
+
+        Args:
+            entry_id: ID of the entry.
+            pattern: Form pattern for the inflection.
+            frm: The inflected form to add.
+        """
+
         entry = self.entries[entry_id]
         self._update_index('forms', [frm], entry_id, 'add')
         self.counters['forms'] -= entry.count_f
         entry.add_frm(pattern, frm)
         self.counters['forms'] += entry.count_f
 
-    # Удалить словоформу из статьи
     def delete_frm(self, entry_id: EntryID, pattern: FormPattern):
+        """
+        Delete an inflected form from an entry.
+
+        Args:
+            entry_id: ID of the entry.
+            pattern: Form pattern identifying the form to remove.
+        """
+
         entry = self.entries[entry_id]
         self._update_index('forms', entry.forms.values(), entry_id, 'remove')  # Могут быть омоформы
         self.counters['forms'] -= entry.count_f
@@ -695,59 +753,124 @@ class Dictionary:
         self.counters['forms'] += entry.count_f
         self._update_index('forms', entry.forms.values(), entry_id, 'add')
 
-    # Добавить фразу к статье
     def add_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
+        """
+        Add a phrase with its translation to an entry.
+
+        Args:
+            entry_id: ID of the entry.
+            phr: The phrase or usage example.
+            phr_tr: Translation of the phrase.
+        """
+
         entry = self.entries[entry_id]
         self.counters['phrases'] -= entry.count_p
         entry.add_phrase(phr, phr_tr)
         self.counters['phrases'] += entry.count_p
 
-    # Удалить фразу из статьи
     def delete_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
+        """
+        Delete a phrase and its translation from an entry.
+
+        Args:
+            entry_id: ID of the entry.
+            phr: The phrase to remove.
+            phr_tr: The translation of the phrase to remove.
+        """
+
         entry = self.entries[entry_id]
         self.counters['phrases'] -= entry.count_p
         entry.delete_phrase(phr, phr_tr)
         self.counters['phrases'] += entry.count_p
 
-    # Добавить сноску к статье
     def add_note(self, entry_id: EntryID, note: Note):
+        """
+        Add a note to an entry.
+
+        Args:
+            entry_id: ID of the entry.
+            note: Note text to add.
+        """
+
         entry = self.entries[entry_id]
         self.counters['notes'] -= entry.count_n
         entry.add_note(note)
         self.counters['notes'] += entry.count_n
 
-    # Удалить сноску из статьи
     def delete_note(self, entry_id: EntryID, note: Note):
+        """
+        Delete a note from an entry.
+
+        Args:
+            entry_id: ID of the entry.
+            note: Note text to remove.
+        """
+
         entry = self.entries[entry_id]
         self.counters['notes'] -= entry.count_n
         entry.delete_note(note)
         self.counters['notes'] += entry.count_n
 
-    # Добавить выбранные статьи в группу
     def add_entries_to_group(self, group: Group, entry_ids: Iterable[EntryID]):
+        """
+        Add multiple entries to a group.
+
+        Args:
+            group: Group name to add entries to.
+            entry_ids: Iterable of entry IDs to add to the group.
+        """
+
         for entry_id in entry_ids:
             self._update_index('groups', [group], entry_id, 'add')
             self.entries[entry_id].add_to_group(group)
 
-    # Убрать выбранные статьи из группы
     def remove_entries_from_group(self, group: Group, entry_ids: Iterable[EntryID]):
+        """
+        Remove multiple entries from a group.
+
+        Args:
+            group: Group name to remove entries from.
+            entry_ids: Iterable of entry IDs to remove from the group.
+        """
+
         for entry_id in entry_ids:
             if group in self.entries[entry_id].groups:
                 self._update_index('groups', [group], entry_id, 'remove')
                 self.entries[entry_id].remove_from_group(group)
 
-    # Добавить выбранные статьи в избранное
     def fav_entries(self, entry_ids: Iterable[EntryID]):
+        """
+        Mark multiple entries as favorites.
+
+        Args:
+            entry_ids: Iterable of entry IDs to mark as favorites.
+        """
+
         for entry_id in entry_ids:
             self.entries[entry_id].add_to_fav()
 
-    # Убрать выбранные статьи из избранного
     def unfav_entries(self, entry_ids: Iterable[EntryID]):
+        """
+        Remove multiple entries from favorites.
+
+        Args:
+            entry_ids: Iterable of entry IDs to remove from favorites.
+        """
+
         for entry_id in entry_ids:
             self.entries[entry_id].remove_from_fav()
 
-    # Добавить грамматическую категорию
     def add_ctg(self, ctg_name: Category, ctg_values: list[CtgValue]):
+        """
+        Add a new grammatical category to the dictionary.
+
+        Adds an empty category position to all existing word forms in all entries.
+
+        Args:
+            ctg_name: Name of the new category.
+            ctg_values: List of possible values for this category.
+        """
+
         assert ctg_name not in self.features.keys()
 
         for entry in self.entries.values():
@@ -755,8 +878,17 @@ class Dictionary:
 
         self.features[ctg_name] = ctg_values
 
-    # Удалить грамматическую категорию
     def delete_ctg(self, ctg_name: Category):
+        """
+        Delete a grammatical category from the dictionary.
+
+        Removes the category from all word forms. Forms with non-empty values
+        at this category position are deleted entirely.
+
+        Args:
+            ctg_name: Name of the category to delete.
+        """
+
         assert ctg_name in self.features.keys()
 
         index = tuple(self.features.keys()).index(ctg_name)
@@ -769,23 +901,47 @@ class Dictionary:
 
         self.features.pop(ctg_name)
 
-    # Переименовать грамматическую категорию
     def rename_ctg(self, ctg_name_old: Category, ctg_name_new: Category):
+        """
+        Rename a grammatical category.
+
+        Args:
+            ctg_name_old: Current name of the category.
+            ctg_name_new: New name for the category.
+        """
+
         assert ctg_name_old in self.features.keys()
         assert ctg_name_new not in self.features.keys()
 
         self.features[ctg_name_new] = self.features[ctg_name_old].copy()
         self.features.pop(ctg_name_old)
 
-    # Добавить значение грамматической категории
     def add_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
+        """
+        Add a new value to a grammatical category.
+
+        Args:
+            ctg_name: Name of the category.
+            ctg_value: New value to add to the category.
+        """
+
         assert ctg_name in self.features.keys()
         assert ctg_value not in self.features[ctg_name]
 
         self.features[ctg_name] += [ctg_value]
 
-    # Удалить значение грамматической категории
     def delete_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
+        """
+        Delete a value from a grammatical category.
+
+        Removes all word forms that use this category value. If the category
+        has no values left after deletion, the category itself is removed.
+
+        Args:
+            ctg_name: Name of the category.
+            ctg_value: Value to remove from the category.
+        """
+
         assert ctg_name in self.features.keys()
         assert ctg_value in self.features[ctg_name]
 
@@ -801,8 +957,18 @@ class Dictionary:
         if len(self.features[ctg_name]) == 0:  # Если у категории не осталось значений, то она удаляется
             self.delete_ctg(ctg_name)
 
-    # Переименовать значение грамматической категории
     def rename_ctg_value(self, ctg_name: Category, ctg_value_old: CtgValue, ctg_value_new: CtgValue):
+        """
+        Rename a value in a grammatical category.
+
+        Updates all word forms that use the old value to use the new value.
+
+        Args:
+            ctg_name: Name of the category.
+            ctg_value_old: Current value to be replaced.
+            ctg_value_new: New value to replace the old one.
+        """
+
         assert ctg_name in self.features.keys()
         assert ctg_value_old in self.features[ctg_name]
         assert ctg_value_new not in self.features[ctg_name]
@@ -814,14 +980,28 @@ class Dictionary:
         index = self.features[ctg_name].index(ctg_value_old)
         self.features[ctg_name][index] = ctg_value_new
 
-    # Добавить группу
     def add_group(self, group: Group):
+        """
+        Add a new group to the dictionary.
+
+        Args:
+            group: Name of the group to add.
+        """
+
         assert group not in self.groups
 
         self.groups += [group]
 
-    # Удалить группу
     def delete_group(self, group: Group):
+        """
+        Delete a group from the dictionary.
+
+        Removes the group from all entries that belong to it.
+
+        Args:
+            group: Name of the group to delete.
+        """
+
         assert group in self.groups
 
         for entry_id in self.indexes['groups'][group]:
@@ -830,8 +1010,17 @@ class Dictionary:
             entry.remove_from_group(group)
         self.groups.remove(group)
 
-    # Переименовать группу
     def rename_group(self, group_old: Group, group_new: Group):
+        """
+        Rename a group.
+
+        Updates all entries that belong to the old group to use the new name.
+
+        Args:
+            group_old: Current name of the group.
+            group_new: New name for the group.
+        """
+
         assert group_old in self.groups
         assert group_new not in self.groups
 
@@ -846,6 +1035,13 @@ class Dictionary:
         del self.indexes['groups'][group_old]
 
     def serialize(self) -> dict[str, Any]:
+        """
+        Serialize the Dictionary to a dictionary format.
+
+        Returns:
+            Dictionary containing saving version and all dictionary data.
+        """
+
         data = {
             'version': self.saving_version,
             'data': {
@@ -861,6 +1057,13 @@ class Dictionary:
         return data
 
     def deserialize(self, data: dict[str, Any]):
+        """
+        Deserialize Dictionary data from a dictionary format.
+
+        Args:
+            data: Dictionary containing saving version and dictionary data.
+        """
+
         loaded_version = data.get('version', 1)
         data = data.get('data', {})
 
@@ -893,26 +1096,70 @@ Dictionaries = list[dict[str, str | Dictionary]]
 
 
 class Manager:
+    """
+    Manager for multiple dictionary instances.
+
+    Handles opening, closing, switching between, and saving multiple dictionary files.
+    Maintains a list of opened dictionaries and tracks the currently active one.
+    """
+
     def __init__(self):
+        """
+        Initialize the dictionary manager.
+
+        Creates an empty manager with no opened dictionaries.
+        """
+
         self.opened_dct: Dictionaries = []
         self.current_dct: int | None = None
         self.allowed_file_ext = ('.pkl',)
 
     @property
     def dct(self) -> Dictionary:
+        """
+        Get the currently active dictionary.
+
+        Returns:
+            The currently active Dictionary instance.
+        """
+
         return self.opened_dct[self.current_dct]['dct']
 
     @property
     def filepath(self) -> str:
+        """
+        Get the file path of the currently active dictionary.
+
+        Returns:
+            File path of the current dictionary, or None if it's a new unsaved dictionary.
+        """
+
         return self.opened_dct[self.current_dct]['filepath']
 
     def create_dct(self, name: DctName):
+        """
+        Create a new empty dictionary and add it to the manager.
+
+        Args:
+            name: Name for the new dictionary.
+        """
+
         dct = Dictionary(name)
 
         self.opened_dct.append({'dct': dct, 'filepath': None})
         self.current_dct = len(self.opened_dct) - 1
 
     def open_dct(self, filepath: str):
+        """
+        Open a dictionary from a file and add it to the manager.
+
+        Args:
+            filepath: Path to the dictionary file to open.
+
+        Raises:
+            AssertionError: If the file extension is not supported.
+        """
+
         ext = os.path.splitext(filepath)[1]
         assert ext in self.allowed_file_ext, f'File extension "{ext}" not supported'
 
@@ -926,11 +1173,33 @@ class Manager:
         self.current_dct = len(self.opened_dct) - 1
 
     def switch_dct(self, dct_id: int):
+        """
+        Switch to a different dictionary as the active one.
+
+        Args:
+            dct_id: Index of the dictionary to make active.
+
+        Raises:
+            AssertionError: If the dictionary index is out of range.
+        """
+
         assert 0 <= dct_id <= len(self.opened_dct)
 
         self.current_dct = dct_id
 
     def close_dct(self, dct_id: int):
+        """
+        Close a dictionary and remove it from the manager.
+
+        Updates the current dictionary index if necessary.
+
+        Args:
+            dct_id: Index of the dictionary to close.
+
+        Raises:
+            AssertionError: If the dictionary index is out of range.
+        """
+
         assert 0 <= dct_id <= len(self.opened_dct)
 
         if len(self.opened_dct) == 1:
@@ -941,6 +1210,19 @@ class Manager:
         del self.opened_dct[dct_id]
 
     def save_dct(self, dct_id: int, filepath: str | None = None):
+        """
+        Save a dictionary to a file.
+
+        Args:
+            dct_id: Index of the dictionary to save.
+            filepath: Path where to save the dictionary. If None, uses the
+                      dictionary's current filepath.
+
+        Raises:
+            AssertionError: If the dictionary index is out of range.
+            ValueError: If no filepath is specified and the dictionary has none.
+        """
+
         assert 0 <= dct_id <= len(self.opened_dct)
 
         if filepath is None:
@@ -956,6 +1238,13 @@ class Manager:
         self.opened_dct[dct_id]['filepath'] = filepath
 
     def serialize(self) -> dict[str, Any]:
+        """
+        Serialize the manager state to a dictionary format.
+
+        Returns:
+            Dictionary containing manager data.
+        """
+
         data = {
             'opened_dct': self.opened_dct,
             'current_dct': self.current_dct,
@@ -963,10 +1252,28 @@ class Manager:
         return data
 
     def deserialize(self, data: dict[str, Any]):
+        """
+        Deserialize manager state from a dictionary format.
+
+        Args:
+            data: Dictionary containing manager data.
+        """
+
         self.opened_dct = data.get('opened_dct', [])
         self.current_dct = data.get('current_dct', None)
 
 
-# Преобразовать шаблон словоформы в читаемый вид (для вывода на экран)
 def pattern_to_str(pattern: FormPattern) -> str:
+    """
+    Convert a form pattern to a readable string.
+
+    Joins non-empty category values with commas, skipping empty values.
+
+    Args:
+        pattern: Form pattern tuple containing category values.
+
+    Returns:
+        Comma-separated string of non-empty category values.
+    """
+
     return ', '.join(token for token in pattern if token)
