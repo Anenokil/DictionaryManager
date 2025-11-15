@@ -958,6 +958,17 @@ class Manager:
 
         self.opened_dct[dct_id]['filepath'] = filepath
 
+    def serialize(self) -> dict[str, Any]:
+        data = {
+            'opened_dct': self.opened_dct,
+            'current_dct': self.current_dct,
+        }
+        return data
+
+    def deserialize(self, data: dict[str, Any]):
+        self.opened_dct = data.get('opened_dct', [])
+        self.current_dct = data.get('current_dct', None)
+
 
 # Преобразовать шаблон словоформы в читаемый вид (для вывода на экран)
 def pattern_to_str(pattern: FormPattern) -> str:

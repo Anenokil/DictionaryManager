@@ -1,6 +1,7 @@
 from backend import Translations, Forms, Phrases, Entry, Dictionary, Manager, pattern_to_str
 
 import sys
+import pickle
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
     QToolBar, QTabWidget, QMessageBox, QLabel, QMenu,
@@ -8,7 +9,7 @@ from PySide6.QtWidgets import (
     QDialogButtonBox, QFormLayout, QLineEdit, QTextEdit,
     QHeaderView, QAbstractItemView, QFileDialog
 )
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QCloseEvent
 from PySide6.QtCore import Qt
 
 
@@ -191,10 +192,13 @@ class WorkspaceWidget(QWidget):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, savepath: str):
         super().__init__()
         self.setWindowTitle('Dictionary Manager 2.0')
         self.setGeometry(100, 100, 800, 600)
+
+        # Path to save/load app data
+        self.savepath = savepath
 
         # Create dictionary manager instance
         self.manager = Manager()
@@ -239,6 +243,41 @@ class MainWindow(QMainWindow):
         self.placeholder.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.placeholder)
 
+        self.load_state()
+
+    def save_state(self):
+        with open(self.savepath, 'wb') as f:
+            savedata = self.manager.serialize()
+            pickle.dump(savedata, f)
+
+    def load_state(self):
+        try:
+            with open(self.savepath, 'rb') as f:
+                savedata = pickle.load(f)
+            self.manager.deserialize(savedata)
+
+            # Restore tabs for all opened dictionaries
+            if self.manager.opened_dct:
+                # Temporarily disconnect signal to avoid calling switch_dct during restoration
+                self.tab_widget.currentChanged.disconnect()
+
+                for dct_info in self.manager.opened_dct:
+                    dct = dct_info['dct']
+                    self.create_new_tab(dct.name, dct, set_active=False)
+
+                # Restore active tab
+                if self.manager.current_dct is not None:
+                    self.tab_widget.setCurrentIndex(self.manager.current_dct)
+
+                # Reconnect signal
+                self.tab_widget.currentChanged.connect(self.on_tab_changed)
+        except:  # TODO: specify error types
+            pass
+
+    def closeEvent(self, event: QCloseEvent):
+        self.save_state()
+        event.accept()
+
     def show_settings_menu(self):
         pass
 
@@ -259,15 +298,19 @@ class MainWindow(QMainWindow):
         self.manager.create_dct(new_dict_name)
         self.create_new_tab(new_dict_name)
 
-    def create_new_tab(self, title: str):
+    def create_new_tab(self, title: str, dct: Dictionary | None = None, set_active: bool = True):
+        # Use provided dictionary or current one from manager
+        dictionary = dct if dct is not None else self.manager.dct
+
         # Create new workspace
-        workspace = WorkspaceWidget(self.manager.dct)
+        workspace = WorkspaceWidget(dictionary)
 
         # Add tab
         self.tab_widget.addTab(workspace, title)
 
-        # Set new tab as active
-        self.tab_widget.setCurrentIndex(self.tab_widget.count() - 1)
+        # Set new tab as active if requested
+        if set_active:
+            self.tab_widget.setCurrentIndex(self.tab_widget.count() - 1)
 
         # Show tab widget if it was hidden
         if not self.tab_widget.isVisible():
@@ -291,7 +334,9 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == '__main__':
+    savepath = './dct_manager_savedata.pkl'  # TODO: replace with real path
+
     app = QApplication(sys.argv)
-    window = MainWindow()
+    window = MainWindow(savepath)
     window.show()
     sys.exit(app.exec())
