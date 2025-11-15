@@ -280,15 +280,23 @@ class MainWindow(QMainWindow):
         self.settings_action.triggered.connect(self.show_settings_menu)
         self.toolbar.addAction(self.settings_action)
 
+        # Create Dictionaries menu
+        self.dictionaries_menu = QMenu(self)
+
         # Create button to open a dictionary
         self.open_action = QAction('Open', self)
         self.open_action.triggered.connect(self.open_dict)
-        self.toolbar.addAction(self.open_action)
+        self.dictionaries_menu.addAction(self.open_action)
 
         # Create button to create new dictionary
         self.new_action = QAction('New', self)
         self.new_action.triggered.connect(self.new_dict)
-        self.toolbar.addAction(self.new_action)
+        self.dictionaries_menu.addAction(self.new_action)
+
+        # Create Dictionaries button with manual menu handling
+        self.dictionaries_action = QAction('Dictionaries', self)
+        self.dictionaries_action.triggered.connect(self.show_dictionaries_menu)
+        self.toolbar.addAction(self.dictionaries_action)
 
         # Create tab widget
         self.tab_widget = QTabWidget()
@@ -304,6 +312,17 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.placeholder)
 
         self.load_state()
+
+    def show_dictionaries_menu(self):
+        """Show the Dictionaries dropdown menu below the Dictionaries button."""
+
+        # Get the widget for the Dictionaries button
+        button_widget = self.toolbar.widgetForAction(self.dictionaries_action)
+        if button_widget:
+            # Calculate position for the menu - below the button
+            pos = button_widget.mapToGlobal(button_widget.rect().bottomLeft())
+            # Show the menu at this position
+            self.dictionaries_menu.exec(pos)
 
     def save_state(self):
         """
