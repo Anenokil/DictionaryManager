@@ -1115,26 +1115,24 @@ class Manager:
         self.allowed_file_ext = ('.pkl',)
 
     @property
-    def dct(self) -> Dictionary:
+    def dct(self) -> Dictionary | None:
         """
         Get the currently active dictionary.
 
         Returns:
             The currently active Dictionary instance.
         """
-
-        return self.opened_dct[self.current_dct]['dct']
+        return self.opened_dct[self.current_dct]['dct'] if self.current_dct else None
 
     @property
-    def filepath(self) -> str:
+    def filepath(self) -> str | None:
         """
         Get the file path of the currently active dictionary.
 
         Returns:
             File path of the current dictionary, or None if it's a new unsaved dictionary.
         """
-
-        return self.opened_dct[self.current_dct]['filepath']
+        return self.opened_dct[self.current_dct]['filepath'] if self.current_dct else None
 
     def create_dct(self, name: DctName):
         """
