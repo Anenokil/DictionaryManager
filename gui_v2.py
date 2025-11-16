@@ -514,8 +514,8 @@ class MainWindow(QMainWindow):
 
                 # Reconnect signal
                 self.tab_widget.currentChanged.connect(self.on_tab_changed)
-        except:  # TODO: specify error types
-            pass
+        except Exception as e:  # TODO: specify error types
+            print(e)  # TODO: handling
 
     def closeEvent(self, event: QCloseEvent):
         """
