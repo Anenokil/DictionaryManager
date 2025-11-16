@@ -1102,7 +1102,7 @@ class Dictionary:
 
 
 # Typing
-Dictionaries = list[dict[str, str | Dictionary]]
+Dictionaries = list[dict[str, Any]]
 
 
 class Manager:
