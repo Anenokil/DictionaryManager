@@ -572,6 +572,31 @@ class Dictionary:
 
         yield from self.entries.values()
 
+    def search(self, index_name: str, query: str) -> set[EntryID]:
+        """
+        Search for entries in the specified index matching the query.
+
+        Args:
+            index_name: Name of the index to search in. Must be one of:
+                       'lemmas', 'translations', 'forms', 'groups'.
+            query: The search term to look for in the index.
+
+        Returns:
+            Set of entry IDs that match the query in the specified index.
+            Returns empty set if no matches found or index doesn't contain the query.
+
+        Raises:
+            AssertionError: If index_name is not a valid index.
+        """
+
+        assert index_name in self.indexes.keys(), f'No index named "{index_name}"'
+
+        index = self.indexes[index_name]
+        if query in index:
+            return index[query]
+        else:
+            return set()
+
     def add_entry(self,
                   lemma: Word,
                   tr: Translation | Iterable[Translation],
