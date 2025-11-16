@@ -481,6 +481,16 @@ class Dictionary:
                 if not index[key]:
                     index.pop(key)
 
+    def rename(self, new_name: str):
+        """
+        Rename a dictionary.
+
+        Args:
+            new_name: New name of the dictionary.
+        """
+
+        self.name = new_name
+
     def count_entries_in_group(self, group: Group) -> tuple[int, int, int]:
         """
         Count the number of entries, translations, and inflected forms in the specified group.
@@ -1238,6 +1248,17 @@ class Manager:
             pickle.dump(savedata, f)
 
         self.opened_dct[dct_id]['filepath'] = filepath
+
+    def rename_dict(self, dct_id: int, new_name: str):
+        """
+        Rename a dictionary.
+
+        Args:
+            dct_id: Index of the dictionary to rename.
+            new_name: New name of the dictionary.
+        """
+
+        self.opened_dct[dct_id]['dct'].rename(new_name)
 
     def serialize(self) -> dict[str, Any]:
         """
