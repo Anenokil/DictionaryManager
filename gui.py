@@ -5,9 +5,9 @@ import sys
 import pickle
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
-    QToolBar, QTabWidget, QMessageBox, QLabel, QMenu,
+    QToolBar, QTabWidget, QLabel, QMenu,
     QTableWidget, QTableWidgetItem, QDialog,
-    QDialogButtonBox, QFormLayout, QLineEdit, QTextEdit,
+    QDialogButtonBox, QFormLayout, QLineEdit,
     QHeaderView, QAbstractItemView, QFileDialog,
     QInputDialog, QTabBar, QPushButton, QCheckBox,
 )
