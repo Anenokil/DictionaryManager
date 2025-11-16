@@ -1102,7 +1102,7 @@ class Dictionary:
 
 
 # Typing
-Dictionaries = list[dict[str, Any]]
+DictionariesInfo = list[dict[str, Any]]
 
 
 class Manager:
@@ -1120,8 +1120,8 @@ class Manager:
         Creates an empty manager with no opened dictionaries.
         """
 
-        self.opened_dct: Dictionaries = []
-        self.current_dct: int | None = None
+        self.opened_dct_info: DictionariesInfo = []
+        self.current_dct_id: int | None = None
         self.allowed_file_ext = ('.pkl',)
 
     @property
@@ -1134,9 +1134,9 @@ class Manager:
             is currently active.
         """
 
-        if self.current_dct is None:
+        if self.current_dct_id is None:
             return None
-        return self.opened_dct[self.current_dct]['dct']
+        return self.opened_dct_info[self.current_dct_id]['dct']
 
     @property
     def filepath(self) -> str | None:
@@ -1148,9 +1148,9 @@ class Manager:
             active or if it's a new unsaved dictionary.
         """
 
-        if self.current_dct is None:
+        if self.current_dct_id is None:
             return None
-        return self.opened_dct[self.current_dct]['filepath']
+        return self.opened_dct_info[self.current_dct_id]['filepath']
 
     def create_dct(self, name: DctName):
         """
@@ -1162,8 +1162,8 @@ class Manager:
 
         dct = Dictionary(name)
 
-        self.opened_dct.append({'dct': dct, 'filepath': None})
-        self.current_dct = len(self.opened_dct) - 1
+        self.opened_dct_info.append({'dct': dct, 'filepath': None})
+        self.current_dct_id = len(self.opened_dct_info) - 1
 
     def open_dct(self, filepath: str):
         """
@@ -1185,8 +1185,8 @@ class Manager:
         dct = Dictionary()
         dct.deserialize(savedata)
 
-        self.opened_dct.append({'dct': dct, 'filepath': filepath})
-        self.current_dct = len(self.opened_dct) - 1
+        self.opened_dct_info.append({'dct': dct, 'filepath': filepath})
+        self.current_dct_id = len(self.opened_dct_info) - 1
 
     def switch_dct(self, dct_id: int):
         """
@@ -1199,9 +1199,9 @@ class Manager:
             AssertionError: If the dictionary index is out of range.
         """
 
-        assert 0 <= dct_id <= len(self.opened_dct)
+        assert 0 <= dct_id <= len(self.opened_dct_info)
 
-        self.current_dct = dct_id
+        self.current_dct_id = dct_id
 
     def close_dct(self, dct_id: int):
         """
@@ -1216,14 +1216,14 @@ class Manager:
             AssertionError: If the dictionary index is out of range.
         """
 
-        assert 0 <= dct_id <= len(self.opened_dct)
+        assert 0 <= dct_id <= len(self.opened_dct_info)
 
-        if len(self.opened_dct) == 1:
-            self.current_dct = None
-        elif dct_id < self.current_dct:
-            self.current_dct -= 1
+        if len(self.opened_dct_info) == 1:
+            self.current_dct_id = None
+        elif dct_id < self.current_dct_id:
+            self.current_dct_id -= 1
 
-        del self.opened_dct[dct_id]
+        del self.opened_dct_info[dct_id]
 
     def save_dct(self, dct_id: int, filepath: str | None = None):
         """
@@ -1239,10 +1239,10 @@ class Manager:
             ValueError: If no filepath is specified and the dictionary has none.
         """
 
-        assert 0 <= dct_id <= len(self.opened_dct)
+        assert 0 <= dct_id <= len(self.opened_dct_info)
 
         if filepath is None:
-            filepath = self.opened_dct[dct_id]['filepath']
+            filepath = self.opened_dct_info[dct_id]['filepath']
             if filepath is None:
                 raise ValueError('No filepath is specified')
 
@@ -1251,7 +1251,7 @@ class Manager:
         with open(filepath, 'wb') as f:
             pickle.dump(savedata, f)
 
-        self.opened_dct[dct_id]['filepath'] = filepath
+        self.opened_dct_info[dct_id]['filepath'] = filepath
 
     def rename_dict(self, dct_id: int, new_name: str):
         """
@@ -1262,7 +1262,7 @@ class Manager:
             new_name: New name of the dictionary.
         """
 
-        self.opened_dct[dct_id]['dct'].rename(new_name)
+        self.opened_dct_info[dct_id]['dct'].rename(new_name)
 
     def reorder(self, from_index: int, to_index: int):
         """
@@ -1273,19 +1273,19 @@ class Manager:
             to_index: New index of the dictionary.
         """
 
-        target_dct = self.opened_dct[from_index]
-        is_current = from_index == self.current_dct
+        target_dct = self.opened_dct_info[from_index]
+        is_current = from_index == self.current_dct_id
 
-        if not is_current and self.current_dct > from_index:
-            self.current_dct -= 1
+        if not is_current and self.current_dct_id > from_index:
+            self.current_dct_id -= 1
 
-        del self.opened_dct[from_index]
-        self.opened_dct = self.opened_dct[:to_index] + [target_dct] + self.opened_dct[to_index:]
+        del self.opened_dct_info[from_index]
+        self.opened_dct_info = self.opened_dct_info[:to_index] + [target_dct] + self.opened_dct_info[to_index:]
 
         if is_current:
-            self.current_dct = to_index
-        elif self.current_dct > to_index:
-            self.current_dct += 1
+            self.current_dct_id = to_index
+        elif self.current_dct_id > to_index:
+            self.current_dct_id += 1
 
     def serialize(self) -> dict[str, Any]:
         """
@@ -1296,8 +1296,8 @@ class Manager:
         """
 
         data = {
-            'opened_dct': self.opened_dct,
-            'current_dct': self.current_dct,
+            'opened_dct_info': self.opened_dct_info,
+            'current_dct_id': self.current_dct_id,
         }
         return data
 
@@ -1309,8 +1309,8 @@ class Manager:
             data: Dictionary containing manager data.
         """
 
-        self.opened_dct = data.get('opened_dct', [])
-        self.current_dct = data.get('current_dct', None)
+        self.opened_dct_info = data.get('opened_dct_info', [])
+        self.current_dct_id = data.get('current_dct_id', None)
 
 
 def pattern_to_str(pattern: FormPattern) -> str:

@@ -365,17 +365,17 @@ class MainWindow(QMainWindow):
             self.manager.deserialize(savedata)
 
             # Restore tabs for all opened dictionaries
-            if self.manager.opened_dct:
+            if self.manager.opened_dct_info:
                 # Temporarily disconnect signal to avoid calling switch_dct during restoration
                 self.tab_widget.currentChanged.disconnect()
 
-                for dct_info in self.manager.opened_dct:
+                for dct_info in self.manager.opened_dct_info:
                     dct = dct_info['dct']
                     self.create_new_tab(dct.name, dct, set_active=False)
 
                 # Restore active tab
-                if self.manager.current_dct is not None:
-                    self.tab_widget.setCurrentIndex(self.manager.current_dct)
+                if self.manager.current_dct_id is not None:
+                    self.tab_widget.setCurrentIndex(self.manager.current_dct_id)
 
                 # Reconnect signal
                 self.tab_widget.currentChanged.connect(self.on_tab_changed)
@@ -439,10 +439,11 @@ class MainWindow(QMainWindow):
         """
 
         # Use provided dictionary or current one from manager
-        dictionary = dct if dct is not None else self.manager.dct
+        if dct is None:
+            dct = self.manager.dct
 
         # Create new workspace
-        workspace = WorkspaceWidget(dictionary)
+        workspace = WorkspaceWidget(dct)
 
         # Add tab
         self.tab_widget.addTab(workspace, title)
