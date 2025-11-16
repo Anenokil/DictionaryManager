@@ -1,5 +1,6 @@
 from backend import Translations, Forms, Phrases, Entry, Dictionary, Manager, pattern_to_str
 
+from typing import Generator, Collection
 import sys
 import pickle
 from PySide6.QtWidgets import (
@@ -7,10 +8,22 @@ from PySide6.QtWidgets import (
     QToolBar, QTabWidget, QMessageBox, QLabel, QMenu,
     QTableWidget, QTableWidgetItem, QDialog,
     QDialogButtonBox, QFormLayout, QLineEdit, QTextEdit,
-    QHeaderView, QAbstractItemView, QFileDialog, QInputDialog, QTabBar
+    QHeaderView, QAbstractItemView, QFileDialog,
+    QInputDialog, QTabBar, QPushButton, QCheckBox,
 )
 from PySide6.QtGui import QAction, QCloseEvent
 from PySide6.QtCore import Qt
+
+
+def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:
+    for pattern, form in forms.items():
+        yield pattern_to_str(pattern), form
+
+
+def phrases_to_pairs(phrases: Phrases) -> Generator[tuple[str, str], None, None]:
+    for phrase, translations in phrases.items():
+        for tr in translations:
+            yield phrase, tr
 
 
 def translations_to_str(tr: Translations) -> str:
@@ -29,17 +42,9 @@ def phrases_to_str(phrases: Phrases) -> str:
 
 
 class EntryDetailsDialog(QDialog):
-    """Dialog for displaying detailed entry information."""
+    """Dialog for displaying entry information."""
 
     def __init__(self, entry: Entry, parent=None):
-        """
-        Initialize the entry details dialog.
-
-        Args:
-            entry: Dictionary entry to display.
-            parent: Parent widget.
-        """
-
         super().__init__(parent)
         self.setWindowTitle(f'Entry "{entry.lemma}"')
         self.setModal(True)
@@ -48,21 +53,151 @@ class EntryDetailsDialog(QDialog):
         layout = QVBoxLayout(self)
 
         # Form for displaying entry data
-        form_layout = QFormLayout()
+        form_layout = QFormLayout(labelAlignment=Qt.AlignRight | Qt.AlignVCenter)
+
+        # Add entry data fields
+        self.lemma_edit = QLineEdit(entry.lemma)
+        #self.lemma_edit.setReadOnly(True)
+        form_layout.addRow('Lemma:', self.lemma_edit)
+
+        # Translations table
+        translations_label = QLabel('Translations:')
+        self.translations_table = self.create_single_column_table(entry.tr)
+        form_layout.addRow(translations_label, self.translations_table)
+
+        # Forms table
+        forms_label = QLabel('Forms:')
+        self.forms_table = self.create_two_column_table(list(forms_to_pairs(entry.forms)), is_1_col_active=False)
+        form_layout.addRow(forms_label, self.forms_table)
+
+        # Phrases table
+        phrases_label = QLabel('Phrases:')
+        self.phrases_table = self.create_two_column_table(list(phrases_to_pairs(entry.phrases)))
+        form_layout.addRow(phrases_label, self.phrases_table)
+
+        # Notes table
+        notes_label = QLabel('Notes:')
+        self.notes_table = self.create_single_column_table(entry.notes)
+        form_layout.addRow(notes_label, self.notes_table)
+
+        # Groups table
+        groups_label = QLabel('Groups:')
+        self.groups_table = self.create_single_column_table(entry.groups, is_active=False)
+        form_layout.addRow(groups_label, self.groups_table)
+
+        # Fav checkbox
+        fav_label = QLabel('Favorite:')
+        self.fav_checkbox = QCheckBox()
+        self.fav_checkbox.setChecked(entry.fav)
+        form_layout.addRow(fav_label, self.fav_checkbox)
 
         layout.addLayout(form_layout)
 
         # Dialog buttons
-        buttons = QDialogButtonBox(QDialogButtonBox.Ok)
-        buttons.accepted.connect(self.accept)
+        buttons = QDialogButtonBox()
+
+        self.save_button = QPushButton('Save')
+        self.close_button = QPushButton('Close')
+
+        buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
+        buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
+
+        self.save_button.clicked.connect(self.save_and_close)
+        self.close_button.clicked.connect(self.reject)
+
         layout.addWidget(buttons)
+
+    @staticmethod
+    def create_single_column_table(content: Collection[str], is_active: bool = True) -> QTableWidget:
+        """Create a single-column table with the given data."""
+
+        table = QTableWidget()
+
+        # Set up the table with one column
+        table.setColumnCount(1)
+
+        # Hide the horizontal header
+        table.horizontalHeader().setVisible(False)
+
+        # Enable editing if requested
+        if is_active:
+            table.setEditTriggers(QTableWidget.AllEditTriggers)
+        else:
+            table.setEditTriggers(QTableWidget.NoEditTriggers)
+
+        # Set column resize mode
+        header = table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+
+        # Set row count and populate data
+        table.setRowCount(len(content))
+        for row, item in enumerate(content):
+            table_item = QTableWidgetItem(item)
+            table.setItem(row, 0, table_item)
+
+        # Set reasonable size for the table
+        table.setMinimumHeight(30)
+        table.setMinimumWidth(100)
+
+        return table
+
+    @staticmethod
+    def create_two_column_table(content: Collection[tuple[str, str]], is_1_col_active: bool = True) -> QTableWidget:
+        """Create a two-column table with the given data."""
+
+        table = QTableWidget()
+
+        # Set up the table with two columns
+        table.setColumnCount(2)
+
+        # Hide the horizontal header
+        table.horizontalHeader().setVisible(False)
+
+        # Enable editing
+        table.setEditTriggers(QTableWidget.AllEditTriggers)
+
+        # Allow selecting individual cells or rows
+        table.setSelectionBehavior(QTableWidget.SelectItems)
+        table.setSelectionMode(QTableWidget.SingleSelection)
+
+        # Enable smooth scrolling
+        table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+        table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+
+        # Set column resize modes
+        header = table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.Stretch)
+
+        # Set row count and populate data
+        table.setRowCount(len(content))
+        for row, (item1, item2) in enumerate(content):
+            table_item1 = QTableWidgetItem(item1)
+            if is_1_col_active:
+                table_item1.setFlags(table_item1.flags() | Qt.ItemIsEditable)
+            else:
+                table_item1.setFlags(table_item1.flags() & ~Qt.ItemIsEditable)
+            table.setItem(row, 0, table_item1)
+
+            table_item2 = QTableWidgetItem(item2)
+            table_item2.setFlags(table_item2.flags() | Qt.ItemIsEditable)
+            table.setItem(row, 1, table_item2)
+
+        # Set reasonable size for the table
+        table.setMinimumHeight(30)
+        table.setMinimumWidth(120)
+
+        return table
+
+    def save_and_close(self):
+        pass
 
 
 class WorkspaceWidget(QWidget):
     """
     Widget representing a dictionary workspace in a tab.
 
-    Displays dictionary entries in a table format. Provides selection 
+    Displays dictionary entries in a table format. Provides selection
     functionality and status bar with dictionary statistics.
     """
 
