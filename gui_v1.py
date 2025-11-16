@@ -288,7 +288,7 @@ def get_tr(entry: Entry) -> str:
 # Вывести словоформы
 def get_forms(entry: Entry, tab: int = 0) -> str:
     frm_keys = entry.forms.keys()
-    return ('\n' + ' ' * tab).join((f'[{frm_key_to_str_for_print(key)}] {entry.forms[key]}' for key in frm_keys))
+    return ('\n' + ' ' * tab).join((f'[{pattern_to_str(key)}] {entry.forms[key]}' for key in frm_keys))
 
 
 # Вывести переводы фразы
@@ -385,9 +385,9 @@ def get_all_entry_info(entry: Entry, len_str: int, tab: int = 0) -> str:
         res += '-\n'
     else:
         keys = [key for key in entry.forms.keys()]
-        res += f'[{frm_key_to_str_for_print(keys[0])}] {entry.forms[keys[0]]}\n'
+        res += f'[{pattern_to_str(keys[0])}] {entry.forms[keys[0]]}\n'
         for i in range(1, entry.count_f):
-            res += f'             [{frm_key_to_str_for_print(keys[i])}] {entry.forms[keys[i]]}\n'
+            res += f'             [{pattern_to_str(keys[i])}] {entry.forms[keys[i]]}\n'
 
     res += '      Фразы: '
     if entry.count_p == 0:
@@ -434,7 +434,7 @@ def get_tr_with_stat(entry: Entry) -> str:
 
 # Вывести перевод со словоформой и со статистикой
 def get_tr_and_frm_with_stat(entry: Entry, frm_key: FormPattern | list[str]) -> str:
-    res = f'{get_tr(entry)} ({frm_key_to_str_for_print(frm_key)}) {get_entry_stat(entry)}'
+    res = f'{get_tr(entry)} ({pattern_to_str(frm_key)}) {get_entry_stat(entry)}'
     return res
 
 
@@ -2730,7 +2730,7 @@ class EditW(tk.Toplevel):
             self.phr_buttons[i].configure(text=split_text(f'{phr} - {phr_tr}', 35))
         for i in range(frm_count):
             frm = self.forms[i]
-            text = f'[{frm_key_to_str_for_print(frm)}] {_0_global_dct.d[self.dct_key].forms[frm]}'
+            text = f'[{pattern_to_str(frm)}] {_0_global_dct.d[self.dct_key].forms[frm]}'
             self.frm_buttons[i].configure(text=split_text(text, 35))
         for i in range(gr_count):
             gr = self.groups[i]
@@ -2934,7 +2934,7 @@ class AddFormW(tk.Toplevel):
             return
         self.template[index] = val
 
-        self.var_template.set(f'Текущий шаблон словоформы: "{frm_key_to_str_for_print(self.template)}"')
+        self.var_template.set(f'Текущий шаблон словоформы: "{pattern_to_str(self.template)}"')
 
         if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
             btn_disable(self.btn_save)
@@ -2957,7 +2957,7 @@ class AddFormW(tk.Toplevel):
 
         self.template[index] = ''
 
-        self.var_template.set(f'Текущий шаблон словоформы: "{frm_key_to_str_for_print(self.template)}"')
+        self.var_template.set(f'Текущий шаблон словоформы: "{pattern_to_str(self.template)}"')
 
         if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
             btn_disable(self.btn_save)
@@ -4730,7 +4730,7 @@ class LearnW(tk.Toplevel):
         else:
             is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations).lower() in\
                          (tr.lower() for tr in entry.tr)
-        self.check_answer(frm_key_to_str_for_print(entry.tr), is_correct, self.current_key)
+        self.check_answer(pattern_to_str(entry.tr), is_correct, self.current_key)
 
     # Проверка введённой фразы
     def check_phrase(self):
