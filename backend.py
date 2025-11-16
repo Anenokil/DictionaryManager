@@ -1260,6 +1260,29 @@ class Manager:
 
         self.opened_dct[dct_id]['dct'].rename(new_name)
 
+    def reorder(self, from_index: int, to_index: int):
+        """
+        Reorder opened dictionaries.
+
+        Args:
+            from_index: Index of the dictionary to move.
+            to_index: New index of the dictionary.
+        """
+
+        target_dct = self.opened_dct[from_index]
+        is_current = from_index == self.current_dct
+
+        if not is_current and self.current_dct > from_index:
+            self.current_dct -= 1
+
+        del self.opened_dct[from_index]
+        self.opened_dct = self.opened_dct[:to_index] + [target_dct] + self.opened_dct[to_index:]
+
+        if is_current:
+            self.current_dct = to_index
+        elif self.current_dct > to_index:
+            self.current_dct += 1
+
     def serialize(self) -> dict[str, Any]:
         """
         Serialize the manager state to a dictionary format.
