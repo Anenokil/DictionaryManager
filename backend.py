@@ -1134,7 +1134,9 @@ class Manager:
             is currently active.
         """
 
-        return self.opened_dct[self.current_dct]['dct'] if self.current_dct else None
+        if self.current_dct is None:
+            return None
+        return self.opened_dct[self.current_dct]['dct']
 
     @property
     def filepath(self) -> str | None:
@@ -1146,7 +1148,9 @@ class Manager:
             active or if it's a new unsaved dictionary.
         """
 
-        return self.opened_dct[self.current_dct]['filepath'] if self.current_dct else None
+        if self.current_dct is None:
+            return None
+        return self.opened_dct[self.current_dct]['filepath']
 
     def create_dct(self, name: DctName):
         """
