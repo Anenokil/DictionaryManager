@@ -1235,7 +1235,7 @@ class Manager:
         savedata = self.dct.serialize()
 
         with open(filepath, 'wb') as f:
-            pickle.dump(savedata)
+            pickle.dump(savedata, f)
 
         self.opened_dct[dct_id]['filepath'] = filepath
 
