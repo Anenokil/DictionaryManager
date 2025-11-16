@@ -304,12 +304,16 @@ class MainWindow(QMainWindow):
         self.tab_widget.tabCloseRequested.connect(self.close_tab)
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
         self.tab_widget.setVisible(False)  # Hide initially
+        self.tab_widget.setMovable(True)
         layout.addWidget(self.tab_widget)
 
         # Enable double click for renaming tabs
         self.tab_widget.tabBar().setTabButton(0, QTabBar.RightSide, None)
         self.tab_widget.tabBar().setTabButton(0, QTabBar.LeftSide, None)
         self.tab_widget.tabBar().tabBarDoubleClicked.connect(self.rename_dict)
+
+        # Connect signal for tab movement
+        self.tab_widget.tabBar().tabMoved.connect(self.on_tab_moved)
 
         # Create placeholder for empty workspace
         self.placeholder = QLabel('No dictionary open')
@@ -328,6 +332,11 @@ class MainWindow(QMainWindow):
             pos = button_widget.mapToGlobal(button_widget.rect().bottomLeft())
             # Show the menu at this position
             self.dictionaries_menu.exec(pos)
+
+    def on_tab_moved(self, to_index, from_index):
+        """Handle tab movement and update manager."""
+
+        self.manager.reorder(from_index, to_index)
 
     def save_state(self):
         """
