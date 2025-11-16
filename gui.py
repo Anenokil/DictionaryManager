@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QToolBar, QTabWidget, QMessageBox, QLabel, QMenu,
     QTableWidget, QTableWidgetItem, QDialog,
     QDialogButtonBox, QFormLayout, QLineEdit, QTextEdit,
-    QHeaderView, QAbstractItemView, QFileDialog
+    QHeaderView, QAbstractItemView, QFileDialog, QInputDialog, QTabBar
 )
 from PySide6.QtGui import QAction, QCloseEvent
 from PySide6.QtCore import Qt
@@ -306,6 +306,11 @@ class MainWindow(QMainWindow):
         self.tab_widget.setVisible(False)  # Hide initially
         layout.addWidget(self.tab_widget)
 
+        # Enable double click for renaming tabs
+        self.tab_widget.tabBar().setTabButton(0, QTabBar.RightSide, None)
+        self.tab_widget.tabBar().setTabButton(0, QTabBar.LeftSide, None)
+        self.tab_widget.tabBar().tabBarDoubleClicked.connect(self.rename_dict)
+
         # Create placeholder for empty workspace
         self.placeholder = QLabel('No dictionary open')
         self.placeholder.setAlignment(Qt.AlignCenter)
@@ -441,6 +446,26 @@ class MainWindow(QMainWindow):
         if not self.tab_widget.isVisible():
             self.tab_widget.setVisible(True)
             self.placeholder.setVisible(False)
+
+    def rename_dict(self, index):
+        """
+        Rename tab on double click.
+
+        Args:
+            index: Index of the tab, or -1 if no tab is selected.
+        """
+
+        if index >= 0:
+            current_name = self.tab_widget.tabText(index)
+            new_name, ok = QInputDialog.getText(
+                self,
+                'Rename Dictionary',
+                'Enter new dictionary name:',
+                text=current_name
+            )
+            if ok and new_name:
+                self.tab_widget.setTabText(index, new_name)
+                self.manager.rename_dict(index, new_name)
 
     def on_tab_changed(self, index):
         """
