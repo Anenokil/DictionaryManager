@@ -1270,14 +1270,18 @@ def create_dct(savename: str):
     os.mkdir(folder_path)
     filepath = os.path.join(folder_path, DICTIONARY_SAVE_FN)
     dct = Dictionary()
-    dct.save(filepath)
+    save_data = dct.serialize()
+    with open(filepath, 'wb') as f:
+        pickle.dump(save_data, f)
     return dct
 
 
 # Сохранить словарь
 def save_dct(dct: Dictionary, savename: str):
     filepath = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
-    dct.save(filepath)
+    save_data = dct.serialize()
+    with open(filepath, 'wb') as f:
+        pickle.dump(save_data, f)
 
 
 # Предложить сохранение словаря, если есть изменения
@@ -1297,7 +1301,9 @@ def upload_save(window_parent, dct: Dictionary, savename: str, btn_close_text: s
     try:
         check_register, special_combinations, dct.ctg, dct.groups, fav_groups = upload_local_settings(savename)
         #upgrade_dct_save(save_file_path, lambda line: encode_special_combinations(line, special_combinations))  # Если требуется, сохранение обновляется  # TODO
-        dct.read(save_file_path)  # Загрузка словаря
+        with open(save_file_path, 'rb') as f:
+            save_data = pickle.load(f)
+        dct.deserialize(save_data)  # Загрузка словаря
     except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
         print(f'\nСловарь "{savename}" не найден!')
         dct = create_dct(savename)
