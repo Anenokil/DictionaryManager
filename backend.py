@@ -395,7 +395,7 @@ Index = dict[str, set[EntryID]]
 Indexes = dict[str, Index]
 AllFeatures = dict[Category, list[CtgValue]]
 AllGroups = list[Group]
-DctName = str
+DctName = str | None
 
 
 class Dictionary:
@@ -435,7 +435,7 @@ class Dictionary:
 
     _saving_version = 1
 
-    def __init__(self, name: DctName | None = None):
+    def __init__(self, name: DctName = None):
         """
         Initialize a dictionary.
 
@@ -498,14 +498,14 @@ class Dictionary:
                     index.pop(term)
 
     @property
-    def name(self) -> str | None:
+    def name(self) -> DctName:
         return self._name
 
     @name.setter
-    def name(self, new_name: str | None):
+    def name(self, new_name: DctName):
         self.rename(new_name)
 
-    def rename(self, new_name: str):
+    def rename(self, new_name: DctName):
         """
         Rename a dictionary.
 
