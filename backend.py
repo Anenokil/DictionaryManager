@@ -462,6 +462,9 @@ class Dictionary:
         self._groups: AllGroups = []
         self._max_entry_id = 0
 
+    def __getitem__(self, item: EntryID) -> Entry:
+        return self._entries[item]
+
     def _update_index(self,
                       index_name: str,
                       search_terms: str | Iterable[str],
