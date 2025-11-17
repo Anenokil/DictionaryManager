@@ -734,6 +734,26 @@ class Dictionary:
 
         self.delete_entry(entry_id_2)
 
+    def edit_lemma(self, entry_id: EntryID, new_lemma: Word):
+        """
+        Update the lemma of an existing dictionary entry.
+
+        Replaces the current lemma with a new one and updates all relevant indexes
+        to maintain search consistency.
+
+        Args:
+            entry_id: Unique identifier of the entry to modify.
+            new_lemma: New lemma word to assign to the entry.
+
+        Raises:
+            KeyError: If no entry exists with the given entry_id.
+        """
+
+        old_lemma = self.entries[entry_id].lemma
+        self._update_index('lemmas', old_lemma, entry_id, 'remove')
+        self.entries[entry_id].lemma = new_lemma
+        self._update_index('lemmas', new_lemma, entry_id, 'add')
+
     def add_tr(self, entry_id: EntryID, tr: Translation):
         """
         Add a translation to an entry.
