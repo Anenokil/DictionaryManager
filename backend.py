@@ -497,6 +497,14 @@ class Dictionary:
                 if not index[term]:
                     index.pop(term)
 
+    @property
+    def name(self) -> str | None:
+        return self._name
+
+    @name.setter
+    def name(self, new_name: str | None):
+        self.rename(new_name)
+
     def rename(self, new_name: str):
         """
         Rename a dictionary.
