@@ -467,6 +467,7 @@ class Dictionary:
         assert index_name in self.indexes.keys()
         assert action in ('add', 'remove')
 
+        keys = set(keys)
         index = self.indexes[index_name]
 
         if action == 'add':
