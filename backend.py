@@ -454,32 +454,38 @@ class Dictionary:
         self.groups: AllGroups = []
         self._max_entry_id = 0
 
-    def _update_index(self, index_name: str, search_terms: Iterable[str], entry_id: EntryID, action: str):
+    def _update_index(self,
+                      index_name: str,
+                      search_terms: str | Iterable[str],
+                      entry_ids: EntryID | Iterable[EntryID],
+                      action: str):
         """
         Update a search index by adding or removing an entry.
 
         Args:
             index_name: Name of the index to update ('lemmas', 'translations', 'forms', or 'groups').
-            search_terms: Search terms to add or remove from the index.
-            entry_id: ID of the entry to associate with the search terms.
+            search_terms: One or more search terms to add to or remove from the index.
+            entry_ids: One or more entry IDs to associate with the search terms.
             action: Either 'add' or 'remove'.
         """
 
         assert index_name in self.indexes.keys()
         assert action in ('add', 'remove')
 
-        search_terms = set(search_terms)
+        search_terms = {search_terms} if isinstance(search_terms, str) else set(search_terms)
+        entry_ids = {entry_ids} if isinstance(entry_ids, EntryID) else set(entry_ids)
+
         index = self.indexes[index_name]
 
         if action == 'add':
             for term in search_terms:
                 if term in index:
-                    index[term].add(entry_id)
+                    index[term].update(entry_ids)
                 else:
-                    index[term] = {entry_id}
+                    index[term] = set(entry_ids)
         else:
             for term in search_terms:
-                index[term].remove(entry_id)
+                index[term].difference_update(entry_ids)
                 if not index[term]:
                     index.pop(term)
 
@@ -638,7 +644,7 @@ class Dictionary:
                                        correct_att, win_streak, latest_att_timestamp)
         entry = self.entries[entry_id]
 
-        self._update_index('lemmas', [lemma], entry_id, 'add')
+        self._update_index('lemmas', lemma, entry_id, 'add')
         self._update_index('translations', tr, entry_id, 'add')
         self._update_index('forms', forms.values(), entry_id, 'add')
         self._update_index('groups', groups, entry_id, 'add')
@@ -670,7 +676,7 @@ class Dictionary:
         self.counters['phrases']      -= entry.count_p
         self.counters['notes']        -= entry.count_n
 
-        self._update_index('lemmas', [entry.lemma], entry_id, 'remove')
+        self._update_index('lemmas', entry.lemma, entry_id, 'remove')
         self._update_index('translations', entry.tr, entry_id, 'remove')
         self._update_index('forms', entry.forms.values(), entry_id, 'remove')
         self._update_index('groups', entry.groups, entry_id, 'remove')
@@ -692,7 +698,7 @@ class Dictionary:
         main_entry = self.entries[entry_id_1]
         additional_entry = self.entries[entry_id_2]
 
-        self._update_index('lemmas', [additional_entry.lemma], entry_id_1, 'add')
+        self._update_index('lemmas', additional_entry.lemma, entry_id_1, 'add')
         self._update_index('translations', additional_entry.tr, entry_id_1, 'add')
         self._update_index('forms', additional_entry.forms.values(), entry_id_1, 'add')
         self._update_index('groups', additional_entry.groups, entry_id_1, 'add')
@@ -738,7 +744,7 @@ class Dictionary:
         """
 
         entry = self.entries[entry_id]
-        self._update_index('translations', [tr], entry_id, 'add')
+        self._update_index('translations', tr, entry_id, 'add')
         self.counters['translations'] -= entry.count_t
         entry.add_tr(tr)
         self.counters['translations'] += entry.count_t
@@ -753,7 +759,7 @@ class Dictionary:
         """
 
         entry = self.entries[entry_id]
-        self._update_index('translations', [tr], entry_id, 'remove')
+        self._update_index('translations', tr, entry_id, 'remove')
         self.counters['translations'] -= entry.count_t
         entry.delete_tr(tr)
         self.counters['translations'] += entry.count_t
@@ -769,7 +775,7 @@ class Dictionary:
         """
 
         entry = self.entries[entry_id]
-        self._update_index('forms', [frm], entry_id, 'add')
+        self._update_index('forms', frm, entry_id, 'add')
         self.counters['forms'] -= entry.count_f
         entry.add_frm(pattern, frm)
         self.counters['forms'] += entry.count_f
@@ -858,7 +864,7 @@ class Dictionary:
         """
 
         for entry_id in entry_ids:
-            self._update_index('groups', [group], entry_id, 'add')
+            self._update_index('groups', group, entry_id, 'add')
             self.entries[entry_id].add_to_group(group)
 
     def remove_entries_from_group(self, group: Group, entry_ids: Iterable[EntryID]):
@@ -872,7 +878,7 @@ class Dictionary:
 
         for entry_id in entry_ids:
             if group in self.entries[entry_id].groups:
-                self._update_index('groups', [group], entry_id, 'remove')
+                self._update_index('groups', group, entry_id, 'remove')
                 self.entries[entry_id].remove_from_group(group)
 
     def fav_entries(self, entry_ids: Iterable[EntryID]):
@@ -1044,7 +1050,7 @@ class Dictionary:
 
         for entry_id in self.indexes['groups'][group]:
             entry = self.entries[entry_id]
-            self._update_index('groups', [group], entry_id, 'remove')
+            self._update_index('groups', group, entry_id, 'remove')
             entry.remove_from_group(group)
         del self.indexes['groups'][group]
         self.groups.remove(group)
