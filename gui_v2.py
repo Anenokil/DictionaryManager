@@ -277,7 +277,7 @@ class WorkspaceWidget(QWidget):
         """
 
         # Set row count
-        n_entries = self.dct.counters['lemmas']
+        n_entries = self.dct.count('lemmas')
         self.table_widget.setRowCount(n_entries)
 
         # Add entries to table
@@ -344,9 +344,9 @@ class WorkspaceWidget(QWidget):
         and tooltip with full descriptions.
         """
 
-        n_entries = self.dct.counters['lemmas']
-        n_translations = self.dct.counters['translations']
-        n_forms = self.dct.counters['forms']
+        n_entries = self.dct.count('lemmas')
+        n_translations = self.dct.count('translations')
+        n_forms = self.dct.count('forms')
 
         status_text = f'{n_entries} E, {n_translations} T, {n_forms} F'
         tooltip_text = f'{n_entries} entries, {n_translations} translations, {n_forms} forms'

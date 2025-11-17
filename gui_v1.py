@@ -549,14 +549,14 @@ def random_smart(
 ) -> tuple[EntryID, FormPattern | None, str | None] | None:
     summ = 0
     for (key, frm, phr) in pool:
-        entry = dct.entries[key]
+        entry = dct[key]
         score = (100 - round(100 * entry.accuracy_rate)) + 1
         score += 100 // (entry.total_att + 1)
         summ += round(score)
 
     r = random.randint(1, summ)
     for (key, frm, phr) in pool:
-        entry = dct.entries[key]
+        entry = dct[key]
         score = (100 - round(100 * entry.accuracy_rate)) + 1
         score += 100 // (entry.total_att + 1)
         r -= round(score)
@@ -677,7 +677,7 @@ def set_postfix(n: int, wrd_forms: tuple[str, str, str]) -> str:
 
 # Выбрать одну статью из нескольких с одинаковыми словами
 def choose_one_of_similar_entries(dct: Dictionary, window_parent, lemma: str):
-    homograph_ids = dct.search('lemmas', lemma)
+    homograph_ids = dct.search([('lemmas', lemma)])
     if len(homograph_ids) == 1:  # Если статья только одна, то возвращает её ключ
         return homograph_ids.pop()
     window_entries = ChooseOneOfSimilarEntriesW(window_parent, lemma)
@@ -689,7 +689,7 @@ def choose_one_of_similar_entries(dct: Dictionary, window_parent, lemma: str):
 
 # Изменить слово в статье
 def edit_wrd_with_choose(dct: Dictionary, window_parent, key: EntryID, new_wrd: str) -> tuple[EntryID | None, bool]:
-    if dct.search('lemmas', new_wrd):  # Если в словаре уже есть статья с таким словом
+    if dct.search([('lemmas', new_wrd)]):  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                'Что вы хотите сделать?',
                                 'Добавить к существующей статье', 'Оставить отдельной статьёй',
@@ -714,7 +714,7 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, key: EntryID, new_wrd: 
 
 # Добавить статью в словарь (для пользователя)
 def add_entry_with_choose(dct: Dictionary, window_parent, lemma: str, tr: str) -> EntryID | None:
-    if dct.search('lemmas', lemma):  # Если в словаре уже есть статья с таким словом
+    if dct.search([('lemmas', lemma)]):  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                'Что вы хотите сделать?',
                                 'Добавить к существующей статье', 'Создать новую статью',
@@ -848,7 +848,7 @@ def search_entries(dct: Dictionary, dct_keys: tuple[EntryID, ...], query: str,
     query_s = simplify(query)[0].replace('ё', 'е')
     results = [set() for _ in range(9)]
     for key in dct_keys:
-        entry = dct.entries[key]
+        entry = dct[key]
 
         # Все фразы и переводы фраз для данной статьи
         phrases = list(entry.phrases.keys())
@@ -1294,7 +1294,7 @@ def save_dct_if_has_progress(window_parent, dct: Dictionary, savename: str, has_
 def upload_save(window_parent, dct: Dictionary, savename: str, btn_close_text: str):
     save_file_path = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
     try:
-        check_register, special_combinations, dct.features, dct.groups, fav_groups = upload_local_settings(savename)
+        check_register, special_combinations, dct._features, dct._groups, fav_groups = upload_local_settings(savename)
         #upgrade_dct_save(save_file_path, lambda line: encode_special_combinations(line, special_combinations))  # Если требуется, сохранение обновляется  # TODO
         with open(save_file_path, 'rb') as f:
             save_data = pickle.load(f)
@@ -1302,7 +1302,7 @@ def upload_save(window_parent, dct: Dictionary, savename: str, btn_close_text: s
     except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
         print(f'\nСловарь "{savename}" не найден!')
         dct = create_dct(savename)
-        check_register, special_combinations, dct.features, dct.groups, fav_groups = upload_local_settings(savename)
+        check_register, special_combinations, dct._features, dct._groups, fav_groups = upload_local_settings(savename)
         print('Создан и загружен пустой словарь')
         return savename, check_register, special_combinations, fav_groups
     except Exception as exc:  # Если сохранение повреждено, то предлагается загрузить другое
@@ -2138,10 +2138,10 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
     # Вывод вариантов
     def print(self):
         # Вывод вариантов
-        keys = _0_global_dct.search('lemmas', self.search_wrd)
+        keys = _0_global_dct.search([('lemmas', self.search_wrd)])
         for i, key in enumerate(keys):
             self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
-                                            text=get_all_entry_info(_0_global_dct.entries[key], 75, 13),
+                                            text=get_all_entry_info(_0_global_dct[key], 75, 13),
                                             command=lambda key=key: self.choose_entry(key),
                                             takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton')]
 
@@ -2249,7 +2249,7 @@ class EditW(tk.Toplevel):
         self.max_height_n = 3
         self.max_height_g = 3
 
-        self.var_fav = tk.BooleanVar(value=_0_global_dct.entries[key].fav)
+        self.var_fav = tk.BooleanVar(value=_0_global_dct[key].fav)
 
         self.img_edit = tk.PhotoImage()
         self.img_add = tk.PhotoImage()
@@ -2386,14 +2386,14 @@ class EditW(tk.Toplevel):
     def wrd_edt(self):
         global _0_global_has_progress
 
-        window = PopupEntryW(self, 'Введите новое слово', default_value=_0_global_dct.entries[self.dct_key].lemma,
+        window = PopupEntryW(self, 'Введите новое слово', default_value=_0_global_dct[self.dct_key].lemma,
                              check_answer_function=lambda wnd, val:
                              check_not_void(wnd, val, 'Слово должно содержать хотя бы один символ!'))
         closed, new_wrd = window.open()
         if closed:
             return
         new_wrd = encode_special_combinations(new_wrd, _0_global_special_combinations)
-        if new_wrd == _0_global_dct.entries[self.dct_key].lemma:
+        if new_wrd == _0_global_dct[self.dct_key].lemma:
             return
 
         new_key, has_progres = edit_wrd_with_choose(_0_global_dct, self, self.dct_key, new_wrd)
@@ -2410,7 +2410,7 @@ class EditW(tk.Toplevel):
 
         window = PopupEntryW(self, 'Введите новый перевод',
                              check_answer_function=lambda wnd, val:
-                             check_tr(wnd, _0_global_dct.entries[self.dct_key].tr, val, _0_global_dct.entries[self.dct_key].lemma))
+                             check_tr(wnd, _0_global_dct[self.dct_key].tr, val, _0_global_dct[self.dct_key].lemma))
         closed, tr = window.open()
         if closed:
             return
@@ -2427,7 +2427,7 @@ class EditW(tk.Toplevel):
 
         window = PopupEntryW(self, 'Введите новый перевод', default_value=tr,
                              check_answer_function=lambda wnd, val:
-                             check_tr_edit(wnd, _0_global_dct.entries[self.dct_key].tr, tr, val, _0_global_dct.entries[self.dct_key].lemma))
+                             check_tr_edit(wnd, _0_global_dct[self.dct_key].tr, tr, val, _0_global_dct[self.dct_key].lemma))
         closed, new_tr = window.open()
         if closed:
             return
@@ -2479,7 +2479,7 @@ class EditW(tk.Toplevel):
         global _0_global_has_progress
 
         window_entry = PopupEntryW(self, 'Введите новую форму слова',
-                                   default_value=_0_global_dct.entries[self.dct_key].forms[frm_key],
+                                   default_value=_0_global_dct[self.dct_key].forms[frm_key],
                                    check_answer_function=lambda wnd, val:
                                    check_not_void(wnd, val, 'Словоформа должна содержать хотя бы один символ!'))
         closed, new_frm = window_entry.open()
@@ -2487,7 +2487,7 @@ class EditW(tk.Toplevel):
             return
         new_frm = encode_special_combinations(new_frm, _0_global_special_combinations)
 
-        _0_global_dct.entries[self.dct_key].forms[frm_key] = new_frm
+        _0_global_dct[self.dct_key].forms[frm_key] = new_frm
 
         _0_global_has_progress = True
         self.refresh(False)
@@ -2507,7 +2507,7 @@ class EditW(tk.Toplevel):
 
         window = AddPhraseW(self, 'Добавление фразы',
                             check_answer_function=lambda wnd, val:
-                            check_phr(wnd, _0_global_dct.entries[self.dct_key].phrases, val, _0_global_dct.entries[self.dct_key].lemma))
+                            check_phr(wnd, _0_global_dct[self.dct_key].phrases, val, _0_global_dct[self.dct_key].lemma))
         closed, phr, phr_tr = window.open()
         if closed:
             return
@@ -2527,8 +2527,8 @@ class EditW(tk.Toplevel):
 
         window = AddPhraseW(self, 'Изменение фразы', default_value=(phr, phr_tr),
                             check_answer_function=lambda wnd, val:
-                            check_phr_edit(wnd, _0_global_dct.entries[self.dct_key].phrases, (phr, phr_tr), val,
-                                           _0_global_dct.entries[self.dct_key].lemma))
+                            check_phr_edit(wnd, _0_global_dct[self.dct_key].phrases, (phr, phr_tr), val,
+                                           _0_global_dct[self.dct_key].lemma))
         closed, new_phr, new_phr_tr = window.open()
         if closed:
             return
@@ -2557,7 +2557,7 @@ class EditW(tk.Toplevel):
 
         window = PopupEntryW(self, 'Введите сноску',
                              check_answer_function=lambda wnd, val:
-                             check_note(wnd, _0_global_dct.entries[self.dct_key].notes, val, _0_global_dct.entries[self.dct_key].lemma))
+                             check_note(wnd, _0_global_dct[self.dct_key].notes, val, _0_global_dct[self.dct_key].lemma))
         closed, note = window.open()
         if closed:
             return
@@ -2574,8 +2574,8 @@ class EditW(tk.Toplevel):
 
         window = PopupEntryW(self, 'Введите сноску', default_value=note,
                              check_answer_function=lambda wnd, val:
-                             check_note_edit(wnd, _0_global_dct.entries[self.dct_key].notes, note, val,
-                                             _0_global_dct.entries[self.dct_key].lemma))
+                             check_note_edit(wnd, _0_global_dct[self.dct_key].notes, note, val,
+                                             _0_global_dct[self.dct_key].lemma))
         closed, new_note = window.open()
         if closed:
             return
@@ -2605,7 +2605,7 @@ class EditW(tk.Toplevel):
                           'Чтобы их добавить, перейдите в\n'
                           'Настройки/Настройки открытого словаря/Группы')
             return
-        values = [group for group in _0_global_dct.groups if group not in _0_global_dct.entries[self.dct_key].groups]
+        values = [group for group in _0_global_dct.groups if group not in _0_global_dct[self.dct_key].groups]
         if not values:
             warning(self, 'Статья уже добавлена во все группы')
             return
@@ -2632,7 +2632,7 @@ class EditW(tk.Toplevel):
 
     # Добавить в избранное/убрать из избранного
     def set_fav(self):
-        _0_global_dct.entries[self.dct_key].fav = self.var_fav.get()
+        _0_global_dct[self.dct_key].fav = self.var_fav.get()
 
     # Удалить статью
     def delete(self):
@@ -2654,10 +2654,10 @@ class EditW(tk.Toplevel):
         # Обновляем поле со словом
         self.txt_wrd['state'] = 'normal'
         self.txt_wrd.delete(1.0, tk.END)
-        self.txt_wrd.insert(tk.END, _0_global_dct.entries[self.dct_key].lemma)
+        self.txt_wrd.insert(tk.END, _0_global_dct[self.dct_key].lemma)
         self.txt_wrd['state'] = 'disabled'
         #
-        height_w = max(min(field_height(_0_global_dct.entries[self.dct_key].lemma, self.line_width), self.max_height_w), 1)
+        height_w = max(min(field_height(_0_global_dct[self.dct_key].lemma, self.line_width), self.max_height_w), 1)
         self.txt_wrd['height'] = height_w
         #
         if height_w < self.max_height_w:
@@ -2677,14 +2677,14 @@ class EditW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем содержимое
-        self.translations = [tr for tr in _0_global_dct.entries[self.dct_key].tr]
-        self.notes = [nt for nt in _0_global_dct.entries[self.dct_key].notes]
+        self.translations = [tr for tr in _0_global_dct[self.dct_key].tr]
+        self.notes = [nt for nt in _0_global_dct[self.dct_key].notes]
         self.phrases = []
-        for phr in _0_global_dct.entries[self.dct_key].phrases.keys():
-            for pt in _0_global_dct.entries[self.dct_key].phrases[phr]:
+        for phr in _0_global_dct[self.dct_key].phrases.keys():
+            for pt in _0_global_dct[self.dct_key].phrases[phr]:
                 self.phrases += [(phr, pt)]
-        self.forms = [frm for frm in _0_global_dct.entries[self.dct_key].forms.keys()]
-        self.groups = [gr for gr in _0_global_dct.entries[self.dct_key].groups]
+        self.forms = [frm for frm in _0_global_dct[self.dct_key].forms.keys()]
+        self.groups = [gr for gr in _0_global_dct[self.dct_key].groups]
         tr_count = len(self.translations)
         nt_count = len(self.notes)
         phr_count = len(self.phrases)
@@ -2730,7 +2730,7 @@ class EditW(tk.Toplevel):
             self.phr_buttons[i].configure(text=split_text(f'{phr} - {phr_tr}', 35))
         for i in range(frm_count):
             frm = self.forms[i]
-            text = f'[{pattern_to_str(frm)}] {_0_global_dct.entries[self.dct_key].forms[frm]}'
+            text = f'[{pattern_to_str(frm)}] {_0_global_dct[self.dct_key].forms[frm]}'
             self.frm_buttons[i].configure(text=split_text(text, 35))
         for i in range(gr_count):
             gr = self.groups[i]
@@ -2866,7 +2866,7 @@ class AddFormW(tk.Toplevel):
         self.var_ctg = tk.StringVar(value=self.categories[0])
         self.var_val = tk.StringVar(value=self.ctg_values[0])
         self.var_template = tk.StringVar(value='Текущий шаблон словоформы: ""')
-        self.var_form = tk.StringVar(value=_0_global_dct.entries[self.key].lemma)
+        self.var_form = tk.StringVar(value=_0_global_dct[self.key].lemma)
 
         self.img_ok = tk.PhotoImage()
         self.img_none = tk.PhotoImage()
@@ -2973,8 +2973,8 @@ class AddFormW(tk.Toplevel):
 
     # Сохранить словоформу
     def save(self):
-        if tuple(self.template) in _0_global_dct.entries[self.key].forms.keys():
-            warning(self, f'У слова "{_0_global_dct.entries[self.key].lemma}" уже есть форма с таким шаблоном!')
+        if tuple(self.template) in _0_global_dct[self.key].forms.keys():
+            warning(self, f'У слова "{_0_global_dct[self.key].lemma}" уже есть форма с таким шаблоном!')
             return
         if self.var_form.get() == '':
             warning(self, 'Словоформа должна содержать хотя бы один символ!')
@@ -3009,7 +3009,7 @@ class AddFormW(tk.Toplevel):
             return None, None
         if self.template == self.void_template:
             return None, None
-        if tuple(self.template) in _0_global_dct.entries[self.key].forms.keys():
+        if tuple(self.template) in _0_global_dct[self.key].forms.keys():
             return None, None
         return tuple(self.template), self.var_form.get()
 
@@ -4413,7 +4413,7 @@ class LearnW(tk.Toplevel):
         self.choose()
 
         if self.current_key:
-            entry = _0_global_dct.entries[self.current_key]
+            entry = _0_global_dct[self.current_key]
             if entry.count_n == 0 or self.learn_method in LEARN_VALUES_METHOD[2:4]:
                 btn_disable(self.btn_show_notes)
             if not self.homonyms or self.learn_method in LEARN_VALUES_METHOD[2:4]:
@@ -4438,50 +4438,50 @@ class LearnW(tk.Toplevel):
     def create_pool(self):
         if self.learn_method == LEARN_VALUES_METHOD[4]:  # Если надо, оставляем только слова с der/die/das
             all_keys = []
-            for key in _0_global_dct.entries.keys():
-                lemma = _0_global_dct.entries[key].lemma
+            for key in _0_global_dct.get_entry_ids():
+                lemma = _0_global_dct[key].lemma
                 if len(lemma) > 4 and lemma[0:4].lower() in ('der ', 'die ', 'das '):
                     all_keys += [key]
         else:
-            all_keys = list(_0_global_dct.entries.keys())
+            all_keys = list(_0_global_dct.get_entry_ids())
         # Если надо, оставляем только слова из нужной группы
         if self.group != ALL_GROUPS:
-            all_keys = [key for key in all_keys if self.group in _0_global_dct.entries[key].groups]
+            all_keys = [key for key in all_keys if self.group in _0_global_dct[key].groups]
         # Если надо, оставляем только слова, у которых есть словоформы
         if self.forms == LEARN_VALUES_FORMS[2]:
-            all_keys = [key for key in all_keys if _0_global_dct.entries[key].count_f != 0]
+            all_keys = [key for key in all_keys if _0_global_dct[key].count_f != 0]
 
         if self.words == LEARN_VALUES_WORDS[0]:  # Учить все слова
             selected_keys = all_keys
         elif self.words == LEARN_VALUES_WORDS[1]:  # Учить преимущественно избранные слова
-            selected_keys = [key for key in all_keys if _0_global_dct.entries[key].fav]
+            selected_keys = [key for key in all_keys if _0_global_dct[key].fav]
 
             # Помимо всех избранных слов (пусть их количество N) добавим N // 4 остальных слов
             # Выберем их из самых давно не отвечаемых слов
 
             # Отбираем слова, не являющиеся избранными
-            unfav_keys = [k for k in all_keys if not _0_global_dct.entries[k].fav]
+            unfav_keys = [k for k in all_keys if not _0_global_dct[k].fav]
             # Сортируем по давности ответа
-            unfav_keys.sort(key=lambda k: _0_global_dct.entries[k].latest_att_timestamp)
+            unfav_keys.sort(key=lambda k: _0_global_dct[k].latest_att_timestamp)
             # Находим N // 4
             count_unfav_keys = min(len(unfav_keys), _0_global_dct.count_fav_entries()[0] // 4)
             # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
-            latest_date = _0_global_dct.entries[unfav_keys[count_unfav_keys - 1]].latest_att_timestamp
+            latest_date = _0_global_dct[unfav_keys[count_unfav_keys - 1]].latest_att_timestamp
             # Оставляем только слова с номером сессии <= S
-            unfav_keys = [k for k in unfav_keys if _0_global_dct.entries[k].latest_att_timestamp[0:2] <= latest_date[0:2]]
+            unfav_keys = [k for k in unfav_keys if _0_global_dct[k].latest_att_timestamp[0:2] <= latest_date[0:2]]
             # Перемешиваем их
             random.shuffle(unfav_keys)
             # И выбираем из них N // 4 слов
             for i in range(count_unfav_keys):
                 selected_keys += [unfav_keys[i]]
         elif self.words == LEARN_VALUES_WORDS[2]:  # Учить только избранные слова
-            selected_keys = [key for key in all_keys if _0_global_dct.entries[key].fav]
+            selected_keys = [key for key in all_keys if _0_global_dct[key].fav]
         elif self.words == LEARN_VALUES_WORDS[3]:  # Учить только неотвеченные слова
-            selected_keys = [key for key in all_keys if _0_global_dct.entries[key].correct_att == 0]
+            selected_keys = [key for key in all_keys if _0_global_dct[key].correct_att == 0]
         elif self.words == LEARN_VALUES_WORDS[4]:  # Учить 10 случайных слов
             selected_keys = random.sample(all_keys, min(len(all_keys), 10))
         else:  # Учить 10 случайных избранных слов
-            all_keys = [key for key in all_keys if _0_global_dct.entries[key].fav]
+            all_keys = [key for key in all_keys if _0_global_dct[key].fav]
             selected_keys = random.sample(all_keys, min(len(all_keys), 10))
 
         selected_forms = []
@@ -4490,22 +4490,22 @@ class LearnW(tk.Toplevel):
                 selected_forms += [(key, None)]
         elif self.forms == LEARN_VALUES_FORMS[1]:
             for key in selected_keys:
-                forms = tuple([None]) + tuple(_0_global_dct.entries[key].forms.keys())
+                forms = tuple([None]) + tuple(_0_global_dct[key].forms.keys())
                 selected_forms += [(key, random.choice(forms))]
         elif self.forms == LEARN_VALUES_FORMS[2]:
             for key in selected_keys:
-                for frm in _0_global_dct.entries[key].forms.keys():
+                for frm in _0_global_dct[key].forms.keys():
                     selected_forms += [(key, frm)]
         else:
             for key in selected_keys:
                 selected_forms += [(key, None)]
-                for frm in _0_global_dct.entries[key].forms.keys():
+                for frm in _0_global_dct[key].forms.keys():
                     selected_forms += [(key, frm)]
 
         selected_phrases = []
         if self.learn_method in LEARN_VALUES_METHOD[2:4]:
             for (key, frm) in selected_forms:
-                for phr in _0_global_dct.entries[key].phrases.keys():
+                for phr in _0_global_dct[key].phrases.keys():
                     selected_phrases += [(key, frm, phr)]
         else:
             for (key, frm) in selected_forms:
@@ -4533,38 +4533,38 @@ class LearnW(tk.Toplevel):
         # Вывод слова в журнал
         if self.learn_method == LEARN_VALUES_METHOD[0]:
             if self.forms and self.current_form:
-                self.outp(get_tr_and_frm_with_stat(_0_global_dct.entries[self.current_key], self.current_form))
+                self.outp(get_tr_and_frm_with_stat(_0_global_dct[self.current_key], self.current_form))
             else:
-                self.outp(get_tr_with_stat(_0_global_dct.entries[self.current_key]))
+                self.outp(get_tr_with_stat(_0_global_dct[self.current_key]))
         elif self.learn_method == LEARN_VALUES_METHOD[1]:
-            self.outp(get_wrd_with_stat(_0_global_dct.entries[self.current_key]))
+            self.outp(get_wrd_with_stat(_0_global_dct[self.current_key]))
         elif self.learn_method == LEARN_VALUES_METHOD[2]:
-            self.outp(get_phr_tr_with_stat(_0_global_dct.entries[self.current_key], self.current_phrase))
+            self.outp(get_phr_tr_with_stat(_0_global_dct[self.current_key], self.current_phrase))
         elif self.learn_method == LEARN_VALUES_METHOD[3]:
-            self.outp(get_phr_with_stat(_0_global_dct.entries[self.current_key], self.current_phrase))
+            self.outp(get_phr_with_stat(_0_global_dct[self.current_key], self.current_phrase))
         else:
-            self.outp(get_wrd_with_stat(_0_global_dct.entries[self.current_key])[4:])
+            self.outp(get_wrd_with_stat(_0_global_dct[self.current_key])[4:])
 
         # Запись омонимов
         if self.learn_method == LEARN_VALUES_METHOD[0]:
-            ans = _0_global_dct.entries[self.current_key].tr
+            ans = _0_global_dct[self.current_key].tr
             self.homonyms = []
             for key in _0_global_dct.entries.keys():
                 if key != self.current_key:
-                    for tr in _0_global_dct.entries[key].tr:
+                    for tr in _0_global_dct[key].tr:
                         if tr in ans:
                             self.homonyms += [key]
                             break
         elif self.learn_method == LEARN_VALUES_METHOD[1]:
-            ans = _0_global_dct.entries[self.current_key].lemma
+            ans = _0_global_dct[self.current_key].lemma
             self.homonyms = [key for key in _0_global_dct.entries.keys()
-                             if _0_global_dct.entries[key].lemma == ans and key != self.current_key]
+                             if _0_global_dct[key].lemma == ans and key != self.current_key]
         elif self.learn_method == LEARN_VALUES_METHOD[4]:
-            ans = _0_global_dct.entries[self.current_key].lemma
+            ans = _0_global_dct[self.current_key].lemma
             self.homonyms = []
             for key in _0_global_dct.entries.keys():
                 if key != self.current_key:
-                    lemma = _0_global_dct.entries[key].lemma
+                    lemma = _0_global_dct[key].lemma
                     if len(lemma) > 4 and lemma[0:4].lower() in ('der ', 'die ', 'das ') and lemma[4:] == ans[4:]:
                         self.homonyms += [key]
 
@@ -4597,7 +4597,7 @@ class LearnW(tk.Toplevel):
         if self.learn_method in LEARN_VALUES_METHOD[2:4]:
             btn_enable(self.btn_show_entry, self.show_entry)
         # Обновление кнопки "Посмотреть сноски"
-        entry = _0_global_dct.entries[self.current_key]
+        entry = _0_global_dct[self.current_key]
         if entry.count_n == 0 or self.learn_method in LEARN_VALUES_METHOD[2:4]:
             btn_disable(self.btn_show_notes)
         else:
@@ -4616,7 +4616,7 @@ class LearnW(tk.Toplevel):
     # Нажатие на кнопку "Посмотреть слово и перевод"
     # Просмотр слова с переводом
     def show_entry(self):
-        entry = _0_global_dct.entries[self.current_key]
+        entry = _0_global_dct[self.current_key]
         self.outp(f'Слово: {entry.lemma}\n'
                   f'Перевод: {get_tr(entry)}')
         btn_disable(self.btn_show_entry)
@@ -4625,7 +4625,7 @@ class LearnW(tk.Toplevel):
     # Просмотр сносок
     def show_notes(self):
         self.outp('Сноски:')
-        entry = _0_global_dct.entries[self.current_key]
+        entry = _0_global_dct[self.current_key]
         self.outp(get_notes(entry))
         btn_disable(self.btn_show_notes)
 
@@ -4634,7 +4634,7 @@ class LearnW(tk.Toplevel):
     def show_homonyms(self):
         self.outp('Омонимы:')
         for key in self.homonyms:
-            self.outp('> ' + _0_global_dct.entries[key].lemma + ': ' + get_tr(_0_global_dct.entries[key]))
+            self.outp('> ' + _0_global_dct[key].lemma + ': ' + get_tr(_0_global_dct[key]))
         btn_disable(self.btn_show_homonyms)
 
     # Нажатие на кнопку "Закончить"
@@ -4651,7 +4651,7 @@ class LearnW(tk.Toplevel):
 
     # Проверка введённого ответа
     def check_answer(self, correct_answer: str, is_correct: bool, current_key: EntryID):
-        entry = _0_global_dct.entries[current_key]
+        entry = _0_global_dct[current_key]
         if is_correct:
             entry.correct((_0_global_session_number, _0_global_learn_session_number, self.count_all))
             self.outp('Верно\n')
@@ -4702,7 +4702,7 @@ class LearnW(tk.Toplevel):
 
     # Проверка введённого слова
     def check_wrd(self):
-        entry = _0_global_dct.entries[self.current_key]
+        entry = _0_global_dct[self.current_key]
         if _0_global_check_register:
             is_correct = encode_special_combinations(self.entry_input.get(),
                                                      _0_global_special_combinations) == entry.lemma
@@ -4713,7 +4713,7 @@ class LearnW(tk.Toplevel):
 
     # Проверка введённой словоформы
     def check_form(self):
-        entry = _0_global_dct.entries[self.current_key]
+        entry = _0_global_dct[self.current_key]
         if _0_global_check_register:
             is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations) ==\
                          entry.forms[self.current_form]
@@ -4724,7 +4724,7 @@ class LearnW(tk.Toplevel):
 
     # Проверка введённого перевода слова
     def check_tr(self):
-        entry = _0_global_dct.entries[self.current_key]
+        entry = _0_global_dct[self.current_key]
         if _0_global_check_register:
             is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations) in entry.tr
         else:
@@ -4744,7 +4744,7 @@ class LearnW(tk.Toplevel):
 
     # Проверка введённого перевода фразы
     def check_phrase_tr(self):
-        entry = _0_global_dct.entries[self.current_key]
+        entry = _0_global_dct[self.current_key]
         if _0_global_check_register:
             is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations) in\
                          entry.phrases[self.current_phrase]
@@ -4755,7 +4755,7 @@ class LearnW(tk.Toplevel):
 
     # Проверка введённого артикля
     def check_article(self):
-        entry = _0_global_dct.entries[self.current_key]
+        entry = _0_global_dct[self.current_key]
         if _0_global_check_register:
             is_correct = encode_special_combinations(self.entry_input.get(),
                                                      _0_global_special_combinations) == entry.lemma[0:3]
@@ -5306,13 +5306,13 @@ class PrintW(tk.Toplevel):
         if group == ALL_GROUPS:
             if self.var_print_fav.get():
                 w, t, f = _0_global_dct.count_fav_entries()
-                info = dct_info_fav((w, _0_global_dct.counters['lemmas']),
-                                    (t, _0_global_dct.counters['translations']),
-                                    (f, _0_global_dct.counters['forms']))
+                info = dct_info_fav((w, _0_global_dct.count('lemmas')),
+                                    (t, _0_global_dct.count('translations')),
+                                    (f, _0_global_dct.count('forms')))
             else:
-                info = dct_info(_0_global_dct.counters['lemmas'],
-                                _0_global_dct.counters['translations'],
-                                _0_global_dct.counters['forms'])
+                info = dct_info(_0_global_dct.count('lemmas'),
+                                _0_global_dct.count('translations'),
+                                _0_global_dct.count('forms'))
         else:
             if self.var_print_fav.get():
                 w1, t1, f1 = _0_global_dct.count_fav_entries(group)
@@ -5367,15 +5367,15 @@ class PrintW(tk.Toplevel):
         group = self.var_print_group.get()
         if self.var_print_fav.get():
             if group == ALL_GROUPS:
-                self.print_keys = [key for key in _0_global_dct.entries.keys() if _0_global_dct.entries[key].fav]
+                self.print_keys = [key for key in _0_global_dct.get_entry_ids() if _0_global_dct[key].fav]
             else:
-                self.print_keys = [key for key in _0_global_dct.entries.keys()
-                                   if _0_global_dct.entries[key].fav and group in _0_global_dct.entries[key].groups]
+                self.print_keys = [key for key in _0_global_dct.get_entry_ids()
+                                   if _0_global_dct[key].fav and group in _0_global_dct[key].groups]
         else:
             if group == ALL_GROUPS:
-                self.print_keys = [key for key in _0_global_dct.entries.keys()]
+                self.print_keys = [key for key in _0_global_dct.get_entry_ids()]
             else:
-                self.print_keys = [key for key in _0_global_dct.entries.keys() if group in _0_global_dct.entries[key].groups]
+                self.print_keys = [key for key in _0_global_dct.get_entry_ids() if group in _0_global_dct[key].groups]
         self.print_selected_keys = [key for key in self.print_selected_keys if key in self.print_keys]
         if not self.print_selected_keys:
             self.frame_print_buttons_for_selected.grid_remove()
@@ -5384,39 +5384,39 @@ class PrintW(tk.Toplevel):
             self.print_keys.reverse()
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[2]:
             """
-            self.print_keys.sort(key=lambda k: (_0_global_dct.entries[k].accuracy_rate, _0_global_dct.entries[k].win_streak))
+            self.print_keys.sort(key=lambda k: (_0_global_dct[k].accuracy_rate, _0_global_dct[k].win_streak))
             """
-            self.print_keys.sort(key=lambda k: (_0_global_dct.entries[k].accuracy_rate,
-                                                _0_global_dct.entries[k].win_streak /
-                                                (1 + len(_0_global_dct.entries[k].forms.keys()) +
-                                                 len(_0_global_dct.entries[k].phrases.keys())),
-                                                _0_global_dct.entries[k].lemma.lower(), _0_global_dct.entries[k].lemma))
+            self.print_keys.sort(key=lambda k: (_0_global_dct[k].accuracy_rate,
+                                                _0_global_dct[k].win_streak /
+                                                (1 + len(_0_global_dct[k].forms.keys()) +
+                                                 len(_0_global_dct[k].phrases.keys())),
+                                                _0_global_dct[k].lemma.lower(), _0_global_dct[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[3]:
             """
-            self.print_keys.sort(key=lambda k: (_0_global_dct.entries[k].accuracy_rate, _0_global_dct.entries[k].win_streak),
-                                     reverse=True)
+            self.print_keys.sort(key=lambda k: (_0_global_dct[k].accuracy_rate, _0_global_dct[k].win_streak),
+                                 reverse=True)
             """
-            self.print_keys.sort(key=lambda k: (-_0_global_dct.entries[k].accuracy_rate,
-                                                -_0_global_dct.entries[k].win_streak /
-                                                (1 + len(_0_global_dct.entries[k].forms.keys()) +
-                                                 len(_0_global_dct.entries[k].phrases.keys())),
-                                                _0_global_dct.entries[k].lemma.lower(), _0_global_dct.entries[k].lemma))
+            self.print_keys.sort(key=lambda k: (-_0_global_dct[k].accuracy_rate,
+                                                -_0_global_dct[k].win_streak /
+                                                (1 + len(_0_global_dct[k].forms.keys()) +
+                                                 len(_0_global_dct[k].phrases.keys())),
+                                                _0_global_dct[k].lemma.lower(), _0_global_dct[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[4]:
-            self.print_keys.sort(key=lambda k: (_0_global_dct.entries[k].latest_att_timestamp,
-                                                _0_global_dct.entries[k].lemma.lower(), _0_global_dct.entries[k].lemma))
+            self.print_keys.sort(key=lambda k: (_0_global_dct[k].latest_att_timestamp,
+                                                _0_global_dct[k].lemma.lower(), _0_global_dct[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[5]:
-            self.print_keys.sort(key=lambda k: ([-val for val in _0_global_dct.entries[k].latest_att_timestamp],
-                                                _0_global_dct.entries[k].lemma.lower(), _0_global_dct.entries[k].lemma))
+            self.print_keys.sort(key=lambda k: ([-val for val in _0_global_dct[k].latest_att_timestamp],
+                                                _0_global_dct[k].lemma.lower(), _0_global_dct[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[6]:
-            self.print_keys.sort(key=lambda k: (_0_global_dct.entries[k].lemma.lower(), _0_global_dct.entries[k].lemma))
+            self.print_keys.sort(key=lambda k: (_0_global_dct[k].lemma.lower(), _0_global_dct[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[7]:
-            self.print_keys.sort(key=lambda k: (_0_global_dct.entries[k].lemma.lower(), _0_global_dct.entries[k].lemma), reverse=True)
+            self.print_keys.sort(key=lambda k: (_0_global_dct[k].lemma.lower(), _0_global_dct[k].lemma), reverse=True)
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[8]:
-            self.print_keys.sort(key=lambda k: (len(_0_global_dct.entries[k].lemma),
-                                                _0_global_dct.entries[k].lemma.lower(), _0_global_dct.entries[k].lemma))
+            self.print_keys.sort(key=lambda k: (len(_0_global_dct[k].lemma),
+                                                _0_global_dct[k].lemma.lower(), _0_global_dct[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[9]:
-            self.print_keys.sort(key=lambda k: (-len(_0_global_dct.entries[k].lemma),
-                                                _0_global_dct.entries[k].lemma.lower(), _0_global_dct.entries[k].lemma))
+            self.print_keys.sort(key=lambda k: (-len(_0_global_dct[k].lemma),
+                                                _0_global_dct[k].lemma.lower(), _0_global_dct[k].lemma))
         # Выводим информацию о количестве статей
         self.print_print_info()
 
@@ -5455,20 +5455,20 @@ class PrintW(tk.Toplevel):
         # Создаём подсказки
         self.print_tips = [ttip.Hovertip(self.print_buttons[i],
                                          f'Верных ответов подряд: '
-                                         f'{get_correct_att_in_a_row(_0_global_dct.entries[self.print_keys[self.print_start_index + i]])}\n'
+                                         f'{get_correct_att_in_a_row(_0_global_dct[self.print_keys[self.print_start_index + i]])}\n'
                                          f'Доля верных ответов: '
-                                         f'{get_entry_percent(_0_global_dct.entries[self.print_keys[self.print_start_index + i]])}',
+                                         f'{get_entry_percent(_0_global_dct[self.print_keys[self.print_start_index + i]])}',
                                          hover_delay=666)
                            for i in range(self.print_count_elements_on_page)]
         # Выводим текст на кнопки
         if self.var_print_briefly.get():
             for i in range(self.print_count_elements_on_page):
                 key = self.print_keys[self.print_start_index + i]
-                self.print_buttons[i].configure(text=get_entry_info_briefly(_0_global_dct.entries[key], 75))
+                self.print_buttons[i].configure(text=get_entry_info_briefly(_0_global_dct[key], 75))
         else:
             for i in range(self.print_count_elements_on_page):
                 key = self.print_keys[self.print_start_index + i]
-                self.print_buttons[i].configure(text=get_entry_info_detailed(_0_global_dct.entries[key], 75))
+                self.print_buttons[i].configure(text=get_entry_info_detailed(_0_global_dct[key], 75))
 
         for i in range(self.print_count_elements_on_page):
             # Расставляем элементы
@@ -5501,12 +5501,12 @@ class PrintW(tk.Toplevel):
         # Выбираем нужные статьи
         # Если нужно, оставляем только избранные
         if self.search_only_fav:
-            keys = [key for key in _0_global_dct.entries.keys() if _0_global_dct.entries[key].fav]
+            keys = [key for key in _0_global_dct.get_entry_ids() if _0_global_dct[key].fav]
         else:
-            keys = [key for key in _0_global_dct.entries.keys()]
+            keys = [key for key in _0_global_dct.get_entry_ids()]
         # Если нужно, оставляем только одну группу
         if self.search_group != ALL_GROUPS:
-            keys = [key for key in keys if self.search_group in _0_global_dct.entries[key].groups]
+            keys = [key for key in keys if self.search_group in _0_global_dct[key].groups]
         # Среди оставшихся ищем статьи, содержащие искомый текст
         results = search_entries(_0_global_dct, tuple(keys), self.var_search_query.get(),
                                  self.search_wrd, self.search_tr, self.search_frm, self.search_phr, self.search_nt)
@@ -5514,7 +5514,7 @@ class PrintW(tk.Toplevel):
         self.search_keys = []
         for i in range(6 if self.search_only_full else 9):
             self.search_keys += sorted(list(results[i]),
-                                       key=lambda k: (_0_global_dct.entries[k].lemma.lower(), _0_global_dct.entries[k].lemma))
+                                       key=lambda k: (_0_global_dct[k].lemma.lower(), _0_global_dct[k].lemma))
         # Из выделенных статей оставляем, только удовлетворяющие поисковому запросу
         self.search_selected_keys = [key for key in self.search_selected_keys if key in self.search_keys]
         # Если выделенных статей нет, убираем связанные с ними кнопки
@@ -5558,7 +5558,7 @@ class PrintW(tk.Toplevel):
 
         for i in range(self.search_count_elements_on_page):
             # Выводим текст на кнопки
-            self.search_buttons[i].configure(text=get_all_entry_info(_0_global_dct.entries[self.search_keys[self.search_start_index + i]], 75, 13))
+            self.search_buttons[i].configure(text=get_all_entry_info(_0_global_dct[self.search_keys[self.search_start_index + i]], 75, 13))
 
             # Расставляем элементы
             self.search_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
@@ -5581,10 +5581,10 @@ class PrintW(tk.Toplevel):
         # Выводим текст на кнопку
         if self.var_print_briefly.get():
             key = self.print_keys[self.print_start_index + index]
-            self.print_buttons[index].configure(text=get_entry_info_briefly(_0_global_dct.entries[key], 75))
+            self.print_buttons[index].configure(text=get_entry_info_briefly(_0_global_dct[key], 75))
         else:
             key = self.print_keys[self.print_start_index + index]
-            self.print_buttons[index].configure(text=get_entry_info_detailed(_0_global_dct.entries[key], 75))
+            self.print_buttons[index].configure(text=get_entry_info_detailed(_0_global_dct[key], 75))
 
         # Выводим информацию о количестве статей
         self.print_print_info()
@@ -5592,7 +5592,7 @@ class PrintW(tk.Toplevel):
     # Обновить одну из кнопок журнала (2)
     def search_refresh_one_button(self, index: int, key: EntryID):
         # Выводим текст на кнопку
-        self.search_buttons[index].configure(text=get_all_entry_info(_0_global_dct.entries[key], 75, 13))
+        self.search_buttons[index].configure(text=get_all_entry_info(_0_global_dct[key], 75, 13))
 
         # Выводим информацию о количестве статей
         self.search_print_info()
@@ -5603,18 +5603,18 @@ class PrintW(tk.Toplevel):
         if self.var_print_briefly.get():
             for i in range(self.print_count_elements_on_page):
                 key = self.print_keys[self.print_start_index + i]
-                self.print_buttons[i].configure(text=get_entry_info_briefly(_0_global_dct.entries[key], 75))
+                self.print_buttons[i].configure(text=get_entry_info_briefly(_0_global_dct[key], 75))
         else:
             for i in range(self.print_count_elements_on_page):
                 key = self.print_keys[self.print_start_index + i]
-                self.print_buttons[i].configure(text=get_entry_info_detailed(_0_global_dct.entries[key], 75))
+                self.print_buttons[i].configure(text=get_entry_info_detailed(_0_global_dct[key], 75))
 
     # Обновить все кнопки журнала (2)
     def search_refresh_all_buttons(self):
         # Выводим текст на кнопки
         for i in range(self.search_count_elements_on_page):
             key = self.search_keys[self.search_start_index + i]
-            self.search_buttons[i].configure(text=get_all_entry_info(_0_global_dct.entries[key], 75, 13))
+            self.search_buttons[i].configure(text=get_all_entry_info(_0_global_dct[key], 75, 13))
 
         # Выводим информацию о количестве статей
         self.search_print_info()
@@ -5823,7 +5823,7 @@ class PrintW(tk.Toplevel):
             PopupMsgW(self, 'Не найдено ни одной группы!').open()
             return
 
-        sets = [_0_global_dct.entries[key].groups for key in keys]
+        sets = [_0_global_dct[key].groups for key in keys]
         values_intersec = set.intersection(*sets)
         values = [gr for gr in _0_global_dct.groups if gr not in values_intersec]
         if not values:
@@ -5856,7 +5856,7 @@ class PrintW(tk.Toplevel):
 
         values = []
         for key in keys:
-            for gr in _0_global_dct.entries[key].groups:
+            for gr in _0_global_dct[key].groups:
                 if gr not in values:
                     values += [gr]
         if not values:
@@ -6058,15 +6058,15 @@ class AddW(tk.Toplevel):
             else:
                 btn_enable(self.btn_add, self.add)
 
-            words = (entry.lemma for entry in _0_global_dct.entries.values())
+            words = (entry.lemma for entry in _0_global_dct.get_entries())
             translations = []
-            for tr in (entry.tr for entry in _0_global_dct.entries.values()):
+            for tr in (entry.tr for entry in _0_global_dct.get_entries()):
                 translations += tr
 
             if value_wrd in words:
-                keys_with_this_word = (key for key in _0_global_dct.entries.keys() if _0_global_dct.entries[key].lemma == value_wrd)
+                keys_with_this_word = (key for key in _0_global_dct.get_entry_ids() if _0_global_dct[key].lemma == value_wrd)
                 translations = []
-                for tr in (_0_global_dct.entries[key].tr for key in keys_with_this_word):
+                for tr in (_0_global_dct[key].tr for key in keys_with_this_word):
                     translations += tr
                 if value_tr in translations:
                     self.lbl_msg.configure(text='Такая статья уже есть в словаре')
@@ -6100,9 +6100,9 @@ class AddW(tk.Toplevel):
                                                                          _0_global_special_combinations))
         if not self.dct_key:
             return
-        _0_global_dct.entries[self.dct_key].fav = self.var_fav.get()
+        _0_global_dct[self.dct_key].fav = self.var_fav.get()
         for group in _0_global_fav_groups:
-            _0_global_dct.entries[self.dct_key].add_to_group(group)
+            _0_global_dct[self.dct_key].add_to_group(group)
 
         _0_global_has_progress = True
         self.destroy()
@@ -6439,7 +6439,7 @@ class SettingsW(tk.Toplevel):
         save_dct_if_has_progress(self, _0_global_dct, _0_global_dct_savename, _0_global_has_progress)
 
         _0_global_dct = create_dct(savename)
-        _0_global_check_register, _0_global_special_combinations, _0_global_dct.features, _0_global_dct.groups,\
+        _0_global_check_register, _0_global_special_combinations, _0_global_dct._features, _0_global_dct._groups,\
             _0_global_fav_groups = upload_local_settings(savename)
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
             upload_local_auto_settings(savename)
@@ -6977,7 +6977,7 @@ class MainW(tk.Tk):
         _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale =\
             upload_global_settings()
         # Обновляем локальные настройки
-        _0_global_check_register, _0_global_special_combinations, _0_global_dct.features, _0_global_dct.groups,\
+        _0_global_check_register, _0_global_special_combinations, _0_global_dct._features, _0_global_dct._groups,\
             _0_global_fav_groups = upload_local_settings(_0_global_dct_savename)
         # Обновляем локальные авто-настройки
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
