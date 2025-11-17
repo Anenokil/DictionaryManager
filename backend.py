@@ -439,23 +439,23 @@ class Dictionary:
             name: The dictionary name.
         """
 
-        self.name = name
-        self.entries: Entries = dict()
-        self.indexes: Indexes = {
+        self._name = name
+        self._entries: Entries = dict()
+        self._indexes: Indexes = {
             'lemmas': {},
             'translations': {},
             'forms': {},
             'groups': {},
         }
-        self.counters = {
+        self._counters = {
             'lemmas': 0,
             'translations': 0,
             'forms': 0,
             'phrases': 0,
             'notes': 0,
         }
-        self.features: AllFeatures = dict()
-        self.groups: AllGroups = []
+        self._features: AllFeatures = dict()
+        self._groups: AllGroups = []
         self._max_entry_id = 0
 
     def _update_index(self,
@@ -473,13 +473,13 @@ class Dictionary:
             action: Either 'add' or 'remove'.
         """
 
-        assert index_name in self.indexes.keys()
+        assert index_name in self._indexes.keys()
         assert action in ('add', 'remove')
 
         search_terms = {search_terms} if isinstance(search_terms, str) else set(search_terms)
         entry_ids = {entry_ids} if isinstance(entry_ids, EntryID) else set(entry_ids)
 
-        index = self.indexes[index_name]
+        index = self._indexes[index_name]
 
         if action == 'add':
             for term in search_terms:
@@ -501,7 +501,7 @@ class Dictionary:
             new_name: New name of the dictionary.
         """
 
-        self.name = new_name
+        self._name = new_name
 
     def count_entries_in_group(self, group: Group) -> tuple[int, int, int]:
         """
@@ -520,8 +520,8 @@ class Dictionary:
         count_e = 0
         count_t = 0
         count_f = 0
-        for entry_id in self.indexes['groups'][group]:
-            entry = self.entries[entry_id]
+        for entry_id in self._indexes['groups'][group]:
+            entry = self._entries[entry_id]
             count_e += 1
             count_t += entry.count_t
             count_f += entry.count_f
@@ -546,14 +546,14 @@ class Dictionary:
         count_t = 0
         count_f = 0
         if group is None:
-            for entry in self.entries.values():
+            for entry in self._entries.values():
                 if entry.fav:
                     count_e += 1
                     count_t += entry.count_t
                     count_f += entry.count_f
         else:
-            for entry_id in self.indexes['groups'][group]:
-                entry = self.entries[entry_id]
+            for entry_id in self._indexes['groups'][group]:
+                entry = self._entries[entry_id]
                 if entry.fav:
                     count_e += 1
                     count_t += entry.count_t
@@ -570,8 +570,8 @@ class Dictionary:
             - Total number of all learning attempts across all entries.
         """
 
-        correct = sum(entry.correct_att for entry in self.entries.values())
-        total = sum(entry.total_att for entry in self.entries.values())
+        correct = sum(entry.correct_att for entry in self._entries.values())
+        total = sum(entry.total_att for entry in self._entries.values())
         return correct, total
 
     def get_entries(self) -> Generator[Entry, None, None]:
@@ -582,7 +582,7 @@ class Dictionary:
             The next entry in the dictionary.
         """
 
-        yield from self.entries.values()
+        yield from self._entries.values()
 
     def search(self, index_name: str, query: str) -> set[EntryID]:
         """
@@ -601,9 +601,9 @@ class Dictionary:
             AssertionError: If index_name is not a valid index.
         """
 
-        assert index_name in self.indexes.keys(), f'No index named "{index_name}"'
+        assert index_name in self._indexes.keys(), f'No index named "{index_name}"'
 
-        index = self.indexes[index_name]
+        index = self._indexes[index_name]
         if query in index:
             return index[query]
         else:
@@ -644,20 +644,20 @@ class Dictionary:
         self._max_entry_id += 1
         entry_id = self._max_entry_id
 
-        self.entries[entry_id] = Entry(entry_id, lemma, tr, forms, phrases, notes, groups, fav, total_att,
+        self._entries[entry_id] = Entry(entry_id, lemma, tr, forms, phrases, notes, groups, fav, total_att,
                                        correct_att, win_streak, latest_att_timestamp)
-        entry = self.entries[entry_id]
+        entry = self._entries[entry_id]
 
         self._update_index('lemmas', lemma, entry_id, 'add')
         self._update_index('translations', tr, entry_id, 'add')
         self._update_index('forms', forms.values(), entry_id, 'add')
         self._update_index('groups', groups, entry_id, 'add')
 
-        self.counters['lemmas'] += 1
-        self.counters['translations'] += entry.count_t
-        self.counters['forms']        += entry.count_f
-        self.counters['phrases']      += entry.count_p
-        self.counters['notes']        += entry.count_n
+        self._counters['lemmas'] += 1
+        self._counters['translations'] += entry.count_t
+        self._counters['forms']        += entry.count_f
+        self._counters['phrases']      += entry.count_p
+        self._counters['notes']        += entry.count_n
 
         return entry_id
 
@@ -672,20 +672,20 @@ class Dictionary:
             entry_id: ID of the entry to delete.
         """
 
-        entry = self.entries[entry_id]
+        entry = self._entries[entry_id]
 
-        self.counters['lemmas'] -= 1
-        self.counters['translations'] -= entry.count_t
-        self.counters['forms']        -= entry.count_f
-        self.counters['phrases']      -= entry.count_p
-        self.counters['notes']        -= entry.count_n
+        self._counters['lemmas'] -= 1
+        self._counters['translations'] -= entry.count_t
+        self._counters['forms']        -= entry.count_f
+        self._counters['phrases']      -= entry.count_p
+        self._counters['notes']        -= entry.count_n
 
         self._update_index('lemmas', entry.lemma, entry_id, 'remove')
         self._update_index('translations', entry.tr, entry_id, 'remove')
         self._update_index('forms', entry.forms.values(), entry_id, 'remove')
         self._update_index('groups', entry.groups, entry_id, 'remove')
 
-        del self.entries[entry_id]
+        del self._entries[entry_id]
 
     def merge_entries(self, entry_id_1: EntryID, entry_id_2: EntryID):
         """
@@ -699,18 +699,18 @@ class Dictionary:
             entry_id_2: ID of the entry to merge into the main entry (will be deleted).
         """
 
-        main_entry = self.entries[entry_id_1]
-        additional_entry = self.entries[entry_id_2]
+        main_entry = self._entries[entry_id_1]
+        additional_entry = self._entries[entry_id_2]
 
         self._update_index('lemmas', additional_entry.lemma, entry_id_1, 'add')
         self._update_index('translations', additional_entry.tr, entry_id_1, 'add')
         self._update_index('forms', additional_entry.forms.values(), entry_id_1, 'add')
         self._update_index('groups', additional_entry.groups, entry_id_1, 'add')
 
-        self.counters['translations'] -= main_entry.count_t
-        self.counters['forms']        -= main_entry.count_f
-        self.counters['phrases']      -= main_entry.count_p
-        self.counters['notes']        -= main_entry.count_n
+        self._counters['translations'] -= main_entry.count_t
+        self._counters['forms']        -= main_entry.count_f
+        self._counters['phrases']      -= main_entry.count_p
+        self._counters['notes']        -= main_entry.count_n
 
         for tr in additional_entry.tr:
             main_entry.add_tr(tr)
@@ -731,10 +731,10 @@ class Dictionary:
         main_entry.accuracy_rate = 0 if (main_entry.total_att == 0) else main_entry.correct_att / main_entry.total_att
         main_entry.win_streak += additional_entry.win_streak
 
-        self.counters['translations'] += main_entry.count_t
-        self.counters['forms']        += main_entry.count_f
-        self.counters['phrases']      += main_entry.count_p
-        self.counters['notes']        += main_entry.count_n
+        self._counters['translations'] += main_entry.count_t
+        self._counters['forms']        += main_entry.count_f
+        self._counters['phrases']      += main_entry.count_p
+        self._counters['notes']        += main_entry.count_n
 
         self.delete_entry(entry_id_2)
 
@@ -753,9 +753,9 @@ class Dictionary:
             KeyError: If no entry exists with the given entry_id.
         """
 
-        old_lemma = self.entries[entry_id].lemma
+        old_lemma = self._entries[entry_id].lemma
         self._update_index('lemmas', old_lemma, entry_id, 'remove')
-        self.entries[entry_id].lemma = new_lemma
+        self._entries[entry_id].lemma = new_lemma
         self._update_index('lemmas', new_lemma, entry_id, 'add')
 
     def add_tr(self, entry_id: EntryID, tr: Translation):
@@ -767,11 +767,11 @@ class Dictionary:
             tr: Translation to add.
         """
 
-        entry = self.entries[entry_id]
+        entry = self._entries[entry_id]
         self._update_index('translations', tr, entry_id, 'add')
-        self.counters['translations'] -= entry.count_t
+        self._counters['translations'] -= entry.count_t
         entry.add_tr(tr)
-        self.counters['translations'] += entry.count_t
+        self._counters['translations'] += entry.count_t
 
     def delete_tr(self, entry_id: EntryID, tr: Translation):
         """
@@ -782,11 +782,11 @@ class Dictionary:
             tr: Translation to delete.
         """
 
-        entry = self.entries[entry_id]
+        entry = self._entries[entry_id]
         self._update_index('translations', tr, entry_id, 'remove')
-        self.counters['translations'] -= entry.count_t
+        self._counters['translations'] -= entry.count_t
         entry.delete_tr(tr)
-        self.counters['translations'] += entry.count_t
+        self._counters['translations'] += entry.count_t
 
     def add_frm(self, entry_id: EntryID, pattern: FormPattern, frm: Form):
         """
@@ -798,11 +798,11 @@ class Dictionary:
             frm: The inflected form to add.
         """
 
-        entry = self.entries[entry_id]
+        entry = self._entries[entry_id]
         self._update_index('forms', frm, entry_id, 'add')
-        self.counters['forms'] -= entry.count_f
+        self._counters['forms'] -= entry.count_f
         entry.add_frm(pattern, frm)
-        self.counters['forms'] += entry.count_f
+        self._counters['forms'] += entry.count_f
 
     def delete_frm(self, entry_id: EntryID, pattern: FormPattern):
         """
@@ -813,13 +813,13 @@ class Dictionary:
             pattern: Form pattern identifying the form to remove.
         """
 
-        entry = self.entries[entry_id]
+        entry = self._entries[entry_id]
         # An entry may contain homographs
         # Therefore, we need to first remove all forms from the index, then add them back to the index
         self._update_index('forms', entry.forms.values(), entry_id, 'remove')
-        self.counters['forms'] -= entry.count_f
+        self._counters['forms'] -= entry.count_f
         entry.delete_frm(pattern)
-        self.counters['forms'] += entry.count_f
+        self._counters['forms'] += entry.count_f
         self._update_index('forms', entry.forms.values(), entry_id, 'add')
 
     def add_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
@@ -832,10 +832,10 @@ class Dictionary:
             phr_tr: Translation of the phrase.
         """
 
-        entry = self.entries[entry_id]
-        self.counters['phrases'] -= entry.count_p
+        entry = self._entries[entry_id]
+        self._counters['phrases'] -= entry.count_p
         entry.add_phrase(phr, phr_tr)
-        self.counters['phrases'] += entry.count_p
+        self._counters['phrases'] += entry.count_p
 
     def delete_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
         """
@@ -847,10 +847,10 @@ class Dictionary:
             phr_tr: The translation of the phrase to remove.
         """
 
-        entry = self.entries[entry_id]
-        self.counters['phrases'] -= entry.count_p
+        entry = self._entries[entry_id]
+        self._counters['phrases'] -= entry.count_p
         entry.delete_phrase(phr, phr_tr)
-        self.counters['phrases'] += entry.count_p
+        self._counters['phrases'] += entry.count_p
 
     def add_note(self, entry_id: EntryID, note: Note):
         """
@@ -861,10 +861,10 @@ class Dictionary:
             note: Note text to add.
         """
 
-        entry = self.entries[entry_id]
-        self.counters['notes'] -= entry.count_n
+        entry = self._entries[entry_id]
+        self._counters['notes'] -= entry.count_n
         entry.add_note(note)
-        self.counters['notes'] += entry.count_n
+        self._counters['notes'] += entry.count_n
 
     def delete_note(self, entry_id: EntryID, note: Note):
         """
@@ -875,10 +875,10 @@ class Dictionary:
             note: Note text to remove.
         """
 
-        entry = self.entries[entry_id]
-        self.counters['notes'] -= entry.count_n
+        entry = self._entries[entry_id]
+        self._counters['notes'] -= entry.count_n
         entry.delete_note(note)
-        self.counters['notes'] += entry.count_n
+        self._counters['notes'] += entry.count_n
 
     def add_entries_to_group(self, group: Group, entry_ids: Iterable[EntryID]):
         """
@@ -891,7 +891,7 @@ class Dictionary:
 
         for entry_id in entry_ids:
             self._update_index('groups', group, entry_id, 'add')
-            self.entries[entry_id].add_to_group(group)
+            self._entries[entry_id].add_to_group(group)
 
     def remove_entries_from_group(self, group: Group, entry_ids: Iterable[EntryID]):
         """
@@ -903,9 +903,9 @@ class Dictionary:
         """
 
         for entry_id in entry_ids:
-            if group in self.entries[entry_id].groups:
+            if group in self._entries[entry_id].groups:
                 self._update_index('groups', group, entry_id, 'remove')
-                self.entries[entry_id].remove_from_group(group)
+                self._entries[entry_id].remove_from_group(group)
 
     def fav_entries(self, entry_ids: Iterable[EntryID]):
         """
@@ -916,7 +916,7 @@ class Dictionary:
         """
 
         for entry_id in entry_ids:
-            self.entries[entry_id].add_to_fav()
+            self._entries[entry_id].add_to_fav()
 
     def unfav_entries(self, entry_ids: Iterable[EntryID]):
         """
@@ -927,7 +927,7 @@ class Dictionary:
         """
 
         for entry_id in entry_ids:
-            self.entries[entry_id].remove_from_fav()
+            self._entries[entry_id].remove_from_fav()
 
     def add_ctg(self, ctg_name: Category, ctg_values: list[CtgValue]):
         """
@@ -940,12 +940,12 @@ class Dictionary:
             ctg_values: List of possible values for this category.
         """
 
-        assert ctg_name not in self.features.keys()
+        assert ctg_name not in self._features.keys()
 
-        for entry in self.entries.values():
+        for entry in self._entries.values():
             entry.add_ctg()
 
-        self.features[ctg_name] = ctg_values
+        self._features[ctg_name] = ctg_values
 
     def delete_ctg(self, ctg_name: Category):
         """
@@ -958,17 +958,17 @@ class Dictionary:
             ctg_name: Name of the category to delete.
         """
 
-        assert ctg_name in self.features.keys()
+        assert ctg_name in self._features.keys()
 
-        index = tuple(self.features.keys()).index(ctg_name)
-        for entry_id, entry in self.entries.items():
+        index = tuple(self._features.keys()).index(ctg_name)
+        for entry_id, entry in self._entries.items():
             self._update_index('forms', entry.forms.values(), entry_id, 'remove')
-            self.counters['forms'] -= entry.count_f
+            self._counters['forms'] -= entry.count_f
             entry.delete_ctg(index)
-            self.counters['forms'] += entry.count_f
+            self._counters['forms'] += entry.count_f
             self._update_index('forms', entry.forms.values(), entry_id, 'add')
 
-        self.features.pop(ctg_name)
+        self._features.pop(ctg_name)
 
     def rename_ctg(self, ctg_name_old: Category, ctg_name_new: Category):
         """
@@ -979,11 +979,11 @@ class Dictionary:
             ctg_name_new: New name for the category.
         """
 
-        assert ctg_name_old in self.features.keys()
-        assert ctg_name_new not in self.features.keys()
+        assert ctg_name_old in self._features.keys()
+        assert ctg_name_new not in self._features.keys()
 
-        self.features[ctg_name_new] = self.features[ctg_name_old].copy()
-        self.features.pop(ctg_name_old)
+        self._features[ctg_name_new] = self._features[ctg_name_old].copy()
+        self._features.pop(ctg_name_old)
 
     def add_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
         """
@@ -994,10 +994,10 @@ class Dictionary:
             ctg_value: New value to add to the category.
         """
 
-        assert ctg_name in self.features.keys()
-        assert ctg_value not in self.features[ctg_name]
+        assert ctg_name in self._features.keys()
+        assert ctg_value not in self._features[ctg_name]
 
-        self.features[ctg_name] += [ctg_value]
+        self._features[ctg_name] += [ctg_value]
 
     def delete_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
         """
@@ -1011,19 +1011,19 @@ class Dictionary:
             ctg_value: Value to remove from the category.
         """
 
-        assert ctg_name in self.features.keys()
-        assert ctg_value in self.features[ctg_name]
+        assert ctg_name in self._features.keys()
+        assert ctg_value in self._features[ctg_name]
 
-        index = tuple(self.features.keys()).index(ctg_name)
-        for entry_id, entry in self.entries.items():
+        index = tuple(self._features.keys()).index(ctg_name)
+        for entry_id, entry in self._entries.items():
             self._update_index('forms', entry.forms.values(), entry_id, 'remove')
-            self.counters['forms'] -= entry.count_f
+            self._counters['forms'] -= entry.count_f
             entry.delete_ctg_value(index, ctg_value)
-            self.counters['forms'] += entry.count_f
+            self._counters['forms'] += entry.count_f
             self._update_index('forms', entry.forms.values(), entry_id, 'add')
 
-        self.features[ctg_name].remove(ctg_value)
-        if len(self.features[ctg_name]) == 0:  # Если у категории не осталось значений, то она удаляется
+        self._features[ctg_name].remove(ctg_value)
+        if len(self._features[ctg_name]) == 0:  # Если у категории не осталось значений, то она удаляется
             self.delete_ctg(ctg_name)
 
     def rename_ctg_value(self, ctg_name: Category, ctg_value_old: CtgValue, ctg_value_new: CtgValue):
@@ -1038,16 +1038,16 @@ class Dictionary:
             ctg_value_new: New value to replace the old one.
         """
 
-        assert ctg_name in self.features.keys()
-        assert ctg_value_old in self.features[ctg_name]
-        assert ctg_value_new not in self.features[ctg_name]
+        assert ctg_name in self._features.keys()
+        assert ctg_value_old in self._features[ctg_name]
+        assert ctg_value_new not in self._features[ctg_name]
 
-        index = tuple(self.features.keys()).index(ctg_name)
-        for entry in self.entries.values():
+        index = tuple(self._features.keys()).index(ctg_name)
+        for entry in self._entries.values():
             entry.rename_ctg_value(index, ctg_value_old, ctg_value_new)
 
-        index = self.features[ctg_name].index(ctg_value_old)
-        self.features[ctg_name][index] = ctg_value_new
+        index = self._features[ctg_name].index(ctg_value_old)
+        self._features[ctg_name][index] = ctg_value_new
 
     def add_group(self, group: Group):
         """
@@ -1057,10 +1057,10 @@ class Dictionary:
             group: Name of the group to add.
         """
 
-        assert group not in self.groups
+        assert group not in self._groups
 
-        self.indexes['groups'][group] = set()
-        self.groups += [group]
+        self._indexes['groups'][group] = set()
+        self._groups += [group]
 
     def delete_group(self, group: Group):
         """
@@ -1072,14 +1072,14 @@ class Dictionary:
             group: Name of the group to delete.
         """
 
-        assert group in self.groups
+        assert group in self._groups
 
-        for entry_id in self.indexes['groups'][group]:
-            entry = self.entries[entry_id]
+        for entry_id in self._indexes['groups'][group]:
+            entry = self._entries[entry_id]
             self._update_index('groups', group, entry_id, 'remove')
             entry.remove_from_group(group)
-        del self.indexes['groups'][group]
-        self.groups.remove(group)
+        del self._indexes['groups'][group]
+        self._groups.remove(group)
 
     def rename_group(self, group_old: Group, group_new: Group):
         """
@@ -1092,21 +1092,21 @@ class Dictionary:
             group_new: New name for the group.
         """
 
-        assert group_old in self.groups
-        assert group_new not in self.groups
+        assert group_old in self._groups
+        assert group_new not in self._groups
 
-        self.indexes['groups'][group_new] = set()
-        self.groups += [group_new]
+        self._indexes['groups'][group_new] = set()
+        self._groups += [group_new]
 
-        for entry_id in self.indexes['groups'][group_old]:
-            entry = self.entries[entry_id]
+        for entry_id in self._indexes['groups'][group_old]:
+            entry = self._entries[entry_id]
             entry.remove_from_group(group_old)
             entry.add_to_group(group_new)
-        del self.indexes['groups'][group_old]
-        self.groups.remove(group_old)
+        del self._indexes['groups'][group_old]
+        self._groups.remove(group_old)
 
-        self.indexes['groups'][group_new] = self.indexes['groups'][group_old]
-        del self.indexes['groups'][group_old]
+        self._indexes['groups'][group_new] = self._indexes['groups'][group_old]
+        del self._indexes['groups'][group_old]
 
     def serialize(self) -> dict[str, Any]:
         """
@@ -1119,12 +1119,12 @@ class Dictionary:
         data = {
             'version': self._saving_version,
             'data': {
-                'name': self.name,
-                'entries': self.entries,
-                'indexes': self.indexes,
-                'counters': self.counters,
-                'features': self.features,
-                'groups': self.groups,
+                'name': self._name,
+                'entries': self._entries,
+                'indexes': self._indexes,
+                'counters': self._counters,
+                'features': self._features,
+                'groups': self._groups,
                 'max_entry_id': self._max_entry_id,
             }
         }
@@ -1141,12 +1141,12 @@ class Dictionary:
         loaded_version = data.get('version', 1)
         data = data.get('data', {})
 
-        self.name = data.get('name', '')
-        self.entries = data.get('entries', {})
-        self.indexes = data.get('indexes', {})
-        self.counters = data.get('counters', {})
-        self.features = data.get('features', {})
-        self.groups = data.get('groups', [])
+        self._name = data.get('name', '')
+        self._entries = data.get('entries', {})
+        self._indexes = data.get('indexes', {})
+        self._counters = data.get('counters', {})
+        self._features = data.get('features', {})
+        self._groups = data.get('groups', [])
         self._max_entry_id = data.get('max_entry_id', 0)
 
     def print_out(self, filepath: str):
@@ -1160,7 +1160,7 @@ class Dictionary:
         """
 
         with open(filepath, 'w', encoding='utf-8') as file:
-            for entry in self.entries.values():
+            for entry in self._entries.values():
                 entry.print_out(file)
                 file.write('\n')
 
