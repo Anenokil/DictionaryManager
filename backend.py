@@ -1177,6 +1177,8 @@ class Manager:
     Maintains a list of opened dictionaries and tracks the currently active one.
     """
 
+    allowed_file_ext = ('.pkl',)
+
     def __init__(self):
         """
         Initialize the dictionary manager.
@@ -1186,7 +1188,6 @@ class Manager:
 
         self.opened_dct_info: DictionariesInfo = []
         self.current_dct_id: int | None = None
-        self.allowed_file_ext = ('.pkl',)
 
     @property
     def dct(self) -> Dictionary | None:
