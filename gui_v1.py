@@ -688,7 +688,7 @@ def choose_one_of_similar_entries(dct: Dictionary, window_parent, lemma: str):
 
 
 # Изменить слово в статье
-def edit_wrd_with_choose(dct: Dictionary, window_parent, key: EntryID, new_wrd: str) -> EntryID | None:
+def edit_wrd_with_choose(dct: Dictionary, window_parent, key: EntryID, new_wrd: str) -> tuple[EntryID | None, bool]:
     if dct.search('lemmas', new_wrd):  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                'Что вы хотите сделать?',
@@ -699,23 +699,17 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, key: EntryID, new_wrd: 
         if answer == 'l':  # Добавить к существующей статье
             new_key = choose_one_of_similar_entries(dct, window_parent, new_wrd)
             if not new_key:
-                return key
+                return key, False
             dct.merge_entries(new_key, key)
-            return new_key
+            return new_key, True
         elif answer == 'r':  # Оставить отдельной статьёй
-            new_key = dct.add_entry(new_wrd, dct.entries[key].tr, dct.entries[key].forms, dct.entries[key].phrases, dct.entries[key].notes,
-                                    dct.entries[key].groups, dct.entries[key].fav, dct.entries[key].total_att, dct.entries[key].correct_att,
-                                    dct.entries[key].win_streak, dct.entries[key].latest_att_timestamp)
-            dct.delete_entry(key)
-            return new_key
+            dct.edit_lemma(key, new_wrd)
+            return key, True
         else:
-            return key
+            return key, False
     else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
-        new_key = dct.add_entry(new_wrd, dct.entries[key].tr, dct.entries[key].forms, dct.entries[key].phrases, dct.entries[key].notes,
-                                dct.entries[key].groups, dct.entries[key].fav, dct.entries[key].total_att, dct.entries[key].correct_att,
-                                dct.entries[key].win_streak, dct.entries[key].latest_att_timestamp)
-        dct.delete_entry(key)
-        return new_key
+        dct.edit_lemma(key, new_wrd)
+        return key, True
 
 
 # Добавить статью в словарь (для пользователя)
@@ -2402,8 +2396,8 @@ class EditW(tk.Toplevel):
         if new_wrd == _0_global_dct.entries[self.dct_key].lemma:
             return
 
-        new_key = edit_wrd_with_choose(_0_global_dct, self, self.dct_key, new_wrd)
-        if new_key == self.dct_key:
+        new_key, has_progres = edit_wrd_with_choose(_0_global_dct, self, self.dct_key, new_wrd)
+        if not has_progres:
             return
         self.dct_key = new_key
 
