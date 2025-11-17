@@ -1026,6 +1026,7 @@ class Dictionary:
 
         assert group not in self.groups
 
+        self.indexes['groups'][group] = set()
         self.groups += [group]
 
     def delete_group(self, group: Group):
@@ -1044,6 +1045,7 @@ class Dictionary:
             entry = self.entries[entry_id]
             self._update_index('groups', [group], entry_id, 'remove')
             entry.remove_from_group(group)
+        del self.indexes['groups'][group]
         self.groups.remove(group)
 
     def rename_group(self, group_old: Group, group_new: Group):
@@ -1060,11 +1062,14 @@ class Dictionary:
         assert group_old in self.groups
         assert group_new not in self.groups
 
+        self.indexes['groups'][group_new] = set()
         self.groups += [group_new]
+
         for entry_id in self.indexes['groups'][group_old]:
             entry = self.entries[entry_id]
             entry.remove_from_group(group_old)
             entry.add_to_group(group_new)
+        del self.indexes['groups'][group_old]
         self.groups.remove(group_old)
 
         self.indexes['groups'][group_new] = self.indexes['groups'][group_old]
