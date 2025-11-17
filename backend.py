@@ -545,15 +545,15 @@ class Dictionary:
         count_e = 0
         count_t = 0
         count_f = 0
-        if group:
-            for entry_id in self.indexes['groups'][group]:
-                entry = self.entries[entry_id]
+        if group is None:
+            for entry in self.entries.values():
                 if entry.fav:
                     count_e += 1
                     count_t += entry.count_t
                     count_f += entry.count_f
         else:
-            for entry in self.entries.values():
+            for entry_id in self.indexes['groups'][group]:
+                entry = self.entries[entry_id]
                 if entry.fav:
                     count_e += 1
                     count_t += entry.count_t
