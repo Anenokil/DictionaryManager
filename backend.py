@@ -627,6 +627,14 @@ class Dictionary:
                 results.append(index[search_term])
         return set.intersection(*results) if results else set()
 
+    @property
+    def groups(self) -> AllGroups:
+        return self._groups
+
+    @property
+    def features(self) -> AllFeatures:
+        return self._features
+
     def add_entry(self,
                   lemma: Word,
                   tr: Translation | Iterable[Translation],
