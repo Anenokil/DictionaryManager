@@ -596,30 +596,36 @@ class Dictionary:
 
         yield from self._entries.values()
 
-    def search(self, index_name: str, query: str) -> set[EntryID]:
+    def search(self, query: Iterable[tuple[str, str]]) -> set[EntryID]:
         """
-        Search for entries in the specified index matching the query.
+        Search for entries across multiple indexes using the specified query conditions.
+
+        Performs a logical AND search - returns entries that match ALL specified conditions.
 
         Args:
-            index_name: Name of the index to search in. Must be one of:
-                       'lemmas', 'translations', 'forms', 'groups'.
-            query: The search term to look for in the index.
+            query: Iterable of (index_name, search_term) pairs defining search conditions.
+                   - index_name: Name of the index to search in. Valid values:
+                     'lemmas', 'translations', 'forms', 'groups'.
+                   - search_term: The search term to look for in the index.
 
         Returns:
-            Set of entry IDs that match the query in the specified index.
+            Set of entry IDs that satisfy ALL the specified search conditions.
             Returns empty set if no matches found or index doesn't contain the query.
 
         Raises:
             AssertionError: If index_name is not a valid index.
         """
 
-        assert index_name in self._indexes.keys(), f'No index named "{index_name}"'
+        index_names = set(condition[0] for condition in query)
+        unexpected_index_names = index_names - set(self._indexes.keys())
+        assert not unexpected_index_names, f'No index named "{unexpected_index_names.pop()}"'
 
-        index = self._indexes[index_name]
-        if query in index:
-            return index[query]
-        else:
-            return set()
+        results = []
+        for index_name, search_term in query:
+            index = self._indexes[index_name]
+            if search_term in index:
+                results.append(index[search_term])
+        return set.intersection(*results) if results else set()
 
     def add_entry(self,
                   lemma: Word,
