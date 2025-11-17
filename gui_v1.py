@@ -677,8 +677,9 @@ def set_postfix(n: int, wrd_forms: tuple[str, str, str]) -> str:
 
 # Выбрать одну статью из нескольких с одинаковыми словами
 def choose_one_of_similar_entries(dct: Dictionary, window_parent, lemma: str):
-    if wrd_to_key(lemma, 1) not in dct.entries.keys():  # Если статья только одна, то возвращает её ключ
-        return wrd_to_key(lemma, 0)
+    homograph_ids = dct.search('lemmas', lemma)
+    if len(homograph_ids) == 1:  # Если статья только одна, то возвращает её ключ
+        return homograph_ids.pop()
     window_entries = ChooseOneOfSimilarEntriesW(window_parent, lemma)
     answer = window_entries.open()
     if not answer:
@@ -688,7 +689,7 @@ def choose_one_of_similar_entries(dct: Dictionary, window_parent, lemma: str):
 
 # Изменить слово в статье
 def edit_wrd_with_choose(dct: Dictionary, window_parent, key: EntryID, new_wrd: str) -> EntryID | None:
-    if wrd_to_key(new_wrd, 0) in dct.entries.keys():  # Если в словаре уже есть статья с таким словом
+    if dct.search('lemmas', new_wrd):  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                'Что вы хотите сделать?',
                                 'Добавить к существующей статье', 'Оставить отдельной статьёй',
@@ -719,7 +720,7 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, key: EntryID, new_wrd: 
 
 # Добавить статью в словарь (для пользователя)
 def add_entry_with_choose(dct: Dictionary, window_parent, lemma: str, tr: str) -> EntryID | None:
-    if wrd_to_key(lemma, 0) in dct.entries.keys():  # Если в словаре уже есть статья с таким словом
+    if dct.search('lemmas', lemma):  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                'Что вы хотите сделать?',
                                 'Добавить к существующей статье', 'Создать новую статью',
@@ -2143,9 +2144,8 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
     # Вывод вариантов
     def print(self):
         # Вывод вариантов
-        keys = [key for key in _0_global_dct.entries.keys() if key[0] == self.search_wrd]
-        for i in range(len(keys)):
-            key = keys[i]
+        keys = _0_global_dct.search('lemmas', self.search_wrd)
+        for i, key in enumerate(keys):
             self.widgets_wrd += [ttk.Button(self.scrolled_frame_wrd.frame_canvas,
                                             text=get_all_entry_info(_0_global_dct.entries[key], 75, 13),
                                             command=lambda key=key: self.choose_entry(key),
@@ -2416,7 +2416,7 @@ class EditW(tk.Toplevel):
 
         window = PopupEntryW(self, 'Введите новый перевод',
                              check_answer_function=lambda wnd, val:
-                             check_tr(wnd, _0_global_dct.entries[self.dct_key].tr, val, key_to_wrd(self.dct_key)))
+                             check_tr(wnd, _0_global_dct.entries[self.dct_key].tr, val, _0_global_dct.entries[self.dct_key].lemma))
         closed, tr = window.open()
         if closed:
             return
@@ -2433,7 +2433,7 @@ class EditW(tk.Toplevel):
 
         window = PopupEntryW(self, 'Введите новый перевод', default_value=tr,
                              check_answer_function=lambda wnd, val:
-                             check_tr_edit(wnd, _0_global_dct.entries[self.dct_key].tr, tr, val, key_to_wrd(self.dct_key)))
+                             check_tr_edit(wnd, _0_global_dct.entries[self.dct_key].tr, tr, val, _0_global_dct.entries[self.dct_key].lemma))
         closed, new_tr = window.open()
         if closed:
             return
@@ -2513,7 +2513,7 @@ class EditW(tk.Toplevel):
 
         window = AddPhraseW(self, 'Добавление фразы',
                             check_answer_function=lambda wnd, val:
-                            check_phr(wnd, _0_global_dct.entries[self.dct_key].phrases, val, key_to_wrd(self.dct_key)))
+                            check_phr(wnd, _0_global_dct.entries[self.dct_key].phrases, val, _0_global_dct.entries[self.dct_key].lemma))
         closed, phr, phr_tr = window.open()
         if closed:
             return
@@ -2534,7 +2534,7 @@ class EditW(tk.Toplevel):
         window = AddPhraseW(self, 'Изменение фразы', default_value=(phr, phr_tr),
                             check_answer_function=lambda wnd, val:
                             check_phr_edit(wnd, _0_global_dct.entries[self.dct_key].phrases, (phr, phr_tr), val,
-                                           key_to_wrd(self.dct_key)))
+                                           _0_global_dct.entries[self.dct_key].lemma))
         closed, new_phr, new_phr_tr = window.open()
         if closed:
             return
@@ -2563,7 +2563,7 @@ class EditW(tk.Toplevel):
 
         window = PopupEntryW(self, 'Введите сноску',
                              check_answer_function=lambda wnd, val:
-                             check_note(wnd, _0_global_dct.entries[self.dct_key].notes, val, key_to_wrd(self.dct_key)))
+                             check_note(wnd, _0_global_dct.entries[self.dct_key].notes, val, _0_global_dct.entries[self.dct_key].lemma))
         closed, note = window.open()
         if closed:
             return
@@ -2581,7 +2581,7 @@ class EditW(tk.Toplevel):
         window = PopupEntryW(self, 'Введите сноску', default_value=note,
                              check_answer_function=lambda wnd, val:
                              check_note_edit(wnd, _0_global_dct.entries[self.dct_key].notes, note, val,
-                                             key_to_wrd(self.dct_key)))
+                                             _0_global_dct.entries[self.dct_key].lemma))
         closed, new_note = window.open()
         if closed:
             return
@@ -2980,7 +2980,7 @@ class AddFormW(tk.Toplevel):
     # Сохранить словоформу
     def save(self):
         if tuple(self.template) in _0_global_dct.entries[self.key].forms.keys():
-            warning(self, f'У слова "{key_to_wrd(self.key)}" уже есть форма с таким шаблоном!')
+            warning(self, f'У слова "{_0_global_dct.entries[self.key].lemma}" уже есть форма с таким шаблоном!')
             return
         if self.var_form.get() == '':
             warning(self, 'Словоформа должна содержать хотя бы один символ!')
