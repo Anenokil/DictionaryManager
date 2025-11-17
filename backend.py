@@ -454,34 +454,34 @@ class Dictionary:
         self.groups: AllGroups = []
         self._max_entry_id = 0
 
-    def _update_index(self, index_name: str, keys: Iterable[str], entry_id: EntryID, action: str):
+    def _update_index(self, index_name: str, search_terms: Iterable[str], entry_id: EntryID, action: str):
         """
         Update a search index by adding or removing an entry.
 
         Args:
             index_name: Name of the index to update ('lemmas', 'translations', 'forms', or 'groups').
-            keys: Iterable of keys to add or remove from the index.
-            entry_id: ID of the entry to associate with the keys.
+            search_terms: Search terms to add or remove from the index.
+            entry_id: ID of the entry to associate with the search terms.
             action: Either 'add' or 'remove'.
         """
 
         assert index_name in self.indexes.keys()
         assert action in ('add', 'remove')
 
-        keys = set(keys)
+        search_terms = set(search_terms)
         index = self.indexes[index_name]
 
         if action == 'add':
-            for key in keys:
-                if key in index:
-                    index[key].add(entry_id)
+            for term in search_terms:
+                if term in index:
+                    index[term].add(entry_id)
                 else:
-                    index[key] = {entry_id}
+                    index[term] = {entry_id}
         else:
-            for key in keys:
-                index[key].remove(entry_id)
-                if not index[key]:
-                    index.pop(key)
+            for term in search_terms:
+                index[term].remove(entry_id)
+                if not index[term]:
+                    index.pop(term)
 
     def rename(self, new_name: str):
         """
