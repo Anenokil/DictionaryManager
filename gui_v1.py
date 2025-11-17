@@ -6126,6 +6126,8 @@ class AddW(tk.Toplevel):
     def open(self):
         self.set_focus()
 
+        self.update()
+
         self.grab_set()
         self.wait_window()
 
