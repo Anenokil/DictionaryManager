@@ -1179,6 +1179,12 @@ class Manager:
 
     Handles opening, closing, switching between, and saving multiple dictionary files.
     Maintains a list of opened dictionaries and tracks the currently active one.
+
+    Attributes:
+    ----------
+    - allowed_file_ext: supported file extensions for saving/loading dictionary data.
+    - opened_dct_info: currently open dictionaries with metadata about each dictionary instance.
+    - current_dct_id: ID of the currently active dictionary.
     """
 
     allowed_file_ext = ('.pkl',)
