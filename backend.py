@@ -575,6 +575,15 @@ class Dictionary:
                     count_f += entry.count_f
         return count_e, count_t, count_f
 
+    def count(self, counter_name: str) -> int:
+        if counter_name == 'groups':
+            return len(self._groups)
+        if counter_name == 'categories':
+            return len(self._features)
+        if counter_name == 'ctg values':
+            return sum(len(ctg_vals) for ctg_vals in self._features.values())
+        return self._counters[counter_name]
+
     def score(self) -> tuple[int, int]:
         """
         Get the global count of correct attempts and total attempts across all entries.
