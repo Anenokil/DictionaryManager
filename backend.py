@@ -814,7 +814,9 @@ class Dictionary:
         """
 
         entry = self.entries[entry_id]
-        self._update_index('forms', entry.forms.values(), entry_id, 'remove')  # Могут быть омоформы
+        # An entry may contain homographs
+        # Therefore, we need to first remove all forms from the index, then add them back to the index
+        self._update_index('forms', entry.forms.values(), entry_id, 'remove')
         self.counters['forms'] -= entry.count_f
         entry.delete_frm(pattern)
         self.counters['forms'] += entry.count_f
