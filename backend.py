@@ -425,6 +425,8 @@ class Dictionary:
     - saving_version: The version of the data format used for serialization.
     """
 
+    _saving_version = 1
+
     def __init__(self, name: DctName | None = None):
         """
         Initialize a dictionary.
@@ -450,7 +452,6 @@ class Dictionary:
         }
         self.features: AllFeatures = dict()
         self.groups: AllGroups = []
-        self.saving_version = 1
         self._max_entry_id = 0
 
     def _update_index(self, index_name: str, keys: Iterable[str], entry_id: EntryID, action: str):
@@ -1084,7 +1085,7 @@ class Dictionary:
         """
 
         data = {
-            'version': self.saving_version,
+            'version': self._saving_version,
             'data': {
                 'name': self.name,
                 'entries': self.entries,
