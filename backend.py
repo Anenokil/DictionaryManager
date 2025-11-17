@@ -586,6 +586,16 @@ class Dictionary:
         total = sum(entry.total_att for entry in self._entries.values())
         return correct, total
 
+    def get_entry_ids(self) -> Generator[EntryID, None, None]:
+        """
+        Iterate over all entry keys in the dictionary.
+
+        Yields:
+            The next entry key in the dictionary.
+        """
+
+        yield from self._entries.keys()
+
     def get_entries(self) -> Generator[Entry, None, None]:
         """
         Iterate over all entries in the dictionary.
