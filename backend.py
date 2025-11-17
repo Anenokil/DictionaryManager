@@ -405,15 +405,19 @@ class Dictionary:
     Attributes:
     ----------
     - name: Dictionary name.
-    - entries: The main dictionary data structure mapping entry IDs to Entry objects.
-    - indexes: Search indexes for fast entry lookup by content. Keys:
+
+    Protected Attributes:
+    --------------------
+    - _name: Dictionary name.
+    - _entries: The main dictionary data structure mapping entry IDs to Entry objects.
+    - _indexes: Search indexes for fast entry lookup by content. Keys:
 
       - 'lemmas': Maps lemmas to entry IDs containing them.
       - 'translations': Maps translations to entry IDs containing them.
       - 'forms': Maps inflected forms to entry IDs containing them.
       - 'groups': Maps group names to entry IDs belonging to them.
 
-    - counters: Word counts statistics with keys:
+    - _counters: Word counts statistics with keys:
 
       - 'lemmas': Total number of entries (lemmas) in the dictionary.
       - 'translations': Total number of translations across all entries in the dictionary.
@@ -421,8 +425,8 @@ class Dictionary:
       - 'phrases': Total number of phrase examples across all entries.
       - 'notes': Total number of notes across all entries.
 
-    - features: Collection of all grammatical categories and their values present in the dictionary.
-    - groups: All groups/tags assigned to entries across the entire dictionary.
+    - _features: Collection of all grammatical categories and their values present in the dictionary.
+    - _groups: All groups/tags assigned to entries across the entire dictionary.
       Used for organizing and grouping dictionary content.
     - _max_entry_id: Current maximum entry ID. Used to assign the next available ID to new entries
       (current max + 1).
