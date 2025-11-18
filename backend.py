@@ -3,7 +3,8 @@ A module implementing bilingual dictionary.
 By Anenokil
 """
 
-from typing import Any, Iterable, Generator, Mapping, TextIO
+from typing import Any, Iterable, Generator, Mapping, TextIO, Callable
+from functools import wraps
 import os
 import pickle
 
@@ -461,6 +462,24 @@ class Dictionary:
         self._features: AllFeatures = dict()
         self._groups: AllGroups = []
         self._max_entry_id = 0
+        self._is_modified = True
+
+    @staticmethod
+    def _mark_modified(method: Callable) -> Callable:
+        @wraps(method)
+        def wrapper(self, *args, **kwargs):
+            result = method(self, *args, **kwargs)
+            self._is_modified = True
+            return result
+
+        return wrapper
+
+    def mark_saved(self):
+        self._is_modified = False
+
+    @property
+    def is_saved(self) -> bool:
+        return not self._is_modified
 
     def __getitem__(self, item: EntryID) -> Entry:
         return self._entries[item]
@@ -508,6 +527,7 @@ class Dictionary:
     def name(self, new_name: DctName):
         self.rename(new_name)
 
+    @_mark_modified
     def rename(self, new_name: DctName):
         """
         Rename a dictionary.
@@ -657,6 +677,7 @@ class Dictionary:
     def features(self) -> AllFeatures:
         return self._features
 
+    @_mark_modified
     def add_entry(self,
                   lemma: Word,
                   tr: Translation | Iterable[Translation],
@@ -709,6 +730,7 @@ class Dictionary:
 
         return entry_id
 
+    @_mark_modified
     def delete_entry(self, entry_id: EntryID):
         """
         Delete a dictionary entry.
@@ -735,6 +757,7 @@ class Dictionary:
 
         del self._entries[entry_id]
 
+    @_mark_modified
     def merge_entries(self, entry_id_1: EntryID, entry_id_2: EntryID):
         """
         Merge two entries with the same word into one.
@@ -786,6 +809,7 @@ class Dictionary:
 
         self.delete_entry(entry_id_2)
 
+    @_mark_modified
     def edit_lemma(self, entry_id: EntryID, new_lemma: Word):
         """
         Update the lemma of an existing dictionary entry.
@@ -806,6 +830,7 @@ class Dictionary:
         self._entries[entry_id].lemma = new_lemma
         self._update_index('lemmas', new_lemma, entry_id, 'add')
 
+    @_mark_modified
     def add_tr(self, entry_id: EntryID, tr: Translation):
         """
         Add a translation to an entry.
@@ -821,6 +846,7 @@ class Dictionary:
         entry.add_tr(tr)
         self._counters['translations'] += entry.count_t
 
+    @_mark_modified
     def delete_tr(self, entry_id: EntryID, tr: Translation):
         """
         Delete a translation from an entry.
@@ -836,6 +862,7 @@ class Dictionary:
         entry.delete_tr(tr)
         self._counters['translations'] += entry.count_t
 
+    @_mark_modified
     def add_frm(self, entry_id: EntryID, pattern: FormPattern, frm: Form):
         """
         Add an inflected form to an entry.
@@ -852,6 +879,7 @@ class Dictionary:
         entry.add_frm(pattern, frm)
         self._counters['forms'] += entry.count_f
 
+    @_mark_modified
     def delete_frm(self, entry_id: EntryID, pattern: FormPattern):
         """
         Delete an inflected form from an entry.
@@ -870,6 +898,7 @@ class Dictionary:
         self._counters['forms'] += entry.count_f
         self._update_index('forms', entry.forms.values(), entry_id, 'add')
 
+    @_mark_modified
     def add_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
         """
         Add a phrase with its translation to an entry.
@@ -885,6 +914,7 @@ class Dictionary:
         entry.add_phrase(phr, phr_tr)
         self._counters['phrases'] += entry.count_p
 
+    @_mark_modified
     def delete_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
         """
         Delete a phrase and its translation from an entry.
@@ -900,6 +930,7 @@ class Dictionary:
         entry.delete_phrase(phr, phr_tr)
         self._counters['phrases'] += entry.count_p
 
+    @_mark_modified
     def add_note(self, entry_id: EntryID, note: Note):
         """
         Add a note to an entry.
@@ -914,6 +945,7 @@ class Dictionary:
         entry.add_note(note)
         self._counters['notes'] += entry.count_n
 
+    @_mark_modified
     def delete_note(self, entry_id: EntryID, note: Note):
         """
         Delete a note from an entry.
@@ -928,6 +960,7 @@ class Dictionary:
         entry.delete_note(note)
         self._counters['notes'] += entry.count_n
 
+    @_mark_modified
     def add_entries_to_group(self, group: Group, entry_ids: Iterable[EntryID]):
         """
         Add multiple entries to a group.
@@ -941,6 +974,7 @@ class Dictionary:
             self._update_index('groups', group, entry_id, 'add')
             self._entries[entry_id].add_to_group(group)
 
+    @_mark_modified
     def remove_entries_from_group(self, group: Group, entry_ids: Iterable[EntryID]):
         """
         Remove multiple entries from a group.
@@ -955,6 +989,7 @@ class Dictionary:
                 self._update_index('groups', group, entry_id, 'remove')
                 self._entries[entry_id].remove_from_group(group)
 
+    @_mark_modified
     def fav_entries(self, entry_ids: Iterable[EntryID]):
         """
         Mark multiple entries as favorites.
@@ -966,6 +1001,7 @@ class Dictionary:
         for entry_id in entry_ids:
             self._entries[entry_id].add_to_fav()
 
+    @_mark_modified
     def unfav_entries(self, entry_ids: Iterable[EntryID]):
         """
         Remove multiple entries from favorites.
@@ -977,6 +1013,7 @@ class Dictionary:
         for entry_id in entry_ids:
             self._entries[entry_id].remove_from_fav()
 
+    @_mark_modified
     def add_ctg(self, ctg_name: Category, ctg_values: list[CtgValue]):
         """
         Add a new grammatical category to the dictionary.
@@ -995,6 +1032,7 @@ class Dictionary:
 
         self._features[ctg_name] = ctg_values
 
+    @_mark_modified
     def delete_ctg(self, ctg_name: Category):
         """
         Delete a grammatical category from the dictionary.
@@ -1018,6 +1056,7 @@ class Dictionary:
 
         self._features.pop(ctg_name)
 
+    @_mark_modified
     def rename_ctg(self, ctg_name_old: Category, ctg_name_new: Category):
         """
         Rename a grammatical category.
@@ -1033,6 +1072,7 @@ class Dictionary:
         self._features[ctg_name_new] = self._features[ctg_name_old].copy()
         self._features.pop(ctg_name_old)
 
+    @_mark_modified
     def add_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
         """
         Add a new value to a grammatical category.
@@ -1047,6 +1087,7 @@ class Dictionary:
 
         self._features[ctg_name] += [ctg_value]
 
+    @_mark_modified
     def delete_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
         """
         Delete a value from a grammatical category.
@@ -1074,6 +1115,7 @@ class Dictionary:
         if len(self._features[ctg_name]) == 0:  # Если у категории не осталось значений, то она удаляется
             self.delete_ctg(ctg_name)
 
+    @_mark_modified
     def rename_ctg_value(self, ctg_name: Category, ctg_value_old: CtgValue, ctg_value_new: CtgValue):
         """
         Rename a value in a grammatical category.
@@ -1097,6 +1139,7 @@ class Dictionary:
         index = self._features[ctg_name].index(ctg_value_old)
         self._features[ctg_name][index] = ctg_value_new
 
+    @_mark_modified
     def add_group(self, group: Group):
         """
         Add a new group to the dictionary.
@@ -1110,6 +1153,7 @@ class Dictionary:
         self._indexes['groups'][group] = set()
         self._groups += [group]
 
+    @_mark_modified
     def delete_group(self, group: Group):
         """
         Delete a group from the dictionary.
@@ -1129,6 +1173,7 @@ class Dictionary:
         del self._indexes['groups'][group]
         self._groups.remove(group)
 
+    @_mark_modified
     def rename_group(self, group_old: Group, group_new: Group):
         """
         Rename a group.
@@ -1303,6 +1348,7 @@ class Manager:
 
         dct = Dictionary()
         dct.deserialize(savedata)
+        dct.mark_saved()
 
         self.opened_dct_info.append({'dct': dct, 'filepath': filepath})
         self.current_dct_id = len(self.opened_dct_info) - 1
@@ -1366,9 +1412,9 @@ class Manager:
                 raise ValueError('No filepath is specified')
 
         savedata = self.dct.serialize()
-
         with open(filepath, 'wb') as f:
             pickle.dump(savedata, f)
+        self.dct.mark_saved()
 
         self.opened_dct_info[dct_id]['filepath'] = filepath
 
