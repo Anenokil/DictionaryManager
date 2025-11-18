@@ -1,5 +1,3 @@
-from backend import Translations, Forms, Phrases, Entry, Dictionary, Manager, pattern_to_str
-
 from typing import Generator, Collection
 import sys
 import pickle
@@ -13,6 +11,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QAction, QCloseEvent
 from PySide6.QtCore import Qt
+
+from backend import Translations, Forms, Phrases, Entry, Dictionary, Manager, pattern_to_str
 
 
 def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:

@@ -3,6 +3,7 @@ import copy
 import platform
 import random
 import math
+import pickle
 import tkinter as tk
 from tkinter import colorchooser
 import tkinter.ttk as ttk
@@ -14,10 +15,9 @@ import urllib.request as urllib2  # Для проверки наличия об�
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
 
-from backend import *
+from backend import Entry, Dictionary, EntryID, FormPattern, pattern_to_str
 from constants import *
 from upgrades import *
-
 
 """ Темы """
 
