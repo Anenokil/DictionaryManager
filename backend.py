@@ -53,7 +53,7 @@ class Entry:
     - groups: Groups assigned to the entry.
     - total_att: Total number of game attempts.
     - correct_att: Number of correct guesses (wins).
-    - accuracy_rate: Ratio of correct guesses to total attempts (correct_att / total_att).
+    - accuracy: Ratio of correct guesses to total attempts (correct_att / total_att).
     - win_streak: Count of consecutive wins.
     - latest_att_timestamp: Timestamp of the most recent answer.
     """
@@ -118,7 +118,6 @@ class Entry:
 
         self.total_att = total_att
         self.correct_att = correct_att
-        self.accuracy_rate = 0 if (total_att == 0) else correct_att / total_att
         self.win_streak = win_streak
         self.latest_att_timestamp = latest_att_timestamp
 
@@ -328,8 +327,8 @@ class Entry:
         """
         Update learning statistics when a correct attempt is made.
 
-        Increments both total attempts and correct attempts counters, recalculates the
-        accuracy rate, updates the win streak, and sets the latest attempt timestamp.
+        Increments both total attempts and correct attempts counters, updates
+        the win streak, and sets the latest attempt timestamp.
 
         Args:
             session_number: A tuple representing the session identifier.
@@ -337,7 +336,6 @@ class Entry:
 
         self.total_att += 1
         self.correct_att += 1
-        self.accuracy_rate = self.correct_att / self.total_att
         if self.win_streak <= 0:
             self.win_streak = 1
         else:
@@ -348,20 +346,23 @@ class Entry:
         """
         Update learning statistics when an incorrect attempt is made.
 
-        Increments the total attempts counter, recalculates the accuracy rate,
-        resets the win streak to 0, and sets the latest attempt timestamp.
+        Increments the total attempts counter, resets the win streak to 0,
+        and sets the latest attempt timestamp.
 
         Args:
             session_number: A tuple representing the session identifier.
         """
 
         self.total_att += 1
-        self.accuracy_rate = self.correct_att / self.total_att
         if self.win_streak > 0:
             self.win_streak = -1
         else:
             self.win_streak -= 1
         self.latest_att_timestamp = session_number
+
+    @property
+    def accuracy(self) -> float:
+        return 0 if (self.total_att == 0) else self.correct_att / self.total_att
 
     def print_out(self, file: TextIO):
         """
@@ -799,7 +800,6 @@ class Dictionary:
             main_entry.groups.add(group)
         main_entry.total_att += additional_entry.total_att
         main_entry.correct_att += additional_entry.correct_att
-        main_entry.accuracy_rate = 0 if (main_entry.total_att == 0) else main_entry.correct_att / main_entry.total_att
         main_entry.win_streak += additional_entry.win_streak
 
         self._counters['translations'] += main_entry.count_t

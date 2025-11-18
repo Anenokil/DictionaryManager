@@ -332,7 +332,7 @@ def get_entry_percent(entry: Entry) -> str:
     if entry.total_att == 0:  # Если ещё не было попыток
         res = '-'
     else:
-        res = '{:.0%}'.format(entry.accuracy_rate)
+        res = '{:.0%}'.format(entry.accuracy)
     return res
 
 
@@ -415,7 +415,7 @@ def get_all_entry_info(entry: Entry, len_str: int, tab: int = 0) -> str:
     else:
         res += f' Статистика: 1) Верных ответов подряд: {entry.win_streak}\n'
         res += f'             2) Доля верных ответов: '
-        res += f'{entry.correct_att}/{entry.total_att} = ' + '{:.0%}'.format(entry.accuracy_rate)
+        res += f'{entry.correct_att}/{entry.total_att} = ' + '{:.0%}'.format(entry.accuracy)
 
     return split_text(res, len_str, tab=tab)
 
@@ -550,14 +550,14 @@ def random_smart(
     summ = 0
     for (key, frm, phr) in pool:
         entry = dct[key]
-        score = (100 - round(100 * entry.accuracy_rate)) + 1
+        score = (100 - round(100 * entry.accuracy)) + 1
         score += 100 // (entry.total_att + 1)
         summ += round(score)
 
     r = random.randint(1, summ)
     for (key, frm, phr) in pool:
         entry = dct[key]
-        score = (100 - round(100 * entry.accuracy_rate)) + 1
+        score = (100 - round(100 * entry.accuracy)) + 1
         score += 100 // (entry.total_att + 1)
         r -= round(score)
         if r <= 0:
@@ -5404,19 +5404,19 @@ class PrintW(tk.Toplevel):
             self.print_keys.reverse()
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[2]:
             """
-            self.print_keys.sort(key=lambda k: (self.opened_dct[k].accuracy_rate, self.opened_dct[k].win_streak))
+            self.print_keys.sort(key=lambda k: (self.opened_dct[k].accuracy, self.opened_dct[k].win_streak))
             """
-            self.print_keys.sort(key=lambda k: (self.opened_dct[k].accuracy_rate,
+            self.print_keys.sort(key=lambda k: (self.opened_dct[k].accuracy,
                                                 self.opened_dct[k].win_streak /
                                                 (1 + len(self.opened_dct[k].forms.keys()) +
                                                  len(self.opened_dct[k].phrases.keys())),
                                                 self.opened_dct[k].lemma.lower(), self.opened_dct[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[3]:
             """
-            self.print_keys.sort(key=lambda k: (self.opened_dct[k].accuracy_rate, self.opened_dct[k].win_streak),
+            self.print_keys.sort(key=lambda k: (self.opened_dct[k].accuracy, self.opened_dct[k].win_streak),
                                  reverse=True)
             """
-            self.print_keys.sort(key=lambda k: (-self.opened_dct[k].accuracy_rate,
+            self.print_keys.sort(key=lambda k: (-self.opened_dct[k].accuracy,
                                                 -self.opened_dct[k].win_streak /
                                                 (1 + len(self.opened_dct[k].forms.keys()) +
                                                  len(self.opened_dct[k].phrases.keys())),
