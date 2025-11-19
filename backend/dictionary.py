@@ -17,8 +17,8 @@ from .entry import Entry
 Entries = dict[EntryID, Entry]
 Index = dict[str, set[EntryID]]
 Indexes = dict[str, Index]
-AllFeatures = dict[Category, list[CtgValue]]
-AllGroups = list[Group]
+FeatureRegistry = dict[Category, list[CtgValue]]
+GroupRegistry = list[Group]
 
 
 class Dictionary:
@@ -81,8 +81,8 @@ class Dictionary:
             'phrases': 0,
             'notes': 0,
         }
-        self._features: AllFeatures = dict()
-        self._groups: AllGroups = []
+        self._features: FeatureRegistry = dict()
+        self._groups: GroupRegistry = []
         self._max_entry_id = 0
         self._is_modified = True
 
@@ -292,11 +292,11 @@ class Dictionary:
         return set.intersection(*results) if results else set()
 
     @property
-    def groups(self) -> AllGroups:
+    def groups(self) -> GroupRegistry:
         return self._groups
 
     @property
-    def features(self) -> AllFeatures:
+    def features(self) -> FeatureRegistry:
         return self._features
 
     @_mark_modified
