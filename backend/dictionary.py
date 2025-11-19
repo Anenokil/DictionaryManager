@@ -341,10 +341,10 @@ class Dictionary:
         )
         entry = self._entries[entry_id]
 
-        self._update_index('lemmas', lemma, entry_id, 'add')
-        self._update_index('translations', tr, entry_id, 'add')
-        self._update_index('forms', forms.values(), entry_id, 'add')
-        self._update_index('groups', groups, entry_id, 'add')
+        self._update_index('lemmas', entry.lemma, entry_id, 'add')
+        self._update_index('translations', entry.tr, entry_id, 'add')
+        self._update_index('forms', entry.forms.values(), entry_id, 'add')
+        self._update_index('groups', entry.groups, entry_id, 'add')
 
         self._counters['lemmas'] += 1
         self._counters['translations'] += entry.count_t
