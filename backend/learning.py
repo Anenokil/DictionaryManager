@@ -110,7 +110,7 @@ class Trainer:
             config: TrainingConfig to control training.
         """
 
-        self._dct = dct
+        self.dct = dct
         self._pool: Pool = []
         self._config = config
         self._current_task = None
@@ -165,16 +165,16 @@ class Trainer:
 
         def filter_by_group() -> Iterable[EntryID]:
             if self._config.groups is None:
-                yield from self._dct.get_entry_ids()
+                yield from self.dct.get_entry_ids()
             else:
-                yield from self._dct.search(
+                yield from self.dct.search(
                     [('groups', group) for group in self._config.groups]
                 )
 
         def filter_by_method(ids: Iterable[EntryID]) -> Iterable[EntryID]:
             if self._config.method == TrainingMethod.ARTICLES_GERMAN:
                 for entry_id in ids:
-                    lemma = self._dct[entry_id].lemma
+                    lemma = self.dct[entry_id].lemma
                     if len(lemma) > 4 and lemma[0:4].lower() in ('der ', 'die ', 'das '):
                         yield entry_id
             else:
@@ -183,7 +183,7 @@ class Trainer:
         def filter_by_forms(ids: Iterable[EntryID]) -> Iterable[EntryID]:
             if self._config.forms == FormSelection.INFLECTED:
                 for entry_id in ids:
-                    if self._dct[entry_id].count_f != 0:
+                    if self.dct[entry_id].count_f != 0:
                         yield entry_id
             else:
                 yield from ids
@@ -193,13 +193,13 @@ class Trainer:
                 yield from ids
             elif self._config.entries == EntrySelection.MOSTLY_FAV:  # Учить преимущественно избранные слова
                 all_ids = set(ids)
-                fav_ids = {entry_id for entry_id in all_ids if self._dct[entry_id].fav}
+                fav_ids = {entry_id for entry_id in all_ids if self.dct[entry_id].fav}
                 unfav_ids = all_ids - fav_ids
 
                 n_fav = len(fav_ids)
                 n_unfav = len(unfav_ids)
 
-                unfav_ids = sorted(unfav_ids, key=lambda i: self._dct[i].latest_att_timestamp)
+                unfav_ids = sorted(unfav_ids, key=lambda i: self.dct[i].latest_att_timestamp)
                 if n_fav > 4 * n_unfav:
                     unfav_ids = unfav_ids[:min(n_unfav, n_fav // 2)]
                     unfav_ids = random.sample(unfav_ids, n_fav // 4)
@@ -211,11 +211,11 @@ class Trainer:
                 yield from unfav_ids
             elif self._config.entries == EntrySelection.FAV:  # Учить только избранные слова
                 for entry_id in ids:
-                    if self._dct[entry_id].fav:
+                    if self.dct[entry_id].fav:
                         yield entry_id
             elif self._config.entries == EntrySelection.UNANSWERED:  # Учить только неотвеченные слова
                 for entry_id in ids:
-                    if self._dct[entry_id].correct_att == 0:
+                    if self.dct[entry_id].correct_att == 0:
                         yield entry_id
             elif self._config.entries == EntrySelection.RANDOM_10:  # Учить 10 случайных слов
                 ids = list(ids)
@@ -224,7 +224,7 @@ class Trainer:
                 else:
                     yield from random.sample(ids, 10)
             elif self._config.entries == EntrySelection.RANDOM_10_FAV:  # Учить 10 случайных избранных слов
-                fav_ids = {entry_id for entry_id in ids if self._dct[entry_id].fav}
+                fav_ids = {entry_id for entry_id in ids if self.dct[entry_id].fav}
                 if len(fav_ids) <= 10:
                     yield from fav_ids
                 else:
@@ -236,22 +236,22 @@ class Trainer:
                     yield entry_id, None
             elif self._config.forms == FormSelection.RANDOM:
                 for entry_id in ids:
-                    form_patterns = [None] + list(self._dct[entry_id].forms.keys())
+                    form_patterns = [None] + list(self.dct[entry_id].forms.keys())
                     yield entry_id, random.choice(form_patterns)
             elif self._config.forms == FormSelection.INFLECTED:
                 for entry_id in ids:
-                    for form_pattern in self._dct[entry_id].forms.keys():
+                    for form_pattern in self.dct[entry_id].forms.keys():
                         yield entry_id, form_pattern
             elif self._config.forms == FormSelection.ALL:
                 for entry_id in ids:
                     yield entry_id, None
-                    for form_pattern in self._dct[entry_id].forms.keys():
+                    for form_pattern in self.dct[entry_id].forms.keys():
                         yield entry_id, form_pattern
 
         def selected_phrases(items: Iterable[tuple[EntryID, FormPattern | None]]) -> Iterable[tuple[EntryID, FormPattern | None, Phrase | None]]:
             if self._config.method in (TrainingMethod.PHRASE_TO_TRANS, TrainingMethod.TRANS_TO_PHRASE):
                 for key, frm in items:
-                    for phr in self._dct[key].phrases.keys():
+                    for phr in self.dct[key].phrases.keys():
                         yield key, frm, phr
             else:
                 for key, frm in items:
@@ -268,9 +268,9 @@ class Trainer:
             self._pool = list(pool)
             random.shuffle(self._pool)
         elif self._config.order == TrainingOrder.DIFFICULT_FIRST:
-            self._pool = sorted(pool, key=lambda item: difficulty(self._dct[item[0]]), reverse=True)
+            self._pool = sorted(pool, key=lambda item: difficulty(self.dct[item[0]]), reverse=True)
         elif self._config.order == TrainingOrder.OLDEST_FIRST:
-            self._pool = sorted(pool, key=lambda item: self._dct[item[0]].latest_att_timestamp)
+            self._pool = sorted(pool, key=lambda item: self.dct[item[0]].latest_att_timestamp)
 
         self._current_task = None
 
@@ -299,17 +299,17 @@ class Trainer:
         entry_id, form_pattern, phrase = self._pool.pop(0)
 
         if self._config.method == TrainingMethod.WORD_TO_TRANS:
-            lemma = self._dct[entry_id].lemma
-            homonyms = self._dct.search([('lemmas', lemma)])
+            lemma = self.dct[entry_id].lemma
+            homonyms = self.dct.search([('lemmas', lemma)])
         elif self._config.method == TrainingMethod.TRANS_TO_WORD:
-            translations = self._dct[entry_id].tr
-            homonyms = self._dct.search([('translations', tr) for tr in translations])
+            translations = self.dct[entry_id].tr
+            homonyms = self.dct.search([('translations', tr) for tr in translations])
         elif self._config.method == TrainingMethod.ARTICLES_GERMAN:
-            lemma = self._dct[entry_id].lemma
+            lemma = self.dct[entry_id].lemma
             homonyms = set(
-                eid for eid in self._dct.get_entry_ids()
-                if lemma == self._dct[eid].lemma and
-                has_article(self._dct[eid].lemma, ('der ', 'die ', 'das '))
+                eid for eid in self.dct.get_entry_ids()
+                if lemma == self.dct[eid].lemma and
+                has_article(self.dct[eid].lemma, ('der ', 'die ', 'das '))
             )
         else:
             homonyms = set()
@@ -330,7 +330,7 @@ class Trainer:
         """
 
         entry_id, form_pattern, phrase, _ = self._current_task
-        entry = self._dct[entry_id]
+        entry = self.dct[entry_id]
 
         if self._config.method == TrainingMethod.TRANS_TO_WORD:
             if form_pattern is None:
@@ -379,7 +379,7 @@ class Trainer:
         if not is_correct:
             if self._config.order == TrainingOrder.DIFFICULT_FIRST:
                 self._pool.append((entry_id, form_pattern, phrase))
-                self._pool.sort(key=lambda item: difficulty(self._dct[item[0]]), reverse=True)
+                self._pool.sort(key=lambda item: difficulty(self.dct[item[0]]), reverse=True)
             else:
                 rnd_index = random.randint(0, len(self._pool))
                 self._pool.insert(rnd_index, (entry_id, form_pattern, phrase))
