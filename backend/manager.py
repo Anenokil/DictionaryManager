@@ -43,6 +43,17 @@ class Manager:
         self.current_dct_id: int | None = None
 
     @property
+    def n_opened(self) -> int:
+        """
+        Get the number of opened dictionaries.
+
+        Returns:
+            Number of opened dictionaries.
+        """
+
+        return len(self.opened_dct_info)
+
+    @property
     def dct(self) -> Dictionary | None:
         """
         Get the currently active dictionary.
