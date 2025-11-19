@@ -1,7 +1,6 @@
 import typing
 import copy
 import platform
-import random
 import math
 import pickle
 import tkinter as tk
@@ -1408,11 +1407,6 @@ def set_image(btn: ttk.Button, img: tk.PhotoImage, img_name: str, text_if_no_img
 # Ввод только целых чисел от 0 до max_val
 def validate_int_min_max(value: str, min_val: int, max_val: int) -> bool:
     return value == '' or value.isnumeric() and min_val <= int(value) <= max_val
-
-
-# Ввод только целых чисел от 0 до 100
-def validate_percent(value: str) -> bool:
-    return validate_int_min_max(value, 0, 100)
 
 
 # Валидация открывающего символа специальной комбинации
@@ -6239,9 +6233,6 @@ class SettingsW(tk.Toplevel):
         self.dcts_savenames = []
         self.dcts_frames = []
         self.dcts_buttons = []
-
-        # Только целые числа от 0 до 100
-        self.vcmd = (self.register(validate_percent), '%P')
 
         self._configure_window()
         self._create_widgets()
