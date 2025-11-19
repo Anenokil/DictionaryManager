@@ -19,6 +19,8 @@ Index = dict[str, set[EntryID]]
 Indexes = dict[str, Index]
 FeatureRegistry = dict[Category, list[CtgValue]]
 GroupRegistry = list[Group]
+GroupID = int
+GroupIDs = set[GroupID]
 
 
 class Dictionary:
@@ -83,6 +85,7 @@ class Dictionary:
         }
         self._features: FeatureRegistry = dict()
         self._groups: GroupRegistry = []
+        self._default_group_ids: GroupIDs = set()
         self._max_entry_id = 0
         self._is_modified = True
 
@@ -296,6 +299,10 @@ class Dictionary:
         return self._groups
 
     @property
+    def default_groups(self) -> GroupRegistry:
+        return [self._groups[i] for i in self._default_group_ids]
+
+    @property
     def features(self) -> FeatureRegistry:
         return self._features
 
@@ -334,6 +341,10 @@ class Dictionary:
 
         self._max_entry_id += 1
         entry_id = self._max_entry_id
+
+        if groups is not None:
+            default_groups = {self._groups[i] for i in self._default_group_ids}
+            groups = set(groups).union(default_groups)
 
         self._entries[entry_id] = Entry(
             entry_id, lemma, tr, forms, phrases, notes, groups, fav,
@@ -763,18 +774,23 @@ class Dictionary:
         self._features[ctg_name][index] = ctg_value_new
 
     @_mark_modified
-    def add_group(self, group: Group):
+    def add_group(self, group: Group, is_default: bool = False):
         """
         Add a new group to the dictionary.
 
         Args:
             group: Name of the group to add.
+            is_default: Whether the group is default.
         """
 
         assert group not in self._groups
 
         self._indexes['groups'][group] = set()
         self._groups += [group]
+
+        if is_default:
+            group_id = len(self._groups) - 1
+            self._default_group_ids.add(group_id)
 
     @_mark_modified
     def delete_group(self, group: Group):
@@ -788,6 +804,12 @@ class Dictionary:
         """
 
         assert group in self._groups
+
+        group_id = self._groups.index(group)
+        self._default_group_ids = set.union(
+            {g_id     for g_id in self._default_group_ids if g_id < group_id},
+            {g_id - 1 for g_id in self._default_group_ids if g_id > group_id}
+        )
 
         for entry_id in self._indexes['groups'][group]:
             entry = self._entries[entry_id]
@@ -821,6 +843,20 @@ class Dictionary:
 
         self._indexes['groups'][group_new] = self._indexes['groups'][group_old]
         del self._indexes['groups'][group_old]
+
+    @_mark_modified
+    def mark_group_as_default(self, group: Group):
+        group_id = self._groups.index(group)
+        self._default_group_ids.add(group_id)
+
+    @_mark_modified
+    def unmark_default_group(self, group: Group):
+        group_id = self._groups.index(group)
+        self._default_group_ids.discard(group_id)
+
+    def is_default_group(self, group: Group) -> bool:
+        group_id = self._groups.index(group)
+        return group_id in self._default_group_ids
 
     def serialize(self) -> dict[str, Any]:
         """
