@@ -681,11 +681,11 @@ def set_postfix(n: int, wrd_forms: tuple[str, str, str]) -> str:
 
 
 # Выбрать одну статью из нескольких с одинаковыми словами
-def choose_one_of_similar_entries(dct: Dictionary, window_parent, opened_dct: Dictionary, lemma: str):
+def choose_one_of_similar_entries(dct: Dictionary, window_parent, lemma: str):
     homograph_ids = dct.search([('lemmas', lemma)])
     if len(homograph_ids) == 1:  # Если статья только одна, то возвращает её ключ
         return homograph_ids.pop()
-    window_entries = ChooseOneOfSimilarEntriesW(window_parent, opened_dct, lemma)
+    window_entries = ChooseOneOfSimilarEntriesW(window_parent, dct, lemma)
     answer = window_entries.open()
     if not answer:
         return None
@@ -693,7 +693,7 @@ def choose_one_of_similar_entries(dct: Dictionary, window_parent, opened_dct: Di
 
 
 # Изменить слово в статье
-def edit_wrd_with_choose(dct: Dictionary, window_parent, opened_dct: Dictionary, key: EntryID, new_wrd: str) -> tuple[EntryID | None, bool]:
+def edit_wrd_with_choose(dct: Dictionary, window_parent, key: EntryID, new_wrd: str) -> tuple[EntryID | None, bool]:
     if dct.search([('lemmas', new_wrd)]):  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                'Что вы хотите сделать?',
@@ -702,7 +702,7 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, opened_dct: Dictionary,
                                 val_left='l', val_right='r', val_on_close='c')
         answer = window.open()
         if answer == 'l':  # Добавить к существующей статье
-            new_key = choose_one_of_similar_entries(dct, window_parent, opened_dct, new_wrd)
+            new_key = choose_one_of_similar_entries(dct, window_parent, new_wrd)
             if not new_key:
                 return key, False
             dct.merge_entries(new_key, key)
@@ -718,7 +718,7 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, opened_dct: Dictionary,
 
 
 # Добавить статью в словарь (для пользователя)
-def add_entry_with_choose(dct: Dictionary, window_parent, opened_dct: Dictionary, lemma: str, tr: str) -> EntryID | None:
+def add_entry_with_choose(dct: Dictionary, window_parent: Dictionary, lemma: str, tr: str) -> EntryID | None:
     if dct.search([('lemmas', lemma)]):  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                'Что вы хотите сделать?',
@@ -727,7 +727,7 @@ def add_entry_with_choose(dct: Dictionary, window_parent, opened_dct: Dictionary
                                 val_left='l', val_right='r', val_on_close='c')
         answer = window.open()
         if answer == 'l':  # Добавить к существующей статье
-            key = choose_one_of_similar_entries(dct, window_parent, opened_dct, lemma)
+            key = choose_one_of_similar_entries(dct, window_parent, lemma)
             if not key:
                 return None
             dct.add_tr(key, tr)
@@ -1037,9 +1037,9 @@ def upload_custom_theme(to_print=True):
 
 # Загрузить изображения для выбранной темы
 def upload_theme_img(theme: str):
-    global img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group,\
-        img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all,\
-        img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right, img_double_arrow_left,\
+    global img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group, \
+        img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all, \
+        img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right, img_double_arrow_left, \
         img_double_arrow_right, img_trashcan
 
     if theme == CUSTOM_TH:
@@ -1059,9 +1059,9 @@ def upload_theme_img(theme: str):
         else:
             images[i] = os.path.join(IMAGES_PATH, file_name)
 
-    img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group, img_remove_from_group,\
-        img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all, img_unselect_all,\
-        img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right,\
+    img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group, img_remove_from_group, \
+        img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all, img_unselect_all, \
+        img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right, \
         img_double_arrow_left, img_double_arrow_right, img_trashcan = images
 
 
@@ -1473,7 +1473,8 @@ class ScrollFrame(tk.Frame):
         else:
             canvas_position: typing.Literal['left', 'right'] = 'right'
 
-        self.canvas = tk.Canvas(self, bg=STYLES['FLAT_BTN.BG.2'][1][th], bd=0, highlightthickness=0, height=height, width=width)
+        self.canvas = tk.Canvas(self, bg=STYLES['FLAT_BTN.BG.2'][1][th], bd=0,
+                                highlightthickness=0, height=height, width=width)
         # {
         self.frame_canvas = ttk.Frame(self.canvas, style='Default.TFrame')
         # }
@@ -2035,7 +2036,8 @@ class IncorrectAnswerW(tk.Toplevel):
 
 # Окно с параметрами поиска
 class SearchSettingsW(tk.Toplevel):
-    def __init__(self, parent, opened_dct: Dictionary, search_only_fav: bool, search_only_full: bool, search_wrd: bool, search_tr: bool,
+    def __init__(self, parent, opened_dct: Dictionary, search_only_fav: bool,
+                 search_only_full: bool, search_wrd: bool, search_tr: bool,
                  search_frm: bool, search_phr: bool, search_nt: bool, search_group: str):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Параметры поиска')
@@ -2137,8 +2139,8 @@ class SearchSettingsW(tk.Toplevel):
         save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
                                  _0_global_dct_savename)
 
-        return self.var_search_only_fav.get(), self.var_search_only_full.get(), self.var_search_wrd.get(),\
-            self.var_search_tr.get(), self.var_search_frm.get(), self.var_search_phr.get(), self.var_search_nt.get(),\
+        return self.var_search_only_fav.get(), self.var_search_only_full.get(), self.var_search_wrd.get(), \
+            self.var_search_tr.get(), self.var_search_frm.get(), self.var_search_phr.get(), self.var_search_nt.get(), \
             self.var_search_group.get()
 
 
@@ -2320,8 +2322,9 @@ class EditW(tk.Toplevel):
         self.lbl_wrd = ttk.Label(self.frame_main, text='Слово:', style='Default.TLabel')
         self.scrollbar_wrd = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_wrd = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_wrd.set,
-                               font=('DejaVu Sans Mono', _0_global_scale + 1), relief='solid', bg=STYLES['*.BG.ENTRY'][1][th],
-                               fg=STYLES['*.FG.*'][1][th], selectbackground=STYLES['*.BG.SEL'][1][th], selectforeground=STYLES['*.FG.SEL'][1][th],
+                               font=('DejaVu Sans Mono', _0_global_scale + 1), relief='solid',
+                               bg=STYLES['*.BG.ENTRY'][1][th], fg=STYLES['*.FG.*'][1][th],
+                               selectbackground=STYLES['*.BG.SEL'][1][th], selectforeground=STYLES['*.FG.SEL'][1][th],
                                highlightbackground=STYLES['*.BORDER_CLR.*'][1][th])
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
         self.btn_wrd_edt = ttk.Button(self.frame_main, command=self.wrd_edt, width=4, takefocus=False)
@@ -2436,7 +2439,7 @@ class EditW(tk.Toplevel):
         if new_wrd == self.opened_dct[self.dct_key].lemma:
             return
 
-        new_key, has_progres = edit_wrd_with_choose(self.opened_dct, self, self.opened_dct, self.dct_key, new_wrd)
+        new_key, has_progres = edit_wrd_with_choose(self.opened_dct, self, self.dct_key, new_wrd)
         if not has_progres:
             return
         self.dct_key = new_key
@@ -2467,7 +2470,9 @@ class EditW(tk.Toplevel):
 
         window = PopupEntryW(self, 'Введите новый перевод', default_value=tr,
                              check_answer_function=lambda wnd, val:
-                             check_tr_edit(wnd, self.opened_dct[self.dct_key].tr, tr, val, self.opened_dct[self.dct_key].lemma))
+                             check_tr_edit(
+                                 wnd, self.opened_dct[self.dct_key].tr, tr,
+                                 val, self.opened_dct[self.dct_key].lemma))
         closed, new_tr = window.open()
         if closed:
             return
@@ -2503,7 +2508,8 @@ class EditW(tk.Toplevel):
             return
 
         window_form = AddFormW(self, self.opened_dct, self.dct_key,
-                               combo_width=combobox_width(tuple(self.opened_dct.features.keys()), 5, 100))  # Создание словоформы
+                               combo_width=combobox_width(tuple(self.opened_dct.features.keys()),
+                                                          5, 100))  # Создание словоформы
         frm_key, frm = window_form.open()
         if not frm_key:
             return
@@ -2547,7 +2553,9 @@ class EditW(tk.Toplevel):
 
         window = AddPhraseW(self, 'Добавление фразы',
                             check_answer_function=lambda wnd, val:
-                            check_phr(wnd, self.opened_dct[self.dct_key].phrases, val, self.opened_dct[self.dct_key].lemma))
+                            check_phr(
+                                wnd, self.opened_dct[self.dct_key].phrases,
+                                val, self.opened_dct[self.dct_key].lemma))
         closed, phr, phr_tr = window.open()
         if closed:
             return
@@ -2597,7 +2605,9 @@ class EditW(tk.Toplevel):
 
         window = PopupEntryW(self, 'Введите сноску',
                              check_answer_function=lambda wnd, val:
-                             check_note(wnd, self.opened_dct[self.dct_key].notes, val, self.opened_dct[self.dct_key].lemma))
+                             check_note(
+                                 wnd, self.opened_dct[self.dct_key].notes,
+                                 val, self.opened_dct[self.dct_key].lemma))
         closed, note = window.open()
         if closed:
             return
@@ -2755,7 +2765,9 @@ class EditW(tk.Toplevel):
         self.frm_buttons = [ttk.Button(self.frm_frames[i], command=lambda i=i: self.frm_edt(self.forms[i]),
                                        takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
                             for i in range(frm_count)]
-        self.gr_buttons = [ttk.Button(self.gr_frames[i], takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
+        self.gr_buttons = [ttk.Button(self.gr_frames[i],
+                                      takefocus=False,
+                                      style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
                            for i in range(gr_count)]
         # Выводим текст на кнопки
         for i in range(tr_count):
@@ -4390,29 +4402,44 @@ class LearnW(tk.Toplevel):
 
         self.var_input = tk.StringVar()
 
-        self.lbl_global_rating = ttk.Label(self, text=f'Ваш общий рейтинг по словарю: {self.get_percent()}',
-                                           style='Default.TLabel')
-        self.lbl_count = ttk.Label(self, text=f'Отвечено: 0/{self.initial_pool_size}', style='Default.TLabel')
+        self.lbl_global_rating = ttk.Label(
+            self, text=f'Ваш общий рейтинг по словарю: {self.get_percent()}',
+            style='Default.TLabel')
+        self.lbl_count = ttk.Label(
+            self, text=f'Отвечено: 0/{self.initial_pool_size}',
+            style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
-                               font=('StdFont', _0_global_scale), bg=STYLES['*.BG.ENTRY'][1][th], fg=STYLES['*.FG.*'][1][th],
-                               selectbackground=STYLES['*.BG.SEL'][1][th], selectforeground=STYLES['*.FG.SEL'][1][th],
-                               relief=STYLES['TXT.RELIEF.*'][1][th], highlightbackground=STYLES['*.BORDER_CLR.*'][1][th])
+        self.txt_dct = tk.Text(
+            self, width=70, height=30, state='disabled',
+            yscrollcommand=self.scrollbar.set,
+            font=('StdFont', _0_global_scale),
+            bg=STYLES['*.BG.ENTRY'][1][th], fg=STYLES['*.FG.*'][1][th],
+            selectbackground=STYLES['*.BG.SEL'][1][th],
+            selectforeground=STYLES['*.FG.SEL'][1][th],
+            relief=STYLES['TXT.RELIEF.*'][1][th],
+            highlightbackground=STYLES['*.BORDER_CLR.*'][1][th])
         self.scrollbar.config(command=self.txt_dct.yview)
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
-        self.btn_input = ttk.Button(self.frame_main, text='Ввод', command=self.input, width=6,
-                                    takefocus=False, style='Default.TButton')
-        self.entry_input = ttk.Entry(self.frame_main, textvariable=self.var_input, width=36,
-                                     style='Default.TEntry', font=('StdFont', _0_global_scale))
-        self.btn_show_entry = ttk.Button(self.frame_main, text='Слово и перевод', command=self.show_entry, width=15,
-                                         takefocus=False, style='Default.TButton')
-        self.btn_show_notes = ttk.Button(self.frame_main, text='Сноски', command=self.show_notes, width=7,
-                                         takefocus=False, style='Default.TButton')
-        self.btn_show_homonyms = ttk.Button(self.frame_main, text='Омонимы', command=self.show_homonyms, width=8,
-                                            takefocus=False, style='Default.TButton')
+        self.btn_input = ttk.Button(
+            self.frame_main, text='Ввод', command=self.input,
+            width=6, takefocus=False, style='Default.TButton')
+        self.entry_input = ttk.Entry(
+            self.frame_main, textvariable=self.var_input, width=36,
+            style='Default.TEntry', font=('StdFont', _0_global_scale))
+        self.btn_show_entry = ttk.Button(
+            self.frame_main, text='Слово и перевод', command=self.show_entry,
+            width=15, takefocus=False, style='Default.TButton')
+        self.btn_show_notes = ttk.Button(
+            self.frame_main, text='Сноски', command=self.show_notes,
+            width=7, takefocus=False, style='Default.TButton')
+        self.btn_show_homonyms = ttk.Button(
+            self.frame_main, text='Омонимы', command=self.show_homonyms,
+            width=8, takefocus=False, style='Default.TButton')
         # }
-        self.btn_stop = ttk.Button(self, text='Закончить', command=self.stop, takefocus=False, style='No.TButton')
+        self.btn_stop = ttk.Button(
+            self, text='Закончить', command=self.stop,
+            takefocus=False, style='No.TButton')
 
         self.lbl_global_rating.grid(row=0, columnspan=2, padx=6,      pady=(6, 3))
         self.lbl_count.grid(        row=1, columnspan=2, padx=6,      pady=(0, 6))
@@ -4430,16 +4457,21 @@ class LearnW(tk.Toplevel):
         # }
         self.btn_stop.grid(row=4, columnspan=2, padx=6, pady=6)
 
-        self.tip_btn_show_entry = ttip.Hovertip(self.btn_show_entry, 'Посмотреть само слово и его перевод\n'
-                                                                     'Control-W',
-                                                hover_delay=700)
-        self.tip_btn_show_notes = ttip.Hovertip(self.btn_show_notes, 'Посмотреть сноски\n'
-                                                                     'Control-N',
-                                                hover_delay=700)
-        self.tip_btn_show_homonyms = ttip.Hovertip(self.btn_show_homonyms,
-                                                   'Посмотреть остальные слова с таким же написанием\n'
-                                                   'Control-O',
-                                                   hover_delay=700)
+        self.tip_btn_show_entry = ttip.Hovertip(
+            self.btn_show_entry,
+            'Посмотреть само слово и его перевод\n'
+            'Control-W',
+            hover_delay=700)
+        self.tip_btn_show_notes = ttip.Hovertip(
+            self.btn_show_notes,
+            'Посмотреть сноски\n'
+            'Control-N',
+            hover_delay=700)
+        self.tip_btn_show_homonyms = ttip.Hovertip(
+            self.btn_show_homonyms,
+            'Посмотреть остальные слова с таким же написанием\n'
+            'Control-O',
+            hover_delay=700)
 
         if config.method == TrainingMethod.TRANS_TO_WORD:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
@@ -4524,12 +4556,14 @@ class LearnW(tk.Toplevel):
             btn_enable(self.btn_show_entry, self.show_entry)
         # Обновление кнопки "Посмотреть сноски"
         entry = self.opened_dct[self.current_key]
-        if entry.count_n == 0 or self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
+        if entry.count_n == 0 or self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE,
+                                                                TrainingMethod.PHRASE_TO_TRANS):
             btn_disable(self.btn_show_notes)
         else:
             btn_enable(self.btn_show_notes, self.show_notes)
         # Обновление кнопки "Посмотреть омонимы"
-        if not self.homonyms or self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
+        if not self.homonyms or self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE,
+                                                               TrainingMethod.PHRASE_TO_TRANS):
             btn_disable(self.btn_show_homonyms)
         else:
             btn_enable(self.btn_show_homonyms, self.show_homonyms)
@@ -4600,13 +4634,15 @@ class LearnW(tk.Toplevel):
             self.outp(f'Неверно. Правильный ответ: "{correct_answer}"\n')
             if entry.fav:
                 if bool(_0_global_with_typo):
-                    window = PopupDialogueW(self,
-                                            msg=f'Неверно.\n'
-                                                f'Ваш ответ: {encode_special_combinations(self.entry_input.get(), _0_global_special_combinations)}\n'
-                                                f'Правильный ответ: {correct_answer}',
-                                            btn_left_text='Ясно', btn_right_text='Просто опечатка',
-                                            st_left='Default', st_right='Default',
-                                            val_left='ok', val_right='typo')
+                    window = PopupDialogueW(
+                        self,
+                        msg=f'Неверно.\n'
+                            f'Ваш ответ: {encode_special_combinations(self.entry_input.get(), 
+                                                                      _0_global_special_combinations)}\n'
+                            f'Правильный ответ: {correct_answer}',
+                        btn_left_text='Ясно', btn_right_text='Просто опечатка',
+                        st_left='Default', st_right='Default',
+                        val_left='ok', val_right='typo')
                     ttip.Hovertip(window.btn_right, 'Не засчитывать ошибку\n'
                                                     'Tab',
                                   hover_delay=700)
@@ -5121,8 +5157,9 @@ class PrintW(tk.Toplevel):
         self.tip_btn_delete = ttip.Hovertip(self.btn_search_delete, 'Удалить выделенные статьи\n'
                                                              'Alt+D',
                                             hover_delay=450)
-        self.tip_btn_select_page = ttip.Hovertip(self.btn_search_select_page, 'Выделить все статьи на текущей странице\n'
-                                                                       'Alt+P',
+        self.tip_btn_select_page = ttip.Hovertip(self.btn_search_select_page,
+                                                 'Выделить все статьи на текущей странице\n'
+                                                 'Alt+P',
                                                  hover_delay=450)
         self.tip_btn_unselect_page = ttip.Hovertip(self.btn_search_unselect_page,
                                                    'Снять выделение со всех статей на текущей странице\n'
@@ -5155,9 +5192,13 @@ class PrintW(tk.Toplevel):
 
     # Нажатие на кнопку "Настройки поиска"
     def search_settings(self):
-        window = SearchSettingsW(self, self.opened_dct, self.search_only_fav, self.search_only_full, self.search_wrd, self.search_tr,
-                                 self.search_frm, self.search_phr, self.search_nt, self.search_group)
-        self.search_only_fav, self.search_only_full, self.search_wrd, self.search_tr, self.search_frm, self.search_phr,\
+        window = SearchSettingsW(
+            self, self.opened_dct, self.search_only_fav,
+            self.search_only_full, self.search_wrd, self.search_tr,
+            self.search_frm, self.search_phr, self.search_nt,
+            self.search_group)
+        self.search_only_fav, self.search_only_full, self.search_wrd, \
+            self.search_tr, self.search_frm, self.search_phr, \
             self.search_nt, self.search_group = window.open()
 
     # Изменить статью
@@ -5242,8 +5283,10 @@ class PrintW(tk.Toplevel):
             if group == ALL_GROUPS:
                 self.print_keys = [key for key in self.opened_dct.get_entry_ids()]
             else:
-                self.print_keys = [key for key in self.opened_dct.get_entry_ids() if group in self.opened_dct[key].groups]
-        self.print_selected_keys = [key for key in self.print_selected_keys if key in self.print_keys]
+                self.print_keys = [key for key in self.opened_dct.get_entry_ids()
+                                   if group in self.opened_dct[key].groups]
+        self.print_selected_keys = [key for key in self.print_selected_keys
+                                    if key in self.print_keys]
         if not self.print_selected_keys:
             self.frame_print_buttons_for_selected.grid_remove()
         # Сортируем статьи
@@ -5277,7 +5320,8 @@ class PrintW(tk.Toplevel):
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[6]:
             self.print_keys.sort(key=lambda k: (self.opened_dct[k].lemma.lower(), self.opened_dct[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[7]:
-            self.print_keys.sort(key=lambda k: (self.opened_dct[k].lemma.lower(), self.opened_dct[k].lemma), reverse=True)
+            self.print_keys.sort(key=lambda k: (self.opened_dct[k].lemma.lower(), self.opened_dct[k].lemma),
+                                 reverse=True)
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[8]:
             self.print_keys.sort(key=lambda k: (len(self.opened_dct[k].lemma),
                                                 self.opened_dct[k].lemma.lower(), self.opened_dct[k].lemma))
@@ -5312,21 +5356,25 @@ class PrintW(tk.Toplevel):
         self.print_frames = [ttk.Frame(self.scrolled_frame_print.frame_canvas, style='Invis.TFrame')
                              for i in range(self.print_count_elements_on_page)]
         # Создаём новые кнопки
-        self.print_buttons = [ttk.Button(self.print_frames[i],
-                                         command=lambda i=i: self.edit_entry(self.print_keys[self.print_start_index + i]),
-                                         takefocus=False,
-                                         style=('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
-                                               if self.print_keys[self.print_start_index + i] in self.print_selected_keys
-                                               else ('FlatD.TButton' if i % 2 else 'FlatL.TButton'))
-                              for i in range(self.print_count_elements_on_page)]
+        self.print_buttons = [
+            ttk.Button(self.print_frames[i],
+                       command=lambda i=i: self.edit_entry(self.print_keys[self.print_start_index + i]),
+                       takefocus=False,
+                       style=('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
+                             if self.print_keys[self.print_start_index + i] in self.print_selected_keys
+                             else ('FlatD.TButton' if i % 2 else 'FlatL.TButton'))
+            for i in range(self.print_count_elements_on_page)
+        ]
         # Создаём подсказки
-        self.print_tips = [ttip.Hovertip(self.print_buttons[i],
-                                         f'Верных ответов подряд: '
-                                         f'{get_correct_att_in_a_row(self.opened_dct[self.print_keys[self.print_start_index + i]])}\n'
-                                         f'Доля верных ответов: '
-                                         f'{get_entry_percent(self.opened_dct[self.print_keys[self.print_start_index + i]])}',
-                                         hover_delay=666)
-                           for i in range(self.print_count_elements_on_page)]
+        self.print_tips = [
+            ttip.Hovertip(self.print_buttons[i],
+                          f'Верных ответов подряд: '
+                          f'{get_correct_att_in_a_row(self.opened_dct[self.print_keys[self.print_start_index + i]])}\n'
+                          f'Доля верных ответов: '
+                          f'{get_entry_percent(self.opened_dct[self.print_keys[self.print_start_index + i]])}',
+                          hover_delay=666)
+            for i in range(self.print_count_elements_on_page)
+        ]
         # Выводим текст на кнопки
         if self.var_print_briefly.get():
             for i in range(self.print_count_elements_on_page):
@@ -5415,17 +5463,21 @@ class PrintW(tk.Toplevel):
         self.search_frames = [ttk.Frame(self.scrolled_frame_search.frame_canvas, style='Invis.TFrame')
                               for i in range(self.search_count_elements_on_page)]
         # Создаём новые кнопки
-        self.search_buttons = [ttk.Button(self.search_frames[i],
-                                          command=lambda i=i: self.edit_entry(self.search_keys[self.search_start_index + i]),
-                                          takefocus=False,
-                                          style=('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
-                                                if self.search_keys[self.search_start_index + i] in self.search_selected_keys
-                                                else ('FlatD.TButton' if i % 2 else 'FlatL.TButton'))
-                               for i in range(self.search_count_elements_on_page)]
+        self.search_buttons = [
+            ttk.Button(self.search_frames[i],
+                       command=lambda i=i: self.edit_entry(self.search_keys[self.search_start_index + i]),
+                       takefocus=False,
+                       style=('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
+                             if self.search_keys[self.search_start_index + i] in self.search_selected_keys
+                             else ('FlatD.TButton' if i % 2 else 'FlatL.TButton'))
+            for i in range(self.search_count_elements_on_page)
+        ]
 
         for i in range(self.search_count_elements_on_page):
             # Выводим текст на кнопки
-            self.search_buttons[i].configure(text=get_all_entry_info(self.opened_dct[self.search_keys[self.search_start_index + i]], 75, 13))
+            self.search_buttons[i].configure(
+                text=get_all_entry_info(
+                    self.opened_dct[self.search_keys[self.search_start_index + i]], 75, 13))
 
             # Расставляем элементы
             self.search_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
@@ -5564,7 +5616,8 @@ class PrintW(tk.Toplevel):
                 self.frame_search_buttons_for_selected.grid_remove()
         else:
             self.search_selected_keys += [key]
-            self.search_buttons[index].configure(style='FlatSelectedD.TButton' if index % 2 else 'FlatSelectedL.TButton')
+            self.search_buttons[index].configure(
+                style='FlatSelectedD.TButton' if index % 2 else 'FlatSelectedL.TButton')
             self.frame_search_buttons_for_selected.grid(row=1, column=2, padx=(6, 0), pady=0, sticky='W')
         self.search_print_info()
 
@@ -5933,7 +5986,8 @@ class AddW(tk.Toplevel):
                 translations += tr
 
             if value_wrd in words:
-                keys_with_this_word = (key for key in self.opened_dct.get_entry_ids() if self.opened_dct[key].lemma == value_wrd)
+                keys_with_this_word = (key for key in self.opened_dct.get_entry_ids()
+                                       if self.opened_dct[key].lemma == value_wrd)
                 translations = []
                 for tr in (self.opened_dct[key].tr for key in keys_with_this_word):
                     translations += tr
@@ -5962,7 +6016,7 @@ class AddW(tk.Toplevel):
     def add(self):
         global _0_global_has_progress
 
-        self.dct_key = add_entry_with_choose(self.opened_dct, self, self.opened_dct,
+        self.dct_key = add_entry_with_choose(self.opened_dct, self,
                                              encode_special_combinations(self.var_wrd.get(),
                                                                          _0_global_special_combinations),
                                              encode_special_combinations(self.var_tr.get(),
@@ -6220,7 +6274,7 @@ class SettingsW(tk.Toplevel):
 
     # Открыть словарь
     def dct_open(self, savename: str):
-        global _0_global_dct_savename, _0_global_special_combinations, _0_global_check_register,\
+        global _0_global_dct_savename, _0_global_special_combinations, _0_global_check_register, \
             _0_global_has_progress, _0_global_session_number, _0_global_search_settings, _0_global_learn_settings
 
         if savename == _0_global_dct_savename:
@@ -6294,8 +6348,8 @@ class SettingsW(tk.Toplevel):
 
     # Создать словарь (срабатывает при нажатии на кнопку)
     def dct_create(self):
-        global _0_global_dct_savename, _0_global_special_combinations, _0_global_check_register,\
-            _0_global_has_progress, _0_global_session_number, _0_global_search_settings, _0_global_learn_settings,\
+        global _0_global_dct_savename, _0_global_special_combinations, _0_global_check_register, \
+            _0_global_has_progress, _0_global_session_number, _0_global_search_settings, _0_global_learn_settings, \
             _0_global_fav_groups
 
         window = PopupEntryW(self, 'Введите название нового словаря', validate_function=validate_savename,
@@ -6309,7 +6363,7 @@ class SettingsW(tk.Toplevel):
         save_dct_if_has_progress(self, self.opened_dct, _0_global_dct_savename, _0_global_has_progress)
 
         self.opened_dct = create_dct(savename)
-        _0_global_check_register, _0_global_special_combinations, self.opened_dct._features, self.opened_dct._groups,\
+        _0_global_check_register, _0_global_special_combinations, self.opened_dct._features, self.opened_dct._groups, \
             _0_global_fav_groups = upload_local_settings(savename)
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
             upload_local_auto_settings(savename)
@@ -6804,10 +6858,8 @@ class MainW(tk.Tk):
         self.disable_all_buttons()
 
         res = ChooseLearnModeW(self, self.opened_dct).open()
-        if not res:
-            self.enable_all_buttons()
-            return
-        LearnW(self, res, self.opened_dct).open()
+        if res:
+            LearnW(self, res, self.opened_dct).open()
 
         self.enable_all_buttons()
 
@@ -6828,17 +6880,15 @@ class MainW(tk.Tk):
         self.disable_all_buttons()
 
         key = AddW(self, self.opened_dct).open()
-        if not key:
-            self.enable_all_buttons()
-            return
-        EditW(self, self.opened_dct, key).open()
+        if key:
+            EditW(self, self.opened_dct, key).open()
 
         self.enable_all_buttons()
 
     # Нажатие на кнопку "Настройки"
     def settings(self):
-        global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale,\
-            _0_global_special_combinations, _0_global_check_register, _0_global_learn_settings,\
+        global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale, \
+            _0_global_special_combinations, _0_global_check_register, _0_global_learn_settings, \
             _0_global_session_number, _0_global_search_settings, _0_global_fav_groups
 
         self.disable_all_buttons()
@@ -6849,7 +6899,7 @@ class MainW(tk.Tk):
         _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale =\
             upload_global_settings()
         # Обновляем локальные настройки
-        _0_global_check_register, _0_global_special_combinations, self.opened_dct._features, self.opened_dct._groups,\
+        _0_global_check_register, _0_global_special_combinations, self.opened_dct._features, self.opened_dct._groups, \
             _0_global_fav_groups = upload_local_settings(_0_global_dct_savename)
         # Обновляем локальные авто-настройки
         _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
@@ -7228,8 +7278,8 @@ def main():
         img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all, \
         img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right, img_double_arrow_left, \
         img_double_arrow_right, img_trashcan
-    global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale,\
-        _0_global_special_combinations, _0_global_check_register, _0_global_learn_settings,\
+    global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale, \
+        _0_global_special_combinations, _0_global_check_register, _0_global_learn_settings, \
         _0_global_session_number, _0_global_search_settings, _0_global_fav_groups, _0_global_has_progress
     global _0_global_learn_session_number, _0_global_window_last_version
 
@@ -7285,10 +7335,12 @@ def main():
     if not uploaded_save:
         exit(EXIT_DCT_LOAD_FAILED)
     uploaded_save: tuple[str, int, dict[tuple[str, str], str], list[str]]
-    _0_global_dct_savename, _0_global_check_register, _0_global_special_combinations, _0_global_fav_groups = uploaded_save
+    _0_global_dct_savename, _0_global_check_register, _0_global_special_combinations, \
+        _0_global_fav_groups = uploaded_save
     _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
         upload_local_auto_settings(_0_global_dct_savename)  # Загружаем локальные авто-настройки
-    _0_global_window_last_version = check_updates(root, opened_dct, bool(_0_global_show_updates), False)  # Проверяем наличие обновлений
+    _0_global_window_last_version = check_updates(root, opened_dct, bool(_0_global_show_updates),
+                                                  False)  # Проверяем наличие обновлений
     _0_global_learn_session_number = 0
     if ICON_FN in os.listdir(RESOURCES_PATH):
         root.iconphoto(True, tk.PhotoImage(file=ICON_PATH))  # Устанавливаем иконку
