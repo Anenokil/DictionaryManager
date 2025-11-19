@@ -827,7 +827,7 @@ def wrd_in_line(line: str, wrd: str) -> bool:
 
 # Поиск статей в словаре
 def search_entries(dct: Dictionary, dct_keys: tuple[EntryID, ...], query: str,
-                   to_search_wrd: bool, to_search_tr: bool, to_search_frm: bool, 
+                   to_search_wrd: bool, to_search_tr: bool, to_search_frm: bool,
                    to_search_phr: bool, to_search_nt: bool) -> list[set]:
     query_l = query.lower()
     query_s = simplify(query)[0].replace('ё', 'е')
@@ -1453,6 +1453,13 @@ class ScrollFrame(tk.Frame):
         else:
             canvas_position: typing.Literal['left', 'right'] = 'right'
 
+        self._create_widgets(height, width, canvas_position, scrollbar_position)
+        self._create_bindings()
+
+        self.on_frame_configure(None)
+
+    def _create_widgets(self, height: int, width: int, canvas_position: typing.Literal['left', 'right'],
+                        scrollbar_position: typing.Literal['left', 'right']):
         self.canvas = tk.Canvas(self, bg=STYLES['FLAT_BTN.BG.2'][1][th], bd=0,
                                 highlightthickness=0, height=height, width=width)
         # {
@@ -1467,6 +1474,7 @@ class ScrollFrame(tk.Frame):
         self.canvas_window = self.canvas.create_window((4, 4), window=self.frame_canvas, anchor='nw',
                                                        tags='self.frame_canvas')
 
+    def _create_bindings(self):
         # Когда размер фрейма изменяется, соответственно изменяется и область прокрутки
         self.frame_canvas.bind('<Configure>', self.on_frame_configure)
         # Когда размер холста изменяется, соответственно изменяется и область окна
@@ -1476,8 +1484,6 @@ class ScrollFrame(tk.Frame):
         self.frame_canvas.bind('<Enter>', self.on_enter)
         # Отвязать колёсико мышки, когда курсор покидает элемент управления
         self.frame_canvas.bind('<Leave>', self.on_leave)
-
-        self.on_frame_configure(None)
 
     # Когда размер фрейма изменяется, соответственно изменяется и область прокрутки
     def on_frame_configure(self, event):
@@ -1532,12 +1538,20 @@ class PopupMsgW(tk.Toplevel):
     def __init__(self, parent, msg: str, btn_text='Ясно', msg_max_width=60, tab=5,
                  msg_justify: typing.Literal['left', 'center', 'right'] = 'center', title=PROGRAM_NAME):
         super().__init__(parent)
-        self.title(title)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.closed = True  # Закрыто ли окно крестиком
 
+        self._configure_window(title)
+        self._create_widgets(msg, btn_text, msg_max_width, tab, msg_justify)
+
+    def _configure_window(self, title):
+        self.title(title)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self, msg: str, btn_text: str, msg_max_width: int, tab: int,
+                        msg_justify: typing.Literal['left', 'center', 'right']):
         self.lbl_msg = ttk.Label(self, text=split_text(msg, msg_max_width, tab=tab, to_add_right_spaces=False),
                                  justify=msg_justify, style='Default.TLabel')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Default.TButton')
@@ -1586,9 +1600,7 @@ class PopupDialogueW(tk.Toplevel):
                                                          f'Allowed values: {ALLOWED_FOCUS_VALUES}'
 
         super().__init__(parent)
-        self.title(title)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.set_enter_on_btn = set_enter_on_btn
         self.answer = val_on_close  # Значение, возвращаемое методом self.open
@@ -1598,9 +1610,18 @@ class PopupDialogueW(tk.Toplevel):
         self.st_left = f'{st_left}.TButton'
         self.st_right = f'{st_right}.TButton'
 
+        self._configure_window(title)
+        self._create_widgets(msg, btn_left_text, btn_right_text)
+
+    def _configure_window(self, title):
+        self.title(title)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self, msg: str, btn_left_text: str, btn_right_text: str):
         self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, to_add_right_spaces=False), justify='center',
                                  style='Default.TLabel')
-        self.btn_left = ttk.Button(self, text=btn_left_text, command=self.left, takefocus=False, style=self.st_left)
+        self.btn_left  = ttk.Button(self, text=btn_left_text,  command=self.left,  takefocus=False, style=self.st_left)
         self.btn_right = ttk.Button(self, text=btn_right_text, command=self.right, takefocus=False, style=self.st_right)
 
         self.lbl_msg.grid(  row=0, columnspan=2, padx=6,       pady=4)
@@ -1641,11 +1662,10 @@ class PopupDialogueW(tk.Toplevel):
 class PopupEntryW(tk.Toplevel):
     def __init__(self, parent, msg='Введите строку', btn_text='Подтвердить',
                  entry_width=45, default_value='', validate_function=None,
-                 check_answer_function=None, if_correct_function=None, if_incorrect_function=None, title=PROGRAM_NAME):
+                 check_answer_function=None, if_correct_function=None,
+                 if_incorrect_function=None, title=PROGRAM_NAME):
         super().__init__(parent)
-        self.title(title)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
         self.if_correct_function = if_correct_function  # Функция, вызываемая при корректном ответе
@@ -1654,6 +1674,21 @@ class PopupEntryW(tk.Toplevel):
 
         self.var_text = tk.StringVar(value=default_value)
 
+        self._configure_window(title)
+        self._create_widgets(msg, btn_text, entry_width)
+
+        if validate_function:
+            self.vcmd = (self.register(validate_function), '%P')
+            self.entry_inp.configure(validate='key', validatecommand=self.vcmd)
+
+        self.entry_inp.icursor(len(default_value))
+
+    def _configure_window(self, title):
+        self.title(title)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self, msg: str, btn_text: str, entry_width: int):
         self.lbl_msg = ttk.Label(self, text=split_text(f'{msg}:', 45, to_add_right_spaces=False), justify='center',
                                  style='Default.TLabel')
         self.entry_inp = ttk.Entry(self, textvariable=self.var_text, width=entry_width,
@@ -1663,12 +1698,6 @@ class PopupEntryW(tk.Toplevel):
         self.lbl_msg.grid(  row=0, padx=6, pady=(6, 3))
         self.entry_inp.grid(row=1, padx=6, pady=(0, 6))
         self.btn_ok.grid(   row=2, padx=6, pady=(0, 6))
-
-        if validate_function:
-            self.vcmd = (self.register(validate_function), '%P')
-            self.entry_inp.configure(validate='key', validatecommand=self.vcmd)
-
-        self.entry_inp.icursor(len(default_value))
 
     # Нажатие на кнопку
     def ok(self):
@@ -1707,14 +1736,21 @@ class PopupChooseW(tk.Toplevel):
     def __init__(self, parent, values: list[str] | tuple[str, ...], msg='Выберите один из вариантов',
                  btn_text='Подтвердить', combo_width=40, default_value=None, title=PROGRAM_NAME):
         super().__init__(parent)
-        self.title(title)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.closed = True  # Закрыто ли окно крестиком
 
         self.var_answer = tk.StringVar(value=default_value)
 
+        self._configure_window(title)
+        self._create_widgets(msg, values, combo_width, btn_text)
+
+    def _configure_window(self, title):
+        self.title(title)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self, msg: str, values: list[str] | tuple[str, ...], combo_width: int, btn_text: str):
         self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, to_add_right_spaces=False), justify='center',
                                  style='Default.TLabel')
         self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values,
@@ -1751,13 +1787,20 @@ class PopupChooseW(tk.Toplevel):
 class PopupImgW(tk.Toplevel):
     def __init__(self, parent, img_name: str, msg: str, btn_text='Ясно', title=PROGRAM_NAME):
         super().__init__(parent)
-        self.title(title)
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.closed = True  # Закрыто ли окно крестиком
 
+        self._configure_window(title)
+        self._create_widgets(img_name, msg, btn_text)
+
+    def _configure_window(self, title):
+        self.title(title)
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self, img_name: str, msg: str, btn_text: str):
         try:
             self.img = tk.PhotoImage(file=img_name)
         except:
@@ -1801,10 +1844,7 @@ class PopupImgW(tk.Toplevel):
 class ChooseLearnModeW(tk.Toplevel):
     def __init__(self, parent, dct: Dictionary):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Выбор режима')
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.dct = dct
 
@@ -1817,6 +1857,17 @@ class ChooseLearnModeW(tk.Toplevel):
         self.var_forms = tk.StringVar(value=LEARN_VALUES_FORMS[_0_global_learn_settings[3]])  # Способ набора словоформ
         self.var_order = tk.StringVar(value=LEARN_VALUES_ORDER[_0_global_learn_settings[4]])  # Порядок следования слов
 
+        self._configure_window()
+        self._create_widgets()
+        self._add_validation()
+
+    def _configure_window(self):
+        self.title(f'{PROGRAM_NAME} - Выбор режима')
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.lbl_header = ttk.Label(self, text='Выберите способ учёбы', style='Default.TLabel')
         self.frame_main = ttk.Frame(self, style='Default.TFrame')
         # {
@@ -1863,6 +1914,7 @@ class ChooseLearnModeW(tk.Toplevel):
         # }
         self.btn_start.grid(row=2, column=0, padx=6, pady=(0, 6))
 
+    def _add_validation(self):
         # При выборе любого метода учёбы кроме первого нельзя добавить словоформы
         def validate_method_and_forms(value: str):
             if value == LEARN_VALUES_METHOD[0]:
@@ -1875,6 +1927,7 @@ class ChooseLearnModeW(tk.Toplevel):
 
         self.vcmd_method = (self.register(validate_method_and_forms), '%P')
         self.combo_method['validatecommand'] = self.vcmd_method
+
         validate_method_and_forms(self.var_method.get())
 
     # Начать учить слова
@@ -1948,17 +2001,26 @@ class ChooseLearnModeW(tk.Toplevel):
 class IncorrectAnswerW(tk.Toplevel):
     def __init__(self, parent, user_answer: str, correct_answer: str, with_typo: bool):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Неверно')
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
+        self.user_answer = user_answer
+        self.correct_answer = correct_answer
         self.with_typo = with_typo
         self.answer = 'no'  # Значение, возвращаемое методом self.open
 
+        self._configure_window()
+        self._create_widgets()
+
+    def _configure_window(self):
+        self.title(f'{PROGRAM_NAME} - Неверно')
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.lbl_msg = ttk.Label(self, text=split_text(f'Неверно.\n'
-                                                       f'Ваш ответ: {user_answer}\n'
-                                                       f'Правильный ответ: {correct_answer}\n'
+                                                       f'Ваш ответ: {self.user_answer}\n'
+                                                       f'Правильный ответ: {self.correct_answer}\n'
                                                        f'Хотите добавить слово в избранное?',
                                                        45, 5, to_add_right_spaces=False),
                                  justify='center', style='Default.TLabel')
@@ -1967,7 +2029,7 @@ class IncorrectAnswerW(tk.Toplevel):
         self.btn_typo = ttk.Button(self, text='Просто опечатка', command=self.typo,
                                    takefocus=False, style='Default.TButton')
 
-        if with_typo:
+        if self.with_typo:
             self.lbl_msg.grid( row=0, column=0, columnspan=3, padx=6, pady=4)
             self.btn_yes.grid( row=1, column=0,               padx=6, pady=4, sticky='E')
             self.btn_no.grid(  row=1, column=1,               padx=6, pady=4)
@@ -2020,10 +2082,7 @@ class SearchSettingsW(tk.Toplevel):
                  to_search_only_full: bool, to_search_wrd: bool, to_search_tr: bool,
                  to_search_frm: bool, to_search_phr: bool, to_search_nt: bool, search_group: str):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Параметры поиска')
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.dct = dct
 
@@ -2038,6 +2097,16 @@ class SearchSettingsW(tk.Toplevel):
         self.var_search_nt = tk.BooleanVar(value=to_search_nt)
         self.var_search_group = tk.StringVar(value=search_group)
 
+        self._configure_window()
+        self._create_widgets()
+
+    def _configure_window(self):
+        self.title(f'{PROGRAM_NAME} - Параметры поиска')
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.lbl_search_only_fav = ttk.Label(self, text='Искать только среди избранных статей:', style='Default.TLabel')
         self.check_search_only_fav = ttk.Checkbutton(self, variable=self.var_search_only_fav,
                                                      style='Default.TCheckbutton')
@@ -2128,16 +2197,25 @@ class SearchSettingsW(tk.Toplevel):
 class ChooseOneOfSimilarEntriesW(tk.Toplevel):
     def __init__(self, parent, dct: Dictionary, query: str):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Найдено несколько схожих статей')
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.dct = dct
 
         self.to_search_wrd = query
         self.answer = None
 
+        self._configure_window()
+        self._create_widgets()
+
+        self.print()
+
+    def _configure_window(self):
+        self.title(f'{PROGRAM_NAME} - Найдено несколько схожих статей')
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.lbl_header = ttk.Label(self, text='Выберите одну из статей', justify='center', style='Default.TLabel')
         self.scrolled_frame_wrd = ScrollFrame(self, SCALE_DEFAULT_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
                                               SCALE_DEFAULT_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
@@ -2147,8 +2225,6 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
 
         self.lbl_header.grid(        row=0, column=0, padx=(6, 3), pady=(6, 3))
         self.scrolled_frame_wrd.grid(row=1, column=0, padx=6,      pady=(0, 6))
-
-        self.print()
 
     # Выбрать статью из предложенных вариантов
     def choose_entry(self, key: EntryID):
@@ -2190,10 +2266,7 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
 class AddPhraseW(tk.Toplevel):
     def __init__(self, parent, title, default_value=('', ''), check_answer_function=None):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - {title}')
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.closed = True  # Закрыто ли окно крестиком
         self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
@@ -2201,6 +2274,19 @@ class AddPhraseW(tk.Toplevel):
         self.var_phr = tk.StringVar(value=default_value[0])
         self.var_tr = tk.StringVar(value=default_value[1])
 
+        self._configure_window(title)
+        self._create_widgets()
+        self._create_bindings()
+
+        self.entry_phr.icursor(len(self.var_phr.get()))
+
+    def _configure_window(self, title):
+        self.title(f'{PROGRAM_NAME} - {title}')
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.lbl_phr = ttk.Label(self, text='Фраза:', style='Default.TLabel')
         self.entry_phr = ttk.Entry(self, textvariable=self.var_phr, width=45, validate='all',
                                    style='Default.TEntry', font=('StdFont', _0_global_scale))
@@ -2215,10 +2301,9 @@ class AddPhraseW(tk.Toplevel):
         self.entry_tr.grid( row=1, column=1,     padx=(0, 6), pady=(0, 3), sticky='W')
         self.btn_ok.grid(   row=3, columnspan=2, padx=6,      pady=(0, 6))
 
+    def _create_bindings(self):
         self.entry_phr.bind('<Down>', lambda event: self.entry_tr.focus_set())
         self.entry_tr.bind('<Up>', lambda event: self.entry_phr.focus_set())
-
-        self.entry_phr.icursor(len(self.var_phr.get()))
 
     # Добавление фразы
     def ok(self):
@@ -2255,14 +2340,11 @@ class AddPhraseW(tk.Toplevel):
 class EditW(tk.Toplevel):
     def __init__(self, parent, dct: Dictionary, key: EntryID):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Изменение статьи')
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.dct = dct
-
         self.dct_key = key
+
         self.line_width = 35
         self.max_height_w = 3
         self.max_height_t = 4
@@ -2297,6 +2379,18 @@ class EditW(tk.Toplevel):
         self.gr_frames = []
         self.gr_buttons = []
 
+        self._configure_window()
+        self._create_widgets()
+
+        self.refresh(True)
+
+    def _configure_window(self):
+        self.title(f'{PROGRAM_NAME} - Изменение статьи')
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.frame_main = ttk.Frame(self, style='Default.TFrame')
         # {
         self.lbl_wrd = ttk.Label(self.frame_main, text='Слово:', style='Default.TLabel')
@@ -2402,8 +2496,6 @@ class EditW(tk.Toplevel):
         self.btn_delete.grid(      row=1, column=2, padx=(0, 6), pady=(0, 6))
 
         self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
-
-        self.refresh(True)
 
     # Изменить слово
     def wrd_edt(self):
@@ -2881,12 +2973,10 @@ class EditW(tk.Toplevel):
 class AddFormW(tk.Toplevel):
     def __init__(self, parent, dct: Dictionary, key: EntryID, combo_width=20):
         super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.dct = dct
+        self.key = key
 
         self.closed = True  # Закрыто ли окно крестиком
         self.categories = list(self.dct.features.keys())  # Список категорий
@@ -2895,7 +2985,6 @@ class AddFormW(tk.Toplevel):
         for _ in range(len(self.categories)):
             self.template += ['']
         self.void_template = self.template.copy()  # Пустой шаблон (для сравнения на пустоту)
-        self.key = key
 
         self.var_ctg = tk.StringVar(value=self.categories[0])
         self.var_val = tk.StringVar(value=self.ctg_values[0])
@@ -2905,6 +2994,19 @@ class AddFormW(tk.Toplevel):
         self.img_ok = tk.PhotoImage()
         self.img_none = tk.PhotoImage()
 
+        self._configure_window()
+        self._create_widgets(combo_width)
+
+        btn_disable(self.btn_save)
+        self.entry_form.icursor(len(self.var_form.get()))
+
+    def _configure_window(self):
+        self.title(PROGRAM_NAME)
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self, combo_width: int):
         self.lbl_choose_ctg = ttk.Label(self, text='Выберите категорию:', justify='center', style='Default.TLabel')
         self.combo_ctg = ttk.Combobox(self, textvariable=self.var_ctg, values=self.categories, width=combo_width,
                                       state='readonly', style='Default.TCombobox',
@@ -2951,10 +3053,6 @@ class AddFormW(tk.Toplevel):
         self.entry_form.grid(row=0, column=1, padx=0,      pady=0, sticky='W')
         # }
         self.btn_save.grid(row=4, columnspan=2, padx=6, pady=6)
-
-        btn_disable(self.btn_save)
-
-        self.entry_form.icursor(len(self.var_form.get()))
 
     # Выбрать категорию и задать ей значение
     def choose(self):
@@ -3052,10 +3150,7 @@ class AddFormW(tk.Toplevel):
 class CategoriesSettingsW(tk.Toplevel):
     def __init__(self, parent, dct: Dictionary):
         super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.dct = dct
 
@@ -3067,6 +3162,19 @@ class CategoriesSettingsW(tk.Toplevel):
         self.frames = []
         self.buttons = []
 
+        self._configure_window()
+        self._create_widgets()
+        self._create_tips()
+
+        self.print_categories(True)
+
+    def _configure_window(self):
+        self.title(PROGRAM_NAME)
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
         set_image(self.btn_about_window, self.img_about, img_about, '?')
         self.lbl_categories = ttk.Label(self, text='Существующие категории слов:',
@@ -3081,9 +3189,8 @@ class CategoriesSettingsW(tk.Toplevel):
         self.scrolled_frame.grid(  row=1, column=0, columnspan=2, padx=6,      pady=(0, 6))
         self.btn_add.grid(         row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
 
+    def _create_tips(self):
         self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
-
-        self.print_categories(True)
 
     # Добавить категорию
     def add(self):
@@ -3180,10 +3287,7 @@ class CategoriesSettingsW(tk.Toplevel):
 class GroupsSettingsW(tk.Toplevel):
     def __init__(self, parent, dct: Dictionary):
         super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.dct = dct
 
@@ -3196,6 +3300,19 @@ class GroupsSettingsW(tk.Toplevel):
         self.buttons = []
         self.tips = []
 
+        self._configure_window()
+        self._create_widgets()
+        self._create_tips()
+
+        self.print_groups(True)
+
+    def _configure_window(self):
+        self.title(PROGRAM_NAME)
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
         set_image(self.btn_about_window, self.img_about, img_about, '?')
         self.lbl_groups = ttk.Label(self, text='Существующие группы:', justify='center', style='Default.TLabel')
@@ -3209,9 +3326,8 @@ class GroupsSettingsW(tk.Toplevel):
         self.scrolled_frame.grid(  row=1, column=0, columnspan=2, padx=6,      pady=(0, 6))
         self.btn_add.grid(         row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
 
+    def _create_tips(self):
         self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
-
-        self.print_groups(True)
 
     # Добавить группу
     def add(self):
@@ -3374,14 +3490,10 @@ class GroupsSettingsW(tk.Toplevel):
 class CategoryValuesSettingsW(tk.Toplevel):
     def __init__(self, parent, ctg_key: str, dct: Dictionary):
         super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
-
-        self.dct = dct
 
         self.parent = parent
+        self.dct = dct
+
         self.ctg_key = ctg_key  # Название изменяемой категории
         self.ctg_values = self.dct.features[self.ctg_key]  # Значения изменяемой категории
         self.has_changes = False
@@ -3392,6 +3504,19 @@ class CategoryValuesSettingsW(tk.Toplevel):
         self.frames = []
         self.buttons = []
 
+        self._configure_window()
+        self._create_widgets()
+        self._create_tips()
+
+        self.print_ctg_values(True)
+
+    def _configure_window(self):
+        self.title(PROGRAM_NAME)
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
         set_image(self.btn_about_window, self.img_about, img_about, '?')
         self.lbl_ctg_values = ttk.Label(self, text=f'Существующие значения категории\n'
@@ -3408,9 +3533,8 @@ class CategoryValuesSettingsW(tk.Toplevel):
         self.scrolled_frame.grid(  row=1, column=0, columnspan=2, padx=6,      pady=(0, 6))
         self.btn_add.grid(         row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
 
+    def _create_tips(self):
         self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
-
-        self.print_ctg_values(True)
 
     # Добавить значение категории
     def add(self):
@@ -3508,10 +3632,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
 class SpecialCombinationsSettingsW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.has_changes = False
 
@@ -3521,6 +3642,19 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.frames = []
         self.buttons = []
 
+        self._configure_window()
+        self._create_widgets()
+        self._create_tips()
+
+        self.print_combinations(True)
+
+    def _configure_window(self):
+        self.title(PROGRAM_NAME)
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
         set_image(self.btn_about_window, self.img_about, img_about, '?')
         self.lbl_combinations = ttk.Label(self, text='Существующие комбинации:', justify='center',
@@ -3535,9 +3669,8 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         self.scrolled_frame.grid(  row=1, column=0, columnspan=2, padx=6,      pady=(0, 6))
         self.btn_add.grid(         row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
 
+    def _create_tips(self):
         self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
-
-        self.print_combinations(True)
 
     # Добавить комбинацию
     def add(self):
@@ -3655,9 +3788,7 @@ class EnterSpecialCombinationW(tk.Toplevel):
     def __init__(self, parent,
                  default_value: tuple[str, str, str] = (SPECIAL_COMBINATIONS_OPENING_SYMBOLS[0], None, None)):
         super().__init__(parent)
-        self.title(PROGRAM_NAME)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.closed = True  # Закрыто ли окно крестиком
 
@@ -3669,6 +3800,15 @@ class EnterSpecialCombinationW(tk.Toplevel):
         self.vcmd_key_symbol = (self.register(validate_special_combination_key_symbol), '%P')
         self.vcmd_val = (self.register(validate_special_combination_val), '%P')
 
+        self._configure_window()
+        self._create_widgets()
+
+    def _configure_window(self):
+        self.title(PROGRAM_NAME)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.lbl_msg = ttk.Label(self, text='Задайте комбинацию', justify='center', style='Default.TLabel')
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
@@ -3725,10 +3865,7 @@ class EnterSpecialCombinationW(tk.Toplevel):
 class CustomThemeSettingsW(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Настройки пользовательской темы')
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.custom_styles = {}  # Стили пользовательской темы
         self.history = []  # История изменений
@@ -3743,6 +3880,25 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.img_undo = tk.PhotoImage()
         self.img_redo = tk.PhotoImage()
 
+        self._configure_window()
+        self._create_widgets()
+        self._create_tips()
+
+        self.entry_demo.insert(tk.END, 'abcde 12345')
+        self.txt_demo.insert(tk.END, '1')
+        for i in range(2, 51):
+            self.txt_demo.insert(tk.END, f'\n{i}')
+        self.txt_demo.config(yscrollcommand=self.scroll_demo.set, state='disabled')
+
+        self.read()
+
+    def _configure_window(self):
+        self.title(f'{PROGRAM_NAME} - Настройки пользовательской темы')
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.frame_themes = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.lbl_set_theme = ttk.Label(self.frame_themes, text='Взять за основу уже существующую тему:',
@@ -3935,16 +4091,9 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.lbl_demo_footer.grid(row=9, column=0, columnspan=3, padx=6, pady=(0, 6))
         # }
 
+    def _create_tips(self):
         self.tip_btn_undo = ttip.Hovertip(self.btn_undo, 'Отменить последнее действие', hover_delay=450)
         self.tip_btn_redo = ttip.Hovertip(self.btn_redo, 'Вернуть отменённое действие', hover_delay=450)
-
-        self.entry_demo.insert(tk.END, 'abcde 12345')
-        self.txt_demo.insert(tk.END, '1')
-        for i in range(2, 51):
-            self.txt_demo.insert(tk.END, f'\n{i}')
-        self.txt_demo.config(yscrollcommand=self.scroll_demo.set, state='disabled')
-
-        self.read()
 
     # Взять за основу уже существующую тему
     def set_theme(self):
@@ -4365,12 +4514,8 @@ class CustomThemeSettingsW(tk.Toplevel):
 class LearnW(tk.Toplevel):
     def __init__(self, parent, config: TrainingConfig, dct: Dictionary):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Учёба')
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
-        self.dct = dct
         self.trainer = Trainer(dct, config)
         self.trainer.initialize()
         self.initial_pool_size = len(self.trainer.pool)
@@ -4383,6 +4528,26 @@ class LearnW(tk.Toplevel):
 
         self.var_input = tk.StringVar()
 
+        self._configure_window()
+        self._create_widgets()
+
+        self.choose()
+        if self.current_entry_id:
+            entry = self.trainer.dct[self.current_entry_id]
+            if entry.count_n == 0 or config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
+                btn_disable(self.btn_show_notes)
+            if not self.homonyms or config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
+                btn_disable(self.btn_show_homonyms)
+            if config.method not in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
+                btn_disable(self.btn_show_entry)
+
+    def _configure_window(self):
+        self.title(f'{PROGRAM_NAME} - Учёба')
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.lbl_global_rating = ttk.Label(
             self, text=f'Ваш общий рейтинг по словарю: {self.get_percent()}',
             style='Default.TLabel')
@@ -4430,7 +4595,7 @@ class LearnW(tk.Toplevel):
         # {
         self.btn_input.grid(  row=0, column=0, padx=(0, 3), pady=0, sticky='E')
         self.entry_input.grid(row=0, column=1, padx=(0, 3), pady=0, sticky='W')
-        if config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
+        if self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
             self.btn_show_entry.grid(row=0, column=2, padx=0, pady=0, sticky='W')
         else:
             self.btn_show_notes.grid(   row=0, column=2, padx=(0, 3), pady=0, sticky='W')
@@ -4454,27 +4619,16 @@ class LearnW(tk.Toplevel):
             'Control-O',
             hover_delay=700)
 
-        if config.method == TrainingMethod.TRANS_TO_WORD:
+        if self.trainer.config.method == TrainingMethod.TRANS_TO_WORD:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
-        elif config.method == TrainingMethod.WORD_TO_TRANS:
+        elif self.trainer.config.method == TrainingMethod.WORD_TO_TRANS:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
-        elif config.method == TrainingMethod.TRANS_TO_PHRASE:
+        elif self.trainer.config.method == TrainingMethod.TRANS_TO_PHRASE:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите фразу', hover_delay=1000)
-        elif config.method == TrainingMethod.PHRASE_TO_TRANS:
+        elif self.trainer.config.method == TrainingMethod.PHRASE_TO_TRANS:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
         else:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите артикль', hover_delay=1000)
-
-        self.choose()
-
-        if self.current_entry_id:
-            entry = self.dct[self.current_entry_id]
-            if entry.count_n == 0 or config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
-                btn_disable(self.btn_show_notes)
-            if not self.homonyms or config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
-                btn_disable(self.btn_show_homonyms)
-            if config.method not in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
-                btn_disable(self.btn_show_entry)
 
     # Печать в журнал
     def outp(self, msg='', end='\n'):
@@ -4485,7 +4639,7 @@ class LearnW(tk.Toplevel):
 
     # Получить глобальный процент угадываний
     def get_percent(self):
-        correct, total = self.dct.score()
+        correct, total = self.trainer.dct.score()
         percent = (100 * correct / total) if total else 0
         return f'{correct} / {total} = {percent:.1f}%'
 
@@ -4506,17 +4660,17 @@ class LearnW(tk.Toplevel):
         # Вывод слова в журнал
         if self.trainer.config.method == TrainingMethod.TRANS_TO_WORD:
             if self.trainer.config.forms and self.current_form:
-                self.outp(get_tr_and_frm_with_stat(self.dct[self.current_entry_id], self.current_form))
+                self.outp(get_tr_and_frm_with_stat(self.trainer.dct[self.current_entry_id], self.current_form))
             else:
-                self.outp(get_tr_with_stat(self.dct[self.current_entry_id]))
+                self.outp(get_tr_with_stat(self.trainer.dct[self.current_entry_id]))
         elif self.trainer.config.method == TrainingMethod.WORD_TO_TRANS:
-            self.outp(get_wrd_with_stat(self.dct[self.current_entry_id]))
+            self.outp(get_wrd_with_stat(self.trainer.dct[self.current_entry_id]))
         elif self.trainer.config.method == TrainingMethod.TRANS_TO_PHRASE:
-            self.outp(get_phr_tr_with_stat(self.dct[self.current_entry_id], self.current_phrase))
+            self.outp(get_phr_tr_with_stat(self.trainer.dct[self.current_entry_id], self.current_phrase))
         elif self.trainer.config.method == TrainingMethod.PHRASE_TO_TRANS:
-            self.outp(get_phr_with_stat(self.dct[self.current_entry_id], self.current_phrase))
+            self.outp(get_phr_with_stat(self.trainer.dct[self.current_entry_id], self.current_phrase))
         else:
-            self.outp(get_wrd_with_stat(self.dct[self.current_entry_id])[4:])
+            self.outp(get_wrd_with_stat(self.trainer.dct[self.current_entry_id])[4:])
 
     # Нажатие на кнопку "Ввод"
     # Ввод ответа и переход к следующему слову
@@ -4536,7 +4690,7 @@ class LearnW(tk.Toplevel):
         if self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
             btn_enable(self.btn_show_entry, self.show_entry)
         # Обновление кнопки "Посмотреть сноски"
-        entry = self.dct[self.current_entry_id]
+        entry = self.trainer.dct[self.current_entry_id]
         if entry.count_n == 0 or self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE,
                                                                 TrainingMethod.PHRASE_TO_TRANS):
             btn_disable(self.btn_show_notes)
@@ -4557,7 +4711,7 @@ class LearnW(tk.Toplevel):
     # Нажатие на кнопку "Посмотреть слово и перевод"
     # Просмотр слова с переводом
     def show_entry(self):
-        entry = self.dct[self.current_entry_id]
+        entry = self.trainer.dct[self.current_entry_id]
         self.outp(f'Слово: {entry.lemma}\n'
                   f'Перевод: {get_tr(entry)}')
         btn_disable(self.btn_show_entry)
@@ -4566,7 +4720,7 @@ class LearnW(tk.Toplevel):
     # Просмотр сносок
     def show_notes(self):
         self.outp('Сноски:')
-        entry = self.dct[self.current_entry_id]
+        entry = self.trainer.dct[self.current_entry_id]
         self.outp(get_notes(entry))
         btn_disable(self.btn_show_notes)
 
@@ -4575,7 +4729,7 @@ class LearnW(tk.Toplevel):
     def show_homonyms(self):
         self.outp('Омонимы:')
         for key in self.homonyms:
-            self.outp('> ' + self.dct[key].lemma + ': ' + get_tr(self.dct[key]))
+            self.outp('> ' + self.trainer.dct[key].lemma + ': ' + get_tr(self.trainer.dct[key]))
         btn_disable(self.btn_show_homonyms)
 
     # Нажатие на кнопку "Закончить"
@@ -4596,7 +4750,7 @@ class LearnW(tk.Toplevel):
         correct_answers = self.trainer.get_correct_answers()
         correct_answer = ', '.join(correct_answers)
 
-        entry = self.dct[self.current_entry_id]
+        entry = self.trainer.dct[self.current_entry_id]
         if is_correct:
             entry.correct((_0_global_session_number, _0_global_learn_session_number, self.count_all))
             self.outp('Верно\n')
@@ -4618,7 +4772,7 @@ class LearnW(tk.Toplevel):
                     window = PopupDialogueW(
                         self,
                         msg=f'Неверно.\n'
-                            f'Ваш ответ: {encode_special_combinations(self.entry_input.get(), 
+                            f'Ваш ответ: {encode_special_combinations(self.entry_input.get(),
                                                                       _0_global_special_combinations)}\n'
                             f'Правильный ответ: {correct_answer}',
                         btn_left_text='Ясно', btn_right_text='Просто опечатка',
@@ -4672,10 +4826,7 @@ class LearnW(tk.Toplevel):
 class PrintW(tk.Toplevel):
     def __init__(self, parent, dct: Dictionary):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Словарь "{_0_global_dct_savename}"')
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.dct = dct
 
@@ -4751,20 +4902,38 @@ class PrintW(tk.Toplevel):
         self.search_frames = []
         self.search_buttons = []
 
+        self._configure_window()
+        self._add_validation()
+        self._create_widgets()
+        self._create_tips()
+        self._create_bindings()
+
+        self.print_print(True)  # Выводим статьи
+        self.search_print(True)  # Выводим статьи
+
+    def _configure_window(self):
+        self.title(f'{PROGRAM_NAME} - Словарь "{_0_global_dct_savename}"')
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _add_validation(self):
         def print_validate_and_goto_page_number(value: str):
             res = validate_int_min_max(value, 1, self.print_count_pages)
             if res and value != '' and int(value) != self.print_current_page:
                 self.print_go_to_page_with_number(int(value))
             return res
-        self.vcmd_print_page = (self.register(print_validate_and_goto_page_number), '%P')
 
         def validate_and_goto_page_number(value: str):
             res = validate_int_min_max(value, 1, self.search_count_pages)
             if res and value != '' and int(value) != self.search_current_page:
                 self.search_go_to_page_with_number(int(value))
             return res
+
+        self.vcmd_print_page = (self.register(print_validate_and_goto_page_number), '%P')
         self.vcmd_page = (self.register(validate_and_goto_page_number), '%P')
 
+    def _create_widgets(self):
         self.tabs = ttk.Notebook(self, style='Default.TNotebook')
         self.tab_print = ttk.Frame(self.tabs, style='Invis.TFrame')
         self.tabs.add(self.tab_print, text='Просмотр словаря')
@@ -5083,6 +5252,7 @@ class PrintW(tk.Toplevel):
         # } }
         # }
 
+    def _create_tips(self):
         self.tip_btn_about_window = ttip.Hovertip(self.btn_print_about_window, 'Справка', hover_delay=450)
         self.tip_btn_print_out = ttip.Hovertip(self.btn_print_print_out, 'Распечатать словарь в файл', hover_delay=450)
         self.tip_btn_fav = ttip.Hovertip(self.btn_print_fav, 'Добавить выделенные статьи в избранное\n'
@@ -5157,11 +5327,9 @@ class PrintW(tk.Toplevel):
         self.tip_btn_next_page = ttip.Hovertip(self.btn_search_next_page, 'На следующую страницу', hover_delay=650)
         self.tip_btn_last_page = ttip.Hovertip(self.btn_search_last_page, 'В конец', hover_delay=650)
 
+    def _create_bindings(self):
         self.combo_print_order.bind('<<ComboboxSelected>>', lambda event: self.print_print(False))
         self.combo_print_group.bind('<<ComboboxSelected>>', lambda event: self.print_go_to_first_page(True))
-
-        self.print_print(True)  # Выводим статьи
-        self.search_print(True)  # Выводим статьи
 
     # Нажатие на кнопку "Распечатать словарь в файл"
     def print_out(self):
@@ -5405,7 +5573,7 @@ class PrintW(tk.Toplevel):
             keys = [key for key in keys if self.search_group in self.dct[key].groups]
         # Среди оставшихся ищем статьи, содержащие искомый текст
         results = search_entries(self.dct, tuple(keys), self.var_search_query.get(),
-                                 self.to_search_wrd, self.to_search_tr, self.to_search_frm, 
+                                 self.to_search_wrd, self.to_search_tr, self.to_search_frm,
                                  self.to_search_phr, self.to_search_nt)
         # Объединяем результаты в один список
         self.search_keys = []
@@ -5911,10 +6079,7 @@ class PrintW(tk.Toplevel):
 class AddW(tk.Toplevel):
     def __init__(self, parent, dct: Dictionary):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Добавление статьи')
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.dct = dct
 
@@ -5924,6 +6089,21 @@ class AddW(tk.Toplevel):
         self.var_tr = tk.StringVar()
         self.var_fav = tk.BooleanVar(value=False)
 
+        self._configure_window()
+        self._create_widgets()
+        self._add_validation()
+        self._create_bindings()
+
+        btn_disable(self.btn_add)
+        self.entry_wrd.icursor(len(self.var_wrd.get()))
+
+    def _configure_window(self):
+        self.title(f'{PROGRAM_NAME} - Добавление статьи')
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.lbl_wrd = ttk.Label(self, text='Введите слово:', style='Default.TLabel')
         self.entry_wrd = ttk.Entry(self, textvariable=self.var_wrd, width=50, validate='all',
                                    style='Default.TEntry', font=('StdFont', _0_global_scale))
@@ -5950,8 +6130,7 @@ class AddW(tk.Toplevel):
         # }
         self.btn_add.grid(row=3, columnspan=2, padx=6, pady=(0, 6))
 
-        btn_disable(self.btn_add)
-
+    def _add_validation(self):
         # При незаполненных полях нельзя нажать кнопку
         def validate_entries(value_wrd: str, value_tr: str):
             value_wrd = encode_special_combinations(value_wrd, _0_global_special_combinations)
@@ -5989,10 +6168,9 @@ class AddW(tk.Toplevel):
         self.entry_wrd['validatecommand'] = self.vcmd_wrd
         self.entry_tr['validatecommand'] = self.vcmd_tr
 
+    def _create_bindings(self):
         self.entry_wrd.bind('<Down>', lambda event: self.entry_tr.focus_set())
         self.entry_tr.bind('<Up>', lambda event: self.entry_wrd.focus_set())
-
-        self.entry_wrd.icursor(len(self.var_wrd.get()))
 
     # Добавление статьи
     def add(self):
@@ -6037,13 +6215,10 @@ class AddW(tk.Toplevel):
 class SettingsW(tk.Toplevel):
     def __init__(self, parent, dct: Dictionary):
         super().__init__(parent)
-        self.title(f'{PROGRAM_NAME} - Настройки')
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
-
         self.parent = parent
+
         self.dct = dct
+
         self.current_tab = 1  # Текущая вкладка (1 или 2)
         self.has_ctg_changes = False
         self.has_groups_changes = False
@@ -6068,6 +6243,20 @@ class SettingsW(tk.Toplevel):
         # Только целые числа от 0 до 100
         self.vcmd = (self.register(validate_percent), '%P')
 
+        self._configure_window()
+        self._create_widgets()
+        self._create_tips()
+
+        self.print_dct_list(True)
+        self.refresh_scale_buttons()
+
+    def _configure_window(self):
+        self.title(f'{PROGRAM_NAME} - Настройки')
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
         self.tabs = ttk.Notebook(self, style='Default.TNotebook')
         self.tab_local = ttk.Frame(self.tabs, style='Invis.TFrame')
         self.lbl_dct_name = ttk.Label(self, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
@@ -6220,11 +6409,9 @@ class SettingsW(tk.Toplevel):
         self.btn_save.grid( row=4, column=0, padx=(6, 3), pady=(0, 6))
         self.btn_close.grid(row=4, column=1, padx=(0, 6), pady=(0, 6))
 
+    def _create_tips(self):
         self.tip_btn_about_typo = ttip.Hovertip(self.btn_about_typo, 'Справка', hover_delay=450)
         self.tip_btn_about_dcts = ttip.Hovertip(self.btn_about_dcts, 'Справка', hover_delay=450)
-
-        self.print_dct_list(True)
-        self.refresh_scale_buttons()
 
     # Настройки грамматических категорий (срабатывает при нажатии на кнопку)
     def categories_settings(self):
@@ -6660,15 +6847,22 @@ class SettingsW(tk.Toplevel):
 class NewVersionAvailableW(tk.Toplevel):
     def __init__(self, parent, last_version: str, dct: Dictionary):
         super().__init__(parent)
-        self.title('Доступна новая версия')
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        toplevel_geometry(parent, self)
+        self.parent = parent
 
         self.dct = dct
 
         self.var_url = tk.StringVar(value=URL_GITHUB)  # Ссылка, для загрузки новой версии
 
+        self._configure_window()
+        self._create_widgets(last_version)
+
+    def _configure_window(self):
+        self.title('Доступна новая версия')
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][th])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self, last_version: str):
         self.lbl_msg = ttk.Label(self, text=f'Доступна новая версия программы:\n'
                                             f'{last_version}',
                                  justify='center', style='Default.TLabel')
@@ -6767,15 +6961,21 @@ class NewVersionAvailableW(tk.Toplevel):
 class MainW(tk.Tk):
     def __init__(self, dct: Dictionary):
         super().__init__()
+
+        self.dct = dct
+
+        self._configure_window()
+        self.setup_styles()  # Установка ttk-стилей
+        self._create_widgets()
+        self.set_focus()
+
+    def _configure_window(self):
         self.title(PROGRAM_NAME)
         self.eval('tk::PlaceWindow . center')
         self.resizable(width=False, height=False)
         self.configure(bg=STYLES['*.BG.*'][1][th])
 
-        self.dct = dct
-
-        self.setup_styles()  # Установка ttk-стилей
-
+    def _create_widgets(self):
         self.frame_head = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.lbl_header = ttk.Label(self.frame_head, text='Anenokil development presents', style='Header.TLabel')
@@ -6832,8 +7032,6 @@ class MainW(tk.Tk):
         self.btn_close.grid(        row=7, padx=0, pady=(3, 0))
         # }
         self.lbl_footer.grid(row=3, padx=6, pady=3)
-
-        self.set_focus()
 
     # Нажатие на кнопку "Учить слова"
     def learn(self):
