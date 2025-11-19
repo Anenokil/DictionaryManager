@@ -85,13 +85,10 @@ class Entry:
         self.lemma = lemma
 
         self.tr: Translations = [tr] if isinstance(tr, str) else list(tr)
-        self.count_t = len(self.tr)
 
         self.forms: Forms = forms if forms else dict()
-        self.count_f = len(self.forms)
 
         self.phrases: Phrases = {phr: list(tr) for phr, tr in phrases.items()} if phrases else dict()
-        self.count_p = len(self.phrases)
 
         if not notes:
             self.notes: Notes = []
@@ -99,7 +96,6 @@ class Entry:
             self.notes = [notes]
         else:
             self.notes = list(notes)
-        self.count_n = len(self.notes)
 
         self.groups: Groups = set(groups) if groups else set()
 
@@ -109,6 +105,22 @@ class Entry:
         self.correct_att = correct_att
         self.win_streak = win_streak
         self.latest_att_timestamp = latest_att_timestamp
+
+    @property
+    def count_t(self):
+        return len(self.tr)
+
+    @property
+    def count_f(self):
+        return len(self.forms)
+
+    @property
+    def count_p(self):
+        return len(self.phrases)
+
+    @property
+    def count_n(self):
+        return len(self.notes)
 
     def add_tr(self, new_tr: Translation):
         """
@@ -120,7 +132,6 @@ class Entry:
 
         if new_tr not in self.tr:
             self.tr.append(new_tr)
-            self.count_t += 1
 
     def delete_tr(self, tr: Translation):
         """
@@ -131,7 +142,6 @@ class Entry:
         """
 
         self.tr.remove(tr)
-        self.count_t -= 1
 
     def add_frm(self, frm_key: FormPattern, new_frm: Form):
         """
@@ -144,7 +154,6 @@ class Entry:
 
         if frm_key not in self.forms.keys():
             self.forms[frm_key] = new_frm
-            self.count_f += 1
 
     def delete_frm(self, frm_key: FormPattern):
         """
@@ -155,7 +164,6 @@ class Entry:
         """
 
         self.forms.pop(frm_key)
-        self.count_f -= 1
 
     def add_phrase(self, new_phr: Phrase, new_phr_tr: PhraseTr):
         """
@@ -168,10 +176,8 @@ class Entry:
 
         if new_phr not in self.phrases.keys():
             self.phrases[new_phr] = [new_phr_tr]
-            self.count_p += 1
         elif new_phr_tr not in self.phrases[new_phr]:
             self.phrases[new_phr] += [new_phr_tr]
-            self.count_p += 1
 
     def delete_phrase(self, phr: Phrase, phr_tr: PhraseTr):
         """
@@ -187,7 +193,6 @@ class Entry:
         self.phrases[phr].remove(phr_tr)
         if len(self.phrases[phr]) == 0:
             self.phrases.pop(phr)
-        self.count_p -= 1
 
     def add_note(self, new_note: Note):
         """
@@ -199,7 +204,6 @@ class Entry:
 
         if new_note not in self.notes:
             self.notes += [new_note]
-            self.count_n += 1
 
     def delete_note(self, note: Note):
         """
@@ -210,7 +214,6 @@ class Entry:
         """
 
         self.notes.remove(note)
-        self.count_n -= 1
 
     def add_to_group(self, group: Group):
         """
@@ -252,7 +255,6 @@ class Entry:
         """
 
         to_delete = [key for key in self.forms.keys() if key[pos] == ctg_val]
-        self.count_f -= len(to_delete)
         for key in to_delete:
             self.forms.pop(key)
 
@@ -302,7 +304,6 @@ class Entry:
                 to_edit += [key]
             else:
                 to_delete += [key]
-                self.count_f -= 1
         for key in to_edit:
             new_key = list(key)
             new_key.pop(pos)
