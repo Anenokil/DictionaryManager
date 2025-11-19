@@ -15,7 +15,12 @@ import urllib.request as urllib2  # Для проверки наличия об�
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
 
-from backend import Entry, Dictionary, EntryID, FormPattern, pattern_to_str
+from backend import (
+    Entry, Dictionary, Trainer, EntryID, FormPattern,
+    pattern_to_str, create_training_config,
+    TrainingMethod, TrainingOrder, EntrySelection,
+    FormSelection, TrainingConfig,
+)
 from constants import *
 from upgrades import *
 
@@ -1928,7 +1933,34 @@ class ChooseLearnModeW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        return self.res
+        return create_training_config(
+            method={
+                'Угадывать слово по переводу': TrainingMethod.TRANS_TO_WORD,
+                'Угадывать перевод по слову': TrainingMethod.WORD_TO_TRANS,
+                'Угадывать фразу по переводу': TrainingMethod.TRANS_TO_PHRASE,
+                'Угадывать перевод по фразе': TrainingMethod.PHRASE_TO_TRANS,
+                'Der-Die-Das (для немецкого)': TrainingMethod.ARTICLES_GERMAN
+            }[self.res[0]],
+            groups=None if self.res[1] == ALL_GROUPS else [self.res[1]],
+            entries={
+                'Все': EntrySelection.ALL,
+                'Преимущ. избранные (рекоменд.)': EntrySelection.MOSTLY_FAV,
+                'Только избранные': EntrySelection.FAV,
+                'Только неотвеченные': EntrySelection.UNANSWERED,
+                '10 случайных': EntrySelection.RANDOM_10,
+                '10 случайных из избранных': EntrySelection.RANDOM_10_FAV
+            }[self.res[2]],
+            forms={
+                'Только начальная форма': FormSelection.LEMMAS,
+                'По одной случайной словоформе': FormSelection.RANDOM,
+                'Все формы, кроме начальной': FormSelection.INFLECTED,
+                'Все словоформы': FormSelection.ALL
+            }[self.res[3]],
+            order={
+                'Случайный порядок': TrainingOrder.RANDOM,
+                'В первую очередь сложные': TrainingOrder.DIFFICULT_FIRST
+            }[self.res[4]],
+        )
 
 
 # Окно с сообщением о неверном ответе (для слов, не находящихся в избранном)
@@ -4338,7 +4370,7 @@ class CustomThemeSettingsW(tk.Toplevel):
 
 # Окно изучения слов
 class LearnW(tk.Toplevel):
-    def __init__(self, parent, parameters: tuple[str, str, str, str, str], opened_dct: Dictionary):
+    def __init__(self, parent, config: TrainingConfig, opened_dct: Dictionary):
         super().__init__(parent)
         self.title(f'{PROGRAM_NAME} - Учёба')
         self.resizable(width=False, height=False)
@@ -4346,29 +4378,21 @@ class LearnW(tk.Toplevel):
         toplevel_geometry(parent, self)
 
         self.opened_dct = opened_dct
-
+        self.trainer = Trainer(opened_dct, config)
+        self.trainer.initialize()
+        self.initial_pool_size = len(self.trainer.pool)
         self.current_key = None  # Текущее слово
         self.current_form = None  # Текущая форма (если начальная, то None)
         self.current_phrase = None  # Текущая фраза
         self.homonyms = []  # Омонимы к текущему слову
         self.count_all = 0  # Счётчик всех ответов
         self.count_correct = 0  # Счётчик верных ответов
-        self.learn_method = parameters[0]  # Метод учёбы
-        self.group = parameters[1]  # Группа, из которой берутся слова
-        self.words = parameters[2]  # Способ набора слов
-        self.forms = parameters[3]  # Способ набора словоформ
-        self.order = parameters[4]  # Порядок следования слов
-        self.pool = set()  # Набор слов для изучения
-
-        self.create_pool()  # Формируем пул слов, которые будут использоваться при учёбе
-
-        self.len_of_pool = len(self.pool)  # Количество изучаемых слов
 
         self.var_input = tk.StringVar()
 
         self.lbl_global_rating = ttk.Label(self, text=f'Ваш общий рейтинг по словарю: {self.get_percent()}',
                                            style='Default.TLabel')
-        self.lbl_count = ttk.Label(self, text=f'Отвечено: 0/{self.len_of_pool}', style='Default.TLabel')
+        self.lbl_count = ttk.Label(self, text=f'Отвечено: 0/{self.initial_pool_size}', style='Default.TLabel')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.txt_dct = tk.Text(self, width=70, height=30, state='disabled', yscrollcommand=self.scrollbar.set,
                                font=('StdFont', _0_global_scale), bg=STYLES['*.BG.ENTRY'][1][th], fg=STYLES['*.FG.*'][1][th],
@@ -4398,7 +4422,7 @@ class LearnW(tk.Toplevel):
         # {
         self.btn_input.grid(  row=0, column=0, padx=(0, 3), pady=0, sticky='E')
         self.entry_input.grid(row=0, column=1, padx=(0, 3), pady=0, sticky='W')
-        if self.learn_method in LEARN_VALUES_METHOD[2:4]:
+        if config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
             self.btn_show_entry.grid(row=0, column=2, padx=0, pady=0, sticky='W')
         else:
             self.btn_show_notes.grid(   row=0, column=2, padx=(0, 3), pady=0, sticky='W')
@@ -4417,13 +4441,13 @@ class LearnW(tk.Toplevel):
                                                    'Control-O',
                                                    hover_delay=700)
 
-        if self.learn_method == LEARN_VALUES_METHOD[0]:
+        if config.method == TrainingMethod.TRANS_TO_WORD:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
-        elif self.learn_method == LEARN_VALUES_METHOD[1]:
+        elif config.method == TrainingMethod.WORD_TO_TRANS:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
-        elif self.learn_method == LEARN_VALUES_METHOD[2]:
+        elif config.method == TrainingMethod.TRANS_TO_PHRASE:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите фразу', hover_delay=1000)
-        elif self.learn_method == LEARN_VALUES_METHOD[3]:
+        elif config.method == TrainingMethod.PHRASE_TO_TRANS:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
         else:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите артикль', hover_delay=1000)
@@ -4432,11 +4456,11 @@ class LearnW(tk.Toplevel):
 
         if self.current_key:
             entry = self.opened_dct[self.current_key]
-            if entry.count_n == 0 or self.learn_method in LEARN_VALUES_METHOD[2:4]:
+            if entry.count_n == 0 or config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
                 btn_disable(self.btn_show_notes)
-            if not self.homonyms or self.learn_method in LEARN_VALUES_METHOD[2:4]:
+            if not self.homonyms or config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
                 btn_disable(self.btn_show_homonyms)
-            if self.learn_method not in LEARN_VALUES_METHOD[2:4]:
+            if config.method not in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
                 btn_disable(self.btn_show_entry)
 
     # Печать в журнал
@@ -4452,90 +4476,11 @@ class LearnW(tk.Toplevel):
         percent = (100 * correct / total) if total else 0
         return f'{correct} / {total} = {percent:.1f}%'
 
-    # Формируем пул слов, которые будут использоваться при учёбе
-    def create_pool(self):
-        if self.learn_method == LEARN_VALUES_METHOD[4]:  # Если надо, оставляем только слова с der/die/das
-            all_keys = []
-            for key in self.opened_dct.get_entry_ids():
-                lemma = self.opened_dct[key].lemma
-                if len(lemma) > 4 and lemma[0:4].lower() in ('der ', 'die ', 'das '):
-                    all_keys += [key]
-        else:
-            all_keys = list(self.opened_dct.get_entry_ids())
-        # Если надо, оставляем только слова из нужной группы
-        if self.group != ALL_GROUPS:
-            all_keys = [key for key in all_keys if self.group in self.opened_dct[key].groups]
-        # Если надо, оставляем только слова, у которых есть словоформы
-        if self.forms == LEARN_VALUES_FORMS[2]:
-            all_keys = [key for key in all_keys if self.opened_dct[key].count_f != 0]
-
-        if self.words == LEARN_VALUES_WORDS[0]:  # Учить все слова
-            selected_keys = all_keys
-        elif self.words == LEARN_VALUES_WORDS[1]:  # Учить преимущественно избранные слова
-            selected_keys = [key for key in all_keys if self.opened_dct[key].fav]
-
-            # Помимо всех избранных слов (пусть их количество N) добавим N // 4 остальных слов
-            # Выберем их из самых давно не отвечаемых слов
-
-            # Отбираем слова, не являющиеся избранными
-            unfav_keys = [k for k in all_keys if not self.opened_dct[k].fav]
-            # Сортируем по давности ответа
-            unfav_keys.sort(key=lambda k: self.opened_dct[k].latest_att_timestamp)
-            # Находим N // 4
-            count_unfav_keys = min(len(unfav_keys), self.opened_dct.count_fav_entries()[0] // 4)
-            # Находим S - номер самой недавней сессии среди N // 4 самых старых слов
-            latest_date = self.opened_dct[unfav_keys[count_unfav_keys - 1]].latest_att_timestamp
-            # Оставляем только слова с номером сессии <= S
-            unfav_keys = [k for k in unfav_keys if self.opened_dct[k].latest_att_timestamp[0:2] <= latest_date[0:2]]
-            # Перемешиваем их
-            random.shuffle(unfav_keys)
-            # И выбираем из них N // 4 слов
-            for i in range(count_unfav_keys):
-                selected_keys += [unfav_keys[i]]
-        elif self.words == LEARN_VALUES_WORDS[2]:  # Учить только избранные слова
-            selected_keys = [key for key in all_keys if self.opened_dct[key].fav]
-        elif self.words == LEARN_VALUES_WORDS[3]:  # Учить только неотвеченные слова
-            selected_keys = [key for key in all_keys if self.opened_dct[key].correct_att == 0]
-        elif self.words == LEARN_VALUES_WORDS[4]:  # Учить 10 случайных слов
-            selected_keys = random.sample(all_keys, min(len(all_keys), 10))
-        else:  # Учить 10 случайных избранных слов
-            all_keys = [key for key in all_keys if self.opened_dct[key].fav]
-            selected_keys = random.sample(all_keys, min(len(all_keys), 10))
-
-        selected_forms = []
-        if self.forms == LEARN_VALUES_FORMS[0]:
-            for key in selected_keys:
-                selected_forms += [(key, None)]
-        elif self.forms == LEARN_VALUES_FORMS[1]:
-            for key in selected_keys:
-                forms = tuple([None]) + tuple(self.opened_dct[key].forms.keys())
-                selected_forms += [(key, random.choice(forms))]
-        elif self.forms == LEARN_VALUES_FORMS[2]:
-            for key in selected_keys:
-                for frm in self.opened_dct[key].forms.keys():
-                    selected_forms += [(key, frm)]
-        else:
-            for key in selected_keys:
-                selected_forms += [(key, None)]
-                for frm in self.opened_dct[key].forms.keys():
-                    selected_forms += [(key, frm)]
-
-        selected_phrases = []
-        if self.learn_method in LEARN_VALUES_METHOD[2:4]:
-            for (key, frm) in selected_forms:
-                for phr in self.opened_dct[key].phrases.keys():
-                    selected_phrases += [(key, frm, phr)]
-        else:
-            for (key, frm) in selected_forms:
-                selected_phrases += [(key, frm, None)]
-
-        self.pool = set(selected_phrases)
-
     # Выбор слова для угадывания
     def choose(self):
         global _0_global_has_progress
 
-        if len(self.pool) == 0:
+        if self.trainer.is_finished():
             # Если все слова отвечены, то завершаем учёбу
             self.stop()
             return
@@ -4543,85 +4488,48 @@ class LearnW(tk.Toplevel):
             _0_global_has_progress = True
 
         # Выбор слова
-        if self.order == LEARN_VALUES_ORDER[0]:
-            self.current_key, self.current_form, self.current_phrase = random.choice(tuple(self.pool))
-        else:
-            self.current_key, self.current_form, self.current_phrase = random_smart(self.opened_dct, self.pool)
+        self.current_key, self.current_form, self.current_phrase, self.homonyms = self.trainer.get_task()
 
         # Вывод слова в журнал
-        if self.learn_method == LEARN_VALUES_METHOD[0]:
-            if self.forms and self.current_form:
+        if self.trainer.config.method == TrainingMethod.TRANS_TO_WORD:
+            if self.trainer.config.forms and self.current_form:
                 self.outp(get_tr_and_frm_with_stat(self.opened_dct[self.current_key], self.current_form))
             else:
                 self.outp(get_tr_with_stat(self.opened_dct[self.current_key]))
-        elif self.learn_method == LEARN_VALUES_METHOD[1]:
+        elif self.trainer.config.method == TrainingMethod.WORD_TO_TRANS:
             self.outp(get_wrd_with_stat(self.opened_dct[self.current_key]))
-        elif self.learn_method == LEARN_VALUES_METHOD[2]:
+        elif self.trainer.config.method == TrainingMethod.TRANS_TO_PHRASE:
             self.outp(get_phr_tr_with_stat(self.opened_dct[self.current_key], self.current_phrase))
-        elif self.learn_method == LEARN_VALUES_METHOD[3]:
+        elif self.trainer.config.method == TrainingMethod.PHRASE_TO_TRANS:
             self.outp(get_phr_with_stat(self.opened_dct[self.current_key], self.current_phrase))
         else:
             self.outp(get_wrd_with_stat(self.opened_dct[self.current_key])[4:])
-
-        # Запись омонимов
-        if self.learn_method == LEARN_VALUES_METHOD[0]:
-            ans = self.opened_dct[self.current_key].tr
-            self.homonyms = []
-            for key in self.opened_dct.get_entry_ids():
-                if key != self.current_key:
-                    for tr in self.opened_dct[key].tr:
-                        if tr in ans:
-                            self.homonyms += [key]
-                            break
-        elif self.learn_method == LEARN_VALUES_METHOD[1]:
-            ans = self.opened_dct[self.current_key].lemma
-            self.homonyms = [key for key in self.opened_dct.get_entry_ids()
-                             if self.opened_dct[key].lemma == ans and key != self.current_key]
-        elif self.learn_method == LEARN_VALUES_METHOD[4]:
-            ans = self.opened_dct[self.current_key].lemma
-            self.homonyms = []
-            for key in self.opened_dct.get_entry_ids():
-                if key != self.current_key:
-                    lemma = self.opened_dct[key].lemma
-                    if len(lemma) > 4 and lemma[0:4].lower() in ('der ', 'die ', 'das ') and lemma[4:] == ans[4:]:
-                        self.homonyms += [key]
 
     # Нажатие на кнопку "Ввод"
     # Ввод ответа и переход к следующему слову
     def input(self):
         # Вывод в журнал пользовательского ответа
-        answer = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations)
-        if answer != '':
-            self.outp(answer)
+        user_answer = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations)
+        if user_answer != '':
+            self.outp(user_answer)
 
         # Проверка пользовательского ответа
-        if self.learn_method == LEARN_VALUES_METHOD[1]:
-            self.check_tr()
-        elif self.learn_method == LEARN_VALUES_METHOD[2]:
-            self.check_phrase()
-        elif self.learn_method == LEARN_VALUES_METHOD[3]:
-            self.check_phrase_tr()
-        elif self.learn_method == LEARN_VALUES_METHOD[4]:
-            self.check_article()
-        elif self.forms and self.current_form:
-            self.check_form()
-        else:
-            self.check_wrd()
+        self.check_answer(user_answer)
 
         # Выбор нового слова для угадывания
         self.choose()
 
         # Обновление кнопки "Посмотреть слово и перевод"
-        if self.learn_method in LEARN_VALUES_METHOD[2:4]:
+        if self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
             btn_enable(self.btn_show_entry, self.show_entry)
         # Обновление кнопки "Посмотреть сноски"
         entry = self.opened_dct[self.current_key]
-        if entry.count_n == 0 or self.learn_method in LEARN_VALUES_METHOD[2:4]:
+        if entry.count_n == 0 or self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
             btn_disable(self.btn_show_notes)
         else:
             btn_enable(self.btn_show_notes, self.show_notes)
         # Обновление кнопки "Посмотреть омонимы"
-        if not self.homonyms or self.learn_method in LEARN_VALUES_METHOD[2:4]:
+        if not self.homonyms or self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
             btn_disable(self.btn_show_homonyms)
         else:
             btn_enable(self.btn_show_homonyms, self.show_homonyms)
@@ -4629,7 +4537,7 @@ class LearnW(tk.Toplevel):
         self.entry_input.delete(0, tk.END)
         # Обновление отображаемого рейтинга
         self.lbl_global_rating['text'] = f'Ваш общий рейтинг по словарю: {self.get_percent()}'
-        self.lbl_count['text'] = f'Отвечено: {self.count_correct}/{self.len_of_pool}'
+        self.lbl_count['text'] = f'Отвечено: {self.count_correct}/{self.initial_pool_size}'
 
     # Нажатие на кнопку "Посмотреть слово и перевод"
     # Просмотр слова с переводом
@@ -4668,8 +4576,12 @@ class LearnW(tk.Toplevel):
         self.outp(f'\nВаш результат: {self.count_correct}/{self.count_all}', end='')
 
     # Проверка введённого ответа
-    def check_answer(self, correct_answer: str, is_correct: bool, current_key: EntryID):
-        entry = self.opened_dct[current_key]
+    def check_answer(self, answer: str):
+        is_correct = self.trainer.is_answer_correct(answer, is_case_sensitive=bool(_0_global_check_register))
+        correct_answers = self.trainer.get_correct_answers()
+        correct_answer = ', '.join(correct_answers)
+
+        entry = self.opened_dct[self.current_key]
         if is_correct:
             entry.correct((_0_global_session_number, _0_global_learn_session_number, self.count_all))
             self.outp('Верно\n')
@@ -4684,7 +4596,6 @@ class LearnW(tk.Toplevel):
                     entry.fav = False
             self.count_all += 1
             self.count_correct += 1
-            self.pool.remove((current_key, self.current_form, self.current_phrase))
         else:
             self.outp(f'Неверно. Правильный ответ: "{correct_answer}"\n')
             if entry.fav:
@@ -4717,70 +4628,6 @@ class LearnW(tk.Toplevel):
                     self.count_all += 1
                 if answer == 'yes':
                     entry.fav = True
-
-    # Проверка введённого слова
-    def check_wrd(self):
-        entry = self.opened_dct[self.current_key]
-        if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get(),
-                                                     _0_global_special_combinations) == entry.lemma
-        else:
-            is_correct = encode_special_combinations(self.entry_input.get(),
-                                                     _0_global_special_combinations).lower() == entry.lemma.lower()
-        self.check_answer(entry.lemma, is_correct, self.current_key)
-
-    # Проверка введённой словоформы
-    def check_form(self):
-        entry = self.opened_dct[self.current_key]
-        if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations) ==\
-                         entry.forms[self.current_form]
-        else:
-            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations).lower() ==\
-                         entry.forms[self.current_form].lower()
-        self.check_answer(entry.forms[self.current_form], is_correct, self.current_key)
-
-    # Проверка введённого перевода слова
-    def check_tr(self):
-        entry = self.opened_dct[self.current_key]
-        if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations) in entry.tr
-        else:
-            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations).lower() in\
-                         (tr.lower() for tr in entry.tr)
-        self.check_answer(pattern_to_str(entry.tr), is_correct, self.current_key)
-
-    # Проверка введённой фразы
-    def check_phrase(self):
-        if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations) ==\
-                         self.current_phrase
-        else:
-            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations).lower() ==\
-                         self.current_phrase.lower()
-        self.check_answer(self.current_phrase, is_correct, self.current_key)
-
-    # Проверка введённого перевода фразы
-    def check_phrase_tr(self):
-        entry = self.opened_dct[self.current_key]
-        if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations) in\
-                         entry.phrases[self.current_phrase]
-        else:
-            is_correct = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations).lower() in\
-                         (pt.lower() for pt in entry.phrases[self.current_phrase])
-        self.check_answer(get_phr_tr(entry, self.current_phrase), is_correct, self.current_key)
-
-    # Проверка введённого артикля
-    def check_article(self):
-        entry = self.opened_dct[self.current_key]
-        if _0_global_check_register:
-            is_correct = encode_special_combinations(self.entry_input.get(),
-                                                     _0_global_special_combinations) == entry.lemma[0:3]
-        else:
-            is_correct = encode_special_combinations(self.entry_input.get(),
-                                                     _0_global_special_combinations).lower() == entry.lemma[0:3].lower()
-        self.check_answer(entry.lemma[0:3], is_correct, self.current_key)
 
     # Установить фокус
     def set_focus(self):
@@ -7384,6 +7231,7 @@ def main():
     global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale,\
         _0_global_special_combinations, _0_global_check_register, _0_global_learn_settings,\
         _0_global_session_number, _0_global_search_settings, _0_global_fav_groups, _0_global_has_progress
+    global _0_global_learn_session_number, _0_global_window_last_version
 
     # Если папки отсутствуют, то они создаются
     if RESOURCES_DIR not in os.listdir(MAIN_PATH):
