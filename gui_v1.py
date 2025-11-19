@@ -548,27 +548,6 @@ def find_and_highlight(target_wrd: str, search_wrd: str) -> str:
     return ''
 
 
-# Выбрать случайное слово с учётом сложности
-def random_smart(
-        dct: Dictionary, pool: set[tuple[EntryID, FormPattern | None, str | None]]
-) -> tuple[EntryID, FormPattern | None, str | None] | None:
-    summ = 0
-    for (key, frm, phr) in pool:
-        entry = dct[key]
-        score = (100 - round(100 * entry.accuracy)) + 1
-        score += 100 // (entry.total_att + 1)
-        summ += round(score)
-
-    r = random.randint(1, summ)
-    for (key, frm, phr) in pool:
-        entry = dct[key]
-        score = (100 - round(100 * entry.accuracy)) + 1
-        score += 100 // (entry.total_att + 1)
-        r -= round(score)
-        if r <= 0:
-            return key, frm, phr
-
-
 # Разделить строку на слова
 def split_line(line: str) -> list[list[str]]:
     len_line = len(line)
