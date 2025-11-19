@@ -811,15 +811,13 @@ class Dictionary:
         assert group_old in self._groups
         assert group_new not in self._groups
 
-        self._indexes['groups'][group_new] = set()
-        self._groups += [group_new]
+        group_id = self._groups.index(group_old)
+        self._groups[group_id] = group_new
 
         for entry_id in self._indexes['groups'][group_old]:
             entry = self._entries[entry_id]
             entry.remove_from_group(group_old)
             entry.add_to_group(group_new)
-        del self._indexes['groups'][group_old]
-        self._groups.remove(group_old)
 
         self._indexes['groups'][group_new] = self._indexes['groups'][group_old]
         del self._indexes['groups'][group_old]
