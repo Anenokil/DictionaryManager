@@ -349,28 +349,28 @@ class Entry:
     def accuracy(self) -> float:
         return 0 if (self.total_att == 0) else self.correct_att / self.total_att
 
-    def to_txt(self, file: TextIO):
+    def __str__(self) -> str:
         """
-        Print the dictionary entry to the specified file.
+        Get string representation of the entry.
 
-        Outputs a formatted representation of the entire dictionary entry including
-        lemma, translations, inflected forms, phrases, notes, and learning statistics
-        to the given file handle.
-
-        Args:
-            file: A text file object opened for writing where the entry will be printed.
+        Returns:
+            A formatted representation of the entire dictionary entry including
+            lemma, translations, inflected forms, phrases, notes, and learning statistics.
         """
 
+        tokens = []
         if self.fav:
-            file.write('* (Избр.)\n')
-        file.write(f'| {self.lemma} - ')
-        file.write(', '.join(tr for tr in self.tr))
-        file.write('\n')
+            tokens.append('* (fav)\n')
+        tokens.append(f'| {self.lemma} - ')
+        tokens.append(', '.join(tr for tr in self.tr))
+        tokens.append('\n')
         for pattern, form in self.forms.items():
-            file.write(f'|  [{pattern_to_str(pattern)}] {form}\n')
+            tokens.append(f'|  [{pattern_to_str(pattern)}] {form}\n')
         for phr, phr_tr in self.phrases.items():
-            file.write(f'|  {phr} - ')
-            file.write(', '.join(tr for tr in phr_tr))
-            file.write('\n')
+            tokens.append(f'|  {phr} - ')
+            tokens.append(', '.join(tr for tr in phr_tr))
+            tokens.append('\n')
         for note in self.notes:
-            file.write(f'| > {note}\n')
+            tokens.append(f'| > {note}\n')
+
+        return ''.join(tokens)
