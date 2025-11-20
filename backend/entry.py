@@ -7,8 +7,8 @@ Author: Anenokil
 from typing import Iterable, Mapping, TextIO
 
 from .types import (
-    Word, Translation, CtgValue, FormPattern, Form, Phrase,
-    PhraseTr, Note, Group, Timestamp, EntryID,
+    Word, Translation, CtgValue, FormPattern, Form,
+    Phrase, PhraseTr, Note, Group, Timestamp,
 )
 from .utils import pattern_to_str
 
@@ -30,7 +30,6 @@ class Entry:
 
     Attributes:
     ----------
-    - id: Entry ID.
     - lemma: The lemma (canonical/dictionary form of the word).
     - tr: Translations.
     - forms: Inflected forms.
@@ -50,7 +49,6 @@ class Entry:
     """
 
     def __init__(self,
-                 eid: EntryID,
                  lemma: Word,
                  tr: Translation | Iterable[Translation],
                  forms: Mapping[FormPattern, Form] | None = None,
@@ -66,7 +64,6 @@ class Entry:
         Initialize a dictionary entry.
 
         Args:
-            eid: Entry ID.
             lemma: The lemma (canonical/dictionary form of the word).
             tr: One or more translations.
             forms: Inflected forms of the word.
@@ -79,8 +76,6 @@ class Entry:
             win_streak: Count of consecutive wins.
             latest_att_timestamp: Timestamp of the most recent answer.
         """
-
-        self.id = eid
 
         self.lemma = lemma
 

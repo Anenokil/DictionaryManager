@@ -424,7 +424,7 @@ class Dictionary:
             groups = set(groups).union(default_groups)
 
         self._entries[entry_id] = Entry(
-            entry_id, lemma, tr, forms, phrases, notes, groups, fav,
+            lemma, tr, forms, phrases, notes, groups, fav,
             total_att, correct_att, win_streak, latest_att_timestamp
         )
         entry = self._entries[entry_id]
