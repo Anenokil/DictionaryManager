@@ -4,8 +4,9 @@ Implements the Dictionary class which stores entries and maintains indexes.
 Author: Anenokil
 """
 
-from typing import Any, Iterable, Generator, Mapping, Callable
+from typing import Any, Iterable, Generator, Mapping, Callable, Union, TypeVar
 from functools import wraps
+import re
 
 from .types import (
     Word, Translation, Category, CtgValue, FormPattern, Form,
@@ -21,6 +22,8 @@ FeatureRegistry = dict[Category, list[CtgValue]]
 GroupRegistry = list[Group]
 GroupID = int
 GroupIDs = set[GroupID]
+Replacements = dict[str, str]
+T = TypeVar('T')
 
 
 class Dictionary:
@@ -59,14 +62,24 @@ class Dictionary:
     """
 
     _saving_version = 1
+    default_replacement_modifiers = (
+        '', '\\', '/', '|', '`', "'", '"', '^', '<', '>',
+        ':', '~', '+', '*', '_', '#', '%', '@', '&', '$',
+    )
 
-    def __init__(self, name: DctName = None):
+    def __init__(
+            self,
+            name: DctName = None,
+            replacement_modifiers: Iterable[str] = default_replacement_modifiers
+    ):
         """
         Initialize a dictionary.
 
         Args:
             name: The dictionary name.
         """
+
+        assert all(len(modifier) <= 1 for modifier in replacement_modifiers)
 
         self._name = name
         self._entries: Entries = dict()
@@ -86,6 +99,8 @@ class Dictionary:
         self._features: FeatureRegistry = dict()
         self._groups: GroupRegistry = []
         self._default_group_ids: GroupIDs = set()
+        self._replacement_modifiers = set(replacement_modifiers)
+        self._input_replacements = {modifier+modifier: modifier for modifier in replacement_modifiers}
         self._max_entry_id = 0
         self._is_modified = True
 
@@ -96,6 +111,35 @@ class Dictionary:
             result = method(self, *args, **kwargs)
             self._is_modified = True
             return result
+
+        return wrapper
+
+    @staticmethod
+    def _replace(method: Callable) -> Callable:
+        def process_one_arg(self: 'Dictionary', var: T) -> T:
+            if isinstance(var, str):
+                return self.apply_replacements(var)
+            if isinstance(var, Generator):
+                return (process_one_arg(self, item) for item in var)
+            if isinstance(var, dict):
+                return type(var)({process_one_arg(self, k): process_one_arg(self, v) for k, v in var.items()})
+            if isinstance(var, Union[tuple, list, set]):
+                return type(var)((process_one_arg(self, item) for item in var))
+            return var
+
+        @wraps(method)
+        def wrapper(self: 'Dictionary', *args, **kwargs):
+            processed_args = []
+            for arg in args:
+                processed_arg = process_one_arg(self, arg)
+                processed_args.append(processed_arg)
+
+            processed_kwargs = {}
+            for arg_name, arg_value in kwargs.items():
+                processed_kwarg_value = process_one_arg(self, arg_value)
+                processed_kwargs[arg_name] = processed_kwarg_value
+
+            return method(self, *processed_args, **processed_kwargs)
 
         return wrapper
 
@@ -144,6 +188,26 @@ class Dictionary:
                 if not index[term]:
                     index.pop(term)
 
+    @_mark_modified
+    def add_replacement(self, modifier: str, char: str, replacement: str):
+        assert modifier in self._replacement_modifiers
+        assert char not in self._replacement_modifiers
+        assert len(char) == 1
+        assert len(replacement) == 1
+
+        self._input_replacements[modifier + char] = replacement
+
+    @_mark_modified
+    def delete_replacement(self, modifier: str, char: str):
+        assert char != modifier
+
+        del self._input_replacements[modifier + char]
+
+    def apply_replacements(self, text: str):
+        pattern = re.compile('|'.join(re.escape(key) for key in self._input_replacements.keys()))
+
+        return pattern.sub(lambda match: self._input_replacements[match.group()], text)
+
     @property
     def name(self) -> DctName:
         return self._name
@@ -153,6 +217,7 @@ class Dictionary:
         self.rename(new_name)
 
     @_mark_modified
+    @_replace
     def rename(self, new_name: DctName):
         """
         Rename a dictionary.
@@ -163,6 +228,7 @@ class Dictionary:
 
         self._name = new_name
 
+    @_replace
     def count_entries_in_group(self, group: Group) -> tuple[int, int, int]:
         """
         Count the number of entries, translations, and inflected forms in the specified group.
@@ -187,6 +253,7 @@ class Dictionary:
             count_f += entry.count_f
         return count_e, count_t, count_f
 
+    @_replace
     def count_fav_entries(self, group: Group | None = None) -> tuple[int, int, int]:
         """
         Count the number of favorite entries, their translations, and inflected forms.
@@ -263,6 +330,7 @@ class Dictionary:
 
         yield from self._entries.values()
 
+    @_replace
     def search(self, query: Iterable[tuple[str, str]]) -> set[EntryID]:
         """
         Search for entries across multiple indexes using the specified query conditions.
@@ -306,7 +374,16 @@ class Dictionary:
     def features(self) -> FeatureRegistry:
         return self._features
 
+    @property
+    def replacement_modifiers(self) -> set[str]:
+        return self._replacement_modifiers
+
+    @property
+    def input_replacements(self) -> Replacements:
+        return self._input_replacements
+
     @_mark_modified
+    @_replace
     def add_entry(self,
                   lemma: Word,
                   tr: Translation | Iterable[Translation],
@@ -444,6 +521,7 @@ class Dictionary:
         self.delete_entry(entry_id_2)
 
     @_mark_modified
+    @_replace
     def edit_lemma(self, entry_id: EntryID, new_lemma: Word):
         """
         Update the lemma of an existing dictionary entry.
@@ -465,6 +543,7 @@ class Dictionary:
         self._update_index('lemmas', new_lemma, entry_id, 'add')
 
     @_mark_modified
+    @_replace
     def add_tr(self, entry_id: EntryID, tr: Translation):
         """
         Add a translation to an entry.
@@ -481,6 +560,7 @@ class Dictionary:
         self._counters['translations'] += entry.count_t
 
     @_mark_modified
+    @_replace
     def delete_tr(self, entry_id: EntryID, tr: Translation):
         """
         Delete a translation from an entry.
@@ -497,6 +577,7 @@ class Dictionary:
         self._counters['translations'] += entry.count_t
 
     @_mark_modified
+    @_replace
     def add_frm(self, entry_id: EntryID, pattern: FormPattern, frm: Form):
         """
         Add an inflected form to an entry.
@@ -514,6 +595,7 @@ class Dictionary:
         self._counters['forms'] += entry.count_f
 
     @_mark_modified
+    @_replace
     def delete_frm(self, entry_id: EntryID, pattern: FormPattern):
         """
         Delete an inflected form from an entry.
@@ -533,6 +615,7 @@ class Dictionary:
         self._update_index('forms', entry.forms.values(), entry_id, 'add')
 
     @_mark_modified
+    @_replace
     def add_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
         """
         Add a phrase with its translation to an entry.
@@ -549,6 +632,7 @@ class Dictionary:
         self._counters['phrases'] += entry.count_p
 
     @_mark_modified
+    @_replace
     def delete_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
         """
         Delete a phrase and its translation from an entry.
@@ -565,6 +649,7 @@ class Dictionary:
         self._counters['phrases'] += entry.count_p
 
     @_mark_modified
+    @_replace
     def add_note(self, entry_id: EntryID, note: Note):
         """
         Add a note to an entry.
@@ -580,6 +665,7 @@ class Dictionary:
         self._counters['notes'] += entry.count_n
 
     @_mark_modified
+    @_replace
     def delete_note(self, entry_id: EntryID, note: Note):
         """
         Delete a note from an entry.
@@ -595,6 +681,7 @@ class Dictionary:
         self._counters['notes'] += entry.count_n
 
     @_mark_modified
+    @_replace
     def add_entries_to_group(self, group: Group, entry_ids: Iterable[EntryID]):
         """
         Add multiple entries to a group.
@@ -609,6 +696,7 @@ class Dictionary:
             self._entries[entry_id].add_to_group(group)
 
     @_mark_modified
+    @_replace
     def remove_entries_from_group(self, group: Group, entry_ids: Iterable[EntryID]):
         """
         Remove multiple entries from a group.
@@ -648,6 +736,7 @@ class Dictionary:
             self._entries[entry_id].remove_from_fav()
 
     @_mark_modified
+    @_replace
     def add_ctg(self, ctg_name: Category, ctg_values: list[CtgValue]):
         """
         Add a new grammatical category to the dictionary.
@@ -667,17 +756,7 @@ class Dictionary:
         self._features[ctg_name] = ctg_values
 
     @_mark_modified
-    def delete_ctg(self, ctg_name: Category):
-        """
-        Delete a grammatical category from the dictionary.
-
-        Removes the category from all word forms. Forms with non-empty values
-        at this category position are deleted entirely.
-
-        Args:
-            ctg_name: Name of the category to delete.
-        """
-
+    def _delete_ctg(self, ctg_name: Category):
         assert ctg_name in self._features.keys()
 
         index = tuple(self._features.keys()).index(ctg_name)
@@ -690,7 +769,22 @@ class Dictionary:
 
         self._features.pop(ctg_name)
 
+    @_replace
+    def delete_ctg(self, ctg_name: Category):
+        """
+        Delete a grammatical category from the dictionary.
+
+        Removes the category from all word forms. Forms with non-empty values
+        at this category position are deleted entirely.
+
+        Args:
+            ctg_name: Name of the category to delete.
+        """
+
+        return self._delete_ctg(ctg_name)
+
     @_mark_modified
+    @_replace
     def rename_ctg(self, ctg_name_old: Category, ctg_name_new: Category):
         """
         Rename a grammatical category.
@@ -707,6 +801,7 @@ class Dictionary:
         self._features.pop(ctg_name_old)
 
     @_mark_modified
+    @_replace
     def add_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
         """
         Add a new value to a grammatical category.
@@ -722,6 +817,7 @@ class Dictionary:
         self._features[ctg_name] += [ctg_value]
 
     @_mark_modified
+    @_replace
     def delete_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
         """
         Delete a value from a grammatical category.
@@ -747,9 +843,10 @@ class Dictionary:
 
         self._features[ctg_name].remove(ctg_value)
         if len(self._features[ctg_name]) == 0:  # If a category has no values left, it is removed
-            self.delete_ctg(ctg_name)
+            self._delete_ctg(ctg_name)
 
     @_mark_modified
+    @_replace
     def rename_ctg_value(self, ctg_name: Category, ctg_value_old: CtgValue, ctg_value_new: CtgValue):
         """
         Rename a value in a grammatical category.
@@ -774,6 +871,7 @@ class Dictionary:
         self._features[ctg_name][index] = ctg_value_new
 
     @_mark_modified
+    @_replace
     def add_group(self, group: Group, is_default: bool = False):
         """
         Add a new group to the dictionary.
@@ -793,6 +891,7 @@ class Dictionary:
             self._default_group_ids.add(group_id)
 
     @_mark_modified
+    @_replace
     def delete_group(self, group: Group):
         """
         Delete a group from the dictionary.
@@ -819,6 +918,7 @@ class Dictionary:
         self._groups.remove(group)
 
     @_mark_modified
+    @_replace
     def rename_group(self, group_old: Group, group_new: Group):
         """
         Rename a group.
@@ -845,15 +945,18 @@ class Dictionary:
         del self._indexes['groups'][group_old]
 
     @_mark_modified
+    @_replace
     def mark_group_as_default(self, group: Group):
         group_id = self._groups.index(group)
         self._default_group_ids.add(group_id)
 
     @_mark_modified
+    @_replace
     def unmark_default_group(self, group: Group):
         group_id = self._groups.index(group)
         self._default_group_ids.discard(group_id)
 
+    @_replace
     def is_default_group(self, group: Group) -> bool:
         group_id = self._groups.index(group)
         return group_id in self._default_group_ids
