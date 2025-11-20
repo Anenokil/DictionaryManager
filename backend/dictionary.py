@@ -4,7 +4,7 @@ Implements the Dictionary class which stores entries and maintains indexes.
 Author: Anenokil
 """
 
-from typing import Any, Iterable, Generator, Mapping, Callable, Union, TypeVar
+from typing import Any, Iterable, Generator, Mapping, Callable, Literal, Union, TypeVar
 from functools import wraps
 import re
 
@@ -157,7 +157,7 @@ class Dictionary:
                       index_name: str,
                       search_terms: str | Iterable[str],
                       entry_ids: EntryID | Iterable[EntryID],
-                      action: str):
+                      action: Literal['add', 'remove']):
         """
         Update a search index by adding or removing an entry.
 
