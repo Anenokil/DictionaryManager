@@ -82,7 +82,7 @@ class Manager:
             return None
         return self.opened_dct_info[self.current_dct_id]['filepath']
 
-    def create_dct(self, name: DctName):
+    def create_dct(self, name: DctName = None):
         """
         Create a new empty dictionary and add it to the manager.
 
