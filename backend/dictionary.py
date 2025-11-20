@@ -1002,7 +1002,7 @@ class Dictionary:
         self._groups = data.get('groups', [])
         self._max_entry_id = data.get('max_entry_id', 0)
 
-    def print_out(self, filepath: str):
+    def to_txt(self, filepath: str):
         """
         Print the dictionary to the specified file.
 

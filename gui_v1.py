@@ -5331,7 +5331,7 @@ class PrintW(tk.Toplevel):
         if not folder:
             return
         filename = f'Распечатка_{_0_global_dct_savename}.txt'
-        self.dct.print_out(os.path.join(folder, filename))
+        self.dct.to_txt(os.path.join(folder, filename))
 
     # Нажатие на кнопку "Настройки поиска"
     def search_settings(self):
