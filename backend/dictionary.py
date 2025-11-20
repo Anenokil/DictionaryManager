@@ -1014,5 +1014,5 @@ class Dictionary:
 
         with open(filepath, 'w', encoding='utf-8') as file:
             for entry in self._entries.values():
-                entry.print_out(file)
+                entry.to_txt(file)
                 file.write('\n')

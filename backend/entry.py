@@ -143,27 +143,27 @@ class Entry:
 
         self.tr.remove(tr)
 
-    def add_frm(self, frm_key: FormPattern, new_frm: Form):
+    def add_form(self, form_key: FormPattern, new_form: Form):
         """
         Add a new inflected form to the entry.
 
         Args:
-            frm_key: The form pattern for the inflection.
-            new_frm: The actual inflected form to add.
+            form_key: The form pattern for the inflection.
+            new_form: The actual inflected form to add.
         """
 
-        if frm_key not in self.forms.keys():
-            self.forms[frm_key] = new_frm
+        if form_key not in self.forms.keys():
+            self.forms[form_key] = new_form
 
-    def delete_frm(self, frm_key: FormPattern):
+    def delete_form(self, form_key: FormPattern):
         """
         Remove an inflected form from the entry.
 
         Args:
-            frm_key: The form pattern identifying the inflection to remove.
+            form_key: The form pattern identifying the inflection to remove.
         """
 
-        self.forms.pop(frm_key)
+        self.forms.pop(form_key)
 
     def add_phrase(self, new_phr: Phrase, new_phr_tr: PhraseTr):
         """
@@ -354,7 +354,7 @@ class Entry:
     def accuracy(self) -> float:
         return 0 if (self.total_att == 0) else self.correct_att / self.total_att
 
-    def print_out(self, file: TextIO):
+    def to_txt(self, file: TextIO):
         """
         Print the dictionary entry to the specified file.
 
