@@ -5,7 +5,7 @@ Author: Anenokil
 """
 
 from .types import *
-from .entry import Entry, Translations, Forms, Phrases
+from .entry import Entry, Translations, Forms, Phrases, deserialize_entry
 from .dictionary import Dictionary
 from .manager import Manager
 from .trainer import (

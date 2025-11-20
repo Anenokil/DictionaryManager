@@ -7,7 +7,7 @@ Author: Anenokil
 
 from typing import Any
 import os
-import pickle
+import json
 
 from .types import DctName
 from .dictionary import Dictionary
@@ -28,9 +28,10 @@ class Manager:
     - allowed_file_ext: supported file extensions for saving/loading dictionary data.
     - opened_dct_info: currently open dictionaries with metadata about each dictionary instance.
     - current_dct_id: ID of the currently active dictionary.
+    - @property: TODO
     """
 
-    allowed_file_ext = ('.pkl',)
+    allowed_file_ext = ('.json',)
 
     def __init__(self):
         """
@@ -108,8 +109,8 @@ class Manager:
         ext = os.path.splitext(filepath)[1]
         assert ext in self.allowed_file_ext, f'File extension "{ext}" not supported'
 
-        with open(filepath, 'rb') as f:
-            savedata = pickle.load(f)
+        with open(filepath, 'r') as f:
+            savedata = json.load(f)
 
         dct = Dictionary()
         dct.deserialize(savedata)
@@ -176,9 +177,9 @@ class Manager:
             if filepath is None:
                 raise ValueError('No filepath is specified')
 
-        savedata = self.dct.serialize()
-        with open(filepath, 'wb') as f:
-            pickle.dump(savedata, f)
+        savedata = self.dct.serialize('json')
+        with open(filepath, 'w') as f:
+            json.dump(savedata, f)
         self.dct.mark_saved()
 
         self.opened_dct_info[dct_id]['filepath'] = filepath

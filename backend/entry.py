@@ -4,7 +4,7 @@ Implements the Entry class.
 Author: Anenokil
 """
 
-from typing import Iterable, Mapping, TextIO
+from typing import Any, Iterable, Mapping, Literal
 
 from .types import (
     Word, Translation, CtgValue, FormPattern, Form,
@@ -374,3 +374,64 @@ class Entry:
             tokens.append(f'| > {note}\n')
 
         return ''.join(tokens)
+
+    def serialize(self, frmt: Literal['json', 'pickle']) -> dict[str, Any]:
+        """
+        Serialize the entry to a dictionary format.
+
+        Args:
+            frmt: The format to serialize the entry to (json, pickle).
+
+        Returns:
+            Dictionary containing entry data.
+        """
+
+        assert frmt in ('json', 'pickle')
+
+        data = {
+            'lemma': self.lemma,
+            'translations': self.tr,
+            'forms': self.forms,
+            'phrases': self.phrases,
+            'notes': self.notes,
+            'groups': self.groups,
+            'fav': self.fav,
+            'total_att': self.total_att,
+            'correct_att': self.correct_att,
+            'win_streak': self.win_streak,
+            'latest_att_timestamp': self.latest_att_timestamp,
+        }
+        if format == 'pickle':
+            return data
+
+        data['groups'] = tuple(self.groups)
+        return data
+
+
+def deserialize_entry(data: dict[str, Any]) -> Entry:
+    """
+    Deserialize Dictionary data from a dictionary format.
+
+    Args:
+        data: Dictionary containing saving version and dictionary data.
+
+    Returns:
+        An Entry object.
+    """
+
+    lemma = data['lemma']
+    tr = data['translations']
+    forms = data['forms']
+    phrases = data['phrases']
+    notes = data['notes']
+    groups = data['groups']
+    fav = bool(data['fav'])
+    total_att = int(data['total_att'])
+    correct_att = int(data['correct_att'])
+    win_streak = int(data['win_streak'])
+    latest_att_timestamp = map(int, data['latest_att_timestamp'])
+
+    return Entry(
+        lemma, tr, forms, phrases, notes, groups, fav, total_att,
+        correct_att, win_streak, latest_att_timestamp
+    )

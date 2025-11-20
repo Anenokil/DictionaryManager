@@ -12,7 +12,7 @@ from .types import (
     Word, Translation, Category, CtgValue, FormPattern, Form,
     Phrase, PhraseTr, Note, Group, Timestamp, EntryID, DctName,
 )
-from .entry import Entry
+from .entry import Entry, deserialize_entry
 
 # Typing aliases used in the module
 Entries = dict[EntryID, Entry]
@@ -961,12 +961,15 @@ class Dictionary:
         group_id = self._groups.index(group)
         return group_id in self._default_group_ids
 
-    def serialize(self) -> dict[str, Any]:
+    def serialize(self, frmt: Literal['json', 'pickle']) -> dict[str, Any]:
         """
         Serialize the Dictionary to a dictionary format.
 
+        Args:
+            frmt: The format to serialize the entry to (json, pickle).
+
         Returns:
-            Dictionary containing saving version and all dictionary data.
+            Dictionary containing saving version and all Dictionary data.
         """
 
         data = {
@@ -978,9 +981,26 @@ class Dictionary:
                 'counters': self._counters,
                 'features': self._features,
                 'groups': self._groups,
+                'default_group_ids': self._default_group_ids,
+                'replacement_modifiers': self._replacement_modifiers,
+                'input_replacements': self.input_replacements,
                 'max_entry_id': self._max_entry_id,
+                'is_modified': self._is_modified,
             }
         }
+        if frmt == 'pickle':
+            return data
+
+        data['data']['entries'] = {
+            entry_id: entry.serialize(frmt)
+            for entry_id, entry in self._entries.items()
+        }
+        data['data']['indexes'] = {
+            index_name: {query: tuple(ids) for query, ids in index_data.items()}
+            for index_name, index_data in self._indexes.items()
+        }
+        data['data']['default_group_ids'] = tuple(self._default_group_ids)
+        data['data']['replacement_modifiers'] = tuple(self._replacement_modifiers)
         return data
 
     def deserialize(self, data: dict[str, Any]):
@@ -991,16 +1011,30 @@ class Dictionary:
             data: Dictionary containing saving version and dictionary data.
         """
 
-        #loaded_version = data.get('version', 1)
-        data = data.get('data', {})
+        #loaded_version = data.get('version')
+        data = data.get('data')
 
-        self._name = data.get('name', '')
-        self._entries = data.get('entries', {})
-        self._indexes = data.get('indexes', {})
-        self._counters = data.get('counters', {})
-        self._features = data.get('features', {})
-        self._groups = data.get('groups', [])
-        self._max_entry_id = data.get('max_entry_id', 0)
+        self._name = data.get('name')
+        self._entries = {
+            int(entry_id): deserialize_entry(entry_data)
+            for entry_id, entry_data in data.get('entries').items()
+        }
+        self._indexes = {
+            index_name: {
+                query: {int(i) for i in ids}
+                for query, ids in index_data.items()
+            } for index_name, index_data in data.get('indexes').items()
+        }
+        self._counters = {
+            name: int(num) for name, num in data.get('counters').items()
+        }
+        self._features = data.get('features')
+        self._groups = data.get('groups')
+        self._default_group_ids = {int(i) for i in data.get('default_group_ids')}
+        self._replacement_modifiers = set(data.get('replacement_modifiers'))
+        self._input_replacements = data.get('input_replacements')
+        self._max_entry_id = int(data.get('max_entry_id'))
+        self._is_modified = bool(data.get('is_modified'))
 
     def to_txt(self, filepath: str):
         """
