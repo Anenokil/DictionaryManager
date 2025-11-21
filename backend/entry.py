@@ -401,9 +401,13 @@ class Entry:
             'win_streak': self.win_streak,
             'latest_att_timestamp': self.latest_att_timestamp,
         }
-        if format == 'pickle':
+        if frmt == 'pickle':
             return data
 
+        data['forms'] = {
+            'keys': tuple(self.forms.keys()),
+            'values': tuple(self.forms.values()),
+        }
         data['groups'] = tuple(self.groups)
         return data
 
@@ -421,7 +425,7 @@ def deserialize_entry(data: dict[str, Any]) -> Entry:
 
     lemma = data['lemma']
     tr = data['translations']
-    forms = data['forms']
+    forms = dict(zip(data['forms']['keys'], data['forms']['values']))
     phrases = data['phrases']
     notes = data['notes']
     groups = data['groups']
