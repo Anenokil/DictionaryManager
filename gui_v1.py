@@ -2581,7 +2581,7 @@ class EditW(tk.Toplevel):
             return
         frm = encode_special_combinations(frm, _0_global_special_combinations)
 
-        self.dct.add_frm(self.dct_key, frm_key, frm)
+        self.dct.add_form(self.dct_key, frm_key, frm)
 
         _0_global_has_progress = True
         self.refresh(False)
@@ -2608,7 +2608,7 @@ class EditW(tk.Toplevel):
     def frm_del(self, frm_key: FormPattern):
         global _0_global_has_progress
 
-        self.dct.delete_frm(self.dct_key, frm_key)
+        self.dct.delete_form(self.dct_key, frm_key)
 
         _0_global_has_progress = True
         self.refresh(False)

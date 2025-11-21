@@ -61,7 +61,7 @@ class Dictionary:
     - _saving_version: The version of the data format used for serialization.
     """
 
-    _saving_version = 1
+    _schema_version = 1
     default_replacement_modifiers = (
         '', '\\', '/', '|', '`', "'", '"', '^', '<', '>',
         ':', '~', '+', '*', '_', '#', '%', '@', '&', '$',
@@ -502,9 +502,9 @@ class Dictionary:
         for phr_key in additional_entry.phrases.keys():
             for phr_tr in additional_entry.phrases[phr_key]:
                 main_entry.add_phrase(phr_key, phr_tr)
-        for frm_key in additional_entry.forms.keys():
-            frm = additional_entry.forms[frm_key]
-            main_entry.add_frm(frm_key, frm)
+        for form_pattern in additional_entry.forms.keys():
+            form = additional_entry.forms[form_pattern]
+            main_entry.add_form(form_pattern, form)
         if additional_entry.fav:
             main_entry.fav = True
         for group in additional_entry.groups:
@@ -578,25 +578,25 @@ class Dictionary:
 
     @_mark_modified
     @_replace
-    def add_frm(self, entry_id: EntryID, pattern: FormPattern, frm: Form):
+    def add_form(self, entry_id: EntryID, pattern: FormPattern, form: Form):
         """
         Add an inflected form to an entry.
 
         Args:
             entry_id: ID of the entry.
             pattern: Form pattern for the inflection.
-            frm: The inflected form to add.
+            form: The inflected form to add.
         """
 
         entry = self._entries[entry_id]
-        self._update_index('forms', frm, entry_id, 'add')
+        self._update_index('forms', form, entry_id, 'add')
         self._counters['forms'] -= entry.count_f
-        entry.add_frm(pattern, frm)
+        entry.add_form(pattern, form)
         self._counters['forms'] += entry.count_f
 
     @_mark_modified
     @_replace
-    def delete_frm(self, entry_id: EntryID, pattern: FormPattern):
+    def delete_form(self, entry_id: EntryID, pattern: FormPattern):
         """
         Delete an inflected form from an entry.
 
@@ -610,7 +610,7 @@ class Dictionary:
         # Therefore, we need to first remove all forms from the index, then add them back to the index
         self._update_index('forms', entry.forms.values(), entry_id, 'remove')
         self._counters['forms'] -= entry.count_f
-        entry.delete_frm(pattern)
+        entry.delete_form(pattern)
         self._counters['forms'] += entry.count_f
         self._update_index('forms', entry.forms.values(), entry_id, 'add')
 
@@ -973,7 +973,7 @@ class Dictionary:
         """
 
         data = {
-            'version': self._saving_version,
+            'version': self._schema_version,
             'data': {
                 'name': self._name,
                 'entries': self._entries,
