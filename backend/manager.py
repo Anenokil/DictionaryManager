@@ -5,7 +5,7 @@ multiple Dictionary instances and tracks the active dictionary.
 Author: Anenokil
 """
 
-from typing import Any
+from typing import Any, Literal
 import os
 import json
 
@@ -219,7 +219,7 @@ class Manager:
         elif self.current_dct_id > to_index:
             self.current_dct_id += 1
 
-    def serialize(self) -> dict[str, Any]:
+    def serialize(self, frmt: Literal['json', 'pickle']) -> dict[str, Any]:
         """
         Serialize the manager state to a dictionary format.
 
@@ -234,6 +234,15 @@ class Manager:
                 'current_dct_id': self.current_dct_id,
             }
         }
+        if frmt == 'pickle':
+            return data
+
+        data['data']['opened_dct_info'] = [
+            {
+                'dct': item['dct'].serialize(frmt),
+                'filepath': item['filepath'],
+            } for item in self.opened_dct_info
+        ]
         return data
 
     def deserialize(self, data: dict[str, Any]):
@@ -247,5 +256,10 @@ class Manager:
         #loaded_version = data.get('version')
         data = data.get('data')
 
-        self.opened_dct_info = data.get('opened_dct_info', [])
+        self.opened_dct_info = [
+            {
+                'dct': item['dct'].deserialize(),
+                'filepath': item['filepath'],
+            } for item in data.get('opened_dct_info', [])
+        ]
         self.current_dct_id = data.get('current_dct_id', None)
