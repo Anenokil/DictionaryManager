@@ -83,6 +83,11 @@ class Manager:
             return None
         return self.opened_dct_info[self.current_dct_id]['filepath']
 
+    def add_dct(self, dct: Dictionary, filepath: str | None = None, to_activate: bool = True):
+        self.opened_dct_info.append({'dct': dct, 'filepath': filepath})
+        if to_activate or self.n_opened == 1:
+            self.current_dct_id = len(self.opened_dct_info) - 1
+
     def create_dct(self, name: DctName = None):
         """
         Create a new empty dictionary and add it to the manager.
