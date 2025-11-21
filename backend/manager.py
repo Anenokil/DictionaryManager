@@ -31,6 +31,7 @@ class Manager:
     - @property: TODO
     """
 
+    _schema_version = 1
     allowed_file_ext = ('.json',)
 
     def __init__(self):
@@ -227,8 +228,11 @@ class Manager:
         """
 
         data = {
-            'opened_dct_info': self.opened_dct_info,
-            'current_dct_id': self.current_dct_id,
+            'version': self._schema_version,
+            'data': {
+                'opened_dct_info': self.opened_dct_info,
+                'current_dct_id': self.current_dct_id,
+            }
         }
         return data
 
@@ -239,6 +243,9 @@ class Manager:
         Args:
             data: Dictionary containing manager data.
         """
+
+        #loaded_version = data.get('version')
+        data = data.get('data')
 
         self.opened_dct_info = data.get('opened_dct_info', [])
         self.current_dct_id = data.get('current_dct_id', None)
