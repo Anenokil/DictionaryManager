@@ -88,7 +88,7 @@ class Manager:
         if to_activate or self.n_opened == 1:
             self.current_dct_id = len(self.opened_dct_info) - 1
 
-    def create_dct(self, name: DctName = None):
+    def create_dct(self, name: DctName = None, to_activate: bool = True):
         """
         Create a new empty dictionary and add it to the manager.
 
@@ -99,9 +99,10 @@ class Manager:
         dct = Dictionary(name)
 
         self.opened_dct_info.append({'dct': dct, 'filepath': None})
-        self.current_dct_id = len(self.opened_dct_info) - 1
+        if to_activate or self.n_opened == 1:
+            self.current_dct_id = len(self.opened_dct_info) - 1
 
-    def open_dct(self, filepath: str):
+    def open_dct(self, filepath: str, to_activate: bool = True):
         """
         Open a dictionary from a file and add it to the manager.
 
@@ -123,7 +124,8 @@ class Manager:
         dct.mark_saved()
 
         self.opened_dct_info.append({'dct': dct, 'filepath': filepath})
-        self.current_dct_id = len(self.opened_dct_info) - 1
+        if to_activate or self.n_opened == 1:
+            self.current_dct_id = len(self.opened_dct_info) - 1
 
     def switch_dct(self, dct_id: int):
         """
