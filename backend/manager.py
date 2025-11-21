@@ -8,7 +8,7 @@ Author: Anenokil
 from typing import Any, Literal, Callable
 import os
 
-from .types import DctName
+from .types import DctName, SerializedData
 from .dictionary import Dictionary
 
 # Typing aliases used in the module
@@ -229,7 +229,7 @@ class Manager:
         elif self.current_dct_id > to_index:
             self.current_dct_id += 1
 
-    def serialize(self, frmt: Literal['json', 'pickle']) -> dict[str, Any]:
+    def serialize(self, frmt: Literal['json', 'pickle']) -> SerializedData:
         """
         Serialize the manager state to a dictionary format.
 
@@ -255,7 +255,7 @@ class Manager:
         ]
         return data
 
-    def deserialize(self, data: dict[str, Any]):
+    def deserialize(self, data: SerializedData):
         """
         Deserialize manager state from a dictionary format.
 

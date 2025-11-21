@@ -4,11 +4,11 @@ Implements the Entry class.
 Author: Anenokil
 """
 
-from typing import Any, Iterable, Mapping, Literal
+from typing import Iterable, Mapping, Literal
 
 from .types import (
     Word, Translation, CtgValue, FormPattern, Form,
-    Phrase, PhraseTr, Note, Group, Timestamp,
+    Phrase, PhraseTr, Note, Group, Timestamp, SerializedData,
 )
 from .utils import pattern_to_str
 
@@ -375,7 +375,7 @@ class Entry:
 
         return ''.join(tokens)
 
-    def serialize(self, frmt: Literal['json', 'pickle']) -> dict[str, Any]:
+    def serialize(self, frmt: Literal['json', 'pickle']) -> SerializedData:
         """
         Serialize the entry to a dictionary format.
 
@@ -412,7 +412,7 @@ class Entry:
         return data
 
 
-def deserialize_entry(data: dict[str, Any]) -> Entry:
+def deserialize_entry(data: SerializedData) -> Entry:
     """
     Deserialize Dictionary data from a dictionary format.
 

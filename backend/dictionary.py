@@ -4,13 +4,13 @@ Implements the Dictionary class which stores entries and maintains indexes.
 Author: Anenokil
 """
 
-from typing import Any, Iterable, Generator, Mapping, Callable, Literal, Union, TypeVar
+from typing import Iterable, Generator, Mapping, Callable, Literal, Union, TypeVar
 from functools import wraps
 import re
 
 from .types import (
-    Word, Translation, Category, CtgValue, FormPattern, Form,
-    Phrase, PhraseTr, Note, Group, Timestamp, EntryID, DctName,
+    Word, Translation, Category, CtgValue, FormPattern, Form, Phrase,
+    PhraseTr, Note, Group, Timestamp, EntryID, DctName, SerializedData,
 )
 from .entry import Entry, deserialize_entry
 
@@ -961,7 +961,7 @@ class Dictionary:
         group_id = self._groups.index(group)
         return group_id in self._default_group_ids
 
-    def serialize(self, frmt: Literal['json', 'pickle']) -> dict[str, Any]:
+    def serialize(self, frmt: Literal['json', 'pickle']) -> SerializedData:
         """
         Serialize the Dictionary to a dictionary format.
 
@@ -1003,7 +1003,7 @@ class Dictionary:
         data['data']['replacement_modifiers'] = tuple(self._replacement_modifiers)
         return data
 
-    def deserialize(self, data: dict[str, Any]):
+    def deserialize(self, data: SerializedData):
         """
         Deserialize Dictionary data from a dictionary format.
 

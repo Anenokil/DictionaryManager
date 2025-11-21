@@ -4,6 +4,8 @@ Central place for semantic type aliases used across backend modules.
 Author: Anenokil
 """
 
+from typing import Any
+
 # Typing aliases shared across backend package
 Word = str
 Translation = Word
@@ -19,3 +21,4 @@ Group = str
 Timestamp = tuple[int, int, int]
 EntryID = int
 DctName = str | None
+SerializedData = dict[str, Any]  # Serialized entry/dictionary/manager
