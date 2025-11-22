@@ -411,31 +411,31 @@ class Entry:
         data['groups'] = tuple(self.groups)
         return data
 
+    @classmethod
+    def deserialize(cls, data: SerializedData) -> 'Entry':
+        """
+        Deserialize Dictionary data from a dictionary format.
 
-def deserialize_entry(data: SerializedData) -> Entry:
-    """
-    Deserialize Dictionary data from a dictionary format.
+        Args:
+            data: Dictionary containing saving version and dictionary data.
 
-    Args:
-        data: Dictionary containing saving version and dictionary data.
+        Returns:
+            An Entry object.
+        """
 
-    Returns:
-        An Entry object.
-    """
+        lemma = data['lemma']
+        tr = data['translations']
+        forms = dict(zip(data['forms']['keys'], data['forms']['values']))
+        phrases = data['phrases']
+        notes = data['notes']
+        groups = data['groups']
+        fav = bool(data['fav'])
+        total_att = int(data['total_att'])
+        correct_att = int(data['correct_att'])
+        win_streak = int(data['win_streak'])
+        latest_att_timestamp = map(int, data['latest_att_timestamp'])
 
-    lemma = data['lemma']
-    tr = data['translations']
-    forms = dict(zip(data['forms']['keys'], data['forms']['values']))
-    phrases = data['phrases']
-    notes = data['notes']
-    groups = data['groups']
-    fav = bool(data['fav'])
-    total_att = int(data['total_att'])
-    correct_att = int(data['correct_att'])
-    win_streak = int(data['win_streak'])
-    latest_att_timestamp = map(int, data['latest_att_timestamp'])
-
-    return Entry(
-        lemma, tr, forms, phrases, notes, groups, fav, total_att,
-        correct_att, win_streak, latest_att_timestamp
-    )
+        return cls(
+            lemma, tr, forms, phrases, notes, groups, fav, total_att,
+            correct_att, win_streak, latest_att_timestamp
+        )

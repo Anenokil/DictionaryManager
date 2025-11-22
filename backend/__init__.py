@@ -9,7 +9,7 @@ from .types import (
     Phrase, PhraseTr, Note, Group, Timestamp, EntryID, DctName,
     SerializedData,
 )
-from .entry import Entry, Translations, Forms, Phrases, deserialize_entry
+from .entry import Entry, Translations, Forms, Phrases
 from .dictionary import Dictionary
 from .manager import Manager
 from .trainer import (

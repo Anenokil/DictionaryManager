@@ -12,7 +12,7 @@ from .types import (
     Word, Translation, Category, CtgValue, FormPattern, Form, Phrase,
     PhraseTr, Note, Group, Timestamp, EntryID, DctName, SerializedData,
 )
-from .entry import Entry, deserialize_entry
+from .entry import Entry
 
 # Typing aliases used in the module
 Entries = dict[EntryID, Entry]
@@ -1016,7 +1016,7 @@ class Dictionary:
 
         self._name = data.get('name')
         self._entries = {
-            int(entry_id): deserialize_entry(entry_data)
+            int(entry_id): Entry.deserialize(entry_data)
             for entry_id, entry_data in data.get('entries').items()
         }
         self._indexes = {
