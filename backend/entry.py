@@ -414,10 +414,10 @@ class Entry:
     @classmethod
     def deserialize(cls, data: SerializedData) -> 'Entry':
         """
-        Deserialize Dictionary data from a dictionary format.
+        Deserialize Entry data from a dictionary format.
 
         Args:
-            data: Dictionary containing saving version and dictionary data.
+            data: Dictionary containing entry data.
 
         Returns:
             An Entry object.
