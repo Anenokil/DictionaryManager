@@ -4,7 +4,11 @@ Public exports for backend package.
 Author: Anenokil
 """
 
-from .types import *
+from .types import (
+    Word, Translation, Category, CtgValue, FormPattern, Form,
+    Phrase, PhraseTr, Note, Group, Timestamp, EntryID, DctName,
+    SerializedData,
+)
 from .entry import Entry, Translations, Forms, Phrases, deserialize_entry
 from .dictionary import Dictionary
 from .manager import Manager
