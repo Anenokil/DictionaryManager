@@ -24,9 +24,20 @@ class Manager:
 
     Attributes:
     ----------
-    - allowed_file_ext: supported file extensions for saving/loading dictionary data.
-    - opened_dct_info: currently open dictionaries with metadata about each dictionary instance.
+    - allowed_file_ext: supported file extensions for saving/loading
+      dictionary data.
+    - opened_dct_info: currently open dictionaries with metadata about
+      each dictionary instance.
     - current_dct_id: ID of the currently active dictionary.
+    - n_opened: Number of dictionaries currently opened in the manager.
+    - dct: The currently active `Dictionary` instance or ``None`` when
+      no dictionary is active.
+    - filepath: File path associated with the currently active dictionary
+      or ``None`` for new/unsaved dictionaries.
+
+    Protected Attributes:
+    --------------------
+    - _schema_version: The version of the data format used for serialization.
     """
 
     _schema_version = 1
@@ -92,6 +103,9 @@ class Manager:
 
         Args:
             name: Name for the new dictionary.
+            to_activate: If True, make the newly created dictionary the
+                currently active dictionary. If False, add it to the list of
+                opened dictionaries without switching the active index.
         """
 
         dct = Dictionary(name)
@@ -109,6 +123,13 @@ class Manager:
 
         Args:
             filepath: Path to the dictionary file to open.
+            loading_func: Callable that takes the file path and returns the
+                deserialized dictionary data. This function is responsible
+                for reading the file contents and converting them into the
+                in-memory representation expected by `Dictionary.deserialize`.
+            to_activate: If True, switch the manager's active dictionary to
+                the one just opened. If False, keep the current active
+                dictionary.
 
         Raises:
             AssertionError: If the file extension is not supported.
@@ -173,8 +194,11 @@ class Manager:
 
         Args:
             dct_id: Index of the dictionary to save.
+            saving_func: Callable that accepts two arguments — the serialized
+                dictionary data and the destination file path — and writes
+                the data to disk. The function should raise on failure.
             filepath: Path where to save the dictionary. If None, uses the
-                      dictionary's current filepath.
+                dictionary's current filepath.
 
         Raises:
             AssertionError: If the dictionary index is out of range.

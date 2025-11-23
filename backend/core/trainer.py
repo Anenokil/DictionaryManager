@@ -94,7 +94,28 @@ def create_training_config(
 
 
 class Trainer:
-    """Trainer for word practice exercises."""
+    """
+    Trainer for word-practice exercises.
+
+    This class builds and manages a queue (the training pool) of tasks
+    derived from a `Dictionary` according to a `TrainingConfig`. Each task
+    is a tuple (entry_id, form_pattern | None, phrase | None) and may be
+    served to the caller via `get_task`. The trainer also evaluates user
+    answers and reinserts failed tasks back into the pool according to the
+    configured ordering.
+
+    Attributes:
+    ----------
+    - dct: Reference to the dictionary containing entries used to build tasks.
+    - pool: Read-only view of the current internal task pool.
+    - config: Active training configuration that controls selection and ordering.
+
+    Protected Attributes:
+    --------------------
+    - _pool: Internal list of tasks awaiting presentation to the user.
+    - _config: Internal copy of the active configuration.
+    - _current_task: The currently active task (set by `get_task`) or `None` when no task is active.
+    """
 
     def __init__(self, dct: Dictionary, config: TrainingConfig):
         """

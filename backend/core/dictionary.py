@@ -33,6 +33,12 @@ class Dictionary:
     Attributes:
     ----------
     - name: Dictionary name.
+    - is_saved: True when the dictionary has no unsaved changes.
+    - groups: All group names defined in the dictionary.
+    - default_groups: Groups marked as default.
+    - features: All grammar categories and their values.
+    - replacement_modifiers: Allowed modifier characters for input replacements.
+    - input_replacements: Mapping from input sequences to replacement characters.
 
     Protected Attributes:
     --------------------
@@ -56,9 +62,18 @@ class Dictionary:
     - _features: Collection of all grammatical categories and their values present in the dictionary.
     - _groups: All groups/tags assigned to entries across the entire dictionary.
       Used for organizing and grouping dictionary content.
+    - _default_group_ids: Set of integer indices of groups that are marked as default.
+    - _replacement_modifiers: Set of single-character strings used as modifiers
+      to introduce input replacements.
+    - _input_replacements: Mapping from modifier+char sequences to the single
+      character replacement.
     - _max_entry_id: Current maximum entry ID. Used to assign the next available ID to new entries
       (current max + 1).
-    - _saving_version: The version of the data format used for serialization.
+    - _is_modified: Boolean flag set when the dictionary has unsaved changes.
+    - _schema_version: The version of the data format used for serialization.
+    - default_replacement_modifiers: Sequence of default modifier characters
+      used when no explicit `replacement_modifiers` argument is provided to
+      `__init__`.
     """
 
     _schema_version = 1
@@ -77,6 +92,9 @@ class Dictionary:
 
         Args:
             name: The dictionary name.
+            replacement_modifiers: Iterable of strings used as modifier
+                characters for input replacements. Each modifier must be
+                length 1 (or empty string).
         """
 
         assert all(len(modifier) <= 1 for modifier in replacement_modifiers)
