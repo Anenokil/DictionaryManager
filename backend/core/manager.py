@@ -27,7 +27,6 @@ class Manager:
     - allowed_file_ext: supported file extensions for saving/loading dictionary data.
     - opened_dct_info: currently open dictionaries with metadata about each dictionary instance.
     - current_dct_id: ID of the currently active dictionary.
-    - @property: TODO
     """
 
     _schema_version = 1
