@@ -78,24 +78,17 @@ class Entry:
         """
 
         self.lemma = lemma
-
-        self.tr: Translations = [tr] if isinstance(tr, str) else list(tr)
-
+        self.tr: Translations = [tr] if isinstance(tr, Translation) else list(tr)
         self.forms: Forms = forms if forms else dict()
-
         self.phrases: Phrases = {phr: list(tr) for phr, tr in phrases.items()} if phrases else dict()
-
         if not notes:
             self.notes: Notes = []
-        elif isinstance(notes, str):
+        elif isinstance(notes, Note):
             self.notes = [notes]
         else:
             self.notes = list(notes)
-
         self.groups: Groups = set(groups) if groups else set()
-
         self.fav = fav
-
         self.total_att = total_att
         self.correct_att = correct_att
         self.win_streak = win_streak

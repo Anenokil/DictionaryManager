@@ -4,7 +4,7 @@ Implements the Dictionary class which stores entries and maintains indexes.
 Author: Anenokil
 """
 
-from typing import Iterable, Generator, Mapping, Callable, Literal, Union, TypeVar
+from typing import Iterable, Generator, Mapping, Callable, Literal, TypeVar
 from functools import wraps
 import re
 
@@ -123,7 +123,7 @@ class Dictionary:
                 return (process_one_arg(self, item) for item in var)
             if isinstance(var, dict):
                 return type(var)({process_one_arg(self, k): process_one_arg(self, v) for k, v in var.items()})
-            if isinstance(var, Union[tuple, list, set]):
+            if isinstance(var, (tuple, list, set)):
                 return type(var)((process_one_arg(self, item) for item in var))
             return var
 
