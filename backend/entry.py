@@ -4,13 +4,15 @@ Implements the Entry class.
 Author: Anenokil
 """
 
+from types import NoneType
 from typing import Iterable, Mapping, Literal
 
 from .types import (
     Word, Translation, CtgValue, FormPattern, Form,
     Phrase, PhraseTr, Note, Group, Timestamp, SerializedData,
 )
-from .utils import pattern_to_str
+from .errors import MissingFieldsError, DeserializationError
+from .utils import pattern_to_str, validate_field_type
 
 # Typing aliases used in the module
 Translations = list[Translation]
@@ -416,19 +418,75 @@ class Entry:
             An Entry object.
         """
 
+        # Validate required fields
+        required_fields = (
+            'lemma', 'translations', 'total_att', 'correct_att',
+            'win_streak', 'latest_att_timestamp',
+        )
+        missing_fields = [field for field in required_fields if field not in data.keys()]
+        if missing_fields:
+            raise MissingFieldsError(*missing_fields)
+
+        # Read required fields
         lemma = data['lemma']
-        tr = data['translations']
-        forms = dict(zip(data['forms']['keys'], data['forms']['values']))
-        phrases = data['phrases']
-        notes = data['notes']
-        groups = data['groups']
-        fav = bool(data['fav'])
-        total_att = int(data['total_att'])
-        correct_att = int(data['correct_att'])
-        win_streak = int(data['win_streak'])
-        latest_att_timestamp = map(int, data['latest_att_timestamp'])
+        translations = data['translations']
+        total_att = data['total_att']
+        correct_att = data['correct_att']
+        win_streak = data['win_streak']
+        latest_att_timestamp = data['latest_att_timestamp']
+
+        # Read optional fields
+        forms = data.get('forms', {'keys': (), 'values': ()})
+        phrases = data.get('phrases', None)
+        notes = data.get('notes', None)
+        groups = data.get('groups', None)
+        fav = data.get('fav', False)
+
+        # Validate types
+        validate_field_type('lemma', lemma, str)
+        validate_field_type('translations', translations, (str, Iterable[str]))
+        validate_field_type('forms', forms, Mapping)
+
+        required_fields = ('keys', 'values')
+        missing_fields = [field for field in required_fields if field not in forms.keys()]
+        if missing_fields:
+            raise MissingFieldsError(*missing_fields)
+
+        validate_field_type('keys', forms['keys'], Mapping[str, tuple[str, ...]])
+        validate_field_type('values', forms['values'], Mapping[str, str])
+        validate_field_type('phrases', phrases, (Mapping[str, Iterable[str]], NoneType))
+        validate_field_type('notes', notes, (str, Iterable[str], NoneType))
+        validate_field_type('groups', groups, (Iterable[str], NoneType))
+        validate_field_type('fav', fav, (bool, int))
+        validate_field_type('total_att', total_att, (int, str))
+        validate_field_type('correct_att', correct_att, (int, str))
+        validate_field_type('win_streak', win_streak, (int, str))
+        validate_field_type('latest_att_timestamp', latest_att_timestamp,
+                            (tuple[int | str, ...], list[int | str]))
+
+        # Validate values
+        if isinstance(total_att, str):
+            if not total_att.isdigit():
+                raise DeserializationError('Field "total_att" must be numeric')
+        if isinstance(correct_att, str):
+            if not correct_att.isdigit():
+                raise DeserializationError('Field "correct_att" must be numeric')
+        if isinstance(win_streak, str):
+            if not win_streak.isdigit():
+                raise DeserializationError('Field "win_streak" must be numeric')
+        if isinstance(latest_att_timestamp, list):
+            if len(latest_att_timestamp) != 3:
+                raise DeserializationError('Field "latest_att_timestamp" must have length 3')
+
+        # Convert types and values
+        forms = dict(zip(forms['keys'], forms['values']))
+        fav = bool(fav)
+        total_att = int(total_att)
+        correct_att = int(correct_att)
+        win_streak = int(win_streak)
+        latest_att_timestamp = tuple(map(int, latest_att_timestamp))
 
         return cls(
-            lemma, tr, forms, phrases, notes, groups, fav, total_att,
-            correct_att, win_streak, latest_att_timestamp
+            lemma, translations, forms, phrases, notes, groups, fav,
+            total_att, correct_att, win_streak, latest_att_timestamp,
         )

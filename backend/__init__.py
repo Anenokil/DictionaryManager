@@ -9,6 +9,10 @@ from .types import (
     Phrase, PhraseTr, Note, Group, Timestamp, EntryID, DctName,
     SerializedData,
 )
+from .errors import (
+    DMError, BackendError, BackendCoreError,
+    DeserializationError, MissingFieldsError, FieldTypeError,
+)
 from .entry import Entry, Translations, Forms, Phrases
 from .dictionary import Dictionary
 from .manager import Manager
