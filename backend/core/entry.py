@@ -97,19 +97,19 @@ class Entry:
         self.latest_att_timestamp = latest_att_timestamp
 
     @property
-    def count_t(self):
+    def count_t(self) -> int:
         return len(self.tr)
 
     @property
-    def count_f(self):
+    def count_f(self) -> int:
         return len(self.forms)
 
     @property
-    def count_p(self):
+    def count_p(self) -> int:
         return len(self.phrases)
 
     @property
-    def count_n(self):
+    def count_n(self) -> int:
         return len(self.notes)
 
     def add_tr(self, new_tr: Translation):
