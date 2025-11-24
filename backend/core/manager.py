@@ -6,7 +6,6 @@ Author: Anenokil
 """
 
 from typing import Any, Literal, Callable
-import os
 
 from .types import DctName, SerializedData
 from .dictionary import Dictionary
@@ -24,8 +23,6 @@ class Manager:
 
     Attributes:
     ----------
-    - allowed_file_ext: supported file extensions for saving/loading
-      dictionary data.
     - opened_dct_info: currently open dictionaries with metadata about
       each dictionary instance.
     - current_dct_id: ID of the currently active dictionary.
@@ -41,7 +38,6 @@ class Manager:
     """
 
     _schema_version = 1
-    allowed_file_ext = ('.json',)
 
     def __init__(self):
         """
@@ -134,9 +130,6 @@ class Manager:
         Raises:
             AssertionError: If the file extension is not supported.
         """
-
-        ext = os.path.splitext(filepath)[1]
-        assert ext in self.allowed_file_ext, f'File extension "{ext}" not supported'
 
         savedata = loading_func(filepath)
 
