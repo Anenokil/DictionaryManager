@@ -4,6 +4,7 @@ Implements the Dictionary class which stores entries and maintains indexes.
 Author: Anenokil
 """
 
+from types import NoneType
 from typing import Iterable, Generator, Mapping, Callable, Literal, TypeVar
 from functools import wraps
 import re
@@ -12,6 +13,8 @@ from .types import (
     Word, Translation, Category, CtgValue, FormPattern, Form, Phrase,
     PhraseTr, Note, Group, Timestamp, EntryID, DctName, SerializedData,
 )
+from .errors import DeserializationError
+from .utils import validate_required_fields, validate_field_type
 from .entry import Entry
 
 # Typing aliases used in the module
@@ -983,18 +986,15 @@ class Dictionary:
         group_id = self._groups.index(group)
         return group_id in self._default_group_ids
 
-    def serialize(self, frmt: Literal['json', 'pickle']) -> SerializedData:
+    def to_dict(self) -> SerializedData:
         """
         Serialize the Dictionary to a dictionary format.
-
-        Args:
-            frmt: The format to serialize the entry to (json, pickle).
 
         Returns:
             Dictionary containing saving version and all Dictionary data.
         """
 
-        data = {
+        return {
             'version': self._schema_version,
             'data': {
                 'name': self._name,
@@ -1010,53 +1010,126 @@ class Dictionary:
                 'is_modified': self._is_modified,
             }
         }
-        if frmt == 'pickle':
-            return data
+
+    def to_json_dict(self) -> SerializedData:
+        """
+        Serialize the Dictionary to a JSON format.
+
+        Returns:
+            Dictionary containing saving version and all Dictionary data.
+        """
+
+        data = self.to_dict()
 
         data['data']['entries'] = {
-            entry_id: entry.serialize(frmt)
+            entry_id: entry.to_json_dict()
             for entry_id, entry in self._entries.items()
         }
         data['data']['indexes'] = {
-            index_name: {query: tuple(ids) for query, ids in index_data.items()}
+            index_name: {query: list(ids) for query, ids in index_data.items()}
             for index_name, index_data in self._indexes.items()
         }
-        data['data']['default_group_ids'] = tuple(self._default_group_ids)
-        data['data']['replacement_modifiers'] = tuple(self._replacement_modifiers)
+        data['data']['default_group_ids'] = list(self._default_group_ids)
+        data['data']['replacement_modifiers'] = list(self._replacement_modifiers)
+
         return data
 
-    def deserialize(self, data: SerializedData):
+    def load_from_json_dict(self, data: SerializedData):
         """
-        Deserialize Dictionary data from a dictionary format.
+        Deserialize Dictionary data from a JSON format.
 
         Args:
             data: Dictionary containing saving version and dictionary data.
         """
 
-        #loaded_version = data.get('version')
-        data = data.get('data')
+        # Validate required fields
+        required_fields = ('version', 'data')
+        validate_required_fields(data, required_fields)
 
-        self._name = data.get('name')
-        self._entries = {
-            int(entry_id): Entry.deserialize(entry_data)
-            for entry_id, entry_data in data.get('entries').items()
-        }
-        self._indexes = {
+        required_fields = (
+            'indexes', 'counters', 'replacement_modifiers',
+            'input_replacements', 'max_entry_id', 'is_modified',
+        )
+        validate_required_fields(data['data'], required_fields)
+
+        # Read required fields
+        data = data['data']
+        indexes = data['indexes']
+        counters = data['counters']
+        replacement_modifiers = data['replacement_modifiers']
+        input_replacements = data['input_replacements']
+        max_entry_id = data['max_entry_id']
+        is_modified = data['is_modified']
+
+        # Read optional fields
+        name = data.get('name', None)
+        entries = data.get('entries', {})
+        features = data.get('features', {})
+        groups = data.get('groups', [])
+        default_group_ids = data.get('default_group_ids', [])
+
+        # Validate types
+        validate_field_type('name', name, (str, NoneType))
+        validate_field_type('entries.keys()', entries.keys(), Iterable[str])
+        validate_field_type('indexes', indexes, dict[str, dict[str, list[int]]])
+        validate_field_type('counters', counters, dict[str, int])
+        validate_field_type('features', features, dict[str, list[str]])
+        validate_field_type('groups', groups, list[str])
+        validate_field_type('default_group_ids', default_group_ids, list[int])
+        validate_field_type('replacement_modifiers', replacement_modifiers, list[str])
+        validate_field_type('input_replacements', input_replacements, dict[str, str])
+        validate_field_type('max_entry_id', max_entry_id, int)
+        validate_field_type('is_modified', is_modified, bool)
+
+        # Convert types and values
+        try:
+            entries = {
+                int(entry_id): Entry.from_json_dict(entry_data)
+                for entry_id, entry_data in entries.items()
+            }
+        except ValueError as e:
+            if 'invalid literal for int()' in str(e):
+                raise DeserializationError('Entry IDs must be numeric.')
+            raise
+
+        indexes = {
             index_name: {
-                query: {int(i) for i in ids}
+                query: set(ids)
                 for query, ids in index_data.items()
-            } for index_name, index_data in data.get('indexes').items()
+            } for index_name, index_data in indexes.items()
         }
-        self._counters = {
-            name: int(num) for name, num in data.get('counters').items()
-        }
-        self._features = data.get('features')
-        self._groups = data.get('groups')
-        self._default_group_ids = {int(i) for i in data.get('default_group_ids')}
-        self._replacement_modifiers = set(data.get('replacement_modifiers'))
-        self._input_replacements = data.get('input_replacements')
-        self._max_entry_id = int(data.get('max_entry_id'))
-        self._is_modified = bool(data.get('is_modified'))
+
+        default_group_ids = set(default_group_ids)
+        replacement_modifiers = set(replacement_modifiers)
+
+        # Set attributes
+        self._name = name
+        self._entries = entries
+        self._indexes = indexes
+        self._counters = counters
+        self._features = features
+        self._groups = groups
+        self._default_group_ids = default_group_ids
+        self._replacement_modifiers = replacement_modifiers
+        self._input_replacements = input_replacements
+        self._max_entry_id = max_entry_id
+        self._is_modified = is_modified
+
+    @classmethod
+    def from_json_dict(cls, data: SerializedData) -> 'Dictionary':
+        """
+        Deserialize Dictionary data from a JSON format.
+
+        Args:
+            data: Dictionary containing saving version and dictionary data.
+
+        Returns:
+            A Dictionary object.
+        """
+
+        dct = cls()
+        dct.load_from_json_dict(data)
+        return dct
 
     def to_txt(self, filepath: str):
         """
