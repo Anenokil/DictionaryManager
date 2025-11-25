@@ -5,9 +5,12 @@ multiple Dictionary instances and tracks the active dictionary.
 Author: Anenokil
 """
 
-from typing import Any, Literal, Callable
+from types import NoneType
+from typing import Any, Callable
 
 from .types import DctName, SerializedData
+from .errors import MissingFieldsError
+from .utils import validate_required_fields, validate_field_type
 from .dictionary import Dictionary
 
 # Typing aliases used in the module
@@ -124,7 +127,7 @@ class Manager:
             loading_func: Callable that takes the file path and returns the
                 deserialized dictionary data. This function is responsible
                 for reading the file contents and converting them into the
-                in-memory representation expected by `Dictionary.deserialize`.
+                in-memory representation expected by `Dictionary.from_json_dict`.
             to_activate: If True, switch the manager's active dictionary to
                 the one just opened. If False, keep the current active
                 dictionary.
@@ -135,8 +138,7 @@ class Manager:
 
         savedata = loading_func(filepath)
 
-        dct = Dictionary()
-        dct.deserialize(savedata)
+        dct = Dictionary.from_json_dict(savedata)
         dct.mark_saved()
 
         self.opened_dct_info.append({'dct': dct, 'filepath': filepath})
@@ -209,7 +211,7 @@ class Manager:
             if filepath is None:
                 raise ValueError('No filepath is specified')
 
-        savedata = self.dct.serialize('json')
+        savedata = self.dct.to_json_dict()
         saving_func(savedata, filepath)
         self.dct.mark_saved()
 
@@ -249,7 +251,7 @@ class Manager:
         elif self.current_dct_id > to_index:
             self.current_dct_id += 1
 
-    def serialize(self, frmt: Literal['json', 'pickle']) -> SerializedData:
+    def to_dict(self) -> SerializedData:
         """
         Serialize the manager state to a dictionary format.
 
@@ -257,39 +259,70 @@ class Manager:
             Dictionary containing manager data.
         """
 
-        data = {
+        return {
             'version': self._schema_version,
             'data': {
                 'opened_dct_info': self.opened_dct_info,
                 'current_dct_id': self.current_dct_id,
             }
         }
-        if frmt == 'pickle':
-            return data
+
+    def to_json_dict(self) -> SerializedData:
+        """
+        Serialize the manager state to a JSON format.
+
+        Returns:
+            Dictionary containing manager data.
+        """
+
+        data = self.to_dict()
 
         data['data']['opened_dct_info'] = [
             {
-                'dct': item['dct'].serialize(frmt),
+                'dct': item['dct'].to_json_dict(),
                 'filepath': item['filepath'],
             } for item in self.opened_dct_info
         ]
+
         return data
 
-    def deserialize(self, data: SerializedData):
+    def load_from_json_dict(self, data: SerializedData):
         """
-        Deserialize manager state from a dictionary format.
+        Deserialize manager state from a JSON format.
 
         Args:
             data: Dictionary containing manager data.
         """
 
-        #loaded_version = data.get('version')
-        data = data.get('data')
+        # Validate required fields
+        required_fields = ('version', 'data')
+        validate_required_fields(data, required_fields)
 
-        self.opened_dct_info = [
-            {
-                'dct': item['dct'].deserialize(),
-                'filepath': item['filepath'],
-            } for item in data.get('opened_dct_info', [])
-        ]
-        self.current_dct_id = data.get('current_dct_id', None)
+        required_fields = ('opened_dct_info', 'current_dct_id')
+        validate_required_fields(data['data'], required_fields)
+
+        # Read required fields
+        data = data['data']
+        opened_dct_info = data['opened_dct_info']
+        current_dct_id = data['current_dct_id']
+
+        # Validate types
+        validate_field_type('opened_dct_info', opened_dct_info, list[dict[str, Any]])
+        validate_field_type('current_dct_id', current_dct_id, (int, NoneType))
+
+        # Convert types and values
+        try:
+            opened_dct_info = [
+                {
+                    'dct': Dictionary.from_json_dict(item['dct']),
+                    'filepath': item['filepath'],
+                } for item in data['opened_dct_info']
+            ]
+        except KeyError as e:
+            if str(e) in ('dct', 'filepath'):
+                raise MissingFieldsError(e)
+            raise
+
+        # Set attributes
+        self.opened_dct_info = opened_dct_info
+        self.current_dct_id = current_dct_id
