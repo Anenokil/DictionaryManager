@@ -169,7 +169,7 @@ class Entry:
         if new_phr not in self.phrases.keys():
             self.phrases[new_phr] = [new_phr_tr]
         elif new_phr_tr not in self.phrases[new_phr]:
-            self.phrases[new_phr] += [new_phr_tr]
+            self.phrases[new_phr].append(new_phr_tr)
 
     def delete_phrase(self, phr: Phrase, phr_tr: PhraseTr):
         """
@@ -195,7 +195,7 @@ class Entry:
         """
 
         if new_note not in self.notes:
-            self.notes += [new_note]
+            self.notes.append(new_note)
 
     def delete_note(self, note: Note):
         """
@@ -246,9 +246,11 @@ class Entry:
             ctg_val: The category value to be removed.
         """
 
-        to_delete = [key for key in self.forms.keys() if key[pos] == ctg_val]
-        for key in to_delete:
-            self.forms.pop(key)
+        self.forms = {
+            pattern: form
+            for pattern, form in self.forms.items()
+            if pattern[pos] != ctg_val
+        }
 
     def rename_ctg_value(self, pos: int, old_ctg_val: CtgValue, new_ctg_val: CtgValue):
         """
@@ -260,23 +262,26 @@ class Entry:
             new_ctg_val: The new category value that will replace the old one.
         """
 
-        to_rename = [key for key in self.forms.keys() if key[pos] == old_ctg_val]
-        for key in to_rename:
-            lst = list(key)
-            lst[pos] = new_ctg_val
-            lst = tuple(lst)
-            self.forms[lst] = self.forms[key]
-            self.forms.pop(key)
+        def update_pattern(pattern: FormPattern) -> FormPattern:
+            if pattern[pos] != old_ctg_val:
+                return pattern
+            return tuple(pattern[:pos] + (new_ctg_val,) + pattern[pos+1:])
+
+        self.forms = {
+            update_pattern(pattern): form
+            for pattern, form in self.forms.items()
+        }
 
     def add_ctg(self):
         """Add a new empty category to all word forms."""
 
-        keys = list(self.forms.keys())
-        for key in keys:
-            new_key = list(key) + ['']
-            new_key = tuple(new_key)
-            self.forms[new_key] = self.forms[key]
-            self.forms.pop(key)
+        def update_pattern(pattern: FormPattern) -> FormPattern:
+            return tuple(pattern + ('',))
+
+        self.forms = {
+            update_pattern(pattern): form
+            for pattern, form in self.forms.items()
+        }
 
     def delete_ctg(self, pos: int):
         """
@@ -289,21 +294,14 @@ class Entry:
             pos: The position (index) of the category to be deleted in form pattern.
         """
 
-        to_delete = []
-        to_edit = []
-        for key in self.forms.keys():
-            if key[pos] == '':
-                to_edit += [key]
-            else:
-                to_delete += [key]
-        for key in to_edit:
-            new_key = list(key)
-            new_key.pop(pos)
-            new_key = tuple(new_key)
-            self.forms[new_key] = self.forms[key]
-            self.forms.pop(key)
-        for key in to_delete:
-            self.forms.pop(key)
+        def update_pattern(pattern: FormPattern) -> FormPattern:
+            return tuple(pattern[:pos] + pattern[pos+1:])
+
+        self.forms = {
+            update_pattern(pattern): form
+            for pattern, form in self.forms.items()
+            if pattern[pos] == ''
+        }
 
     def correct(self, session_number: Timestamp):
         """
