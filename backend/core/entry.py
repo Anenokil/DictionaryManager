@@ -8,15 +8,15 @@ from types import NoneType
 from typing import Iterable, Mapping
 
 from .types import (
-    Word, Translation, CtgValue, FormPattern, Form,
+    Word, Translation, CtgValue, GramForm, WordForm,
     Phrase, PhraseTr, Note, Group, Timestamp, SerializedData,
 )
 from .errors import DeserializationError
-from .utils import pattern_to_str, validate_required_fields, validate_field_type
+from .utils import gram_form_to_str, validate_required_fields, validate_field_type
 
 # Typing aliases used in the module
 Translations = list[Translation]
-Forms = dict[FormPattern, Form]
+Forms = dict[GramForm, WordForm]
 Phrases = dict[Phrase, list[PhraseTr]]
 Notes = list[Note]
 Groups = set[Group]
@@ -34,14 +34,14 @@ class Entry:
     ----------
     - lemma: The lemma (canonical/dictionary form of the word).
     - tr: Translations.
-    - forms: Inflected forms.
+    - forms: Inflected forms (except the lemma).
     - phrases: Phrases containing the word; usage examples.
     - notes: Notes field.
-    - count_t: Translation count.
-    - count_f: Inflected form count.
-    - count_p: Phrases count.
-    - count_n: Notes count.
-    - fav: True if the entry is favorite.
+    - n_translations: Number of translations for the word.
+    - n_gram_forms: Number of grammatical forms.
+    - n_phrases: Number of phrases.
+    - n_notes: Number of notes.
+    - is_fav: True if the entry is favorite.
     - groups: Groups assigned to the entry.
     - total_att: Total number of game attempts.
     - correct_att: Number of correct guesses (wins).
@@ -54,11 +54,11 @@ class Entry:
             self,
             lemma: Word,
             tr: Translation | Iterable[Translation],
-            forms: Mapping[FormPattern, Form] | None = None,
+            forms: Mapping[GramForm, WordForm] | None = None,
             phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
             notes: Note | Iterable[Note] | None = None,
             groups: Iterable[Group] | None = None,
-            fav: bool = False,
+            is_fav: bool = False,
             total_att: int = 0,
             correct_att: int = 0,
             win_streak: int = 0,
@@ -70,11 +70,11 @@ class Entry:
         Args:
             lemma: The lemma (canonical/dictionary form of the word).
             tr: One or more translations.
-            forms: Inflected forms of the word.
+            forms: Inflected forms of the word (except the lemma).
             phrases: Phrases containing the word; usage examples.
             notes: Notes field.
             groups: Groups assigned to the entry.
-            fav: Whether the entry is favorite.
+            is_fav: Whether the entry is favorite.
             total_att: Total number of game attempts.
             correct_att: Number of correct guesses (wins).
             win_streak: Count of consecutive wins.
@@ -84,7 +84,7 @@ class Entry:
         self.lemma = lemma
         self.tr: Translations = [tr] if isinstance(tr, Translation) else list(tr)
         self.forms: Forms = forms if forms else dict()
-        self.phrases: Phrases = {phr: list(tr) for phr, tr in phrases.items()} if phrases else dict()
+        self.phrases: Phrases = {phrase: list(phrase_tr) for phrase, phrase_tr in phrases.items()} if phrases else dict()
         if not notes:
             self.notes: Notes = []
         elif isinstance(notes, Note):
@@ -92,38 +92,38 @@ class Entry:
         else:
             self.notes = list(notes)
         self.groups: Groups = set(groups) if groups else set()
-        self.fav = fav
+        self.is_fav = is_fav
         self.total_att = total_att
         self.correct_att = correct_att
         self.win_streak = win_streak
         self.latest_att_timestamp = latest_att_timestamp
 
     @property
-    def count_t(self) -> int:
+    def n_translations(self) -> int:
         return len(self.tr)
 
     @property
-    def count_f(self) -> int:
+    def n_gram_forms(self) -> int:
         return len(self.forms)
 
     @property
-    def count_p(self) -> int:
+    def n_phrases(self) -> int:
         return len(self.phrases)
 
     @property
-    def count_n(self) -> int:
+    def n_notes(self) -> int:
         return len(self.notes)
 
-    def add_tr(self, new_tr: Translation):
+    def add_tr(self, tr: Translation):
         """
         Add a new translation to the entry.
 
         Args:
-            new_tr: The translation to add.
+            tr: The translation to add.
         """
 
-        if new_tr not in self.tr:
-            self.tr.append(new_tr)
+        if tr not in self.tr:
+            self.tr.append(tr)
 
     def delete_tr(self, tr: Translation):
         """
@@ -135,67 +135,67 @@ class Entry:
 
         self.tr.remove(tr)
 
-    def add_form(self, form_key: FormPattern, new_form: Form):
+    def add_form(self, gram_form: GramForm, word_form: WordForm):
         """
         Add a new inflected form to the entry.
 
         Args:
-            form_key: The form pattern for the inflection.
-            new_form: The actual inflected form to add.
+            gram_form: Grammatical form for the inflection.
+            word_form: The actual inflected form to add.
         """
 
-        if form_key not in self.forms.keys():
-            self.forms[form_key] = new_form
+        if gram_form not in self.forms.keys():
+            self.forms[gram_form] = word_form
 
-    def delete_form(self, form_key: FormPattern):
+    def delete_form(self, gram_form: GramForm):
         """
         Remove an inflected form from the entry.
 
         Args:
-            form_key: The form pattern identifying the inflection to remove.
+            gram_form: Grammatical form identifying the inflection to remove.
         """
 
-        self.forms.pop(form_key)
+        self.forms.pop(gram_form)
 
-    def add_phrase(self, new_phr: Phrase, new_phr_tr: PhraseTr):
+    def add_phrase(self, phrase: Phrase, phrase_tr: PhraseTr):
         """
         Add a new phrase/usage example with its translation.
 
         Args:
-            new_phr: The phrase or usage example containing the word.
-            new_phr_tr: The translation of the phrase.
+            phrase: The phrase or usage example containing the word.
+            phrase_tr: The translation of the phrase.
         """
 
-        if new_phr not in self.phrases.keys():
-            self.phrases[new_phr] = [new_phr_tr]
-        elif new_phr_tr not in self.phrases[new_phr]:
-            self.phrases[new_phr].append(new_phr_tr)
+        if phrase not in self.phrases.keys():
+            self.phrases[phrase] = [phrase_tr]
+        elif phrase_tr not in self.phrases[phrase]:
+            self.phrases[phrase].append(phrase_tr)
 
-    def delete_phrase(self, phr: Phrase, phr_tr: PhraseTr):
+    def delete_phrase(self, phrase: Phrase, phrase_tr: PhraseTr):
         """
         Remove a phrase and its translation from the entry.
 
         Removes the specified phrase-translation pair from `phrases`.
 
         Args:
-            phr: The phrase to remove.
-            phr_tr: The translation of the phrase to remove.
+            phrase: The phrase to remove.
+            phrase_tr: The translation of the phrase to remove.
         """
 
-        self.phrases[phr].remove(phr_tr)
-        if len(self.phrases[phr]) == 0:
-            self.phrases.pop(phr)
+        self.phrases[phrase].remove(phrase_tr)
+        if len(self.phrases[phrase]) == 0:
+            self.phrases.pop(phrase)
 
-    def add_note(self, new_note: Note):
+    def add_note(self, note: Note):
         """
         Add a new note to the entry.
 
         Args:
-            new_note: The note text to add.
+            note: The note text to add.
         """
 
-        if new_note not in self.notes:
-            self.notes.append(new_note)
+        if note not in self.notes:
+            self.notes.append(note)
 
     def delete_note(self, note: Note):
         """
@@ -230,26 +230,26 @@ class Entry:
     def add_to_fav(self):
         """Mark this entry as favorite."""
 
-        self.fav = True
+        self.is_fav = True
 
     def remove_from_fav(self):
         """Remove this entry from favorites."""
 
-        self.fav = False
+        self.is_fav = False
 
     def delete_ctg_value(self, pos: int, ctg_val: CtgValue):
         """
         Delete the specified category value from all word forms.
 
         Args:
-            pos: The position (index) of the category in form pattern.
+            pos: The position (index) of the category in grammatical form tuple.
             ctg_val: The category value to be removed.
         """
 
         self.forms = {
-            pattern: form
-            for pattern, form in self.forms.items()
-            if pattern[pos] != ctg_val
+            gram_form: word_form
+            for gram_form, word_form in self.forms.items()
+            if gram_form[pos] != ctg_val
         }
 
     def rename_ctg_value(self, pos: int, old_ctg_val: CtgValue, new_ctg_val: CtgValue):
@@ -257,30 +257,30 @@ class Entry:
         Rename the specified category value in all word forms.
 
         Args:
-            pos: The position (index) of the category in form pattern.
+            pos: The position (index) of the category in grammatical form tuple.
             old_ctg_val: The current category value to be replaced.
             new_ctg_val: The new category value that will replace the old one.
         """
 
-        def update_pattern(pattern: FormPattern) -> FormPattern:
-            if pattern[pos] != old_ctg_val:
-                return pattern
-            return tuple(pattern[:pos] + (new_ctg_val,) + pattern[pos+1:])
+        def update_gram_form(gram_form: GramForm) -> GramForm:
+            if gram_form[pos] != old_ctg_val:
+                return gram_form
+            return tuple(gram_form[:pos] + (new_ctg_val,) + gram_form[pos+1:])
 
         self.forms = {
-            update_pattern(pattern): form
-            for pattern, form in self.forms.items()
+            update_gram_form(gram_form): word_form
+            for gram_form, word_form in self.forms.items()
         }
 
     def add_ctg(self):
         """Add a new empty category to all word forms."""
 
-        def update_pattern(pattern: FormPattern) -> FormPattern:
-            return tuple(pattern + ('',))
+        def update_gram_form(gram_form: GramForm) -> GramForm:
+            return tuple(gram_form + ('',))
 
         self.forms = {
-            update_pattern(pattern): form
-            for pattern, form in self.forms.items()
+            update_gram_form(gram_form): word_form
+            for gram_form, word_form in self.forms.items()
         }
 
     def delete_ctg(self, pos: int):
@@ -291,16 +291,16 @@ class Entry:
         from all word forms in the entry.
 
         Args:
-            pos: The position (index) of the category to be deleted in form pattern.
+            pos: The position (index) of the category to be deleted in grammatical form tuple.
         """
 
-        def update_pattern(pattern: FormPattern) -> FormPattern:
-            return tuple(pattern[:pos] + pattern[pos+1:])
+        def update_gram_form(gram_form: GramForm) -> GramForm:
+            return tuple(gram_form[:pos] + gram_form[pos+1:])
 
         self.forms = {
-            update_pattern(pattern): form
-            for pattern, form in self.forms.items()
-            if pattern[pos] == ''
+            update_gram_form(gram_form): word_form
+            for gram_form, word_form in self.forms.items()
+            if gram_form[pos] == ''
         }
 
     def correct(self, session_number: Timestamp):
@@ -354,16 +354,16 @@ class Entry:
         """
 
         tokens = []
-        if self.fav:
+        if self.is_fav:
             tokens.append('* (fav)\n')
         tokens.append(f'| {self.lemma} - ')
         tokens.append(', '.join(tr for tr in self.tr))
         tokens.append('\n')
-        for pattern, form in self.forms.items():
-            tokens.append(f'|  [{pattern_to_str(pattern)}] {form}\n')
-        for phr, phr_tr in self.phrases.items():
-            tokens.append(f'|  {phr} - ')
-            tokens.append(', '.join(tr for tr in phr_tr))
+        for gram_form, word_form in self.forms.items():
+            tokens.append(f'|  [{gram_form_to_str(gram_form)}] {word_form}\n')
+        for phrase, phrase_tr in self.phrases.items():
+            tokens.append(f'|  {phrase} - ')
+            tokens.append(', '.join(tr for tr in phrase_tr))
             tokens.append('\n')
         for note in self.notes:
             tokens.append(f'| > {note}\n')
@@ -385,7 +385,7 @@ class Entry:
             'phrases': self.phrases,
             'notes': self.notes,
             'groups': self.groups,
-            'fav': self.fav,
+            'is_fav': self.is_fav,
             'total_att': self.total_att,
             'correct_att': self.correct_att,
             'win_streak': self.win_streak,
@@ -442,7 +442,7 @@ class Entry:
         phrases = data.get('phrases', None)
         notes = data.get('notes', None)
         groups = data.get('groups', None)
-        fav = data.get('fav', False)
+        is_fav = data.get('is_fav', False)
 
         # Validate types
         validate_field_type('lemma', lemma, str)
@@ -456,7 +456,7 @@ class Entry:
         validate_field_type('phrases', phrases, (dict[str, list[str]], NoneType))
         validate_field_type('notes', notes, (list[str], NoneType))
         validate_field_type('groups', groups, (list[str], NoneType))
-        validate_field_type('fav', fav, bool)
+        validate_field_type('is_fav', is_fav, bool)
         validate_field_type('total_att', total_att, int)
         validate_field_type('correct_att', correct_att, int)
         validate_field_type('win_streak', win_streak, int)
@@ -477,6 +477,6 @@ class Entry:
         latest_att_timestamp = tuple(latest_att_timestamp)
 
         return cls(
-            lemma, translations, forms, phrases, notes, groups, fav,
+            lemma, translations, forms, phrases, notes, groups, is_fav,
             total_att, correct_att, win_streak, latest_att_timestamp,
         )

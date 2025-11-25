@@ -12,12 +12,12 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QAction, QCloseEvent
 from PySide6.QtCore import Qt
 
-from backend import Translations, Forms, Phrases, Entry, Dictionary, Manager, pattern_to_str
+from backend import Translations, Forms, Phrases, Entry, Dictionary, Manager, gram_form_to_str
 
 
 def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:
-    for pattern, form in forms.items():
-        yield pattern_to_str(pattern), form
+    for gram_form, word_form in forms.items():
+        yield gram_form_to_str(gram_form), word_form
 
 
 def phrases_to_pairs(phrases: Phrases) -> Generator[tuple[str, str], None, None]:
@@ -31,8 +31,10 @@ def translations_to_str(tr: Translations) -> str:
 
 
 def forms_to_str(forms: Forms) -> str:
-    return '\n'.join(f'[{pattern_to_str(pattern)}] {form}'
-                     for pattern, form in forms.items())
+    return '\n'.join(
+        f'[{gram_form_to_str(gram_form)}] {word_form}'
+        for gram_form, word_form in forms.items()
+    )
 
 
 def phrases_to_str(phrases: Phrases) -> str:

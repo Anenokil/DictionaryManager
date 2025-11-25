@@ -5,7 +5,7 @@ Author: Anenokil
 """
 
 from .types import (
-    Word, Translation, Category, CtgValue, FormPattern, Form,
+    Word, Translation, Category, CtgValue, GramForm, WordForm,
     Phrase, PhraseTr, Note, Group, Timestamp, EntryID, DctName,
     SerializedData,
 )
@@ -20,4 +20,4 @@ from .trainer import (
     Trainer, TrainingMethod, TrainingOrder, EntrySelection,
     FormSelection, TrainingConfig, create_training_config,
 )
-from .utils import pattern_to_str
+from .utils import gram_form_to_str

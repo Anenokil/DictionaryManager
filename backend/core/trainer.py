@@ -10,12 +10,12 @@ from enum import Enum
 from dataclasses import dataclass
 import random
 
-from .types import FormPattern, Phrase, Group, EntryID
+from .types import GramForm, Phrase, Group, EntryID
 from .dictionary import Dictionary
 from .utils import difficulty, has_article
 
 # Typing aliases used in the module
-Pool = list[tuple[EntryID, FormPattern | None, Phrase | None]]
+Pool = list[tuple[EntryID, GramForm | None, Phrase | None]]
 
 
 class TrainingMethod(Enum):
@@ -99,7 +99,7 @@ class Trainer:
 
     This class builds and manages a queue (the training pool) of tasks
     derived from a `Dictionary` according to a `TrainingConfig`. Each task
-    is a tuple (entry_id, form_pattern | None, phrase | None) and may be
+    is a tuple (entry_id, gram_form | None, phrase | None) and may be
     served to the caller via `get_task`. The trainer also evaluates user
     answers and reinserts failed tasks back into the pool according to the
     configured ordering.
@@ -214,7 +214,7 @@ class Trainer:
                 yield from ids
             elif self._config.entries == EntrySelection.MOSTLY_FAV:  # Учить преимущественно избранные слова
                 all_ids = set(ids)
-                fav_ids = {entry_id for entry_id in all_ids if self.dct[entry_id].fav}
+                fav_ids = {entry_id for entry_id in all_ids if self.dct[entry_id].is_fav}
                 unfav_ids = all_ids - fav_ids
 
                 n_fav = len(fav_ids)
@@ -232,7 +232,7 @@ class Trainer:
                 yield from unfav_ids
             elif self._config.entries == EntrySelection.FAV:  # Учить только избранные слова
                 for entry_id in ids:
-                    if self.dct[entry_id].fav:
+                    if self.dct[entry_id].is_fav:
                         yield entry_id
             elif self._config.entries == EntrySelection.UNANSWERED:  # Учить только неотвеченные слова
                 for entry_id in ids:
@@ -245,40 +245,40 @@ class Trainer:
                 else:
                     yield from random.sample(ids, 10)
             elif self._config.entries == EntrySelection.RANDOM_10_FAV:  # Учить 10 случайных избранных слов
-                fav_ids = {entry_id for entry_id in ids if self.dct[entry_id].fav}
+                fav_ids = {entry_id for entry_id in ids if self.dct[entry_id].is_fav}
                 if len(fav_ids) <= 10:
                     yield from fav_ids
                 else:
                     yield from random.sample(list(fav_ids), 10)
 
-        def select_forms(ids: Iterable[EntryID]) -> Iterable[tuple[EntryID, FormPattern | None]]:
+        def select_forms(ids: Iterable[EntryID]) -> Iterable[tuple[EntryID, GramForm | None]]:
             if self._config.forms == FormSelection.LEMMAS:
                 for entry_id in ids:
                     yield entry_id, None
             elif self._config.forms == FormSelection.RANDOM:
                 for entry_id in ids:
-                    form_patterns = [None] + list(self.dct[entry_id].forms.keys())
-                    yield entry_id, random.choice(form_patterns)
+                    gram_forms = [None] + list(self.dct[entry_id].forms.keys())
+                    yield entry_id, random.choice(gram_forms)
             elif self._config.forms == FormSelection.INFLECTED:
                 for entry_id in ids:
-                    for form_pattern in self.dct[entry_id].forms.keys():
-                        yield entry_id, form_pattern
+                    for gram_form in self.dct[entry_id].forms.keys():
+                        yield entry_id, gram_form
             elif self._config.forms == FormSelection.ALL:
                 for entry_id in ids:
                     yield entry_id, None
-                    for form_pattern in self.dct[entry_id].forms.keys():
-                        yield entry_id, form_pattern
+                    for gram_form in self.dct[entry_id].forms.keys():
+                        yield entry_id, gram_form
 
         def selected_phrases(
-                items: Iterable[tuple[EntryID, FormPattern | None]]
-        ) -> Iterable[tuple[EntryID, FormPattern | None, Phrase | None]]:
+                items: Iterable[tuple[EntryID, GramForm | None]]
+        ) -> Iterable[tuple[EntryID, GramForm | None, Phrase | None]]:
             if self._config.method in (TrainingMethod.PHRASE_TO_TRANS, TrainingMethod.TRANS_TO_PHRASE):
-                for key, frm in items:
-                    for phr in self.dct[key].phrases.keys():
-                        yield key, frm, phr
+                for key, form in items:
+                    for phrase in self.dct[key].phrases.keys():
+                        yield key, form, phrase
             else:
-                for key, frm in items:
-                    yield key, frm, None
+                for key, form in items:
+                    yield key, form, None
 
         pool = filter_by_group()
         pool = filter_by_method(pool)
@@ -307,19 +307,19 @@ class Trainer:
 
         return len(self._pool) == 0
 
-    def get_task(self) -> tuple[EntryID, FormPattern | None, Phrase | None, set[EntryID]]:
+    def get_task(self) -> tuple[EntryID, GramForm | None, Phrase | None, set[EntryID]]:
         """
         Pop and return the next training task.
 
-        The returned tuple contains the entry id, an optional form
-        pattern, an optional phrase, and a set of homonym entry ids
-        (other entries that share the same lemma/translation/form/phrase).
+        The returned tuple contains the entry id, an optional grammatical
+        form, an optional phrase, and a set of homonym entry ids (other
+        entries that share the same lemma/translation/form/phrase).
 
         Returns:
-            A 4-tuple: (entry id, form pattern, phrase, homonyms).
+            A 4-tuple: (entry id, grammatical form, phrase, homonyms).
         """
 
-        entry_id, form_pattern, phrase = self._pool.pop(0)
+        entry_id, gram_form, phrase = self._pool.pop(0)
 
         if self._config.method == TrainingMethod.WORD_TO_TRANS:
             lemma = self.dct[entry_id].lemma
@@ -338,7 +338,7 @@ class Trainer:
             homonyms = set()
         homonyms -= {entry_id}
 
-        self._current_task = entry_id, form_pattern, phrase, homonyms
+        self._current_task = entry_id, gram_form, phrase, homonyms
         return self._current_task
 
     def get_correct_answers(self) -> list[str]:
@@ -352,14 +352,14 @@ class Trainer:
             A list of strings representing correct answers.
         """
 
-        entry_id, form_pattern, phrase, _ = self._current_task
+        entry_id, gram_form, phrase, _ = self._current_task
         entry = self.dct[entry_id]
 
         if self._config.method == TrainingMethod.TRANS_TO_WORD:
-            if form_pattern is None:
+            if gram_form is None:
                 correct_answers = [entry.lemma]
             else:
-                correct_answers = [entry.forms[form_pattern]]
+                correct_answers = [entry.forms[gram_form]]
         elif self._config.method == TrainingMethod.WORD_TO_TRANS:
             correct_answers = entry.tr
         elif self._config.method == TrainingMethod.TRANS_TO_PHRASE:
@@ -390,7 +390,7 @@ class Trainer:
             True if the answer is correct, False otherwise.
         """
 
-        entry_id, form_pattern, phrase, _ = self._current_task
+        entry_id, gram_form, phrase, _ = self._current_task
 
         correct_answers = self.get_correct_answers()
         if not is_case_sensitive:
@@ -401,10 +401,10 @@ class Trainer:
 
         if not is_correct:
             if self._config.order == TrainingOrder.DIFFICULT_FIRST:
-                self._pool.append((entry_id, form_pattern, phrase))
+                self._pool.append((entry_id, gram_form, phrase))
                 self._pool.sort(key=lambda item: difficulty(self.dct[item[0]]), reverse=True)
             else:
                 rnd_index = random.randint(0, len(self._pool))
-                self._pool.insert(rnd_index, (entry_id, form_pattern, phrase))
+                self._pool.insert(rnd_index, (entry_id, gram_form, phrase))
 
         return is_correct

@@ -15,8 +15,8 @@ import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
 
 from backend import (
-    Entry, Dictionary, Trainer, EntryID, FormPattern,
-    pattern_to_str, create_training_config,
+    Entry, Dictionary, Trainer, EntryID, GramForm,
+    gram_form_to_str, create_training_config,
     TrainingMethod, TrainingOrder, EntrySelection,
     FormSelection, TrainingConfig,
 )
@@ -292,7 +292,7 @@ def get_tr(entry: Entry) -> str:
 # Вывести словоформы
 def get_forms(entry: Entry, tab: int = 0) -> str:
     frm_keys = entry.forms.keys()
-    return ('\n' + ' ' * tab).join((f'[{pattern_to_str(key)}] {entry.forms[key]}' for key in frm_keys))
+    return ('\n' + ' ' * tab).join((f'[{gram_form_to_str(key)}] {entry.forms[key]}' for key in frm_keys))
 
 
 # Вывести переводы фразы
@@ -352,7 +352,7 @@ def get_entry_stat(entry: Entry) -> str:
 
 # Служебная функция для get_entry_info_briefly и get_entry_info_briefly_with_forms
 def _get_entry_info_briefly(entry: Entry) -> str:
-    if entry.fav:
+    if entry.is_fav:
         res = '(*)'
     else:
         res = '   '
@@ -368,11 +368,11 @@ def get_entry_info_briefly(entry: Entry, len_str: int) -> str:
 # Вывести статью - подробно
 def get_entry_info_detailed(entry: Entry, len_str: int) -> str:
     res = _get_entry_info_briefly(entry)
-    if entry.count_f != 0:
+    if entry.n_gram_forms != 0:
         res += f'\n  Формы слова: {get_forms(entry, tab=15)}'
     if entry.phrases.keys():
         res += f'\n        Фразы: {get_phrases(entry, tab=15)}'
-    if entry.count_n != 0:
+    if entry.n_notes != 0:
         res += f'\n       Сноски: {get_notes(entry, tab=15)}'
     if entry.groups:
         res += f'\n       Группы: {get_groups(entry)}'
@@ -385,28 +385,28 @@ def get_all_entry_info(entry: Entry, len_str: int, tab: int = 0) -> str:
     res += f'    Перевод: {get_tr(entry)}\n'
 
     res += f'Формы слова: '
-    if entry.count_f == 0:
+    if entry.n_gram_forms == 0:
         res += '-\n'
     else:
         keys = [key for key in entry.forms.keys()]
-        res += f'[{pattern_to_str(keys[0])}] {entry.forms[keys[0]]}\n'
-        for i in range(1, entry.count_f):
-            res += f'             [{pattern_to_str(keys[i])}] {entry.forms[keys[i]]}\n'
+        res += f'[{gram_form_to_str(keys[0])}] {entry.forms[keys[0]]}\n'
+        for i in range(1, entry.n_gram_forms):
+            res += f'             [{gram_form_to_str(keys[i])}] {entry.forms[keys[i]]}\n'
 
     res += '      Фразы: '
-    if entry.count_p == 0:
+    if entry.n_phrases == 0:
         res += '-'
     else:
         res += get_phrases(entry, tab=13)
 
     res += '\n     Сноски: '
-    if entry.count_n == 0:
+    if entry.n_notes == 0:
         res += '-'
     else:
         res += get_notes(entry, tab=13)
 
     res += '\n  Избранное: '
-    if entry.fav:
+    if entry.is_fav:
         res += '+'
     else:
         res += '-'
@@ -437,8 +437,8 @@ def get_tr_with_stat(entry: Entry) -> str:
 
 
 # Вывести перевод со словоформой и со статистикой
-def get_tr_and_frm_with_stat(entry: Entry, frm_key: FormPattern | list[str]) -> str:
-    res = f'{get_tr(entry)} ({pattern_to_str(frm_key)}) {get_entry_stat(entry)}'
+def get_tr_and_frm_with_stat(entry: Entry, frm_key: GramForm | list[str]) -> str:
+    res = f'{get_tr(entry)} ({gram_form_to_str(frm_key)}) {get_entry_stat(entry)}'
     return res
 
 
@@ -1249,7 +1249,7 @@ def create_dct(savename: str):
     os.mkdir(folder_path)
     filepath = os.path.join(folder_path, DICTIONARY_SAVE_FN)
     dct = Dictionary()
-    save_data = dct.serialize('json')
+    save_data = dct.to_json_dict()
     with open(filepath, 'w') as f:
         json.dump(save_data, f)
     return dct
@@ -1258,7 +1258,7 @@ def create_dct(savename: str):
 # Сохранить словарь
 def save_dct(dct: Dictionary, savename: str):
     filepath = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
-    save_data = dct.serialize('json')
+    save_data = dct.to_json_dict()
     with open(filepath, 'w') as f:
         json.dump(save_data, f)
 
@@ -1282,7 +1282,7 @@ def upload_save(window_parent, dct: Dictionary, savename: str, btn_close_text: s
         #upgrade_dct_save(save_file_path, lambda line: encode_special_combinations(line, special_combinations))  # Если требуется, сохранение обновляется  # TODO
         with open(save_file_path, 'r') as f:
             save_data = json.load(f)
-        dct.deserialize(save_data)  # Загрузка словаря
+        dct.load_from_json_dict(save_data)  # Загрузка словаря
     except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
         print(f'\nСловарь "{savename}" не найден!')
         dct = create_dct(savename)
@@ -2347,7 +2347,7 @@ class EditW(tk.Toplevel):
         self.max_height_n = 3
         self.max_height_g = 3
 
-        self.var_fav = tk.BooleanVar(value=self.dct[key].fav)
+        self.var_fav = tk.BooleanVar(value=self.dct[key].is_fav)
 
         self.img_edit = tk.PhotoImage()
         self.img_add = tk.PhotoImage()
@@ -2587,7 +2587,7 @@ class EditW(tk.Toplevel):
         self.refresh(False)
 
     # Изменить словоформу
-    def frm_edt(self, frm_key: FormPattern):
+    def frm_edt(self, frm_key: GramForm):
         global _0_global_has_progress
 
         window_entry = PopupEntryW(self, 'Введите новую форму слова',
@@ -2605,7 +2605,7 @@ class EditW(tk.Toplevel):
         self.refresh(False)
 
     # Удалить словоформу
-    def frm_del(self, frm_key: FormPattern):
+    def frm_del(self, frm_key: GramForm):
         global _0_global_has_progress
 
         self.dct.delete_form(self.dct_key, frm_key)
@@ -2748,7 +2748,7 @@ class EditW(tk.Toplevel):
 
     # Добавить в избранное/убрать из избранного
     def set_fav(self):
-        self.dct[self.dct_key].fav = self.var_fav.get()
+        self.dct[self.dct_key].is_fav = self.var_fav.get()
 
     # Удалить статью
     def delete(self):
@@ -2848,7 +2848,7 @@ class EditW(tk.Toplevel):
             self.phr_buttons[i].configure(text=split_text(f'{phr} - {phr_tr}', 35))
         for i in range(frm_count):
             frm = self.forms[i]
-            text = f'[{pattern_to_str(frm)}] {self.dct[self.dct_key].forms[frm]}'
+            text = f'[{gram_form_to_str(frm)}] {self.dct[self.dct_key].forms[frm]}'
             self.frm_buttons[i].configure(text=split_text(text, 35))
         for i in range(gr_count):
             gr = self.groups[i]
@@ -3060,7 +3060,7 @@ class AddFormW(tk.Toplevel):
             return
         self.template[index] = val
 
-        self.var_template.set(f'Текущий шаблон словоформы: "{pattern_to_str(self.template)}"')
+        self.var_template.set(f'Текущий шаблон словоформы: "{gram_form_to_str(self.template)}"')
 
         if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
             btn_disable(self.btn_save)
@@ -3083,7 +3083,7 @@ class AddFormW(tk.Toplevel):
 
         self.template[index] = ''
 
-        self.var_template.set(f'Текущий шаблон словоформы: "{pattern_to_str(self.template)}"')
+        self.var_template.set(f'Текущий шаблон словоформы: "{gram_form_to_str(self.template)}"')
 
         if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
             btn_disable(self.btn_save)
@@ -4528,7 +4528,7 @@ class LearnW(tk.Toplevel):
         self.choose()
         if self.current_entry_id:
             entry = self.trainer.dct[self.current_entry_id]
-            if entry.count_n == 0 or config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
+            if entry.n_notes == 0 or config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
                 btn_disable(self.btn_show_notes)
             if not self.homonyms or config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
                 btn_disable(self.btn_show_homonyms)
@@ -4685,7 +4685,7 @@ class LearnW(tk.Toplevel):
             btn_enable(self.btn_show_entry, self.show_entry)
         # Обновление кнопки "Посмотреть сноски"
         entry = self.trainer.dct[self.current_entry_id]
-        if entry.count_n == 0 or self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE,
+        if entry.n_notes == 0 or self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE,
                                                                 TrainingMethod.PHRASE_TO_TRANS):
             btn_disable(self.btn_show_notes)
         else:
@@ -4748,7 +4748,7 @@ class LearnW(tk.Toplevel):
         if is_correct:
             entry.correct((_0_global_session_number, _0_global_learn_session_number, self.count_all))
             self.outp('Верно\n')
-            if entry.fav:
+            if entry.is_fav:
                 window = PopupDialogueW(self, 'Верно.\n'
                                               'Оставить слово в избранном?',
                                         'Да', 'Нет', val_on_close=True)
@@ -4756,12 +4756,12 @@ class LearnW(tk.Toplevel):
                 window.bind('<Alt-KeyPress>', lambda key: bind_keypress(key, [('N', window.btn_right.invoke)]))
                 answer = window.open()
                 if not answer:
-                    entry.fav = False
+                    entry.is_fav = False
             self.count_all += 1
             self.count_correct += 1
         else:
             self.outp(f'Неверно. Правильный ответ: "{correct_answer}"\n')
-            if entry.fav:
+            if entry.is_fav:
                 if bool(_0_global_with_typo):
                     window = PopupDialogueW(
                         self,
@@ -4792,7 +4792,7 @@ class LearnW(tk.Toplevel):
                     entry.incorrect((_0_global_session_number, _0_global_learn_session_number, self.count_all))
                     self.count_all += 1
                 if answer == 'yes':
-                    entry.fav = True
+                    entry.is_fav = True
 
     # Установить фокус
     def set_focus(self):
@@ -5418,10 +5418,10 @@ class PrintW(tk.Toplevel):
         group = self.var_print_group.get()
         if self.var_print_fav.get():
             if group == ALL_GROUPS:
-                self.print_keys = [key for key in self.dct.get_entry_ids() if self.dct[key].fav]
+                self.print_keys = [key for key in self.dct.get_entry_ids() if self.dct[key].is_fav]
             else:
                 self.print_keys = [key for key in self.dct.get_entry_ids()
-                                   if self.dct[key].fav and group in self.dct[key].groups]
+                                   if self.dct[key].is_fav and group in self.dct[key].groups]
         else:
             if group == ALL_GROUPS:
                 self.print_keys = [key for key in self.dct.get_entry_ids()]
@@ -5559,7 +5559,7 @@ class PrintW(tk.Toplevel):
         # Выбираем нужные статьи
         # Если нужно, оставляем только избранные
         if self.to_search_only_fav:
-            keys = [key for key in self.dct.get_entry_ids() if self.dct[key].fav]
+            keys = [key for key in self.dct.get_entry_ids() if self.dct[key].is_fav]
         else:
             keys = [key for key in self.dct.get_entry_ids()]
         # Если нужно, оставляем только одну группу
@@ -5856,7 +5856,7 @@ class PrintW(tk.Toplevel):
         if not keys:
             return
 
-        self.dct.fav_entries(tuple(keys))
+        self.dct.add_to_fav(tuple(keys))
 
         self.print_refresh_all_buttons()
         self.search_refresh_all_buttons()
@@ -5870,7 +5870,7 @@ class PrintW(tk.Toplevel):
         if not keys:
             return
 
-        self.dct.unfav_entries(tuple(keys))
+        self.dct.remove_from_fav(tuple(keys))
 
         self.print_refresh_all_buttons()
         self.search_refresh_all_buttons()
@@ -6177,7 +6177,7 @@ class AddW(tk.Toplevel):
                                                                          _0_global_special_combinations))
         if not self.dct_key:
             return
-        self.dct[self.dct_key].fav = self.var_fav.get()
+        self.dct[self.dct_key].is_fav = self.var_fav.get()
         for group in _0_global_fav_groups:
             self.dct[self.dct_key].add_to_group(group)
 

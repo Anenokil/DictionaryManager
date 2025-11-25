@@ -10,8 +10,8 @@ from typing import Any, Callable
 
 from .types import DctName, SerializedData
 from .errors import MissingFieldsError
-from .utils import validate_required_fields, validate_field_type
 from .dictionary import Dictionary
+from .utils import validate_required_fields, validate_field_type
 
 # Typing aliases used in the module
 DictionariesInfo = list[dict[str, Any]]
@@ -136,9 +136,9 @@ class Manager:
             AssertionError: If the file extension is not supported.
         """
 
-        savedata = loading_func(filepath)
+        save_data = loading_func(filepath)
 
-        dct = Dictionary.from_json_dict(savedata)
+        dct = Dictionary.from_json_dict(save_data)
         dct.mark_saved()
 
         self.opened_dct_info.append({'dct': dct, 'filepath': filepath})
@@ -211,8 +211,8 @@ class Manager:
             if filepath is None:
                 raise ValueError('No filepath is specified')
 
-        savedata = self.dct.to_json_dict()
-        saving_func(savedata, filepath)
+        save_data = self.dct.to_json_dict()
+        saving_func(save_data, filepath)
         self.dct.mark_saved()
 
         self.opened_dct_info[dct_id]['filepath'] = filepath

@@ -8,26 +8,26 @@ Author: Anenokil
 from types import GenericAlias
 from typing import Any, Iterable, Generator, Mapping, _GenericAlias, get_origin, get_args, TYPE_CHECKING
 
-from .types import Word, FormPattern, SerializedData
+from .types import Word, GramForm, SerializedData
 from .errors import MissingFieldsError, FieldTypeError
 if TYPE_CHECKING:
     from .entry import Entry
 
 
-def pattern_to_str(pattern: FormPattern) -> str:
+def gram_form_to_str(gram_form: GramForm) -> str:
     """
-    Convert a form pattern to a readable string.
+    Convert a grammatical form tuple to a readable string.
 
     Joins non-empty category values with commas, skipping empty values.
 
     Args:
-        pattern: Form pattern tuple containing category values.
+        gram_form: Grammatical form tuple containing category values.
 
     Returns:
         Comma-separated string of non-empty category values.
     """
 
-    return ', '.join(token for token in pattern if token)
+    return ', '.join(token for token in gram_form if token)
 
 
 def difficulty(entry: 'Entry') -> float:

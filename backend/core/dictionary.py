@@ -10,12 +10,12 @@ from functools import wraps
 import re
 
 from .types import (
-    Word, Translation, Category, CtgValue, FormPattern, Form, Phrase,
+    Word, Translation, Category, CtgValue, GramForm, WordForm, Phrase,
     PhraseTr, Note, Group, Timestamp, EntryID, DctName, SerializedData,
 )
 from .errors import DeserializationError
-from .utils import validate_required_fields, validate_field_type
 from .entry import Entry
+from .utils import validate_required_fields, validate_field_type
 
 # Typing aliases used in the module
 Entries = dict[EntryID, Entry]
@@ -263,18 +263,18 @@ class Dictionary:
             A tuple containing three integers:
             - Number of dictionary entries (lemmas) in the group;
             - Total number of translations across all entries in the group;
-            - Total number of inflected forms across all entries in the group.
+            - Total number of grammatical forms across all entries in the group.
         """
 
-        count_e = 0
-        count_t = 0
-        count_f = 0
+        n_entries = 0
+        n_translations = 0
+        n_gram_forms = 0
         for entry_id in self._indexes['groups'][group]:
             entry = self._entries[entry_id]
-            count_e += 1
-            count_t += entry.count_t
-            count_f += entry.count_f
-        return count_e, count_t, count_f
+            n_entries += 1
+            n_translations += entry.n_translations
+            n_gram_forms += entry.n_gram_forms
+        return n_entries, n_translations, n_gram_forms
 
     @_replace
     def count_fav_entries(self, group: Group | None = None) -> tuple[int, int, int]:
@@ -289,26 +289,26 @@ class Dictionary:
             A tuple containing three integers:
             - Number of favorite dictionary entries (lemmas);
             - Total number of translations across favorite entries;
-            - Total number of inflected forms across favorite entries.
+            - Total number of grammatical forms across favorite entries.
         """
 
-        count_e = 0
-        count_t = 0
-        count_f = 0
+        n_entries = 0
+        n_translations = 0
+        n_gram_forms = 0
         if group is None:
             for entry in self._entries.values():
-                if entry.fav:
-                    count_e += 1
-                    count_t += entry.count_t
-                    count_f += entry.count_f
+                if entry.is_fav:
+                    n_entries += 1
+                    n_translations += entry.n_translations
+                    n_gram_forms += entry.n_gram_forms
         else:
             for entry_id in self._indexes['groups'][group]:
                 entry = self._entries[entry_id]
-                if entry.fav:
-                    count_e += 1
-                    count_t += entry.count_t
-                    count_f += entry.count_f
-        return count_e, count_t, count_f
+                if entry.is_fav:
+                    n_entries += 1
+                    n_translations += entry.n_translations
+                    n_gram_forms += entry.n_gram_forms
+        return n_entries, n_translations, n_gram_forms
 
     def count(self, counter_name: str) -> int:
         if counter_name == 'groups':
@@ -411,11 +411,11 @@ class Dictionary:
             self,
             lemma: Word,
             tr: Translation | Iterable[Translation],
-            forms: Mapping[FormPattern, Form] | None = None,
+            forms: Mapping[GramForm, WordForm] | None = None,
             phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
             notes: Note | Iterable[Note] | None = None,
             groups: Iterable[Group] | None = None,
-            fav: bool = False,
+            is_fav: bool = False,
             total_att: int = 0,
             correct_att: int = 0,
             win_streak: int = 0,
@@ -427,11 +427,11 @@ class Dictionary:
         Args:
             lemma: The lemma (canonical/dictionary form of the word).
             tr: One or more translations.
-            forms: Inflected forms of the word.
+            forms: Inflected forms of the word (except the lemma).
             phrases: Phrases containing the word; usage examples.
             notes: Notes field.
             groups: Groups assigned to the entry.
-            fav: Whether the entry is favorite.
+            is_fav: Whether the entry is favorite.
             total_att: Total number of game attempts.
             correct_att: Number of correct guesses (wins).
             win_streak: Count of consecutive wins.
@@ -449,7 +449,7 @@ class Dictionary:
             groups = set(groups).union(default_groups)
 
         self._entries[entry_id] = Entry(
-            lemma, tr, forms, phrases, notes, groups, fav,
+            lemma, tr, forms, phrases, notes, groups, is_fav,
             total_att, correct_att, win_streak, latest_att_timestamp
         )
         entry = self._entries[entry_id]
@@ -460,10 +460,10 @@ class Dictionary:
         self._update_index('groups', entry.groups, entry_id, 'add')
 
         self._counters['lemmas'] += 1
-        self._counters['translations'] += entry.count_t
-        self._counters['forms']        += entry.count_f
-        self._counters['phrases']      += entry.count_p
-        self._counters['notes']        += entry.count_n
+        self._counters['translations'] += entry.n_translations
+        self._counters['forms']        += entry.n_gram_forms
+        self._counters['phrases']      += entry.n_phrases
+        self._counters['notes']        += entry.n_notes
 
         return entry_id
 
@@ -482,10 +482,10 @@ class Dictionary:
         entry = self._entries[entry_id]
 
         self._counters['lemmas'] -= 1
-        self._counters['translations'] -= entry.count_t
-        self._counters['forms']        -= entry.count_f
-        self._counters['phrases']      -= entry.count_p
-        self._counters['notes']        -= entry.count_n
+        self._counters['translations'] -= entry.n_translations
+        self._counters['forms']        -= entry.n_gram_forms
+        self._counters['phrases']      -= entry.n_phrases
+        self._counters['notes']        -= entry.n_notes
 
         self._update_index('lemmas', entry.lemma, entry_id, 'remove')
         self._update_index('translations', entry.tr, entry_id, 'remove')
@@ -515,33 +515,33 @@ class Dictionary:
         self._update_index('forms', additional_entry.forms.values(), entry_id_1, 'add')
         self._update_index('groups', additional_entry.groups, entry_id_1, 'add')
 
-        self._counters['translations'] -= main_entry.count_t
-        self._counters['forms']        -= main_entry.count_f
-        self._counters['phrases']      -= main_entry.count_p
-        self._counters['notes']        -= main_entry.count_n
+        self._counters['translations'] -= main_entry.n_translations
+        self._counters['forms']        -= main_entry.n_gram_forms
+        self._counters['phrases']      -= main_entry.n_phrases
+        self._counters['notes']        -= main_entry.n_notes
 
         for tr in additional_entry.tr:
             main_entry.add_tr(tr)
         for note in additional_entry.notes:
             main_entry.add_note(note)
-        for phr_key in additional_entry.phrases.keys():
-            for phr_tr in additional_entry.phrases[phr_key]:
-                main_entry.add_phrase(phr_key, phr_tr)
-        for form_pattern in additional_entry.forms.keys():
-            form = additional_entry.forms[form_pattern]
-            main_entry.add_form(form_pattern, form)
-        if additional_entry.fav:
-            main_entry.fav = True
+        for phrase in additional_entry.phrases.keys():
+            for phrase_tr in additional_entry.phrases[phrase]:
+                main_entry.add_phrase(phrase, phrase_tr)
+        for gram_form in additional_entry.forms.keys():
+            word_form = additional_entry.forms[gram_form]
+            main_entry.add_form(gram_form, word_form)
+        if additional_entry.is_fav:
+            main_entry.is_fav = True
         for group in additional_entry.groups:
             main_entry.groups.add(group)
         main_entry.total_att += additional_entry.total_att
         main_entry.correct_att += additional_entry.correct_att
         main_entry.win_streak += additional_entry.win_streak
 
-        self._counters['translations'] += main_entry.count_t
-        self._counters['forms']        += main_entry.count_f
-        self._counters['phrases']      += main_entry.count_p
-        self._counters['notes']        += main_entry.count_n
+        self._counters['translations'] += main_entry.n_translations
+        self._counters['forms']        += main_entry.n_gram_forms
+        self._counters['phrases']      += main_entry.n_phrases
+        self._counters['notes']        += main_entry.n_notes
 
         self.delete_entry(entry_id_2)
 
@@ -580,9 +580,9 @@ class Dictionary:
 
         entry = self._entries[entry_id]
         self._update_index('translations', tr, entry_id, 'add')
-        self._counters['translations'] -= entry.count_t
+        self._counters['translations'] -= entry.n_translations
         entry.add_tr(tr)
-        self._counters['translations'] += entry.count_t
+        self._counters['translations'] += entry.n_translations
 
     @_mark_modified
     @_replace
@@ -597,81 +597,81 @@ class Dictionary:
 
         entry = self._entries[entry_id]
         self._update_index('translations', tr, entry_id, 'remove')
-        self._counters['translations'] -= entry.count_t
+        self._counters['translations'] -= entry.n_translations
         entry.delete_tr(tr)
-        self._counters['translations'] += entry.count_t
+        self._counters['translations'] += entry.n_translations
 
     @_mark_modified
     @_replace
-    def add_form(self, entry_id: EntryID, pattern: FormPattern, form: Form):
+    def add_form(self, entry_id: EntryID, gram_form: GramForm, word_form: WordForm):
         """
         Add an inflected form to an entry.
 
         Args:
             entry_id: ID of the entry.
-            pattern: Form pattern for the inflection.
-            form: The inflected form to add.
+            gram_form: Grammatical form for the inflection.
+            word_form: The inflected form to add.
         """
 
         entry = self._entries[entry_id]
-        self._update_index('forms', form, entry_id, 'add')
-        self._counters['forms'] -= entry.count_f
-        entry.add_form(pattern, form)
-        self._counters['forms'] += entry.count_f
+        self._update_index('forms', word_form, entry_id, 'add')
+        self._counters['forms'] -= entry.n_gram_forms
+        entry.add_form(gram_form, word_form)
+        self._counters['forms'] += entry.n_gram_forms
 
     @_mark_modified
     @_replace
-    def delete_form(self, entry_id: EntryID, pattern: FormPattern):
+    def delete_form(self, entry_id: EntryID, gram_form: GramForm):
         """
         Delete an inflected form from an entry.
 
         Args:
             entry_id: ID of the entry.
-            pattern: Form pattern identifying the form to remove.
+            gram_form: Grammatical form identifying the form to remove.
         """
 
         entry = self._entries[entry_id]
         # An entry may contain homographs
         # Therefore, we need to first remove all forms from the index, then add them back to the index
         self._update_index('forms', entry.forms.values(), entry_id, 'remove')
-        self._counters['forms'] -= entry.count_f
-        entry.delete_form(pattern)
-        self._counters['forms'] += entry.count_f
+        self._counters['forms'] -= entry.n_gram_forms
+        entry.delete_form(gram_form)
+        self._counters['forms'] += entry.n_gram_forms
         self._update_index('forms', entry.forms.values(), entry_id, 'add')
 
     @_mark_modified
     @_replace
-    def add_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
+    def add_phrase(self, entry_id: EntryID, phrase: Phrase, phrase_tr: PhraseTr):
         """
         Add a phrase with its translation to an entry.
 
         Args:
             entry_id: ID of the entry.
-            phr: The phrase or usage example.
-            phr_tr: Translation of the phrase.
+            phrase: The phrase or usage example.
+            phrase_tr: Translation of the phrase.
         """
 
         entry = self._entries[entry_id]
-        self._counters['phrases'] -= entry.count_p
-        entry.add_phrase(phr, phr_tr)
-        self._counters['phrases'] += entry.count_p
+        self._counters['phrases'] -= entry.n_phrases
+        entry.add_phrase(phrase, phrase_tr)
+        self._counters['phrases'] += entry.n_phrases
 
     @_mark_modified
     @_replace
-    def delete_phrase(self, entry_id: EntryID, phr: Phrase, phr_tr: PhraseTr):
+    def delete_phrase(self, entry_id: EntryID, phrase: Phrase, phrase_tr: PhraseTr):
         """
         Delete a phrase and its translation from an entry.
 
         Args:
             entry_id: ID of the entry.
-            phr: The phrase to remove.
-            phr_tr: The translation of the phrase to remove.
+            phrase: The phrase to remove.
+            phrase_tr: The translation of the phrase to remove.
         """
 
         entry = self._entries[entry_id]
-        self._counters['phrases'] -= entry.count_p
-        entry.delete_phrase(phr, phr_tr)
-        self._counters['phrases'] += entry.count_p
+        self._counters['phrases'] -= entry.n_phrases
+        entry.delete_phrase(phrase, phrase_tr)
+        self._counters['phrases'] += entry.n_phrases
 
     @_mark_modified
     @_replace
@@ -685,9 +685,9 @@ class Dictionary:
         """
 
         entry = self._entries[entry_id]
-        self._counters['notes'] -= entry.count_n
+        self._counters['notes'] -= entry.n_notes
         entry.add_note(note)
-        self._counters['notes'] += entry.count_n
+        self._counters['notes'] += entry.n_notes
 
     @_mark_modified
     @_replace
@@ -701,9 +701,9 @@ class Dictionary:
         """
 
         entry = self._entries[entry_id]
-        self._counters['notes'] -= entry.count_n
+        self._counters['notes'] -= entry.n_notes
         entry.delete_note(note)
-        self._counters['notes'] += entry.count_n
+        self._counters['notes'] += entry.n_notes
 
     @_mark_modified
     @_replace
@@ -737,7 +737,7 @@ class Dictionary:
                 self._entries[entry_id].remove_from_group(group)
 
     @_mark_modified
-    def fav_entries(self, entry_ids: Iterable[EntryID]):
+    def add_to_fav(self, entry_ids: Iterable[EntryID]):
         """
         Mark multiple entries as favorites.
 
@@ -749,7 +749,7 @@ class Dictionary:
             self._entries[entry_id].add_to_fav()
 
     @_mark_modified
-    def unfav_entries(self, entry_ids: Iterable[EntryID]):
+    def remove_from_fav(self, entry_ids: Iterable[EntryID]):
         """
         Remove multiple entries from favorites.
 
@@ -787,9 +787,9 @@ class Dictionary:
         index = tuple(self._features.keys()).index(ctg_name)
         for entry_id, entry in self._entries.items():
             self._update_index('forms', entry.forms.values(), entry_id, 'remove')
-            self._counters['forms'] -= entry.count_f
+            self._counters['forms'] -= entry.n_gram_forms
             entry.delete_ctg(index)
-            self._counters['forms'] += entry.count_f
+            self._counters['forms'] += entry.n_gram_forms
             self._update_index('forms', entry.forms.values(), entry_id, 'add')
 
         self._features.pop(ctg_name)
@@ -861,9 +861,9 @@ class Dictionary:
         index = tuple(self._features.keys()).index(ctg_name)
         for entry_id, entry in self._entries.items():
             self._update_index('forms', entry.forms.values(), entry_id, 'remove')
-            self._counters['forms'] -= entry.count_f
+            self._counters['forms'] -= entry.n_gram_forms
             entry.delete_ctg_value(index, ctg_value)
-            self._counters['forms'] += entry.count_f
+            self._counters['forms'] += entry.n_gram_forms
             self._update_index('forms', entry.forms.values(), entry_id, 'add')
 
         self._features[ctg_name].remove(ctg_value)
