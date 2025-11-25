@@ -8,8 +8,8 @@ Author: Anenokil
 from types import GenericAlias
 from typing import Any, Iterable, Generator, Mapping, _GenericAlias, get_origin, get_args, TYPE_CHECKING
 
-from .types import Word, FormPattern
-from .errors import FieldTypeError
+from .types import Word, FormPattern, SerializedData
+from .errors import MissingFieldsError, FieldTypeError
 if TYPE_CHECKING:
     from .entry import Entry
 
@@ -66,6 +66,23 @@ def has_article(word: Word, articles: Iterable[str]) -> bool:
         if word.startswith(article):
             return True
     return False
+
+
+def validate_required_fields(data: SerializedData, required_fields: Iterable[Any]):
+    """
+    Validate that all required fields are present in the provided data.
+
+    Args:
+        data: Serialized data to validate.
+        required_fields: Fields that must be present in the data dictionary.
+
+    Raises:
+        MissingFieldError: If any of the required fields are missing from the data.
+    """
+
+    missing_fields = tuple(field for field in required_fields if field not in data.keys())
+    if missing_fields:
+        raise MissingFieldsError(*missing_fields)
 
 
 def validate_field_type(

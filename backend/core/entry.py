@@ -11,8 +11,8 @@ from .types import (
     Word, Translation, CtgValue, FormPattern, Form,
     Phrase, PhraseTr, Note, Group, Timestamp, SerializedData,
 )
-from .errors import MissingFieldsError, DeserializationError
-from .utils import pattern_to_str, validate_field_type
+from .errors import DeserializationError
+from .utils import pattern_to_str, validate_required_fields, validate_field_type
 
 # Typing aliases used in the module
 Translations = list[Translation]
@@ -423,9 +423,7 @@ class Entry:
             'lemma', 'translations', 'total_att', 'correct_att',
             'win_streak', 'latest_att_timestamp',
         )
-        missing_fields = [field for field in required_fields if field not in data.keys()]
-        if missing_fields:
-            raise MissingFieldsError(*missing_fields)
+        validate_required_fields(data, required_fields)
 
         # Read required fields
         lemma = data['lemma']
@@ -448,9 +446,7 @@ class Entry:
         validate_field_type('forms', forms, Mapping)
 
         required_fields = ('keys', 'values')
-        missing_fields = [field for field in required_fields if field not in forms.keys()]
-        if missing_fields:
-            raise MissingFieldsError(*missing_fields)
+        validate_required_fields(forms, required_fields)
 
         validate_field_type('keys', forms['keys'], Mapping[str, tuple[str, ...]])
         validate_field_type('values', forms['values'], Mapping[str, str])
