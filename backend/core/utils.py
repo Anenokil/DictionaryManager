@@ -113,6 +113,10 @@ def validate_field_type(
     if not isinstance(expected_types, (tuple, list)):
         expected_types = (expected_types,)
 
+    # If Any is among the expected types, validation passes
+    if Any in expected_types:
+        return
+
     # Build a tuple of base types (origins for generics, or the type itself
     # for non-generic) and ensure the value is an instance of at least one
     # of them. If not, raise an error
