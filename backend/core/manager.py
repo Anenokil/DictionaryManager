@@ -110,10 +110,12 @@ class Manager:
         if to_activate or self.n_opened == 1:
             self.current_dct_id = len(self.opened_dct_info) - 1
 
-    def open_dct(self,
-                 filepath: str,
-                 loading_func: Callable[[str], SerializedData],
-                 to_activate: bool = True):
+    def open_dct(
+            self,
+            filepath: str,
+            loading_func: Callable[[str], SerializedData],
+            to_activate: bool = True,
+    ):
         """
         Open a dictionary from a file and add it to the manager.
 
@@ -178,10 +180,12 @@ class Manager:
 
         del self.opened_dct_info[dct_id]
 
-    def save_dct(self,
-                 dct_id: int,
-                 saving_func: Callable[[SerializedData, str], None],
-                 filepath: str | None = None):
+    def save_dct(
+            self,
+            dct_id: int,
+            saving_func: Callable[[SerializedData, str], None],
+            filepath: str | None = None,
+    ):
         """
         Save a dictionary to a file.
 

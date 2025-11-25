@@ -65,11 +65,13 @@ class FieldTypeError(DeserializationError):
     expected types during deserialization.
     """
 
-    def __init__(self,
-                 field: Any,
-                 expected_types: type | tuple[type, ...] | list[type],
-                 gotten_value: Any,
-                 gotten_type: type | None = None):
+    def __init__(
+            self,
+            field: Any,
+            expected_types: type | tuple[type, ...] | list[type],
+            gotten_value: Any,
+            gotten_type: type | None = None,
+    ):
         """
         Args:
             field: Name of the field with type mismatch.

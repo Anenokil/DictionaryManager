@@ -50,18 +50,20 @@ class Entry:
     - latest_att_timestamp: Timestamp of the most recent answer.
     """
 
-    def __init__(self,
-                 lemma: Word,
-                 tr: Translation | Iterable[Translation],
-                 forms: Mapping[FormPattern, Form] | None = None,
-                 phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
-                 notes: Note | Iterable[Note] | None = None,
-                 groups: Iterable[Group] | None = None,
-                 fav: bool = False,
-                 total_att: int = 0,
-                 correct_att: int = 0,
-                 win_streak: int = 0,
-                 latest_att_timestamp: Timestamp = (0, 0, 0)):
+    def __init__(
+            self,
+            lemma: Word,
+            tr: Translation | Iterable[Translation],
+            forms: Mapping[FormPattern, Form] | None = None,
+            phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
+            notes: Note | Iterable[Note] | None = None,
+            groups: Iterable[Group] | None = None,
+            fav: bool = False,
+            total_att: int = 0,
+            correct_att: int = 0,
+            win_streak: int = 0,
+            latest_att_timestamp: Timestamp = (0, 0, 0),
+    ):
         """
         Initialize a dictionary entry.
 

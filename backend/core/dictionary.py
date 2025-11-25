@@ -85,7 +85,7 @@ class Dictionary:
     def __init__(
             self,
             name: DctName = None,
-            replacement_modifiers: Iterable[str] = default_replacement_modifiers
+            replacement_modifiers: Iterable[str] = default_replacement_modifiers,
     ):
         """
         Initialize a dictionary.
@@ -171,11 +171,13 @@ class Dictionary:
     def __getitem__(self, item: EntryID) -> Entry:
         return self._entries[item]
 
-    def _update_index(self,
-                      index_name: str,
-                      search_terms: str | Iterable[str],
-                      entry_ids: EntryID | Iterable[EntryID],
-                      action: Literal['add', 'remove']):
+    def _update_index(
+            self,
+            index_name: str,
+            search_terms: str | Iterable[str],
+            entry_ids: EntryID | Iterable[EntryID],
+            action: Literal['add', 'remove'],
+    ):
         """
         Update a search index by adding or removing an entry.
 
@@ -402,18 +404,20 @@ class Dictionary:
 
     @_mark_modified
     @_replace
-    def add_entry(self,
-                  lemma: Word,
-                  tr: Translation | Iterable[Translation],
-                  forms: Mapping[FormPattern, Form] | None = None,
-                  phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
-                  notes: Note | Iterable[Note] | None = None,
-                  groups: Iterable[Group] | None = None,
-                  fav: bool = False,
-                  total_att: int = 0,
-                  correct_att: int = 0,
-                  win_streak: int = 0,
-                  latest_att_timestamp: Timestamp = (0, 0, 0)) -> EntryID:
+    def add_entry(
+            self,
+            lemma: Word,
+            tr: Translation | Iterable[Translation],
+            forms: Mapping[FormPattern, Form] | None = None,
+            phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
+            notes: Note | Iterable[Note] | None = None,
+            groups: Iterable[Group] | None = None,
+            fav: bool = False,
+            total_att: int = 0,
+            correct_att: int = 0,
+            win_streak: int = 0,
+            latest_att_timestamp: Timestamp = (0, 0, 0),
+    ) -> EntryID:
         """
         Add a new dictionary entry.
 

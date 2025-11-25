@@ -269,7 +269,9 @@ class Trainer:
                     for form_pattern in self.dct[entry_id].forms.keys():
                         yield entry_id, form_pattern
 
-        def selected_phrases(items: Iterable[tuple[EntryID, FormPattern | None]]) -> Iterable[tuple[EntryID, FormPattern | None, Phrase | None]]:
+        def selected_phrases(
+                items: Iterable[tuple[EntryID, FormPattern | None]]
+        ) -> Iterable[tuple[EntryID, FormPattern | None, Phrase | None]]:
             if self._config.method in (TrainingMethod.PHRASE_TO_TRANS, TrainingMethod.TRANS_TO_PHRASE):
                 for key, frm in items:
                     for phr in self.dct[key].phrases.keys():
