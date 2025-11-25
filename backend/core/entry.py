@@ -5,7 +5,7 @@ Author: Anenokil
 """
 
 from types import NoneType
-from typing import Iterable, Mapping, Literal
+from typing import Iterable, Mapping
 
 from .types import (
     Word, Translation, CtgValue, FormPattern, Form,
@@ -370,20 +370,15 @@ class Entry:
 
         return ''.join(tokens)
 
-    def serialize(self, frmt: Literal['json', 'pickle']) -> SerializedData:
+    def to_dict(self) -> SerializedData:
         """
         Serialize the entry to a dictionary format.
-
-        Args:
-            frmt: The format to serialize the entry to (json, pickle).
 
         Returns:
             Dictionary containing entry data.
         """
 
-        assert frmt in ('json', 'pickle')
-
-        data = {
+        return {
             'lemma': self.lemma,
             'translations': self.tr,
             'forms': self.forms,
@@ -396,20 +391,29 @@ class Entry:
             'win_streak': self.win_streak,
             'latest_att_timestamp': self.latest_att_timestamp,
         }
-        if frmt == 'pickle':
-            return data
+
+    def to_json_dict(self) -> SerializedData:
+        """
+        Serialize the entry to a JSON format.
+
+        Returns:
+            Dictionary containing entry data.
+        """
+
+        data = self.to_dict()
 
         data['forms'] = {
-            'keys': tuple(self.forms.keys()),
-            'values': tuple(self.forms.values()),
+            'keys': list(self.forms.keys()),
+            'values': list(self.forms.values()),
         }
-        data['groups'] = tuple(self.groups)
+        data['groups'] = list(self.groups)
+
         return data
 
     @classmethod
-    def deserialize(cls, data: SerializedData) -> 'Entry':
+    def from_json_dict(cls, data: SerializedData) -> 'Entry':
         """
-        Deserialize Entry data from a dictionary format.
+        Deserialize Entry data from a JSON format.
 
         Args:
             data: Dictionary containing entry data.
@@ -434,7 +438,7 @@ class Entry:
         latest_att_timestamp = data['latest_att_timestamp']
 
         # Read optional fields
-        forms = data.get('forms', {'keys': (), 'values': ()})
+        forms = data.get('forms', {'keys': [], 'values': []})
         phrases = data.get('phrases', None)
         notes = data.get('notes', None)
         groups = data.get('groups', None)
@@ -442,45 +446,35 @@ class Entry:
 
         # Validate types
         validate_field_type('lemma', lemma, str)
-        validate_field_type('translations', translations, (str, Iterable[str]))
-        validate_field_type('forms', forms, Mapping)
+        validate_field_type('translations', translations, list[str])
+        validate_field_type('forms', forms, dict)
 
-        required_fields = ('keys', 'values')
-        validate_required_fields(forms, required_fields)
+        validate_required_fields(forms, ('keys', 'values'))
+        validate_field_type('keys', forms['keys'], list[list[str]])
+        validate_field_type('values', forms['values'], list[str])
 
-        validate_field_type('keys', forms['keys'], Iterable[Iterable[str]])
-        validate_field_type('values', forms['values'], Iterable[str])
-        validate_field_type('phrases', phrases, (Mapping[str, Iterable[str]], NoneType))
-        validate_field_type('notes', notes, (str, Iterable[str], NoneType))
-        validate_field_type('groups', groups, (Iterable[str], NoneType))
-        validate_field_type('fav', fav, (bool, int))
-        validate_field_type('total_att', total_att, (int, str))
-        validate_field_type('correct_att', correct_att, (int, str))
-        validate_field_type('win_streak', win_streak, (int, str))
-        validate_field_type('latest_att_timestamp', latest_att_timestamp,
-                            (tuple[int | str, ...], list[int | str]))
+        validate_field_type('phrases', phrases, (dict[str, list[str]], NoneType))
+        validate_field_type('notes', notes, (list[str], NoneType))
+        validate_field_type('groups', groups, (list[str], NoneType))
+        validate_field_type('fav', fav, bool)
+        validate_field_type('total_att', total_att, int)
+        validate_field_type('correct_att', correct_att, int)
+        validate_field_type('win_streak', win_streak, int)
+        validate_field_type('latest_att_timestamp', latest_att_timestamp, list[int])
 
         # Validate values
-        if isinstance(total_att, str):
-            if not total_att.isdigit():
-                raise DeserializationError('Field "total_att" must be numeric')
-        if isinstance(correct_att, str):
-            if not correct_att.isdigit():
-                raise DeserializationError('Field "correct_att" must be numeric')
-        if isinstance(win_streak, str):
-            if not win_streak.isdigit():
-                raise DeserializationError('Field "win_streak" must be numeric')
         if isinstance(latest_att_timestamp, list):
             if len(latest_att_timestamp) != 3:
                 raise DeserializationError('Field "latest_att_timestamp" must have length 3')
+        if len(forms['keys']) != len(forms['values']):
+            raise DeserializationError('Field "keys" and "values" must have same length')
 
         # Convert types and values
-        forms = dict(zip(map(tuple, forms['keys']), forms['values']))
-        fav = bool(fav)
-        total_att = int(total_att)
-        correct_att = int(correct_att)
-        win_streak = int(win_streak)
-        latest_att_timestamp = tuple(map(int, latest_att_timestamp))
+        forms = {
+            tuple(key): val
+            for key, val in zip(forms['keys'], forms['values'])
+        }
+        latest_att_timestamp = tuple(latest_att_timestamp)
 
         return cls(
             lemma, translations, forms, phrases, notes, groups, fav,
