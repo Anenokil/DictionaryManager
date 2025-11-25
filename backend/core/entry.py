@@ -448,8 +448,8 @@ class Entry:
         required_fields = ('keys', 'values')
         validate_required_fields(forms, required_fields)
 
-        validate_field_type('keys', forms['keys'], Mapping[str, tuple[str, ...]])
-        validate_field_type('values', forms['values'], Mapping[str, str])
+        validate_field_type('keys', forms['keys'], Iterable[Iterable[str]])
+        validate_field_type('values', forms['values'], Iterable[str])
         validate_field_type('phrases', phrases, (Mapping[str, Iterable[str]], NoneType))
         validate_field_type('notes', notes, (str, Iterable[str], NoneType))
         validate_field_type('groups', groups, (Iterable[str], NoneType))
@@ -475,7 +475,7 @@ class Entry:
                 raise DeserializationError('Field "latest_att_timestamp" must have length 3')
 
         # Convert types and values
-        forms = dict(zip(forms['keys'], forms['values']))
+        forms = dict(zip(map(tuple, forms['keys']), forms['values']))
         fav = bool(fav)
         total_att = int(total_att)
         correct_att = int(correct_att)
