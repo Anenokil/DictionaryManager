@@ -47,7 +47,7 @@ class MissingFieldsError(DeserializationError):
 
     def __init__(self, *fields):
         """
-        Attributes:
+        Args:
             fields: One or more field names that are missing from the data.
         """
 
