@@ -21,23 +21,25 @@ class Manager:
     """
     Manager for multiple dictionary instances.
 
-    Handles opening, closing, switching between, and saving multiple dictionary files.
-    Maintains a list of opened dictionaries and tracks the currently active one.
+    Handles opening, closing, switching between, and saving multiple
+    dictionary files. Maintains a list of opened dictionaries and
+    tracks the currently active one.
 
     Attributes:
     ----------
     - opened_dct_info: currently open dictionaries with metadata about
       each dictionary instance.
-    - current_dct_id: ID of the currently active dictionary.
+    - active_dct_id: ID of the currently active dictionary.
     - n_opened: Number of dictionaries currently opened in the manager.
     - dct: The currently active `Dictionary` instance or ``None`` when
       no dictionary is active.
-    - filepath: File path associated with the currently active dictionary
-      or ``None`` for new/unsaved dictionaries.
+    - filepath: File path associated with the currently active
+      dictionary or ``None`` for new/unsaved dictionaries.
 
     Protected Attributes:
     --------------------
-    - _schema_version: The version of the data format used for serialization.
+    - _schema_version: The version of the data format used for
+      serialization.
     """
 
     _schema_version = 1
@@ -69,8 +71,8 @@ class Manager:
         Get the currently active dictionary.
 
         Returns:
-            The currently active Dictionary instance, or None if no dictionary
-            is currently active.
+            The currently active Dictionary instance, or None if no
+            dictionary is active.
         """
 
         if self.active_dct_id is None:
@@ -83,8 +85,8 @@ class Manager:
         Get the file path of the currently active dictionary.
 
         Returns:
-            File path of the current dictionary, or None if no dictionary is
-            active or if it's a new unsaved dictionary.
+            File path of the active dictionary, or None if no
+            dictionary is active or if it's a new unsaved dictionary.
         """
 
         if self.active_dct_id is None:
@@ -103,8 +105,9 @@ class Manager:
         Args:
             name: Name for the new dictionary.
             to_activate: If True, make the newly created dictionary the
-                currently active dictionary. If False, add it to the list of
-                opened dictionaries without switching the active index.
+                currently active dictionary. If False, add it to the
+                list of opened dictionaries without switching the
+                active index.
         """
 
         dct = Dictionary(name)
@@ -124,16 +127,14 @@ class Manager:
 
         Args:
             filepath: Path to the dictionary file to open.
-            loading_func: Callable that takes the file path and returns the
-                deserialized dictionary data. This function is responsible
-                for reading the file contents and converting them into the
-                in-memory representation expected by `Dictionary.from_json_dict`.
-            to_activate: If True, switch the manager's active dictionary to
-                the one just opened. If False, keep the current active
-                dictionary.
-
-        Raises:
-            AssertionError: If the file extension is not supported.
+            loading_func: Callable that takes the file path and returns
+                the deserialized dictionary data. This function is
+                responsible for reading the file contents and
+                converting them into the in-memory representation
+                expected by `Dictionary.from_json_dict`.
+            to_activate: If True, switch the manager's active
+                dictionary to the one just opened. If False, keep the
+                current active dictionary.
         """
 
         save_data = loading_func(filepath)
@@ -164,7 +165,7 @@ class Manager:
         """
         Close a dictionary and remove it from the manager.
 
-        Updates the current dictionary index if necessary.
+        Updates the active dictionary index if necessary.
 
         Args:
             dct_id: Index of the dictionary to close.
@@ -193,15 +194,17 @@ class Manager:
 
         Args:
             dct_id: Index of the dictionary to save.
-            saving_func: Callable that accepts two arguments — the serialized
-                dictionary data and the destination file path — and writes
-                the data to disk. The function should raise on failure.
-            filepath: Path where to save the dictionary. If None, uses the
-                dictionary's current filepath.
+            saving_func: Callable that accepts two arguments (the
+                serialized dictionary data and the destination file
+                path) and writes the data to disk. The function should
+                raise on failure.
+            filepath: Path where to save the dictionary. If None, uses
+                the dictionary's current filepath.
 
         Raises:
             AssertionError: If the dictionary index is out of range.
-            ValueError: If no filepath is specified and the dictionary has none.
+            ValueError: If no filepath is specified and the dictionary
+                has none.
         """
 
         assert 0 <= dct_id <= len(self.opened_dct_info)
