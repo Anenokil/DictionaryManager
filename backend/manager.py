@@ -50,7 +50,7 @@ class Manager:
         """
 
         self.opened_dct_info: DictionariesInfo = []
-        self.current_dct_id: int | None = None
+        self.active_dct_id: int | None = None
 
     @property
     def n_opened(self) -> int:
@@ -73,9 +73,9 @@ class Manager:
             is currently active.
         """
 
-        if self.current_dct_id is None:
+        if self.active_dct_id is None:
             return None
-        return self.opened_dct_info[self.current_dct_id]['dct']
+        return self.opened_dct_info[self.active_dct_id]['dct']
 
     @property
     def filepath(self) -> str | None:
@@ -87,14 +87,14 @@ class Manager:
             active or if it's a new unsaved dictionary.
         """
 
-        if self.current_dct_id is None:
+        if self.active_dct_id is None:
             return None
-        return self.opened_dct_info[self.current_dct_id]['filepath']
+        return self.opened_dct_info[self.active_dct_id]['filepath']
 
     def add_dct(self, dct: Dictionary, filepath: str | None = None, to_activate: bool = True):
         self.opened_dct_info.append({'dct': dct, 'filepath': filepath})
         if to_activate or self.n_opened == 1:
-            self.current_dct_id = len(self.opened_dct_info) - 1
+            self.active_dct_id = len(self.opened_dct_info) - 1
 
     def create_dct(self, name: DctName = None, to_activate: bool = True):
         """
@@ -111,7 +111,7 @@ class Manager:
 
         self.opened_dct_info.append({'dct': dct, 'filepath': None})
         if to_activate or self.n_opened == 1:
-            self.current_dct_id = len(self.opened_dct_info) - 1
+            self.active_dct_id = len(self.opened_dct_info) - 1
 
     def open_dct(
             self,
@@ -143,7 +143,7 @@ class Manager:
 
         self.opened_dct_info.append({'dct': dct, 'filepath': filepath})
         if to_activate or self.n_opened == 1:
-            self.current_dct_id = len(self.opened_dct_info) - 1
+            self.active_dct_id = len(self.opened_dct_info) - 1
 
     def switch_dct(self, dct_id: int):
         """
@@ -158,7 +158,7 @@ class Manager:
 
         assert 0 <= dct_id <= len(self.opened_dct_info)
 
-        self.current_dct_id = dct_id
+        self.active_dct_id = dct_id
 
     def close_dct(self, dct_id: int):
         """
@@ -176,9 +176,9 @@ class Manager:
         assert 0 <= dct_id <= len(self.opened_dct_info)
 
         if len(self.opened_dct_info) == 1:
-            self.current_dct_id = None
-        elif dct_id < self.current_dct_id:
-            self.current_dct_id -= 1
+            self.active_dct_id = None
+        elif dct_id < self.active_dct_id:
+            self.active_dct_id -= 1
 
         del self.opened_dct_info[dct_id]
 
@@ -238,18 +238,18 @@ class Manager:
         """
 
         target_dct = self.opened_dct_info[from_index]
-        is_current = from_index == self.current_dct_id
+        is_active = from_index == self.active_dct_id
 
-        if not is_current and self.current_dct_id > from_index:
-            self.current_dct_id -= 1
+        if not is_active and self.active_dct_id > from_index:
+            self.active_dct_id -= 1
 
         del self.opened_dct_info[from_index]
         self.opened_dct_info = self.opened_dct_info[:to_index] + [target_dct] + self.opened_dct_info[to_index:]
 
-        if is_current:
-            self.current_dct_id = to_index
-        elif self.current_dct_id > to_index:
-            self.current_dct_id += 1
+        if is_active:
+            self.active_dct_id = to_index
+        elif self.active_dct_id > to_index:
+            self.active_dct_id += 1
 
     def to_dict(self) -> SerializedData:
         """
@@ -263,7 +263,7 @@ class Manager:
             'version': self._schema_version,
             'data': {
                 'opened_dct_info': self.opened_dct_info,
-                'current_dct_id': self.current_dct_id,
+                'active_dct_id': self.active_dct_id,
             }
         }
 
@@ -298,17 +298,17 @@ class Manager:
         required_fields = ('version', 'data')
         validate_required_fields(data, required_fields)
 
-        required_fields = ('opened_dct_info', 'current_dct_id')
+        required_fields = ('opened_dct_info', 'active_dct_id')
         validate_required_fields(data['data'], required_fields)
 
         # Read required fields
         data = data['data']
         opened_dct_info = data['opened_dct_info']
-        current_dct_id = data['current_dct_id']
+        active_dct_id = data['active_dct_id']
 
         # Validate types
         validate_field_type('opened_dct_info', opened_dct_info, list[dict[str, Any]])
-        validate_field_type('current_dct_id', current_dct_id, (int, NoneType))
+        validate_field_type('active_dct_id', active_dct_id, (int, NoneType))
 
         # Convert types and values
         try:
@@ -325,4 +325,4 @@ class Manager:
 
         # Set attributes
         self.opened_dct_info = opened_dct_info
-        self.current_dct_id = current_dct_id
+        self.active_dct_id = active_dct_id
