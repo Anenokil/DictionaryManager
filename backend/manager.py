@@ -8,10 +8,10 @@ Author: Anenokil
 from types import NoneType
 from typing import Any, Callable
 
-from .types import DctName, SerializedData
-from .errors import MissingFieldsError
-from .dictionary import Dictionary
-from .utils import validate_required_fields, validate_field_type
+from .core.types import DctName, SerializedData
+from .core.errors import MissingFieldsError
+from .core.dictionary import Dictionary
+from .core.utils import validate_required_fields, validate_field_type
 
 # Typing aliases used in the module
 DictionariesInfo = list[dict[str, Any]]

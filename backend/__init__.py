@@ -5,3 +5,4 @@ Author: Anenokil
 """
 
 from .core import *
+from .manager import Manager
