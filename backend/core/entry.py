@@ -16,7 +16,7 @@ from .utils import gram_form_to_str, validate_required_fields, validate_field_ty
 
 # Typing aliases used in the module
 Translations = list[Translation]
-Forms = dict[GramForm, WordForm]
+Forms = dict[GramForm, list[WordForm]]
 Phrases = dict[Phrase, list[PhraseTr]]
 Notes = list[Note]
 Groups = set[Group]
@@ -54,7 +54,7 @@ class Entry:
             self,
             lemma: Word,
             tr: Translation | Iterable[Translation],
-            forms: Mapping[GramForm, WordForm] | None = None,
+            forms: Mapping[GramForm, Iterable[WordForm]] | None = None,
             phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
             notes: Note | Iterable[Note] | None = None,
             groups: Iterable[Group] | None = None,
@@ -83,7 +83,10 @@ class Entry:
 
         self.lemma = lemma
         self.tr: Translations = [tr] if isinstance(tr, Translation) else list(tr)
-        self.forms: Forms = forms if forms else dict()
+        self.forms: Forms = {
+            pattern: list(forms)
+            for pattern, forms in forms.items()
+        } if forms else dict()
         self.phrases: Phrases = {phrase: list(phrase_tr) for phrase, phrase_tr in phrases.items()} if phrases else dict()
         if not notes:
             self.notes: Notes = []
@@ -105,6 +108,10 @@ class Entry:
     @property
     def n_gram_forms(self) -> int:
         return len(self.forms)
+
+    @property
+    def n_word_forms(self) -> int:
+        return sum(len(forms) for forms in self.forms.values())
 
     @property
     def n_phrases(self) -> int:
@@ -145,17 +152,22 @@ class Entry:
         """
 
         if gram_form not in self.forms.keys():
-            self.forms[gram_form] = word_form
+            self.forms[gram_form] = [word_form]
+        elif word_form not in self.forms[gram_form]:
+            self.forms[gram_form].append(word_form)
 
-    def delete_form(self, gram_form: GramForm):
+    def delete_form(self, gram_form: GramForm, word_form: WordForm):
         """
         Remove an inflected form from the entry.
 
         Args:
             gram_form: Grammatical form identifying the inflection to remove.
+            word_form: The actual inflected form to remove.
         """
 
-        self.forms.pop(gram_form)
+        self.forms[gram_form].remove(word_form)
+        if len(self.forms[gram_form]) == 0:
+            self.forms.pop(gram_form)
 
     def add_phrase(self, phrase: Phrase, phrase_tr: PhraseTr):
         """
@@ -247,8 +259,8 @@ class Entry:
         """
 
         self.forms = {
-            gram_form: word_form
-            for gram_form, word_form in self.forms.items()
+            gram_form: word_forms
+            for gram_form, word_forms in self.forms.items()
             if gram_form[pos] != ctg_val
         }
 
@@ -268,8 +280,8 @@ class Entry:
             return tuple(gram_form[:pos] + (new_ctg_val,) + gram_form[pos+1:])
 
         self.forms = {
-            update_gram_form(gram_form): word_form
-            for gram_form, word_form in self.forms.items()
+            update_gram_form(gram_form): word_forms
+            for gram_form, word_forms in self.forms.items()
         }
 
     def add_ctg(self):
@@ -279,8 +291,8 @@ class Entry:
             return tuple(gram_form + ('',))
 
         self.forms = {
-            update_gram_form(gram_form): word_form
-            for gram_form, word_form in self.forms.items()
+            update_gram_form(gram_form): word_forms
+            for gram_form, word_forms in self.forms.items()
         }
 
     def delete_ctg(self, pos: int):
@@ -298,8 +310,8 @@ class Entry:
             return tuple(gram_form[:pos] + gram_form[pos+1:])
 
         self.forms = {
-            update_gram_form(gram_form): word_form
-            for gram_form, word_form in self.forms.items()
+            update_gram_form(gram_form): word_forms
+            for gram_form, word_forms in self.forms.items()
             if gram_form[pos] == ''
         }
 
@@ -359,8 +371,8 @@ class Entry:
         tokens.append(f'| {self.lemma} - ')
         tokens.append(', '.join(tr for tr in self.tr))
         tokens.append('\n')
-        for gram_form, word_form in self.forms.items():
-            tokens.append(f'|  [{gram_form_to_str(gram_form)}] {word_form}\n')
+        for gram_form, word_forms in self.forms.items():
+            tokens.append(f'|  [{gram_form_to_str(gram_form)}] {', '.join(word_forms)}\n')
         for phrase, phrase_tr in self.phrases.items():
             tokens.append(f'|  {phrase} - ')
             tokens.append(', '.join(tr for tr in phrase_tr))
@@ -451,7 +463,7 @@ class Entry:
 
         validate_required_fields(forms, ('keys', 'values'))
         validate_field_type('keys', forms['keys'], list[list[str]])
-        validate_field_type('values', forms['values'], list[str])
+        validate_field_type('values', forms['values'], list[list[str]])
 
         validate_field_type('phrases', phrases, (dict[str, list[str]], NoneType))
         validate_field_type('notes', notes, (list[str], NoneType))

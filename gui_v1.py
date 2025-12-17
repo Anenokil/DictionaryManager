@@ -13,6 +13,7 @@ import webbrowser  # Для открытия веб-страницы
 import urllib.request as urllib2  # Для проверки наличия обновлений
 import wget  # Для загрузки обновления
 import zipfile  # Для распаковки обновления
+from itertools import chain
 
 from backend import (
     Entry, Dictionary, Trainer, EntryID, GramForm,
@@ -292,7 +293,7 @@ def get_tr(entry: Entry) -> str:
 # Вывести словоформы
 def get_forms(entry: Entry, tab: int = 0) -> str:
     frm_keys = entry.forms.keys()
-    return ('\n' + ' ' * tab).join((f'[{gram_form_to_str(key)}] {entry.forms[key]}' for key in frm_keys))
+    return ('\n' + ' ' * tab).join((f'[{gram_form_to_str(key)}] {', '.join(entry.forms[key])}' for key in frm_keys))
 
 
 # Вывести переводы фразы
@@ -389,9 +390,9 @@ def get_all_entry_info(entry: Entry, len_str: int, tab: int = 0) -> str:
         res += '-\n'
     else:
         keys = [key for key in entry.forms.keys()]
-        res += f'[{gram_form_to_str(keys[0])}] {entry.forms[keys[0]]}\n'
+        res += f'[{gram_form_to_str(keys[0])}] {', '.join(entry.forms[keys[0]])}\n'
         for i in range(1, entry.n_gram_forms):
-            res += f'             [{gram_form_to_str(keys[i])}] {entry.forms[keys[i]]}\n'
+            res += f'             [{gram_form_to_str(keys[i])}] {', '.join(entry.forms[keys[i]])}\n'
 
     res += '      Фразы: '
     if entry.n_phrases == 0:
@@ -455,20 +456,21 @@ def get_phr_tr_with_stat(entry: Entry, phr_key: str) -> str:
 
 
 # Вывести информацию о количестве статей в словаре
-def dct_info(count_e: int, count_t: int, count_f: int) -> str:
+def dct_info(count_e: int, count_t: int, count_gf: int, count_wf: int) -> str:
     w = set_postfix(count_e, ('слово', 'слова', 'слов'))
-    f = set_postfix(count_e + count_f, ('словоформа', 'словоформы', 'словоформ'))
+    f = set_postfix(count_e + count_wf, ('словоформа', 'словоформы', 'словоформ'))
     t = set_postfix(count_t, ('перевод', 'перевода', 'переводов'))
-    return f'[ {count_e} {w} | {count_e + count_f} {f} | {count_t} {t} ]'
+    return f'[ {count_e} {w} | {count_e + count_wf} {f} | {count_t} {t} ]'
 
 
 # Вывести информацию о количестве избранных статей в словаре
-def dct_info_fav(count_e: tuple[int, int], count_t: tuple[int, int], count_f: tuple[int, int]) -> str:
+def dct_info_fav(count_e: tuple[int, int], count_t: tuple[int, int],
+                 count_gf: tuple[int, int], count_wf: tuple[int, int]) -> str:
     w = set_postfix(count_e[0], ('слово', 'слова', 'слов'))
-    f = set_postfix(count_e[0] + count_f[0], ('словоформа', 'словоформы', 'словоформ'))
+    f = set_postfix(count_e[0] + count_wf[0], ('словоформа', 'словоформы', 'словоформ'))
     t = set_postfix(count_t[0], ('перевод', 'перевода', 'переводов'))
     return f'[ {count_e[0]}/{count_e[1]} {w} '\
-           f'| {count_e[0] + count_f[0]}/{count_e[1] + count_f[1]} {f} '\
+           f'| {count_e[0] + count_wf[0]}/{count_e[1] + count_wf[1]} {f} '\
            f'| {count_t[0]}/{count_t[1]} {t} ]'
 
 
@@ -842,57 +844,57 @@ def search_entries(dct: Dictionary, dct_keys: tuple[EntryID, ...], query: str,
 
         if to_search_wrd and query == entry.lemma or\
            to_search_tr  and query in entry.tr or\
-           to_search_frm and query in entry.forms.values() or\
+           to_search_frm and query in chain(*entry.forms.values()) or\
            to_search_phr and query in phrases or\
            to_search_nt  and query in entry.notes:
             results[0].add(key)
         elif to_search_wrd and query_l == entry.lemma.lower() or\
              to_search_tr  and query_l in [ tr.lower() for tr  in entry.tr] or\
-             to_search_frm and query_l in [frm.lower() for frm in entry.forms.values()] or\
+             to_search_frm and query_l in [frm.lower() for frm in chain(*entry.forms.values())] or\
              to_search_phr and query_l in [phr.lower() for phr in phrases] or\
              to_search_nt  and query_l in [ nt.lower() for nt  in entry.notes]:
             results[1].add(key)
         elif to_search_wrd and query_s == simplify(entry.lemma)[0].replace('ё', 'е') or\
              to_search_tr  and query_s in [simplify( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
-             to_search_frm and query_s in [simplify(frm)[0].replace('ё', 'е') for frm in entry.forms.values()] or\
+             to_search_frm and query_s in [simplify(frm)[0].replace('ё', 'е') for frm in chain(*entry.forms.values())] or\
              to_search_phr and query_s in [simplify(phr)[0].replace('ё', 'е') for phr in phrases] or\
              to_search_nt  and query_s in [simplify( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
             results[2].add(key)
 
         elif to_search_wrd and wrd_in_line(entry.lemma, query) or\
              to_search_tr  and True in [wrd_in_line( tr, query) for tr  in entry.tr] or\
-             to_search_frm and True in [wrd_in_line(frm, query) for frm in entry.forms.values()] or\
+             to_search_frm and True in [wrd_in_line(frm, query) for frm in chain(*entry.forms.values())] or\
              to_search_phr and True in [wrd_in_line(phr, query) for phr in phrases] or\
              to_search_nt  and True in [wrd_in_line( nt, query) for nt  in entry.notes]:
             results[3].add(key)
         elif to_search_wrd and wrd_in_line(entry.lemma.lower(), query_l) or\
              to_search_tr  and True in [wrd_in_line( tr.lower(), query_l) for tr  in entry.tr] or\
-             to_search_frm and True in [wrd_in_line(frm.lower(), query_l) for frm in entry.forms.values()] or\
+             to_search_frm and True in [wrd_in_line(frm.lower(), query_l) for frm in chain(*entry.forms.values())] or\
              to_search_phr and True in [wrd_in_line(phr.lower(), query_l) for phr in phrases] or\
              to_search_nt  and True in [wrd_in_line( nt.lower(), query_l) for nt  in entry.notes]:
             results[4].add(key)
         elif to_search_wrd and wrd_in_line(simplify(entry.lemma)[0].replace('ё', 'е'), query_s) or\
              to_search_tr  and True in [wrd_in_line(simplify( tr)[0].replace('ё', 'е'), query_s) for tr  in entry.tr] or\
-             to_search_frm and True in [wrd_in_line(simplify(frm)[0].replace('ё', 'е'), query_s) for frm in entry.forms.values()] or\
+             to_search_frm and True in [wrd_in_line(simplify(frm)[0].replace('ё', 'е'), query_s) for frm in chain(*entry.forms.values())] or\
              to_search_phr and True in [wrd_in_line(simplify(phr)[0].replace('ё', 'е'), query_s) for phr in phrases] or\
              to_search_nt  and True in [wrd_in_line(simplify( nt)[0].replace('ё', 'е'), query_s) for nt  in entry.notes]:
             results[5].add(key)
 
         elif to_search_wrd and query in entry.lemma or\
              to_search_tr  and True in [query in tr  for tr  in entry.tr] or\
-             to_search_frm and True in [query in frm for frm in entry.forms.values()] or\
+             to_search_frm and True in [query in frm for frm in chain(*entry.forms.values())] or\
              to_search_phr and True in [query in phr for phr in phrases] or\
              to_search_nt  and True in [query in nt  for nt  in entry.notes]:
             results[6].add(key)
         elif to_search_wrd and query_l in entry.lemma.lower() or\
              to_search_tr  and True in [query_l in  tr.lower() for tr  in entry.tr] or\
-             to_search_frm and True in [query_l in frm.lower() for frm in entry.forms.values()] or\
+             to_search_frm and True in [query_l in frm.lower() for frm in chain(*entry.forms.values())] or\
              to_search_phr and True in [query_l in phr.lower() for phr in phrases] or\
              to_search_nt  and True in [query_l in  nt.lower() for nt  in entry.notes]:
             results[7].add(key)
         elif to_search_wrd and query_s in simplify(entry.lemma)[0].replace('ё', 'е') or\
              to_search_tr  and True in [query_s in simplify( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
-             to_search_frm and True in [query_s in simplify(frm)[0].replace('ё', 'е') for frm in entry.forms.values()] or\
+             to_search_frm and True in [query_s in simplify(frm)[0].replace('ё', 'е') for frm in chain(*entry.forms.values())] or\
              to_search_phr and True in [query_s in simplify(phr)[0].replace('ё', 'е') for phr in phrases] or\
              to_search_nt  and True in [query_s in simplify( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
             results[8].add(key)
@@ -5356,22 +5358,24 @@ class PrintW(tk.Toplevel):
         group = self.var_print_group.get()
         if group == ALL_GROUPS:
             if self.var_print_fav.get():
-                w, t, f = self.dct.count_fav_entries()
+                w, t, gf, wf = self.dct.count_fav_entries()
                 info = dct_info_fav((w, self.dct.count('lemmas')),
                                     (t, self.dct.count('translations')),
-                                    (f, self.dct.count('forms')))
+                                    (gf, self.dct.count('gram_forms')),
+                                    (wf, self.dct.count('word_forms')))
             else:
                 info = dct_info(self.dct.count('lemmas'),
                                 self.dct.count('translations'),
-                                self.dct.count('forms'))
+                                self.dct.count('gram_forms'),
+                                self.dct.count('word_forms'))
         else:
             if self.var_print_fav.get():
-                w1, t1, f1 = self.dct.count_fav_entries(group)
-                w2, t2, f2 = self.dct.count_entries_in_group(group)
-                info = dct_info_fav((w1, w2), (t1, t2), (f1, f2))
+                w1, t1, gf1, wf1 = self.dct.count_fav_entries(group)
+                w2, t2, gf2, wf2 = self.dct.count_entries_in_group(group)
+                info = dct_info_fav((w1, w2), (t1, t2), (gf1, gf2), (wf1, wf2))
             else:
-                w, t, f = self.dct.count_entries_in_group(group)
-                info = dct_info(w, t, f)
+                w, t, gf, wf = self.dct.count_entries_in_group(group)
+                info = dct_info(w, t, gf, wf)
         self.var_print_info.set(info)
 
         count_selected = len(self.print_selected_keys)

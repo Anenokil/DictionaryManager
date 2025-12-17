@@ -6,6 +6,7 @@ Author: Anenokil
 
 from types import NoneType
 from typing import Iterable, Generator, Mapping, Callable, Literal, TypeVar
+from itertools import chain
 from functools import wraps
 import re
 
@@ -113,7 +114,8 @@ class Dictionary:
         self._counters = {
             'lemmas': 0,
             'translations': 0,
-            'forms': 0,
+            'gram_forms': 0,
+            'word_forms': 0,
             'phrases': 0,
             'notes': 0,
         }
@@ -252,7 +254,7 @@ class Dictionary:
         self._name = new_name
 
     @_replace
-    def count_entries_in_group(self, group: Group) -> tuple[int, int, int]:
+    def count_entries_in_group(self, group: Group) -> tuple[int, int, int, int]:
         """
         Count the number of entries, translations, and inflected forms in the specified group.
 
@@ -263,21 +265,24 @@ class Dictionary:
             A tuple containing three integers:
             - Number of dictionary entries (lemmas) in the group;
             - Total number of translations across all entries in the group;
-            - Total number of grammatical forms across all entries in the group.
+            - Total number of grammatical forms across all entries in the group;
+            - Total number of word forms across all entries in the group.
         """
 
         n_entries = 0
         n_translations = 0
         n_gram_forms = 0
+        n_word_forms = 0
         for entry_id in self._indexes['groups'][group]:
             entry = self._entries[entry_id]
             n_entries += 1
             n_translations += entry.n_translations
             n_gram_forms += entry.n_gram_forms
-        return n_entries, n_translations, n_gram_forms
+            n_word_forms += entry.n_word_forms
+        return n_entries, n_translations, n_gram_forms, n_word_forms
 
     @_replace
-    def count_fav_entries(self, group: Group | None = None) -> tuple[int, int, int]:
+    def count_fav_entries(self, group: Group | None = None) -> tuple[int, int, int, int]:
         """
         Count the number of favorite entries, their translations, and inflected forms.
 
@@ -289,18 +294,21 @@ class Dictionary:
             A tuple containing three integers:
             - Number of favorite dictionary entries (lemmas);
             - Total number of translations across favorite entries;
-            - Total number of grammatical forms across favorite entries.
+            - Total number of grammatical forms across favorite entries;
+            - Total number of word forms across favorite entries in the group.
         """
 
         n_entries = 0
         n_translations = 0
         n_gram_forms = 0
+        n_word_forms = 0
         if group is None:
             for entry in self._entries.values():
                 if entry.is_fav:
                     n_entries += 1
                     n_translations += entry.n_translations
                     n_gram_forms += entry.n_gram_forms
+                    n_word_forms += entry.n_word_forms
         else:
             for entry_id in self._indexes['groups'][group]:
                 entry = self._entries[entry_id]
@@ -308,7 +316,8 @@ class Dictionary:
                     n_entries += 1
                     n_translations += entry.n_translations
                     n_gram_forms += entry.n_gram_forms
-        return n_entries, n_translations, n_gram_forms
+                    n_word_forms += entry.n_word_forms
+        return n_entries, n_translations, n_gram_forms, n_word_forms
 
     def count(self, counter_name: str) -> int:
         if counter_name == 'groups':
@@ -411,7 +420,7 @@ class Dictionary:
             self,
             lemma: Word,
             tr: Translation | Iterable[Translation],
-            forms: Mapping[GramForm, WordForm] | None = None,
+            forms: Mapping[GramForm, Iterable[WordForm]] | None = None,
             phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
             notes: Note | Iterable[Note] | None = None,
             groups: Iterable[Group] | None = None,
@@ -456,12 +465,13 @@ class Dictionary:
 
         self._update_index('lemmas', entry.lemma, entry_id, 'add')
         self._update_index('translations', entry.tr, entry_id, 'add')
-        self._update_index('forms', entry.forms.values(), entry_id, 'add')
+        self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
         self._update_index('groups', entry.groups, entry_id, 'add')
 
         self._counters['lemmas'] += 1
         self._counters['translations'] += entry.n_translations
-        self._counters['forms']        += entry.n_gram_forms
+        self._counters['gram_forms']   += entry.n_gram_forms
+        self._counters['word_forms']   += entry.n_word_forms
         self._counters['phrases']      += entry.n_phrases
         self._counters['notes']        += entry.n_notes
 
@@ -483,13 +493,14 @@ class Dictionary:
 
         self._counters['lemmas'] -= 1
         self._counters['translations'] -= entry.n_translations
-        self._counters['forms']        -= entry.n_gram_forms
+        self._counters['gram_forms']   -= entry.n_gram_forms
+        self._counters['word_forms']   -= entry.n_word_forms
         self._counters['phrases']      -= entry.n_phrases
         self._counters['notes']        -= entry.n_notes
 
         self._update_index('lemmas', entry.lemma, entry_id, 'remove')
         self._update_index('translations', entry.tr, entry_id, 'remove')
-        self._update_index('forms', entry.forms.values(), entry_id, 'remove')
+        self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
         self._update_index('groups', entry.groups, entry_id, 'remove')
 
         del self._entries[entry_id]
@@ -512,11 +523,12 @@ class Dictionary:
 
         self._update_index('lemmas', additional_entry.lemma, entry_id_1, 'add')
         self._update_index('translations', additional_entry.tr, entry_id_1, 'add')
-        self._update_index('forms', additional_entry.forms.values(), entry_id_1, 'add')
+        self._update_index('forms', chain(*additional_entry.forms.values()), entry_id_1, 'add')
         self._update_index('groups', additional_entry.groups, entry_id_1, 'add')
 
         self._counters['translations'] -= main_entry.n_translations
-        self._counters['forms']        -= main_entry.n_gram_forms
+        self._counters['gram_forms']   -= main_entry.n_gram_forms
+        self._counters['word_forms']   -= main_entry.n_word_forms
         self._counters['phrases']      -= main_entry.n_phrases
         self._counters['notes']        -= main_entry.n_notes
 
@@ -527,9 +539,9 @@ class Dictionary:
         for phrase in additional_entry.phrases.keys():
             for phrase_tr in additional_entry.phrases[phrase]:
                 main_entry.add_phrase(phrase, phrase_tr)
-        for gram_form in additional_entry.forms.keys():
-            word_form = additional_entry.forms[gram_form]
-            main_entry.add_form(gram_form, word_form)
+        for gram_form, word_forms in additional_entry.forms.items():
+            for word_form in word_forms:
+                main_entry.add_form(gram_form, word_form)
         if additional_entry.is_fav:
             main_entry.is_fav = True
         for group in additional_entry.groups:
@@ -539,7 +551,8 @@ class Dictionary:
         main_entry.win_streak += additional_entry.win_streak
 
         self._counters['translations'] += main_entry.n_translations
-        self._counters['forms']        += main_entry.n_gram_forms
+        self._counters['gram_forms']   += main_entry.n_gram_forms
+        self._counters['word_forms']   += main_entry.n_word_forms
         self._counters['phrases']      += main_entry.n_phrases
         self._counters['notes']        += main_entry.n_notes
 
@@ -615,29 +628,34 @@ class Dictionary:
 
         entry = self._entries[entry_id]
         self._update_index('forms', word_form, entry_id, 'add')
-        self._counters['forms'] -= entry.n_gram_forms
+        self._counters['gram_forms'] -= entry.n_gram_forms
+        self._counters['word_forms'] -= entry.n_word_forms
         entry.add_form(gram_form, word_form)
-        self._counters['forms'] += entry.n_gram_forms
+        self._counters['gram_forms'] += entry.n_gram_forms
+        self._counters['word_forms'] += entry.n_word_forms
 
     @_mark_modified
     @_replace
-    def delete_form(self, entry_id: EntryID, gram_form: GramForm):
+    def delete_form(self, entry_id: EntryID, gram_form: GramForm, word_form: WordForm):
         """
         Delete an inflected form from an entry.
 
         Args:
             entry_id: ID of the entry.
             gram_form: Grammatical form identifying the form to remove.
+            word_form: The actual inflected form to remove.
         """
 
         entry = self._entries[entry_id]
         # An entry may contain homographs
         # Therefore, we need to first remove all forms from the index, then add them back to the index
-        self._update_index('forms', entry.forms.values(), entry_id, 'remove')
-        self._counters['forms'] -= entry.n_gram_forms
-        entry.delete_form(gram_form)
-        self._counters['forms'] += entry.n_gram_forms
-        self._update_index('forms', entry.forms.values(), entry_id, 'add')
+        self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
+        self._counters['gram_forms'] -= entry.n_gram_forms
+        self._counters['word_forms'] -= entry.n_word_forms
+        entry.delete_form(gram_form, word_form)
+        self._counters['gram_forms'] += entry.n_gram_forms
+        self._counters['word_forms'] += entry.n_word_forms
+        self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
 
     @_mark_modified
     @_replace
@@ -786,11 +804,13 @@ class Dictionary:
 
         index = tuple(self._features.keys()).index(ctg_name)
         for entry_id, entry in self._entries.items():
-            self._update_index('forms', entry.forms.values(), entry_id, 'remove')
-            self._counters['forms'] -= entry.n_gram_forms
+            self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
+            self._counters['gram_forms'] -= entry.n_gram_forms
+            self._counters['word_forms'] -= entry.n_word_forms
             entry.delete_ctg(index)
-            self._counters['forms'] += entry.n_gram_forms
-            self._update_index('forms', entry.forms.values(), entry_id, 'add')
+            self._counters['gram_forms'] += entry.n_gram_forms
+            self._counters['word_forms'] += entry.n_word_forms
+            self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
 
         self._features.pop(ctg_name)
 
@@ -860,11 +880,13 @@ class Dictionary:
 
         index = tuple(self._features.keys()).index(ctg_name)
         for entry_id, entry in self._entries.items():
-            self._update_index('forms', entry.forms.values(), entry_id, 'remove')
-            self._counters['forms'] -= entry.n_gram_forms
+            self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
+            self._counters['gram_forms'] -= entry.n_gram_forms
+            self._counters['word_forms'] -= entry.n_word_forms
             entry.delete_ctg_value(index, ctg_value)
-            self._counters['forms'] += entry.n_gram_forms
-            self._update_index('forms', entry.forms.values(), entry_id, 'add')
+            self._counters['gram_forms'] += entry.n_gram_forms
+            self._counters['word_forms'] += entry.n_word_forms
+            self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
 
         self._features[ctg_name].remove(ctg_value)
         if len(self._features[ctg_name]) == 0:  # If a category has no values left, it is removed
