@@ -6,10 +6,13 @@ Author: Anenokil
 """
 
 from types import GenericAlias
-from typing import Any, Iterable, Generator, Mapping, _GenericAlias, get_origin, get_args, TYPE_CHECKING
+from typing import (
+    Any, Iterable, Collection, Generator, Mapping,
+    _GenericAlias, get_origin, get_args, TYPE_CHECKING,
+)
 
 from .types import Word, GramForm, SerializedData
-from .errors import MissingFieldsError, FieldTypeError
+from .errors import DeserializationError, MissingFieldsError, FieldTypeError
 if TYPE_CHECKING:
     from .entry import Entry
 
@@ -187,3 +190,21 @@ def validate_field_type(
             return
         raise FieldTypeError(field_name, expected_types, field_value, gotten_type=type(field_value)[Any])
     raise NotImplementedError(f'Validation for {type(field_value)} generic is not implemented')
+
+
+def validate_field_len(field_name: Any, field_value: Collection, expected_length: int):
+    """
+    Validate that a field has the expected length.
+
+    Args:
+        field_name: Name of the field being validated.
+        field_value: Collection whose length needs to be checked.
+        expected_length: Exact length that the field must have.
+
+    Raises:
+        DeserializationError: If the length of field value does not
+            match expected length.
+    """
+
+    if len(field_value) != expected_length:
+        raise DeserializationError(f'Field "{field_name}" must have length {expected_length}')

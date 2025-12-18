@@ -12,7 +12,10 @@ from .types import (
     Phrase, PhraseTr, Note, Group, Timestamp, SerializedData,
 )
 from .errors import DeserializationError
-from .utils import gram_form_to_str, validate_required_fields, validate_field_type
+from .utils import (
+    gram_form_to_str, validate_required_fields, validate_field_type,
+    validate_field_len,
+)
 
 # Typing aliases used in the module
 Translations = list[Translation]
@@ -475,9 +478,7 @@ class Entry:
         validate_field_type('latest_att_timestamp', latest_att_timestamp, list[int])
 
         # Validate values
-        if isinstance(latest_att_timestamp, list):
-            if len(latest_att_timestamp) != 3:
-                raise DeserializationError('Field "latest_att_timestamp" must have length 3')
+        validate_field_len('latest_att_timestamp', latest_att_timestamp, 3)
         if len(forms['keys']) != len(forms['values']):
             raise DeserializationError('Field "keys" and "values" must have same length')
 
