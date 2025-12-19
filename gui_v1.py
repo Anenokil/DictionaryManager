@@ -902,7 +902,7 @@ def search_entries(dct: Dictionary, dct_keys: tuple[EntryID, ...], query: str,
 
 
 # Проверить наличие обновлений программы
-def check_updates(window_parent, dct: Dictionary, to_show_updates: bool, to_show_if_no_updates: bool):
+def check_updates(window_parent, dct: Dictionary, app_config: AppSettings, to_show_updates: bool, to_show_if_no_updates: bool):
     print('\nПроверка наличия обновлений...')
     window_last_version = None
     try:
@@ -911,7 +911,7 @@ def check_updates(window_parent, dct: Dictionary, to_show_updates: bool, to_show
         if PROGRAM_VERSION == last_version:
             print('Установлена последняя доступная версия программы')
             if to_show_updates and to_show_if_no_updates:
-                PopupMsgW(window_parent, 'Установлена последняя доступная версия программы').open()
+                PopupMsgW(window_parent, app_config, 'Установлена последняя доступная версия программы').open()
         else:
             print(f'Доступна новая версия: {last_version}')
             if to_show_updates:
@@ -920,7 +920,7 @@ def check_updates(window_parent, dct: Dictionary, to_show_updates: bool, to_show
         print(f'Ошибка: невозможно проверить наличие обновлений!\n'
               f'{exc}')
         if to_show_updates:
-            warning(window_parent, f'Ошибка: невозможно проверить наличие обновлений!\n'
+            warning(window_parent, app_config, f'Ошибка: невозможно проверить наличие обновлений!\n'
                                    f'{exc}')
     return window_last_version
 
@@ -1377,8 +1377,8 @@ def bind_ctrl_acvx(widget):
 
 
 # Вывести сообщение с предупреждением
-def warning(window_parent, msg: str):
-    PopupMsgW(window_parent, msg, tab=0, title='Warning').open()
+def warning(window_parent, app_config: AppSettings, msg: str):
+    PopupMsgW(window_parent, app_config, msg, tab=0, title='Warning').open()
 
 
 # Выключить кнопку (т. к. в ttk нельзя убрать уродливую тень текста на выключенных кнопках, пришлось делать по-своему)
@@ -1540,10 +1540,12 @@ class ScrollFrame(tk.Frame):
 
 # Всплывающее окно с сообщением
 class PopupMsgW(tk.Toplevel):
-    def __init__(self, parent, msg: str, btn_text='Ясно', msg_max_width=60, tab=5,
+    def __init__(self, parent, app_config: AppSettings, msg: str, btn_text='Ясно', msg_max_width=60, tab=5,
                  msg_justify: typing.Literal['left', 'center', 'right'] = 'center', title=PROGRAM_NAME):
         super().__init__(parent)
         self.parent = parent
+
+        self.app_config = app_config
 
         self.closed = True  # Закрыто ли окно крестиком
 
@@ -1552,7 +1554,7 @@ class PopupMsgW(tk.Toplevel):
 
     def _configure_window(self, title):
         self.title(title)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, msg: str, btn_text: str, msg_max_width: int, tab: int,
@@ -1587,7 +1589,7 @@ class PopupMsgW(tk.Toplevel):
 
 # Всплывающее окно с сообщением и двумя кнопками
 class PopupDialogueW(tk.Toplevel):
-    def __init__(self, parent, msg='Вы уверены?', btn_left_text='Да', btn_right_text='Отмена',
+    def __init__(self, parent, app_config: AppSettings, msg='Вы уверены?', btn_left_text='Да', btn_right_text='Отмена',
                  st_left: typing.Literal['Default', 'Yes', 'No'] = 'Yes',
                  st_right: typing.Literal['Default', 'Yes', 'No'] = 'No',  # Стили левой и правой кнопок
                  val_left: typing.Any = True,  # Значение, возвращаемое при нажатии на левую кнопку
@@ -1607,6 +1609,8 @@ class PopupDialogueW(tk.Toplevel):
         super().__init__(parent)
         self.parent = parent
 
+        self.app_config = app_config
+
         self.set_enter_on_btn = set_enter_on_btn
         self.answer = val_on_close  # Значение, возвращаемое методом self.open
         self.val_left = val_left
@@ -1620,7 +1624,7 @@ class PopupDialogueW(tk.Toplevel):
 
     def _configure_window(self, title):
         self.title(title)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, msg: str, btn_left_text: str, btn_right_text: str):
@@ -1665,12 +1669,14 @@ class PopupDialogueW(tk.Toplevel):
 
 # Всплывающее окно с полем ввода
 class PopupEntryW(tk.Toplevel):
-    def __init__(self, parent, msg='Введите строку', btn_text='Подтвердить',
+    def __init__(self, parent, app_config: AppSettings, msg='Введите строку', btn_text='Подтвердить',
                  entry_width=45, default_value='', validate_function=None,
                  check_answer_function=None, if_correct_function=None,
                  if_incorrect_function=None, title=PROGRAM_NAME):
         super().__init__(parent)
         self.parent = parent
+
+        self.app_config = app_config
 
         self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
         self.if_correct_function = if_correct_function  # Функция, вызываемая при корректном ответе
@@ -1690,14 +1696,14 @@ class PopupEntryW(tk.Toplevel):
 
     def _configure_window(self, title):
         self.title(title)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, msg: str, btn_text: str, entry_width: int):
         self.lbl_msg = ttk.Label(self, text=split_text(f'{msg}:', 45, to_add_right_spaces=False), justify='center',
                                  style='Default.TLabel')
         self.entry_inp = ttk.Entry(self, textvariable=self.var_text, width=entry_width,
-                                   style='Default.TEntry', font=('StdFont', _0_global_scale))
+                                   style='Default.TEntry', font=('StdFont', self.app_config.font_size))
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
 
         self.lbl_msg.grid(  row=0, padx=6, pady=(6, 3))
@@ -1738,10 +1744,12 @@ class PopupEntryW(tk.Toplevel):
 
 # Всплывающее окно с полем Combobox
 class PopupChooseW(tk.Toplevel):
-    def __init__(self, parent, values: list[str] | tuple[str, ...], msg='Выберите один из вариантов',
+    def __init__(self, parent, app_config: AppSettings, values: list[str] | tuple[str, ...], msg='Выберите один из вариантов',
                  btn_text='Подтвердить', combo_width=40, default_value=None, title=PROGRAM_NAME):
         super().__init__(parent)
         self.parent = parent
+
+        self.app_config = app_config
 
         self.closed = True  # Закрыто ли окно крестиком
 
@@ -1752,7 +1760,7 @@ class PopupChooseW(tk.Toplevel):
 
     def _configure_window(self, title):
         self.title(title)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, msg: str, values: list[str] | tuple[str, ...], combo_width: int, btn_text: str):
@@ -1760,7 +1768,7 @@ class PopupChooseW(tk.Toplevel):
                                  style='Default.TLabel')
         self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values,
                                        width=combo_width, state='readonly',
-                                       font=('DejaVu Sans Mono', _0_global_scale), style='Default.TCombobox')
+                                       font=('DejaVu Sans Mono', self.app_config.font_size), style='Default.TCombobox')
         self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
 
         self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
@@ -1790,9 +1798,11 @@ class PopupChooseW(tk.Toplevel):
 
 # Всплывающее окно с изображением
 class PopupImgW(tk.Toplevel):
-    def __init__(self, parent, img_name: str, msg: str, btn_text='Ясно', title=PROGRAM_NAME):
+    def __init__(self, parent, app_config: AppSettings, img_name: str, msg: str, btn_text='Ясно', title=PROGRAM_NAME):
         super().__init__(parent)
         self.parent = parent
+
+        self.app_config = app_config
 
         self.closed = True  # Закрыто ли окно крестиком
 
@@ -1802,7 +1812,7 @@ class PopupImgW(tk.Toplevel):
     def _configure_window(self, title):
         self.title(title)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, img_name: str, msg: str, btn_text: str):
@@ -5967,7 +5977,7 @@ class PrintW(tk.Toplevel):
 
         count_selected = len(keys)
         tmp = set_postfix(count_selected, ('статью', 'статьи', 'статей'))
-        window = PopupDialogueW(self, f'Вы действительно хотите удалить {count_selected} {tmp}?',
+        window = PopupDialogueW(self, self.app_config, f'Вы действительно хотите удалить {count_selected} {tmp}?',
                                 set_enter_on_btn='none')
         answer = window.open()
         if not answer:
@@ -7108,12 +7118,12 @@ class MainW(tk.Tk):
         except:
             pass
         # Открываем новое уведомление об обновлении
-        _0_global_window_last_version = check_updates(self, self.manager.active.dct, self.app_config.to_check_for_updates, True)
+        _0_global_window_last_version = check_updates(self, self.manager.active.dct, self.app_config, self.app_config.to_check_for_updates, True)
 
     # Нажатие на кнопку "Сохранить словарь"
     def save(self):
         save_dct(self.manager.active.dct, self.manager.active.dct.name)
-        PopupMsgW(self, 'Прогресс успешно сохранён').open()
+        PopupMsgW(self, self.app_config, 'Прогресс успешно сохранён').open()
         print('\nПрогресс успешно сохранён')
 
         self.manager.active.dct.mark_saved()
