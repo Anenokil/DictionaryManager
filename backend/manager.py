@@ -6,15 +6,218 @@ Author: Anenokil
 """
 
 from types import NoneType
-from typing import Any, Callable
+from typing import Any
+import json
 
 from .core.types import DctName, SerializedData
-from .core.errors import MissingFieldsError
+from .core.errors import UnknownVersionError
 from .core.dictionary import Dictionary
-from .core.utils import validate_required_fields, validate_field_type
+from .core.utils import validate_required_fields, validate_field_type, validate_field_len
 
-# Typing aliases used in the module
-DictionariesInfo = list[dict[str, Any]]
+
+class DctSettings:
+    """
+    Dictionary configuration settings.
+
+    Attributes:
+    ----------
+    - is_register_sensitive: Whether dictionary operations should
+      be case-sensitive.
+
+    Protected Attributes:
+    --------------------
+    - _schema_version: The version of the data format used for
+      serialization.
+    """
+
+    _schema_version = 1
+
+    def __init__(self, data: SerializedData | None = None):
+        self.is_register_sensitive: bool = ...
+
+        if data is None:
+            self.set_defaults()
+        else:
+            self.load_from_dict(data)
+
+    def set_defaults(self):
+        self.is_register_sensitive = True
+
+    def to_dict(self) -> SerializedData:
+        return {
+            'version': self._schema_version,
+            'is_register_sensitive': self.is_register_sensitive,
+        }
+
+    def load_from_dict(self, data: SerializedData):
+        data = self._check_and_migrate(data)
+
+        self.is_register_sensitive = data['is_register_sensitive']
+
+    @staticmethod
+    def _check_and_migrate(data: SerializedData) -> SerializedData:
+        validate_required_fields(data, ('version',))
+        validate_field_type('version', data['version'], int)
+
+        version: int = data['version']
+        if version == 1:
+            DctSettings._validate_data(data)
+            return data
+        raise UnknownVersionError(DctSettings.__name__, version)
+
+    @staticmethod
+    def _validate_data(data: SerializedData):
+        required_fields = ('is_register_sensitive',)
+        validate_required_fields(data, required_fields)
+
+        validate_field_type('is_register_sensitive', data['is_register_sensitive'], bool)
+
+
+class DctCache:
+    """
+    Dictionary cache for storing user session state.
+
+    Attributes:
+    ----------
+    - session_number: Last active session identifier.
+    - search_config: Search settings.
+    - train_config: Training settings.
+
+    Protected Attributes:
+    --------------------
+    - _schema_version: The version of the data format used for
+      serialization.
+    """
+
+    _schema_version = 1
+
+    def __init__(self, data: SerializedData | None = None):
+        self.session_number: int = ...
+        self.search_config: list[int] = ...
+        self.train_config: list[int] = ...
+
+        if data is None:
+            self.set_defaults()
+        else:
+            self.load_from_dict(data)
+
+    def set_defaults(self):
+        self.session_number = 1
+        self.search_config = [0, 0, 1, 1, 0, 0, 0, 0]
+        self.train_config = [0, 0, 1, 1, 1]
+
+    def to_dict(self) -> SerializedData:
+        return {
+            'version': self._schema_version,
+            'session_number': self.session_number,
+            'search_config': self.search_config,
+            'train_config': self.train_config,
+        }
+
+    def load_from_dict(self, data: SerializedData):
+        data = self._check_and_migrate(data)
+
+        self.session_number = data['session_number']
+        self.search_config = data['search_config']
+        self.train_config = data['train_config']
+
+        self.session_number += 1
+
+    @staticmethod
+    def _check_and_migrate(data: SerializedData) -> SerializedData:
+        validate_required_fields(data, ('version',))
+        validate_field_type('version', data['version'], int)
+
+        version: int = data['version']
+        if version == 1:
+            DctCache._validate_data(data)
+            return data
+        raise UnknownVersionError(DctCache.__name__, version)
+
+    @staticmethod
+    def _validate_data(data: SerializedData):
+        required_fields = ('session_number', 'search_config', 'train_config')
+        validate_required_fields(data, required_fields)
+
+        validate_field_type('session_number', data['session_number'], int)
+        validate_field_type('search_config', data['search_config'], list[int])
+        validate_field_type('train_config', data['train_config'], list[int])
+
+        validate_field_len('search_config', data['search_config'], 8)
+        validate_field_len('train_config', data['train_config'], 5)
+
+
+class DctInfo:
+    """
+    Main dictionary container holding dictionary data, settings, cache,
+    and file information.
+
+    Attributes:
+    ----------
+    - dct: The main dictionary data structure.
+    - filepath: Path to the dictionary file, or None if not saved.
+    - settings: Dictionary settings.
+    - cache: User session state.
+
+    Protected Attributes:
+    --------------------
+    - _schema_version: The version of the data format used for
+      serialization.
+    """
+
+    _schema_version = 1
+
+    def __init__(self, data: SerializedData | None = None):
+        self.dct: Dictionary = ...
+        self.filepath: str | None = ...
+        self.settings: DctSettings = ...
+        self.cache: DctCache = ...
+
+        if data is None:
+            self.set_defaults()
+        else:
+            self.load_from_dict(data)
+
+    def set_defaults(self):
+        self.dct = Dictionary()
+        self.filepath = None
+        self.settings = DctSettings()
+        self.cache = DctCache()
+
+    def to_dict(self) -> SerializedData:
+        return {
+            'version': self._schema_version,
+            'dct': self.dct.to_json_dict(),
+            'settings': self.settings.to_dict(),
+            'cache': self.cache.to_dict(),
+        }
+
+    def load_from_dict(self, data: SerializedData):
+        data = self._check_and_migrate(data)
+
+        self.dct = Dictionary.from_json_dict(data['dct'])
+        self.settings = DctSettings(data['settings'])
+        self.cache = DctCache(data['cache'])
+
+    @staticmethod
+    def _check_and_migrate(data: SerializedData) -> SerializedData:
+        validate_required_fields(data, ('version',))
+        validate_field_type('version', data['version'], int)
+
+        version: int = data['version']
+        if version == 1:
+            DctInfo._validate_data(data)
+            return data
+        raise UnknownVersionError(DctInfo.__name__, version)
+
+    @staticmethod
+    def _validate_data(data: SerializedData):
+        required_fields = ('dct', 'settings', 'cache')
+        validate_required_fields(data, required_fields)
+
+        validate_field_type('dct', data['dct'], SerializedData)
+        validate_field_type('settings', data['settings'], SerializedData)
+        validate_field_type('cache', data['cache'], SerializedData)
 
 
 class Manager:
@@ -51,7 +254,7 @@ class Manager:
         Creates an empty manager with no opened dictionaries.
         """
 
-        self.opened_dct_info: DictionariesInfo = []
+        self.opened_dct_info: list[DctInfo] = []
         self.active_dct_id: int | None = None
 
     @property
@@ -66,21 +269,7 @@ class Manager:
         return len(self.opened_dct_info)
 
     @property
-    def dct(self) -> Dictionary | None:
-        """
-        Get the currently active dictionary.
-
-        Returns:
-            The currently active Dictionary instance, or None if no
-            dictionary is active.
-        """
-
-        if self.active_dct_id is None:
-            return None
-        return self.opened_dct_info[self.active_dct_id]['dct']
-
-    @property
-    def filepath(self) -> str | None:
+    def active(self) -> DctInfo | None:
         """
         Get the file path of the currently active dictionary.
 
@@ -91,10 +280,11 @@ class Manager:
 
         if self.active_dct_id is None:
             return None
-        return self.opened_dct_info[self.active_dct_id]['filepath']
+        return self.opened_dct_info[self.active_dct_id]
 
-    def add_dct(self, dct: Dictionary, filepath: str | None = None, to_activate: bool = True):
-        self.opened_dct_info.append({'dct': dct, 'filepath': filepath})
+    def add_dct(self, dct_info: DctInfo, to_activate: bool = True):
+        self.opened_dct_info.append(dct_info)
+
         if to_activate or self.n_opened == 1:
             self.active_dct_id = len(self.opened_dct_info) - 1
 
@@ -110,39 +300,32 @@ class Manager:
                 active index.
         """
 
-        dct = Dictionary(name)
+        new_dct_info = DctInfo()
+        new_dct_info.dct.rename(name)
+        self.opened_dct_info.append(new_dct_info)
 
-        self.opened_dct_info.append({'dct': dct, 'filepath': None})
+        # If needed, set this dictionary as active
         if to_activate or self.n_opened == 1:
             self.active_dct_id = len(self.opened_dct_info) - 1
 
-    def open_dct(
-            self,
-            filepath: str,
-            loading_func: Callable[[str], SerializedData],
-            to_activate: bool = True,
-    ):
+    def open_dct(self, filepath: str, to_activate: bool = True):
         """
         Open a dictionary from a file and add it to the manager.
 
         Args:
             filepath: Path to the dictionary file to open.
-            loading_func: Callable that takes the file path and returns
-                the deserialized dictionary data. This function is
-                responsible for reading the file contents and
-                converting them into the in-memory representation
-                expected by `Dictionary.from_json_dict`.
             to_activate: If True, switch the manager's active
                 dictionary to the one just opened. If False, keep the
                 current active dictionary.
         """
 
-        save_data = loading_func(filepath)
+        with open(filepath, 'r') as file:
+            data = json.load(file)
+        dct_info = DctInfo(data)
+        dct_info.dct.mark_saved()
+        self.opened_dct_info.append(dct_info)
 
-        dct = Dictionary.from_json_dict(save_data)
-        dct.mark_saved()
-
-        self.opened_dct_info.append({'dct': dct, 'filepath': filepath})
+        # If needed, set this dictionary as active
         if to_activate or self.n_opened == 1:
             self.active_dct_id = len(self.opened_dct_info) - 1
 
@@ -183,21 +366,12 @@ class Manager:
 
         del self.opened_dct_info[dct_id]
 
-    def save_dct(
-            self,
-            dct_id: int,
-            saving_func: Callable[[SerializedData, str], None],
-            filepath: str | None = None,
-    ):
+    def save_dct(self, dct_id: int, filepath: str | None = None):
         """
         Save a dictionary to a file.
 
         Args:
             dct_id: Index of the dictionary to save.
-            saving_func: Callable that accepts two arguments (the
-                serialized dictionary data and the destination file
-                path) and writes the data to disk. The function should
-                raise on failure.
             filepath: Path where to save the dictionary. If None, uses
                 the dictionary's current filepath.
 
@@ -210,15 +384,18 @@ class Manager:
         assert 0 <= dct_id <= len(self.opened_dct_info)
 
         if filepath is None:
-            filepath = self.opened_dct_info[dct_id]['filepath']
+            filepath = self.opened_dct_info[dct_id].filepath
             if filepath is None:
                 raise ValueError('No filepath is specified')
 
-        save_data = self.dct.to_json_dict()
-        saving_func(save_data, filepath)
-        self.dct.mark_saved()
+        data = self.active.to_dict()
 
-        self.opened_dct_info[dct_id]['filepath'] = filepath
+        with open(filepath, 'w') as file:
+            json.dump(data, file)
+
+        self.active.dct.mark_saved()
+
+        self.opened_dct_info[dct_id].filepath = filepath
 
     def rename_dict(self, dct_id: int, new_name: str):
         """
@@ -229,7 +406,7 @@ class Manager:
             new_name: New name of the dictionary.
         """
 
-        self.opened_dct_info[dct_id]['dct'].rename(new_name)
+        self.opened_dct_info[dct_id].dct.rename(new_name)
 
     def reorder(self, from_index: int, to_index: int):
         """
@@ -265,29 +442,10 @@ class Manager:
         return {
             'version': self._schema_version,
             'data': {
-                'opened_dct_info': self.opened_dct_info,
+                'opened_dct_info': [dct_info.to_dict() for dct_info in self.opened_dct_info],
                 'active_dct_id': self.active_dct_id,
             }
         }
-
-    def to_json_dict(self) -> SerializedData:
-        """
-        Serialize the manager state to a JSON format.
-
-        Returns:
-            Dictionary containing manager data.
-        """
-
-        data = self.to_dict()
-
-        data['data']['opened_dct_info'] = [
-            {
-                'dct': item['dct'].to_json_dict(),
-                'filepath': item['filepath'],
-            } for item in self.opened_dct_info
-        ]
-
-        return data
 
     def load_from_json_dict(self, data: SerializedData):
         """
@@ -310,22 +468,28 @@ class Manager:
         active_dct_id = data['active_dct_id']
 
         # Validate types
-        validate_field_type('opened_dct_info', opened_dct_info, list[dict[str, Any]])
+        validate_field_type('opened_dct_info', opened_dct_info, list[SerializedData])
         validate_field_type('active_dct_id', active_dct_id, (int, NoneType))
 
-        # Convert types and values
-        try:
-            opened_dct_info = [
-                {
-                    'dct': Dictionary.from_json_dict(item['dct']),
-                    'filepath': item['filepath'],
-                } for item in data['opened_dct_info']
-            ]
-        except KeyError as e:
-            if str(e) in ('dct', 'filepath'):
-                raise MissingFieldsError(e)
-            raise
+        # Read opened dictionaries
+        opened_dct_info = [DctInfo(item) for item in data['opened_dct_info']]
 
         # Set attributes
         self.opened_dct_info = opened_dct_info
         self.active_dct_id = active_dct_id
+
+    @classmethod
+    def from_json_dict(cls, data: SerializedData) -> 'Manager':
+        """
+        Deserialize manager state from a JSON format.
+
+        Args:
+            data: Dictionary containing manager data.
+
+        Returns:
+            A manager object.
+        """
+
+        manager = cls()
+        manager.load_from_json_dict(data)
+        return manager
