@@ -1441,8 +1441,17 @@ def validate_savename(value: str) -> bool:
 
 # Прокручиваемый фрейм
 class ScrollFrame(tk.Frame):
-    def __init__(self, parent, height: int, width: int, scrollbar_position: typing.Literal['left', 'right'] = 'right'):
+    def __init__(
+            self,
+            parent,
+            app_config: AppSettings,
+            height: int,
+            width: int,
+            scrollbar_position: typing.Literal['left', 'right'] = 'right',
+    ):
         super().__init__(parent)
+
+        self.app_config = app_config
 
         if scrollbar_position == 'right':
             canvas_position: typing.Literal['left', 'right'] = 'left'
@@ -1456,7 +1465,7 @@ class ScrollFrame(tk.Frame):
 
     def _create_widgets(self, height: int, width: int, canvas_position: typing.Literal['left', 'right'],
                         scrollbar_position: typing.Literal['left', 'right']):
-        self.canvas = tk.Canvas(self, bg=STYLES['FLAT_BTN.BG.2'][1][th], bd=0,
+        self.canvas = tk.Canvas(self, bg=STYLES['FLAT_BTN.BG.2'][1][self.app_config.theme], bd=0,
                                 highlightthickness=0, height=height, width=width)
         # {
         self.frame_canvas = ttk.Frame(self.canvas, style='Default.TFrame')
