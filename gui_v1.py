@@ -1266,8 +1266,8 @@ def save_dct(dct: Dictionary, savename: str):
 
 
 # Предложить сохранение словаря, если есть изменения
-def save_dct_if_has_progress(window_parent, dct: Dictionary, savename: str, has_progress: bool):
-    if has_progress:
+def save_dct_if_has_progress(window_parent, dct: Dictionary, savename: str):
+    if not dct.is_saved:
         window_dia = PopupDialogueW(window_parent, 'Хотите сохранить свой прогресс?', 'Да', 'Нет')
         answer = window_dia.open()
         if answer:
@@ -6952,15 +6952,17 @@ class NewVersionAvailableW(tk.Toplevel):
             exit(EXIT_UPDATE)
 
 
-# Главное окно
 class MainW(tk.Tk):
-    def __init__(self, dct: Dictionary):
+    """The main window."""
+
+    def __init__(self, manager: Manager, app_config: AppSettings):
         super().__init__()
 
-        self.dct = dct
+        self.manager = manager
+        self.app_config = app_config
 
         self._configure_window()
-        self.setup_styles()  # Установка ttk-стилей
+        self.setup_styles()
         self._create_widgets()
         self.set_focus()
 
@@ -6968,7 +6970,7 @@ class MainW(tk.Tk):
         self.title(PROGRAM_NAME)
         self.eval('tk::PlaceWindow . center')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
 
     def _create_widgets(self):
         self.frame_head = ttk.Frame(self, style='Invis.TFrame')
@@ -6980,7 +6982,7 @@ class MainW(tk.Tk):
         # {
         self.lbl_dct_name = ttk.Label(self.frame_dct_name,
                                       text=f'Открыт словарь\n'
-                                           f'"{split_text(_0_global_dct_savename, 20, to_add_right_spaces=False)}"',
+                                           f'"{split_text(self.manager.active.dct.name, 20, to_add_right_spaces=False)}"',
                                       justify='center', style='Default.TLabel')
         # }
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
@@ -7032,61 +7034,54 @@ class MainW(tk.Tk):
     def learn(self):
         self.disable_all_buttons()
 
-        res = ChooseLearnModeW(self, self.dct).open()
+        res = ChooseLearnModeW(self, self.manager.active.dct).open()
         if res:
-            LearnW(self, res, self.dct).open()
+            LearnW(self, res, self.manager.active.dct).open()
 
         self.enable_all_buttons()
 
     # Нажатие на кнопку "Просмотреть словарь"
     def print(self):
         self.disable_all_buttons()
-        PrintW(self, self.dct).open()
+        PrintW(self, self.manager.active.dct).open()
         self.enable_all_buttons()
 
     # Нажатие на кнопку "Поиск"
     def search(self):
         self.disable_all_buttons()
-        PrintW(self, self.dct).open(tab='search')
+        PrintW(self, self.manager.active.dct).open(tab='search')
         self.enable_all_buttons()
 
     # Нажатие на кнопку "Добавить запись в словарь"
     def add(self):
         self.disable_all_buttons()
 
-        key = AddW(self, self.dct).open()
+        key = AddW(self, self.manager.active.dct).open()
         if key:
-            EditW(self, self.dct, key).open()
+            EditW(self, self.manager.active.dct, key).open()
 
         self.enable_all_buttons()
 
     # Нажатие на кнопку "Настройки"
     def settings(self):
-        global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale, \
-            _0_global_special_combinations, _0_global_check_register, _0_global_learn_settings, \
-            _0_global_session_number, _0_global_search_settings, _0_global_fav_groups
-
         self.disable_all_buttons()
-        SettingsW(self, self.dct).open()
+        SettingsW(self, self.manager, self.app_config).open()
         self.enable_all_buttons()
 
+        # TODO:
         # Обновляем глобальные настройки
-        _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale =\
-            upload_global_settings()
         # Обновляем локальные настройки
-        _0_global_check_register, _0_global_special_combinations, self.dct._features, self.dct._groups, \
-            _0_global_fav_groups = upload_local_settings(_0_global_dct_savename)
         # Обновляем локальные авто-настройки
-        _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
-            upload_local_auto_settings(_0_global_dct_savename)
 
         # Обновляем надпись с названием открытого словаря
         self.lbl_dct_name.config(text=f'Открыт словарь\n'
-                                      f'"{split_text(_0_global_dct_savename, 20, to_add_right_spaces=False)}"')
+                                      f'"{split_text(self.manager.active.dct.name, 20, to_add_right_spaces=False)}"')
 
+        # TODO: remove try-catch
         # Установка масштаба для окна уведомления об обновлении
         try:
-            _0_global_window_last_version.entry_url.configure(font=('StdFont', _0_global_scale))
+            # TODO: remove global variable
+            _0_global_window_last_version.entry_url.configure(font=('StdFont', self.app_config.font_size))
         except:  # Если окно обновления не открыто
             pass
 
@@ -7096,27 +7091,27 @@ class MainW(tk.Tk):
     def check_updates(self):
         global _0_global_window_last_version
 
+        # TODO: remove try-catch
         # Если уведомление об обновлении уже открыто, то закрываем его
         try:
+            # TODO: remove global variable
             _0_global_window_last_version.destroy()
         except:
             pass
         # Открываем новое уведомление об обновлении
-        _0_global_window_last_version = check_updates(self, self.dct, bool(_0_global_show_updates), True)
+        _0_global_window_last_version = check_updates(self, self.manager.active.dct, self.app_config.to_check_for_updates, True)
 
     # Нажатие на кнопку "Сохранить словарь"
     def save(self):
-        global _0_global_has_progress
-
-        save_dct(self.dct, _0_global_dct_savename)
+        save_dct(self.manager.active.dct, self.manager.active.dct.name)
         PopupMsgW(self, 'Прогресс успешно сохранён').open()
         print('\nПрогресс успешно сохранён')
 
-        _0_global_has_progress = False
+        self.manager.active.dct.mark_saved()
 
     # Нажатие на кнопку "Закрыть программу"
     def close(self):
-        save_dct_if_has_progress(self, self.dct, _0_global_dct_savename, _0_global_has_progress)
+        save_dct_if_has_progress(self, self.manager.active.dct, self.manager.active.dct.name)
         self.quit()
 
     # Отключить все кнопки на главном окне
@@ -7142,303 +7137,303 @@ class MainW(tk.Tk):
         self.st_lbl_default = ttk.Style()
         self.st_lbl_default.theme_use('alt')
         self.st_lbl_default.configure('Default.TLabel',
-                                      font=('StdFont', _0_global_scale),
-                                      background=STYLES['*.BG.*'][1][th],
-                                      foreground=STYLES['*.FG.*'][1][th])
+                                      font=('StdFont', self.app_config.font_size),
+                                      background=STYLES['*.BG.*'][1][self.app_config.theme],
+                                      foreground=STYLES['*.FG.*'][1][self.app_config.theme])
 
         # Стиль label "header"
         self.st_lbl_header = ttk.Style()
         self.st_lbl_header.theme_use('alt')
         self.st_lbl_header.configure('Header.TLabel',
-                                     font=('StdFont', _0_global_scale + 5),
-                                     background=STYLES['*.BG.*'][1][th],
-                                     foreground=STYLES['*.FG.*'][1][th])
+                                     font=('StdFont', self.app_config.font_size + 5),
+                                     background=STYLES['*.BG.*'][1][self.app_config.theme],
+                                     foreground=STYLES['*.FG.*'][1][self.app_config.theme])
 
         # Стиль label "logo"
         self.st_lbl_logo = ttk.Style()
         self.st_lbl_logo.theme_use('alt')
         self.st_lbl_logo.configure('Logo.TLabel',
-                                   font=('Times', _0_global_scale + 11),
-                                   background=STYLES['*.BG.*'][1][th],
-                                   foreground=STYLES['*.FG.LOGO'][1][th])
+                                   font=('Times', self.app_config.font_size + 11),
+                                   background=STYLES['*.BG.*'][1][self.app_config.theme],
+                                   foreground=STYLES['*.FG.LOGO'][1][self.app_config.theme])
 
         # Стиль label "footer"
         self.st_lbl_footer = ttk.Style()
         self.st_lbl_footer.theme_use('alt')
         self.st_lbl_footer.configure('Footer.TLabel',
-                                     font=('StdFont', _0_global_scale - 2),
-                                     background=STYLES['*.BG.*'][1][th],
-                                     foreground=STYLES['*.FG.FOOTER'][1][th])
+                                     font=('StdFont', self.app_config.font_size - 2),
+                                     background=STYLES['*.BG.*'][1][self.app_config.theme],
+                                     foreground=STYLES['*.FG.FOOTER'][1][self.app_config.theme])
 
         # Стиль label "warn"
         self.st_lbl_warn = ttk.Style()
         self.st_lbl_warn.theme_use('alt')
         self.st_lbl_warn.configure('Warn.TLabel',
-                                   font=('StdFont', _0_global_scale),
-                                   background=STYLES['*.BG.*'][1][th],
-                                   foreground=STYLES['*.FG.WARN'][1][th])
+                                   font=('StdFont', self.app_config.font_size),
+                                   background=STYLES['*.BG.*'][1][self.app_config.theme],
+                                   foreground=STYLES['*.FG.WARN'][1][self.app_config.theme])
 
         # Стиль label "flat light"
         self.st_lbl_note = ttk.Style()
         self.st_lbl_note.theme_use('alt')
         self.st_lbl_note.configure('FlatL.TLabel',
-                                   font=('DejaVu Sans Mono', _0_global_scale + 1),
-                                   background=STYLES['FLAT_BTN.BG.1'][1][th],
-                                   foreground=STYLES['FLAT_BTN.FG.1'][1][th])
+                                   font=('DejaVu Sans Mono', self.app_config.font_size + 1),
+                                   background=STYLES['FLAT_BTN.BG.1'][1][self.app_config.theme],
+                                   foreground=STYLES['FLAT_BTN.FG.1'][1][self.app_config.theme])
 
         # Стиль label "flat dark"
         self.st_lbl_note = ttk.Style()
         self.st_lbl_note.theme_use('alt')
         self.st_lbl_note.configure('FlatD.TLabel',
-                                   font=('DejaVu Sans Mono', _0_global_scale + 1),
-                                   background=STYLES['FLAT_BTN.BG.2'][1][th],
-                                   foreground=STYLES['FLAT_BTN.FG.2'][1][th])
+                                   font=('DejaVu Sans Mono', self.app_config.font_size + 1),
+                                   background=STYLES['FLAT_BTN.BG.2'][1][self.app_config.theme],
+                                   foreground=STYLES['FLAT_BTN.FG.2'][1][self.app_config.theme])
 
         # Стиль entry "default"
         self.st_entry = ttk.Style()
         self.st_entry.theme_use('alt')
         self.st_entry.configure('Default.TEntry',
-                                font=('StdFont', _0_global_scale))
+                                font=('StdFont', self.app_config.font_size))
         self.st_entry.map('Default.TEntry',
-                          fieldbackground=[('readonly', STYLES['*.BG.*'][1][th]),
-                                           ('!readonly', STYLES['*.BG.ENTRY'][1][th])],
-                          foreground=[('readonly', STYLES['*.FG.*'][1][th]),
-                                      ('!readonly', STYLES['*.FG.ENTRY'][1][th])],
-                          selectbackground=[('readonly', STYLES['*.BG.SEL'][1][th]),
-                                            ('!readonly', STYLES['*.BG.SEL'][1][th])],
-                          selectforeground=[('readonly', STYLES['*.FG.SEL'][1][th]),
-                                            ('!readonly', STYLES['*.FG.SEL'][1][th])])
+                          fieldbackground=[('readonly', STYLES['*.BG.*'][1][self.app_config.theme]),
+                                           ('!readonly', STYLES['*.BG.ENTRY'][1][self.app_config.theme])],
+                          foreground=[('readonly', STYLES['*.FG.*'][1][self.app_config.theme]),
+                                      ('!readonly', STYLES['*.FG.ENTRY'][1][self.app_config.theme])],
+                          selectbackground=[('readonly', STYLES['*.BG.SEL'][1][self.app_config.theme]),
+                                            ('!readonly', STYLES['*.BG.SEL'][1][self.app_config.theme])],
+                          selectforeground=[('readonly', STYLES['*.FG.SEL'][1][self.app_config.theme]),
+                                            ('!readonly', STYLES['*.FG.SEL'][1][self.app_config.theme])])
 
         # Стиль button "default"
         self.st_btn_default = ttk.Style()
         self.st_btn_default.theme_use('alt')
         self.st_btn_default.configure('Default.TButton',
-                                      font=('StdFont', _0_global_scale + 2),
+                                      font=('StdFont', self.app_config.font_size + 2),
                                       borderwidth=1)
         self.st_btn_default.map('Default.TButton',
                                 relief=[('pressed', 'sunken'),
                                         ('active', 'flat'),
                                         ('!active', 'raised')],
-                                background=[('pressed', STYLES['BTN.BG.ACT'][1][th]),
-                                            ('active', STYLES['BTN.BG.*'][1][th]),
-                                            ('!active', STYLES['BTN.BG.*'][1][th])],
-                                foreground=[('pressed', STYLES['*.FG.*'][1][th]),
-                                            ('active', STYLES['*.FG.*'][1][th]),
-                                            ('!active', STYLES['*.FG.*'][1][th])])
+                                background=[('pressed', STYLES['BTN.BG.ACT'][1][self.app_config.theme]),
+                                            ('active', STYLES['BTN.BG.*'][1][self.app_config.theme]),
+                                            ('!active', STYLES['BTN.BG.*'][1][self.app_config.theme])],
+                                foreground=[('pressed', STYLES['*.FG.*'][1][self.app_config.theme]),
+                                            ('active', STYLES['*.FG.*'][1][self.app_config.theme]),
+                                            ('!active', STYLES['*.FG.*'][1][self.app_config.theme])])
 
         # Стиль button "disabled" (для выключенных "default")
         self.st_btn_disabled = ttk.Style()
         self.st_btn_disabled.theme_use('alt')
         self.st_btn_disabled.configure('Disabled.TButton',
-                                       font=('StdFont', _0_global_scale + 2),
+                                       font=('StdFont', self.app_config.font_size + 2),
                                        borderwidth=1)
         self.st_btn_disabled.map('Disabled.TButton',
                                  relief=[('active', 'raised'),
                                          ('!active', 'raised')],
-                                 background=[('active', STYLES['BTN.BG.DISABL'][1][th]),
-                                             ('!active', STYLES['BTN.BG.DISABL'][1][th])],
-                                 foreground=[('active', STYLES['BTN.FG.DISABL'][1][th]),
-                                             ('!active', STYLES['BTN.FG.DISABL'][1][th])])
+                                 background=[('active', STYLES['BTN.BG.DISABL'][1][self.app_config.theme]),
+                                             ('!active', STYLES['BTN.BG.DISABL'][1][self.app_config.theme])],
+                                 foreground=[('active', STYLES['BTN.FG.DISABL'][1][self.app_config.theme]),
+                                             ('!active', STYLES['BTN.FG.DISABL'][1][self.app_config.theme])])
 
         # Стиль button "yes"
         self.st_btn_yes = ttk.Style()
         self.st_btn_yes.theme_use('alt')
         self.st_btn_yes.configure('Yes.TButton',
-                                  font=('StdFont', _0_global_scale + 2),
+                                  font=('StdFont', self.app_config.font_size + 2),
                                   borderwidth=1)
         self.st_btn_yes.map('Yes.TButton',
                             relief=[('pressed', 'sunken'),
                                     ('active', 'flat'),
                                     ('!active', 'raised')],
-                            background=[('pressed', STYLES['BTN.BG.Y_ACT'][1][th]),
-                                        ('active', STYLES['BTN.BG.Y'][1][th]),
-                                        ('!active', STYLES['BTN.BG.Y'][1][th])],
-                            foreground=[('pressed', STYLES['*.FG.*'][1][th]),
-                                        ('active', STYLES['*.FG.*'][1][th]),
-                                        ('!active', STYLES['*.FG.*'][1][th])])
+                            background=[('pressed', STYLES['BTN.BG.Y_ACT'][1][self.app_config.theme]),
+                                        ('active', STYLES['BTN.BG.Y'][1][self.app_config.theme]),
+                                        ('!active', STYLES['BTN.BG.Y'][1][self.app_config.theme])],
+                            foreground=[('pressed', STYLES['*.FG.*'][1][self.app_config.theme]),
+                                        ('active', STYLES['*.FG.*'][1][self.app_config.theme]),
+                                        ('!active', STYLES['*.FG.*'][1][self.app_config.theme])])
 
         # Стиль button "no"
         self.st_btn_no = ttk.Style()
         self.st_btn_no.theme_use('alt')
         self.st_btn_no.configure('No.TButton',
-                                 font=('StdFont', _0_global_scale + 2),
+                                 font=('StdFont', self.app_config.font_size + 2),
                                  borderwidth=1)
         self.st_btn_no.map('No.TButton',
                            relief=[('pressed', 'sunken'),
                                    ('active', 'flat'),
                                    ('!active', 'raised')],
-                           background=[('pressed', STYLES['BTN.BG.N_ACT'][1][th]),
-                                       ('active', STYLES['BTN.BG.N'][1][th]),
-                                       ('!active', STYLES['BTN.BG.N'][1][th])],
-                           foreground=[('pressed', STYLES['*.FG.*'][1][th]),
-                                       ('active', STYLES['*.FG.*'][1][th]),
-                                       ('!active', STYLES['*.FG.*'][1][th])])
+                           background=[('pressed', STYLES['BTN.BG.N_ACT'][1][self.app_config.theme]),
+                                       ('active', STYLES['BTN.BG.N'][1][self.app_config.theme]),
+                                       ('!active', STYLES['BTN.BG.N'][1][self.app_config.theme])],
+                           foreground=[('pressed', STYLES['*.FG.*'][1][self.app_config.theme]),
+                                       ('active', STYLES['*.FG.*'][1][self.app_config.theme]),
+                                       ('!active', STYLES['*.FG.*'][1][self.app_config.theme])])
 
         # Стиль button "image"
         self.st_btn_image = ttk.Style()
         self.st_btn_image.theme_use('alt')
         self.st_btn_image.configure('Image.TButton',
-                                    font=('StdFont', _0_global_scale + 2),
+                                    font=('StdFont', self.app_config.font_size + 2),
                                     borderwidth=0)
         self.st_btn_image.map('Image.TButton',
                               relief=[('pressed', 'flat'),
                                       ('active', 'flat'),
                                       ('!active', 'flat')],
-                              background=[('pressed', STYLES['BTN.BG.IMG_ACT'][1][th]),
-                                          ('active', STYLES['BTN.BG.IMG_HOV'][1][th]),
-                                          ('!active', STYLES['*.BG.*'][1][th])],
-                              foreground=[('pressed', STYLES['*.FG.*'][1][th]),
-                                          ('active', STYLES['*.FG.*'][1][th]),
-                                          ('!active', STYLES['*.FG.*'][1][th])])
+                              background=[('pressed', STYLES['BTN.BG.IMG_ACT'][1][self.app_config.theme]),
+                                          ('active', STYLES['BTN.BG.IMG_HOV'][1][self.app_config.theme]),
+                                          ('!active', STYLES['*.BG.*'][1][self.app_config.theme])],
+                              foreground=[('pressed', STYLES['*.FG.*'][1][self.app_config.theme]),
+                                          ('active', STYLES['*.FG.*'][1][self.app_config.theme]),
+                                          ('!active', STYLES['*.FG.*'][1][self.app_config.theme])])
 
         # Стиль button "flat light"
         self.st_btn_note = ttk.Style()
         self.st_btn_note.theme_use('alt')
         self.st_btn_note.configure('FlatL.TButton',
-                                   font=('DejaVu Sans Mono', _0_global_scale + 1),
+                                   font=('DejaVu Sans Mono', self.app_config.font_size + 1),
                                    borderwidth=0)
         self.st_btn_note.map('FlatL.TButton',
                              relief=[('pressed', 'flat'),
                                      ('active', 'flat'),
                                      ('!active', 'flat')],
-                             background=[('pressed', STYLES['FLAT_BTN.BG.ACT'][1][th]),
-                                         ('active', STYLES['FLAT_BTN.BG.HOV'][1][th]),
-                                         ('!active', STYLES['FLAT_BTN.BG.1'][1][th])],
-                             foreground=[('pressed', STYLES['FLAT_BTN.FG.ACT'][1][th]),
-                                         ('active', STYLES['FLAT_BTN.FG.HOV'][1][th]),
-                                         ('!active', STYLES['FLAT_BTN.FG.1'][1][th])])
+                             background=[('pressed', STYLES['FLAT_BTN.BG.ACT'][1][self.app_config.theme]),
+                                         ('active', STYLES['FLAT_BTN.BG.HOV'][1][self.app_config.theme]),
+                                         ('!active', STYLES['FLAT_BTN.BG.1'][1][self.app_config.theme])],
+                             foreground=[('pressed', STYLES['FLAT_BTN.FG.ACT'][1][self.app_config.theme]),
+                                         ('active', STYLES['FLAT_BTN.FG.HOV'][1][self.app_config.theme]),
+                                         ('!active', STYLES['FLAT_BTN.FG.1'][1][self.app_config.theme])])
 
         # Стиль button "flat dark"
         self.st_btn_note = ttk.Style()
         self.st_btn_note.theme_use('alt')
         self.st_btn_note.configure('FlatD.TButton',
-                                   font=('DejaVu Sans Mono', _0_global_scale + 1),
+                                   font=('DejaVu Sans Mono', self.app_config.font_size + 1),
                                    borderwidth=0)
         self.st_btn_note.map('FlatD.TButton',
                              relief=[('pressed', 'flat'),
                                      ('active', 'flat'),
                                      ('!active', 'flat')],
-                             background=[('pressed', STYLES['FLAT_BTN.BG.ACT'][1][th]),
-                                         ('active', STYLES['FLAT_BTN.BG.HOV'][1][th]),
-                                         ('!active', STYLES['FLAT_BTN.BG.2'][1][th])],
-                             foreground=[('pressed', STYLES['FLAT_BTN.FG.ACT'][1][th]),
-                                         ('active', STYLES['FLAT_BTN.FG.HOV'][1][th]),
-                                         ('!active', STYLES['FLAT_BTN.FG.2'][1][th])])
+                             background=[('pressed', STYLES['FLAT_BTN.BG.ACT'][1][self.app_config.theme]),
+                                         ('active', STYLES['FLAT_BTN.BG.HOV'][1][self.app_config.theme]),
+                                         ('!active', STYLES['FLAT_BTN.BG.2'][1][self.app_config.theme])],
+                             foreground=[('pressed', STYLES['FLAT_BTN.FG.ACT'][1][self.app_config.theme]),
+                                         ('active', STYLES['FLAT_BTN.FG.HOV'][1][self.app_config.theme]),
+                                         ('!active', STYLES['FLAT_BTN.FG.2'][1][self.app_config.theme])])
 
         # Стиль button "flat selected light"
         self.st_btn_note_selected = ttk.Style()
         self.st_btn_note_selected.theme_use('alt')
         self.st_btn_note_selected.configure('FlatSelectedL.TButton',
-                                            font=('DejaVu Sans Mono', _0_global_scale + 1),
+                                            font=('DejaVu Sans Mono', self.app_config.font_size + 1),
                                             borderwidth=0)
         self.st_btn_note_selected.map('FlatSelectedL.TButton',
                                       relief=[('pressed', 'flat'),
                                               ('active', 'flat'),
                                               ('!active', 'flat')],
-                                      background=[('pressed', STYLES['FLAT_BTN.BG.SEL_ACT'][1][th]),
-                                                  ('active', STYLES['FLAT_BTN.BG.SEL_HOV'][1][th]),
-                                                  ('!active', STYLES['FLAT_BTN.BG.SEL_1'][1][th])],
-                                      foreground=[('pressed', STYLES['FLAT_BTN.FG.SEL_ACT'][1][th]),
-                                                  ('active', STYLES['FLAT_BTN.FG.SEL_HOV'][1][th]),
-                                                  ('!active', STYLES['FLAT_BTN.FG.SEL_1'][1][th])])
+                                      background=[('pressed', STYLES['FLAT_BTN.BG.SEL_ACT'][1][self.app_config.theme]),
+                                                  ('active', STYLES['FLAT_BTN.BG.SEL_HOV'][1][self.app_config.theme]),
+                                                  ('!active', STYLES['FLAT_BTN.BG.SEL_1'][1][self.app_config.theme])],
+                                      foreground=[('pressed', STYLES['FLAT_BTN.FG.SEL_ACT'][1][self.app_config.theme]),
+                                                  ('active', STYLES['FLAT_BTN.FG.SEL_HOV'][1][self.app_config.theme]),
+                                                  ('!active', STYLES['FLAT_BTN.FG.SEL_1'][1][self.app_config.theme])])
 
         # Стиль button "flat selected dark"
         self.st_btn_note_selected = ttk.Style()
         self.st_btn_note_selected.theme_use('alt')
         self.st_btn_note_selected.configure('FlatSelectedD.TButton',
-                                            font=('DejaVu Sans Mono', _0_global_scale + 1),
+                                            font=('DejaVu Sans Mono', self.app_config.font_size + 1),
                                             borderwidth=0)
         self.st_btn_note_selected.map('FlatSelectedD.TButton',
                                       relief=[('pressed', 'flat'),
                                               ('active', 'flat'),
                                               ('!active', 'flat')],
-                                      background=[('pressed', STYLES['FLAT_BTN.BG.SEL_ACT'][1][th]),
-                                                  ('active', STYLES['FLAT_BTN.BG.SEL_HOV'][1][th]),
-                                                  ('!active', STYLES['FLAT_BTN.BG.SEL_2'][1][th])],
-                                      foreground=[('pressed', STYLES['FLAT_BTN.FG.SEL_ACT'][1][th]),
-                                                  ('active', STYLES['FLAT_BTN.FG.SEL_HOV'][1][th]),
-                                                  ('!active', STYLES['FLAT_BTN.FG.SEL_2'][1][th])])
+                                      background=[('pressed', STYLES['FLAT_BTN.BG.SEL_ACT'][1][self.app_config.theme]),
+                                                  ('active', STYLES['FLAT_BTN.BG.SEL_HOV'][1][self.app_config.theme]),
+                                                  ('!active', STYLES['FLAT_BTN.BG.SEL_2'][1][self.app_config.theme])],
+                                      foreground=[('pressed', STYLES['FLAT_BTN.FG.SEL_ACT'][1][self.app_config.theme]),
+                                                  ('active', STYLES['FLAT_BTN.FG.SEL_HOV'][1][self.app_config.theme]),
+                                                  ('!active', STYLES['FLAT_BTN.FG.SEL_2'][1][self.app_config.theme])])
 
         # Стиль checkbutton "default"
         self.st_check = ttk.Style()
         self.st_check.theme_use('alt')
         self.st_check.map('Default.TCheckbutton',
-                          background=[('active', STYLES['CHECK.BG.SEL'][1][th]),
-                                      ('!active', STYLES['*.BG.*'][1][th])])
+                          background=[('active', STYLES['CHECK.BG.SEL'][1][self.app_config.theme]),
+                                      ('!active', STYLES['*.BG.*'][1][self.app_config.theme])])
 
         # Стиль combobox "default"
         self.st_combo = ttk.Style()
         self.st_combo.theme_use('alt')
         self.st_combo.configure('Default.TCombobox',
-                                font=('DejaVu Sans Mono', _0_global_scale))
+                                font=('DejaVu Sans Mono', self.app_config.font_size))
         self.st_combo.map('Default.TCombobox',
-                          background=[('readonly', STYLES['BTN.BG.*'][1][th]),
-                                      ('!readonly', STYLES['BTN.BG.*'][1][th])],
-                          fieldbackground=[('readonly', STYLES['*.BG.ENTRY'][1][th]),
-                                           ('!readonly', STYLES['*.BG.ENTRY'][1][th])],
-                          selectbackground=[('readonly', STYLES['*.BG.ENTRY'][1][th]),
-                                            ('!readonly', STYLES['*.BG.ENTRY'][1][th])],
-                          highlightbackground=[('readonly', STYLES['*.BORDER_CLR.*'][1][th]),
-                                               ('!readonly', STYLES['*.BORDER_CLR.*'][1][th])],
-                          foreground=[('readonly', STYLES['*.FG.*'][1][th]),
-                                      ('!readonly', STYLES['*.FG.*'][1][th])],
-                          selectforeground=[('readonly', STYLES['*.FG.*'][1][th]),
-                                            ('!readonly', STYLES['*.FG.*'][1][th])])
+                          background=[('readonly', STYLES['BTN.BG.*'][1][self.app_config.theme]),
+                                      ('!readonly', STYLES['BTN.BG.*'][1][self.app_config.theme])],
+                          fieldbackground=[('readonly', STYLES['*.BG.ENTRY'][1][self.app_config.theme]),
+                                           ('!readonly', STYLES['*.BG.ENTRY'][1][self.app_config.theme])],
+                          selectbackground=[('readonly', STYLES['*.BG.ENTRY'][1][self.app_config.theme]),
+                                            ('!readonly', STYLES['*.BG.ENTRY'][1][self.app_config.theme])],
+                          highlightbackground=[('readonly', STYLES['*.BORDER_CLR.*'][1][self.app_config.theme]),
+                                               ('!readonly', STYLES['*.BORDER_CLR.*'][1][self.app_config.theme])],
+                          foreground=[('readonly', STYLES['*.FG.*'][1][self.app_config.theme]),
+                                      ('!readonly', STYLES['*.FG.*'][1][self.app_config.theme])],
+                          selectforeground=[('readonly', STYLES['*.FG.*'][1][self.app_config.theme]),
+                                            ('!readonly', STYLES['*.FG.*'][1][self.app_config.theme])])
 
         # Стиль всплывающего списка combobox
-        self.option_add('*TCombobox*Listbox*Font', ('DejaVu Sans Mono', _0_global_scale))
-        self.option_add('*TCombobox*Listbox*Background', STYLES['*.BG.ENTRY'][1][th])
-        self.option_add('*TCombobox*Listbox*Foreground', STYLES['*.FG.*'][1][th])
-        self.option_add('*TCombobox*Listbox*selectBackground', STYLES['*.BG.SEL'][1][th])
-        self.option_add('*TCombobox*Listbox*selectForeground', STYLES['*.FG.SEL'][1][th])
+        self.option_add('*TCombobox*Listbox*Font', ('DejaVu Sans Mono', self.app_config.font_size))
+        self.option_add('*TCombobox*Listbox*Background', STYLES['*.BG.ENTRY'][1][self.app_config.theme])
+        self.option_add('*TCombobox*Listbox*Foreground', STYLES['*.FG.*'][1][self.app_config.theme])
+        self.option_add('*TCombobox*Listbox*selectBackground', STYLES['*.BG.SEL'][1][self.app_config.theme])
+        self.option_add('*TCombobox*Listbox*selectForeground', STYLES['*.FG.SEL'][1][self.app_config.theme])
 
         # Стиль scrollbar "vertical"
         self.st_vscroll = ttk.Style()
         self.st_vscroll.theme_use('alt')
         self.st_vscroll.map('Vertical.TScrollbar',
-                            troughcolor=[('disabled', STYLES['*.BG.*'][1][th]),
-                                         ('pressed', STYLES['SCROLL.BG.ACT'][1][th]),
-                                         ('!pressed', STYLES['SCROLL.BG.*'][1][th])],
-                            background=[('disabled', STYLES['*.BG.*'][1][th]),
-                                        ('pressed', STYLES['SCROLL.FG.ACT'][1][th]),
-                                        ('!pressed', STYLES['SCROLL.FG.*'][1][th])])
+                            troughcolor=[('disabled', STYLES['*.BG.*'][1][self.app_config.theme]),
+                                         ('pressed', STYLES['SCROLL.BG.ACT'][1][self.app_config.theme]),
+                                         ('!pressed', STYLES['SCROLL.BG.*'][1][self.app_config.theme])],
+                            background=[('disabled', STYLES['*.BG.*'][1][self.app_config.theme]),
+                                        ('pressed', STYLES['SCROLL.FG.ACT'][1][self.app_config.theme]),
+                                        ('!pressed', STYLES['SCROLL.FG.*'][1][self.app_config.theme])])
 
         # Стиль notebook "default"
         self.st_note = ttk.Style()
         self.st_note.theme_use('alt')
         self.st_note.configure('Default.TNotebook',
-                               font=('StdFont', _0_global_scale))
+                               font=('StdFont', self.app_config.font_size))
         self.st_note.map('Default.TNotebook',
-                         troughcolor=[('active', STYLES['*.BG.*'][1][th]),
-                                      ('!active', STYLES['*.BG.*'][1][th])],
-                         background=[('selected', STYLES['BTN.BG.ACT'][1][th]),
-                                     ('!selected', STYLES['*.BG.*'][1][th])])
+                         troughcolor=[('active', STYLES['*.BG.*'][1][self.app_config.theme]),
+                                      ('!active', STYLES['*.BG.*'][1][self.app_config.theme])],
+                         background=[('selected', STYLES['BTN.BG.ACT'][1][self.app_config.theme]),
+                                     ('!selected', STYLES['*.BG.*'][1][self.app_config.theme])])
 
         # Стиль вкладок notebook
         self.st_note.configure('TNotebook.Tab',
-                               font=('StdFont', _0_global_scale))
+                               font=('StdFont', self.app_config.font_size))
         self.st_note.map('TNotebook.Tab',
-                         background=[('selected', STYLES['TAB.BG.SEL'][1][th]),
-                                     ('!selected', STYLES['TAB.BG.*'][1][th])],
-                         foreground=[('selected', STYLES['TAB.FG.SEL'][1][th]),
-                                     ('!selected', STYLES['TAB.FG.*'][1][th])])
+                         background=[('selected', STYLES['TAB.BG.SEL'][1][self.app_config.theme]),
+                                     ('!selected', STYLES['TAB.BG.*'][1][self.app_config.theme])],
+                         foreground=[('selected', STYLES['TAB.FG.SEL'][1][self.app_config.theme]),
+                                     ('!selected', STYLES['TAB.FG.*'][1][self.app_config.theme])])
 
         # Стиль frame "default"
         self.st_frame_default = ttk.Style()
         self.st_frame_default.theme_use('alt')
         self.st_frame_default.configure('Default.TFrame',
                                         borderwidth=1,
-                                        relief=STYLES['FRAME.RELIEF.*'][1][th],
-                                        background=STYLES['*.BG.*'][1][th],
-                                        bordercolor=STYLES['*.BORDER_CLR.*'][1][th])
+                                        relief=STYLES['FRAME.RELIEF.*'][1][self.app_config.theme],
+                                        background=STYLES['*.BG.*'][1][self.app_config.theme],
+                                        bordercolor=STYLES['*.BORDER_CLR.*'][1][self.app_config.theme])
 
         # Стиль frame "invis"
         self.st_frame_invis = ttk.Style()
         self.st_frame_invis.theme_use('alt')
         self.st_frame_invis.configure('Invis.TFrame',
                                       borderwidth=0,
-                                      relief=STYLES['FRAME.RELIEF.*'][1][th],
-                                      background=STYLES['*.BG.*'][1][th])
+                                      relief=STYLES['FRAME.RELIEF.*'][1][self.app_config.theme],
+                                      background=STYLES['*.BG.*'][1][self.app_config.theme])
 
     # Установить фокус
     def set_focus(self):
