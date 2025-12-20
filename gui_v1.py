@@ -3301,11 +3301,12 @@ class CategoriesSettingsW(tk.Toplevel):
 
 # Окно настроек групп
 class GroupsSettingsW(tk.Toplevel):
-    def __init__(self, parent, dct: Dictionary):
+    def __init__(self, parent, dct_info: DctInfo, app_config: AppSettings):
         super().__init__(parent)
         self.parent = parent
 
-        self.dct = dct
+        self.dct_info = dct_info
+        self.app_config = app_config
 
         self.has_changes = False
 
@@ -3325,15 +3326,15 @@ class GroupsSettingsW(tk.Toplevel):
     def _configure_window(self):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
         self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
         set_image(self.btn_about_window, self.img_about, img_about, '?')
         self.lbl_groups = ttk.Label(self, text='Существующие группы:', justify='center', style='Default.TLabel')
-        self.scrolled_frame = ScrollFrame(self, SCALE_SMALL_FRAME_HEIGHT_TALL[_0_global_scale - SCALE_MIN],
-                                          SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame = ScrollFrame(self, self.app_config, SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_config.font_size - SCALE_MIN],
+                                          SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
         self.btn_add = ttk.Button(self, text='Добавить группу', command=self.add, takefocus=False,
                                   style='Default.TButton')
 
@@ -3347,73 +3348,67 @@ class GroupsSettingsW(tk.Toplevel):
 
     # Добавить группу
     def add(self):
-        window = PopupEntryW(self, 'Введите название новой группы',
-                             check_answer_function=lambda wnd, val: check_group_name(wnd, self.dct.groups, val))
+        window = PopupEntryW(self, self.app_config, 'Введите название новой группы',
+                             check_answer_function=lambda wnd, val: check_group_name(wnd, self.dct_info.dct.groups, val))
         closed, group = window.open()
         if closed:
             return
-        group = encode_special_combinations(group, _0_global_special_combinations)
-        self.dct.add_group(group)
+        group = encode_special_combinations(group, self.dct_info.dct.input_replacements)
+        self.dct_info.dct.add_group(group)
 
         self.print_groups(False)
         self.has_changes = True
 
     # Переименовать группу
     def rename(self, group_old: str):
-        global _0_global_fav_groups, _0_global_learn_settings
-
-        window = PopupEntryW(self, 'Введите новое название группы', default_value=group_old,
+        window = PopupEntryW(self, self.app_config, 'Введите новое название группы', default_value=group_old,
                              check_answer_function=lambda wnd, val:
-                             check_group_name_edit(wnd, self.dct.groups, group_old, val))
+                             check_group_name_edit(wnd, self.dct_info.dct.groups, group_old, val))
         closed, group_new = window.open()
         if closed:
             return
-        group_new = encode_special_combinations(group_new, _0_global_special_combinations)
+        group_new = encode_special_combinations(group_new, self.dct_info.dct.input_replacements)
 
-        if self.dct.groups.index(group_old) + 1 == _0_global_learn_settings[1]:
-            _0_global_learn_settings[1] = len(self.dct.groups)
-        elif self.dct.groups.index(group_old) + 1 < _0_global_learn_settings[1]:
-            _0_global_learn_settings[1] -= 1
-        self.dct.rename_group(group_old, group_new)
-        if group_old in _0_global_fav_groups:
-            _0_global_fav_groups.remove(group_old)
-            _0_global_fav_groups += [group_new]
+        if self.dct_info.dct.groups.index(group_old) + 1 == self.dct_info.cache.train_config[1]:
+            self.dct_info.cache.train_config[1] = len(self.dct_info.dct.groups)
+        elif self.dct_info.dct.groups.index(group_old) + 1 < self.dct_info.cache.train_config[1]:
+            self.dct_info.cache.train_config[1] -= 1
+        self.dct_info.dct.rename_group(group_old, group_new)
+        if self.dct_info.dct.is_default_group(group_old):
+            self.dct_info.dct.unmark_default_group(group_old)
+            self.dct_info.dct.mark_group_as_default(group_new)
 
         self.print_groups(False)
         self.has_changes = True
 
     # Удалить группу
     def delete(self, group: str):
-        global _0_global_fav_groups, _0_global_learn_settings
-
-        group_size = self.dct.count_entries_in_group(group)[0]
+        group_size = self.dct_info.dct.count_entries_in_group(group)[0]
         if group_size != 0:
             tmp = set_postfix(group_size, ('слово будет убрано', 'слова будут убраны', 'слов будут убраны'))
-            window_dia = PopupDialogueW(self, f'{group_size} {tmp} из группы "{group}", а сама группа будет удалена!\n'
+            window_dia = PopupDialogueW(self, self.app_config, f'{group_size} {tmp} из группы "{group}", а сама группа будет удалена!\n'
                                               f'Хотите продолжить?')
             answer = window_dia.open()
             if not answer:
                 return
 
-        if self.dct.groups.index(group) + 1 == _0_global_learn_settings[1]:
-            _0_global_learn_settings[1] = 0
-        elif self.dct.groups.index(group) + 1 < _0_global_learn_settings[1]:
-            _0_global_learn_settings[1] -= 1
-        self.dct.delete_group(group)
-        if group in _0_global_fav_groups:
-            _0_global_fav_groups.remove(group)
+        if self.dct_info.dct.groups.index(group) + 1 == self.dct_info.cache.train_config[1]:
+            self.dct_info.cache.train_config[1] = 0
+        elif self.dct_info.dct.groups.index(group) + 1 < self.dct_info.cache.train_config[1]:
+            self.dct_info.cache.train_config[1] -= 1
+        self.dct_info.dct.delete_group(group)
+        if self.dct_info.dct.is_default_group(group):
+            self.dct_info.dct.unmark_default_group(group)
 
         self.print_groups(False)
         self.has_changes = True
 
     # Добавить группу в избранное
     def fav(self, group: str):
-        global _0_global_fav_groups
-
-        if group in _0_global_fav_groups:
-            _0_global_fav_groups.remove(group)
+        if self.dct_info.dct.is_default_group(group):
+            self.dct_info.dct.unmark_default_group(group)
         else:
-            _0_global_fav_groups += [group]
+            self.dct_info.dct.mark_group_as_default(group)
 
         self.print_groups(False)
         self.has_changes = True
@@ -3437,7 +3432,7 @@ class GroupsSettingsW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем группы
-        self.groups = list(self.dct.groups)
+        self.groups = list(self.dct_info.dct.groups)
         groups_count = len(self.groups)
 
         # Создаём новые фреймы
@@ -3449,13 +3444,13 @@ class GroupsSettingsW(tk.Toplevel):
                         for i in range(groups_count)]
         # Создаём новые подсказки
         self.tips = [ttip.Hovertip(self.buttons[i],
-                                   f'Статей в группе: {self.dct.count_entries_in_group(self.groups[i])[0]}',
+                                   f'Статей в группе: {self.dct_info.dct.count_entries_in_group(self.groups[i])[0]}',
                                    hover_delay=500)
                      for i in range(groups_count)]
         for i in range(groups_count):
             # Выводим текст на кнопки
             group = self.groups[i]
-            if group in _0_global_fav_groups:
+            if self.dct_info.dct.is_default_group(group):
                 self.buttons[i].configure(text=split_text(f'{group} (*)', 35))
             else:
                 self.buttons[i].configure(text=split_text(f'{group}', 35))
@@ -3480,7 +3475,7 @@ class GroupsSettingsW(tk.Toplevel):
 
     # Справка об окне (срабатывает при нажатии на кнопку)
     def about_window(self):
-        PopupMsgW(self, '* Чтобы переименовать группу, наведите на неё мышку и нажмите ЛКМ или Ctrl+R\n'
+        PopupMsgW(self, self.app_config, '* Чтобы переименовать группу, наведите на неё мышку и нажмите ЛКМ или Ctrl+R\n'
                         '* Чтобы удалить группу, наведите на неё мышку и нажмите Ctrl+D\n'
                         '* Чтобы все новые статьи автоматически добавлялись в группу, '
                         'наведите на эту группу мышку и нажмите Ctrl+F',
@@ -6426,7 +6421,7 @@ class SettingsW(tk.Toplevel):
 
     # Настройки групп (срабатывает при нажатии на кнопку)
     def groups_settings(self):
-        self.has_groups_changes = GroupsSettingsW(self, self.manager.active.dct).open() or self.has_groups_changes
+        self.has_groups_changes = GroupsSettingsW(self, self.manager.active, self.app_config).open() or self.has_groups_changes
 
     # Настройки специальных комбинаций (срабатывает при нажатии на кнопку)
     def special_combinations_settings(self):
