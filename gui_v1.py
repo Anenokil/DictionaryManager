@@ -3884,9 +3884,11 @@ class EnterSpecialCombinationW(tk.Toplevel):
 
 # Окно настроек пользовательской темы
 class CustomThemeSettingsW(tk.Toplevel):
-    def __init__(self, parent):
+    def __init__(self, parent, app_config: AppSettings):
         super().__init__(parent)
         self.parent = parent
+
+        self.app_config = app_config
 
         self.custom_styles = {}  # Стили пользовательской темы
         self.history = []  # История изменений
@@ -3916,7 +3918,7 @@ class CustomThemeSettingsW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Настройки пользовательской темы')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -3926,20 +3928,20 @@ class CustomThemeSettingsW(tk.Toplevel):
                                        style='Default.TLabel')
         self.combo_set_theme = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES[1:],
                                             state='readonly', style='Default.TCombobox',
-                                            font=('DejaVu Sans Mono', _0_global_scale))
+                                            font=('DejaVu Sans Mono', self.app_config.font_size))
         self.btn_set_theme = ttk.Button(self.frame_themes, text='Выбрать', width=8, command=self.set_theme,
                                         takefocus=False, style='Default.TButton')
         self.lbl_set_images = ttk.Label(self.frame_themes, text='Использовать изображения из темы:',
                                         style='Default.TLabel')
         self.combo_set_images = ttk.Combobox(self.frame_themes, textvariable=self.var_images, values=THEMES[1:],
                                              state='readonly', style='Default.TCombobox',
-                                             font=('DejaVu Sans Mono', _0_global_scale))
+                                             font=('DejaVu Sans Mono', self.app_config.font_size))
         self.btn_set_images = ttk.Button(self.frame_themes, text='Выбрать', width=8, command=self.set_images,
                                          takefocus=False, style='Default.TButton')
         # }
         # Прокручиваемая область с настройками
-        self.scrolled_frame = ScrollFrame(self, SCALE_DEFAULT_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
-                                          SCALE_CUSTOM_THEME_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame = ScrollFrame(self, self.app_config, SCALE_DEFAULT_FRAME_HEIGHT[self.app_config.font_size - SCALE_MIN],
+                                          SCALE_CUSTOM_THEME_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
         # {
         # Выбор цветов
         self.labels = [ttk.Label(self.scrolled_frame.frame_canvas, style='Default.TLabel')
@@ -3982,19 +3984,19 @@ class CustomThemeSettingsW(tk.Toplevel):
                                           style='Default.TLabel')
         self.combo_relief_frame = ttk.Combobox(self.scrolled_frame.frame_canvas, textvariable=self.var_relief_frame,
                                                values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
-                                               width=SCALE_CUSTOM_THEME_COMBO_WIDTH[_0_global_scale - SCALE_MIN],
+                                               width=SCALE_CUSTOM_THEME_COMBO_WIDTH[self.app_config.font_size - SCALE_MIN],
                                                validate='focus', validatecommand=self.vcmd_relief_frame,
                                                state='readonly', style='Default.TCombobox',
-                                               font=('DejaVu Sans Mono', _0_global_scale))
+                                               font=('DejaVu Sans Mono', self.app_config.font_size))
 
         self.lbl_relief_text = ttk.Label(self.scrolled_frame.frame_canvas, text='Стиль рамок текстовых полей:',
                                          style='Default.TLabel')
         self.combo_relief_text = ttk.Combobox(self.scrolled_frame.frame_canvas, textvariable=self.var_relief_text,
                                               values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
-                                              width=SCALE_CUSTOM_THEME_COMBO_WIDTH[_0_global_scale - SCALE_MIN],
+                                              width=SCALE_CUSTOM_THEME_COMBO_WIDTH[self.app_config.font_size - SCALE_MIN],
                                               validate='focus', validatecommand=self.vcmd_relief_text,
                                               state='readonly', style='Default.TCombobox',
-                                              font=('DejaVu Sans Mono', _0_global_scale))
+                                              font=('DejaVu Sans Mono', self.app_config.font_size))
         # }
         self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
         # {
@@ -4026,8 +4028,8 @@ class CustomThemeSettingsW(tk.Toplevel):
                                      style='DemoYes.TButton')
         self.btn_demo_n = ttk.Button(self.frame_demonstration, text='Нет', takefocus=False, style='DemoNo.TButton')
         self.entry_demo = ttk.Entry(self.frame_demonstration, width=20,
-                                    style='DemoDefault.TEntry', font=('StdFont', _0_global_scale))
-        self.txt_demo = tk.Text(self.frame_demonstration, font=('StdFont', _0_global_scale), width=12, height=4,
+                                    style='DemoDefault.TEntry', font=('StdFont', self.app_config.font_size))
+        self.txt_demo = tk.Text(self.frame_demonstration, font=('StdFont', self.app_config.font_size), width=12, height=4,
                                 state='normal')
         self.scroll_demo = ttk.Scrollbar(self.frame_demonstration, command=self.txt_demo.yview,
                                          style='Demo.Vertical.TScrollbar')
@@ -4328,7 +4330,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_default = ttk.Style()
         self.st_lbl_default.theme_use('alt')
         self.st_lbl_default.configure('DemoDefault.TLabel',
-                                      font=('StdFont', _0_global_scale),
+                                      font=('StdFont', self.app_config.font_size),
                                       background=self.custom_styles['*.BG.*'],
                                       foreground=self.custom_styles['*.FG.*'])
 
@@ -4336,7 +4338,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_header = ttk.Style()
         self.st_lbl_header.theme_use('alt')
         self.st_lbl_header.configure('DemoHeader.TLabel',
-                                     font=('StdFont', _0_global_scale + 5),
+                                     font=('StdFont', self.app_config.font_size + 5),
                                      background=self.custom_styles['*.BG.*'],
                                      foreground=self.custom_styles['*.FG.*'])
 
@@ -4344,7 +4346,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_logo = ttk.Style()
         self.st_lbl_logo.theme_use('alt')
         self.st_lbl_logo.configure('DemoLogo.TLabel',
-                                   font=('Times', _0_global_scale + 11),
+                                   font=('Times', self.app_config.font_size + 11),
                                    background=self.custom_styles['*.BG.*'],
                                    foreground=self.custom_styles['*.FG.LOGO'])
 
@@ -4352,7 +4354,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_footer = ttk.Style()
         self.st_lbl_footer.theme_use('alt')
         self.st_lbl_footer.configure('DemoFooter.TLabel',
-                                     font=('StdFont', _0_global_scale - 2),
+                                     font=('StdFont', self.app_config.font_size - 2),
                                      background=self.custom_styles['*.BG.*'],
                                      foreground=self.custom_styles['*.FG.FOOTER'])
 
@@ -4360,7 +4362,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_warn = ttk.Style()
         self.st_lbl_warn.theme_use('alt')
         self.st_lbl_warn.configure('DemoWarn.TLabel',
-                                   font=('StdFont', _0_global_scale),
+                                   font=('StdFont', self.app_config.font_size),
                                    background=self.custom_styles['*.BG.*'],
                                    foreground=self.custom_styles['*.FG.WARN'])
 
@@ -4368,7 +4370,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_entry = ttk.Style()
         self.st_entry.theme_use('alt')
         self.st_entry.configure('DemoDefault.TEntry',
-                                font=('StdFont', _0_global_scale))
+                                font=('StdFont', self.app_config.font_size))
         self.st_entry.map('DemoDefault.TEntry',
                           fieldbackground=[('readonly', self.custom_styles['*.BG.*']),
                                            ('!readonly', self.custom_styles['*.BG.ENTRY'])],
@@ -4383,7 +4385,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_default = ttk.Style()
         self.st_btn_default.theme_use('alt')
         self.st_btn_default.configure('DemoDefault.TButton',
-                                      font=('StdFont', _0_global_scale + 2),
+                                      font=('StdFont', self.app_config.font_size + 2),
                                       borderwidth=1)
         self.st_btn_default.map('DemoDefault.TButton',
                                 relief=[('pressed', 'sunken'),
@@ -4400,7 +4402,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_disabled = ttk.Style()
         self.st_btn_disabled.theme_use('alt')
         self.st_btn_disabled.configure('DemoDisabled.TButton',
-                                       font=('StdFont', _0_global_scale + 2),
+                                       font=('StdFont', self.app_config.font_size + 2),
                                        borderwidth=1)
         self.st_btn_disabled.map('DemoDisabled.TButton',
                                  relief=[('active', 'raised'),
@@ -4414,7 +4416,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_yes = ttk.Style()
         self.st_btn_yes.theme_use('alt')
         self.st_btn_yes.configure('DemoYes.TButton',
-                                  font=('StdFont', _0_global_scale + 2),
+                                  font=('StdFont', self.app_config.font_size + 2),
                                   borderwidth=1)
         self.st_btn_yes.map('DemoYes.TButton',
                             relief=[('pressed', 'sunken'),
@@ -4431,7 +4433,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_no = ttk.Style()
         self.st_btn_no.theme_use('alt')
         self.st_btn_no.configure('DemoNo.TButton',
-                                 font=('StdFont', _0_global_scale + 2),
+                                 font=('StdFont', self.app_config.font_size + 2),
                                  borderwidth=1)
         self.st_btn_no.map('DemoNo.TButton',
                            relief=[('pressed', 'sunken'),
@@ -4448,7 +4450,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_image = ttk.Style()
         self.st_btn_image.theme_use('alt')
         self.st_btn_image.configure('DemoImage.TButton',
-                                    font=('StdFont', _0_global_scale + 2),
+                                    font=('StdFont', self.app_config.font_size + 2),
                                     borderwidth=0)
         self.st_btn_image.map('DemoImage.TButton',
                               relief=[('pressed', 'flat'),
@@ -6585,7 +6587,7 @@ class SettingsW(tk.Toplevel):
 
     # Задать пользовательскую тему (срабатывает при нажатии на кнопку)
     def custom_theme(self):
-        CustomThemeSettingsW(self).open()
+        CustomThemeSettingsW(self, self.app_config).open()
         upload_custom_theme(False)
         if self.app_config.theme == CUSTOM_TH:
             self.set_theme()
