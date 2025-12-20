@@ -4528,11 +4528,15 @@ class CustomThemeSettingsW(tk.Toplevel):
 
 # Окно изучения слов
 class LearnW(tk.Toplevel):
-    def __init__(self, parent, config: TrainingConfig, dct: Dictionary):
+    _session_number = 0
+
+    def __init__(self, parent, app_config: AppSettings, train_config: TrainingConfig, dct_info: DctInfo):
         super().__init__(parent)
         self.parent = parent
 
-        self.trainer = Trainer(dct, config)
+        self.app_config = app_config
+        self.dct_info = dct_info
+        self.trainer = Trainer(dct_info.dct, train_config)
         self.trainer.initialize()
         self.initial_pool_size = len(self.trainer.pool)
         self.current_entry_id = None  # Текущее слово
@@ -4550,17 +4554,17 @@ class LearnW(tk.Toplevel):
         self.choose()
         if self.current_entry_id:
             entry = self.trainer.dct[self.current_entry_id]
-            if entry.n_notes == 0 or config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
+            if entry.n_notes == 0 or train_config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
                 btn_disable(self.btn_show_notes)
-            if not self.homonyms or config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
+            if not self.homonyms or train_config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
                 btn_disable(self.btn_show_homonyms)
-            if config.method not in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
+            if train_config.method not in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
                 btn_disable(self.btn_show_entry)
 
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Учёба')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -4574,12 +4578,12 @@ class LearnW(tk.Toplevel):
         self.txt_dct = tk.Text(
             self, width=70, height=30, state='disabled',
             yscrollcommand=self.scrollbar.set,
-            font=('StdFont', _0_global_scale),
-            bg=STYLES['*.BG.ENTRY'][1][th], fg=STYLES['*.FG.*'][1][th],
-            selectbackground=STYLES['*.BG.SEL'][1][th],
-            selectforeground=STYLES['*.FG.SEL'][1][th],
-            relief=STYLES['TXT.RELIEF.*'][1][th],
-            highlightbackground=STYLES['*.BORDER_CLR.*'][1][th])
+            font=('StdFont', self.app_config.font_size),
+            bg=STYLES['*.BG.ENTRY'][1][self.app_config.theme], fg=STYLES['*.FG.*'][1][self.app_config.theme],
+            selectbackground=STYLES['*.BG.SEL'][1][self.app_config.theme],
+            selectforeground=STYLES['*.FG.SEL'][1][self.app_config.theme],
+            relief=STYLES['TXT.RELIEF.*'][1][self.app_config.theme],
+            highlightbackground=STYLES['*.BORDER_CLR.*'][1][self.app_config.theme])
         self.scrollbar.config(command=self.txt_dct.yview)
         self.frame_main = ttk.Frame(self, style='Invis.TFrame')
         # {
@@ -4588,7 +4592,7 @@ class LearnW(tk.Toplevel):
             width=6, takefocus=False, style='Default.TButton')
         self.entry_input = ttk.Entry(
             self.frame_main, textvariable=self.var_input, width=36,
-            style='Default.TEntry', font=('StdFont', _0_global_scale))
+            style='Default.TEntry', font=('StdFont', self.app_config.font_size))
         self.btn_show_entry = ttk.Button(
             self.frame_main, text='Слово и перевод', command=self.show_entry,
             width=15, takefocus=False, style='Default.TButton')
@@ -4661,14 +4665,12 @@ class LearnW(tk.Toplevel):
 
     # Выбор слова для угадывания
     def choose(self):
-        global _0_global_has_progress
-
         if self.trainer.is_finished():
             # Если все слова отвечены, то завершаем учёбу
             self.stop()
             return
         else:
-            _0_global_has_progress = True
+            self.dct_info.dct.mark_modified()
 
         # Выбор слова
         self.current_entry_id, self.current_form, self.current_phrase, self.homonyms = self.trainer.get_task()
@@ -4692,7 +4694,7 @@ class LearnW(tk.Toplevel):
     # Ввод ответа и переход к следующему слову
     def input(self):
         # Вывод в журнал пользовательского ответа
-        user_answer = encode_special_combinations(self.entry_input.get(), _0_global_special_combinations)
+        user_answer = encode_special_combinations(self.entry_input.get(), self.dct_info.dct.input_replacements)
         if user_answer != '':
             self.outp(user_answer)
 
@@ -4762,16 +4764,16 @@ class LearnW(tk.Toplevel):
 
     # Проверка введённого ответа
     def check_answer(self, answer: str):
-        is_correct = self.trainer.is_answer_correct(answer, is_case_sensitive=bool(_0_global_check_register))
+        is_correct = self.trainer.is_answer_correct(answer, is_case_sensitive=self.dct_info.settings.is_register_sensitive)
         correct_answers = self.trainer.get_correct_answers()
         correct_answer = ', '.join(correct_answers)
 
         entry = self.trainer.dct[self.current_entry_id]
         if is_correct:
-            entry.correct((_0_global_session_number, _0_global_learn_session_number, self.count_all))
+            entry.correct((self.dct_info.cache.session_number, self._session_number, self.count_all))
             self.outp('Верно\n')
             if entry.is_fav:
-                window = PopupDialogueW(self, 'Верно.\n'
+                window = PopupDialogueW(self, self.app_config, 'Верно.\n'
                                               'Оставить слово в избранном?',
                                         'Да', 'Нет', val_on_close=True)
                 ttip.Hovertip(window.btn_right, 'Alt+N', hover_delay=700)
@@ -4784,12 +4786,13 @@ class LearnW(tk.Toplevel):
         else:
             self.outp(f'Неверно. Правильный ответ: "{correct_answer}"\n')
             if entry.is_fav:
-                if bool(_0_global_with_typo):
+                if self.app_config.is_typo_btn_on:
                     window = PopupDialogueW(
                         self,
+                        self.app_config,
                         msg=f'Неверно.\n'
                             f'Ваш ответ: {encode_special_combinations(self.entry_input.get(),
-                                                                      _0_global_special_combinations)}\n'
+                                                                      self.dct_info.dct.input_replacements)}\n'
                             f'Правильный ответ: {correct_answer}',
                         btn_left_text='Ясно', btn_right_text='Просто опечатка',
                         st_left='Default', st_right='Default',
@@ -4800,18 +4803,18 @@ class LearnW(tk.Toplevel):
                     window.bind('<Tab>', lambda event: window.btn_right.invoke())
                     answer = window.open()
                     if answer != 'typo':
-                        entry.incorrect((_0_global_session_number, _0_global_learn_session_number, self.count_all))
+                        entry.incorrect((self.dct_info.cache.session_number, self._session_number, self.count_all))
                         self.count_all += 1
                 else:
-                    entry.incorrect((_0_global_session_number, _0_global_learn_session_number, self.count_all))
+                    entry.incorrect((self.dct_info.cache.session_number, self._session_number, self.count_all))
                     self.count_all += 1
             else:
                 window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get(),
-                                                                            _0_global_special_combinations),
-                                          correct_answer, bool(_0_global_with_typo))
+                                                                            self.dct_info.dct.input_replacements),
+                                          correct_answer, self.app_config.is_typo_btn_on)
                 answer = window.open()
                 if answer != 'typo':
-                    entry.incorrect((_0_global_session_number, _0_global_learn_session_number, self.count_all))
+                    entry.incorrect((self.dct_info.cache.session_number, self._session_number, self.count_all))
                     self.count_all += 1
                 if answer == 'yes':
                     entry.is_fav = True
@@ -4828,14 +4831,12 @@ class LearnW(tk.Toplevel):
                                                                         ('W', lambda: self.btn_show_entry.invoke())]))
 
     def open(self):
-        global _0_global_learn_session_number
-
         self.set_focus()
 
         self.grab_set()
         self.wait_window()
 
-        _0_global_learn_session_number += 1
+        LearnW._session_number += 1
 
 
 # Окно просмотра словаря
@@ -7054,9 +7055,9 @@ class MainW(tk.Tk):
     def learn(self):
         self.disable_all_buttons()
 
-        res = ChooseLearnModeW(self, self.manager.active.dct).open()
-        if res:
-            LearnW(self, res, self.manager.active.dct).open()
+        train_config = ChooseLearnModeW(self, self.manager.active, self.app_config).open()
+        if train_config:
+            LearnW(self, self.app_config, train_config, self.manager.active).open()
 
         self.enable_all_buttons()
 
