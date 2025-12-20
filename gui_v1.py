@@ -915,7 +915,7 @@ def check_updates(window_parent, dct: Dictionary, app_config: AppSettings, to_sh
         else:
             print(f'Доступна новая версия: {last_version}')
             if to_show_updates:
-                window_last_version = NewVersionAvailableW(window_parent, last_version, dct)
+                window_last_version = NewVersionAvailableW(window_parent, app_config, last_version, dct)
     except Exception as exc:
         print(f'Ошибка: невозможно проверить наличие обновлений!\n'
               f'{exc}')
@@ -6859,9 +6859,11 @@ class SettingsW(tk.Toplevel):
 
 # Окно уведомления о выходе новой версии
 class NewVersionAvailableW(tk.Toplevel):
-    def __init__(self, parent, last_version: str, dct: Dictionary):
+    def __init__(self, parent, app_config: AppSettings, last_version: str, dct: Dictionary):
         super().__init__(parent)
         self.parent = parent
+
+        self.app_config = app_config
 
         self.dct = dct
 
@@ -6873,7 +6875,7 @@ class NewVersionAvailableW(tk.Toplevel):
     def _configure_window(self):
         self.title('Доступна новая версия')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, last_version: str):
@@ -6883,7 +6885,7 @@ class NewVersionAvailableW(tk.Toplevel):
         self.frame_url = ttk.Frame(self, style='Invis.TFrame')
         # {
         self.entry_url = ttk.Entry(self.frame_url, textvariable=self.var_url, state='readonly', justify='center',
-                                   width=39, style='Default.TEntry', font=('StdFont', _0_global_scale))
+                                   width=39, style='Default.TEntry', font=('StdFont', self.app_config.font_size))
         self.btn_open = ttk.Button(self.frame_url, text='Открыть ссылку', command=self.open_github,
                                    takefocus=False, style='Default.TButton')
         # }
@@ -6907,12 +6909,12 @@ class NewVersionAvailableW(tk.Toplevel):
         except Exception as exc:
             print(f'Не удалось открыть страницу!\n'
                   f'{exc}')
-            warning(self, f'Не удалось открыть страницу!\n'
+            warning(self, self.app_config, f'Не удалось открыть страницу!\n'
                           f'{exc}')
 
     # Скачать и установить обновление
     def download_and_install(self):
-        save_dct_if_has_progress(self, self.dct, _0_global_dct_savename, _0_global_has_progress)
+        save_dct_if_has_progress(self, self.dct, self.dct.name)
 
         # Загрузка
         try:
@@ -6922,7 +6924,7 @@ class NewVersionAvailableW(tk.Toplevel):
         except Exception as exc:
             print(f'\nНе удалось загрузить обновление!\n'
                   f'{exc}')
-            warning(self, f'Не удалось загрузить обновление!\n'
+            warning(self, self.app_config, f'Не удалось загрузить обновление!\n'
                           f'{exc}')
             self.destroy()
             return
@@ -6960,13 +6962,13 @@ class NewVersionAvailableW(tk.Toplevel):
         except Exception as exc:
             print(f'Не удалось установить обновление!\n'
                   f'{exc}')
-            warning(self, f'Не удалось установить обновление!\n'
+            warning(self, self.app_config, f'Не удалось установить обновление!\n'
                           f'{exc}')
             self.destroy()
             return
         else:
             print('Обновление успешно установлено!')
-            PopupMsgW(self, 'Обновление успешно установлено!\n'
+            PopupMsgW(self, self.app_config, 'Обновление успешно установлено!\n'
                             'Программа закроется').open()
             exit(EXIT_UPDATE)
 
