@@ -3801,10 +3801,12 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
 
 # Окно ввода специальной комбинации
 class EnterSpecialCombinationW(tk.Toplevel):
-    def __init__(self, parent,
+    def __init__(self, parent, app_config: AppSettings,
                  default_value: tuple[str, str, str] = (SPECIAL_COMBINATIONS_OPENING_SYMBOLS[0], None, None)):
         super().__init__(parent)
         self.parent = parent
+
+        self.app_config = app_config
 
         self.closed = True  # Закрыто ли окно крестиком
 
@@ -3821,7 +3823,7 @@ class EnterSpecialCombinationW(tk.Toplevel):
 
     def _configure_window(self):
         self.title(PROGRAM_NAME)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -3832,14 +3834,14 @@ class EnterSpecialCombinationW(tk.Toplevel):
                                                  values=SPECIAL_COMBINATIONS_OPENING_SYMBOLS,
                                                  validate='all', validatecommand=self.vcmd_opening_symbol,
                                                  width=3, state='normal', style='Default.TCombobox',
-                                                 font=('DejaVu Sans Mono', _0_global_scale))
+                                                 font=('DejaVu Sans Mono', self.app_config.font_size))
         self.entry_key_symbol = ttk.Entry(self.frame_main, textvariable=self.var_key_symbol, width=2, justify='right',
                                           validate='key', validatecommand=self.vcmd_key_symbol, style='Default.TEntry',
-                                          font=('StdFont', _0_global_scale))
+                                          font=('StdFont', self.app_config.font_size))
         self.lbl_arrow = ttk.Label(self.frame_main, text='->', justify='center', style='Default.TLabel')
         self.entry_val = ttk.Entry(self.frame_main, textvariable=self.var_val, width=2,
                                    validate='key', validatecommand=self.vcmd_val,
-                                   style='Default.TEntry', font=('StdFont', _0_global_scale))
+                                   style='Default.TEntry', font=('StdFont', self.app_config.font_size))
         # }
         self.btn_ok = ttk.Button(self, text='Подтвердить', command=self.ok, takefocus=False, style='Yes.TButton')
 
