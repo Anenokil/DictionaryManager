@@ -1155,7 +1155,7 @@ def upload_local_settings(savename: str):
 
 
 # Сохранить локальные настройки (настройки словаря)
-def save_local_settings(check_register: int, special_combinations: dict[tuple[str, str], str],
+def save_local_settings(check_register: int, special_combinations: dict[str, str],
                         categories: dict[str, list[str]], groups: list[str], fav_groups: list[str], savename: str):
     local_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_SETTINGS_FN)
     with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
@@ -6228,23 +6228,24 @@ class AddW(tk.Toplevel):
 
 # Окно настроек
 class SettingsW(tk.Toplevel):
-    def __init__(self, parent, dct: Dictionary):
+    def __init__(self, parent, manager: Manager, app_config: AppSettings):
         super().__init__(parent)
         self.parent = parent
 
-        self.dct = dct
+        self.manager = manager
+        self.app_config = app_config
 
         self.current_tab = 1  # Текущая вкладка (1 или 2)
         self.has_ctg_changes = False
         self.has_groups_changes = False
         self.has_spec_comb_changes = False
-        self.backup_dct = copy.deepcopy(self.dct)
-        self.backup_scale = _0_global_scale
+        self.backup_dct = copy.deepcopy(self.manager.active.dct)
+        self.backup_scale = self.app_config.font_size
 
-        self.var_check_register = tk.BooleanVar(value=bool(_0_global_check_register))
-        self.var_show_updates = tk.BooleanVar(value=bool(_0_global_show_updates))
-        self.var_show_typo_button = tk.BooleanVar(value=bool(_0_global_with_typo))
-        self.var_theme = tk.StringVar(value=th)
+        self.var_check_register = tk.BooleanVar(value=self.manager.active.settings.is_register_sensitive)
+        self.var_show_updates = tk.BooleanVar(value=self.app_config.to_check_for_updates)
+        self.var_show_typo_button = tk.BooleanVar(value=self.app_config.is_typo_btn_on)
+        self.var_theme = tk.StringVar(value=self.app_config.theme)
         self.var_themes_url = tk.StringVar(value=URL_RELEASES)
 
         self.img_about = tk.PhotoImage()
@@ -6265,13 +6266,13 @@ class SettingsW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Настройки')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
         self.tabs = ttk.Notebook(self, style='Default.TNotebook')
         self.tab_local = ttk.Frame(self.tabs, style='Invis.TFrame')
-        self.lbl_dct_name = ttk.Label(self, text=split_text(f'Открыт словарь "{_0_global_dct_savename}"',
+        self.lbl_dct_name = ttk.Label(self, text=split_text(f'Открыт словарь "{self.manager.active.dct.name}"',
                                                             30, to_add_right_spaces=False),
                                       justify='center', style='Default.TLabel')
         self.tabs.add(self.tab_local, text='Настройки открытого словаря')
@@ -6322,9 +6323,9 @@ class SettingsW(tk.Toplevel):
         self.lbl_dcts = ttk.Label(self.frame_dcts, text='Существующие словари:', style='Default.TLabel')
         self.btn_about_dcts = ttk.Button(self.frame_dcts, command=self.about_dcts, width=2, takefocus=False)
         set_image(self.btn_about_dcts, self.img_about, img_about, '?')
-        self.scrolled_frame_dcts = ScrollFrame(self.frame_dcts,
-                                               SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
-                                               SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_dcts = ScrollFrame(self.frame_dcts, self.app_config,
+                                               SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
+                                               SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
         self.frame_dct_buttons = ttk.Frame(self.frame_dcts, style='Invis.TFrame')
         # { { {
         self.btn_dct_create = ttk.Button(self.frame_dct_buttons, text='Новый словарь', command=self.dct_create,
@@ -6341,13 +6342,13 @@ class SettingsW(tk.Toplevel):
         self.lbl_themes = ttk.Label(self.frame_themes, text='Тема:', style='Default.TLabel')
         self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
                                          state='readonly', width=15, style='Default.TCombobox',
-                                         font=('DejaVu Sans Mono', _0_global_scale))
+                                         font=('DejaVu Sans Mono', self.app_config.font_size))
         self.lbl_themes_version = ttk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
                                                                     f'Актуальные темы можно скачать здесь:',
                                             justify='left', style='Default.TLabel')
         self.entry_themes_version = ttk.Entry(self.frame_themes, textvariable=self.var_themes_url,
                                               state='readonly', width=47, justify='center',
-                                              style='Default.TEntry', font=('StdFont', _0_global_scale))
+                                              style='Default.TEntry', font=('StdFont', self.app_config.font_size))
         self.btn_custom_theme = ttk.Button(self.frame_themes, text='Собственная тема', command=self.custom_theme,
                                            takefocus=False, style='Default.TButton')
         # } }
@@ -6356,7 +6357,7 @@ class SettingsW(tk.Toplevel):
         self.btn_scale_minus = ttk.Button(self.frame_scale, command=self.scale_minus,
                                           width=2, state='normal', takefocus=False)
         set_image(self.btn_scale_minus, self.img_minus, img_delete, '-')
-        self.lbl_scale = ttk.Label(self.frame_scale, text=f'Масштаб ({_0_global_scale}x)', style='Default.TLabel')
+        self.lbl_scale = ttk.Label(self.frame_scale, text=f'Масштаб ({self.app_config.font_size}x)', style='Default.TLabel')
         self.btn_scale_plus = ttk.Button(self.frame_scale, command=self.scale_plus,
                                          width=2, state='normal', takefocus=False)
         set_image(self.btn_scale_plus, self.img_plus, img_add, '+')
@@ -6427,11 +6428,11 @@ class SettingsW(tk.Toplevel):
 
     # Настройки грамматических категорий (срабатывает при нажатии на кнопку)
     def categories_settings(self):
-        self.has_ctg_changes = CategoriesSettingsW(self, self.dct).open() or self.has_ctg_changes
+        self.has_ctg_changes = CategoriesSettingsW(self, self.manager.active.dct).open() or self.has_ctg_changes
 
     # Настройки групп (срабатывает при нажатии на кнопку)
     def groups_settings(self):
-        self.has_groups_changes = GroupsSettingsW(self, self.dct).open() or self.has_groups_changes
+        self.has_groups_changes = GroupsSettingsW(self, self.manager.active.dct).open() or self.has_groups_changes
 
     # Настройки специальных комбинаций (срабатывает при нажатии на кнопку)
     def special_combinations_settings(self):
@@ -6439,60 +6440,64 @@ class SettingsW(tk.Toplevel):
 
     # Справка о кнопке "Опечатка" (срабатывает при нажатии на кнопку)
     def about_typo(self):
-        PopupImgW(self, img_about_typo, 'Если функция включена, то\n'
-                                        'когда вы неверно отвечаете при учёбе,\n'
-                                        'появляется кнопка "Просто опечатка".\n'
-                                        'При её нажатии, ошибка не засчитывается.\n'
-                                        'Срабатывает при нажатии на Tab.').open()
+        PopupImgW(
+            self,
+            self.app_config,
+            img_about_typo,
+            'Если функция включена, то\n'
+            'когда вы неверно отвечаете при учёбе,\n'
+            'появляется кнопка "Просто опечатка".\n'
+            'При её нажатии, ошибка не засчитывается.\n'
+            'Срабатывает при нажатии на Tab.',
+        ).open()
 
     # Справка о словарях (срабатывает при нажатии на кнопку)
     def about_dcts(self):
-        PopupMsgW(self, '* Чтобы открыть словарь, наведите на него мышку и нажмите ЛКМ\n'
-                        '* Чтобы переименовать словарь, наведите на него мышку и нажмите Ctrl+R\n'
-                        '* Чтобы удалить словарь, наведите на него мышку и нажмите Ctrl+D\n'
-                        '* Чтобы экспортировать словарь, наведите на него мышку и нажмите Ctrl+E',
-                  msg_justify='left').open()
+        PopupMsgW(
+            self,
+            self.app_config,
+            '* Чтобы открыть словарь, наведите на него мышку и нажмите ЛКМ\n'
+            '* Чтобы переименовать словарь, наведите на него мышку и нажмите Ctrl+R\n'
+            '* Чтобы удалить словарь, наведите на него мышку и нажмите Ctrl+D\n'
+            '* Чтобы экспортировать словарь, наведите на него мышку и нажмите Ctrl+E',
+            msg_justify='left',
+        ).open()
 
     # Открыть словарь
     def dct_open(self, savename: str):
-        global _0_global_dct_savename, _0_global_special_combinations, _0_global_check_register, \
-            _0_global_has_progress, _0_global_session_number, _0_global_search_settings, _0_global_learn_settings
-
-        if savename == _0_global_dct_savename:
+        if savename == self.manager.active.dct.name:
             return
 
         # Если есть прогресс, то предлагается его сохранить
         if self.has_local_changes():
-            save_settings_if_has_changes(self, self.dct)
-        save_dct_if_has_progress(self, self.dct, _0_global_dct_savename, _0_global_has_progress)
+            save_settings_if_has_changes(self, self.manager.active.dct)
+        save_dct_if_has_progress(self, self.manager.active.dct, self.manager.active.dct.name)
 
-        self.dct = Dictionary()
-        res = upload_save(self, self.dct, savename, 'Отмена')
+        self.manager.active.dct = Dictionary()
+        res = upload_save(self, self.manager.active.dct, savename, 'Отмена')
         if not res:
             self.destroy()  # Если была попытка открыть повреждённый словарь, то при сохранении настроек, текущий словарь стёрся бы
             return
-        _0_global_dct_savename, _0_global_check_register, _0_global_special_combinations, _0_global_fav_groups = res
-        _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
-            upload_local_auto_settings(_0_global_dct_savename)
+        self.manager.active.dct.name, self.manager.active.settings.is_register_sensitive, self.manager.active.dct._input_replacements, self.manager.active.dct._default_groups = res
+        self.manager.active.cache.session_number, self.manager.active.cache.search_config, self.manager.active.cache.train_config =\
+            upload_local_auto_settings(self.manager.active.dct.name)
         save_dct_name()
 
-        self.backup_dct = copy.deepcopy(self.dct)
+        self.backup_dct = copy.deepcopy(self.manager.active.dct)
 
         # Обновляем надписи с названием открытого словаря
-        self.refresh_open_dct_name(_0_global_dct_savename)
+        self.refresh_open_dct_name(self.manager.active.dct.name)
 
         self.has_ctg_changes = False
         self.has_groups_changes = False
         self.has_spec_comb_changes = False
-        _0_global_has_progress = False
+        self.manager.active.dct.mark_saved()
 
         self.refresh()
 
     # Переименовать словарь
     def dct_rename(self, old_savename: str):
-        global _0_global_dct_savename
-
-        window_rename = PopupEntryW(self, f'Введите новое название для словаря "{old_savename}"',
+        window_rename = PopupEntryW(self, self.app_config, f'Введите новое название для словаря "{old_savename}"',
                                     default_value=old_savename, validate_function=validate_savename,
                                     check_answer_function=lambda wnd, val:
                                     check_dct_savename_edit(wnd, old_savename, val))
@@ -6501,8 +6506,8 @@ class SettingsW(tk.Toplevel):
             return
 
         os.rename(os.path.join(SAVES_PATH, old_savename), os.path.join(SAVES_PATH, new_savename))
-        if _0_global_dct_savename == old_savename:
-            _0_global_dct_savename = new_savename
+        if self.manager.active.dct.name == old_savename:
+            self.manager.active.dct.name = new_savename
             save_dct_name()
             # Обновляем надписи с названием открытого словаря
             self.refresh_open_dct_name(new_savename)
@@ -6512,11 +6517,11 @@ class SettingsW(tk.Toplevel):
 
     # Удалить словарь
     def dct_delete(self, savename: str):
-        if savename == _0_global_dct_savename:
-            warning(self, 'Вы не можете удалить словарь, когда он открыт!')
+        if savename == self.manager.active.dct.name:
+            warning(self, self.app_config, 'Вы не можете удалить словарь, когда он открыт!')
             return
 
-        window_confirm = PopupDialogueW(self, f'Словарь "{savename}" будет безвозвратно удалён!\n'
+        window_confirm = PopupDialogueW(self, self.app_config, f'Словарь "{savename}" будет безвозвратно удалён!\n'
                                               f'Хотите продолжить?',
                                         set_enter_on_btn='none')
         answer = window_confirm.open()
@@ -6529,31 +6534,27 @@ class SettingsW(tk.Toplevel):
 
     # Создать словарь (срабатывает при нажатии на кнопку)
     def dct_create(self):
-        global _0_global_dct_savename, _0_global_special_combinations, _0_global_check_register, \
-            _0_global_has_progress, _0_global_session_number, _0_global_search_settings, _0_global_learn_settings, \
-            _0_global_fav_groups
-
-        window = PopupEntryW(self, 'Введите название нового словаря', validate_function=validate_savename,
+        window = PopupEntryW(self, self.app_config, 'Введите название нового словаря', validate_function=validate_savename,
                              check_answer_function=check_dct_savename)
         closed, savename = window.open()
         if closed:
             return
 
         if self.has_local_changes():
-            save_settings_if_has_changes(self, self.dct)
-        save_dct_if_has_progress(self, self.dct, _0_global_dct_savename, _0_global_has_progress)
+            save_settings_if_has_changes(self, self.manager.active.dct)
+        save_dct_if_has_progress(self, self.manager.active.dct, self.manager.active.dct.name)
 
-        self.dct = create_dct(savename)
-        _0_global_check_register, _0_global_special_combinations, self.dct._features, self.dct._groups, \
-            _0_global_fav_groups = upload_local_settings(savename)
-        _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
+        self.manager.active.dct = create_dct(savename)
+        self.manager.active.settings.is_register_sensitive, self.manager.active.dct._input_replacements, self.manager.active.dct._features, self.manager.active.dct._groups, \
+            self.manager.active.dct._default_groups = upload_local_settings(savename)
+        self.manager.active.cache.session_number, self.manager.active.cache.search_config, self.manager.active.cache.train_config =\
             upload_local_auto_settings(savename)
-        _0_global_dct_savename = savename
+        self.manager.active.dct.name = savename
         save_dct_name()
 
         print(f'\nСловарь "{savename}" успешно создан и открыт')
 
-        self.backup_dct = copy.deepcopy(self.dct)
+        self.backup_dct = copy.deepcopy(self.manager.active.dct)
 
         # Обновляем надписи с названием открытого словаря
         self.refresh_open_dct_name(savename)
@@ -6561,7 +6562,7 @@ class SettingsW(tk.Toplevel):
         self.has_ctg_changes = False
         self.has_groups_changes = False
         self.has_spec_comb_changes = False
-        _0_global_has_progress = False
+        self.manager.active.dct.mark_saved()
 
         self.refresh()
 
@@ -6580,7 +6581,7 @@ class SettingsW(tk.Toplevel):
             return
 
         default_savename = re.split(r'[\\/]', src_path)[-1]
-        window = PopupEntryW(self, 'Введите название для словаря', default_value=default_savename,
+        window = PopupEntryW(self, self.app_config, 'Введите название для словаря', default_value=default_savename,
                              validate_function=validate_savename, check_answer_function=check_dct_savename)
         closed, savename = window.open()
         if closed:
@@ -6594,28 +6595,28 @@ class SettingsW(tk.Toplevel):
     def custom_theme(self):
         CustomThemeSettingsW(self).open()
         upload_custom_theme(False)
-        if th == CUSTOM_TH:
+        if self.app_config.theme == CUSTOM_TH:
             self.set_theme()
         self.refresh_scale_buttons()
 
     # Увеличить масштаб (срабатывает при нажатии на кнопку)
     def scale_plus(self):
-        global _0_global_scale
-
-        _0_global_scale += 1
+        self.app_config.font_size += 1
 
         self.parent.setup_styles()  # Установка ttk-стилей
 
         # Установка некоторых стилей для окна настроек
-        self.lbl_scale.configure(text=f'Масштаб ({_0_global_scale}x)')
-        self.scrolled_frame_dcts.resize(SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
-                                        SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
-        self.combo_themes.configure(font=('DejaVu Sans Mono', _0_global_scale))
-        self.entry_themes_version.configure(font=('StdFont', _0_global_scale))
+        self.lbl_scale.configure(text=f'Масштаб ({self.app_config.font_size}x)')
+        self.scrolled_frame_dcts.resize(SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
+                                        SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.combo_themes.configure(font=('DejaVu Sans Mono', self.app_config.font_size))
+        self.entry_themes_version.configure(font=('StdFont', self.app_config.font_size))
 
+        # TODO: remove try-catch
         # Установка масштаба для окна уведомления об обновлении
         try:
-            _0_global_window_last_version.entry_url.configure(font=('StdFont', _0_global_scale))
+            # TODO: remove global variable
+            _0_global_window_last_version.entry_url.configure(font=('StdFont', self.app_config.font_size))
         except:  # Если окно обновления не открыто
             pass
 
@@ -6623,22 +6624,22 @@ class SettingsW(tk.Toplevel):
 
     # Уменьшить масштаб (срабатывает при нажатии на кнопку)
     def scale_minus(self):
-        global _0_global_scale
-
-        _0_global_scale -= 1
+        self.app_config.font_size -= 1
 
         self.parent.setup_styles()  # Установка ttk-стилей
 
         # Установка некоторых стилей для окна настроек
-        self.lbl_scale.configure(text=f'Масштаб ({_0_global_scale}x)')
-        self.scrolled_frame_dcts.resize(SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
-                                        SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
-        self.combo_themes.configure(font=('DejaVu Sans Mono', _0_global_scale))
-        self.entry_themes_version.configure(font=('StdFont', _0_global_scale))
+        self.lbl_scale.configure(text=f'Масштаб ({self.app_config.font_size}x)')
+        self.scrolled_frame_dcts.resize(SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
+                                        SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.combo_themes.configure(font=('DejaVu Sans Mono', self.app_config.font_size))
+        self.entry_themes_version.configure(font=('StdFont', self.app_config.font_size))
 
+        # TODO: remove try-catch
         # Установка масштаба для окна уведомления об обновлении
         try:
-            _0_global_window_last_version.entry_url.configure(font=('StdFont', _0_global_scale))
+            # TODO: remove global variable
+            _0_global_window_last_version.entry_url.configure(font=('StdFont', self.app_config.font_size))
         except:  # Если окно обновления не открыто
             pass
 
@@ -6646,40 +6647,38 @@ class SettingsW(tk.Toplevel):
 
     # Сохранить настройки (срабатывает при нажатии на кнопку)
     def save(self):
-        global _0_global_check_register, _0_global_show_updates, _0_global_with_typo, _0_global_has_progress
-
         # Учитывать/не учитывать регистр букв при проверке введённого ответа при учёбе
-        _0_global_check_register = int(self.var_check_register.get())  # 0 или 1
+        self.manager.active.settings.is_register_sensitive = self.var_check_register.get()
 
         # Разрешить/запретить сообщать о новых версиях
-        _0_global_show_updates = int(self.var_show_updates.get())  # 0 или 1
+        self.app_config.to_check_for_updates = self.var_show_updates.get()
 
         # Показывать/скрывать кнопку "Опечатка" при неверном ответе в учёбе
-        _0_global_with_typo = int(self.var_show_typo_button.get())  # 0 или 1
+        self.app_config.is_typo_btn_on = self.var_show_typo_button.get()
 
         # Установка выбранной темы
         self.set_theme()
 
         # Обновление бэкапов сохранения
-        self.backup_dct = copy.deepcopy(self.dct)
-        self.backup_scale = _0_global_scale
+        self.backup_dct = copy.deepcopy(self.manager.active.dct)
+        self.backup_scale = self.app_config.font_size
 
         # Сохранение настроек в файлы
-        save_local_settings(_0_global_check_register, _0_global_special_combinations, self.dct.features,
-                            self.dct.groups, _0_global_fav_groups, _0_global_dct_savename)
-        save_global_settings(_0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale)
-        save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
-                                 _0_global_dct_savename)
+        save_local_settings(self.manager.active.settings.is_register_sensitive, self.manager.active.dct.input_replacements, self.manager.active.dct.features,
+                            self.manager.active.dct.groups, self.manager.active.dct.default_groups, self.manager.active.dct.name)
+        save_global_settings(self.manager.active.dct.name, self.app_config.to_check_for_updates, self.app_config.is_typo_btn_on, self.app_config.theme, self.app_config.font_size)
+        save_local_auto_settings(self.manager.active.cache.session_number, self.manager.active.cache.search_config, self.manager.active.cache.train_config,
+                                 self.manager.active.dct.name)
 
         # Сохранение словаря, если были изменения локальных настроек
         if self.has_local_changes():
-            save_dct(self.dct, _0_global_dct_savename)
+            save_dct(self.manager.active.dct, self.manager.active.dct.name)
 
         # Обнуление переменных, показывающих наличие изменений
         self.has_ctg_changes = False
         self.has_groups_changes = False
         self.has_spec_comb_changes = False
-        _0_global_has_progress = False
+        self.manager.active.dct.mark_saved()
 
         # Обновить кнопки изменения масштаба
         self.refresh_scale_buttons()
@@ -6687,7 +6686,7 @@ class SettingsW(tk.Toplevel):
     # Закрыть настройки без сохранения (срабатывает при нажатии на кнопку)
     def close(self):
         if self.has_changes():
-            window = PopupDialogueW(self, 'У вас есть несохранённые изменения?\n'
+            window = PopupDialogueW(self, self.app_config, 'У вас есть несохранённые изменения?\n'
                                           'Всё равно закрыть?')
             answer = window.open()
             if not answer:
@@ -6727,7 +6726,7 @@ class SettingsW(tk.Toplevel):
         for i in range(dcts_count):
             # Выводим текст на кнопки
             savename = self.dcts_savenames[i]
-            if savename == _0_global_dct_savename:
+            if savename == self.manager.active.dct.name:
                 self.dcts_buttons[i].configure(text=split_text(f'{savename} (ОТКРЫТ)', 35))
             else:
                 self.dcts_buttons[i].configure(text=split_text(f'{savename}', 35))
@@ -6754,30 +6753,28 @@ class SettingsW(tk.Toplevel):
     # Обновить кнопки изменения масштаба
     def refresh_scale_buttons(self):
         # Если масштаб минимальный, то кнопка минуса становится неактивной
-        if _0_global_scale == SCALE_MIN:
+        if self.app_config.font_size == SCALE_MIN:
             btn_disable(self.btn_scale_minus)
         else:
             btn_enable(self.btn_scale_minus, self.scale_minus, style='Image')
 
         # Если масштаб максимальный, то кнопка плюса становится неактивной
-        if _0_global_scale == SCALE_MAX:
+        if self.app_config.font_size == SCALE_MAX:
             btn_disable(self.btn_scale_plus)
         else:
             btn_enable(self.btn_scale_plus, self.scale_plus, style='Image')
 
     # Обновить настройки при открытии другого словаря
     def refresh(self):
-        self.var_check_register.set(bool(_0_global_check_register))
+        self.var_check_register.set(self.manager.active.settings.is_register_sensitive)
         self.print_dct_list(False)
 
     # Установить выбранную тему
     def set_theme(self):
-        global th
-
-        th = self.var_theme.get()
+        self.app_config.theme = self.var_theme.get()
 
         self.parent.setup_styles()  # Установка ttk-стилей
-        upload_theme_img(th)  # Загрузка изображений темы
+        upload_theme_img(self.app_config.theme)  # Загрузка изображений темы
 
         # Установка изображений
         set_image(self.btn_about_typo, self.img_about, img_about, '?')
@@ -6786,15 +6783,17 @@ class SettingsW(tk.Toplevel):
         set_image(self.btn_scale_minus, self.img_minus, img_delete, '-')
 
         # Установка некоторых стилей для окна настроек
-        self.configure(bg=STYLES['*.BG.*'][1][th])
-        self.scrolled_frame_dcts.canvas.configure(bg=STYLES['*.BG.ENTRY'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
+        self.scrolled_frame_dcts.canvas.configure(bg=STYLES['*.BG.ENTRY'][1][self.app_config.theme])
 
         # Установка фона для главного окна
-        self.parent.configure(bg=STYLES['*.BG.*'][1][th])
+        self.parent.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
 
+        # TODO: remove try-catch
         # Установка фона для окна уведомления об обновлении
         try:
-            _0_global_window_last_version.configure(bg=STYLES['*.BG.*'][1][th])
+            # TODO: remove global variable
+            _0_global_window_last_version.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         except:  # Если окно обновления не открыто
             pass
 
@@ -6803,15 +6802,15 @@ class SettingsW(tk.Toplevel):
         return self.has_ctg_changes or\
             self.has_groups_changes or\
             self.has_spec_comb_changes or\
-            int(self.var_check_register.get()) != _0_global_check_register
+            int(self.var_check_register.get()) != self.manager.active.settings.is_register_sensitive
 
     # Были ли изменения настроек
     def has_changes(self):
         return self.has_local_changes() or\
-            int(self.var_show_updates.get()) != _0_global_show_updates or\
-            int(self.var_show_typo_button.get()) != _0_global_with_typo or\
-            self.var_theme.get() != th or\
-            self.backup_scale != _0_global_scale
+            self.var_show_updates.get() != self.app_config.to_check_for_updates or\
+            self.var_show_typo_button.get() != self.app_config.is_typo_btn_on or\
+            self.var_theme.get() != self.app_config.theme or\
+            self.backup_scale != self.app_config.font_size
 
     # Обновить надписи с названием открытого словаря
     def refresh_open_dct_name(self, savename: str):
@@ -6852,7 +6851,8 @@ class SettingsW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.dct = copy.deepcopy(self.backup_dct)
+        # TODO: remove deepcopy (?)
+        self.manager.active.dct = copy.deepcopy(self.backup_dct)
 
 
 # Окно уведомления о выходе новой версии
