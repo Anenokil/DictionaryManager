@@ -3164,11 +3164,12 @@ class AddFormW(tk.Toplevel):
 
 # Окно настроек грамматических категорий
 class CategoriesSettingsW(tk.Toplevel):
-    def __init__(self, parent, dct: Dictionary):
+    def __init__(self, parent, dct: Dictionary, app_config: AppSettings):
         super().__init__(parent)
         self.parent = parent
 
         self.dct = dct
+        self.app_config = app_config
 
         self.has_changes = False
 
@@ -3187,7 +3188,7 @@ class CategoriesSettingsW(tk.Toplevel):
     def _configure_window(self):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -3195,8 +3196,8 @@ class CategoriesSettingsW(tk.Toplevel):
         set_image(self.btn_about_window, self.img_about, img_about, '?')
         self.lbl_categories = ttk.Label(self, text='Существующие категории слов:',
                                         justify='center', style='Default.TLabel')
-        self.scrolled_frame = ScrollFrame(self, SCALE_SMALL_FRAME_HEIGHT_TALL[_0_global_scale - SCALE_MIN],
-                                          SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame = ScrollFrame(self, self.app_config, SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_config.font_size - SCALE_MIN],
+                                          SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
         self.btn_add = ttk.Button(self, text='Добавить категорию', command=self.add, takefocus=False,
                                   style='Default.TButton')
 
@@ -3225,7 +3226,7 @@ class CategoriesSettingsW(tk.Toplevel):
 
     # Перейти к настройкам значений категории
     def values(self, ctg_key: str):
-        self.has_changes = CategoryValuesSettingsW(self, ctg_key, self.dct).open() or self.has_changes
+        self.has_changes = CategoryValuesSettingsW(self, ctg_key, self.dct, self.app_config).open() or self.has_changes
 
     # Напечатать существующие категории
     def print_categories(self, move_scroll: bool):
@@ -3278,7 +3279,7 @@ class CategoriesSettingsW(tk.Toplevel):
 
     # Справка об окне (срабатывает при нажатии на кнопку)
     def about_window(self):
-        PopupMsgW(self, '* Чтобы добавить значение категории, наведите на неё мышку и нажмите ЛКМ\n'
+        PopupMsgW(self, self.app_config, '* Чтобы добавить значение категории, наведите на неё мышку и нажмите ЛКМ\n'
                         '* Чтобы переименовать категорию, наведите на неё мышку и нажмите Ctrl+R\n'
                         '* Чтобы удалить категорию, наведите на неё мышку и нажмите Ctrl+D',
                   msg_justify='left').open()
@@ -6417,7 +6418,7 @@ class SettingsW(tk.Toplevel):
 
     # Настройки грамматических категорий (срабатывает при нажатии на кнопку)
     def categories_settings(self):
-        self.has_ctg_changes = CategoriesSettingsW(self, self.manager.active.dct).open() or self.has_ctg_changes
+        self.has_ctg_changes = CategoriesSettingsW(self, self.manager.active.dct, self.app_config).open() or self.has_ctg_changes
 
     # Настройки групп (срабатывает при нажатии на кнопку)
     def groups_settings(self):
