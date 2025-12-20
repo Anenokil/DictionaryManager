@@ -4841,11 +4841,12 @@ class LearnW(tk.Toplevel):
 
 # Окно просмотра словаря
 class PrintW(tk.Toplevel):
-    def __init__(self, parent, dct: Dictionary):
+    def __init__(self, parent, dct_info: DctInfo, app_config: AppSettings):
         super().__init__(parent)
         self.parent = parent
 
-        self.dct = dct
+        self.dct_info = dct_info
+        self.app_config = app_config
 
         self.current_tab = 0  # Номер текущей вкладки
 
@@ -4864,17 +4865,17 @@ class PrintW(tk.Toplevel):
         self.search_count_elements = None  # Количество элементов на всех страницах ScrollFrame
         self.search_count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
 
-        self.group_vals = [ALL_GROUPS] + self.dct.groups
+        self.group_vals = [ALL_GROUPS] + self.dct_info.dct.groups
 
         # Параметры поиска
-        self.to_search_only_fav = bool(_0_global_search_settings[0])
-        self.to_search_only_full = bool(_0_global_search_settings[1])
-        self.to_search_wrd = bool(_0_global_search_settings[2])
-        self.to_search_tr = bool(_0_global_search_settings[3])
-        self.to_search_frm = bool(_0_global_search_settings[4])
-        self.to_search_phr = bool(_0_global_search_settings[5])
-        self.to_search_nt = bool(_0_global_search_settings[6])
-        self.search_group = self.group_vals[_0_global_search_settings[7]]
+        self.to_search_only_fav = bool(self.dct_info.cache.search_config[0])
+        self.to_search_only_full = bool(self.dct_info.cache.search_config[1])
+        self.to_search_wrd = bool(self.dct_info.cache.search_config[2])
+        self.to_search_tr = bool(self.dct_info.cache.search_config[3])
+        self.to_search_frm = bool(self.dct_info.cache.search_config[4])
+        self.to_search_phr = bool(self.dct_info.cache.search_config[5])
+        self.to_search_nt = bool(self.dct_info.cache.search_config[6])
+        self.search_group = self.group_vals[self.dct_info.cache.search_config[7]]
 
         # Переменные для вкладки печати
         self.var_print_fav = tk.BooleanVar(value=False)
@@ -4929,9 +4930,9 @@ class PrintW(tk.Toplevel):
         self.search_print(True)  # Выводим статьи
 
     def _configure_window(self):
-        self.title(f'{PROGRAM_NAME} - Словарь "{_0_global_dct_savename}"')
+        self.title(f'{PROGRAM_NAME} - Словарь "{self.dct_info.dct.name}"')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _add_validation(self):
@@ -4972,15 +4973,15 @@ class PrintW(tk.Toplevel):
                                                style='Default.TCheckbutton')
         self.lbl_print_group = ttk.Label(self.frame_print_parameters, text='Группа:', style='Default.TLabel')
         self.combo_print_group = ttk.Combobox(self.frame_print_parameters, textvariable=self.var_print_group,
-                                              values=[ALL_GROUPS] + self.dct.groups, width=28, state='readonly',
-                                              style='Default.TCombobox', font=('DejaVu Sans Mono', _0_global_scale))
+                                              values=[ALL_GROUPS] + self.dct_info.dct.groups, width=28, state='readonly',
+                                              style='Default.TCombobox', font=('DejaVu Sans Mono', self.app_config.font_size))
         self.lbl_print_briefly = ttk.Label(self.frame_print_parameters, text='Кратко:', style='Default.TLabel')
         self.check_print_briefly = ttk.Checkbutton(self.frame_print_parameters, variable=self.var_print_briefly,
                                                    command=lambda: self.print_print(True), style='Default.TCheckbutton')
         self.lbl_print_order = ttk.Label(self.frame_print_parameters, text='Порядок:', style='Default.TLabel')
         self.combo_print_order = ttk.Combobox(self.frame_print_parameters, textvariable=self.var_print_order, width=28,
                                               values=PRINT_VALUES_ORDER, state='readonly', style='Default.TCombobox',
-                                              font=('DejaVu Sans Mono', _0_global_scale))
+                                              font=('DejaVu Sans Mono', self.app_config.font_size))
         # } } } }
         # } } }
         self.frame_print_buttons_for_selected = ttk.Frame(self.frame_print_menu, style='Default.TFrame')
@@ -5028,9 +5029,9 @@ class PrintW(tk.Toplevel):
         # } }
         self.frame_print_main = ttk.Frame(self.tab_print, style='Invis.TFrame')
         # { {
-        self.scrolled_frame_print = ScrollFrame(self.frame_print_main,
-                                                SCALE_DEFAULT_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
-                                                SCALE_DEFAULT_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_print = ScrollFrame(self.frame_print_main, self.app_config,
+                                                SCALE_DEFAULT_FRAME_HEIGHT[self.app_config.font_size - SCALE_MIN],
+                                                SCALE_DEFAULT_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
         self.frame_print_page_buttons = ttk.Frame(self.frame_print_main, style='Invis.TFrame')
         # { { {
         self.btn_print_first_page = ttk.Button(self.frame_print_page_buttons, command=self.print_go_to_first_page,
@@ -5047,7 +5048,7 @@ class PrintW(tk.Toplevel):
                                                   textvariable=self.var_print_current_page,
                                                   validate='key', validatecommand=self.vcmd_print_page,
                                                   justify='center', width=3,
-                                                  style='Default.TEntry', font=('StdFont', _0_global_scale))
+                                                  style='Default.TEntry', font=('StdFont', self.app_config.font_size))
         self.lbl_print_current_page_2 = ttk.Label(self.frame_print_current_page, text='из 1', style='Default.TLabel')
         # } } } }
         self.btn_print_next_page = ttk.Button(self.frame_print_page_buttons, command=self.print_go_to_next_page,
@@ -5071,7 +5072,7 @@ class PrintW(tk.Toplevel):
                                                      takefocus=False)
         set_image(self.btn_search_search_settings, self.img_settings, img_edit, 'Настройки')
         self.entry_search_query = ttk.Entry(self.frame_search_query, textvariable=self.var_search_query, width=50,
-                                            style='Default.TEntry', font=('StdFont', _0_global_scale))
+                                            style='Default.TEntry', font=('StdFont', self.app_config.font_size))
         self.btn_search_search = ttk.Button(self.frame_search_query, text='Поиск',
                                             command=lambda: self.search_go_to_first_page(True),
                                             width=6, takefocus=False, style='Default.TButton')
@@ -5128,9 +5129,9 @@ class PrintW(tk.Toplevel):
         # } }
         self.frame_search_main = ttk.Frame(self.tab_search, style='Invis.TFrame')
         # { {
-        self.scrolled_frame_search = ScrollFrame(self.frame_search_main,
-                                                 SCALE_DEFAULT_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
-                                                 SCALE_DEFAULT_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_search = ScrollFrame(self.frame_search_main, self.app_config,
+                                                 SCALE_DEFAULT_FRAME_HEIGHT[self.app_config.font_size - SCALE_MIN],
+                                                 SCALE_DEFAULT_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
         self.frame_search_page_buttons = ttk.Frame(self.frame_search_main, style='Invis.TFrame')
         # { { {
         self.btn_search_first_page = ttk.Button(self.frame_search_page_buttons, command=self.search_go_to_first_page,
@@ -5146,7 +5147,7 @@ class PrintW(tk.Toplevel):
         self.entry_search_current_page = ttk.Entry(self.frame_search_current_page,
                                                    textvariable=self.var_search_current_page, justify='center',
                                                    validate='key', validatecommand=self.vcmd_page, width=3,
-                                                   style='Default.TEntry', font=('StdFont', _0_global_scale))
+                                                   style='Default.TEntry', font=('StdFont', self.app_config.font_size))
         self.lbl_search_current_page_2 = ttk.Label(self.frame_search_current_page, text='из 1', style='Default.TLabel')
         # } } } }
         self.btn_search_next_page = ttk.Button(self.frame_search_page_buttons, command=self.search_go_to_next_page,
@@ -5353,13 +5354,13 @@ class PrintW(tk.Toplevel):
         folder = askdirectory(initialdir=MAIN_PATH, title='В какую папку сохранить файл?')
         if not folder:
             return
-        filename = f'Распечатка_{_0_global_dct_savename}.txt'
-        self.dct.to_txt(os.path.join(folder, filename))
+        filename = f'Распечатка_{self.dct_info.dct.name}.txt'
+        self.dct_info.dct.to_txt(os.path.join(folder, filename))
 
     # Нажатие на кнопку "Настройки поиска"
     def search_settings(self):
         window = SearchSettingsW(
-            self, self.dct, self.to_search_only_fav,
+            self, self.dct_info.dct, self.to_search_only_fav,
             self.to_search_only_full, self.to_search_wrd, self.to_search_tr,
             self.to_search_frm, self.to_search_phr, self.to_search_nt,
             self.search_group)
@@ -5369,7 +5370,7 @@ class PrintW(tk.Toplevel):
 
     # Изменить статью
     def edit_entry(self, key: EntryID):
-        EditW(self, self.dct, key).open()
+        EditW(self, self.dct_info.dct, key).open()
 
         self.search_print(False)
         self.print_print(False)
@@ -5379,23 +5380,23 @@ class PrintW(tk.Toplevel):
         group = self.var_print_group.get()
         if group == ALL_GROUPS:
             if self.var_print_fav.get():
-                w, t, gf, wf = self.dct.count_fav_entries()
-                info = dct_info_fav((w, self.dct.count('lemmas')),
-                                    (t, self.dct.count('translations')),
-                                    (gf, self.dct.count('gram_forms')),
-                                    (wf, self.dct.count('word_forms')))
+                w, t, gf, wf = self.dct_info.dct.count_fav_entries()
+                info = dct_info_fav((w, self.dct_info.dct.count('lemmas')),
+                                    (t, self.dct_info.dct.count('translations')),
+                                    (gf, self.dct_info.dct.count('gram_forms')),
+                                    (wf, self.dct_info.dct.count('word_forms')))
             else:
-                info = dct_info(self.dct.count('lemmas'),
-                                self.dct.count('translations'),
-                                self.dct.count('gram_forms'),
-                                self.dct.count('word_forms'))
+                info = dct_info(self.dct_info.dct.count('lemmas'),
+                                self.dct_info.dct.count('translations'),
+                                self.dct_info.dct.count('gram_forms'),
+                                self.dct_info.dct.count('word_forms'))
         else:
             if self.var_print_fav.get():
-                w1, t1, gf1, wf1 = self.dct.count_fav_entries(group)
-                w2, t2, gf2, wf2 = self.dct.count_entries_in_group(group)
+                w1, t1, gf1, wf1 = self.dct_info.dct.count_fav_entries(group)
+                w2, t2, gf2, wf2 = self.dct_info.dct.count_entries_in_group(group)
                 info = dct_info_fav((w1, w2), (t1, t2), (gf1, gf2), (wf1, wf2))
             else:
-                w, t, gf, wf = self.dct.count_entries_in_group(group)
+                w, t, gf, wf = self.dct_info.dct.count_entries_in_group(group)
                 info = dct_info(w, t, gf, wf)
         self.var_print_info.set(info)
 
@@ -5443,16 +5444,16 @@ class PrintW(tk.Toplevel):
         group = self.var_print_group.get()
         if self.var_print_fav.get():
             if group == ALL_GROUPS:
-                self.print_keys = [key for key in self.dct.get_entry_ids() if self.dct[key].is_fav]
+                self.print_keys = [key for key in self.dct_info.dct.get_entry_ids() if self.dct_info.dct[key].is_fav]
             else:
-                self.print_keys = [key for key in self.dct.get_entry_ids()
-                                   if self.dct[key].is_fav and group in self.dct[key].groups]
+                self.print_keys = [key for key in self.dct_info.dct.get_entry_ids()
+                                   if self.dct_info.dct[key].is_fav and group in self.dct_info.dct[key].groups]
         else:
             if group == ALL_GROUPS:
-                self.print_keys = [key for key in self.dct.get_entry_ids()]
+                self.print_keys = [key for key in self.dct_info.dct.get_entry_ids()]
             else:
-                self.print_keys = [key for key in self.dct.get_entry_ids()
-                                   if group in self.dct[key].groups]
+                self.print_keys = [key for key in self.dct_info.dct.get_entry_ids()
+                                   if group in self.dct_info.dct[key].groups]
         self.print_selected_keys = [key for key in self.print_selected_keys
                                     if key in self.print_keys]
         if not self.print_selected_keys:
@@ -5462,40 +5463,40 @@ class PrintW(tk.Toplevel):
             self.print_keys.reverse()
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[2]:
             """
-            self.print_keys.sort(key=lambda k: (self.dct[k].accuracy, self.dct[k].win_streak))
+            self.print_keys.sort(key=lambda k: (self.dct_info.dct[k].accuracy, self.dct_info.dct[k].win_streak))
             """
-            self.print_keys.sort(key=lambda k: (self.dct[k].accuracy,
-                                                self.dct[k].win_streak /
-                                                (1 + len(self.dct[k].forms.keys()) +
-                                                 len(self.dct[k].phrases.keys())),
-                                                self.dct[k].lemma.lower(), self.dct[k].lemma))
+            self.print_keys.sort(key=lambda k: (self.dct_info.dct[k].accuracy,
+                                                self.dct_info.dct[k].win_streak /
+                                                (1 + len(self.dct_info.dct[k].forms.keys()) +
+                                                 len(self.dct_info.dct[k].phrases.keys())),
+                                                self.dct_info.dct[k].lemma.lower(), self.dct_info.dct[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[3]:
             """
-            self.print_keys.sort(key=lambda k: (self.dct[k].accuracy, self.dct[k].win_streak),
+            self.print_keys.sort(key=lambda k: (self.dct_info.dct[k].accuracy, self.dct_info.dct[k].win_streak),
                                  reverse=True)
             """
-            self.print_keys.sort(key=lambda k: (-self.dct[k].accuracy,
-                                                -self.dct[k].win_streak /
-                                                (1 + len(self.dct[k].forms.keys()) +
-                                                 len(self.dct[k].phrases.keys())),
-                                                self.dct[k].lemma.lower(), self.dct[k].lemma))
+            self.print_keys.sort(key=lambda k: (-self.dct_info.dct[k].accuracy,
+                                                -self.dct_info.dct[k].win_streak /
+                                                (1 + len(self.dct_info.dct[k].forms.keys()) +
+                                                 len(self.dct_info.dct[k].phrases.keys())),
+                                                self.dct_info.dct[k].lemma.lower(), self.dct_info.dct[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[4]:
-            self.print_keys.sort(key=lambda k: (self.dct[k].latest_att_timestamp,
-                                                self.dct[k].lemma.lower(), self.dct[k].lemma))
+            self.print_keys.sort(key=lambda k: (self.dct_info.dct[k].latest_att_timestamp,
+                                                self.dct_info.dct[k].lemma.lower(), self.dct_info.dct[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[5]:
-            self.print_keys.sort(key=lambda k: ([-val for val in self.dct[k].latest_att_timestamp],
-                                                self.dct[k].lemma.lower(), self.dct[k].lemma))
+            self.print_keys.sort(key=lambda k: ([-val for val in self.dct_info.dct[k].latest_att_timestamp],
+                                                self.dct_info.dct[k].lemma.lower(), self.dct_info.dct[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[6]:
-            self.print_keys.sort(key=lambda k: (self.dct[k].lemma.lower(), self.dct[k].lemma))
+            self.print_keys.sort(key=lambda k: (self.dct_info.dct[k].lemma.lower(), self.dct_info.dct[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[7]:
-            self.print_keys.sort(key=lambda k: (self.dct[k].lemma.lower(), self.dct[k].lemma),
+            self.print_keys.sort(key=lambda k: (self.dct_info.dct[k].lemma.lower(), self.dct_info.dct[k].lemma),
                                  reverse=True)
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[8]:
-            self.print_keys.sort(key=lambda k: (len(self.dct[k].lemma),
-                                                self.dct[k].lemma.lower(), self.dct[k].lemma))
+            self.print_keys.sort(key=lambda k: (len(self.dct_info.dct[k].lemma),
+                                                self.dct_info.dct[k].lemma.lower(), self.dct_info.dct[k].lemma))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[9]:
-            self.print_keys.sort(key=lambda k: (-len(self.dct[k].lemma),
-                                                self.dct[k].lemma.lower(), self.dct[k].lemma))
+            self.print_keys.sort(key=lambda k: (-len(self.dct_info.dct[k].lemma),
+                                                self.dct_info.dct[k].lemma.lower(), self.dct_info.dct[k].lemma))
         # Выводим информацию о количестве статей
         self.print_print_info()
 
@@ -5537,9 +5538,9 @@ class PrintW(tk.Toplevel):
         self.print_tips = [
             ttip.Hovertip(self.print_buttons[i],
                           f'Верных ответов подряд: '
-                          f'{get_correct_att_in_a_row(self.dct[self.print_keys[self.print_start_index + i]])}\n'
+                          f'{get_correct_att_in_a_row(self.dct_info.dct[self.print_keys[self.print_start_index + i]])}\n'
                           f'Доля верных ответов: '
-                          f'{get_entry_percent(self.dct[self.print_keys[self.print_start_index + i]])}',
+                          f'{get_entry_percent(self.dct_info.dct[self.print_keys[self.print_start_index + i]])}',
                           hover_delay=666)
             for i in range(self.print_count_elements_on_page)
         ]
@@ -5547,11 +5548,11 @@ class PrintW(tk.Toplevel):
         if self.var_print_briefly.get():
             for i in range(self.print_count_elements_on_page):
                 key = self.print_keys[self.print_start_index + i]
-                self.print_buttons[i].configure(text=get_entry_info_briefly(self.dct[key], 75))
+                self.print_buttons[i].configure(text=get_entry_info_briefly(self.dct_info.dct[key], 75))
         else:
             for i in range(self.print_count_elements_on_page):
                 key = self.print_keys[self.print_start_index + i]
-                self.print_buttons[i].configure(text=get_entry_info_detailed(self.dct[key], 75))
+                self.print_buttons[i].configure(text=get_entry_info_detailed(self.dct_info.dct[key], 75))
 
         for i in range(self.print_count_elements_on_page):
             # Расставляем элементы
@@ -5584,21 +5585,21 @@ class PrintW(tk.Toplevel):
         # Выбираем нужные статьи
         # Если нужно, оставляем только избранные
         if self.to_search_only_fav:
-            keys = [key for key in self.dct.get_entry_ids() if self.dct[key].is_fav]
+            keys = [key for key in self.dct_info.dct.get_entry_ids() if self.dct_info.dct[key].is_fav]
         else:
-            keys = [key for key in self.dct.get_entry_ids()]
+            keys = [key for key in self.dct_info.dct.get_entry_ids()]
         # Если нужно, оставляем только одну группу
         if self.search_group != ALL_GROUPS:
-            keys = [key for key in keys if self.search_group in self.dct[key].groups]
+            keys = [key for key in keys if self.search_group in self.dct_info.dct[key].groups]
         # Среди оставшихся ищем статьи, содержащие искомый текст
-        results = search_entries(self.dct, tuple(keys), self.var_search_query.get(),
+        results = search_entries(self.dct_info.dct, tuple(keys), self.var_search_query.get(),
                                  self.to_search_wrd, self.to_search_tr, self.to_search_frm,
                                  self.to_search_phr, self.to_search_nt)
         # Объединяем результаты в один список
         self.search_keys = []
         for i in range(6 if self.to_search_only_full else 9):
             self.search_keys += sorted(list(results[i]),
-                                       key=lambda k: (self.dct[k].lemma.lower(), self.dct[k].lemma))
+                                       key=lambda k: (self.dct_info.dct[k].lemma.lower(), self.dct_info.dct[k].lemma))
         # Из выделенных статей оставляем, только удовлетворяющие поисковому запросу
         self.search_selected_keys = [key for key in self.search_selected_keys if key in self.search_keys]
         # Если выделенных статей нет, убираем связанные с ними кнопки
@@ -5646,7 +5647,7 @@ class PrintW(tk.Toplevel):
             # Выводим текст на кнопки
             self.search_buttons[i].configure(
                 text=get_all_entry_info(
-                    self.dct[self.search_keys[self.search_start_index + i]], 75, 13))
+                    self.dct_info.dct[self.search_keys[self.search_start_index + i]], 75, 13))
 
             # Расставляем элементы
             self.search_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
@@ -5669,10 +5670,10 @@ class PrintW(tk.Toplevel):
         # Выводим текст на кнопку
         if self.var_print_briefly.get():
             key = self.print_keys[self.print_start_index + index]
-            self.print_buttons[index].configure(text=get_entry_info_briefly(self.dct[key], 75))
+            self.print_buttons[index].configure(text=get_entry_info_briefly(self.dct_info.dct[key], 75))
         else:
             key = self.print_keys[self.print_start_index + index]
-            self.print_buttons[index].configure(text=get_entry_info_detailed(self.dct[key], 75))
+            self.print_buttons[index].configure(text=get_entry_info_detailed(self.dct_info.dct[key], 75))
 
         # Выводим информацию о количестве статей
         self.print_print_info()
@@ -5680,7 +5681,7 @@ class PrintW(tk.Toplevel):
     # Обновить одну из кнопок журнала (2)
     def search_refresh_one_button(self, index: int, key: EntryID):
         # Выводим текст на кнопку
-        self.search_buttons[index].configure(text=get_all_entry_info(self.dct[key], 75, 13))
+        self.search_buttons[index].configure(text=get_all_entry_info(self.dct_info.dct[key], 75, 13))
 
         # Выводим информацию о количестве статей
         self.search_print_info()
@@ -5691,18 +5692,18 @@ class PrintW(tk.Toplevel):
         if self.var_print_briefly.get():
             for i in range(self.print_count_elements_on_page):
                 key = self.print_keys[self.print_start_index + i]
-                self.print_buttons[i].configure(text=get_entry_info_briefly(self.dct[key], 75))
+                self.print_buttons[i].configure(text=get_entry_info_briefly(self.dct_info.dct[key], 75))
         else:
             for i in range(self.print_count_elements_on_page):
                 key = self.print_keys[self.print_start_index + i]
-                self.print_buttons[i].configure(text=get_entry_info_detailed(self.dct[key], 75))
+                self.print_buttons[i].configure(text=get_entry_info_detailed(self.dct_info.dct[key], 75))
 
     # Обновить все кнопки журнала (2)
     def search_refresh_all_buttons(self):
         # Выводим текст на кнопки
         for i in range(self.search_count_elements_on_page):
             key = self.search_keys[self.search_start_index + i]
-            self.search_buttons[i].configure(text=get_all_entry_info(self.dct[key], 75, 13))
+            self.search_buttons[i].configure(text=get_all_entry_info(self.dct_info.dct[key], 75, 13))
 
         # Выводим информацию о количестве статей
         self.search_print_info()
@@ -5876,54 +5877,44 @@ class PrintW(tk.Toplevel):
 
     # Добавить выделенные статьи в избранное
     def fav_selected(self, keys: list[EntryID]):
-        global _0_global_has_progress
-
         if not keys:
             return
 
-        self.dct.add_to_fav(tuple(keys))
+        self.dct_info.dct.add_to_fav(tuple(keys))
 
         self.print_refresh_all_buttons()
         self.search_refresh_all_buttons()
-
-        _0_global_has_progress = True
 
     # Убрать выделенные статьи из избранного
     def unfav_selected(self, keys: list[EntryID]):
-        global _0_global_has_progress
-
         if not keys:
             return
 
-        self.dct.remove_from_fav(tuple(keys))
+        self.dct_info.dct.remove_from_fav(tuple(keys))
 
         self.print_refresh_all_buttons()
         self.search_refresh_all_buttons()
 
-        _0_global_has_progress = True
-
     # Добавить выделенные статьи в группу
     def add_selected_to_group(self, keys: list[EntryID]):
-        global _0_global_has_progress
-
         if not keys:
             return
-        if not self.dct.groups:
-            PopupMsgW(self, 'Не найдено ни одной группы!').open()
+        if not self.dct_info.dct.groups:
+            PopupMsgW(self, self.app_config, 'Не найдено ни одной группы!').open()
             return
 
-        sets = [self.dct[key].groups for key in keys]
+        sets = [self.dct_info.dct[key].groups for key in keys]
         values_intersec = set.intersection(*sets)
-        values = [gr for gr in self.dct.groups if gr not in values_intersec]
+        values = [gr for gr in self.dct_info.dct.groups if gr not in values_intersec]
         if not values:
-            PopupMsgW(self, 'Выделенные статьи уже состоят во всех группах!').open()
+            PopupMsgW(self, self.app_config, 'Выделенные статьи уже состоят во всех группах!').open()
             return
-        window_groups = PopupChooseW(self, msg='Выберите группу, в которую хотите добавить выбранные слова:',
-                                     values=values, default_value=self.dct.groups[0])
+        window_groups = PopupChooseW(self, self.app_config, msg='Выберите группу, в которую хотите добавить выбранные слова:',
+                                     values=values, default_value=self.dct_info.dct.groups[0])
         closed, group = window_groups.open()
         if closed:
             return
-        self.dct.add_entries_to_group(group, tuple(keys))
+        self.dct_info.dct.add_entries_to_group(group, tuple(keys))
 
         if group == self.var_print_group.get():
             self.print_print(True)
@@ -5931,36 +5922,32 @@ class PrintW(tk.Toplevel):
             self.print_refresh_all_buttons()
         self.search_refresh_all_buttons()
 
-        _0_global_has_progress = True
-
     # Убрать выделенные статьи из группы
     def remove_selected_from_group(self, keys: list[EntryID]):
-        global _0_global_has_progress
-
         if not keys:
             return
-        if not self.dct.groups:
-            PopupMsgW(self, 'Не найдено ни одной группы!').open()
+        if not self.dct_info.dct.groups:
+            PopupMsgW(self, self.app_config, 'Не найдено ни одной группы!').open()
             return
 
         values = []
         for key in keys:
-            for gr in self.dct[key].groups:
+            for gr in self.dct_info.dct[key].groups:
                 if gr not in values:
                     values += [gr]
         if not values:
-            PopupMsgW(self, 'Выделенные статьи не состоят ни в каких группах!').open()
+            PopupMsgW(self, self.app_config, 'Выделенные статьи не состоят ни в каких группах!').open()
             return
         if self.var_print_group.get() == ALL_GROUPS or self.tabs.index(self.tabs.select()) == 1:
             default_value = values[0]
         else:
             default_value = self.var_print_group.get()
-        window_groups = PopupChooseW(self, msg='Выберите группу, из которой хотите убрать выбранные слова:',
+        window_groups = PopupChooseW(self, self.app_config, msg='Выберите группу, из которой хотите убрать выбранные слова:',
                                      values=values, default_value=default_value)
         closed, group = window_groups.open()
         if closed:
             return
-        self.dct.remove_entries_from_group(group, tuple(keys))
+        self.dct_info.dct.remove_entries_from_group(group, tuple(keys))
 
         if group == self.var_print_group.get():
             self.print_print(True)
@@ -5968,12 +5955,8 @@ class PrintW(tk.Toplevel):
             self.print_refresh_all_buttons()
         self.search_refresh_all_buttons()
 
-        _0_global_has_progress = True
-
     # Удалить выделенные статьи
     def delete_selected(self, keys: list[EntryID]):
-        global _0_global_has_progress
-
         if not keys:
             return
 
@@ -5986,26 +5969,28 @@ class PrintW(tk.Toplevel):
             return
 
         for key in keys:
-            self.dct.delete_entry(key)
+            self.dct_info.dct.delete_entry(key)
 
         self.print_print(True)
         self.search_print(True)
 
-        _0_global_has_progress = True
-
     # Справка об окне
     def about_window(self):
-        PopupMsgW(self, '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
-                        '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
-                        '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
-                  msg_justify='left').open()
+        PopupMsgW(
+            self,
+            self.app_config,
+            '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
+            '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
+            '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
+            msg_justify='left',
+        ).open()
 
     # Нажатие на кнопку "Добавить запись в словарь"
     def add_entry(self):
-        key = AddW(self, self.dct).open()
+        key = AddW(self, self.dct_info.dct, self.app_config).open()
         if not key:
             return
-        EditW(self, self.dct, key).open()
+        EditW(self, self.dct_info.dct, key).open()
 
         self.search_print(False)
         self.print_print(False)
@@ -7064,13 +7049,13 @@ class MainW(tk.Tk):
     # Нажатие на кнопку "Просмотреть словарь"
     def print(self):
         self.disable_all_buttons()
-        PrintW(self, self.manager.active.dct).open()
+        PrintW(self, self.manager.active, self.app_config).open()
         self.enable_all_buttons()
 
     # Нажатие на кнопку "Поиск"
     def search(self):
         self.disable_all_buttons()
-        PrintW(self, self.manager.active.dct).open(tab='search')
+        PrintW(self, self.manager.active, self.app_config).open(tab='search')
         self.enable_all_buttons()
 
     # Нажатие на кнопку "Добавить запись в словарь"
