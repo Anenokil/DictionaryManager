@@ -484,14 +484,14 @@ def special_combination(key: tuple[str, str]) -> str:
 
 
 # Преобразовать в тексте специальные комбинации в соответствующие символы
-def encode_special_combinations(text: str, special_combinations: dict[tuple[str, str], str]) -> str:
+def encode_special_combinations(text: str, special_combinations: dict[str, str]) -> str:
     encoded_text = ''
 
     opening_symbol = None  # Встречен ли открывающий символ специальной комбинации
     for symbol in text:
         if opening_symbol:
-            if (opening_symbol, symbol) in special_combinations.keys():  # Если есть такая комбинация
-                encoded_text += special_combinations[(opening_symbol, symbol)]
+            if opening_symbol + symbol in special_combinations.keys():  # Если есть такая комбинация
+                encoded_text += special_combinations[opening_symbol + symbol]
             elif symbol == opening_symbol:  # Если встречено два открывающих символа подряд
                 encoded_text += opening_symbol  # $$ -> $
             else:  # Если нет такой комбинации
@@ -698,7 +698,7 @@ def edit_wrd_with_choose(dct: Dictionary, window_parent, key: EntryID, new_wrd: 
 
 
 # Добавить статью в словарь (для пользователя)
-def add_entry_with_choose(dct: Dictionary, window_parent: Dictionary, lemma: str, tr: str) -> EntryID | None:
+def add_entry_with_choose(dct: Dictionary, window_parent, lemma: str, tr: str) -> EntryID | None:
     if dct.search([('lemmas', lemma)]):  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(window_parent, 'Статья с таким словом уже есть в словаре\n'
                                                'Что вы хотите сделать?',
@@ -6094,11 +6094,12 @@ class PrintW(tk.Toplevel):
 
 # Окно добавления статьи
 class AddW(tk.Toplevel):
-    def __init__(self, parent, dct: Dictionary):
+    def __init__(self, parent, dct: Dictionary, app_config: AppSettings):
         super().__init__(parent)
         self.parent = parent
 
         self.dct = dct
+        self.app_config = app_config
 
         self.dct_key = None
 
@@ -6117,16 +6118,16 @@ class AddW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Добавление статьи')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
         self.lbl_wrd = ttk.Label(self, text='Введите слово:', style='Default.TLabel')
         self.entry_wrd = ttk.Entry(self, textvariable=self.var_wrd, width=50, validate='all',
-                                   style='Default.TEntry', font=('StdFont', _0_global_scale))
+                                   style='Default.TEntry', font=('StdFont', self.app_config.font_size))
         self.lbl_tr = ttk.Label(self, text='Введите перевод:', style='Default.TLabel')
         self.entry_tr = ttk.Entry(self, textvariable=self.var_tr, width=50, validate='all',
-                                  style='Default.TEntry', font=('StdFont', _0_global_scale))
+                                  style='Default.TEntry', font=('StdFont', self.app_config.font_size))
         self.lbl_fav = ttk.Label(self, text='Избранное:', style='Default.TLabel')
         self.frame = ttk.Frame(self, style='Invis.TFrame')
         # {
@@ -6150,8 +6151,8 @@ class AddW(tk.Toplevel):
     def _add_validation(self):
         # При незаполненных полях нельзя нажать кнопку
         def validate_entries(value_wrd: str, value_tr: str):
-            value_wrd = encode_special_combinations(value_wrd, _0_global_special_combinations)
-            value_tr = encode_special_combinations(value_tr, _0_global_special_combinations)
+            value_wrd = encode_special_combinations(value_wrd, self.dct.input_replacements)
+            value_tr = encode_special_combinations(value_tr, self.dct.input_replacements)
 
             if value_wrd == '' or value_tr == '':
                 btn_disable(self.btn_add)
@@ -6191,20 +6192,17 @@ class AddW(tk.Toplevel):
 
     # Добавление статьи
     def add(self):
-        global _0_global_has_progress
-
         self.dct_key = add_entry_with_choose(self.dct, self,
                                              encode_special_combinations(self.var_wrd.get(),
-                                                                         _0_global_special_combinations),
+                                                                         self.dct.input_replacements),
                                              encode_special_combinations(self.var_tr.get(),
-                                                                         _0_global_special_combinations))
+                                                                         self.dct.input_replacements))
         if not self.dct_key:
             return
         self.dct[self.dct_key].is_fav = self.var_fav.get()
-        for group in _0_global_fav_groups:
+        for group in self.dct.default_groups:
             self.dct[self.dct_key].add_to_group(group)
 
-        _0_global_has_progress = True
         self.destroy()
 
     # Установить фокус
@@ -7077,7 +7075,7 @@ class MainW(tk.Tk):
     def add(self):
         self.disable_all_buttons()
 
-        key = AddW(self, self.manager.active.dct).open()
+        key = AddW(self, self.manager.active.dct, self.app_config).open()
         if key:
             EditW(self, self.manager.active.dct, key).open()
 
