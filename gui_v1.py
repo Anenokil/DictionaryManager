@@ -2354,10 +2354,11 @@ class AddPhraseW(tk.Toplevel):
 
 # Окно изменения статьи
 class EditW(tk.Toplevel):
-    def __init__(self, parent, dct: Dictionary, key: EntryID):
+    def __init__(self, parent, app_config: AppSettings, dct: Dictionary, key: EntryID):
         super().__init__(parent)
         self.parent = parent
 
+        self.app_config = app_config
         self.dct = dct
         self.dct_key = key
 
@@ -2403,7 +2404,7 @@ class EditW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Изменение статьи')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -2412,10 +2413,10 @@ class EditW(tk.Toplevel):
         self.lbl_wrd = ttk.Label(self.frame_main, text='Слово:', style='Default.TLabel')
         self.scrollbar_wrd = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
         self.txt_wrd = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_wrd.set,
-                               font=('DejaVu Sans Mono', _0_global_scale + 1), relief='solid',
-                               bg=STYLES['*.BG.ENTRY'][1][th], fg=STYLES['*.FG.*'][1][th],
-                               selectbackground=STYLES['*.BG.SEL'][1][th], selectforeground=STYLES['*.FG.SEL'][1][th],
-                               highlightbackground=STYLES['*.BORDER_CLR.*'][1][th])
+                               font=('DejaVu Sans Mono', self.app_config.font_size + 1), relief='solid',
+                               bg=STYLES['*.BG.ENTRY'][1][self.app_config.theme], fg=STYLES['*.FG.*'][1][self.app_config.theme],
+                               selectbackground=STYLES['*.BG.SEL'][1][self.app_config.theme], selectforeground=STYLES['*.FG.SEL'][1][self.app_config.theme],
+                               highlightbackground=STYLES['*.BORDER_CLR.*'][1][self.app_config.theme])
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
         self.btn_wrd_edt = ttk.Button(self.frame_main, command=self.wrd_edt, width=4, takefocus=False)
         set_image(self.btn_wrd_edt, self.img_edit, img_edit, 'изм.')
@@ -2423,45 +2424,45 @@ class EditW(tk.Toplevel):
             self.tip_btn_wrd_edt = ttip.Hovertip(self.btn_wrd_edt, 'Изменить слово', hover_delay=500)
         #
         self.lbl_tr = ttk.Label(self.frame_main, text='Перевод:', style='Default.TLabel')
-        self.scrolled_frame_tr = ScrollFrame(self.frame_main,
-                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
-                                             SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_tr = ScrollFrame(self.frame_main, self.app_config,
+                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
+                                             SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
         self.btn_tr_add = ttk.Button(self.frame_main, command=self.tr_add, width=2, takefocus=False)
         set_image(self.btn_tr_add, self.img_add, img_add, '+')
         if self.btn_tr_add['style'] == 'Image.TButton':
             self.tip_btn_tr_add = ttip.Hovertip(self.btn_tr_add, 'Добавить перевод', hover_delay=500)
         #
         self.lbl_frm = ttk.Label(self.frame_main, text='Формы слова:', style='Default.TLabel')
-        self.scrolled_frame_frm = ScrollFrame(self.frame_main,
-                                              SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
-                                              SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_frm = ScrollFrame(self.frame_main, self.app_config,
+                                              SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
+                                              SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
         self.btn_frm_add = ttk.Button(self.frame_main, command=self.frm_add, width=2, takefocus=False)
         set_image(self.btn_frm_add, self.img_add, img_add, '+')
         if self.btn_frm_add['style'] == 'Image.TButton':
             self.tip_btn_frm_add = ttip.Hovertip(self.btn_frm_add, 'Добавить словоформу', hover_delay=500)
         #
         self.lbl_phrases = ttk.Label(self.frame_main, text='Фразы:', style='Default.TLabel')
-        self.scrolled_frame_phr = ScrollFrame(self.frame_main,
-                                              SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
-                                              SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_phr = ScrollFrame(self.frame_main, self.app_config,
+                                              SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
+                                              SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
         self.btn_phrase_add = ttk.Button(self.frame_main, command=self.phrase_add, width=2, takefocus=False)
         set_image(self.btn_phrase_add, self.img_add, img_add, '+')
         if self.btn_phrase_add['style'] == 'Image.TButton':
             self.tip_btn_phrase_add = ttip.Hovertip(self.btn_phrase_add, 'Добавить фразу', hover_delay=500)
         #
         self.lbl_notes = ttk.Label(self.frame_main, text='Сноски:', style='Default.TLabel')
-        self.scrolled_frame_nt = ScrollFrame(self.frame_main,
-                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
-                                             SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_nt = ScrollFrame(self.frame_main, self.app_config,
+                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
+                                             SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
         self.btn_note_add = ttk.Button(self.frame_main, command=self.note_add, width=2, takefocus=False)
         set_image(self.btn_note_add, self.img_add, img_add, '+')
         if self.btn_note_add['style'] == 'Image.TButton':
             self.tip_btn_note_add = ttip.Hovertip(self.btn_note_add, 'Добавить сноску', hover_delay=500)
         #
         self.lbl_gr = ttk.Label(self.frame_main, text='Группы:', style='Default.TLabel')
-        self.scrolled_frame_gr = ScrollFrame(self.frame_main,
-                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[_0_global_scale - SCALE_MIN],
-                                             SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_gr = ScrollFrame(self.frame_main, self.app_config,
+                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
+                                             SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
         self.btn_gr_add = ttk.Button(self.frame_main, command=self.gr_add, width=2, takefocus=False)
         set_image(self.btn_gr_add, self.img_add, img_add, '+')
         if self.btn_gr_add['style'] == 'Image.TButton':
@@ -2515,15 +2516,13 @@ class EditW(tk.Toplevel):
 
     # Изменить слово
     def wrd_edt(self):
-        global _0_global_has_progress
-
-        window = PopupEntryW(self, 'Введите новое слово', default_value=self.dct[self.dct_key].lemma,
+        window = PopupEntryW(self, self.app_config, 'Введите новое слово', default_value=self.dct[self.dct_key].lemma,
                              check_answer_function=lambda wnd, val:
                              check_not_void(wnd, val, 'Слово должно содержать хотя бы один символ!'))
         closed, new_wrd = window.open()
         if closed:
             return
-        new_wrd = encode_special_combinations(new_wrd, _0_global_special_combinations)
+        new_wrd = encode_special_combinations(new_wrd, self.dct.input_replacements)
         if new_wrd == self.dct[self.dct_key].lemma:
             return
 
@@ -2532,31 +2531,25 @@ class EditW(tk.Toplevel):
             return
         self.dct_key = new_key
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Добавить перевод
     def tr_add(self):
-        global _0_global_has_progress
-
-        window = PopupEntryW(self, 'Введите новый перевод',
+        window = PopupEntryW(self, self.app_config, 'Введите новый перевод',
                              check_answer_function=lambda wnd, val:
                              check_tr(wnd, self.dct[self.dct_key].tr, val, self.dct[self.dct_key].lemma))
         closed, tr = window.open()
         if closed:
             return
-        tr = encode_special_combinations(tr, _0_global_special_combinations)
+        tr = encode_special_combinations(tr, self.dct.input_replacements)
 
         self.dct.add_tr(self.dct_key, tr)
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Изменить перевод
     def tr_edt(self, tr: str):
-        global _0_global_has_progress
-
-        window = PopupEntryW(self, 'Введите новый перевод', default_value=tr,
+        window = PopupEntryW(self, self.app_config, 'Введите новый перевод', default_value=tr,
                              check_answer_function=lambda wnd, val:
                              check_tr_edit(
                                  wnd, self.dct[self.dct_key].tr, tr,
@@ -2564,81 +2557,66 @@ class EditW(tk.Toplevel):
         closed, new_tr = window.open()
         if closed:
             return
-        new_tr = encode_special_combinations(new_tr, _0_global_special_combinations)
+        new_tr = encode_special_combinations(new_tr, self.dct.input_replacements)
 
         self.dct.delete_tr(self.dct_key, tr)
         self.dct.add_tr(self.dct_key, new_tr)
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Удалить перевод
     def tr_del(self, tr: str):
-        global _0_global_has_progress
-
         if len(self.translations) == 1:
-            warning(self, 'Вы не можете удалить единственный перевод!')
+            warning(self, self.app_config, 'Вы не можете удалить единственный перевод!')
             return
 
         self.dct.delete_tr(self.dct_key, tr)
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Добавить словоформу
     def frm_add(self):
-        global _0_global_has_progress
-
         if not self.dct.features:
-            warning(self, 'Отсутствуют категории слов!\n'
+            warning(self, self.app_config, 'Отсутствуют категории слов!\n'
                           'Чтобы их добавить, перейдите в\n'
                           'Настройки/Настройки открытого словаря/Грамматические категории')
             return
 
-        window_form = AddFormW(self, self.dct, self.dct_key,
+        window_form = AddFormW(self, self.app_config, self.dct, self.dct_key,
                                combo_width=combobox_width(tuple(self.dct.features.keys()),
                                                           5, 100))  # Создание словоформы
         frm_key, frm = window_form.open()
         if not frm_key:
             return
-        frm = encode_special_combinations(frm, _0_global_special_combinations)
+        frm = encode_special_combinations(frm, self.dct.input_replacements)
 
         self.dct.add_form(self.dct_key, frm_key, frm)
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Изменить словоформу
     def frm_edt(self, frm_key: GramForm):
-        global _0_global_has_progress
-
-        window_entry = PopupEntryW(self, 'Введите новую форму слова',
-                                   default_value=self.dct[self.dct_key].forms[frm_key],
+        window_entry = PopupEntryW(self, self.app_config, 'Введите новую форму слова',
+                                   default_value=self.dct[self.dct_key].forms[frm_key][-1],
                                    check_answer_function=lambda wnd, val:
                                    check_not_void(wnd, val, 'Словоформа должна содержать хотя бы один символ!'))
         closed, new_frm = window_entry.open()
         if closed:
             return
-        new_frm = encode_special_combinations(new_frm, _0_global_special_combinations)
+        new_frm = encode_special_combinations(new_frm, self.dct.input_replacements)
 
-        self.dct[self.dct_key].forms[frm_key] = new_frm
+        self.dct[self.dct_key].add_form(frm_key, new_frm)
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Удалить словоформу
     def frm_del(self, frm_key: GramForm):
-        global _0_global_has_progress
-
         self.dct.delete_form(self.dct_key, frm_key)
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Добавить фразу
     def phrase_add(self):
-        global _0_global_has_progress
-
         window = AddPhraseW(self, 'Добавление фразы',
                             check_answer_function=lambda wnd, val:
                             check_phr(
@@ -2647,18 +2625,15 @@ class EditW(tk.Toplevel):
         closed, phr, phr_tr = window.open()
         if closed:
             return
-        phr = encode_special_combinations(phr, _0_global_special_combinations)
-        phr_tr = encode_special_combinations(phr_tr, _0_global_special_combinations)
+        phr = encode_special_combinations(phr, self.dct.input_replacements)
+        phr_tr = encode_special_combinations(phr_tr, self.dct.input_replacements)
 
         self.dct.add_phrase(self.dct_key, phr, phr_tr)
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Изменить фразу
     def phrase_edt(self, p: tuple[str, str]):
-        global _0_global_has_progress
-
         phr, phr_tr = p
 
         window = AddPhraseW(self, 'Изменение фразы', default_value=(phr, phr_tr),
@@ -2668,30 +2643,24 @@ class EditW(tk.Toplevel):
         closed, new_phr, new_phr_tr = window.open()
         if closed:
             return
-        new_phr = encode_special_combinations(new_phr, _0_global_special_combinations)
-        new_phr_tr = encode_special_combinations(new_phr_tr, _0_global_special_combinations)
+        new_phr = encode_special_combinations(new_phr, self.dct.input_replacements)
+        new_phr_tr = encode_special_combinations(new_phr_tr, self.dct.input_replacements)
 
         self.dct.delete_phrase(self.dct_key, phr, phr_tr)
         self.dct.add_phrase(self.dct_key, new_phr, new_phr_tr)
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Удалить фразу
     def phrase_del(self, p: tuple[str, str]):
-        global _0_global_has_progress
-
         phr, phr_tr = p
         self.dct.delete_phrase(self.dct_key, phr, phr_tr)
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Добавить сноску
     def note_add(self):
-        global _0_global_has_progress
-
-        window = PopupEntryW(self, 'Введите сноску',
+        window = PopupEntryW(self, self.app_config, 'Введите сноску',
                              check_answer_function=lambda wnd, val:
                              check_note(
                                  wnd, self.dct[self.dct_key].notes,
@@ -2699,73 +2668,60 @@ class EditW(tk.Toplevel):
         closed, note = window.open()
         if closed:
             return
-        note = encode_special_combinations(note, _0_global_special_combinations)
+        note = encode_special_combinations(note, self.dct.input_replacements)
 
         self.dct.add_note(self.dct_key, note)
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Изменить сноску
     def note_edt(self, note: str):
-        global _0_global_has_progress
-
-        window = PopupEntryW(self, 'Введите сноску', default_value=note,
+        window = PopupEntryW(self, self.app_config, 'Введите сноску', default_value=note,
                              check_answer_function=lambda wnd, val:
                              check_note_edit(wnd, self.dct[self.dct_key].notes, note, val,
                                              self.dct[self.dct_key].lemma))
         closed, new_note = window.open()
         if closed:
             return
-        new_note = encode_special_combinations(new_note, _0_global_special_combinations)
+        new_note = encode_special_combinations(new_note, self.dct.input_replacements)
 
         self.dct.delete_note(self.dct_key, note)
         self.dct.add_note(self.dct_key, new_note)
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Удалить сноску
     def note_del(self, note: str):
-        global _0_global_has_progress
-
         self.dct.delete_note(self.dct_key, note)
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Добавить группу
     def gr_add(self):
-        global _0_global_has_progress
-
         if not self.dct.groups:
-            warning(self, 'Отсутствуют группы!\n'
+            warning(self, self.app_config, 'Отсутствуют группы!\n'
                           'Чтобы их добавить, перейдите в\n'
                           'Настройки/Настройки открытого словаря/Группы')
             return
         values = [group for group in self.dct.groups if group not in self.dct[self.dct_key].groups]
         if not values:
-            warning(self, 'Статья уже добавлена во все группы')
+            warning(self, self.app_config, 'Статья уже добавлена во все группы')
             return
 
-        window_group = PopupChooseW(self, values, 'Выберите группу', default_value=values[0])
+        window_group = PopupChooseW(self, self.app_config, values, 'Выберите группу', default_value=values[0])
         closed, group = window_group.open()
         if closed:
             return
-        group = encode_special_combinations(group, _0_global_special_combinations)
+        group = encode_special_combinations(group, self.dct.input_replacements)
 
         self.dct.add_entries_to_group(group, [self.dct_key])
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Удалить группу
     def gr_del(self, group: str):
-        global _0_global_has_progress
-
         self.dct.remove_entries_from_group(group, [self.dct_key])
 
-        _0_global_has_progress = True
         self.refresh(False)
 
     # Добавить в избранное/убрать из избранного
@@ -2774,13 +2730,10 @@ class EditW(tk.Toplevel):
 
     # Удалить статью
     def delete(self):
-        global _0_global_has_progress
-
-        window = PopupDialogueW(self, 'Вы уверены, что хотите удалить эту статью?', set_enter_on_btn='none')
+        window = PopupDialogueW(self, self.app_config, 'Вы уверены, что хотите удалить эту статью?', set_enter_on_btn='none')
         answer = window.open()
         if answer:
             self.dct.delete_entry(self.dct_key)
-            _0_global_has_progress = True
             self.destroy()
 
     # Закрыть окно
@@ -2936,23 +2889,23 @@ class EditW(tk.Toplevel):
         self.scrolled_frame_tr.resize(height=max(1, min(sum([field_height(btn['text'], 35)
                                                              for btn in self.tr_buttons]),
                                                         self.max_height_t)) *
-                                             SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
+                                             SCALE_FRAME_HEIGHT_ONE_LINE[self.app_config.font_size - SCALE_MIN])
         self.scrolled_frame_nt.resize(height=max(1, min(sum([field_height(btn['text'], 35)
                                                              for btn in self.nt_buttons]),
                                                         self.max_height_n)) *
-                                             SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
+                                             SCALE_FRAME_HEIGHT_ONE_LINE[self.app_config.font_size - SCALE_MIN])
         self.scrolled_frame_phr.resize(height=max(1, min(sum([field_height(btn['text'], 35)
                                                               for btn in self.phr_buttons]),
                                                          self.max_height_p)) *
-                                              SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
+                                              SCALE_FRAME_HEIGHT_ONE_LINE[self.app_config.font_size - SCALE_MIN])
         self.scrolled_frame_frm.resize(height=max(1, min(sum([field_height(btn['text'], 35)
                                                               for btn in self.frm_buttons]),
                                                          self.max_height_f)) *
-                                              SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
+                                              SCALE_FRAME_HEIGHT_ONE_LINE[self.app_config.font_size - SCALE_MIN])
         self.scrolled_frame_gr.resize(height=max(1, min(sum([field_height(btn['text'], 35)
                                                              for btn in self.gr_buttons]),
                                                         self.max_height_g)) *
-                                             SCALE_FRAME_HEIGHT_ONE_LINE[_0_global_scale - SCALE_MIN])
+                                             SCALE_FRAME_HEIGHT_ONE_LINE[self.app_config.font_size - SCALE_MIN])
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -2964,7 +2917,7 @@ class EditW(tk.Toplevel):
 
     # Справка об окне (срабатывает при нажатии на кнопку)
     def about_window(self):
-        PopupMsgW(self, '* Чтобы изменить поле, наведите на него мышку и нажмите ЛКМ\n'
+        PopupMsgW(self, self.app_config, '* Чтобы изменить поле, наведите на него мышку и нажмите ЛКМ\n'
                         '* Чтобы удалить поле, наведите на него мышку и нажмите Ctrl+D\n\n'
                         'Фразы: Сюда вы можете записать любые фразы с этим словом, как пример его употребления\n'
                         'Сноски: Здесь вы можете указать любые факты об этом слове, которые посчитаете нужными\n'
@@ -5374,7 +5327,7 @@ class PrintW(tk.Toplevel):
 
     # Изменить статью
     def edit_entry(self, key: EntryID):
-        EditW(self, self.dct_info.dct, key).open()
+        EditW(self, self.app_config, self.dct_info.dct, key).open()
 
         self.search_print(False)
         self.print_print(False)
@@ -5994,7 +5947,7 @@ class PrintW(tk.Toplevel):
         key = AddW(self, self.dct_info.dct, self.app_config).open()
         if not key:
             return
-        EditW(self, self.dct_info.dct, key).open()
+        EditW(self, self.app_config, self.dct_info.dct, key).open()
 
         self.search_print(False)
         self.print_print(False)
@@ -7068,7 +7021,7 @@ class MainW(tk.Tk):
 
         key = AddW(self, self.manager.active.dct, self.app_config).open()
         if key:
-            EditW(self, self.manager.active.dct, key).open()
+            EditW(self, self.app_config, self.manager.active.dct, key).open()
 
         self.enable_all_buttons()
 
