@@ -1857,20 +1857,21 @@ class PopupImgW(tk.Toplevel):
 
 # Окно выбора режима перед изучением слов
 class ChooseLearnModeW(tk.Toplevel):
-    def __init__(self, parent, dct: Dictionary):
+    def __init__(self, parent, dct_info: DctInfo, app_config: AppSettings):
         super().__init__(parent)
         self.parent = parent
 
-        self.dct = dct
+        self.dct_info = dct_info
+        self.app_config = app_config
 
         self.res: tuple[str, str, str, str, str] | None = None
-        self.group_vals = [ALL_GROUPS] + self.dct.groups
+        self.group_vals = [ALL_GROUPS] + self.dct_info.dct.groups
 
-        self.var_method = tk.StringVar(value=LEARN_VALUES_METHOD[_0_global_learn_settings[0]])  # Метод учёбы
-        self.var_group = tk.StringVar(value=self.group_vals[_0_global_learn_settings[1]])  # Группа слов
-        self.var_words = tk.StringVar(value=LEARN_VALUES_WORDS[_0_global_learn_settings[2]])  # Способ набора слов
-        self.var_forms = tk.StringVar(value=LEARN_VALUES_FORMS[_0_global_learn_settings[3]])  # Способ набора словоформ
-        self.var_order = tk.StringVar(value=LEARN_VALUES_ORDER[_0_global_learn_settings[4]])  # Порядок следования слов
+        self.var_method = tk.StringVar(value=LEARN_VALUES_METHOD[self.dct_info.cache.train_config[0]])  # Метод учёбы
+        self.var_group = tk.StringVar(value=self.group_vals[self.dct_info.cache.train_config[1]])  # Группа слов
+        self.var_words = tk.StringVar(value=LEARN_VALUES_WORDS[self.dct_info.cache.train_config[2]])  # Способ набора слов
+        self.var_forms = tk.StringVar(value=LEARN_VALUES_FORMS[self.dct_info.cache.train_config[3]])  # Способ набора словоформ
+        self.var_order = tk.StringVar(value=LEARN_VALUES_ORDER[self.dct_info.cache.train_config[4]])  # Порядок следования слов
 
         self._configure_window()
         self._create_widgets()
@@ -1879,7 +1880,7 @@ class ChooseLearnModeW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Выбор режима')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -1889,27 +1890,27 @@ class ChooseLearnModeW(tk.Toplevel):
         self.lbl_method = ttk.Label(self.frame_main, text='Метод:', style='Default.TLabel')
         self.combo_method = ttk.Combobox(self.frame_main, textvariable=self.var_method, values=LEARN_VALUES_METHOD,
                                          validate='focusin', width=30, state='readonly', style='Default.TCombobox',
-                                         font=('DejaVu Sans Mono', _0_global_scale))
+                                         font=('DejaVu Sans Mono', self.app_config.font_size))
         #
         self.lbl_group = ttk.Label(self.frame_main, text='Группа:', style='Default.TLabel')
         self.combo_group = ttk.Combobox(self.frame_main, textvariable=self.var_group,
                                         values=self.group_vals, width=30, state='readonly', style='Default.TCombobox',
-                                        font=('DejaVu Sans Mono', _0_global_scale))
+                                        font=('DejaVu Sans Mono', self.app_config.font_size))
         #
         self.lbl_words = ttk.Label(self.frame_main, text='Набор статей:', style='Default.TLabel')
         self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=LEARN_VALUES_WORDS,
                                         width=30, state='readonly', style='Default.TCombobox',
-                                        font=('DejaVu Sans Mono', _0_global_scale))
+                                        font=('DejaVu Sans Mono', self.app_config.font_size))
         #
         self.lbl_forms = ttk.Label(self.frame_main, text='Набор словоформ:', style='Default.TLabel')
         self.combo_forms = ttk.Combobox(self.frame_main, textvariable=self.var_forms, values=LEARN_VALUES_FORMS,
                                         width=30, state='readonly', style='Default.TCombobox',
-                                        font=('DejaVu Sans Mono', _0_global_scale))
+                                        font=('DejaVu Sans Mono', self.app_config.font_size))
         #
         self.lbl_order = ttk.Label(self.frame_main, text='Порядок заданий:', style='Default.TLabel')
         self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=LEARN_VALUES_ORDER,
                                         width=30, state='readonly', style='Default.TCombobox',
-                                        font=('DejaVu Sans Mono', _0_global_scale))
+                                        font=('DejaVu Sans Mono', self.app_config.font_size))
         # }
         self.btn_start = ttk.Button(self, text='Учить', command=self.start, takefocus=False, style='Default.TButton')
 
@@ -1947,8 +1948,6 @@ class ChooseLearnModeW(tk.Toplevel):
 
     # Начать учить слова
     def start(self):
-        global _0_global_learn_settings
-
         method = self.var_method.get()
         group = self.var_group.get()
         words = self.var_words.get()
@@ -1958,14 +1957,16 @@ class ChooseLearnModeW(tk.Toplevel):
             forms = LEARN_VALUES_FORMS[0]
         order = self.var_order.get()
         self.res = (method, group, words, forms, order)
-        _0_global_learn_settings = [LEARN_VALUES_METHOD.index(method),
-                                    self.group_vals.index(group),
-                                    LEARN_VALUES_WORDS.index(words),
-                                    LEARN_VALUES_FORMS.index(forms),
-                                    LEARN_VALUES_ORDER.index(order)]
+        learn_settings = [
+            LEARN_VALUES_METHOD.index(method),
+            self.group_vals.index(group),
+            LEARN_VALUES_WORDS.index(words),
+            LEARN_VALUES_FORMS.index(forms),
+            LEARN_VALUES_ORDER.index(order),
+        ]
 
-        save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
-                                 _0_global_dct_savename)
+        save_local_auto_settings(self.dct_info.cache.session_number, self.dct_info.cache.search_config, learn_settings,
+                                 self.dct_info.dct.name)
 
         self.destroy()
 
