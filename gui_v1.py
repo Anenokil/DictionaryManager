@@ -2015,9 +2015,11 @@ class ChooseLearnModeW(tk.Toplevel):
 
 # Окно с сообщением о неверном ответе (для слов, не находящихся в избранном)
 class IncorrectAnswerW(tk.Toplevel):
-    def __init__(self, parent, user_answer: str, correct_answer: str, with_typo: bool):
+    def __init__(self, parent, app_config: AppSettings, user_answer: str, correct_answer: str, with_typo: bool):
         super().__init__(parent)
         self.parent = parent
+
+        self.app_config = app_config
 
         self.user_answer = user_answer
         self.correct_answer = correct_answer
@@ -2030,7 +2032,7 @@ class IncorrectAnswerW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Неверно')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -2094,15 +2096,16 @@ class IncorrectAnswerW(tk.Toplevel):
 
 # Окно с параметрами поиска
 class SearchSettingsW(tk.Toplevel):
-    def __init__(self, parent, dct: Dictionary, to_search_only_fav: bool,
+    def __init__(self, parent, app_config: AppSettings, dct_info: DctInfo, to_search_only_fav: bool,
                  to_search_only_full: bool, to_search_wrd: bool, to_search_tr: bool,
                  to_search_frm: bool, to_search_phr: bool, to_search_nt: bool, search_group: str):
         super().__init__(parent)
         self.parent = parent
 
-        self.dct = dct
+        self.app_config = app_config
+        self.dct_info = dct_info
 
-        self.group_vals = [ALL_GROUPS] + self.dct.groups
+        self.group_vals = [ALL_GROUPS] + self.dct_info.dct.groups
 
         self.var_search_only_fav = tk.BooleanVar(value=to_search_only_fav)
         self.var_search_only_full = tk.BooleanVar(value=to_search_only_full)
@@ -2119,7 +2122,7 @@ class SearchSettingsW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Параметры поиска')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -2151,8 +2154,8 @@ class SearchSettingsW(tk.Toplevel):
         # {
         self.lbl_search_group = ttk.Label(self.frame_group, text='Группа:', style='Default.TLabel')
         self.combo_search_group = ttk.Combobox(self.frame_group, textvariable=self.var_search_group,
-                                               values=[ALL_GROUPS] + self.dct.groups, width=26, state='readonly',
-                                               style='Default.TCombobox', font=('DejaVu Sans Mono', _0_global_scale))
+                                               values=[ALL_GROUPS] + self.dct_info.dct.groups, width=26, state='readonly',
+                                               style='Default.TCombobox', font=('DejaVu Sans Mono', self.app_config.font_size))
         # }
 
         self.lbl_search_only_fav.grid(   row=0, column=0,               padx=(6, 1), pady=6,      sticky='E')
@@ -2186,23 +2189,21 @@ class SearchSettingsW(tk.Toplevel):
         self.bind('<Escape>', lambda event: self.destroy())
 
     def open(self):
-        global _0_global_search_settings
-
         self.set_focus()
 
         self.grab_set()
         self.wait_window()
 
-        _0_global_search_settings = (int(self.var_search_only_fav.get()),
+        self.dct_info.cache.train_config = [int(self.var_search_only_fav.get()),
                                      int(self.var_search_only_full.get()),
                                      int(self.var_search_wrd.get()),
                                      int(self.var_search_tr.get()),
                                      int(self.var_search_frm.get()),
                                      int(self.var_search_phr.get()),
                                      int(self.var_search_nt.get()),
-                                     self.group_vals.index(self.var_search_group.get()))
-        save_local_auto_settings(_0_global_session_number, _0_global_search_settings, _0_global_learn_settings,
-                                 _0_global_dct_savename)
+                                     self.group_vals.index(self.var_search_group.get())]
+        save_local_auto_settings(self.dct_info.cache.session_number, self.dct_info.cache.search_config, self.dct_info.cache.train_config,
+                                 self.dct_info.dct.name)
 
         return self.var_search_only_fav.get(), self.var_search_only_full.get(), self.var_search_wrd.get(), \
             self.var_search_tr.get(), self.var_search_frm.get(), self.var_search_phr.get(), self.var_search_nt.get(), \
@@ -2211,10 +2212,11 @@ class SearchSettingsW(tk.Toplevel):
 
 # Окно выбора одной статьи из нескольких с одинаковыми словами
 class ChooseOneOfSimilarEntriesW(tk.Toplevel):
-    def __init__(self, parent, dct: Dictionary, query: str):
+    def __init__(self, parent, app_config: AppSettings, dct: Dictionary, query: str):
         super().__init__(parent)
         self.parent = parent
 
+        self.app_config = app_config
         self.dct = dct
 
         self.to_search_wrd = query
@@ -2228,13 +2230,13 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Найдено несколько схожих статей')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
         self.lbl_header = ttk.Label(self, text='Выберите одну из статей', justify='center', style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, SCALE_DEFAULT_FRAME_HEIGHT[_0_global_scale - SCALE_MIN],
-                                              SCALE_DEFAULT_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame_wrd = ScrollFrame(self, self.app_config, SCALE_DEFAULT_FRAME_HEIGHT[self.app_config.font_size - SCALE_MIN],
+                                              SCALE_DEFAULT_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
         # {
         self.widgets_wrd = []
         # }
@@ -2280,9 +2282,11 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
 
 # Окно добавления фразы
 class AddPhraseW(tk.Toplevel):
-    def __init__(self, parent, title, default_value=('', ''), check_answer_function=None):
+    def __init__(self, parent, title, app_config: AppSettings, default_value=('', ''), check_answer_function=None):
         super().__init__(parent)
         self.parent = parent
+
+        self.app_config = app_config
 
         self.closed = True  # Закрыто ли окно крестиком
         self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
@@ -2299,16 +2303,16 @@ class AddPhraseW(tk.Toplevel):
     def _configure_window(self, title):
         self.title(f'{PROGRAM_NAME} - {title}')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
         self.lbl_phr = ttk.Label(self, text='Фраза:', style='Default.TLabel')
         self.entry_phr = ttk.Entry(self, textvariable=self.var_phr, width=45, validate='all',
-                                   style='Default.TEntry', font=('StdFont', _0_global_scale))
+                                   style='Default.TEntry', font=('StdFont', self.app_config.font_size))
         self.lbl_tr = ttk.Label(self, text='Перевод:', style='Default.TLabel')
         self.entry_tr = ttk.Entry(self, textvariable=self.var_tr, width=45, validate='all',
-                                  style='Default.TEntry', font=('StdFont', _0_global_scale))
+                                  style='Default.TEntry', font=('StdFont', self.app_config.font_size))
         self.btn_ok = ttk.Button(self, text='Готово', command=self.ok, takefocus=False, style='Default.TButton')
 
         self.lbl_phr.grid(  row=0, column=0,     padx=(6, 1), pady=(6, 3), sticky='E')
@@ -2323,8 +2327,6 @@ class AddPhraseW(tk.Toplevel):
 
     # Добавление фразы
     def ok(self):
-        global _0_global_has_progress
-
         if self.check_answer_function:
             is_correct = self.check_answer_function(self, (self.var_phr.get(), self.var_tr.get()))
             if not is_correct:
@@ -2617,7 +2619,7 @@ class EditW(tk.Toplevel):
 
     # Добавить фразу
     def phrase_add(self):
-        window = AddPhraseW(self, 'Добавление фразы',
+        window = AddPhraseW(self, 'Добавление фразы', self.app_config,
                             check_answer_function=lambda wnd, val:
                             check_phr(
                                 wnd, self.dct[self.dct_key].phrases,
@@ -2636,7 +2638,7 @@ class EditW(tk.Toplevel):
     def phrase_edt(self, p: tuple[str, str]):
         phr, phr_tr = p
 
-        window = AddPhraseW(self, 'Изменение фразы', default_value=(phr, phr_tr),
+        window = AddPhraseW(self, 'Изменение фразы', self.app_config, default_value=(phr, phr_tr),
                             check_answer_function=lambda wnd, val:
                             check_phr_edit(wnd, self.dct[self.dct_key].phrases, (phr, phr_tr), val,
                                            self.dct[self.dct_key].lemma))
@@ -2940,10 +2942,11 @@ class EditW(tk.Toplevel):
 
 # Окно создания шаблона словоформы
 class AddFormW(tk.Toplevel):
-    def __init__(self, parent, dct: Dictionary, key: EntryID, combo_width=20):
+    def __init__(self, parent, app_config: AppSettings, dct: Dictionary, key: EntryID, combo_width=20):
         super().__init__(parent)
         self.parent = parent
 
+        self.app_config = app_config
         self.dct = dct
         self.key = key
 
@@ -2972,14 +2975,14 @@ class AddFormW(tk.Toplevel):
     def _configure_window(self):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, combo_width: int):
         self.lbl_choose_ctg = ttk.Label(self, text='Выберите категорию:', justify='center', style='Default.TLabel')
         self.combo_ctg = ttk.Combobox(self, textvariable=self.var_ctg, values=self.categories, width=combo_width,
                                       state='readonly', style='Default.TCombobox',
-                                      font=('DejaVu Sans Mono', _0_global_scale))
+                                      font=('DejaVu Sans Mono', self.app_config.font_size))
         self.lbl_choose_val = ttk.Label(self, text='Задайте значение категории:', justify='center',
                                         style='Default.TLabel')
         self.frame_val = ttk.Frame(self, style='Invis.TFrame')
@@ -2987,7 +2990,7 @@ class AddFormW(tk.Toplevel):
         self.combo_val = ttk.Combobox(self.frame_val, textvariable=self.var_val, values=self.ctg_values,
                                       width=combobox_width(self.ctg_values, 5, 100),
                                       state='readonly', style='Default.TCombobox',
-                                      font=('DejaVu Sans Mono', _0_global_scale))
+                                      font=('DejaVu Sans Mono', self.app_config.font_size))
         self.btn_choose = ttk.Button(self.frame_val, command=self.choose, takefocus=False)
         set_image(self.btn_choose, self.img_ok, img_ok, 'Задать значение')
         if self.btn_choose['style'] == 'Image.TButton':
@@ -3002,7 +3005,7 @@ class AddFormW(tk.Toplevel):
         # {
         self.lbl_form = ttk.Label(self.frame_form, text='Форма:', justify='left', style='Default.TLabel')
         self.entry_form = ttk.Entry(self.frame_form, textvariable=self.var_form,
-                                    style='Default.TEntry', font=('StdFont', _0_global_scale))
+                                    style='Default.TEntry', font=('StdFont', self.app_config.font_size))
         # }
         self.btn_save = ttk.Button(self, text='Добавить', command=self.save, takefocus=False, style='Default.TButton')
 
@@ -3075,10 +3078,10 @@ class AddFormW(tk.Toplevel):
     # Сохранить словоформу
     def save(self):
         if tuple(self.template) in self.dct[self.key].forms.keys():
-            warning(self, f'У слова "{self.dct[self.key].lemma}" уже есть форма с таким шаблоном!')
+            warning(self, self.app_config, f'У слова "{self.dct[self.key].lemma}" уже есть форма с таким шаблоном!')
             return
         if self.var_form.get() == '':
-            warning(self, 'Словоформа должна содержать хотя бы один символ!')
+            warning(self, self.app_config, 'Словоформа должна содержать хотя бы один символ!')
             return
         self.closed = False
         self.destroy()
@@ -4766,7 +4769,7 @@ class LearnW(tk.Toplevel):
                     entry.incorrect((self.dct_info.cache.session_number, self._session_number, self.count_all))
                     self.count_all += 1
             else:
-                window = IncorrectAnswerW(self, encode_special_combinations(self.entry_input.get(),
+                window = IncorrectAnswerW(self, self.app_config, encode_special_combinations(self.entry_input.get(),
                                                                             self.dct_info.dct.input_replacements),
                                           correct_answer, self.app_config.is_typo_btn_on)
                 answer = window.open()
@@ -5317,7 +5320,7 @@ class PrintW(tk.Toplevel):
     # Нажатие на кнопку "Настройки поиска"
     def search_settings(self):
         window = SearchSettingsW(
-            self, self.dct_info.dct, self.to_search_only_fav,
+            self, self.app_config, self.dct_info, self.to_search_only_fav,
             self.to_search_only_full, self.to_search_wrd, self.to_search_tr,
             self.to_search_frm, self.to_search_phr, self.to_search_nt,
             self.search_group)
