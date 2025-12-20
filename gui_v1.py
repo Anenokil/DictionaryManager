@@ -484,14 +484,14 @@ def special_combination(key: tuple[str, str]) -> str:
 
 
 # Преобразовать в тексте специальные комбинации в соответствующие символы
-def encode_special_combinations(text: str, special_combinations: dict[str, str]) -> str:
+def encode_special_combinations(text: str, special_combinations: dict[tuple[str, str], str]) -> str:
     encoded_text = ''
 
     opening_symbol = None  # Встречен ли открывающий символ специальной комбинации
     for symbol in text:
         if opening_symbol:
-            if opening_symbol + symbol in special_combinations.keys():  # Если есть такая комбинация
-                encoded_text += special_combinations[opening_symbol + symbol]
+            if (opening_symbol, symbol) in special_combinations.keys():  # Если есть такая комбинация
+                encoded_text += special_combinations[opening_symbol, symbol]
             elif symbol == opening_symbol:  # Если встречено два открывающих символа подряд
                 encoded_text += opening_symbol  # $$ -> $
             else:  # Если нет такой комбинации
@@ -3646,9 +3646,12 @@ class CategoryValuesSettingsW(tk.Toplevel):
 
 # Окно настроек специальных комбинаций
 class SpecialCombinationsSettingsW(tk.Toplevel):
-    def __init__(self, parent):
+    def __init__(self, parent, dct: Dictionary, app_config: AppSettings):
         super().__init__(parent)
         self.parent = parent
+
+        self.dct = dct
+        self.app_config = app_config
 
         self.has_changes = False
 
@@ -3667,7 +3670,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
     def _configure_window(self):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][th])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -3675,8 +3678,8 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         set_image(self.btn_about_window, self.img_about, img_about, '?')
         self.lbl_combinations = ttk.Label(self, text='Существующие комбинации:', justify='center',
                                           style='Default.TLabel')
-        self.scrolled_frame = ScrollFrame(self, SCALE_SMALL_FRAME_HEIGHT_TALL[_0_global_scale - SCALE_MIN],
-                                          SCALE_SMALL_FRAME_WIDTH[_0_global_scale - SCALE_MIN])
+        self.scrolled_frame = ScrollFrame(self, self.app_config, SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_config.font_size - SCALE_MIN],
+                                          SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
         self.btn_add = ttk.Button(self, text='Добавить комбинацию', command=self.add, takefocus=False,
                                   style='Default.TButton')
 
@@ -3690,36 +3693,36 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
 
     # Добавить комбинацию
     def add(self):
-        window = EnterSpecialCombinationW(self)
+        window = EnterSpecialCombinationW(self, self.app_config)
         closed, key, val = window.open()
         if closed or key[0] == '' or key[1] == '' or val == '':
             return
-        if key in _0_global_special_combinations.keys():
-            warning(self, f'Комбинация {key[0]}{key[1]} уже существует!')
+        if key in self.dct.input_replacements.keys():
+            warning(self, self.app_config, f'Комбинация {key[0]}{key[1]} уже существует!')
             return
-        _0_global_special_combinations[key] = val
+        self.dct.add_replacement(*key, val)
         self.print_combinations(False)
         self.has_changes = True
 
     # Изменить комбинацию
     def edit(self, old_key: tuple[str, str]):
-        old_val = _0_global_special_combinations[old_key]
-        window = EnterSpecialCombinationW(self, default_value=old_key+tuple(old_val))
+        old_val = self.dct.input_replacements[old_key]
+        window = EnterSpecialCombinationW(self, self.app_config, default_value=old_key+tuple(old_val))
         closed, new_key, new_val = window.open()
         if closed or new_key[0] == '' or new_key[1] == '' or new_val == '':
             return
         if new_key == old_key and new_val == old_val:
             return
 
-        _0_global_special_combinations.pop(old_key)
+        self.dct.delete_replacement(*old_key)
 
-        _0_global_special_combinations[new_key] = new_val
+        self.dct.add_replacement(*new_key, new_val)
         self.print_combinations(False)
         self.has_changes = True
 
     # Удалить комбинацию
     def delete(self, cmb_key: tuple[str, str]):
-        _0_global_special_combinations.pop(cmb_key)
+        self.dct.delete_replacement(*cmb_key)
         self.print_combinations(False)
         self.has_changes = True
 
@@ -3739,7 +3742,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем комбинации
-        self.combinations = [key for key in _0_global_special_combinations]
+        self.combinations = [key for key in self.dct.input_replacements]
         combinations_count = len(self.combinations)
 
         # Создаём новые фреймы
@@ -3779,7 +3782,7 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
 
     # Справка об окне (срабатывает при нажатии на кнопку)
     def about_window(self):
-        PopupMsgW(self, '* Чтобы изменить комбинацию, наведите на неё мышку и нажмите ЛКМ или Ctrl+E\n'
+        PopupMsgW(self, self.app_config, '* Чтобы изменить комбинацию, наведите на неё мышку и нажмите ЛКМ или Ctrl+E\n'
                         '* Чтобы удалить комбинацию, наведите на неё мышку и нажмите Ctrl+D',
                   msg_justify='left').open()
 
@@ -6425,7 +6428,7 @@ class SettingsW(tk.Toplevel):
 
     # Настройки специальных комбинаций (срабатывает при нажатии на кнопку)
     def special_combinations_settings(self):
-        self.has_spec_comb_changes = SpecialCombinationsSettingsW(self).open() or self.has_spec_comb_changes
+        self.has_spec_comb_changes = SpecialCombinationsSettingsW(self, self.manager.active.dct, self.app_config).open() or self.has_spec_comb_changes
 
     # Справка о кнопке "Опечатка" (срабатывает при нажатии на кнопку)
     def about_typo(self):
