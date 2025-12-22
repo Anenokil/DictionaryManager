@@ -4677,7 +4677,7 @@ class CustomThemeSettingsW(tk.Toplevel):
 
         self.lbl_demo_header = create_label(
             self.frame_demonstration,
-            'Anenokil developments presents', 'DemoHeader.TLabel',
+            'Anenokil development presents', 'DemoHeader.TLabel',
             row=0, column=0, columnspan=3, padx=12, pady=(12, 0))
         self.lbl_demo_logo = create_label(
             self.frame_demonstration,
