@@ -1,12 +1,13 @@
 import os
 import shutil
-from typing import Any, Literal
+from typing import Any, Literal, TypeVar, Type, Callable
 import copy
 import platform
 import math
 import json
 import tkinter as tk
 from tkinter import colorchooser
+from tkinter.font import Font
 import tkinter.ttk as ttk
 import idlelib.tooltip as ttip  # Всплывающие подсказки
 from tkinter.filedialog import askdirectory
@@ -27,6 +28,7 @@ from constants import *
 from upgrades import *
 
 CompoundValues = Literal['none', 'image', 'text', 'left', 'right', 'top', 'bottom', 'center']
+T = TypeVar('T', bound=ttk.Widget)
 
 """ Темы """
 
@@ -1592,6 +1594,107 @@ def set_image(
         btn.configure(image=img, compound=compound, style='Image.TButton')
 
 
+def _create_widget(widget_type: Type[T], **kwargs) -> T:
+    # Get parameters
+    params = kwargs
+    if 'kwargs' in params:
+        params.update(params.pop('kwargs'))
+    params = {
+        name: value
+        for name, value in params.items()
+        if value is not None
+    }
+
+    grid_param_names = (
+        'row', 'rowspan', 'column', 'columnspan', 'padx', 'pady', 'ipadx', 'ipady', 'sticky'
+    )
+
+    # Create widget
+    init_params = {
+        name: value
+        for name, value in params.items()
+        if name not in grid_param_names
+    }
+    widget = widget_type(**init_params)
+
+    # Place widget
+    grid_params = {
+        name: value
+        for name, value in params.items()
+        if name in grid_param_names
+    }
+    if grid_params:
+        widget.grid(**grid_params)
+
+    return widget
+
+
+def create_frame(
+        master: tk.Misc | None,
+        style: str | None = 'Default.TFrame',
+        **kwargs,
+) -> ttk.Frame:
+    return _create_widget(ttk.Frame, **locals())
+
+
+def create_label(
+        master: tk.Misc | None,
+        text: str | None = None,
+        style: str | None = 'Default.TLabel',
+        **kwargs,
+) -> ttk.Label:
+    return _create_widget(ttk.Label, **locals())
+
+
+def create_button(
+        master: tk.Misc | None,
+        command: Callable[[], Any] | None = None,
+        text: str | None = None,
+        takefocus: bool | None = False,
+        style: str | None = 'Default.TButton',
+        **kwargs,
+) -> ttk.Button:
+    return _create_widget(ttk.Button, **locals())
+
+
+def create_checkbutton(
+        master: tk.Misc | None,
+        variable: tk.Variable | None = None,
+        style: str | None = 'Default.TCheckbutton',
+        **kwargs,
+) -> ttk.Checkbutton:
+    return _create_widget(ttk.Checkbutton, **locals())
+
+
+def create_entry(
+        master: tk.Misc | None,
+        textvariable: tk.Variable | None = None,
+        width: int | None = None,
+        style: str | None = 'Default.TEntry',
+        font: Font | str | tuple[str, int] | AppSettings | None = None,
+        **kwargs,
+) -> ttk.Entry:
+    params = locals()
+    if isinstance(font, AppSettings):
+        params['font'] = ('StdFont', font.font_size)
+    return _create_widget(ttk.Entry, **params)
+
+
+def create_combobox(
+        master: tk.Misc | None,
+        textvariable: tk.Variable | None = None,
+        values: list[str] | tuple[str, ...] | None = None,
+        width: int | None = None,
+        style: str | None = 'Default.TCombobox',
+        font: Font | str | tuple[str, int] | AppSettings | None = None,
+        **kwargs,
+) -> ttk.Combobox:
+    params = locals()
+    if isinstance(font, AppSettings):
+        params['font'] = ('StdFont', font.font_size)
+    return _create_widget(ttk.Combobox, **params)
+
+
 """ Графический интерфейс - функции валидации """
 
 
@@ -1659,19 +1762,18 @@ class ScrollFrame(tk.Frame):
             canvas_position: Literal['left', 'right'],
             scrollbar_position: Literal['left', 'right'],
     ):
-        self.canvas = tk.Canvas(self, bg=STYLES['FLAT_BTN.BG.2'][1][self.app_config.theme], bd=0,
-                                highlightthickness=0, height=height, width=width)
-        # {
-        self.frame_canvas = ttk.Frame(self.canvas, style='Default.TFrame')
-        # }
-        self.scrollbar_y = ttk.Scrollbar(self, command=self.canvas.yview, style='Vertical.TScrollbar')
-
-        self.canvas.pack(     side=canvas_position,    fill='both', expand=True)
+        self.canvas = tk.Canvas(
+            self, bg=STYLES['FLAT_BTN.BG.2'][1][self.app_config.theme], bd=0,
+            highlightthickness=0, height=height, width=width)
+        self.canvas.pack(side=canvas_position, fill='both', expand=True)
+        self.frame_canvas = create_frame(self.canvas)
+        self.scrollbar_y = ttk.Scrollbar(
+            self, command=self.canvas.yview, style='Vertical.TScrollbar')
         self.scrollbar_y.pack(side=scrollbar_position, fill='y')
 
         self.canvas.configure(yscrollcommand=self.scrollbar_y.set)
-        self.canvas_window = self.canvas.create_window((4, 4), window=self.frame_canvas, anchor='nw',
-                                                       tags='self.frame_canvas')
+        self.canvas_window = self.canvas.create_window(
+            (4, 4), window=self.frame_canvas, anchor='nw', tags='self.frame_canvas')
 
     def _create_bindings(self):
         # Когда размер фрейма изменяется, соответственно изменяется и область прокрутки
@@ -1768,12 +1870,13 @@ class PopupMsgW(tk.Toplevel):
             tab: int,
             msg_justify: Literal['left', 'center', 'right'],
     ):
-        self.lbl_msg = ttk.Label(self, text=split_text(msg, msg_max_width, tab=tab, to_add_right_spaces=False),
-                                 justify=msg_justify, style='Default.TLabel')
-        self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Default.TButton')
-
-        self.lbl_msg.grid(row=0, column=0, padx=6, pady=4)
-        self.btn_ok.grid( row=1, column=0, padx=6, pady=4)
+        self.lbl_msg = create_label(
+            self, split_text(msg, msg_max_width, tab=tab, to_add_right_spaces=False),
+            justify=msg_justify,
+            row=0, column=0, padx=6, pady=4)
+        self.btn_ok = create_button(
+            self, self.ok, btn_text,
+            row=1, column=0, padx=6, pady=4)
 
     # Нажатие на кнопку
     def ok(self):
@@ -1844,14 +1947,16 @@ class PopupDialogueW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, msg: str, btn_left_text: str, btn_right_text: str):
-        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, to_add_right_spaces=False), justify='center',
-                                 style='Default.TLabel')
-        self.btn_left  = ttk.Button(self, text=btn_left_text,  command=self.left,  takefocus=False, style=self.st_left)
-        self.btn_right = ttk.Button(self, text=btn_right_text, command=self.right, takefocus=False, style=self.st_right)
-
-        self.lbl_msg.grid(  row=0, columnspan=2, padx=6,       pady=4)
-        self.btn_left.grid( row=1, column=0,     padx=(6, 10), pady=4, sticky='E')
-        self.btn_right.grid(row=1, column=1,     padx=(10, 6), pady=4, sticky='W')
+        self.lbl_msg = create_label(
+            self, split_text(msg, 45, to_add_right_spaces=False),
+            justify='center',
+            row=0, columnspan=2, padx=6, pady=4)
+        self.btn_left = create_button(
+            self, self.left, btn_left_text, style=self.st_left,
+            row=1, column=0, padx=(6, 10), pady=4, sticky='E')
+        self.btn_right = create_button(
+            self, self.right, btn_right_text, style=self.st_right,
+            row=1, column=1, padx=(10, 6), pady=4, sticky='W')
 
     # Нажатие на левую кнопку
     def left(self):
@@ -1926,15 +2031,16 @@ class PopupEntryW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, msg: str, btn_text: str, entry_width: int):
-        self.lbl_msg = ttk.Label(self, text=split_text(f'{msg}:', 45, to_add_right_spaces=False), justify='center',
-                                 style='Default.TLabel')
-        self.entry_inp = ttk.Entry(self, textvariable=self.var_text, width=entry_width,
-                                   style='Default.TEntry', font=('StdFont', self.app_config.font_size))
-        self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
-
-        self.lbl_msg.grid(  row=0, padx=6, pady=(6, 3))
-        self.entry_inp.grid(row=1, padx=6, pady=(0, 6))
-        self.btn_ok.grid(   row=2, padx=6, pady=(0, 6))
+        self.lbl_msg = create_label(
+            self, split_text(f'{msg}:', 45, to_add_right_spaces=False),
+            justify='center',
+            row=0, padx=6, pady=(6, 3))
+        self.entry_inp = create_entry(
+            self, self.var_text, entry_width, font=self.app_config,
+            row=1, padx=6, pady=(0, 6))
+        self.btn_ok = create_button(
+            self, self.ok, btn_text, style='Yes.TButton',
+            row=2, padx=6, pady=(0, 6))
 
     # Нажатие на кнопку
     def ok(self):
@@ -2005,16 +2111,17 @@ class PopupChooseW(tk.Toplevel):
             combo_width: int,
             btn_text: str,
     ):
-        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, to_add_right_spaces=False), justify='center',
-                                 style='Default.TLabel')
-        self.combo_vals = ttk.Combobox(self, textvariable=self.var_answer, values=values,
-                                       width=combo_width, state='readonly',
-                                       font=('DejaVu Sans Mono', self.app_config.font_size), style='Default.TCombobox')
-        self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Yes.TButton')
-
-        self.lbl_msg.grid(   row=0, padx=6, pady=(4, 1))
-        self.combo_vals.grid(row=1, padx=6, pady=1)
-        self.btn_ok.grid(    row=2, padx=6, pady=4)
+        self.lbl_msg = create_label(
+            self, split_text(msg, 45, to_add_right_spaces=False),
+            justify='center',
+            row=0, padx=6, pady=(4, 1))
+        self.combo_vals = create_combobox(
+            self, self.var_answer, values, combo_width, state='readonly',
+            font=('DejaVu Sans Mono', self.app_config.font_size),
+            row=1, padx=6, pady=1)
+        self.btn_ok = create_button(
+            self, self.ok, btn_text, style='Yes.TButton',
+            row=2, padx=6, pady=4)
 
     # Нажатие на кнопку
     def ok(self):
@@ -2068,17 +2175,19 @@ class PopupImgW(tk.Toplevel):
         try:
             self.img = tk.PhotoImage(file=img_name)
         except:
-            self.lbl_img = ttk.Label(self, text='[!!!] Изображение не найдено [!!!]',
-                                     justify='center', style='Default.TLabel')
+            self.lbl_img = create_label(
+                self, '[!!!] Изображение не найдено [!!!]', justify='center')
         else:
-            self.lbl_img = ttk.Label(self, image=self.img, style='Default.TLabel')
-        self.lbl_msg = ttk.Label(self, text=split_text(msg, 45, to_add_right_spaces=False), justify='center',
-                                 style='Default.TLabel')
-        self.btn_ok = ttk.Button(self, text=btn_text, command=self.ok, takefocus=False, style='Default.TButton')
-
-        self.lbl_img.grid(row=0, column=0, padx=6, pady=(4, 0))
-        self.lbl_msg.grid(row=2, column=0, padx=6, pady=0)
-        self.btn_ok.grid( row=3, column=0, padx=6, pady=4)
+            self.lbl_img = create_label(self, image=self.img)
+        self.lbl_img.grid(
+            row=0, column=0, padx=6, pady=(4, 0))
+        self.lbl_msg = create_label(
+            self, split_text(msg, 45, to_add_right_spaces=False),
+            justify='center',
+            row=2, column=0, padx=6, pady=0)
+        self.btn_ok = create_button(
+            self, self.ok, btn_text,
+            row=3, column=0, padx=6, pady=4)
 
     # Нажатие на кнопку
     def ok(self):
@@ -2143,51 +2252,57 @@ class ChooseLearnModeW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        self.lbl_header = ttk.Label(self, text='Выберите способ учёбы', style='Default.TLabel')
-        self.frame_main = ttk.Frame(self, style='Default.TFrame')
-        # {
-        self.lbl_method = ttk.Label(self.frame_main, text='Метод:', style='Default.TLabel')
-        self.combo_method = ttk.Combobox(self.frame_main, textvariable=self.var_method, values=LEARN_VALUES_METHOD,
-                                         validate='focusin', width=30, state='readonly', style='Default.TCombobox',
-                                         font=('DejaVu Sans Mono', self.app_config.font_size))
-        #
-        self.lbl_group = ttk.Label(self.frame_main, text='Группа:', style='Default.TLabel')
-        self.combo_group = ttk.Combobox(self.frame_main, textvariable=self.var_group,
-                                        values=self.group_vals, width=30, state='readonly', style='Default.TCombobox',
-                                        font=('DejaVu Sans Mono', self.app_config.font_size))
-        #
-        self.lbl_words = ttk.Label(self.frame_main, text='Набор статей:', style='Default.TLabel')
-        self.combo_words = ttk.Combobox(self.frame_main, textvariable=self.var_words, values=LEARN_VALUES_WORDS,
-                                        width=30, state='readonly', style='Default.TCombobox',
-                                        font=('DejaVu Sans Mono', self.app_config.font_size))
-        #
-        self.lbl_forms = ttk.Label(self.frame_main, text='Набор словоформ:', style='Default.TLabel')
-        self.combo_forms = ttk.Combobox(self.frame_main, textvariable=self.var_forms, values=LEARN_VALUES_FORMS,
-                                        width=30, state='readonly', style='Default.TCombobox',
-                                        font=('DejaVu Sans Mono', self.app_config.font_size))
-        #
-        self.lbl_order = ttk.Label(self.frame_main, text='Порядок заданий:', style='Default.TLabel')
-        self.combo_order = ttk.Combobox(self.frame_main, textvariable=self.var_order, values=LEARN_VALUES_ORDER,
-                                        width=30, state='readonly', style='Default.TCombobox',
-                                        font=('DejaVu Sans Mono', self.app_config.font_size))
-        # }
-        self.btn_start = ttk.Button(self, text='Учить', command=self.start, takefocus=False, style='Default.TButton')
+        self.lbl_header = create_label(
+            self, 'Выберите способ учёбы',
+            row=0, column=0, padx=6, pady=(6, 3))
+        self._create_main_frame()
+        self.btn_start = create_button(
+            self, self.start, 'Учить',
+            row=2, column=0, padx=6, pady=(0, 6))
 
-        self.lbl_header.grid(row=0, column=0, padx=6, pady=(6, 3))
-        self.frame_main.grid(row=1, column=0, padx=6, pady=(0, 3))
-        # {
-        self.lbl_method.grid(  row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
-        self.combo_method.grid(row=0, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
-        self.lbl_group.grid(   row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
-        self.combo_group.grid( row=1, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
-        self.lbl_words.grid(   row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
-        self.combo_words.grid( row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
-        self.lbl_forms.grid(   row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
-        self.combo_forms.grid( row=3, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
-        self.lbl_order.grid(   row=4, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.combo_order.grid( row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
-        # }
-        self.btn_start.grid(row=2, column=0, padx=6, pady=(0, 6))
+    def _create_main_frame(self):
+        self.frame_main = create_frame(self, row=1, column=0, padx=6, pady=(0, 3))
+
+        self.lbl_method = create_label(
+            self.frame_main, 'Метод:',
+            row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
+        self.combo_method = create_combobox(
+            self.frame_main, self.var_method, LEARN_VALUES_METHOD, 30,
+            font=('DejaVu Sans Mono', self.app_config.font_size),
+            state='readonly', validate='focusin',
+            row=0, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
+        self.lbl_group = create_label(
+            self.frame_main, 'Группа:',
+            row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.combo_group = create_combobox(
+            self.frame_main, self.var_group, self.group_vals, 30,
+            font=('DejaVu Sans Mono', self.app_config.font_size),
+            state='readonly',
+            row=1, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+        self.lbl_words = create_label(
+            self.frame_main, 'Набор статей:',
+            row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.combo_words = create_combobox(
+            self.frame_main, self.var_words, LEARN_VALUES_WORDS, 30,
+            font=('DejaVu Sans Mono', self.app_config.font_size),
+            state='readonly',
+            row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+        self.lbl_forms = create_label(
+            self.frame_main, 'Набор словоформ:',
+            row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.combo_forms = create_combobox(
+            self.frame_main, self.var_forms, LEARN_VALUES_FORMS, 30,
+            font=('DejaVu Sans Mono', self.app_config.font_size),
+            state='readonly',
+            row=3, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+        self.lbl_order = create_label(
+            self.frame_main, 'Порядок заданий:',
+            row=4, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.combo_order = create_combobox(
+            self.frame_main, self.var_order, LEARN_VALUES_ORDER, 30,
+            font=('DejaVu Sans Mono', self.app_config.font_size),
+            state='readonly',
+            row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
 
     def _add_validation(self):
         # При выборе любого метода учёбы кроме первого нельзя добавить словоформы
@@ -2304,16 +2419,19 @@ class IncorrectAnswerW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        self.lbl_msg = ttk.Label(self, text=split_text(f'Неверно.\n'
-                                                       f'Ваш ответ: {self.user_answer}\n'
-                                                       f'Правильный ответ: {self.correct_answer}\n'
-                                                       f'Хотите добавить слово в избранное?',
-                                                       45, 5, to_add_right_spaces=False),
-                                 justify='center', style='Default.TLabel')
-        self.btn_yes = ttk.Button(self, text='Да', command=self.yes, takefocus=False, style='Yes.TButton')
-        self.btn_no = ttk.Button(self, text='Нет', command=self.no, takefocus=False, style='No.TButton')
-        self.btn_typo = ttk.Button(self, text='Просто опечатка', command=self.typo,
-                                   takefocus=False, style='Default.TButton')
+        self.lbl_msg = create_label(
+            self,
+            split_text(
+                f'Неверно.\n'
+                f'Ваш ответ: {self.user_answer}\n'
+                f'Правильный ответ: {self.correct_answer}\n'
+                f'Хотите добавить слово в избранное?',
+                45, 5, to_add_right_spaces=False,
+            ),
+            justify='center')
+        self.btn_yes = create_button(self, self.yes, 'Да', style='Yes.TButton')
+        self.btn_no = create_button(self, self.no, 'Нет', style='No.TButton')
+        self.btn_typo = create_button(self, self.typo, 'Просто опечатка')
 
         if self.with_typo:
             self.lbl_msg.grid( row=0, column=0, columnspan=3, padx=6, pady=4)
@@ -2321,9 +2439,11 @@ class IncorrectAnswerW(tk.Toplevel):
             self.btn_no.grid(  row=1, column=1,               padx=6, pady=4)
             self.btn_typo.grid(row=1, column=2,               padx=6, pady=4, sticky='W')
 
-            self.tip_btn_typo = ttip.Hovertip(self.btn_typo, 'Не засчитывать ошибку\n'
-                                                             'Tab',
-                                              hover_delay=700)
+            self.tip_btn_typo = ttip.Hovertip(
+                self.btn_typo,
+                'Не засчитывать ошибку\n'
+                'Tab',
+                hover_delay=700)
         else:
             self.lbl_msg.grid(row=0, column=0, columnspan=2, padx=6, pady=4)
             self.btn_yes.grid(row=1, column=0,               padx=6, pady=4, sticky='E')
@@ -2405,60 +2525,69 @@ class SearchSettingsW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        self.lbl_search_only_fav = ttk.Label(self, text='Искать только среди избранных статей:', style='Default.TLabel')
-        self.check_search_only_fav = ttk.Checkbutton(self, variable=self.var_search_only_fav,
-                                                     style='Default.TCheckbutton')
-        self.lbl_search_only_full = ttk.Label(self, text='Искать слово целиком:', style='Default.TLabel')
-        self.check_search_only_full = ttk.Checkbutton(self, variable=self.var_search_only_full,
-                                                      style='Default.TCheckbutton')
-        self.frame_main = ttk.Frame(self, style='Default.TFrame')
-        # {
-        self.lbl_search_wrd = ttk.Label(self.frame_main, text='Искать среди слов:', style='Default.TLabel')
-        self.check_search_wrd = ttk.Checkbutton(self.frame_main, variable=self.var_search_wrd,
-                                                style='Default.TCheckbutton')
-        self.lbl_search_tr = ttk.Label(self.frame_main, text='Искать среди переводов:', style='Default.TLabel')
-        self.check_search_tr = ttk.Checkbutton(self.frame_main, variable=self.var_search_tr,
-                                               style='Default.TCheckbutton')
-        self.lbl_search_frm = ttk.Label(self.frame_main, text='Искать среди словоформ:', style='Default.TLabel')
-        self.check_search_frm = ttk.Checkbutton(self.frame_main, variable=self.var_search_frm,
-                                                style='Default.TCheckbutton')
-        self.lbl_search_phr = ttk.Label(self.frame_main, text='Искать среди фраз:', style='Default.TLabel')
-        self.check_search_phr = ttk.Checkbutton(self.frame_main, variable=self.var_search_phr,
-                                                style='Default.TCheckbutton')
-        self.lbl_search_nt = ttk.Label(self.frame_main, text='Искать среди сносок:', style='Default.TLabel')
-        self.check_search_nt = ttk.Checkbutton(self.frame_main, variable=self.var_search_nt,
-                                               style='Default.TCheckbutton')
-        # }
-        self.frame_group = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.lbl_search_group = ttk.Label(self.frame_group, text='Группа:', style='Default.TLabel')
-        self.combo_search_group = ttk.Combobox(self.frame_group, textvariable=self.var_search_group,
-                                               values=[ALL_GROUPS] + self.dct_info.dct.groups, width=26, state='readonly',
-                                               style='Default.TCombobox', font=('DejaVu Sans Mono', self.app_config.font_size))
-        # }
+        self.lbl_search_only_fav = create_label(
+            self, 'Искать только среди избранных статей:',
+            row=0, column=0, padx=(6, 1), pady=6, sticky='E')
+        self.check_search_only_fav = create_checkbutton(
+            self, self.var_search_only_fav,
+            row=0, column=1, padx=(0, 6), pady=6, sticky='W')
+        self.lbl_search_only_full = create_label(
+            self, 'Искать слово целиком:',
+            row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_search_only_full = create_checkbutton(
+            self, self.var_search_only_full,
+            row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self._create_main_frame()
+        self._create_group_frame()
 
-        self.lbl_search_only_fav.grid(   row=0, column=0,               padx=(6, 1), pady=6,      sticky='E')
-        self.check_search_only_fav.grid( row=0, column=1,               padx=(0, 6), pady=6,      sticky='W')
-        self.lbl_search_only_full.grid(  row=1, column=0,               padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_search_only_full.grid(row=1, column=1,               padx=(0, 6), pady=(0, 6), sticky='W')
-        self.frame_main.grid(            row=2, column=0, columnspan=2, padx=6,      pady=6)
-        # {
-        self.lbl_search_wrd.grid(  row=0, column=0, padx=(6, 1), pady=6,      sticky='E')
-        self.check_search_wrd.grid(row=0, column=1, padx=(0, 6), pady=6,      sticky='W')
-        self.lbl_search_tr.grid(   row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_search_tr.grid( row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
-        self.lbl_search_frm.grid(  row=2, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_search_frm.grid(row=2, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
-        self.lbl_search_phr.grid(  row=3, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_search_phr.grid(row=3, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
-        self.lbl_search_nt.grid(   row=4, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_search_nt.grid( row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
-        # }
-        self.frame_group.grid(row=3, column=0, columnspan=2, padx=6, pady=6)
-        # {
-        self.lbl_search_group.grid(  row=0, column=0, padx=(6, 1), pady=6, sticky='E')
-        self.combo_search_group.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
-        # }
+    def _create_main_frame(self):
+        self.frame_main = create_frame(self, row=2, column=0, columnspan=2, padx=6, pady=6)
+
+        self.lbl_search_wrd = create_label(
+            self.frame_main, 'Искать среди слов:',
+            row=0, column=0, padx=(6, 1), pady=6, sticky='E')
+        self.check_search_wrd = create_checkbutton(
+            self.frame_main, self.var_search_wrd,
+            row=0, column=1, padx=(0, 6), pady=6, sticky='W')
+        self.lbl_search_tr = create_label(
+            self.frame_main, 'Искать среди переводов:',
+            row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_search_tr = create_checkbutton(
+            self.frame_main, self.var_search_tr,
+            row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_search_frm = create_label(
+            self.frame_main, 'Искать среди словоформ:',
+            row=2, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_search_frm = create_checkbutton(
+            self.frame_main, self.var_search_frm,
+            row=2, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_search_phr = create_label(
+            self.frame_main, 'Искать среди фраз:',
+            row=3, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_search_phr = create_checkbutton(
+            self.frame_main, self.var_search_phr,
+            row=3, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_search_nt = create_label(
+            self.frame_main, 'Искать среди сносок:',
+            row=4, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_search_nt = create_checkbutton(
+            self.frame_main, self.var_search_nt,
+            row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+
+    def _create_group_frame(self):
+        self.frame_group = create_frame(
+            self, 'Invis.TFrame',
+            row=3, column=0, columnspan=2, padx=6, pady=6)
+
+        self.lbl_search_group = create_label(
+            self.frame_group, 'Группа:',
+            row=0, column=0, padx=(6, 1), pady=6, sticky='E')
+        self.combo_search_group = create_combobox(
+            self.frame_group, self.var_search_group,
+            [ALL_GROUPS] + self.dct_info.dct.groups, 26,
+            state='readonly',
+            font=('DejaVu Sans Mono', self.app_config.font_size),
+            row=0, column=1, padx=(0, 6), pady=6, sticky='W')
 
     # Установить фокус
     def set_focus(self):
@@ -2508,8 +2637,6 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
         self._configure_window()
         self._create_widgets()
 
-        self.print()
-
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Найдено несколько схожих статей')
         self.resizable(width=False, height=False)
@@ -2517,39 +2644,32 @@ class ChooseOneOfSimilarEntriesW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        self.lbl_header = ttk.Label(self, text='Выберите одну из статей', justify='center', style='Default.TLabel')
-        self.scrolled_frame_wrd = ScrollFrame(self, self.app_config, SCALE_DEFAULT_FRAME_HEIGHT[self.app_config.font_size - SCALE_MIN],
-                                              SCALE_DEFAULT_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
-        # {
-        self.widgets_wrd = []
-        # }
+        self.lbl_header = create_label(
+            self, 'Выберите одну из статей', justify='center',
+            row=0, column=0, padx=(6, 3), pady=(6, 3))
+        self.scrolled_frame_wrd = ScrollFrame(
+            self, self.app_config,
+            SCALE_DEFAULT_FRAME_HEIGHT[self.app_config.font_size - SCALE_MIN],
+            SCALE_DEFAULT_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.scrolled_frame_wrd.grid(
+            row=1, column=0, padx=6, pady=(0, 6))
+        self.scrolled_frame_wrd.canvas.yview_moveto(0.0)
 
-        self.lbl_header.grid(        row=0, column=0, padx=(6, 3), pady=(6, 3))
-        self.scrolled_frame_wrd.grid(row=1, column=0, padx=6,      pady=(0, 6))
+        keys = self.dct.search([('lemmas', self.to_search_wrd)])
+        self.widgets_wrd = [
+            create_button(
+                self.scrolled_frame_wrd.frame_canvas,
+                lambda key=key: self.choose_entry(key),
+                get_all_entry_info(self.dct[key], 75, 13),
+                style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            ) for i, key in enumerate(keys)
+        ]
 
     # Выбрать статью из предложенных вариантов
     def choose_entry(self, key: EntryID):
         self.answer = key
         self.destroy()
-
-    # Вывод вариантов
-    def print(self):
-        # Вывод вариантов
-        keys = self.dct.search([('lemmas', self.to_search_wrd)])
-        for i, key in enumerate(keys):
-            self.widgets_wrd += [ttk.Button(
-                self.scrolled_frame_wrd.frame_canvas,
-                text=get_all_entry_info(self.dct[key], 75, 13),
-                command=lambda key=key: self.choose_entry(key),
-                takefocus=False,
-                style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
-            )]
-
-        # Расположение виджетов
-        for i in range(len(self.widgets_wrd)):
-            self.widgets_wrd[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-
-        self.scrolled_frame_wrd.canvas.yview_moveto(0.0)
 
     # Установить фокус
     def set_focus(self):
@@ -2600,19 +2720,23 @@ class AddPhraseW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        self.lbl_phr = ttk.Label(self, text='Фраза:', style='Default.TLabel')
-        self.entry_phr = ttk.Entry(self, textvariable=self.var_phr, width=45, validate='all',
-                                   style='Default.TEntry', font=('StdFont', self.app_config.font_size))
-        self.lbl_tr = ttk.Label(self, text='Перевод:', style='Default.TLabel')
-        self.entry_tr = ttk.Entry(self, textvariable=self.var_tr, width=45, validate='all',
-                                  style='Default.TEntry', font=('StdFont', self.app_config.font_size))
-        self.btn_ok = ttk.Button(self, text='Готово', command=self.ok, takefocus=False, style='Default.TButton')
-
-        self.lbl_phr.grid(  row=0, column=0,     padx=(6, 1), pady=(6, 3), sticky='E')
-        self.entry_phr.grid(row=0, column=1,     padx=(0, 6), pady=(6, 3), sticky='W')
-        self.lbl_tr.grid(   row=1, column=0,     padx=(6, 1), pady=(0, 3), sticky='E')
-        self.entry_tr.grid( row=1, column=1,     padx=(0, 6), pady=(0, 3), sticky='W')
-        self.btn_ok.grid(   row=3, columnspan=2, padx=6,      pady=(0, 6))
+        self.lbl_phr = create_label(
+            self, text='Фраза:',
+            row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
+        self.entry_phr = create_entry(
+            self, self.var_phr, 45,
+            font=self.app_config, validate='all',
+            row=0, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
+        self.lbl_tr = create_label(
+            self, text='Перевод:',
+            row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.entry_tr = create_entry(
+            self, self.var_tr, 45,
+            font=self.app_config, validate='all',
+            row=1, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+        self.btn_ok = create_button(
+            self, self.ok, 'Готово',
+            row=3, columnspan=2, padx=6, pady=(0, 6))
 
     def _create_bindings(self):
         self.entry_phr.bind('<Down>', lambda event: self.entry_tr.focus_set())
@@ -2703,111 +2827,135 @@ class EditW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        self.frame_main = ttk.Frame(self, style='Default.TFrame')
-        # {
-        self.lbl_wrd = ttk.Label(self.frame_main, text='Слово:', style='Default.TLabel')
-        self.scrollbar_wrd = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
-        self.txt_wrd = tk.Text(self.frame_main, width=self.line_width, yscrollcommand=self.scrollbar_wrd.set,
-                               font=('DejaVu Sans Mono', self.app_config.font_size + 1), relief='solid',
-                               bg=STYLES['*.BG.ENTRY'][1][self.app_config.theme], fg=STYLES['*.FG.*'][1][self.app_config.theme],
-                               selectbackground=STYLES['*.BG.SEL'][1][self.app_config.theme], selectforeground=STYLES['*.FG.SEL'][1][self.app_config.theme],
-                               highlightbackground=STYLES['*.BORDER_CLR.*'][1][self.app_config.theme])
-        self.scrollbar_wrd.config(command=self.txt_wrd.yview)
-        self.btn_wrd_edt = ttk.Button(self.frame_main, command=self.wrd_edt, width=4, takefocus=False)
-        set_image(self.btn_wrd_edt, self.img_edit, img_edit, 'изм.')
-        if self.btn_wrd_edt['style'] == 'Image.TButton':
-            self.tip_btn_wrd_edt = ttip.Hovertip(self.btn_wrd_edt, 'Изменить слово', hover_delay=500)
-        #
-        self.lbl_tr = ttk.Label(self.frame_main, text='Перевод:', style='Default.TLabel')
-        self.scrolled_frame_tr = ScrollFrame(self.frame_main, self.app_config,
-                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
-                                             SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
-        self.btn_tr_add = ttk.Button(self.frame_main, command=self.tr_add, width=2, takefocus=False)
-        set_image(self.btn_tr_add, self.img_add, img_add, '+')
-        if self.btn_tr_add['style'] == 'Image.TButton':
-            self.tip_btn_tr_add = ttip.Hovertip(self.btn_tr_add, 'Добавить перевод', hover_delay=500)
-        #
-        self.lbl_frm = ttk.Label(self.frame_main, text='Формы слова:', style='Default.TLabel')
-        self.scrolled_frame_frm = ScrollFrame(self.frame_main, self.app_config,
-                                              SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
-                                              SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
-        self.btn_frm_add = ttk.Button(self.frame_main, command=self.frm_add, width=2, takefocus=False)
-        set_image(self.btn_frm_add, self.img_add, img_add, '+')
-        if self.btn_frm_add['style'] == 'Image.TButton':
-            self.tip_btn_frm_add = ttip.Hovertip(self.btn_frm_add, 'Добавить словоформу', hover_delay=500)
-        #
-        self.lbl_phrases = ttk.Label(self.frame_main, text='Фразы:', style='Default.TLabel')
-        self.scrolled_frame_phr = ScrollFrame(self.frame_main, self.app_config,
-                                              SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
-                                              SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
-        self.btn_phrase_add = ttk.Button(self.frame_main, command=self.phrase_add, width=2, takefocus=False)
-        set_image(self.btn_phrase_add, self.img_add, img_add, '+')
-        if self.btn_phrase_add['style'] == 'Image.TButton':
-            self.tip_btn_phrase_add = ttip.Hovertip(self.btn_phrase_add, 'Добавить фразу', hover_delay=500)
-        #
-        self.lbl_notes = ttk.Label(self.frame_main, text='Сноски:', style='Default.TLabel')
-        self.scrolled_frame_nt = ScrollFrame(self.frame_main, self.app_config,
-                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
-                                             SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
-        self.btn_note_add = ttk.Button(self.frame_main, command=self.note_add, width=2, takefocus=False)
-        set_image(self.btn_note_add, self.img_add, img_add, '+')
-        if self.btn_note_add['style'] == 'Image.TButton':
-            self.tip_btn_note_add = ttip.Hovertip(self.btn_note_add, 'Добавить сноску', hover_delay=500)
-        #
-        self.lbl_gr = ttk.Label(self.frame_main, text='Группы:', style='Default.TLabel')
-        self.scrolled_frame_gr = ScrollFrame(self.frame_main, self.app_config,
-                                             SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
-                                             SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
-        self.btn_gr_add = ttk.Button(self.frame_main, command=self.gr_add, width=2, takefocus=False)
-        set_image(self.btn_gr_add, self.img_add, img_add, '+')
-        if self.btn_gr_add['style'] == 'Image.TButton':
-            self.tip_btn_gr_add = ttip.Hovertip(self.btn_gr_add, 'Добавить группу', hover_delay=500)
-        #
-        self.lbl_fav = ttk.Label(self.frame_main, text='Избранное:', style='Default.TLabel')
-        self.check_fav = ttk.Checkbutton(self.frame_main, variable=self.var_fav, command=self.set_fav,
-                                         style='Default.TCheckbutton')
-        # }
-        self.btn_back = ttk.Button(self, text='Закончить', command=self.back, takefocus=False, style='Default.TButton')
-        self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
+        self._create_main_frame()
+        self.btn_back = create_button(
+            self, self.back, 'Закончить',
+            row=1, column=0, padx=(6, 0), pady=(0, 6))
+        self.btn_about_window = create_button(
+            self, self.about_window, width=2,
+            row=1, column=1, padx=(6, 6), pady=(0, 6))
         set_image(self.btn_about_window, self.img_about, img_about, '?')
-        self.btn_delete = ttk.Button(self, text='Удалить статью', command=self.delete,
-                                     takefocus=False, style='No.TButton')
-
-        self.frame_main.grid(row=0, columnspan=3, padx=6, pady=(6, 4))
-        # {
-        self.lbl_wrd.grid(      row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
-        self.txt_wrd.grid(      row=0, column=1, padx=(0, 1), pady=(6, 3), sticky='W')
-        self.scrollbar_wrd.grid(row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
-        self.btn_wrd_edt.grid(  row=0, column=3, padx=(3, 6), pady=(6, 3), sticky='W')
-        #
-        self.lbl_tr.grid(           row=1, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
-        self.scrolled_frame_tr.grid(row=1, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
-        self.btn_tr_add.grid(       row=1, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
-        #
-        self.lbl_frm.grid(           row=2, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
-        self.scrolled_frame_frm.grid(row=2, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
-        self.btn_frm_add.grid(       row=2, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
-        #
-        self.lbl_phrases.grid(       row=3, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
-        self.scrolled_frame_phr.grid(row=3, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
-        self.btn_phrase_add.grid(    row=3, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
-        #
-        self.lbl_notes.grid(        row=4, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
-        self.scrolled_frame_nt.grid(row=4, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
-        self.btn_note_add.grid(     row=4, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
-        #
-        self.lbl_gr.grid(           row=5, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
-        self.scrolled_frame_gr.grid(row=5, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
-        self.btn_gr_add.grid(       row=5, column=3,               padx=(3, 6), pady=(0, 3), sticky='W')
-        #
-        self.lbl_fav.grid(  row=6, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_fav.grid(row=6, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
-        # }
-        self.btn_back.grid(        row=1, column=0, padx=(6, 0), pady=(0, 6))
-        self.btn_about_window.grid(row=1, column=1, padx=(6, 6), pady=(0, 6))
-        self.btn_delete.grid(      row=1, column=2, padx=(0, 6), pady=(0, 6))
+        self.btn_delete = create_button(
+            self, self.delete, 'Удалить статью', style='No.TButton',
+            row=1, column=2, padx=(0, 6), pady=(0, 6))
 
         self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
+
+    def _create_main_frame(self):
+        self.frame_main = create_frame(self, row=0, columnspan=3, padx=6, pady=(6, 4))
+
+        self.lbl_wrd = create_label(
+            self.frame_main, 'Слово:',
+            row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
+        self.scrollbar_wrd = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
+        self.scrollbar_wrd.grid(
+            row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
+        self.txt_wrd = tk.Text(
+            self.frame_main, width=self.line_width,
+            yscrollcommand=self.scrollbar_wrd.set, relief='solid',
+            font=('DejaVu Sans Mono', self.app_config.font_size + 1),
+            bg=STYLES['*.BG.ENTRY'][1][self.app_config.theme],
+            fg=STYLES['*.FG.*'][1][self.app_config.theme],
+            selectbackground=STYLES['*.BG.SEL'][1][self.app_config.theme],
+            selectforeground=STYLES['*.FG.SEL'][1][self.app_config.theme],
+            highlightbackground=STYLES['*.BORDER_CLR.*'][1][self.app_config.theme])
+        self.txt_wrd.grid(
+            row=0, column=1, padx=(0, 1), pady=(6, 3), sticky='W')
+        self.scrollbar_wrd.config(command=self.txt_wrd.yview)
+        self.btn_wrd_edt = create_button(
+            self.frame_main, self.wrd_edt, width=4,
+            row=0, column=3, padx=(3, 6), pady=(6, 3), sticky='W')
+        set_image(self.btn_wrd_edt, self.img_edit, img_edit, 'изм.')
+        self.lbl_tr = create_label(
+            self.frame_main, text='Перевод:',
+            row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.scrolled_frame_tr = ScrollFrame(
+            self.frame_main, self.app_config,
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.scrolled_frame_tr.grid(
+            row=1, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.btn_tr_add = create_button(
+            self.frame_main, self.tr_add, width=2,
+            row=1, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
+        set_image(self.btn_tr_add, self.img_add, img_add, '+')
+        self.lbl_frm = create_label(
+            self.frame_main, text='Формы слова:',
+            row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.scrolled_frame_frm = ScrollFrame(
+            self.frame_main, self.app_config,
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.scrolled_frame_frm.grid(
+            row=2, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.btn_frm_add = create_button(
+            self.frame_main, self.frm_add, width=2,
+            row=2, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
+        set_image(self.btn_frm_add, self.img_add, img_add, '+')
+        self.lbl_phrases = create_label(
+            self.frame_main, 'Фразы:',
+            row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.scrolled_frame_phr = ScrollFrame(
+            self.frame_main, self.app_config,
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.scrolled_frame_phr.grid(
+            row=3, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.btn_phrase_add = create_button(
+            self.frame_main, self.phrase_add, width=2,
+            row=3, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
+        set_image(self.btn_phrase_add, self.img_add, img_add, '+')
+        self.lbl_notes = create_label(
+            self.frame_main, 'Сноски:',
+            row=4, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.scrolled_frame_nt = ScrollFrame(
+            self.frame_main, self.app_config,
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.scrolled_frame_nt.grid(
+            row=4, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.btn_note_add = create_button(
+            self.frame_main, self.note_add, width=2,
+            row=4, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
+        set_image(self.btn_note_add, self.img_add, img_add, '+')
+        self.lbl_gr = create_label(
+            self.frame_main, 'Группы:',
+            row=5, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.scrolled_frame_gr = ScrollFrame(
+            self.frame_main, self.app_config,
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.scrolled_frame_gr.grid(
+            row=5, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+        self.btn_gr_add = create_button(
+            self.frame_main, self.gr_add, width=2,
+            row=5, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
+        set_image(self.btn_gr_add, self.img_add, img_add, '+')
+        self.lbl_fav = create_label(
+            self.frame_main, 'Избранное:',
+            row=6, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_fav = create_checkbutton(
+            self.frame_main, self.var_fav, command=self.set_fav,
+            row=6, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+
+        if self.btn_wrd_edt['style'] == 'Image.TButton':
+            self.tip_btn_wrd_edt = ttip.Hovertip(
+                self.btn_wrd_edt, 'Изменить слово', hover_delay=500)
+        if self.btn_tr_add['style'] == 'Image.TButton':
+            self.tip_btn_tr_add = ttip.Hovertip(
+                self.btn_tr_add, 'Добавить перевод', hover_delay=500)
+        if self.btn_frm_add['style'] == 'Image.TButton':
+            self.tip_btn_frm_add = ttip.Hovertip(
+                self.btn_frm_add, 'Добавить словоформу', hover_delay=500)
+        if self.btn_phrase_add['style'] == 'Image.TButton':
+            self.tip_btn_phrase_add = ttip.Hovertip(
+                self.btn_phrase_add, 'Добавить фразу', hover_delay=500)
+        if self.btn_note_add['style'] == 'Image.TButton':
+            self.tip_btn_note_add = ttip.Hovertip(
+                self.btn_note_add, 'Добавить сноску', hover_delay=500)
+        if self.btn_gr_add['style'] == 'Image.TButton':
+            self.tip_btn_gr_add = ttip.Hovertip(
+                self.btn_gr_add, 'Добавить группу', hover_delay=500)
 
     # Изменить слово
     def wrd_edt(self):
@@ -3087,7 +3235,7 @@ class EditW(tk.Toplevel):
         self.txt_wrd.delete(1.0, tk.END)
         self.txt_wrd.insert(tk.END, self.dct[self.dct_key].lemma)
         self.txt_wrd['state'] = 'disabled'
-        #
+
         height_w = max(
             min(
                 field_height(self.dct[self.dct_key].lemma, self.line_width),
@@ -3095,7 +3243,7 @@ class EditW(tk.Toplevel):
             ), 1
         )
         self.txt_wrd['height'] = height_w
-        #
+
         if height_w < self.max_height_w:
             self.scrollbar_wrd.grid_remove()
         else:
@@ -3135,99 +3283,98 @@ class EditW(tk.Toplevel):
 
         # Создаём новые фреймы
         self.tr_frames = tuple(
-            ttk.Frame(self.scrolled_frame_tr.frame_canvas, style='Invis.TFrame')
-            for _ in range(tr_count)
+            create_frame(
+                self.scrolled_frame_tr.frame_canvas, 'Invis.TFrame',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(tr_count)
         )
         self.nt_frames = tuple(
-            ttk.Frame(self.scrolled_frame_nt.frame_canvas, style='Invis.TFrame')
-            for _ in range(nt_count)
+            create_frame(
+                self.scrolled_frame_nt.frame_canvas, 'Invis.TFrame',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(nt_count)
         )
         self.phr_frames = tuple(
-            ttk.Frame(self.scrolled_frame_phr.frame_canvas, style='Invis.TFrame')
-            for _ in range(phr_count)
+            create_frame(
+                self.scrolled_frame_phr.frame_canvas, 'Invis.TFrame',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(phr_count)
         )
         self.frm_frames = tuple(
-            ttk.Frame(self.scrolled_frame_frm.frame_canvas, style='Invis.TFrame')
-            for _ in range(frm_count)
+            create_frame(
+                self.scrolled_frame_frm.frame_canvas, 'Invis.TFrame',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(frm_count)
         )
         self.gr_frames = tuple(
-            ttk.Frame(self.scrolled_frame_gr.frame_canvas, style='Invis.TFrame')
-            for _ in range(gr_count)
+            create_frame(
+                self.scrolled_frame_gr.frame_canvas, 'Invis.TFrame',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(gr_count)
         )
+
         # Создаём новые кнопки
         self.tr_buttons = [
-            ttk.Button(
+            create_button(
                 self.tr_frames[i],
-                command=lambda i=i: self.tr_edt(self.translations[i]),
-                takefocus=False,
+                lambda i=i: self.tr_edt(self.translations[i]),
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
+                row=0, column=0, padx=0, pady=0, sticky='WE',
             ) for i in range(tr_count)
         ]
-        self.nt_buttons = [
-            ttk.Button(
-                self.nt_frames[i],
-                command=lambda i=i: self.note_edt(self.notes[i]),
-                takefocus=False,
-                style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
-            ) for i in range(nt_count)
-        ]
-        self.phr_buttons = [
-            ttk.Button(
-                self.phr_frames[i],
-                command=lambda i=i: self.phrase_edt(self.phrases[i]),
-                takefocus=False,
-                style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
-            ) for i in range(phr_count)
-        ]
-        self.frm_buttons = [
-            ttk.Button(
-                self.frm_frames[i],
-                command=lambda i=i: self.frm_edt(self.forms[i]),
-                takefocus=False,
-                style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
-            ) for i in range(frm_count)
-        ]
-        self.gr_buttons = [
-            ttk.Button(
-                self.gr_frames[i],
-                takefocus=False,
-                style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
-            ) for i in range(gr_count)
-        ]
-        # Выводим текст на кнопки
         for i in range(tr_count):
             tr = self.translations[i]
             self.tr_buttons[i].configure(text=split_text(tr, 35))
+
+        self.nt_buttons = [
+            create_button(
+                self.nt_frames[i],
+                lambda i=i: self.note_edt(self.notes[i]),
+                style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
+                row=0, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(nt_count)
+        ]
         for i in range(nt_count):
             nt = self.notes[i]
             self.nt_buttons[i].configure(text=split_text(nt, 35))
+
+        self.phr_buttons = [
+            create_button(
+                self.phr_frames[i],
+                lambda i=i: self.phrase_edt(self.phrases[i]),
+                style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
+                row=0, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(phr_count)
+        ]
         for i in range(phr_count):
             phr = self.phrases[i][0]
             phr_tr = self.phrases[i][1]
             self.phr_buttons[i].configure(text=split_text(f'{phr} - {phr_tr}', 35))
+
+        self.frm_buttons = [
+            create_button(
+                self.frm_frames[i],
+                lambda i=i: self.frm_edt(self.forms[i]),
+                style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
+                row=0, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(frm_count)
+        ]
         for i in range(frm_count):
             frm = self.forms[i]
             text = f'[{gram_form_to_str(frm)}] {self.dct[self.dct_key].forms[frm]}'
             self.frm_buttons[i].configure(text=split_text(text, 35))
+
+        self.gr_buttons = [
+            create_button(
+                self.gr_frames[i],
+                style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
+                row=0, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(gr_count)
+        ]
         for i in range(gr_count):
             gr = self.groups[i]
             self.gr_buttons[i].configure(text=split_text(gr, 35))
-        # Расставляем элементы
-        for i in range(tr_count):
-            self.tr_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            self.tr_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
-        for i in range(nt_count):
-            self.nt_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            self.nt_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
-        for i in range(phr_count):
-            self.phr_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            self.phr_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
-        for i in range(frm_count):
-            self.frm_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            self.frm_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
-        for i in range(gr_count):
-            self.gr_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            self.gr_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
+
         # Привязываем события
         for i in range(tr_count):
             self.tr_frames[i].bind('<Enter>', lambda event, i=i: self.tr_frames[i].focus_set())
@@ -3269,6 +3416,7 @@ class EditW(tk.Toplevel):
                 lambda key, i=i: bind_keypress(key, [
                     ('D', lambda: self.gr_del(self.groups[i]))]),
             )
+
         # Изменяем высоту полей
         self.scrolled_frame_tr.resize(
             height=max(1, min(sum([
@@ -3388,52 +3536,64 @@ class AddFormW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, combo_width: int):
-        self.lbl_choose_ctg = ttk.Label(self, text='Выберите категорию:', justify='center', style='Default.TLabel')
-        self.combo_ctg = ttk.Combobox(self, textvariable=self.var_ctg, values=self.categories, width=combo_width,
-                                      state='readonly', style='Default.TCombobox',
-                                      font=('DejaVu Sans Mono', self.app_config.font_size))
-        self.lbl_choose_val = ttk.Label(self, text='Задайте значение категории:', justify='center',
-                                        style='Default.TLabel')
-        self.frame_val = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.combo_val = ttk.Combobox(self.frame_val, textvariable=self.var_val, values=self.ctg_values,
-                                      width=combobox_width(self.ctg_values, 5, 100),
-                                      state='readonly', style='Default.TCombobox',
-                                      font=('DejaVu Sans Mono', self.app_config.font_size))
-        self.btn_choose = ttk.Button(self.frame_val, command=self.choose, takefocus=False)
-        set_image(self.btn_choose, self.img_ok, img_ok, 'Задать значение')
-        if self.btn_choose['style'] == 'Image.TButton':
-            self.tip_btn_choose = ttip.Hovertip(self.btn_choose, 'Задать значение', hover_delay=500)
-        self.btn_none = ttk.Button(self.frame_val, command=self.set_none, takefocus=False)
-        set_image(self.btn_none, self.img_none, img_cancel, 'Не указывать/неприменимо')
-        if self.btn_none['style'] == 'Image.TButton':
-            self.tip_btn_none = ttip.Hovertip(self.btn_none, 'Не указывать/неприменимо', hover_delay=500)
-        # }
-        self.lbl_template = ttk.Label(self, textvariable=self.var_template, justify='center', style='Default.TLabel')
-        self.frame_form = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.lbl_form = ttk.Label(self.frame_form, text='Форма:', justify='left', style='Default.TLabel')
-        self.entry_form = ttk.Entry(self.frame_form, textvariable=self.var_form,
-                                    style='Default.TEntry', font=('StdFont', self.app_config.font_size))
-        # }
-        self.btn_save = ttk.Button(self, text='Добавить', command=self.save, takefocus=False, style='Default.TButton')
+        self.lbl_choose_ctg = create_label(
+            self, 'Выберите категорию:', justify='center',
+            row=0, column=0, padx=(6, 1), pady=(6, 1), sticky='E')
+        self.combo_ctg = create_combobox(
+            self, self.var_ctg, self.categories, combo_width,
+            font=('DejaVu Sans Mono', self.app_config.font_size),
+            state='readonly',
+            row=0, column=1, padx=(0, 6), pady=(6, 1), sticky='W')
+        self.lbl_choose_val = create_label(
+            self, 'Задайте значение категории:', justify='center',
+            row=1, column=0, padx=(6, 1), pady=1, sticky='E')
+        self._create_val_frame()
+        self.lbl_template = create_label(
+            self, textvariable=self.var_template, justify='center',
+            row=2, columnspan=2, padx=6, pady=1)
+        self._create_form_frame()
+        self.btn_save = create_button(
+            self, self.save, 'Добавить',
+            row=4, columnspan=2, padx=6, pady=6)
 
-        self.lbl_choose_ctg.grid(row=0, column=0, padx=(6, 1), pady=(6, 1), sticky='E')
-        self.combo_ctg.grid(     row=0, column=1, padx=(0, 6), pady=(6, 1), sticky='W')
-        self.lbl_choose_val.grid(row=1, column=0, padx=(6, 1), pady=1,      sticky='E')
-        self.frame_val.grid(     row=1, column=1, padx=(0, 6), pady=1,      sticky='W')
-        # {
-        self.combo_val.grid( row=0, column=0, padx=0,      pady=0)
-        self.btn_choose.grid(row=0, column=1, padx=(3, 0), pady=0)
-        self.btn_none.grid(  row=0, column=2, padx=0,      pady=0)
-        # }
-        self.lbl_template.grid(row=2, columnspan=2, padx=6, pady=1)
-        self.frame_form.grid(  row=3, columnspan=2, padx=6, pady=6)
-        # {
-        self.lbl_form.grid(  row=0, column=0, padx=(0, 1), pady=0, sticky='E')
-        self.entry_form.grid(row=0, column=1, padx=0,      pady=0, sticky='W')
-        # }
-        self.btn_save.grid(row=4, columnspan=2, padx=6, pady=6)
+    def _create_val_frame(self):
+        self.frame_val = create_frame(
+            self, 'Invis.TFrame',
+            row=1, column=1, padx=(0, 6), pady=1, sticky='W')
+
+        self.combo_val = create_combobox(
+            self.frame_val, self.var_val, self.ctg_values,
+            combobox_width(self.ctg_values, 5, 100),
+            font=('DejaVu Sans Mono', self.app_config.font_size),
+            state='readonly',
+            row=0, column=0, padx=0, pady=0)
+        self.btn_choose = create_button(
+            self.frame_val, self.choose,
+            row=0, column=1, padx=(3, 0), pady=0)
+        set_image(self.btn_choose, self.img_ok, img_ok, 'Задать значение')
+        self.btn_none = create_button(
+            self.frame_val, self.set_none,
+            row=0, column=2, padx=0, pady=0)
+        set_image(self.btn_none, self.img_none, img_cancel, 'Не указывать/неприменимо')
+
+        if self.btn_choose['style'] == 'Image.TButton':
+            self.tip_btn_choose = ttip.Hovertip(
+                self.btn_choose, 'Задать значение', hover_delay=500)
+        if self.btn_none['style'] == 'Image.TButton':
+            self.tip_btn_none = ttip.Hovertip(
+                self.btn_none, 'Не указывать/неприменимо', hover_delay=500)
+
+    def _create_form_frame(self):
+        self.frame_form = create_frame(
+            self, 'Invis.TFrame',
+            row=3, columnspan=2, padx=6, pady=6)
+
+        self.lbl_form = create_label(
+            self.frame_form, 'Форма:', justify='left',
+            row=0, column=0, padx=(0, 1), pady=0, sticky='E')
+        self.entry_form = create_entry(
+            self.frame_form, self.var_form, font=self.app_config,
+            row=0, column=1, padx=0, pady=0, sticky='W')
 
     # Выбрать категорию и задать ей значение
     def choose(self):
@@ -3562,19 +3722,22 @@ class CategoriesSettingsW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
+        self.btn_about_window = create_button(
+            self, self.about_window, width=2,
+            row=0, column=0, padx=(6, 0), pady=(6, 6), sticky='E')
         set_image(self.btn_about_window, self.img_about, img_about, '?')
-        self.lbl_categories = ttk.Label(self, text='Существующие категории слов:',
-                                        justify='center', style='Default.TLabel')
-        self.scrolled_frame = ScrollFrame(self, self.app_config, SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_config.font_size - SCALE_MIN],
-                                          SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
-        self.btn_add = ttk.Button(self, text='Добавить категорию', command=self.add, takefocus=False,
-                                  style='Default.TButton')
-
-        self.btn_about_window.grid(row=0, column=0,               padx=(6, 0), pady=(6, 6), sticky='E')
-        self.lbl_categories.grid(  row=0, column=1,               padx=(0, 6), pady=(6, 0), sticky='W')
-        self.scrolled_frame.grid(  row=1, column=0, columnspan=2, padx=6,      pady=(0, 6))
-        self.btn_add.grid(         row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
+        self.lbl_categories = create_label(
+            self, 'Существующие категории слов:', justify='center',
+            row=0, column=1, padx=(0, 6), pady=(6, 0), sticky='W')
+        self.scrolled_frame = ScrollFrame(
+            self, self.app_config,
+            SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_config.font_size - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.scrolled_frame.grid(
+            row=1, column=0, columnspan=2, padx=6, pady=(0, 6))
+        self.btn_add = create_button(
+            self, self.add, 'Добавить категорию',
+            row=2, column=0, columnspan=2, padx=6, pady=(0, 6))
 
     def _create_tips(self):
         self.tip_btn_about_window = ttip.Hovertip(
@@ -3623,25 +3786,24 @@ class CategoriesSettingsW(tk.Toplevel):
 
         # Создаём новые фреймы
         self.frames = [
-            ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
-            for _ in range(categories_count)
+            create_frame(
+                self.scrolled_frame.frame_canvas, 'Invis.TFrame',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(categories_count)
         ]
         # Создаём новые кнопки
         self.buttons = [
-            ttk.Button(
+            create_button(
                 self.frames[i],
-                command=lambda i=i: self.values(self.categories[i]),
-                takefocus=False, style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
+                lambda i=i: self.values(self.categories[i]),
+                style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
+                row=0, column=0, padx=0, pady=0, sticky='WE',
             ) for i in range(categories_count)
         ]
         for i in range(categories_count):
             # Выводим текст на кнопки
             ctg = self.categories[i]
             self.buttons[i].configure(text=split_text(f'{ctg}', 35))
-
-            # Расставляем элементы
-            self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
@@ -3714,18 +3876,22 @@ class GroupsSettingsW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
+        self.btn_about_window = create_button(
+            self, self.about_window, width=2,
+            row=0, column=0, padx=(6, 0), pady=(6, 6), sticky='E')
         set_image(self.btn_about_window, self.img_about, img_about, '?')
-        self.lbl_groups = ttk.Label(self, text='Существующие группы:', justify='center', style='Default.TLabel')
-        self.scrolled_frame = ScrollFrame(self, self.app_config, SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_config.font_size - SCALE_MIN],
-                                          SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
-        self.btn_add = ttk.Button(self, text='Добавить группу', command=self.add, takefocus=False,
-                                  style='Default.TButton')
-
-        self.btn_about_window.grid(row=0, column=0,               padx=(6, 0), pady=(6, 6), sticky='E')
-        self.lbl_groups.grid(      row=0, column=1,               padx=(0, 6), pady=(6, 0), sticky='W')
-        self.scrolled_frame.grid(  row=1, column=0, columnspan=2, padx=6,      pady=(0, 6))
-        self.btn_add.grid(         row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
+        self.lbl_groups = create_label(
+            self, 'Существующие группы:', justify='center',
+            row=0, column=1, padx=(0, 6), pady=(6, 0), sticky='W')
+        self.scrolled_frame = ScrollFrame(
+            self, self.app_config,
+            SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_config.font_size - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.scrolled_frame.grid(
+            row=1, column=0, columnspan=2, padx=6, pady=(0, 6))
+        self.btn_add = create_button(
+            self, self.add, 'Добавить группу',
+            row=2, column=0, columnspan=2, padx=6, pady=(0, 6))
 
     def _create_tips(self):
         self.tip_btn_about_window = ttip.Hovertip(
@@ -3839,16 +4005,18 @@ class GroupsSettingsW(tk.Toplevel):
 
         # Создаём новые фреймы
         self.frames = [
-            ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
-            for _ in range(groups_count)
+            create_frame(
+                self.scrolled_frame.frame_canvas, 'Invis.TFrame',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(groups_count)
         ]
         # Создаём новые кнопки
         self.buttons = [
-            ttk.Button(
+            create_button(
                 self.frames[i],
-                command=lambda i=i: self.rename(self.groups[i]),
-                takefocus=False,
+                lambda i=i: self.rename(self.groups[i]),
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
+                row=0, column=0, padx=0, pady=0, sticky='WE',
             ) for i in range(groups_count)
         ]
         # Создаём новые подсказки
@@ -3866,10 +4034,6 @@ class GroupsSettingsW(tk.Toplevel):
                 self.buttons[i].configure(text=split_text(f'{group} (*)', 35))
             else:
                 self.buttons[i].configure(text=split_text(f'{group}', 35))
-
-            # Расставляем элементы
-            self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
@@ -3945,21 +4109,26 @@ class CategoryValuesSettingsW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
+        self.btn_about_window = create_button(
+            self, self.about_window, width=2,
+            row=0, column=0, padx=(6, 0), pady=(6, 6), sticky='E')
         set_image(self.btn_about_window, self.img_about, img_about, '?')
-        self.lbl_ctg_values = ttk.Label(self, text=f'Существующие значения категории\n'
-                                                   f'"{self.ctg_key}":',
-                                        justify='center', style='Default.TLabel')
+        self.lbl_ctg_values = create_label(
+            self,
+            f'Существующие значения категории\n'
+            f'"{self.ctg_key}":',
+            justify='center',
+            row=0, column=1, padx=(0, 6), pady=(6, 0), sticky='W')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
-        self.scrolled_frame = ScrollFrame(self, self.app_config, SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_config.font_size - SCALE_MIN],
-                                          SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
-        self.btn_add = ttk.Button(self, text='Добавить значение', command=self.add, takefocus=False,
-                                  style='Default.TButton')
-
-        self.btn_about_window.grid(row=0, column=0,               padx=(6, 0), pady=(6, 6), sticky='E')
-        self.lbl_ctg_values.grid(  row=0, column=1,               padx=(0, 6), pady=(6, 0), sticky='W')
-        self.scrolled_frame.grid(  row=1, column=0, columnspan=2, padx=6,      pady=(0, 6))
-        self.btn_add.grid(         row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
+        self.scrolled_frame = ScrollFrame(
+            self, self.app_config,
+            SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_config.font_size - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.scrolled_frame.grid(
+            row=1, column=0, columnspan=2, padx=6, pady=(0, 6))
+        self.btn_add = create_button(
+            self, self.add, 'Добавить значение',
+            row=2, column=0, columnspan=2, padx=6, pady=(0, 6))
 
     def _create_tips(self):
         self.tip_btn_about_window = ttip.Hovertip(
@@ -4007,26 +4176,24 @@ class CategoryValuesSettingsW(tk.Toplevel):
 
         # Создаём новые фреймы
         self.frames = [
-            ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
-            for _ in range(categories_count)
+            create_frame(
+                self.scrolled_frame.frame_canvas, 'Invis.TFrame',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(categories_count)
         ]
         # Создаём новые кнопки
         self.buttons = [
-            ttk.Button(
+            create_button(
                 self.frames[i],
-                command=lambda i=i: self.rename(self.values[i]),
-                takefocus=False,
-                style='FlatD.TButton' if i % 2 else 'FlatL.TButton'
+                lambda i=i: self.rename(self.values[i]),
+                style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
+                row=0, column=0, padx=0, pady=0, sticky='WE',
             ) for i in range(categories_count)
         ]
         for i in range(categories_count):
             # Выводим текст на кнопки
             ctg = self.values[i]
             self.buttons[i].configure(text=split_text(f'{ctg}', 35))
-
-            # Расставляем элементы
-            self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
@@ -4097,19 +4264,22 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        self.btn_about_window = ttk.Button(self, command=self.about_window, width=2, takefocus=False)
+        self.btn_about_window = create_button(
+            self, self.about_window, width=2,
+            row=0, column=0, padx=(6, 0), pady=(6, 6), sticky='E')
         set_image(self.btn_about_window, self.img_about, img_about, '?')
-        self.lbl_combinations = ttk.Label(self, text='Существующие комбинации:', justify='center',
-                                          style='Default.TLabel')
-        self.scrolled_frame = ScrollFrame(self, self.app_config, SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_config.font_size - SCALE_MIN],
-                                          SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
-        self.btn_add = ttk.Button(self, text='Добавить комбинацию', command=self.add, takefocus=False,
-                                  style='Default.TButton')
-
-        self.btn_about_window.grid(row=0, column=0,               padx=(6, 0), pady=(6, 6), sticky='E')
-        self.lbl_combinations.grid(row=0, column=1,               padx=(0, 6), pady=(6, 0), sticky='W')
-        self.scrolled_frame.grid(  row=1, column=0, columnspan=2, padx=6,      pady=(0, 6))
-        self.btn_add.grid(         row=2, column=0, columnspan=2, padx=6,      pady=(0, 6))
+        self.lbl_combinations = create_label(
+            self, 'Существующие комбинации:', justify='center',
+            row=0, column=1, padx=(0, 6), pady=(6, 0), sticky='W')
+        self.scrolled_frame = ScrollFrame(
+            self, self.app_config,
+            SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_config.font_size - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.scrolled_frame.grid(
+            row=1, column=0, columnspan=2, padx=6, pady=(0, 6))
+        self.btn_add = create_button(
+            self, self.add, 'Добавить комбинацию',
+            row=2, column=0, columnspan=2, padx=6, pady=(0, 6))
 
     def _create_tips(self):
         self.tip_btn_about_window = ttip.Hovertip(
@@ -4175,31 +4345,30 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         # Создаём новые фреймы
         self.frames = tuple(
             [
-                ttk.Frame(self.scrolled_frame.frame_canvas, style='Invis.TFrame')
-                for _ in range(combinations_count)
-            ] + [ttk.Label(
+                create_frame(
+                    self.scrolled_frame.frame_canvas, 'Invis.TFrame',
+                    row=i, column=0, padx=0, pady=0, sticky='WE',
+                ) for i in range(combinations_count)
+            ] + [create_label(
                 self.scrolled_frame.frame_canvas,
-                text=split_text('## -> #, %% -> % и т. д.', 35),
-                style='FlatL.TLabel'
+                split_text('## -> #, %% -> % и т. д.', 35),
+                'FlatL.TLabel',
+                row=combinations_count, column=0, padx=0, pady=0, sticky='WE',
             )]
         )
         # Создаём новые кнопки
         self.buttons = [
-            ttk.Button(
+            create_button(
                 self.frames[i],
-                command=lambda i=i: self.edit(self.combinations[i]),
-                takefocus=False,
+                lambda i=i: self.edit(self.combinations[i]),
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
+                row=0, column=0, padx=0, pady=0, sticky='WE',
             ) for i in range(combinations_count)
         ]
         for i in range(combinations_count):
             # Выводим текст на кнопки
             cmb = self.combinations[i]
             self.buttons[i].configure(text=split_text(special_combination(cmb), 35))
-
-            # Расставляем элементы
-            self.frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            self.buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
@@ -4210,10 +4379,6 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
                     ('E', lambda: self.edit(self.combinations[i])),
                     ('D', lambda: self.delete(self.combinations[i]))]),
             )
-
-        self.frames[combinations_count].grid(
-            row=combinations_count, column=0, padx=0, pady=0, sticky='WE'
-        )
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -4279,33 +4444,33 @@ class EnterSpecialCombinationW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        self.lbl_msg = ttk.Label(self, text='Задайте комбинацию', justify='center', style='Default.TLabel')
-        self.frame_main = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.combo_opening_symbol = ttk.Combobox(self.frame_main, textvariable=self.var_opening_symbol,
-                                                 values=SPECIAL_COMBINATIONS_OPENING_SYMBOLS,
-                                                 validate='all', validatecommand=self.vcmd_opening_symbol,
-                                                 width=3, state='normal', style='Default.TCombobox',
-                                                 font=('DejaVu Sans Mono', self.app_config.font_size))
-        self.entry_key_symbol = ttk.Entry(self.frame_main, textvariable=self.var_key_symbol, width=2, justify='right',
-                                          validate='key', validatecommand=self.vcmd_key_symbol, style='Default.TEntry',
-                                          font=('StdFont', self.app_config.font_size))
-        self.lbl_arrow = ttk.Label(self.frame_main, text='->', justify='center', style='Default.TLabel')
-        self.entry_val = ttk.Entry(self.frame_main, textvariable=self.var_val, width=2,
-                                   validate='key', validatecommand=self.vcmd_val,
-                                   style='Default.TEntry', font=('StdFont', self.app_config.font_size))
-        # }
-        self.btn_ok = ttk.Button(self, text='Подтвердить', command=self.ok, takefocus=False, style='Yes.TButton')
+        self.lbl_msg = create_label(
+            self, 'Задайте комбинацию', justify='center',
+            row=0, padx=6, pady=(6, 3))
+        self._create_main_frame()
+        self.btn_ok = create_button(
+            self, self.ok, 'Подтвердить', style='Yes.TButton',
+            row=2, padx=6, pady=6)
 
-        self.lbl_msg.grid(   row=0, padx=6, pady=(6, 3))
-        self.frame_main.grid(row=1, padx=6, pady=0)
-        # {
-        self.combo_opening_symbol.grid(row=0, column=0, padx=0, pady=0)
-        self.entry_key_symbol.grid(    row=0, column=1, padx=0, pady=0)
-        self.lbl_arrow.grid(           row=0, column=2, padx=2, pady=0)
-        self.entry_val.grid(           row=0, column=3, padx=0, pady=0)
-        # }
-        self.btn_ok.grid(row=2, padx=6, pady=6)
+    def _create_main_frame(self):
+        self.frame_main = create_frame(self, 'Invis.TFrame', row=1, padx=6, pady=0)
+
+        self.combo_opening_symbol = create_combobox(
+            self.frame_main, self.var_opening_symbol, SPECIAL_COMBINATIONS_OPENING_SYMBOLS, 3,
+            font=('DejaVu Sans Mono', self.app_config.font_size), state='normal',
+            validate='all', validatecommand=self.vcmd_opening_symbol,
+            row=0, column=0, padx=0, pady=0)
+        self.entry_key_symbol = create_entry(
+            self.frame_main, self.var_key_symbol, 2, font=self.app_config,
+            justify='right', validate='key', validatecommand=self.vcmd_key_symbol,
+            row=0, column=1, padx=0, pady=0)
+        self.lbl_arrow = create_label(
+            self.frame_main, '->', justify='center',
+            row=0, column=2, padx=2, pady=0)
+        self.entry_val = create_entry(
+            self.frame_main, self.var_val, 2, font=self.app_config,
+            validate='key', validatecommand=self.vcmd_val,
+            row=0, column=3, padx=0, pady=0)
 
     # Нажатие на кнопку
     def ok(self):
@@ -4375,33 +4540,58 @@ class CustomThemeSettingsW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        self.frame_themes = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.lbl_set_theme = ttk.Label(self.frame_themes, text='Взять за основу уже существующую тему:',
-                                       style='Default.TLabel')
-        self.combo_set_theme = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES[1:],
-                                            state='readonly', style='Default.TCombobox',
-                                            font=('DejaVu Sans Mono', self.app_config.font_size))
-        self.btn_set_theme = ttk.Button(self.frame_themes, text='Выбрать', width=8, command=self.set_theme,
-                                        takefocus=False, style='Default.TButton')
-        self.lbl_set_images = ttk.Label(self.frame_themes, text='Использовать изображения из темы:',
-                                        style='Default.TLabel')
-        self.combo_set_images = ttk.Combobox(self.frame_themes, textvariable=self.var_images, values=THEMES[1:],
-                                             state='readonly', style='Default.TCombobox',
-                                             font=('DejaVu Sans Mono', self.app_config.font_size))
-        self.btn_set_images = ttk.Button(self.frame_themes, text='Выбрать', width=8, command=self.set_images,
-                                         takefocus=False, style='Default.TButton')
-        # }
-        # Прокручиваемая область с настройками
-        self.scrolled_frame = ScrollFrame(self, self.app_config, SCALE_DEFAULT_FRAME_HEIGHT[self.app_config.font_size - SCALE_MIN],
-                                          SCALE_CUSTOM_THEME_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
-        # {
+        self._create_themes_frame()
+        self._create_scrolled_frame()
+        self._create_buttons_frame()
+        self._create_demonstration_frame()
+
+    def _create_themes_frame(self):
+        self.frame_themes = create_frame(
+            self, 'Invis.TFrame',
+            row=0, column=0, columnspan=2, padx=6, pady=(6, 0), sticky='W')
+
+        self.lbl_set_theme = create_label(
+            self.frame_themes, 'Взять за основу уже существующую тему:',
+            row=0, column=0, padx=(0, 1), pady=(0, 6), sticky='E')
+        self.combo_set_theme = create_combobox(
+            self.frame_themes, self.var_theme, THEMES[1:],
+            font=('DejaVu Sans Mono', self.app_config.font_size),
+            state='readonly',
+            row=0, column=1, padx=(0, 3), pady=(0, 6))
+        self.btn_set_theme = create_button(
+            self.frame_themes, self.set_theme, 'Выбрать', width=8,
+            row=0, column=2, padx=(0, 0), pady=(0, 6), sticky='W')
+        self.lbl_set_images = create_label(
+            self.frame_themes, 'Использовать изображения из темы:',
+            row=1, column=0, padx=(0, 1), pady=0, sticky='E')
+        self.combo_set_images = create_combobox(
+            self.frame_themes, self.var_images, THEMES[1:],
+            font=('DejaVu Sans Mono', self.app_config.font_size),
+            state='readonly',
+            row=1, column=1, padx=(0, 3), pady=0)
+        self.btn_set_images = create_button(
+            self.frame_themes, self.set_images, 'Выбрать', width=8,
+            row=1, column=2, padx=(0, 0), pady=0, sticky='W')
+
+    def _create_scrolled_frame(self):
+        self.scrolled_frame = ScrollFrame(
+            self, self.app_config,
+            SCALE_DEFAULT_FRAME_HEIGHT[self.app_config.font_size - SCALE_MIN],
+            SCALE_CUSTOM_THEME_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.scrolled_frame.grid(row=1, column=0, padx=6, pady=6)
+
         # Выбор цветов
-        self.labels = [ttk.Label(self.scrolled_frame.frame_canvas, style='Default.TLabel')
-                       for _ in range(len(STYLE_KEYS))]
-        self.buttons = [tk.Button(self.scrolled_frame.frame_canvas, relief='solid', overrelief='raised',
-                                  borderwidth=1, width=18, takefocus=False)
-                        for _ in range(len(STYLE_KEYS))]
+        self.labels = [
+            create_label(self.scrolled_frame.frame_canvas)
+            for _ in range(len(STYLE_KEYS))
+        ]
+        self.buttons = [
+            tk.Button(
+                self.scrolled_frame.frame_canvas,
+                relief='solid', overrelief='raised',
+                borderwidth=1, width=18,
+            ) for _ in range(len(STYLE_KEYS))
+        ]
         # Получается по 2 лишних экземпляра каждого виджета (но пусть будет так)
 
         for i in range(len(STYLE_KEYS)):
@@ -4410,7 +4600,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                 self.labels[i].configure(text=f'{STYLES[st_key][0]}:')
                 self.buttons[i].configure(command=lambda i=i: self.choose_color(i))
 
-                self.labels[i].grid( row=i, column=0, padx=(6, 1), sticky='E')
+                self.labels[i].grid(row=i, column=0, padx=(6, 1), sticky='E')
                 self.buttons[i].grid(row=i, column=1, padx=(0, 6), sticky='W')
                 if i == 0:
                     self.labels[i].grid(pady=(6, 3))
@@ -4430,142 +4620,138 @@ class CustomThemeSettingsW(tk.Toplevel):
             self.set_demo_styles()
             return True
 
-        self.vcmd_relief_frame = (self.register(lambda value: _choose_relief('FRAME.RELIEF.*', value)), '%P')
-        self.vcmd_relief_text = (self.register(lambda value: _choose_relief('TXT.RELIEF.*', value)), '%P')
+        self.vcmd_relief_frame = (
+            self.register(lambda value: _choose_relief('FRAME.RELIEF.*', value)), '%P')
+        self.vcmd_relief_text = (
+            self.register(lambda value: _choose_relief('TXT.RELIEF.*', value)), '%P')
 
-        self.lbl_relief_frame = ttk.Label(self.scrolled_frame.frame_canvas, text='Стиль рамок фреймов:',
-                                          style='Default.TLabel')
-        self.combo_relief_frame = ttk.Combobox(self.scrolled_frame.frame_canvas, textvariable=self.var_relief_frame,
-                                               values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
-                                               width=SCALE_CUSTOM_THEME_COMBO_WIDTH[self.app_config.font_size - SCALE_MIN],
-                                               validate='focus', validatecommand=self.vcmd_relief_frame,
-                                               state='readonly', style='Default.TCombobox',
-                                               font=('DejaVu Sans Mono', self.app_config.font_size))
+        self.lbl_relief_frame = create_label(
+            self.scrolled_frame.frame_canvas, 'Стиль рамок фреймов:',
+            row=9, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.combo_relief_frame = create_combobox(
+            self.scrolled_frame.frame_canvas, self.var_relief_frame,
+            ('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
+            SCALE_CUSTOM_THEME_COMBO_WIDTH[self.app_config.font_size - SCALE_MIN],
+            font=('DejaVu Sans Mono', self.app_config.font_size),
+            validate='focus', validatecommand=self.vcmd_relief_frame, state='readonly',
+            row=9, column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
+        self.lbl_relief_text = create_label(
+            self.scrolled_frame.frame_canvas, 'Стиль рамок текстовых полей:',
+            row=10, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.combo_relief_text = create_combobox(
+            self.scrolled_frame.frame_canvas, self.var_relief_text,
+            ('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
+            SCALE_CUSTOM_THEME_COMBO_WIDTH[self.app_config.font_size - SCALE_MIN],
+            font=('DejaVu Sans Mono', self.app_config.font_size),
+            validate='focus', validatecommand=self.vcmd_relief_text, state='readonly',
+            row=10, column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
 
-        self.lbl_relief_text = ttk.Label(self.scrolled_frame.frame_canvas, text='Стиль рамок текстовых полей:',
-                                         style='Default.TLabel')
-        self.combo_relief_text = ttk.Combobox(self.scrolled_frame.frame_canvas, textvariable=self.var_relief_text,
-                                              values=('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
-                                              width=SCALE_CUSTOM_THEME_COMBO_WIDTH[self.app_config.font_size - SCALE_MIN],
-                                              validate='focus', validatecommand=self.vcmd_relief_text,
-                                              state='readonly', style='Default.TCombobox',
-                                              font=('DejaVu Sans Mono', self.app_config.font_size))
-        # }
-        self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.btn_save = ttk.Button(self.frame_buttons, text='Сохранить', command=self.save, takefocus=False,
-                                   style='Yes.TButton')
-        self.frame_history = ttk.Frame(self.frame_buttons, style='Invis.TFrame')
-        # { {
-        self.btn_undo = ttk.Button(self.frame_history, width=2, command=self.undo, takefocus=False)
+    def _create_buttons_frame(self):
+        self.frame_buttons = create_frame(
+            self, 'Invis.TFrame',
+            row=2, column=0, padx=6, pady=(0, 6))
+
+        self.btn_save = create_button(
+            self.frame_buttons, self.save, 'Сохранить', style='Yes.TButton',
+            row=0, column=0, padx=(0, 36), pady=0)
+        self._create_history_frame()
+
+    def _create_history_frame(self):
+        self.frame_history = create_frame(
+            self.frame_buttons, 'Invis.TFrame',
+            row=0, column=1, padx=0, pady=0)
+
+        self.btn_undo = create_button(
+            self.frame_history, self.undo, width=2,
+            row=0, column=0, padx=(0, 6), pady=0, sticky='W')
         set_image(self.btn_undo, self.img_undo, img_undo, '<<')
-        self.btn_redo = ttk.Button(self.frame_history, width=2, command=self.redo, takefocus=False)
+        self.btn_redo = create_button(
+            self.frame_history, self.redo, width=2,
+            row=0, column=1, padx=0, pady=0, sticky='W')
         set_image(self.btn_redo, self.img_redo, img_redo, '>>')
-        # } }
-        # }
-        self.frame_demonstration = ttk.Frame(self, style='Window.TFrame', relief='solid')
-        # {
-        self.lbl_demo_header = ttk.Label(self.frame_demonstration, text='Anenokil developments presents',
-                                         style='DemoHeader.TLabel')
-        self.lbl_demo_logo = ttk.Label(self.frame_demonstration, text='Демонстрация', style='DemoLogo.TLabel')
-        self.frame_demo_check = ttk.Frame(self.frame_demonstration, style='DemoDefault.TFrame')
-        # { {
-        self.lbl_demo_def = ttk.Label(self.frame_demo_check, text='Надпись:', style='DemoDefault.TLabel')
-        self.check_demo = ttk.Checkbutton(self.frame_demo_check, style='DemoDefault.TCheckbutton')
-        # } }
-        self.btn_demo_def = ttk.Button(self.frame_demonstration, text='Кнопка', takefocus=False,
-                                       style='DemoDefault.TButton')
-        self.btn_demo_dis = ttk.Button(self.frame_demonstration, text='Выключена', takefocus=False,
-                                       style='DemoDisabled.TButton')
-        self.btn_demo_y = ttk.Button(self.frame_demonstration, text='Да', takefocus=False,
-                                     style='DemoYes.TButton')
-        self.btn_demo_n = ttk.Button(self.frame_demonstration, text='Нет', takefocus=False, style='DemoNo.TButton')
-        self.entry_demo = ttk.Entry(self.frame_demonstration, width=20,
-                                    style='DemoDefault.TEntry', font=('StdFont', self.app_config.font_size))
-        self.txt_demo = tk.Text(self.frame_demonstration, font=('StdFont', self.app_config.font_size), width=12, height=4,
-                                state='normal')
-        self.scroll_demo = ttk.Scrollbar(self.frame_demonstration, command=self.txt_demo.yview,
-                                         style='Demo.Vertical.TScrollbar')
-        self.frame_demo_img = ttk.Frame(self.frame_demonstration, style='DemoDefault.TFrame')
-        # { {
+
+    def _create_demonstration_frame(self):
+        self.frame_demonstration = create_frame(
+            self, 'Window.TFrame', relief='solid',
+            row=1, rowspan=2, column=1, padx=6, pady=6)
+
+        self.lbl_demo_header = create_label(
+            self.frame_demonstration,
+            'Anenokil developments presents', 'DemoHeader.TLabel',
+            row=0, column=0, columnspan=3, padx=12, pady=(12, 0))
+        self.lbl_demo_logo = create_label(
+            self.frame_demonstration,
+            'Демонстрация', 'DemoLogo.TLabel',
+            row=1, column=0, columnspan=3, padx=12, pady=(0, 12))
+        self._create_demo_check_frame()
+        self.entry_demo = create_entry(
+            self.frame_demonstration,
+            width=20, style='DemoDefault.TEntry',
+            font=('StdFont', self.app_config.font_size),
+            row=2, column=1, columnspan=2, padx=(0, 6), pady=(0, 6), sticky='SW')
+        self.btn_demo_def = create_button(
+            self.frame_demonstration,
+            text='Кнопка', style='DemoDefault.TButton',
+            row=3, column=0, padx=6, pady=(0, 6), sticky='E')
+        self.btn_demo_dis = create_button(
+            self.frame_demonstration,
+            text='Выключена', style='DemoDisabled.TButton',
+            row=4, column=0, padx=6, pady=(0, 6), sticky='E')
+        self.btn_demo_y = create_button(
+            self.frame_demonstration,
+            text='Да', style='DemoYes.TButton',
+            row=5, column=0, padx=6, pady=(0, 6), sticky='E')
+        self.btn_demo_n = create_button(
+            self.frame_demonstration,
+            text='Нет', style='DemoNo.TButton',
+            row=6, column=0, padx=6, pady=(0, 6), sticky='E')
+        self.txt_demo = tk.Text(
+            self.frame_demonstration,
+            font=('StdFont', self.app_config.font_size),
+            width=12, height=4, state='normal')
+        self.txt_demo.grid(
+            row=3, rowspan=4, column=1, padx=0, pady=(0, 6), sticky='SNWE')
+        self.scroll_demo = ttk.Scrollbar(
+            self.frame_demonstration,
+            command=self.txt_demo.yview,
+            style='Demo.Vertical.TScrollbar')
+        self.scroll_demo.grid(
+            row=3, rowspan=4, column=2, padx=(0, 6), pady=(0, 6), sticky='SNW')
+        self._create_demo_img_frame()
+        self.lbl_demo_warn = create_label(
+            self.frame_demonstration,
+            'Предупреждение!', 'DemoWarn.TLabel',
+            row=8, column=0, columnspan=3, padx=6, pady=(0, 6))
+        self.lbl_demo_footer = create_label(
+            self.frame_demonstration,
+            'Нижний колонтитул', 'DemoFooter.TLabel',
+            row=9, column=0, columnspan=3, padx=6, pady=(0, 6))
+
+    def _create_demo_check_frame(self):
+        self.frame_demo_check = create_frame(
+            self.frame_demonstration, 'DemoDefault.TFrame',
+            row=2, column=0, padx=6, pady=(0, 6), sticky='E')
+
+        self.lbl_demo_def = create_label(
+            self.frame_demo_check, 'Надпись:', 'DemoDefault.TLabel',
+            row=0, column=0, padx=(6, 1), pady=6, sticky='E')
+        self.check_demo = create_checkbutton(
+            self.frame_demo_check, style='DemoDefault.TCheckbutton',
+            row=0, column=1, padx=(0, 6), pady=6, sticky='W')
+
+    def _create_demo_img_frame(self):
+        self.frame_demo_img = create_frame(
+            self.frame_demonstration, 'DemoDefault.TFrame',
+            row=7, column=0, columnspan=3, padx=6, pady=(0, 6))
+
         self.images = [tk.PhotoImage(file='') for _ in range(len(ICON_NAMES))]
-        self.img_buttons = [ttk.Button(self.frame_demo_img, width=2, takefocus=False) for _ in range(len(ICON_NAMES))]
+        self.img_buttons = [
+            create_button(
+                self.frame_demo_img, width=2,
+                row=i // 7, column=i % 7, padx=3, pady=3
+            ) for i in range(len(ICON_NAMES))
+        ]
         self.refresh_images()
-        # } }
-        self.lbl_demo_warn = ttk.Label(self.frame_demonstration, text='Предупреждение!', style='DemoWarn.TLabel')
-        self.lbl_demo_footer = ttk.Label(self.frame_demonstration, text='Нижний колонтитул', style='DemoFooter.TLabel')
-        # }
-
-        # *---0-------------------------------1-----------------------*
-        # |                                                           |
-        # 0   *---------------------------* - - - - - - - - - - - *   |
-        # |   |  [lbl]   [combo]   [btn]  |                       :   |
-        # |   |  [lbl]   [combo]   [btn]  |                       :   |
-        # |   *---------------------------* - - - - - - - - - - - *   |
-        # |                                                           |
-        # 1   *---------------------------*   *-------------------*   |
-        # |   |                           |   |                   |   |
-        # |   |                           |   |                   |   |
-        # |   |                           |   |                   |   |
-        # |   |                           |   |                   |   |
-        # |   |                           |   |                   |   |
-        # |   *---------------------------*   |                   |   |
-        # |                                   |                   |   |
-        # 2   *---------------------------*   |                   |   |
-        # |   |    [<-]  [->]   [save]    |   |                   |   |
-        # |   *---------------------------*   *-------------------*   |
-        # |                                                           |
-        # *-----------------------------------------------------------*
-
-        self.frame_themes.grid(row=0, column=0, columnspan=2, padx=6, pady=(6, 0), sticky='W')
-        # {
-        self.lbl_set_theme.grid(   row=0, column=0, padx=(0, 1), pady=(0, 6), sticky='E')
-        self.combo_set_theme.grid( row=0, column=1, padx=(0, 3), pady=(0, 6))
-        self.btn_set_theme.grid(   row=0, column=2, padx=(0, 0), pady=(0, 6), sticky='W')
-        self.lbl_set_images.grid(  row=1, column=0, padx=(0, 1), pady=0,      sticky='E')
-        self.combo_set_images.grid(row=1, column=1, padx=(0, 3), pady=0)
-        self.btn_set_images.grid(  row=1, column=2, padx=(0, 0), pady=0,      sticky='W')
-        # }
-        self.scrolled_frame.grid(row=1, column=0, padx=6, pady=6)
-        # {
-        self.lbl_relief_frame.grid(  row=9,  column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
-        self.combo_relief_frame.grid(row=9,  column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
-        self.lbl_relief_text.grid(   row=10, column=0,               padx=(6, 1), pady=(0, 3), sticky='E')
-        self.combo_relief_text.grid( row=10, column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
-        # }
-        self.frame_buttons.grid(row=2, column=0, padx=6, pady=(0, 6))
-        # {
-        self.btn_save.grid(     row=0, column=0, padx=(0, 36), pady=0)
-        self.frame_history.grid(row=0, column=1, padx=0,       pady=0)
-        # { {
-        self.btn_undo.grid(row=0, column=0, padx=(0, 6), pady=0, sticky='W')
-        self.btn_redo.grid(row=0, column=1, padx=0,      pady=0, sticky='W')
-        # } }
-        # }
-        self.frame_demonstration.grid(row=1, rowspan=2, column=1, padx=6, pady=6)
-        # {
-        self.lbl_demo_header.grid( row=0, column=0, columnspan=3, padx=12, pady=(12, 0))
-        self.lbl_demo_logo.grid(   row=1, column=0, columnspan=3, padx=12, pady=(0, 12))
-        self.frame_demo_check.grid(row=2, column=0,               padx=6,  pady=(0, 6), sticky='E')
-        # { {
-        self.lbl_demo_def.grid(row=0, column=0, padx=(6, 1), pady=6, sticky='E')
-        self.check_demo.grid(  row=0, column=1, padx=(0, 6), pady=6, sticky='W')
-        # } }
-        self.entry_demo.grid(    row=2,            column=1, columnspan=2, padx=(0, 6), pady=(0, 6), sticky='SW')
-        self.btn_demo_def.grid(  row=3,            column=0,               padx=6,      pady=(0, 6), sticky='E')
-        self.btn_demo_dis.grid(  row=4,            column=0,               padx=6,      pady=(0, 6), sticky='E')
-        self.btn_demo_y.grid(    row=5,            column=0,               padx=6,      pady=(0, 6), sticky='E')
-        self.btn_demo_n.grid(    row=6,            column=0,               padx=6,      pady=(0, 6), sticky='E')
-        self.txt_demo.grid(      row=3, rowspan=4, column=1,               padx=0,      pady=(0, 6), sticky='SNWE')
-        self.scroll_demo.grid(   row=3, rowspan=4, column=2,               padx=(0, 6), pady=(0, 6), sticky='SNW')
-        self.frame_demo_img.grid(row=7,            column=0, columnspan=3, padx=6,      pady=(0, 6))
-        # { {
-        for i in range(len(ICON_NAMES)):
-            self.img_buttons[i].grid(row=i // 7, column=i % 7, padx=3, pady=3)
-        # } }
-        self.lbl_demo_warn.grid(  row=8, column=0, columnspan=3, padx=6, pady=(0, 6))
-        self.lbl_demo_footer.grid(row=9, column=0, columnspan=3, padx=6, pady=(0, 6))
-        # }
 
     def _create_tips(self):
         self.tip_btn_undo = ttip.Hovertip(
@@ -5111,8 +5297,10 @@ class LearnW(tk.Toplevel):
 
         self._configure_window()
         self._create_widgets()
+        self._create_tips()
 
         self.choose()
+
         if self.current_entry_id:
             entry = self.trainer.dct[self.current_entry_id]
             if entry.n_notes == 0 or train_config.method in (TrainingMethod.TRANS_TO_PHRASE,
@@ -5132,13 +5320,15 @@ class LearnW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        self.lbl_global_rating = ttk.Label(
-            self, text=f'Ваш общий рейтинг по словарю: {self.get_percent()}',
-            style='Default.TLabel')
-        self.lbl_count = ttk.Label(
-            self, text=f'Отвечено: 0/{self.initial_pool_size}',
-            style='Default.TLabel')
+        self.lbl_global_rating = create_label(
+            self, f'Ваш общий рейтинг по словарю: {self.get_percent()}',
+            row=0, columnspan=2, padx=6, pady=(6, 3))
+        self.lbl_count = create_label(
+            self, f'Отвечено: 0/{self.initial_pool_size}',
+            row=1, columnspan=2, padx=6, pady=(0, 6))
+
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
+        self.scrollbar.grid(row=2, column=1, padx=(0, 6), pady=6, sticky='NSW')
         self.txt_dct = tk.Text(
             self, width=70, height=30, state='disabled',
             yscrollcommand=self.scrollbar.set,
@@ -5148,45 +5338,38 @@ class LearnW(tk.Toplevel):
             selectforeground=STYLES['*.FG.SEL'][1][self.app_config.theme],
             relief=STYLES['TXT.RELIEF.*'][1][self.app_config.theme],
             highlightbackground=STYLES['*.BORDER_CLR.*'][1][self.app_config.theme])
+        self.txt_dct.grid(row=2, column=0, padx=(6, 0), pady=6, sticky='NSWE')
         self.scrollbar.config(command=self.txt_dct.yview)
-        self.frame_main = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.btn_input = ttk.Button(
-            self.frame_main, text='Ввод', command=self.input,
-            width=6, takefocus=False, style='Default.TButton')
-        self.entry_input = ttk.Entry(
-            self.frame_main, textvariable=self.var_input, width=36,
-            style='Default.TEntry', font=('StdFont', self.app_config.font_size))
-        self.btn_show_entry = ttk.Button(
-            self.frame_main, text='Слово и перевод', command=self.show_entry,
-            width=15, takefocus=False, style='Default.TButton')
-        self.btn_show_notes = ttk.Button(
-            self.frame_main, text='Сноски', command=self.show_notes,
-            width=7, takefocus=False, style='Default.TButton')
-        self.btn_show_homonyms = ttk.Button(
-            self.frame_main, text='Омонимы', command=self.show_homonyms,
-            width=8, takefocus=False, style='Default.TButton')
-        # }
-        self.btn_stop = ttk.Button(
-            self, text='Закончить', command=self.stop,
-            takefocus=False, style='No.TButton')
 
-        self.lbl_global_rating.grid(row=0, columnspan=2, padx=6,      pady=(6, 3))
-        self.lbl_count.grid(        row=1, columnspan=2, padx=6,      pady=(0, 6))
-        self.txt_dct.grid(          row=2, column=0,     padx=(6, 0), pady=6, sticky='NSWE')
-        self.scrollbar.grid(        row=2, column=1,     padx=(0, 6), pady=6, sticky='NSW')
-        self.frame_main.grid(       row=3, columnspan=2, padx=6,      pady=6)
-        # {
-        self.btn_input.grid(  row=0, column=0, padx=(0, 3), pady=0, sticky='E')
-        self.entry_input.grid(row=0, column=1, padx=(0, 3), pady=0, sticky='W')
-        if self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE, TrainingMethod.PHRASE_TO_TRANS):
+        self._create_main_frame()
+        self.btn_stop = create_button(
+            self, self.stop, 'Закончить', style='No.TButton',
+            row=4, columnspan=2, padx=6, pady=6)
+
+    def _create_main_frame(self):
+        self.frame_main = create_frame(self, 'Invis.TFrame', row=3, columnspan=2, padx=6, pady=6)
+
+        self.btn_input = create_button(
+            self.frame_main, self.input, 'Ввод', width=6,
+            row=0, column=0, padx=(0, 3), pady=0, sticky='E')
+        self.entry_input = create_entry(
+            self.frame_main, self.var_input, 36, font=self.app_config,
+            row=0, column=1, padx=(0, 3), pady=0, sticky='W')
+        self.btn_show_entry = create_button(
+            self.frame_main, self.show_entry, 'Слово и перевод', width=15)
+        self.btn_show_notes = create_button(
+            self.frame_main, self.show_notes, 'Сноски', width=7)
+        self.btn_show_homonyms = create_button(
+            self.frame_main, self.show_homonyms, 'Омонимы', width=8)
+
+        if self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE,
+                                          TrainingMethod.PHRASE_TO_TRANS):
             self.btn_show_entry.grid(row=0, column=2, padx=0, pady=0, sticky='W')
         else:
-            self.btn_show_notes.grid(   row=0, column=2, padx=(0, 3), pady=0, sticky='W')
-            self.btn_show_homonyms.grid(row=0, column=3, padx=0,      pady=0, sticky='W')
-        # }
-        self.btn_stop.grid(row=4, columnspan=2, padx=6, pady=6)
+            self.btn_show_notes.grid(row=0, column=2, padx=(0, 3), pady=0, sticky='W')
+            self.btn_show_homonyms.grid(row=0, column=3, padx=0, pady=0, sticky='W')
 
+    def _create_tips(self):
         self.tip_btn_show_entry = ttip.Hovertip(
             self.btn_show_entry,
             'Посмотреть само слово и его перевод\n'
@@ -5567,397 +5750,479 @@ class PrintW(tk.Toplevel):
 
     def _create_widgets(self):
         self.tabs = ttk.Notebook(self, style='Default.TNotebook')
-        self.tab_print = ttk.Frame(self.tabs, style='Invis.TFrame')
-        self.tabs.add(self.tab_print, text='Просмотр словаря')
-        # {
-        self.frame_print_menu = ttk.Frame(self.tab_print, style='Invis.TFrame')
-        # { {
-        self.frame_print_header = ttk.Frame(self.frame_print_menu, style='Invis.TFrame')
-        # { { {
-        self.btn_print_about_window = ttk.Button(self.frame_print_header, command=self.about_window, width=2,
-                                                 takefocus=False)
-        set_image(self.btn_print_about_window, self.img_about, img_about, '?')
-        self.btn_print_print_out = ttk.Button(self.frame_print_header, command=self.print_out, takefocus=False)
-        set_image(self.btn_print_print_out, self.img_print_out, img_print_out, 'Распечатать')
-        self.frame_print_parameters = ttk.Frame(self.frame_print_header, style='Default.TFrame')
-        # { { { {
-        self.lbl_print_fav = ttk.Label(self.frame_print_parameters, text='Только избр.:', style='Default.TLabel')
-        self.check_print_fav = ttk.Checkbutton(self.frame_print_parameters, variable=self.var_print_fav,
-                                               command=lambda: self.print_go_to_first_page(True),
-                                               style='Default.TCheckbutton')
-        self.lbl_print_group = ttk.Label(self.frame_print_parameters, text='Группа:', style='Default.TLabel')
-        self.combo_print_group = ttk.Combobox(self.frame_print_parameters, textvariable=self.var_print_group,
-                                              values=[ALL_GROUPS] + self.dct_info.dct.groups, width=28, state='readonly',
-                                              style='Default.TCombobox', font=('DejaVu Sans Mono', self.app_config.font_size))
-        self.lbl_print_briefly = ttk.Label(self.frame_print_parameters, text='Кратко:', style='Default.TLabel')
-        self.check_print_briefly = ttk.Checkbutton(self.frame_print_parameters, variable=self.var_print_briefly,
-                                                   command=lambda: self.print_print(True), style='Default.TCheckbutton')
-        self.lbl_print_order = ttk.Label(self.frame_print_parameters, text='Порядок:', style='Default.TLabel')
-        self.combo_print_order = ttk.Combobox(self.frame_print_parameters, textvariable=self.var_print_order, width=28,
-                                              values=PRINT_VALUES_ORDER, state='readonly', style='Default.TCombobox',
-                                              font=('DejaVu Sans Mono', self.app_config.font_size))
-        # } } } }
-        # } } }
-        self.frame_print_buttons_for_selected = ttk.Frame(self.frame_print_menu, style='Default.TFrame')
-        # { { {
-        self.btn_print_fav = ttk.Button(self.frame_print_buttons_for_selected,
-                                        command=lambda: self.fav_selected(self.print_selected_keys), width=3,
-                                        takefocus=False)
-        set_image(self.btn_print_fav, self.img_fav, img_fav, '*+')
-        self.btn_print_unfav = ttk.Button(self.frame_print_buttons_for_selected,
-                                          command=lambda: self.unfav_selected(self.print_selected_keys), width=3,
-                                          takefocus=False)
-        set_image(self.btn_print_unfav, self.img_unfav, img_unfav, '*-')
-        self.btn_print_add_to_group = ttk.Button(self.frame_print_buttons_for_selected,
-                                                 command=lambda: self.add_selected_to_group(self.print_selected_keys),
-                                                 width=3, takefocus=False)
-        set_image(self.btn_print_add_to_group, self.img_add_to_group, img_add_to_group, 'G+')
-        self.btn_print_remove_from_group = ttk.Button(self.frame_print_buttons_for_selected,
-                                                      command=lambda:
-                                                      self.remove_selected_from_group(self.print_selected_keys),
-                                                      width=3, takefocus=False)
-        set_image(self.btn_print_remove_from_group, self.img_remove_from_group, img_remove_from_group, 'G-')
-        self.btn_print_delete = ttk.Button(self.frame_print_buttons_for_selected,
-                                           command=lambda: self.delete_selected(self.print_selected_keys), width=3,
-                                           takefocus=False)
-        set_image(self.btn_print_delete, self.img_delete, img_trashcan, 'DEL')
-        # } } }
-        self.frame_print_selection_buttons = ttk.Frame(self.frame_print_menu, style='Default.TFrame')
-        # { { {
-        self.btn_print_select_page = ttk.Button(self.frame_print_selection_buttons, command=self.print_select_page,
-                                                width=3, takefocus=False)
-        set_image(self.btn_print_select_page, self.img_select_page, img_select_page, '[X]')
-        self.btn_print_unselect_page = ttk.Button(self.frame_print_selection_buttons, command=self.print_unselect_page,
-                                                  width=3, takefocus=False)
-        set_image(self.btn_print_unselect_page, self.img_unselect_page, img_unselect_page, '[ ]')
-        self.btn_print_select_all = ttk.Button(self.frame_print_selection_buttons, command=self.print_select_all,
-                                               width=3, takefocus=False)
-        set_image(self.btn_print_select_all, self.img_select_all, img_select_all, '[X]')
-        self.btn_print_unselect_all = ttk.Button(self.frame_print_selection_buttons, command=self.print_unselect_all,
-                                                 width=3, takefocus=False)
-        set_image(self.btn_print_unselect_all, self.img_unselect_all, img_unselect_all, '[ ]')
-        # } } }
-        self.lbl_print_info = ttk.Label(self.frame_print_menu, textvariable=self.var_print_info, style='Default.TLabel')
-        self.lbl_print_info_selected = ttk.Label(self.frame_print_menu, textvariable=self.var_print_info_selected,
-                                                 justify='left', style='Default.TLabel')
-        # } }
-        self.frame_print_main = ttk.Frame(self.tab_print, style='Invis.TFrame')
-        # { {
-        self.scrolled_frame_print = ScrollFrame(self.frame_print_main, self.app_config,
-                                                SCALE_DEFAULT_FRAME_HEIGHT[self.app_config.font_size - SCALE_MIN],
-                                                SCALE_DEFAULT_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
-        self.frame_print_page_buttons = ttk.Frame(self.frame_print_main, style='Invis.TFrame')
-        # { { {
-        self.btn_print_first_page = ttk.Button(self.frame_print_page_buttons, command=self.print_go_to_first_page,
-                                               width=2, takefocus=False)
-        set_image(self.btn_print_first_page, self.img_double_arrow_left, img_double_arrow_left, '<<')
-        self.btn_print_prev_page = ttk.Button(self.frame_print_page_buttons, command=self.print_go_to_prev_page,
-                                              width=2, takefocus=False)
-        set_image(self.btn_print_prev_page, self.img_arrow_left, img_arrow_left, '<')
-        self.frame_print_current_page = ttk.Frame(self.frame_print_page_buttons, style='Invis.TFrame')
-        # { { { {
-        self.lbl_print_current_page_1 = ttk.Label(self.frame_print_current_page, text='Страница',
-                                                  style='Default.TLabel')
-        self.entry_print_current_page = ttk.Entry(self.frame_print_current_page,
-                                                  textvariable=self.var_print_current_page,
-                                                  validate='key', validatecommand=self.vcmd_print_page,
-                                                  justify='center', width=3,
-                                                  style='Default.TEntry', font=('StdFont', self.app_config.font_size))
-        self.lbl_print_current_page_2 = ttk.Label(self.frame_print_current_page, text='из 1', style='Default.TLabel')
-        # } } } }
-        self.btn_print_next_page = ttk.Button(self.frame_print_page_buttons, command=self.print_go_to_next_page,
-                                              width=2, takefocus=False)
-        set_image(self.btn_print_next_page, self.img_arrow_right, img_arrow_right, '>')
-        self.btn_print_last_page = ttk.Button(self.frame_print_page_buttons, command=self.print_go_to_last_page,
-                                              width=2, takefocus=False)
-        set_image(self.btn_print_last_page, self.img_double_arrow_right, img_double_arrow_right, '>>')
-        # } } }
-        # } }
-        # }
+        self.tabs.grid(row=0, column=0, padx=0, pady=0)
 
-        self.tab_search = ttk.Frame(self.tabs, style='Invis.TFrame')
-        self.tabs.add(self.tab_search, text='Поиск')
-        # {
-        self.frame_search_header = ttk.Frame(self.tab_search, style='Invis.TFrame')
-        # { {
-        self.frame_search_query = ttk.Frame(self.frame_search_header, style='Default.TFrame')
-        # { { {
-        self.btn_search_search_settings = ttk.Button(self.frame_search_query, command=self.search_settings, width=9,
-                                                     takefocus=False)
-        set_image(self.btn_search_search_settings, self.img_settings, img_edit, 'Настройки')
-        self.entry_search_query = ttk.Entry(self.frame_search_query, textvariable=self.var_search_query, width=50,
-                                            style='Default.TEntry', font=('StdFont', self.app_config.font_size))
-        self.btn_search_search = ttk.Button(self.frame_search_query, text='Поиск',
-                                            command=lambda: self.search_go_to_first_page(True),
-                                            width=6, takefocus=False, style='Default.TButton')
-        # } } }
-        self.frame_search_selection_buttons = ttk.Frame(self.frame_search_header, style='Default.TFrame')
-        # { { {
-        self.btn_search_select_page = ttk.Button(self.frame_search_selection_buttons, command=self.search_select_page,
-                                                 width=3, takefocus=False)
-        set_image(self.btn_search_select_page, self.img_select_page, img_select_page, '[X]')
-        self.btn_search_unselect_page = ttk.Button(self.frame_search_selection_buttons,
-                                                   command=self.search_unselect_page, width=3, takefocus=False)
-        set_image(self.btn_search_unselect_page, self.img_unselect_page, img_unselect_page, '[ ]')
-        self.btn_search_select_all = ttk.Button(self.frame_search_selection_buttons, command=self.search_select_all,
-                                                width=3, takefocus=False)
-        set_image(self.btn_search_select_all, self.img_select_all, img_select_all, '[X]')
-        self.btn_search_unselect_all = ttk.Button(self.frame_search_selection_buttons, command=self.search_unselect_all,
-                                                  width=3, takefocus=False)
-        set_image(self.btn_search_unselect_all, self.img_unselect_all, img_unselect_all, '[ ]')
-        # } } }
-        self.frame_search_info = ttk.Frame(self.frame_search_header, style='Invis.TFrame')
-        # { { {
-        self.btn_search_about_window = ttk.Button(self.frame_search_info, command=self.about_window, width=2,
-                                                  takefocus=False)
-        set_image(self.btn_search_about_window, self.img_about, img_about, '?')
-        self.lbl_search_info = ttk.Label(self.frame_search_info, textvariable=self.var_search_info,
-                                         style='Default.TLabel')
-        # } } }
-        self.lbl_search_info_selected = ttk.Label(self.frame_search_header, textvariable=self.var_search_info_selected,
-                                                  style='Default.TLabel')
-        self.frame_search_buttons_for_selected = ttk.Frame(self.frame_search_header, style='Default.TFrame')
-        # { { {
-        self.btn_search_fav = ttk.Button(self.frame_search_buttons_for_selected,
-                                         command=lambda: self.fav_selected(self.search_selected_keys),
-                                         width=3, takefocus=False)
-        set_image(self.btn_search_fav, self.img_fav, img_fav, '*+')
-        self.btn_search_unfav = ttk.Button(self.frame_search_buttons_for_selected,
-                                           command=lambda: self.unfav_selected(self.search_selected_keys),
-                                           width=3, takefocus=False)
-        set_image(self.btn_search_unfav, self.img_unfav, img_unfav, '*-')
-        self.btn_search_add_to_group = ttk.Button(self.frame_search_buttons_for_selected,
-                                                  command=lambda: self.add_selected_to_group(self.search_selected_keys),
-                                                  width=3, takefocus=False)
-        set_image(self.btn_search_add_to_group, self.img_add_to_group, img_add_to_group, 'G+')
-        self.btn_search_remove_from_group = ttk.Button(self.frame_search_buttons_for_selected,
-                                                       command=lambda:
-                                                       self.remove_selected_from_group(self.search_selected_keys),
-                                                       width=3, takefocus=False)
-        set_image(self.btn_search_remove_from_group, self.img_remove_from_group, img_remove_from_group, 'G-')
-        self.btn_search_delete = ttk.Button(self.frame_search_buttons_for_selected,
-                                            command=lambda: self.delete_selected(self.search_selected_keys),
-                                            width=3, takefocus=False)
-        set_image(self.btn_search_delete, self.img_delete, img_trashcan, 'DEL')
-        # } } }
-        # } }
-        self.frame_search_main = ttk.Frame(self.tab_search, style='Invis.TFrame')
-        # { {
-        self.scrolled_frame_search = ScrollFrame(self.frame_search_main, self.app_config,
-                                                 SCALE_DEFAULT_FRAME_HEIGHT[self.app_config.font_size - SCALE_MIN],
-                                                 SCALE_DEFAULT_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
-        self.frame_search_page_buttons = ttk.Frame(self.frame_search_main, style='Invis.TFrame')
-        # { { {
-        self.btn_search_first_page = ttk.Button(self.frame_search_page_buttons, command=self.search_go_to_first_page,
-                                                width=2, takefocus=False)
-        set_image(self.btn_search_first_page, self.img_double_arrow_left, img_double_arrow_left, '<<')
-        self.btn_search_prev_page = ttk.Button(self.frame_search_page_buttons, command=self.search_go_to_prev_page,
-                                               width=2, takefocus=False)
-        set_image(self.btn_search_prev_page, self.img_arrow_left, img_arrow_left, '<')
-        self.frame_search_current_page = ttk.Frame(self.frame_search_page_buttons, style='Invis.TFrame')
-        # { { { {
-        self.lbl_search_current_page_1 = ttk.Label(self.frame_search_current_page, text='Страница',
-                                                   style='Default.TLabel')
-        self.entry_search_current_page = ttk.Entry(self.frame_search_current_page,
-                                                   textvariable=self.var_search_current_page, justify='center',
-                                                   validate='key', validatecommand=self.vcmd_page, width=3,
-                                                   style='Default.TEntry', font=('StdFont', self.app_config.font_size))
-        self.lbl_search_current_page_2 = ttk.Label(self.frame_search_current_page, text='из 1', style='Default.TLabel')
-        # } } } }
-        self.btn_search_next_page = ttk.Button(self.frame_search_page_buttons, command=self.search_go_to_next_page,
-                                               width=2, takefocus=False)
-        set_image(self.btn_search_next_page, self.img_arrow_right, img_arrow_right, '>')
-        self.btn_search_last_page = ttk.Button(self.frame_search_page_buttons, command=self.search_go_to_last_page,
-                                               width=2, takefocus=False)
-        set_image(self.btn_search_last_page, self.img_double_arrow_right, img_double_arrow_right, '>>')
-        # } } }
-        # } }
-        # }
+        self._create_print_tab()
+        self._create_search_tab()
 
-        self.tab_add = ttk.Frame(self.tabs, style='Invis.TFrame')
+        self.tab_add = create_frame(self.tabs, 'Invis.TFrame')
         self.tabs.add(self.tab_add, text='Добавить запись в словарь')
 
-        self.tabs.grid(row=0, column=0, padx=0, pady=0)
-        # {
-        self.frame_print_menu.grid(row=0, column=0, padx=6, pady=(6, 0), sticky='W')
-        # { {
-        self.frame_print_header.grid(row=0, rowspan=2, column=0, padx=0, pady=0)
-        # { { {
-        self.btn_print_about_window.grid(row=0,            column=0, padx=0,      pady=0)
-        self.btn_print_print_out.grid(   row=1,            column=0, padx=0,      pady=0)
-        self.frame_print_parameters.grid(row=0, rowspan=2, column=1, padx=(6, 0), pady=0)
-        # { { { {
-        self.lbl_print_fav.grid(      row=0, column=0, padx=(6, 1), pady=6,      sticky='E')
-        self.check_print_fav.grid(    row=0, column=1, padx=(0, 6), pady=6,      sticky='W')
-        self.lbl_print_group.grid(    row=0, column=2, padx=(0, 1), pady=6,      sticky='E')
-        self.combo_print_group.grid(  row=0, column=3, padx=(0, 6), pady=6,      sticky='W')
-        self.lbl_print_briefly.grid(  row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_print_briefly.grid(row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
-        self.lbl_print_order.grid(    row=1, column=2, padx=(0, 1), pady=(0, 6), sticky='E')
-        self.combo_print_order.grid(  row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
-        # } } } }
-        # } } }
-        # self.frame_print_buttons_for_selected
-        # { { {
-        self.btn_print_fav.grid(              row=0, column=0)
-        self.btn_print_unfav.grid(            row=0, column=1)
-        self.btn_print_add_to_group.grid(     row=0, column=2)
-        self.btn_print_remove_from_group.grid(row=0, column=3)
-        self.btn_print_delete.grid(           row=0, column=4)
-        # } } }
-        self.frame_print_selection_buttons.grid(row=1, column=1, padx=(6, 0), pady=0, sticky='WS')
-        # { { {
-        self.btn_print_select_page.grid(  row=0, column=0)
-        self.btn_print_unselect_page.grid(row=0, column=1)
-        self.btn_print_select_all.grid(   row=0, column=2)
-        self.btn_print_unselect_all.grid( row=0, column=3)
-        # } } }
-        self.lbl_print_info.grid(         row=2, column=0, padx=0,      pady=0)
-        self.lbl_print_info_selected.grid(row=2, column=1, padx=(6, 0), pady=0, sticky='W')
-        # } }
-        self.frame_print_main.grid(row=1, column=0, padx=6, pady=6)
-        # { {
-        self.scrolled_frame_print.grid(    row=0, column=0, padx=0, pady=(0, 6))
-        self.frame_print_page_buttons.grid(row=1, column=0, padx=0, pady=0)
-        # { { {
-        self.btn_print_first_page.grid(    row=0, column=0, padx=3, pady=0)
-        self.btn_print_prev_page.grid(     row=0, column=1, padx=3, pady=0)
-        self.frame_print_current_page.grid(row=0, column=2, padx=3, pady=0)
-        # { { { {
-        self.lbl_print_current_page_1.grid(row=0, column=0, padx=0, pady=0)
-        self.entry_print_current_page.grid(row=0, column=1, padx=3, pady=0)
-        self.lbl_print_current_page_2.grid(row=0, column=2, padx=0, pady=0)
-        # } } } }
-        self.btn_print_next_page.grid(row=0, column=3, padx=3, pady=0)
-        self.btn_print_last_page.grid(row=0, column=4, padx=3, pady=0)
-        # } } }
-        # } }
-        # }
+    def _create_print_tab(self):
+        self.tab_print = create_frame(self.tabs, 'Invis.TFrame')
+        self.tabs.add(self.tab_print, text='Просмотр словаря')
 
-        # {
-        self.frame_search_header.grid(row=0, column=0, padx=6, pady=(6, 0), sticky='W')
-        # { {
-        self.frame_search_query.grid(row=0, column=0, columnspan=2, padx=0, pady=(0, 6))
-        # { { {
-        self.btn_search_search_settings.grid(row=0, column=0, padx=(6, 3), pady=6)
-        self.entry_search_query.grid(        row=0, column=1, padx=(0, 1), pady=6)
-        self.btn_search_search.grid(         row=0, column=2, padx=(0, 6), pady=6)
-        # } } }
-        self.frame_search_selection_buttons.grid(row=0, column=2, padx=(6, 0), pady=(0, 6), sticky='WS')
-        # { { {
-        self.btn_search_select_page.grid(  row=0, column=0)
-        self.btn_search_unselect_page.grid(row=0, column=1)
-        self.btn_search_select_all.grid(   row=0, column=2)
-        self.btn_search_unselect_all.grid( row=0, column=3)
-        # } } }
-        self.frame_search_info.grid(row=1, column=0, padx=(6, 0), pady=0, sticky='W')
-        # { { {
-        self.btn_search_about_window.grid(row=0, column=0, padx=0, pady=0)
-        self.lbl_search_info.grid(        row=0, column=1, padx=0, pady=0)
-        # } } }
-        self.lbl_search_info_selected.grid(row=1, column=1, padx=0, pady=0, sticky='E')
-        # self.frame_search_buttons_for_selected
-        # { { {
-        self.btn_search_fav.grid(              row=0, column=0)
-        self.btn_search_unfav.grid(            row=0, column=1)
-        self.btn_search_add_to_group.grid(     row=0, column=2)
-        self.btn_search_remove_from_group.grid(row=0, column=3)
-        self.btn_search_delete.grid(           row=0, column=4)
-        # } } }
-        # } }
-        self.frame_search_main.grid(row=1, column=0, padx=6, pady=6)
-        # { {
-        self.scrolled_frame_search.grid(    row=0, column=0, padx=0, pady=(0, 6))
-        self.frame_search_page_buttons.grid(row=1, column=0, padx=0, pady=0)
-        # { { {
-        self.btn_search_first_page.grid(    row=0, column=0, padx=3, pady=0)
-        self.btn_search_prev_page.grid(     row=0, column=1, padx=3, pady=0)
-        self.frame_search_current_page.grid(row=0, column=2, padx=3, pady=0)
-        # { { { {
-        self.lbl_search_current_page_1.grid(row=0, column=0, padx=0, pady=0)
-        self.entry_search_current_page.grid(row=0, column=1, padx=3, pady=0)
-        self.lbl_search_current_page_2.grid(row=0, column=2, padx=0, pady=0)
-        # } } } }
-        self.btn_search_next_page.grid(row=0, column=3, padx=3, pady=0)
-        self.btn_search_last_page.grid(row=0, column=4, padx=3, pady=0)
-        # } } }
-        # } }
-        # }
+        self._create_print_menu_frame()
+        self._create_print_main_frame()
+
+    def _create_print_menu_frame(self):
+        self.frame_print_menu = create_frame(
+            self.tab_print, 'Invis.TFrame',
+            row=0, column=0, padx=6, pady=(6, 0), sticky='W')
+
+        self._create_print_header_frame()
+        self._create_print_buttons_for_selected_frame()
+        self._create_print_selection_buttons_frame()
+        self.lbl_print_info = create_label(
+            self.frame_print_menu,
+            textvariable=self.var_print_info,
+            row=2, column=0, padx=0, pady=0)
+        self.lbl_print_info_selected = create_label(
+            self.frame_print_menu, justify='left',
+            textvariable=self.var_print_info_selected,
+            row=2, column=1, padx=(6, 0), pady=0, sticky='W')
+
+    def _create_print_header_frame(self):
+        self.frame_print_header = create_frame(
+            self.frame_print_menu, 'Invis.TFrame',
+            row=0, rowspan=2, column=0, padx=0, pady=0)
+
+        self.btn_print_about_window = create_button(
+            self.frame_print_header, self.about_window, width=2,
+            row=0, column=0, padx=0, pady=0)
+        set_image(self.btn_print_about_window, self.img_about, img_about, '?')
+        self.btn_print_print_out = create_button(
+            self.frame_print_header, self.print_out,
+            row=1, column=0, padx=0, pady=0)
+        set_image(self.btn_print_print_out, self.img_print_out, img_print_out, 'Распечатать')
+        self._create_print_parameters_frame()
+
+    def _create_print_parameters_frame(self):
+        self.frame_print_parameters = create_frame(
+            self.frame_print_header,
+            row=0, rowspan=2, column=1, padx=(6, 0), pady=0)
+
+        self.lbl_print_fav = create_label(
+            self.frame_print_parameters, 'Только избр.:',
+            row=0, column=0, padx=(6, 1), pady=6, sticky='E')
+        self.check_print_fav = create_checkbutton(
+            self.frame_print_parameters, self.var_print_fav,
+            command=lambda: self.print_go_to_first_page(True),
+            row=0, column=1, padx=(0, 6), pady=6, sticky='W')
+        self.lbl_print_group = create_label(
+            self.frame_print_parameters, 'Группа:',
+            row=0, column=2, padx=(0, 1), pady=6, sticky='E')
+        self.combo_print_group = create_combobox(
+            self.frame_print_parameters, self.var_print_group,
+            [ALL_GROUPS] + self.dct_info.dct.groups, 28,
+            font=('DejaVu Sans Mono', self.app_config.font_size), state='readonly',
+            row=0, column=3, padx=(0, 6), pady=6, sticky='W')
+        self.lbl_print_briefly = create_label(
+            self.frame_print_parameters, 'Кратко:',
+            row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_print_briefly = create_checkbutton(
+            self.frame_print_parameters, self.var_print_briefly,
+            command=lambda: self.print_print(True),
+            row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_print_order = create_label(
+            self.frame_print_parameters, 'Порядок:',
+            row=1, column=2, padx=(0, 1), pady=(0, 6), sticky='E')
+        self.combo_print_order = create_combobox(
+            self.frame_print_parameters, self.var_print_order, PRINT_VALUES_ORDER, 28,
+            font=('DejaVu Sans Mono', self.app_config.font_size), state='readonly',
+            row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
+
+    def _create_print_buttons_for_selected_frame(self):
+        self.frame_print_buttons_for_selected = create_frame(self.frame_print_menu)
+
+        self.btn_print_fav = create_button(
+            self.frame_print_buttons_for_selected,
+            lambda: self.fav_selected(self.print_selected_keys),
+            width=3,
+            row=0, column=0)
+        set_image(self.btn_print_fav, self.img_fav, img_fav, '*+')
+        self.btn_print_unfav = create_button(
+            self.frame_print_buttons_for_selected,
+            lambda: self.unfav_selected(self.print_selected_keys),
+            width=3,
+            row=0, column=1)
+        set_image(self.btn_print_unfav, self.img_unfav, img_unfav, '*-')
+        self.btn_print_add_to_group = create_button(
+            self.frame_print_buttons_for_selected,
+            lambda: self.add_selected_to_group(self.print_selected_keys),
+            width=3,
+            row=0, column=2)
+        set_image(self.btn_print_add_to_group, self.img_add_to_group, img_add_to_group, 'G+')
+        self.btn_print_remove_from_group = create_button(
+            self.frame_print_buttons_for_selected,
+            lambda: self.remove_selected_from_group(self.print_selected_keys),
+            width=3,
+            row=0, column=3)
+        set_image(self.btn_print_remove_from_group, self.img_remove_from_group,
+                  img_remove_from_group, 'G-')
+        self.btn_print_delete = create_button(
+            self.frame_print_buttons_for_selected,
+            lambda: self.delete_selected(self.print_selected_keys),
+            width=3,
+            row=0, column=4)
+        set_image(self.btn_print_delete, self.img_delete, img_trashcan, 'DEL')
+
+    def _create_print_selection_buttons_frame(self):
+        self.frame_print_selection_buttons = create_frame(
+            self.frame_print_menu,
+            row=1, column=1, padx=(6, 0), pady=0, sticky='WS')
+
+        self.btn_print_select_page = create_button(
+            self.frame_print_selection_buttons, self.print_select_page, width=3,
+            row=0, column=0)
+        set_image(self.btn_print_select_page, self.img_select_page, img_select_page, '[X]')
+        self.btn_print_unselect_page = create_button(
+            self.frame_print_selection_buttons, self.print_unselect_page, width=3,
+            row=0, column=1)
+        set_image(self.btn_print_unselect_page, self.img_unselect_page, img_unselect_page, '[ ]')
+        self.btn_print_select_all = create_button(
+            self.frame_print_selection_buttons, self.print_select_all, width=3,
+            row=0, column=2)
+        set_image(self.btn_print_select_all, self.img_select_all, img_select_all, '[X]')
+        self.btn_print_unselect_all = create_button(
+            self.frame_print_selection_buttons, self.print_unselect_all, width=3,
+            row=0, column=3)
+        set_image(self.btn_print_unselect_all, self.img_unselect_all, img_unselect_all, '[ ]')
+
+    def _create_print_main_frame(self):
+        self.frame_print_main = create_frame(
+            self.tab_print, 'Invis.TFrame',
+            row=1, column=0, padx=6, pady=6)
+
+        self.scrolled_frame_print = ScrollFrame(
+            self.frame_print_main, self.app_config,
+            SCALE_DEFAULT_FRAME_HEIGHT[self.app_config.font_size - SCALE_MIN],
+            SCALE_DEFAULT_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.scrolled_frame_print.grid(
+            row=0, column=0, padx=0, pady=(0, 6))
+        self._create_print_page_buttons_frame()
+
+    def _create_print_page_buttons_frame(self):
+        self.frame_print_page_buttons = create_frame(
+            self.frame_print_main, 'Invis.TFrame',
+            row=1, column=0, padx=0, pady=0)
+
+        self.btn_print_first_page = create_button(
+            self.frame_print_page_buttons, self.print_go_to_first_page, width=2,
+            row=0, column=0, padx=3, pady=0)
+        set_image(self.btn_print_first_page, self.img_double_arrow_left,
+                  img_double_arrow_left, '<<')
+        self.btn_print_prev_page = create_button(
+            self.frame_print_page_buttons, self.print_go_to_prev_page, width=2,
+            row=0, column=1, padx=3, pady=0)
+        set_image(self.btn_print_prev_page, self.img_arrow_left, img_arrow_left, '<')
+        self._create_print_current_page_frame()
+        self.btn_print_next_page = create_button(
+            self.frame_print_page_buttons, self.print_go_to_next_page, width=2,
+            row=0, column=3, padx=3, pady=0)
+        set_image(self.btn_print_next_page, self.img_arrow_right, img_arrow_right, '>')
+        self.btn_print_last_page = create_button(
+            self.frame_print_page_buttons, self.print_go_to_last_page, width=2,
+            row=0, column=4, padx=3, pady=0)
+        set_image(self.btn_print_last_page, self.img_double_arrow_right,
+                  img_double_arrow_right, '>>')
+
+    def _create_print_current_page_frame(self):
+        self.frame_print_current_page = create_frame(
+            self.frame_print_page_buttons, 'Invis.TFrame',
+            row=0, column=2, padx=3, pady=0)
+
+        self.lbl_print_current_page_1 = create_label(
+            self.frame_print_current_page, 'Страница',
+            row=0, column=0, padx=0, pady=0)
+        self.entry_print_current_page = create_entry(
+            self.frame_print_current_page, self.var_print_current_page, 3,
+            font=self.app_config, justify='center',
+            validate='key', validatecommand=self.vcmd_print_page,
+            row=0, column=1, padx=3, pady=0)
+        self.lbl_print_current_page_2 = create_label(
+            self.frame_print_current_page, 'из 1',
+            row=0, column=2, padx=0, pady=0)
+
+    def _create_search_tab(self):
+        self.tab_search = create_frame(self.tabs, 'Invis.TFrame')
+        self.tabs.add(self.tab_search, text='Поиск')
+
+        self._create_search_header_frame()
+        self._create_search_main_frame()
+
+    def _create_search_header_frame(self):
+        self.frame_search_header = create_frame(
+            self.tab_search, 'Invis.TFrame',
+            row=0, column=0, padx=6, pady=(6, 0), sticky='W')
+
+        self._create_search_query_frame()
+        self._create_search_selection_button()
+        self._create_search_info_frame()
+        self.lbl_search_info_selected = create_label(
+            self.frame_search_header, textvariable=self.var_search_info_selected,
+            row=1, column=1, padx=0, pady=0, sticky='E')
+        self._create_search_buttons_for_selected_frame()
+
+    def _create_search_query_frame(self):
+        self.frame_search_query = create_frame(
+            self.frame_search_header,
+            row=0, column=0, columnspan=2, padx=0, pady=(0, 6))
+
+        self.btn_search_search_settings = create_button(
+            self.frame_search_query, self.search_settings, width=9,
+            row=0, column=0, padx=(6, 3), pady=6)
+        set_image(self.btn_search_search_settings, self.img_settings, img_edit, 'Настройки')
+        self.entry_search_query = create_entry(
+            self.frame_search_query, self.var_search_query, 50, font=self.app_config,
+            row=0, column=1, padx=(0, 1), pady=6)
+        self.btn_search_search = create_button(
+            self.frame_search_query, lambda: self.search_go_to_first_page(True),
+            'Поиск', width=6,
+            row=0, column=2, padx=(0, 6), pady=6)
+
+
+    def _create_search_selection_button(self):
+        self.frame_search_selection_buttons = create_frame(
+            self.frame_search_header,
+            row=0, column=2, padx=(6, 0), pady=(0, 6), sticky='WS')
+
+        self.btn_search_select_page = create_button(
+            self.frame_search_selection_buttons, self.search_select_page, width=3,
+            row=0, column=0)
+        set_image(self.btn_search_select_page, self.img_select_page, img_select_page, '[X]')
+        self.btn_search_unselect_page = create_button(
+            self.frame_search_selection_buttons, self.search_unselect_page, width=3,
+            row=0, column=1)
+        set_image(self.btn_search_unselect_page, self.img_unselect_page, img_unselect_page, '[ ]')
+        self.btn_search_select_all = create_button(
+            self.frame_search_selection_buttons, self.search_select_all, width=3,
+            row=0, column=2)
+        set_image(self.btn_search_select_all, self.img_select_all, img_select_all, '[X]')
+        self.btn_search_unselect_all = create_button(
+            self.frame_search_selection_buttons, self.search_unselect_all, width=3,
+            row=0, column=3)
+        set_image(self.btn_search_unselect_all, self.img_unselect_all, img_unselect_all, '[ ]')
+
+    def _create_search_info_frame(self):
+        self.frame_search_info = create_frame(
+            self.frame_search_header, 'Invis.TFrame',
+            row=1, column=0, padx=(6, 0), pady=0, sticky='W')
+
+        self.btn_search_about_window = create_button(
+            self.frame_search_info, self.about_window, width=2,
+            row=0, column=0, padx=0, pady=0)
+        set_image(self.btn_search_about_window, self.img_about, img_about, '?')
+        self.lbl_search_info = create_label(
+            self.frame_search_info, textvariable=self.var_search_info,
+            row=0, column=1, padx=0, pady=0)
+
+
+    def _create_search_buttons_for_selected_frame(self):
+        self.frame_search_buttons_for_selected = create_frame(self.frame_search_header)
+
+        self.btn_search_fav = create_button(
+            self.frame_search_buttons_for_selected,
+            lambda: self.fav_selected(self.search_selected_keys),
+            width=3,
+            row=0, column=0)
+        set_image(self.btn_search_fav, self.img_fav, img_fav, '*+')
+        self.btn_search_unfav = create_button(
+            self.frame_search_buttons_for_selected,
+            lambda: self.unfav_selected(self.search_selected_keys),
+            width=3,
+            row=0, column=1)
+        set_image(self.btn_search_unfav, self.img_unfav, img_unfav, '*-')
+        self.btn_search_add_to_group = create_button(
+            self.frame_search_buttons_for_selected,
+            lambda: self.add_selected_to_group(self.search_selected_keys),
+            width=3,
+            row=0, column=2)
+        set_image(self.btn_search_add_to_group, self.img_add_to_group, img_add_to_group, 'G+')
+        self.btn_search_remove_from_group = create_button(
+            self.frame_search_buttons_for_selected,
+            lambda: self.remove_selected_from_group(self.search_selected_keys),
+            width=3,
+            row=0, column=3)
+        set_image(self.btn_search_remove_from_group, self.img_remove_from_group,
+                  img_remove_from_group, 'G-')
+        self.btn_search_delete = create_button(
+            self.frame_search_buttons_for_selected,
+            lambda: self.delete_selected(self.search_selected_keys),
+            width=3,
+            row=0, column=4)
+        set_image(self.btn_search_delete, self.img_delete, img_trashcan, 'DEL')
+
+    def _create_search_main_frame(self):
+        self.frame_search_main = create_frame(
+            self.tab_search, 'Invis.TFrame',
+            row=1, column=0, padx=6, pady=6)
+
+        self.scrolled_frame_search = ScrollFrame(
+            self.frame_search_main, self.app_config,
+            SCALE_DEFAULT_FRAME_HEIGHT[self.app_config.font_size - SCALE_MIN],
+            SCALE_DEFAULT_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.scrolled_frame_search.grid(
+            row=0, column=0, padx=0, pady=(0, 6))
+        self._create_search_page_buttons()
+
+    def _create_search_page_buttons(self):
+        self.frame_search_page_buttons = create_frame(
+            self.frame_search_main, 'Invis.TFrame',
+            row=1, column=0, padx=0, pady=0)
+
+        self.btn_search_first_page = create_button(
+            self.frame_search_page_buttons, self.search_go_to_first_page, width=2,
+            row=0, column=0, padx=3, pady=0)
+        set_image(self.btn_search_first_page, self.img_double_arrow_left,
+                  img_double_arrow_left, '<<')
+        self.btn_search_prev_page = create_button(
+            self.frame_search_page_buttons, self.search_go_to_prev_page, width=2,
+            row=0, column=1, padx=3, pady=0)
+        set_image(self.btn_search_prev_page, self.img_arrow_left, img_arrow_left, '<')
+        self._create_search_current_page()
+        self.btn_search_next_page = create_button(
+            self.frame_search_page_buttons, self.search_go_to_next_page, width=2,
+            row=0, column=3, padx=3, pady=0)
+        set_image(self.btn_search_next_page, self.img_arrow_right, img_arrow_right, '>')
+        self.btn_search_last_page = create_button(
+            self.frame_search_page_buttons, self.search_go_to_last_page, width=2,
+            row=0, column=4, padx=3, pady=0)
+        set_image(self.btn_search_last_page, self.img_double_arrow_right,
+                  img_double_arrow_right, '>>')
+
+    def _create_search_current_page(self):
+        self.frame_search_current_page = create_frame(
+            self.frame_search_page_buttons, 'Invis.TFrame',
+            row=0, column=2, padx=3, pady=0)
+
+        self.lbl_search_current_page_1 = create_label(
+            self.frame_search_current_page, 'Страница',
+            row=0, column=0, padx=0, pady=0)
+        self.entry_search_current_page = create_entry(
+            self.frame_search_current_page, self.var_search_current_page, 3,
+            font=self.app_config, justify='center',
+            validate='key', validatecommand=self.vcmd_page,
+            row=0, column=1, padx=3, pady=0)
+        self.lbl_search_current_page_2 = create_label(
+            self.frame_search_current_page, 'из 1',
+            row=0, column=2, padx=0, pady=0)
 
     def _create_tips(self):
-        self.tip_btn_about_window = ttip.Hovertip(self.btn_print_about_window, 'Справка', hover_delay=450)
-        self.tip_btn_print_out = ttip.Hovertip(self.btn_print_print_out, 'Распечатать словарь в файл', hover_delay=450)
-        self.tip_btn_fav = ttip.Hovertip(self.btn_print_fav, 'Добавить выделенные статьи в избранное\n'
-                                                       'Alt+F',
-                                         hover_delay=450)
-        self.tip_btn_unfav = ttip.Hovertip(self.btn_print_unfav, 'Убрать выделенные статьи из избранного\n'
-                                                           'Alt+Shift+F',
-                                           hover_delay=450)
-        self.tip_btn_add_to_group = ttip.Hovertip(self.btn_print_add_to_group, 'Добавить выделенные статьи в группу\n'
-                                                                         'Alt+G',
-                                                  hover_delay=450)
-        self.tip_btn_remove_from_group = ttip.Hovertip(self.btn_print_remove_from_group,
-                                                       'Убрать выделенные статьи из группы\n'
-                                                       'Alt+Shift+G',
-                                                       hover_delay=450)
-        self.tip_btn_delete = ttip.Hovertip(self.btn_print_delete, 'Удалить выделенные статьи\n'
-                                                             'Alt+D',
-                                            hover_delay=450)
-        self.tip_btn_select_page = ttip.Hovertip(self.btn_print_select_page, 'Выделить все статьи на текущей странице\n'
-                                                                       'Alt+P',
-                                                 hover_delay=450)
-        self.tip_btn_unselect_page = ttip.Hovertip(self.btn_print_unselect_page,
-                                                   'Снять выделение со всех статей на текущей странице\n'
-                                                   'Alt+Shift+P',
-                                                   hover_delay=450)
-        self.tip_btn_select_all = ttip.Hovertip(self.btn_print_select_all, 'Выделить все статьи\n'
-                                                                     'Alt+A',
-                                                hover_delay=450)
-        self.tip_btn_unselect_all = ttip.Hovertip(self.btn_print_unselect_all, 'Снять выделение со всех статей\n'
-                                                                         'Alt+Shift+A',
-                                                  hover_delay=450)
-        self.tip_btn_first_page = ttip.Hovertip(self.btn_print_first_page, 'В начало', hover_delay=650)
-        self.tip_btn_prev_page = ttip.Hovertip(self.btn_print_prev_page, 'На предыдущую страницу', hover_delay=650)
-        self.tip_btn_next_page = ttip.Hovertip(self.btn_print_next_page, 'На следующую страницу', hover_delay=650)
-        self.tip_btn_last_page = ttip.Hovertip(self.btn_print_last_page, 'В конец', hover_delay=650)
-        #
-        self.tip_btn_about_window = ttip.Hovertip(self.btn_search_about_window, 'Справка', hover_delay=450)
-        self.tip_btn_search_settings = ttip.Hovertip(self.btn_search_search_settings, 'Параметры поиска',
-                                                     hover_delay=450)
-        self.tip_btn_fav = ttip.Hovertip(self.btn_search_fav, 'Добавить выделенные статьи в избранное\n'
-                                                       'Alt+F',
-                                         hover_delay=450)
-        self.tip_btn_unfav = ttip.Hovertip(self.btn_search_unfav, 'Убрать выделенные статьи из избранного\n'
-                                                           'Alt+Shift+F',
-                                           hover_delay=450)
-        self.tip_btn_add_to_group = ttip.Hovertip(self.btn_search_add_to_group, 'Добавить выделенные статьи в группу\n'
-                                                                         'Alt+G',
-                                                  hover_delay=450)
-        self.tip_btn_remove_from_group = ttip.Hovertip(self.btn_search_remove_from_group,
-                                                       'Убрать выделенные статьи из группы\n'
-                                                       'Alt+Shift+G',
-                                                       hover_delay=450)
-        self.tip_btn_delete = ttip.Hovertip(self.btn_search_delete, 'Удалить выделенные статьи\n'
-                                                             'Alt+D',
-                                            hover_delay=450)
-        self.tip_btn_select_page = ttip.Hovertip(self.btn_search_select_page,
-                                                 'Выделить все статьи на текущей странице\n'
-                                                 'Alt+P',
-                                                 hover_delay=450)
-        self.tip_btn_unselect_page = ttip.Hovertip(self.btn_search_unselect_page,
-                                                   'Снять выделение со всех статей на текущей странице\n'
-                                                   'Alt+Shift+P',
-                                                   hover_delay=450)
-        self.tip_btn_select_all = ttip.Hovertip(self.btn_search_select_all, 'Выделить все статьи\n'
-                                                                     'Alt+A',
-                                                hover_delay=450)
-        self.tip_btn_unselect_all = ttip.Hovertip(self.btn_search_unselect_all, 'Снять выделение со всех статей\n'
-                                                                         'Alt+Shift+A',
-                                                  hover_delay=450)
-        self.tip_btn_first_page = ttip.Hovertip(self.btn_search_first_page, 'В начало', hover_delay=650)
-        self.tip_btn_prev_page = ttip.Hovertip(self.btn_search_prev_page, 'На предыдущую страницу', hover_delay=650)
-        self.tip_btn_next_page = ttip.Hovertip(self.btn_search_next_page, 'На следующую страницу', hover_delay=650)
-        self.tip_btn_last_page = ttip.Hovertip(self.btn_search_last_page, 'В конец', hover_delay=650)
+        self.tip_btn_about_window = ttip.Hovertip(
+            self.btn_print_about_window, 'Справка', hover_delay=450)
+        self.tip_btn_print_out = ttip.Hovertip(
+            self.btn_print_print_out, 'Распечатать словарь в файл', hover_delay=450)
+        self.tip_btn_fav = ttip.Hovertip(
+            self.btn_print_fav,
+            'Добавить выделенные статьи в избранное\n'
+            'Alt+F',
+            hover_delay=450)
+        self.tip_btn_unfav = ttip.Hovertip(
+            self.btn_print_unfav,
+            'Убрать выделенные статьи из избранного\n'
+            'Alt+Shift+F',
+            hover_delay=450)
+        self.tip_btn_add_to_group = ttip.Hovertip(
+            self.btn_print_add_to_group,
+            'Добавить выделенные статьи в группу\n'
+            'Alt+G',
+            hover_delay=450)
+        self.tip_btn_remove_from_group = ttip.Hovertip(
+            self.btn_print_remove_from_group,
+            'Убрать выделенные статьи из группы\n'
+            'Alt+Shift+G',
+            hover_delay=450)
+        self.tip_btn_delete = ttip.Hovertip(
+            self.btn_print_delete,
+            'Удалить выделенные статьи\n'
+            'Alt+D',
+            hover_delay=450)
+        self.tip_btn_select_page = ttip.Hovertip(
+            self.btn_print_select_page,
+            'Выделить все статьи на текущей странице\n'
+            'Alt+P',
+            hover_delay=450)
+        self.tip_btn_unselect_page = ttip.Hovertip(
+            self.btn_print_unselect_page,
+            'Снять выделение со всех статей на текущей странице\n'
+            'Alt+Shift+P',
+            hover_delay=450)
+        self.tip_btn_select_all = ttip.Hovertip(
+            self.btn_print_select_all,
+            'Выделить все статьи\n'
+            'Alt+A',
+            hover_delay=450)
+        self.tip_btn_unselect_all = ttip.Hovertip(
+            self.btn_print_unselect_all,
+            'Снять выделение со всех статей\n'
+            'Alt+Shift+A',
+            hover_delay=450)
+        self.tip_btn_first_page = ttip.Hovertip(
+            self.btn_print_first_page, 'В начало', hover_delay=650)
+        self.tip_btn_prev_page = ttip.Hovertip(
+            self.btn_print_prev_page, 'На предыдущую страницу', hover_delay=650)
+        self.tip_btn_next_page = ttip.Hovertip(
+            self.btn_print_next_page, 'На следующую страницу', hover_delay=650)
+        self.tip_btn_last_page = ttip.Hovertip(
+            self.btn_print_last_page, 'В конец', hover_delay=650)
+        self.tip_btn_about_window = ttip.Hovertip(
+            self.btn_search_about_window, 'Справка', hover_delay=450)
+        self.tip_btn_search_settings = ttip.Hovertip(
+            self.btn_search_search_settings, 'Параметры поиска', hover_delay=450)
+        self.tip_btn_fav = ttip.Hovertip(
+            self.btn_search_fav,
+            'Добавить выделенные статьи в избранное\n'
+            'Alt+F',
+            hover_delay=450)
+        self.tip_btn_unfav = ttip.Hovertip(
+            self.btn_search_unfav,
+            'Убрать выделенные статьи из избранного\n'
+            'Alt+Shift+F',
+            hover_delay=450)
+        self.tip_btn_add_to_group = ttip.Hovertip(
+            self.btn_search_add_to_group,
+            'Добавить выделенные статьи в группу\n'
+            'Alt+G',
+            hover_delay=450)
+        self.tip_btn_remove_from_group = ttip.Hovertip(
+            self.btn_search_remove_from_group,
+            'Убрать выделенные статьи из группы\n'
+            'Alt+Shift+G',
+            hover_delay=450)
+        self.tip_btn_delete = ttip.Hovertip(
+            self.btn_search_delete,
+            'Удалить выделенные статьи\n'
+            'Alt+D',
+            hover_delay=450)
+        self.tip_btn_select_page = ttip.Hovertip(
+            self.btn_search_select_page,
+            'Выделить все статьи на текущей странице\n'
+            'Alt+P',
+            hover_delay=450)
+        self.tip_btn_unselect_page = ttip.Hovertip(
+            self.btn_search_unselect_page,
+            'Снять выделение со всех статей на текущей странице\n'
+            'Alt+Shift+P',
+            hover_delay=450)
+        self.tip_btn_select_all = ttip.Hovertip(
+            self.btn_search_select_all,
+            'Выделить все статьи\n'
+            'Alt+A',
+            hover_delay=450)
+        self.tip_btn_unselect_all = ttip.Hovertip(
+            self.btn_search_unselect_all,
+            'Снять выделение со всех статей\n'
+            'Alt+Shift+A',
+            hover_delay=450)
+        self.tip_btn_first_page = ttip.Hovertip(
+            self.btn_search_first_page, 'В начало', hover_delay=650)
+        self.tip_btn_prev_page = ttip.Hovertip(
+            self.btn_search_prev_page, 'На предыдущую страницу', hover_delay=650)
+        self.tip_btn_next_page = ttip.Hovertip(
+            self.btn_search_next_page, 'На следующую страницу', hover_delay=650)
+        self.tip_btn_last_page = ttip.Hovertip(
+            self.btn_search_last_page, 'В конец', hover_delay=650)
 
     def _create_bindings(self):
         self.combo_print_order.bind('<<ComboboxSelected>>', lambda event: self.print_print(False))
@@ -6190,20 +6455,22 @@ class PrintW(tk.Toplevel):
 
         # Создаём новые фреймы
         self.print_frames = [
-            ttk.Frame(self.scrolled_frame_print.frame_canvas, style='Invis.TFrame')
-            for _ in range(self.print_count_elements_on_page)
+            create_frame(
+                self.scrolled_frame_print.frame_canvas, 'Invis.TFrame',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(self.print_count_elements_on_page)
         ]
         # Создаём новые кнопки
         self.print_buttons = [
-            ttk.Button(
+            create_button(
                 self.print_frames[i],
-                command=lambda i=i: self.edit_entry(self.print_keys[self.print_start_index + i]),
-                takefocus=False,
+                lambda i=i: self.edit_entry(self.print_keys[self.print_start_index + i]),
                 style=(
                     ('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
                     if self.print_keys[self.print_start_index + i] in self.print_selected_keys
                     else ('FlatD.TButton' if i % 2 else 'FlatL.TButton')
                 ),
+                row=0, column=0, padx=0, pady=0, sticky='WE',
             ) for i in range(self.print_count_elements_on_page)
         ]
         # Создаём подсказки
@@ -6234,10 +6501,6 @@ class PrintW(tk.Toplevel):
                 )
 
         for i in range(self.print_count_elements_on_page):
-            # Расставляем элементы
-            self.print_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            self.print_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
-
             # Привязываем события
             self.print_frames[i].bind(
                 '<Enter>',
@@ -6325,33 +6588,29 @@ class PrintW(tk.Toplevel):
 
         # Создаём новые фреймы
         self.search_frames = [
-            ttk.Frame(self.scrolled_frame_search.frame_canvas, style='Invis.TFrame')
-            for _ in range(self.search_count_elements_on_page)
+            create_frame(
+                self.scrolled_frame_search.frame_canvas, 'Invis.TFrame',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(self.search_count_elements_on_page)
         ]
         # Создаём новые кнопки
         self.search_buttons = [
-            ttk.Button(
+            create_button(
                 self.search_frames[i],
-                command=lambda i=i: self.edit_entry(self.search_keys[self.search_start_index + i]),
-                takefocus=False,
+                lambda i=i: self.edit_entry(self.search_keys[self.search_start_index + i]),
+                get_all_entry_info(
+                    self.dct_info.dct[self.search_keys[self.search_start_index + i]], 75, 13
+                ),
                 style=(
                     ('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
                     if self.search_keys[self.search_start_index + i] in self.search_selected_keys
                     else ('FlatD.TButton' if i % 2 else 'FlatL.TButton')
                 ),
+                row=0, column=0, padx=0, pady=0, sticky='WE',
             ) for i in range(self.search_count_elements_on_page)
         ]
 
         for i in range(self.search_count_elements_on_page):
-            # Выводим текст на кнопки
-            self.search_buttons[i].configure(
-                text=get_all_entry_info(
-                    self.dct_info.dct[self.search_keys[self.search_start_index + i]], 75, 13))
-
-            # Расставляем элементы
-            self.search_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            self.search_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
-
             # Привязываем события
             self.search_frames[i].bind(
                 '<Enter>', lambda event, i=i: self.search_frames[i].focus_set()
@@ -6868,31 +7127,37 @@ class AddW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        self.lbl_wrd = ttk.Label(self, text='Введите слово:', style='Default.TLabel')
-        self.entry_wrd = ttk.Entry(self, textvariable=self.var_wrd, width=50, validate='all',
-                                   style='Default.TEntry', font=('StdFont', self.app_config.font_size))
-        self.lbl_tr = ttk.Label(self, text='Введите перевод:', style='Default.TLabel')
-        self.entry_tr = ttk.Entry(self, textvariable=self.var_tr, width=50, validate='all',
-                                  style='Default.TEntry', font=('StdFont', self.app_config.font_size))
-        self.lbl_fav = ttk.Label(self, text='Избранное:', style='Default.TLabel')
-        self.frame = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.check_fav = ttk.Checkbutton(self.frame, variable=self.var_fav, style='Default.TCheckbutton')
-        self.lbl_msg = ttk.Label(self.frame, justify='left', style='Default.TLabel')
-        # }
-        self.btn_add = ttk.Button(self, text='Добавить', command=self.add, takefocus=False, style='Default.TButton')
+        self.lbl_wrd = create_label(
+            self, 'Введите слово:',
+            row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
+        self.entry_wrd = create_entry(
+            self, self.var_wrd, 50, font=self.app_config, validate='all',
+            row=0, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
+        self.lbl_tr = create_label(
+            self, 'Введите перевод:',
+            row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self.entry_tr = create_entry(
+            self, self.var_tr, 50, font=self.app_config, validate='all',
+            row=1, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+        self.lbl_fav = create_label(
+            self, 'Избранное:',
+            row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+        self._create_frame()
+        self.btn_add = create_button(
+            self, self.add, 'Добавить',
+            row=3, columnspan=2, padx=6, pady=(0, 6))
 
-        self.lbl_wrd.grid(  row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
-        self.entry_wrd.grid(row=0, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
-        self.lbl_tr.grid(   row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
-        self.entry_tr.grid( row=1, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
-        self.lbl_fav.grid(  row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
-        self.frame.grid(    row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
-        # {
-        self.check_fav.grid(row=0, column=0, padx=0,      pady=0)
-        self.lbl_msg.grid(  row=0, column=1, padx=(6, 0), pady=0)
-        # }
-        self.btn_add.grid(row=3, columnspan=2, padx=6, pady=(0, 6))
+    def _create_frame(self):
+        self.frame = create_frame(
+            self, 'Invis.TFrame',
+            row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+
+        self.check_fav = create_checkbutton(
+            self.frame, self.var_fav,
+            row=0, column=0, padx=0, pady=0)
+        self.lbl_msg = create_label(
+            self.frame, justify='left',
+            row=0, column=1, padx=(6, 0), pady=0)
 
     def _add_validation(self):
         # При незаполненных полях нельзя нажать кнопку
@@ -7022,157 +7287,165 @@ class SettingsW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
+        self.lbl_dct_name = create_label(
+            self,
+            split_text(f'Открыт словарь "{self.manager.active.dct.name}"',
+                       30, to_add_right_spaces=False),
+            justify='center',
+            row=0, columnspan=2, padx=6, pady=(6, 0))
         self.tabs = ttk.Notebook(self, style='Default.TNotebook')
-        self.tab_local = ttk.Frame(self.tabs, style='Invis.TFrame')
-        self.lbl_dct_name = ttk.Label(self, text=split_text(f'Открыт словарь "{self.manager.active.dct.name}"',
-                                                            30, to_add_right_spaces=False),
-                                      justify='center', style='Default.TLabel')
-        self.tabs.add(self.tab_local, text='Настройки открытого словаря')
-        # {
-        self.frame_check_register = ttk.Frame(self.tab_local, style='Default.TFrame')
-        # { {
-        self.lbl_check_register = ttk.Label(self.frame_check_register,
-                                            text='Учитывать регистр букв при проверке ответа во время учёбы:',
-                                            style='Default.TLabel')
-        self.check_check_register = ttk.Checkbutton(self.frame_check_register, variable=self.var_check_register,
-                                                    style='Default.TCheckbutton')
-        # } }
-        self.btn_forms = ttk.Button(self.tab_local, text='Грамматические категории', command=self.categories_settings,
-                                    takefocus=False, style='Default.TButton')
-        #
-        self.btn_groups = ttk.Button(self.tab_local, text='Группы', command=self.groups_settings,
-                                     takefocus=False, style='Default.TButton')
-        #
-        self.btn_special_combinations = ttk.Button(self.tab_local, text='Специальные комбинации',
-                                                   command=self.special_combinations_settings,
-                                                   takefocus=False, style='Default.TButton')
-        #
-        self.lbl_save_warn = ttk.Label(self.tab_local,
-                                       text='При сохранении настроек словаря, сохраняется и сам словарь!',
-                                       style='Warn.TLabel')
-        # }
-        self.tab_global = ttk.Frame(self.tabs, style='Invis.TFrame')
-        self.tabs.add(self.tab_global, text='Настройки программы')
-        # {
-        self.frame_show_updates = ttk.Frame(self.tab_global, style='Default.TFrame')
-        # { {
-        self.lbl_show_updates = ttk.Label(self.frame_show_updates, text='Сообщать о выходе новых версий:',
-                                          style='Default.TLabel')
-        self.check_show_updates = ttk.Checkbutton(self.frame_show_updates, variable=self.var_show_updates,
-                                                  style='Default.TCheckbutton')
-        # } }
-        self.frame_show_typo_button = ttk.Frame(self.tab_global, style='Default.TFrame')
-        # { {
-        self.btn_about_typo = ttk.Button(self.frame_show_typo_button, command=self.about_typo, width=2, takefocus=False)
-        set_image(self.btn_about_typo, self.img_about, img_about, '?')
-        self.lbl_show_typo_button = ttk.Label(self.frame_show_typo_button, text='Показывать кнопку "Опечатка":',
-                                              style='Default.TLabel')
-        self.check_show_typo_button = ttk.Checkbutton(self.frame_show_typo_button, variable=self.var_show_typo_button,
-                                                      style='Default.TCheckbutton')
-        # } }
-        self.frame_dcts = ttk.Frame(self.tab_global, style='Default.TFrame')
-        # { {
-        self.lbl_dcts = ttk.Label(self.frame_dcts, text='Существующие словари:', style='Default.TLabel')
-        self.btn_about_dcts = ttk.Button(self.frame_dcts, command=self.about_dcts, width=2, takefocus=False)
-        set_image(self.btn_about_dcts, self.img_about, img_about, '?')
-        self.scrolled_frame_dcts = ScrollFrame(self.frame_dcts, self.app_config,
-                                               SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
-                                               SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
-        self.frame_dct_buttons = ttk.Frame(self.frame_dcts, style='Invis.TFrame')
-        # { { {
-        self.btn_dct_create = ttk.Button(self.frame_dct_buttons, text='Новый словарь', command=self.dct_create,
-                                         takefocus=False, style='Default.TButton')
-        self.btn_dct_import = ttk.Button(self.frame_dct_buttons, text='Импортировать словарь', command=self.dct_import,
-                                         takefocus=False, style='Default.TButton')
-        # } } }
-        self.lbl_dcts_warn = ttk.Label(self.frame_dcts, text='Изменения словарей\n'
-                                                             'сохраняются сразу!',
-                                       style='Warn.TLabel')
-        # } }
-        self.frame_themes = ttk.Frame(self.tab_global, style='Default.TFrame')
-        # { {
-        self.lbl_themes = ttk.Label(self.frame_themes, text='Тема:', style='Default.TLabel')
-        self.combo_themes = ttk.Combobox(self.frame_themes, textvariable=self.var_theme, values=THEMES,
-                                         state='readonly', width=15, style='Default.TCombobox',
-                                         font=('DejaVu Sans Mono', self.app_config.font_size))
-        self.lbl_themes_version = ttk.Label(self.frame_themes, text=f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
-                                                                    f'Актуальные темы можно скачать здесь:',
-                                            justify='left', style='Default.TLabel')
-        self.entry_themes_version = ttk.Entry(self.frame_themes, textvariable=self.var_themes_url,
-                                              state='readonly', width=47, justify='center',
-                                              style='Default.TEntry', font=('StdFont', self.app_config.font_size))
-        self.btn_custom_theme = ttk.Button(self.frame_themes, text='Собственная тема', command=self.custom_theme,
-                                           takefocus=False, style='Default.TButton')
-        # } }
-        self.frame_scale = ttk.Frame(self.tab_global, style='Default.TFrame')
-        # { {
-        self.btn_scale_minus = ttk.Button(self.frame_scale, command=self.scale_minus,
-                                          width=2, state='normal', takefocus=False)
-        set_image(self.btn_scale_minus, self.img_minus, img_delete, '-')
-        self.lbl_scale = ttk.Label(self.frame_scale, text=f'Масштаб ({self.app_config.font_size}x)', style='Default.TLabel')
-        self.btn_scale_plus = ttk.Button(self.frame_scale, command=self.scale_plus,
-                                         width=2, state='normal', takefocus=False)
-        set_image(self.btn_scale_plus, self.img_plus, img_add, '+')
-        # } }
-        # }
-        self.btn_save = ttk.Button(self, text='Сохранить изменения', command=self.save,
-                                   takefocus=False, style='Yes.TButton')
-        self.btn_close = ttk.Button(self, text='Закрыть настройки', command=self.close,
-                                    takefocus=False, style='No.TButton')
+        self.tabs.grid(
+            row=1, columnspan=2, padx=6, pady=(0, 6))
+        self._create_local_settings_frame()
+        self._create_global_settings_frame()
+        self.btn_save = create_button(
+            self, self.save, 'Сохранить изменения', style='Yes.TButton',
+            row=4, column=0, padx=(6, 3), pady=(0, 6))
+        self.btn_close = create_button(
+            self, self.close, 'Закрыть настройки', style='No.TButton',
+            row=4, column=1, padx=(0, 6), pady=(0, 6))
 
-        self.lbl_dct_name.grid(row=0, columnspan=2, padx=6, pady=(6, 0))
-        self.tabs.grid(        row=1, columnspan=2, padx=6, pady=(0, 6))
-        #
-        self.frame_check_register.grid(row=1, padx=6, pady=6)
-        # {
-        self.lbl_check_register.grid(  row=0, column=0, padx=(6, 1), pady=6, sticky='E')
-        self.check_check_register.grid(row=0, column=1, padx=(0, 6), pady=6, sticky='W')
-        # }
-        self.btn_forms.grid(               row=2, padx=6, pady=6)
-        self.btn_groups.grid(              row=3, padx=6, pady=6)
-        self.btn_special_combinations.grid(row=4, padx=6, pady=6)
-        self.lbl_save_warn.grid(           row=5, padx=6, pady=6, sticky='S')
-        #
-        self.frame_show_updates.grid(row=0, padx=6, pady=6)
-        # {
-        self.lbl_show_updates.grid(  row=0, column=0, padx=(6, 0), pady=6)
-        self.check_show_updates.grid(row=0, column=1, padx=(0, 6), pady=6)
-        # }
-        self.frame_show_typo_button.grid(row=1, padx=6, pady=6)
-        # {
-        self.btn_about_typo.grid(        row=0, column=0, padx=(6, 0), pady=6)
-        self.lbl_show_typo_button.grid(  row=0, column=1, padx=(3, 3), pady=6)
-        self.check_show_typo_button.grid(row=0, column=2, padx=(0, 6), pady=6)
-        # }
-        self.frame_dcts.grid(row=2, padx=6, pady=6)
-        # {
-        self.lbl_dcts.grid(           row=0,            column=0, padx=6,      pady=(6, 0))
-        self.btn_about_dcts.grid(     row=0,            column=1, padx=6,      pady=(6, 0))
-        self.scrolled_frame_dcts.grid(row=1, rowspan=2, column=0, padx=(6, 0), pady=(0, 6))
-        self.frame_dct_buttons.grid(  row=1,            column=1, padx=6,      pady=0)
-        # { {
-        self.btn_dct_create.grid(row=0, column=0, padx=0, pady=(0, 3), sticky='WE')
-        self.btn_dct_import.grid(row=1, column=0, padx=0, pady=(3, 0), sticky='WE')
-        # } }
-        self.lbl_dcts_warn.grid(row=2, column=1, padx=6, pady=(3, 6))
-        # }
-        self.frame_themes.grid(row=3, padx=6, pady=6)
-        # {
-        self.lbl_themes.grid(          row=0, column=0,               padx=(6, 1), pady=6,      sticky='S')
-        self.combo_themes.grid(        row=0, column=1,               padx=0,      pady=6,      sticky='S')
-        self.lbl_themes_version.grid(  row=0, column=2,               padx=6,      pady=(6, 0), sticky='WS')
-        self.btn_custom_theme.grid(    row=1, column=0, columnspan=2, padx=0,      pady=(0, 6), sticky='E')
-        self.entry_themes_version.grid(row=1, column=2,               padx=6,      pady=(0, 6), sticky='WENS')
-        # }
-        self.frame_scale.grid(row=4, padx=6, pady=6)
-        # {
-        self.btn_scale_minus.grid(row=0, column=0, padx=(6, 3), pady=6)
-        self.lbl_scale.grid(      row=0, column=1, padx=(3, 3), pady=6)
-        self.btn_scale_plus.grid( row=0, column=2, padx=(3, 6), pady=6)
-        # }
-        #
-        self.btn_save.grid( row=4, column=0, padx=(6, 3), pady=(0, 6))
-        self.btn_close.grid(row=4, column=1, padx=(0, 6), pady=(0, 6))
+    def _create_local_settings_frame(self):
+        self.tab_local = create_frame(self.tabs, 'Invis.TFrame')
+        self.tabs.add(self.tab_local, text='Настройки открытого словаря')
+
+        self._create_register_frame()
+        self.btn_forms = create_button(
+            self.tab_local, self.categories_settings, 'Грамматические категории',
+            row=2, padx=6, pady=6)
+        self.btn_groups = create_button(
+            self.tab_local, self.groups_settings, 'Группы',
+            row=3, padx=6, pady=6)
+        self.btn_special_combinations = create_button(
+            self.tab_local, self.special_combinations_settings, 'Специальные комбинации',
+            row=4, padx=6, pady=6)
+        self.lbl_save_warn = create_label(
+            self.tab_local,
+            'При сохранении настроек словаря, сохраняется и сам словарь!',
+            'Warn.TLabel',
+            row=5, padx=6, pady=6, sticky='S')
+
+    def _create_register_frame(self):
+        self.frame_check_register = create_frame(self.tab_local, row=1, padx=6, pady=6)
+
+        self.lbl_check_register = create_label(
+            self.frame_check_register,
+            'Учитывать регистр букв при проверке ответа во время учёбы:',
+            row=0, column=0, padx=(6, 1), pady=6, sticky='E')
+        self.check_check_register = create_checkbutton(
+            self.frame_check_register, self.var_check_register,
+            row=0, column=1, padx=(0, 6), pady=6, sticky='W')
+
+    def _create_global_settings_frame(self):
+        self.tab_global = create_frame(self.tabs, 'Invis.TFrame')
+        self.tabs.add(self.tab_global, text='Настройки программы')
+
+        self._create_updates_frame()
+        self._create_typo_button_frame()
+        self._create_dictionaries_frame()
+        self._create_themes_frame()
+        self._create_scale_frame()
+
+    def _create_updates_frame(self):
+        self.frame_show_updates = create_frame(self.tab_global, row=0, padx=6, pady=6)
+
+        self.lbl_show_updates = create_label(
+            self.frame_show_updates, 'Сообщать о выходе новых версий:',
+            row=0, column=0, padx=(6, 0), pady=6)
+        self.check_show_updates = create_checkbutton(
+            self.frame_show_updates, self.var_show_updates,
+            row=0, column=1, padx=(0, 6), pady=6)
+
+    def _create_typo_button_frame(self):
+        self.frame_show_typo_button = create_frame(self.tab_global, row=1, padx=6, pady=6)
+
+        self.btn_about_typo = create_button(
+            self.frame_show_typo_button, self.about_typo, width=2,
+            row=0, column=0, padx=(6, 0), pady=6)
+        set_image(self.btn_about_typo, self.img_about, img_about, '?')
+        self.lbl_show_typo_button = create_label(
+            self.frame_show_typo_button, 'Показывать кнопку "Опечатка":',
+            row=0, column=1, padx=(3, 3), pady=6)
+        self.check_show_typo_button = create_checkbutton(
+            self.frame_show_typo_button, self.var_show_typo_button,
+            row=0, column=2, padx=(0, 6), pady=6)
+
+    def _create_dictionaries_frame(self):
+        self.frame_dcts = create_frame(self.tab_global, row=2, padx=6, pady=6)
+
+        self.lbl_dcts = create_label(
+            self.frame_dcts, 'Существующие словари:',
+            row=0, column=0, padx=6, pady=(6, 0))
+        self.btn_about_dcts = create_button(
+            self.frame_dcts, self.about_dcts, width=2,
+            row=0, column=1, padx=6, pady=(6, 0))
+        set_image(self.btn_about_dcts, self.img_about, img_about, '?')
+        self.scrolled_frame_dcts = ScrollFrame(
+            self.frame_dcts, self.app_config,
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_config.font_size - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_config.font_size - SCALE_MIN])
+        self.scrolled_frame_dcts.grid(
+            row=1, rowspan=2, column=0, padx=(6, 0), pady=(0, 6))
+        self._create_dictionary_buttons_frame()
+        self.lbl_dcts_warn = create_label(
+            self.frame_dcts,
+            'Изменения словарей\n'
+            'сохраняются сразу!',
+            style='Warn.TLabel',
+            row=2, column=1, padx=6, pady=(3, 6))
+
+    def _create_dictionary_buttons_frame(self):
+        self.frame_dct_buttons = create_frame(
+            self.frame_dcts, 'Invis.TFrame',
+            row=1, column=1, padx=6, pady=0)
+
+        self.btn_dct_create = create_button(
+            self.frame_dct_buttons, self.dct_create, 'Новый словарь',
+            row=0, column=0, padx=0, pady=(0, 3), sticky='WE')
+        self.btn_dct_import = create_button(
+            self.frame_dct_buttons, self.dct_import, 'Импортировать словарь',
+            row=1, column=0, padx=0, pady=(3, 0), sticky='WE')
+
+    def _create_themes_frame(self):
+        self.frame_themes = create_frame(self.tab_global, row=3, padx=6, pady=6)
+
+        self.lbl_themes = create_label(
+            self.frame_themes, 'Тема:',
+            row=0, column=0, padx=(6, 1), pady=6, sticky='S')
+        self.combo_themes = create_combobox(
+            self.frame_themes, self.var_theme, THEMES, 15,
+            font=self.app_config, state='readonly',
+            row=0, column=1, padx=0, pady=6, sticky='S')
+        self.lbl_themes_version = create_label(
+            self.frame_themes,
+            f'Требуемая версия тем: {REQUIRED_THEME_VERSION}\n'
+            f'Актуальные темы можно скачать здесь:',
+            justify='left',
+            row=0, column=2, padx=6, pady=(6, 0), sticky='WS')
+        self.btn_custom_theme = create_button(
+            self.frame_themes, self.custom_theme, 'Собственная тема',
+            row=1, column=0, columnspan=2, padx=0, pady=(0, 6), sticky='E')
+        self.entry_themes_version = create_entry(
+            self.frame_themes, self.var_themes_url, 47, font=self.app_config,
+            state='readonly', justify='center',
+            row=1, column=2, padx=6, pady=(0, 6), sticky='WENS')
+
+    def _create_scale_frame(self):
+        self.frame_scale = create_frame(self.tab_global, row=4, padx=6, pady=6)
+
+        self.btn_scale_minus = create_button(
+            self.frame_scale, self.scale_minus,
+            width=2, state='normal',
+            row=0, column=0, padx=(6, 3), pady=6)
+        set_image(self.btn_scale_minus, self.img_minus, img_delete, '-')
+        self.lbl_scale = create_label(
+            self.frame_scale, f'Масштаб ({self.app_config.font_size}x)',
+            row=0, column=1, padx=(3, 3), pady=6)
+        self.btn_scale_plus = create_button(
+            self.frame_scale, self.scale_plus,
+            width=2, state='normal',
+            row=0, column=2, padx=(3, 6), pady=6)
+        set_image(self.btn_scale_plus, self.img_plus, img_add, '+')
 
     def _create_tips(self):
         self.tip_btn_about_typo = ttip.Hovertip(self.btn_about_typo, 'Справка', hover_delay=450)
@@ -7518,16 +7791,19 @@ class SettingsW(tk.Toplevel):
 
         # Создаём новые фреймы
         self.dcts_frames = [
-            ttk.Frame(self.scrolled_frame_dcts.frame_canvas, style='Invis.TFrame')
-            for _ in range(dcts_count)
+            create_frame(
+                self.scrolled_frame_dcts.frame_canvas, 'Invis.TFrame',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(dcts_count)
         ]
         # Создаём новые кнопки
         self.dcts_buttons = [
-            ttk.Button(
+            create_button(
                 self.dcts_frames[i],
-                command=lambda i=i: self.dct_open(self.dcts_savenames[i]),
+                lambda i=i: self.dct_open(self.dcts_savenames[i]),
                 takefocus=False,
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
+                row=0, column=0, padx=0, pady=0, sticky='WE',
             ) for i in range(dcts_count)
         ]
         for i in range(dcts_count):
@@ -7537,10 +7813,6 @@ class SettingsW(tk.Toplevel):
                 self.dcts_buttons[i].configure(text=split_text(f'{savename} (ОТКРЫТ)', 35))
             else:
                 self.dcts_buttons[i].configure(text=split_text(f'{savename}', 35))
-
-            # Расставляем элементы
-            self.dcts_frames[i].grid(row=i, column=0, padx=0, pady=0, sticky='WE')
-            self.dcts_buttons[i].grid(row=0, column=0, padx=0, pady=0, sticky='WE')
 
             # Привязываем события
             self.dcts_frames[i].bind('<Enter>', lambda event, i=i: self.dcts_frames[i].focus_set())
@@ -7689,28 +7961,32 @@ class NewVersionAvailableW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, last_version: str):
-        self.lbl_msg = ttk.Label(self, text=f'Доступна новая версия программы:\n'
-                                            f'{last_version}',
-                                 justify='center', style='Default.TLabel')
-        self.frame_url = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.entry_url = ttk.Entry(self.frame_url, textvariable=self.var_url, state='readonly', justify='center',
-                                   width=39, style='Default.TEntry', font=('StdFont', self.app_config.font_size))
-        self.btn_open = ttk.Button(self.frame_url, text='Открыть ссылку', command=self.open_github,
-                                   takefocus=False, style='Default.TButton')
-        # }
-        self.btn_update = ttk.Button(self, text='Обновить', command=self.download_and_install,
-                                     takefocus=False, style='Yes.TButton')
-        self.btn_close = ttk.Button(self, text='Закрыть', command=self.destroy, takefocus=False, style='No.TButton')
+        self.lbl_msg = create_label(
+            self,
+            f'Доступна новая версия программы:\n'
+            f'{last_version}',
+            justify='center',
+            row=1, columnspan=2, padx=6, pady=(4, 0))
+        self._create_url_frame()
+        self.btn_update = create_button(
+            self, self.download_and_install, 'Обновить', style='Yes.TButton',
+            row=3, column=0, padx=6, pady=4)
+        self.btn_close = create_button(
+            self, self.destroy, 'Закрыть', style='No.TButton',
+            row=3, column=1, padx=6, pady=4)
 
-        self.lbl_msg.grid(  row=1, columnspan=2, padx=6, pady=(4, 0))
-        self.frame_url.grid(row=2, columnspan=2, padx=6, pady=(0, 4))
-        # {
-        self.entry_url.grid(row=0, column=0, padx=(0, 3), pady=0)
-        self.btn_open.grid( row=0, column=1, padx=0,      pady=0)
-        # }
-        self.btn_update.grid(row=3, column=0, padx=6, pady=4)
-        self.btn_close.grid( row=3, column=1, padx=6, pady=4)
+    def _create_url_frame(self):
+        self.frame_url = create_frame(
+            self, 'Invis.TFrame',
+            row=2, columnspan=2, padx=6, pady=(0, 4))
+
+        self.entry_url = create_entry(
+            self.frame_url, self.var_url, 39, font=self.app_config,
+            state='readonly', justify='center',
+            row=0, column=0, padx=(0, 3), pady=0)
+        self.btn_open = create_button(
+            self.frame_url, self.open_github, 'Открыть ссылку',
+            row=0, column=1, padx=0, pady=0)
 
     # Открыть репозиторий проекта на GitHub
     def open_github(self):
@@ -7818,62 +8094,65 @@ class MainW(tk.Tk):
         self.configure(bg=STYLES['*.BG.*'][1][self.app_config.theme])
 
     def _create_widgets(self):
-        self.frame_head = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.lbl_header = ttk.Label(self.frame_head, text='Anenokil development presents', style='Header.TLabel')
-        self.lbl_logo = ttk.Label(self.frame_head, text=PROGRAM_NAME, style='Logo.TLabel')
-        # }
-        self.frame_dct_name = ttk.Frame(self, style='Default.TFrame')
-        # {
-        self.lbl_dct_name = ttk.Label(self.frame_dct_name,
-                                      text=f'Открыт словарь\n'
-                                           f'"{split_text(self.manager.active.dct.name, 20, to_add_right_spaces=False)}"',
-                                      justify='center', style='Default.TLabel')
-        # }
-        self.frame_buttons = ttk.Frame(self, style='Invis.TFrame')
-        # {
-        self.btn_learn = ttk.Button(self.frame_buttons, text='Учить слова', command=self.learn,
-                                    takefocus=False, style='Default.TButton')
-        self.btn_print = ttk.Button(self.frame_buttons, text='Просмотреть словарь', command=self.print,
-                                    takefocus=False, style='Default.TButton')
-        self.btn_search = ttk.Button(self.frame_buttons, text='Поиск', command=self.search,
-                                     takefocus=False, style='Default.TButton')
-        self.btn_add = ttk.Button(self.frame_buttons, text='Добавить запись в словарь', command=self.add,
-                                  takefocus=False, style='Default.TButton')
-        self.btn_settings = ttk.Button(self.frame_buttons, text='Настройки', command=self.settings,
-                                       takefocus=False, style='Default.TButton')
-        self.btn_check_updates = ttk.Button(self.frame_buttons, text='Проверить обновления', command=self.check_updates,
-                                            takefocus=False, style='Default.TButton')
-        self.btn_save = ttk.Button(self.frame_buttons, text='Сохранить словарь', command=self.save,
-                                   takefocus=False, style='Yes.TButton')
-        self.btn_close = ttk.Button(self.frame_buttons, text='Закрыть программу', command=self.close,
-                                    takefocus=False, style='No.TButton')
-        # }
-        self.lbl_footer = ttk.Label(self, text=f'{PROGRAM_VERSION}\n'
-                                               f'{PROGRAM_DATE}  {PROGRAM_TIME}',
-                                    justify='center', style='Footer.TLabel')
+        self._create_head_frame()
+        self._create_label_frame()
+        self._create_buttons_frame()
 
-        self.frame_head.grid(row=0, padx=16, pady=16)
-        # {
-        self.lbl_header.grid(row=0, padx=0, pady=0)
-        self.lbl_logo.grid(  row=1, padx=0, pady=0)
-        # }
-        self.frame_dct_name.grid(row=1, padx=6, pady=(0, 12))
-        # {
-        self.lbl_dct_name.grid(padx=1, pady=1)
-        # }
-        self.frame_buttons.grid(row=2, padx=6, pady=(0, 6))
-        # {
-        self.btn_learn.grid(        row=0, padx=0, pady=(0, 3))
-        self.btn_print.grid(        row=1, padx=0, pady=(3, 3))
-        self.btn_search.grid(       row=2, padx=0, pady=(3, 3))
-        self.btn_add.grid(          row=3, padx=0, pady=(3, 3))
-        self.btn_settings.grid(     row=4, padx=0, pady=(3, 3))
-        self.btn_check_updates.grid(row=5, padx=0, pady=(3, 3))
-        self.btn_save.grid(         row=6, padx=0, pady=(3, 3))
-        self.btn_close.grid(        row=7, padx=0, pady=(3, 0))
-        # }
-        self.lbl_footer.grid(row=3, padx=6, pady=3)
+        self.lbl_footer = create_label(
+            self,
+            f'{PROGRAM_VERSION}\n'
+            f'{PROGRAM_DATE}  {PROGRAM_TIME}',
+            'Footer.TLabel',
+            justify='center',
+            row=3, padx=6, pady=3)
+
+    def _create_head_frame(self):
+        self.frame_head = create_frame(self, 'Invis.TFrame', row=0, padx=16, pady=16)
+
+        self.lbl_header = create_label(
+            self.frame_head, 'Anenokil development presents', 'Header.TLabel',
+            row=0, padx=0, pady=0)
+        self.lbl_logo = create_label(
+            self.frame_head, PROGRAM_NAME, 'Logo.TLabel',
+            row=1, padx=0, pady=0)
+
+    def _create_label_frame(self):
+        self.frame_dct_name = create_frame(self, row=1, padx=6, pady=(0, 12))
+
+        self.lbl_dct_name = create_label(
+            self.frame_dct_name,
+            f'Открыт словарь\n'
+            f'"{split_text(self.manager.active.dct.name, 20, to_add_right_spaces=False)}"',
+            justify='center',
+            padx=1, pady=1)
+
+    def _create_buttons_frame(self):
+        self.frame_buttons = create_frame(self, 'Invis.TFrame', row=2, padx=6, pady=(0, 6))
+
+        self.btn_learn = create_button(
+            self.frame_buttons, self.learn, 'Учить слова',
+            row=0, padx=0, pady=(0, 3))
+        self.btn_print = create_button(
+            self.frame_buttons, self.print, 'Просмотреть словарь',
+            row=1, padx=0, pady=(3, 3))
+        self.btn_search = create_button(
+            self.frame_buttons, self.search, 'Поиск',
+            row=2, padx=0, pady=(3, 3))
+        self.btn_add = create_button(
+            self.frame_buttons, self.add, 'Добавить запись в словарь',
+            row=3, padx=0, pady=(3, 3))
+        self.btn_settings = create_button(
+            self.frame_buttons, self.settings, 'Настройки',
+            row=4, padx=0, pady=(3, 3))
+        self.btn_check_updates = create_button(
+            self.frame_buttons, self.check_updates, 'Проверить обновления',
+            row=5, padx=0, pady=(3, 3))
+        self.btn_save = create_button(
+            self.frame_buttons, self.save, 'Сохранить словарь', style='Yes.TButton',
+            row=6, padx=0, pady=(3, 3))
+        self.btn_close = create_button(
+            self.frame_buttons, self.close, 'Закрыть программу', style='No.TButton',
+            row=7, padx=0, pady=(3, 0))
 
     # Нажатие на кнопку "Учить слова"
     def learn(self):
