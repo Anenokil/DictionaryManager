@@ -7882,7 +7882,7 @@ class SettingsW(tk.Toplevel):
         return self.has_ctg_changes or\
             self.has_groups_changes or\
             self.has_spec_comb_changes or\
-            int(self.var_check_register.get()) != self.manager.active.settings.is_register_sensitive
+            self.var_check_register.get() != self.manager.active.settings.is_register_sensitive
 
     # Были ли изменения настроек
     def has_changes(self):
