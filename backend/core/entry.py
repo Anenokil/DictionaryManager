@@ -501,14 +501,27 @@ class Entry:
             Dictionary containing entry data.
         """
 
-        data = self.to_dict()
-
-        data['forms'] = {
-            'keys': [list(gram_form) for gram_form in self.forms.keys()],
-            'values': list(self.forms.values()),
+        data = {
+            'lemma': self.lemma,
+            'translations': self.tr,
+            'is_fav': self.is_fav,
+            'total_att': self.total_att,
+            'correct_att': self.correct_att,
+            'win_streak': self.win_streak,
+            'latest_att_timestamp': list(self.latest_att_timestamp),
         }
-        data['groups'] = list(self.groups)
-        data['latest_att_timestamp'] = list(self.latest_att_timestamp)
+
+        if self.forms:
+            data['forms'] = {
+                'keys': [list(gram_form) for gram_form in self.forms.keys()],
+                'values': list(self.forms.values()),
+            }
+        if self.phrases:
+            data['phrases'] = self.phrases
+        if self.notes:
+            data['notes'] = self.notes
+        if self.groups:
+            data['groups'] = list(self.groups)
 
         return data
 
