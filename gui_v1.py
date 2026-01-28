@@ -3656,7 +3656,9 @@ class GroupsSettingsW(tk.Toplevel):
         self.has_changes = True
 
     # Переименовать группу
-    def rename(self, group_old: str):
+    def rename(self, i: int):
+        group_old = self.groups[i]
+
         window = PopupEntryW(
             self, self.app_data,
             'Введите новое название группы',
@@ -3672,11 +3674,17 @@ class GroupsSettingsW(tk.Toplevel):
 
         self.dct.rename_group(group_old, group_new)
 
+        train_group = self.dct_info.cache.train_config.group
+        if train_group == group_old:
+            self.dct_info.cache.train_config.group = group_new
+
         self.print_groups(False)
         self.has_changes = True
 
     # Удалить группу
-    def delete(self, group: str):
+    def delete(self, i: int):
+        group = self.groups[i]
+
         group_size = self.dct.count_entries_in_group(group)[0]
         if group_size != 0:
             tmp = set_postfix(
@@ -3693,13 +3701,8 @@ class GroupsSettingsW(tk.Toplevel):
                 return
 
         train_group = self.dct_info.cache.train_config.group
-        if train_group is not None:
-            deleted_group_index = self.dct.groups.index(group)
-            train_group_index = self.dct.groups.index(train_group)
-            if deleted_group_index + 1 == train_group_index:
-                self.dct_info.cache.train_config.group = self.dct.groups[0]
-            elif deleted_group_index + 1 < train_group_index:
-                self.dct_info.cache.train_config.group = self.dct.groups[train_group_index-1]
+        if train_group == group:
+            self.dct_info.cache.train_config.group = ALL_GROUPS
 
         self.dct.delete_group(group)
 
@@ -3707,7 +3710,9 @@ class GroupsSettingsW(tk.Toplevel):
         self.has_changes = True
 
     # Добавить группу в избранное
-    def fav(self, group: str):
+    def fav(self, i: int):
+        group = self.groups[i]
+
         if self.dct.is_default_group(group):
             self.dct.unmark_default_group(group)
         else:
@@ -3773,12 +3778,12 @@ class GroupsSettingsW(tk.Toplevel):
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
-            self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename(self.groups[i]))
-            self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename(self.groups[i]))
-            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(self.groups[i]))
-            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(self.groups[i]))
-            self.frames[i].bind('<Control-f>', lambda event, i=i: self.fav(self.groups[i]))
-            self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav(self.groups[i]))
+            self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename(i))
+            self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename(i))
+            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete(i))
+            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete(i))
+            self.frames[i].bind('<Control-f>', lambda event, i=i: self.fav(i))
+            self.frames[i].bind('<Control-F>', lambda event, i=i: self.fav(i))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
