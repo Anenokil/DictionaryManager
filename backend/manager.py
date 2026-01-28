@@ -33,13 +33,8 @@ class DctSettings:
 
     _schema_version = 1
 
-    def __init__(self, data: SerializedData | None = None):
-        self.is_register_sensitive: bool = ...
-
-        if data is None:
-            self.set_defaults()
-        else:
-            self.load_from_dict(data)
+    def __init__(self, is_register_sensitive: bool = True):
+        self.is_register_sensitive = is_register_sensitive
 
     def set_defaults(self):
         self.is_register_sensitive = True
@@ -54,6 +49,12 @@ class DctSettings:
         data = self._check_and_migrate(data)
 
         self.is_register_sensitive = data['is_register_sensitive']
+
+    @classmethod
+    def from_dict(cls, data: SerializedData):
+        dct_settings = cls()
+        dct_settings.load_from_dict(data)
+        return dct_settings
 
     @staticmethod
     def _check_and_migrate(data: SerializedData) -> SerializedData:
