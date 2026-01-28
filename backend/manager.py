@@ -7,7 +7,6 @@ Author: Anenokil
 
 import os
 from types import NoneType
-from typing import Any
 import json
 
 from .core.types import Group, DctName, SerializedData
