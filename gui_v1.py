@@ -3059,17 +3059,15 @@ class EditW(tk.Toplevel):
         self.refresh(False)
 
     # Изменить словоформу
-    def frm_edt(self, frm_key: GramForm):
-        window_entry = PopupEntryW(
-            self, self.app_data,
-            'Введите новую форму слова',
-            default_value=self.dct[self.dct_key].forms[frm_key][-1],
-            check_answer_function=lambda wnd, val: check_not_void(
-                wnd, val, 'Словоформа должна содержать хотя бы один символ!'
-            ),
-        )
-        closed, new_frm = window_entry.open()
-        if closed:
+    def frm_edt(self, form: tuple[GramForm, WordForm]):
+        gram_form, word_form = form
+
+        window_form = AddFormW(
+            self, self.app_data, self.dct_key, word_form, list(gram_form),
+            combo_width=combobox_width(tuple(self.dct.features.keys()), 5, 100),
+        )  # Создание словоформы
+        new_gram_form, new_word_form = window_form.open()
+        if not new_gram_form:
             return
         new_frm = encode_special_combinations(new_frm, self.dct.input_replacements)
 
@@ -3484,6 +3482,8 @@ class AddFormW(tk.Toplevel):
             parent,
             app_data: AppData,
             key: EntryID,
+            initial_value: str = '',
+            template: list[str] | None = None,
             combo_width: int = 20,
     ):
         super().__init__(parent)
@@ -3496,15 +3496,15 @@ class AddFormW(tk.Toplevel):
         self.closed = True  # Закрыто ли окно крестиком
         self.categories = list(self.dct.features.keys())  # Список категорий
         self.ctg_values = list(self.dct.features[self.categories[0]])  # Список значений выбранной категории
-        self.template = []  # Шаблон словоформы
-        for _ in range(len(self.categories)):
-            self.template += ['']
-        self.void_template = self.template.copy()  # Пустой шаблон (для сравнения на пустоту)
+        self.void_template = ['' for _ in range(len(self.categories))]  # Пустой шаблон (для сравнения на пустоту)
+        self.template = template or self.void_template  # Шаблон словоформы
 
         self.var_ctg = tk.StringVar(value=self.categories[0])
         self.var_val = tk.StringVar(value=self.ctg_values[0])
-        self.var_template = tk.StringVar(value='Текущий шаблон словоформы: ""')
-        self.var_form = tk.StringVar(value=self.dct[self.key].lemma)
+        self.var_template = tk.StringVar(
+            value=f'Текущий шаблон словоформы: "{gram_form_to_str(self.template)}"'
+        )
+        self.var_form = tk.StringVar(value=initial_value)
 
         self.img_ok = tk.PhotoImage()
         self.img_none = tk.PhotoImage()
@@ -3512,8 +3512,17 @@ class AddFormW(tk.Toplevel):
         self._configure_window()
         self._create_widgets(combo_width)
 
-        btn_disable(self.btn_save)
+        if self.template == self.void_template:  # Пока шаблон пустой, нельзя нажать кнопку
+            btn_disable(self.btn_save)
+
         self.entry_form.icursor(len(self.var_form.get()))
+
+        # В combobox значением по умолчанию становится первая ещё не заданная категория
+        for i in range(len(self.template)):
+            if self.template[i] == '':
+                self.var_ctg.set(self.categories[i])
+                break
+        self.refresh_vals()
 
     def _configure_window(self):
         self.title(PROGRAM_NAME)
@@ -3539,7 +3548,7 @@ class AddFormW(tk.Toplevel):
             row=2, columnspan=2, padx=6, pady=1)
         self._create_form_frame()
         self.btn_save = create_button(
-            self, self.save, 'Добавить',
+            self, self.save, 'Готово',
             row=4, columnspan=2, padx=6, pady=6)
 
     def _create_val_frame(self):
