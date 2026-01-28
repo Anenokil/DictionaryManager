@@ -13,7 +13,7 @@ import json
 from .core.types import Group, DctName, SerializedData
 from .core.errors import UnknownVersionError
 from .core.dictionary import Dictionary
-from .core.trainer import TrainingConfig
+from .core.trainer import TrainingConfig, Trainer
 from .core.utils import validate_required_fields, validate_field_type
 
 
@@ -276,11 +276,13 @@ class DctInfo:
         self.dct = Dictionary() if dct is None else dct
         self.settings = DctSettings() if settings is None else settings
         self.cache = DctCache() if cache is None else cache
+        self.trainer = Trainer(self.dct, self.cache.train_config)
 
     def set_defaults(self):
         self.dct = Dictionary()
         self.settings.set_defaults()
         self.cache.set_defaults()
+        self.trainer = Trainer(self.dct, self.cache.train_config)
 
     def to_dict(self) -> SerializedData:
         return {
@@ -296,6 +298,7 @@ class DctInfo:
         self.dct.load_from_json_dict(data['dct'])
         self.settings.load_from_dict(data['settings'])
         self.cache.load_from_dict(data['cache'])
+        self.trainer = Trainer(self.dct, self.cache.train_config)
 
     @classmethod
     def from_dict(cls, filepath: str, data: SerializedData):
