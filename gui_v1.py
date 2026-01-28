@@ -7279,7 +7279,7 @@ class SettingsW(tk.Toplevel):
 
         # Если есть прогресс, то предлагается его сохранить
         if self.has_local_changes():
-            save_settings_if_has_changes(self, self.manager.active.dct)
+            save_settings_if_has_changes(self, self.app_data)
         save_dct_if_has_progress(self, self.app_data)
 
         filepath = f'./resources/saves/{savename}/dct_data.json'  # TODO: choose filepath
@@ -7356,7 +7356,7 @@ class SettingsW(tk.Toplevel):
             return
 
         if self.has_local_changes():
-            save_settings_if_has_changes(self, self.manager.active.dct)
+            save_settings_if_has_changes(self, self.app_data)
         save_dct_if_has_progress(self, self.app_data)
 
         filepath = f'./resources/saves/{savename}/dct_data.json'  # TODO: choose filepath
