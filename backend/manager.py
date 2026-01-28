@@ -491,10 +491,7 @@ class Manager:
 
         assert 0 <= dct_id <= len(self.opened_dct_info)
 
-        if filepath is None:
-            filepath = self.opened_dct_info[dct_id].filepath
-            if filepath is None:
-                raise ValueError('No filepath is specified')
+        filepath = filepath or self.opened_dct_info[dct_id].filepath
 
         data = self.active.to_dict()
 
@@ -550,10 +547,16 @@ class Manager:
         return {
             'version': self._schema_version,
             'data': {
-                'opened_dct_info': [dct_info.to_dict() for dct_info in self.opened_dct_info],
+                'opened_dct_info': [dct_info.filepath for dct_info in self.opened_dct_info],
                 'active_dct_id': self.active_dct_id,
             }
         }
+
+    @staticmethod
+    def _load_dct(filepath: str) -> DctInfo:
+        with open(filepath, 'r') as file:
+            data = json.load(file)
+        return DctInfo.from_dict(filepath, data)
 
     def load_from_json_dict(self, data: SerializedData):
         """
@@ -576,11 +579,11 @@ class Manager:
         active_dct_id = data['active_dct_id']
 
         # Validate types
-        validate_field_type('opened_dct_info', opened_dct_info, list[SerializedData])
+        validate_field_type('opened_dct_info', opened_dct_info, list[str])
         validate_field_type('active_dct_id', active_dct_id, (int, NoneType))
 
         # Read opened dictionaries
-        opened_dct_info = [DctInfo(item) for item in data['opened_dct_info']]
+        opened_dct_info = [self._load_dct(filepath) for filepath in data['opened_dct_info']]
 
         # Set attributes
         self.opened_dct_info = opened_dct_info
