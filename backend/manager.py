@@ -5,6 +5,7 @@ multiple Dictionary instances and tracks the active dictionary.
 Author: Anenokil
 """
 
+import os
 from types import NoneType
 from typing import Any
 import json
@@ -251,8 +252,8 @@ class DctInfo:
 
     Attributes:
     ----------
+    - filepath: Absolute path to the dictionary file.
     - dct: The main dictionary data structure.
-    - filepath: Path to the dictionary file, or None if not saved.
     - settings: Dictionary settings.
     - cache: User session state.
 
@@ -264,22 +265,22 @@ class DctInfo:
 
     _schema_version = 1
 
-    def __init__(self, data: SerializedData | None = None):
-        self.dct: Dictionary = ...
-        self.filepath: str | None = ...
-        self.settings: DctSettings = ...
-        self.cache: DctCache = ...
-
-        if data is None:
-            self.set_defaults()
-        else:
-            self.load_from_dict(data)
+    def __init__(
+            self,
+            filepath: str,
+            dct: Dictionary | None = None,
+            settings: DctSettings | None = None,
+            cache: DctCache | None = None,
+    ):
+        self.filepath = os.path.abspath(filepath)
+        self.dct = Dictionary() if dct is None else dct
+        self.settings = DctSettings() if settings is None else settings
+        self.cache = DctCache() if cache is None else cache
 
     def set_defaults(self):
         self.dct = Dictionary()
-        self.filepath = None
-        self.settings = DctSettings()
-        self.cache = DctCache()
+        self.settings.set_defaults()
+        self.cache.set_defaults()
 
     def to_dict(self) -> SerializedData:
         return {
@@ -292,9 +293,15 @@ class DctInfo:
     def load_from_dict(self, data: SerializedData):
         data = self._check_and_migrate(data)
 
-        self.dct = Dictionary.from_json_dict(data['dct'])
-        self.settings = DctSettings(data['settings'])
-        self.cache = DctCache(data['cache'])
+        self.dct.load_from_json_dict(data['dct'])
+        self.settings.load_from_dict(data['settings'])
+        self.cache.load_from_dict(data['cache'])
+
+    @classmethod
+    def from_dict(cls, filepath: str, data: SerializedData):
+        dct_info = cls(filepath)
+        dct_info.load_from_dict(data)
+        return dct_info
 
     @staticmethod
     def _check_and_migrate(data: SerializedData) -> SerializedData:
@@ -385,11 +392,12 @@ class Manager:
         if to_activate or self.n_opened == 1:
             self.active_dct_id = len(self.opened_dct_info) - 1
 
-    def create_dct(self, name: DctName = None, to_activate: bool = True):
+    def create_dct(self, filepath: str, name: DctName = None, to_activate: bool = True):
         """
         Create a new empty dictionary and add it to the manager.
 
         Args:
+            filepath: Path to the dictionary file.
             name: Name for the new dictionary.
             to_activate: If True, make the newly created dictionary the
                 currently active dictionary. If False, add it to the
@@ -397,7 +405,7 @@ class Manager:
                 active index.
         """
 
-        new_dct_info = DctInfo()
+        new_dct_info = DctInfo(filepath)
         new_dct_info.dct.rename(name)
         self.opened_dct_info.append(new_dct_info)
 
@@ -418,7 +426,7 @@ class Manager:
 
         with open(filepath, 'r') as file:
             data = json.load(file)
-        dct_info = DctInfo(data)
+        dct_info = DctInfo.from_dict(filepath, data)
         dct_info.dct.mark_saved()
         self.opened_dct_info.append(dct_info)
 
