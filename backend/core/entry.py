@@ -145,6 +145,21 @@ class Entry:
 
         self.tr.remove(tr)
 
+    def edit_tr(self, tr: Translation, new_tr: Translation):
+        """
+        Replace an existing translation with a new translation.
+
+        Args:
+            tr: The translation to edit.
+            new_tr: The new translation.
+        """
+
+        if new_tr in self.tr:
+            self.tr.remove(new_tr)
+        else:
+            index = self.tr.index(tr)
+            self.tr[index] = new_tr
+
     def add_form(self, gram_form: GramForm, word_form: WordForm):
         """
         Add a new inflected form to the entry.
@@ -171,6 +186,34 @@ class Entry:
         self.forms[gram_form].remove(word_form)
         if len(self.forms[gram_form]) == 0:
             self.forms.pop(gram_form)
+
+    def edit_form(
+            self,
+            gram_form: GramForm,
+            word_form: WordForm,
+            new_gram_form: GramForm,
+            new_word_form: WordForm,
+    ):
+        """
+        Replace an existing form with a new form.
+
+        Args:
+            gram_form: Grammatical form identifying the inflection to replace.
+            word_form: The actual inflected form to replace.
+            new_gram_form: The new grammatical form.
+            new_word_form: The new inflected form.
+        """
+
+        if new_gram_form == gram_form:
+            word_forms = self.forms[gram_form]
+            if new_word_form in word_forms:
+                word_forms.remove(word_form)
+            else:
+                index = word_forms.index(word_form)
+                word_forms[index] = new_word_form
+        else:
+            self.delete_form(gram_form, word_form)
+            self.add_form(new_gram_form, new_word_form)
 
     def add_phrase(self, phrase: Phrase, phrase_tr: PhraseTr):
         """
@@ -201,6 +244,34 @@ class Entry:
         if len(self.phrases[phrase]) == 0:
             self.phrases.pop(phrase)
 
+    def edit_phrase(
+            self,
+            phrase: Phrase,
+            phrase_tr: PhraseTr,
+            new_phrase: Phrase,
+            new_phrase_tr: PhraseTr,
+    ):
+        """
+        Replace an existing phrase with a new phrase.
+
+        Args:
+            phrase: The phrase to replace.
+            phrase_tr: The translation of the phrase to replace.
+            new_phrase: The new phrase.
+            new_phrase_tr: The new phrase translation.
+        """
+
+        if new_phrase == phrase:
+            phrase_trs = self.phrases[new_phrase]
+            if new_phrase_tr in phrase_trs:
+                phrase_trs.remove(phrase_tr)
+            else:
+                index = phrase_trs.index(phrase_tr)
+                phrase_trs[index] = new_phrase_tr
+        else:
+            self.delete_phrase(phrase, phrase_tr)
+            self.add_phrase(new_phrase, new_phrase_tr)
+
     def add_note(self, note: Note):
         """
         Add a new note to the entry.
@@ -221,6 +292,21 @@ class Entry:
         """
 
         self.notes.remove(note)
+
+    def edit_note(self, note: Note, new_note: Note):
+        """
+        Replace an existing note with a new note.
+
+        Args:
+            note: The note to edit.
+            new_note: The new note.
+        """
+
+        if new_note in self.notes:
+            self.notes.remove(note)
+        else:
+            index = self.notes.index(note)
+            self.notes[index] = new_note
 
     def add_to_group(self, group: Group):
         """

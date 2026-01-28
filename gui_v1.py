@@ -3020,8 +3020,7 @@ class EditW(tk.Toplevel):
             return
         new_tr = encode_special_combinations(new_tr, self.dct.input_replacements)
 
-        self.dct.delete_tr(self.dct_key, tr)
-        self.dct.add_tr(self.dct_key, new_tr)
+        self.dct.edit_tr(self.dct_key, tr, new_tr)
 
         self.refresh(False)
 
@@ -3074,7 +3073,7 @@ class EditW(tk.Toplevel):
             return
         new_frm = encode_special_combinations(new_frm, self.dct.input_replacements)
 
-        self.dct[self.dct_key].add_form(frm_key, new_frm)
+        self.dct.edit_form(self.dct_key, gram_form, word_form, new_gram_form, new_word_form)
 
         self.refresh(False)
 
@@ -3121,8 +3120,7 @@ class EditW(tk.Toplevel):
         new_phr = encode_special_combinations(new_phr, self.dct.input_replacements)
         new_phr_tr = encode_special_combinations(new_phr_tr, self.dct.input_replacements)
 
-        self.dct.delete_phrase(self.dct_key, phr, phr_tr)
-        self.dct.add_phrase(self.dct_key, new_phr, new_phr_tr)
+        self.dct.edit_phrase(self.dct_key, phr, phr_tr, new_phr, new_phr_tr)
 
         self.refresh(False)
 
@@ -3167,8 +3165,7 @@ class EditW(tk.Toplevel):
             return
         new_note = encode_special_combinations(new_note, self.dct.input_replacements)
 
-        self.dct.delete_note(self.dct_key, note)
-        self.dct.add_note(self.dct_key, new_note)
+        self.dct.edit_note(self.dct_key, note, new_note)
 
         self.refresh(False)
 

@@ -616,6 +616,18 @@ class Dictionary:
 
     @_mark_modified
     @_replace
+    def edit_tr(self, entry_id: EntryID, tr: Translation, new_tr: Translation):
+        entry = self._entries[entry_id]
+
+        self._update_index('translations', tr, entry_id, 'remove')
+        self._update_index('translations', new_tr, entry_id, 'add')
+
+        self._counters['translations'] -= entry.n_translations
+        entry.edit_tr(tr, new_tr)
+        self._counters['translations'] += entry.n_translations
+
+    @_mark_modified
+    @_replace
     def add_form(self, entry_id: EntryID, gram_form: GramForm, word_form: WordForm):
         """
         Add an inflected form to an entry.
@@ -655,6 +667,31 @@ class Dictionary:
         entry.delete_form(gram_form, word_form)
         self._counters['gram_forms'] += entry.n_gram_forms
         self._counters['word_forms'] += entry.n_word_forms
+
+        self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
+
+    @_mark_modified
+    @_replace
+    def edit_form(
+            self,
+            entry_id: EntryID,
+            gram_form: GramForm,
+            word_form: WordForm,
+            new_gram_form: GramForm,
+            new_word_form: WordForm,
+    ):
+        entry = self._entries[entry_id]
+
+        # An entry may contain homographs
+        # Therefore, we need to first remove all forms from the index, then add them back to the index
+        self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
+
+        self._counters['gram_forms'] -= entry.n_gram_forms
+        self._counters['word_forms'] -= entry.n_word_forms
+        entry.edit_form(gram_form, word_form, new_gram_form, new_word_form)
+        self._counters['gram_forms'] += entry.n_gram_forms
+        self._counters['word_forms'] += entry.n_word_forms
+
         self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
 
     @_mark_modified
@@ -693,6 +730,22 @@ class Dictionary:
 
     @_mark_modified
     @_replace
+    def edit_phrase(
+            self,
+            entry_id: EntryID,
+            phrase: Phrase,
+            phrase_tr: PhraseTr,
+            new_phrase: Phrase,
+            new_phrase_tr: PhraseTr,
+    ):
+        entry = self._entries[entry_id]
+
+        self._counters['phrases'] -= entry.n_phrases
+        entry.edit_phrase(phrase, phrase_tr, new_phrase, new_phrase_tr)
+        self._counters['phrases'] += entry.n_phrases
+
+    @_mark_modified
+    @_replace
     def add_note(self, entry_id: EntryID, note: Note):
         """
         Add a note to an entry.
@@ -721,6 +774,15 @@ class Dictionary:
         entry = self._entries[entry_id]
         self._counters['notes'] -= entry.n_notes
         entry.delete_note(note)
+        self._counters['notes'] += entry.n_notes
+
+    @_mark_modified
+    @_replace
+    def edit_note(self, entry_id: EntryID, note: Note, new_note: Note):
+        entry = self._entries[entry_id]
+
+        self._counters['notes'] -= entry.n_notes
+        entry.edit_note(note, new_note)
         self._counters['notes'] += entry.n_notes
 
     @_mark_modified
