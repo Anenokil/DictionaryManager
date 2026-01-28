@@ -3641,13 +3641,17 @@ class AddFormW(tk.Toplevel):
 
     # Сохранить словоформу
     def save(self):
-        if tuple(self.template) in self.dct[self.key].forms.keys():
+        forms = self.dct[self.key].forms
+        gram_form = tuple(self.template)
+        word_form = self.var_form.get()
+
+        if gram_form in forms and word_form == forms[gram_form]:
             warning(
                 self, self.app_data,
-                f'У слова "{self.dct[self.key].lemma}" уже есть форма с таким шаблоном!',
+                f'У слова "{self.dct[self.key].lemma}" уже есть такая форма!',
             )
             return
-        if self.var_form.get() == '':
+        if word_form == '':
             warning(self, self.app_data, 'Словоформа должна содержать хотя бы один символ!')
             return
         self.closed = False
@@ -3682,7 +3686,10 @@ class AddFormW(tk.Toplevel):
             return None, None
         if self.template == self.void_template:
             return None, None
-        if tuple(self.template) in self.dct[self.key].forms.keys():
+        forms = self.dct[self.key].forms
+        gram_form = tuple(self.template)
+        word_form = self.var_form.get()
+        if gram_form in forms and word_form == forms[gram_form]:
             return None, None
         return tuple(self.template), self.var_form.get()
 
