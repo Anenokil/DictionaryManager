@@ -12,7 +12,8 @@ import json
 from .core.types import Group, DctName, SerializedData
 from .core.errors import UnknownVersionError
 from .core.dictionary import Dictionary
-from .core.utils import validate_required_fields, validate_field_type, validate_field_len
+from .core.trainer import TrainingConfig
+from .core.utils import validate_required_fields, validate_field_type
 
 
 class DctSettings:
@@ -196,14 +197,14 @@ class DctCache:
     def set_defaults(self):
         self.session_number = 1
         self.search_config.set_defaults()
-        self.train_config = [0, 0, 1, 1, 1]
+        self.train_config.set_defaults()
 
     def to_dict(self) -> SerializedData:
         return {
             'version': self._schema_version,
             'session_number': self.session_number,
             'search_config': self.search_config.to_dict(),
-            'train_config': self.train_config,
+            'train_config': self.train_config.to_dict(),
         }
 
     def load_from_dict(self, data: SerializedData):
@@ -211,7 +212,7 @@ class DctCache:
 
         self.session_number = data['session_number']
         self.search_config.load_from_dict(data['search_config'])
-        self.train_config = data['train_config']
+        self.train_config.load_from_dict(data['train_config'])
 
         self.session_number += 1
 
@@ -233,8 +234,7 @@ class DctCache:
 
         validate_field_type('session_number', data['session_number'], int)
         validate_field_type('search_config', data['search_config'], SerializedData)
-        validate_field_type('train_config', data['train_config'], list[int])
-        validate_field_len('train_config', data['train_config'], 5)
+        validate_field_type('train_config', data['train_config'], SerializedData)
 
 
 class DctInfo:

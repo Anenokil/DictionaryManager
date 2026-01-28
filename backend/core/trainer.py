@@ -5,14 +5,17 @@ interactive study sessions.
 Author: Anenokil
 """
 
+from types import NoneType
 from typing import Iterable
 from enum import Enum
-from dataclasses import dataclass
 import random
 
-from .types import GramForm, Phrase, Group, EntryID
+from .types import GramForm, Phrase, Group, EntryID, SerializedData
+from .errors import UnknownVersionError
 from .dictionary import Dictionary
-from .utils import difficulty, has_article
+from .utils import (
+    difficulty, has_article, validate_required_fields, validate_field_type,
+)
 
 # Typing aliases used in the module
 Pool = list[tuple[EntryID, GramForm | None, Phrase | None]]
@@ -51,46 +54,78 @@ class FormSelection(Enum):
     ALL = 'all'
 
 
-@dataclass
 class TrainingConfig:
-    method: TrainingMethod
-    order: TrainingOrder
-    entries: EntrySelection
-    forms: FormSelection
-    groups: list[Group] | None = None
+    """ TODO """
 
+    _schema_version = 1
 
-def create_training_config(
-        method: TrainingMethod | str,
-        order: TrainingOrder | str,
-        entries: EntrySelection | str,
-        forms: FormSelection | str,
-        groups: Iterable[Group] | None
-) -> TrainingConfig:
-    """
-    Create a TrainingConfig instance from mixed inputs.
+    def __init__(
+            self,
+            method: TrainingMethod = TrainingMethod.TRANS_TO_WORD,
+            order: TrainingOrder = TrainingOrder.DIFFICULT_FIRST,
+            entries: EntrySelection = EntrySelection.MOSTLY_FAV,
+            forms: FormSelection = FormSelection.RANDOM,
+            group: Group | None = None
+            #groups: list[Group] | None = None,  # TODO
+    ):
+        self.method = method
+        self.order = order
+        self.entries = entries
+        self.forms = forms
+        self.group = group
 
-    This helper accepts either enum members or their string values for the
-    configuration fields and returns a fully typed TrainingConfig object.
+    def set_defaults(self):
+        self.method = TrainingMethod.TRANS_TO_WORD
+        self.order = TrainingOrder.DIFFICULT_FIRST
+        self.entries = EntrySelection.MOSTLY_FAV
+        self.forms = FormSelection.RANDOM
+        self.group = None
 
-    Args:
-        method: Training method.
-        order: Training ordering.
-        entries: Which entries to include.
-        forms: Which forms to include.
-        groups: Optional iterable of groups to restrict the training pool.
+    def to_dict(self) -> SerializedData:
+        return {
+            'version': self._schema_version,
+            'method': self.method.value,
+            'order': self.order.value,
+            'entries': self.entries.value,
+            'forms': self.forms.value,
+            'group': self.group,
+        }
 
-    Returns:
-        A TrainingConfig instance populated with the provided values.
-    """
+    def load_from_dict(self, data: SerializedData):
+        data = self._check_and_migrate(data)
 
-    return TrainingConfig(
-        method=TrainingMethod(method),
-        order=TrainingOrder(order),
-        entries=EntrySelection(entries),
-        forms=FormSelection(forms),
-        groups=None if groups is None else list(groups),
-    )
+        self.method = TrainingMethod(data['method'])
+        self.order = TrainingOrder(data['order'])
+        self.entries = EntrySelection(data['entries'])
+        self.forms = FormSelection(data['forms'])
+        self.group = data['group']
+
+    @classmethod
+    def from_dict(cls, data: SerializedData):
+        config = cls()
+        config.load_from_dict(data)
+        return config
+
+    @staticmethod
+    def _check_and_migrate(data: SerializedData) -> SerializedData:
+        validate_required_fields(data, ('version',))
+        validate_field_type('version', data['version'], int)
+
+        version: int = data['version']
+        if version == 1:
+            TrainingConfig._validate_data(data)
+            return data
+        raise UnknownVersionError(TrainingConfig.__name__, version)
+
+    @staticmethod
+    def _validate_data(data: SerializedData):
+        str_fields = ('method', 'order', 'entries', 'forms')
+        required_fields = str_fields + ('group',)
+        validate_required_fields(data, required_fields)
+
+        for field_name in str_fields:
+            validate_field_type(field_name, data[field_name], str)
+        validate_field_type('group', data['group'], (str, NoneType))
 
 
 class Trainer:

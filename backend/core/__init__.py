@@ -18,6 +18,6 @@ from .entry import Entry, Translations, Forms, Phrases
 from .dictionary import Dictionary
 from .trainer import (
     Trainer, TrainingMethod, TrainingOrder, EntrySelection,
-    FormSelection, TrainingConfig, create_training_config,
+    FormSelection, TrainingConfig,
 )
 from .utils import gram_form_to_str
