@@ -492,12 +492,17 @@ class Manager:
 
         filepath = filepath or self.opened_dct_info[dct_id].filepath
 
+        self.active.dct.mark_saved()
+
         data = self.active.to_dict()
+
+        if not os.path.exists(filepath):
+            parent_dir = os.path.split(filepath)[0]
+            os.makedirs(parent_dir, exist_ok=True)
 
         with open(filepath, 'w') as file:
             json.dump(data, file)
 
-        self.active.dct.mark_saved()
 
         self.opened_dct_info[dct_id].filepath = filepath
 
