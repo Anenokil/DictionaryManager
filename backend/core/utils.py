@@ -11,13 +11,13 @@ from typing import (
     _GenericAlias, get_origin, get_args, TYPE_CHECKING,
 )
 
-from .types import Word, GramForm, SerializedData
+from .types import Word, CtgValue, SerializedData
 from .errors import DeserializationError, MissingFieldsError, FieldTypeError
 if TYPE_CHECKING:
     from .entry import Entry
 
 
-def gram_form_to_str(gram_form: GramForm) -> str:
+def gram_form_to_str(gram_form: Iterable[CtgValue]) -> str:
     """
     Convert a grammatical form tuple to a readable string.
 
