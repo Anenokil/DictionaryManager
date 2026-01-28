@@ -5,7 +5,7 @@ Author: Anenokil
 """
 
 from types import NoneType
-from typing import Iterable, Generator, Mapping, Callable, Literal, TypeVar
+from typing import Any, Iterable, Generator, Mapping, Callable, Literal, TypeVar
 from itertools import chain
 from functools import wraps
 import re
@@ -16,7 +16,7 @@ from .types import (
 )
 from .errors import DeserializationError
 from .entry import Entry
-from .utils import validate_required_fields, validate_field_type
+from .utils import validate_required_fields, validate_field_type, validate_field_len
 
 # Typing aliases used in the module
 Entries = dict[EntryID, Entry]
@@ -1106,7 +1106,7 @@ class Dictionary:
         data = self.to_dict()
 
         data['data']['entries'] = {
-            entry_id: entry.to_json_dict()
+            str(entry_id): entry.to_json_dict()
             for entry_id, entry in self._entries.items()
         }
         data['data']['indexes'] = {
@@ -1115,6 +1115,10 @@ class Dictionary:
         }
         data['data']['default_group_ids'] = list(self._default_group_ids)
         data['data']['replacement_modifiers'] = list(self._replacement_modifiers)
+        data['data']['input_replacements'] = {
+            'keys': [list(key) for key in self._input_replacements.keys()],
+            'values': list(self._input_replacements.values()),
+        }
 
         return data
 
@@ -1135,6 +1139,9 @@ class Dictionary:
             'input_replacements', 'max_entry_id', 'is_modified',
         )
         validate_required_fields(data['data'], required_fields)
+
+        required_fields = ('keys', 'values')
+        validate_required_fields(data['data']['input_replacements'], required_fields)
 
         # Read required fields
         data = data['data']
@@ -1161,9 +1168,14 @@ class Dictionary:
         validate_field_type('groups', groups, list[str])
         validate_field_type('default_group_ids', default_group_ids, list[int])
         validate_field_type('replacement_modifiers', replacement_modifiers, list[str])
-        validate_field_type('input_replacements', input_replacements, dict[str, str])
+        validate_field_type('input_replacements', input_replacements, dict[str, Any])
+        validate_field_type('input_replacements.keys()', input_replacements['keys'], list[list[str]])
+        validate_field_type('input_replacements.values()', input_replacements['values'], list[str])
         validate_field_type('max_entry_id', max_entry_id, int)
         validate_field_type('is_modified', is_modified, bool)
+
+        for i, key in enumerate(input_replacements['keys']):
+            validate_field_len(f'input_replacements[{i}]', key, 2)
 
         # Convert types and values
         try:
@@ -1184,7 +1196,13 @@ class Dictionary:
         }
 
         default_group_ids = set(default_group_ids)
+
         replacement_modifiers = set(replacement_modifiers)
+
+        input_replacements = {
+            tuple(key): value
+            for key, value in zip(input_replacements['keys'], input_replacements['values'])
+        }
 
         # Set attributes
         self._name = name
