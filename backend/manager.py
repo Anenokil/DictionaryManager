@@ -185,15 +185,15 @@ class DctCache:
 
     _schema_version = 1
 
-    def __init__(self, data: SerializedData | None = None):
-        self.session_number: int = ...
-        self.search_config: SearchConfig = ...
-        self.train_config: list[int] = ...
-
-        if data is None:
-            self.set_defaults()
-        else:
-            self.load_from_dict(data)
+    def __init__(
+            self,
+            session_number: int = 1,
+            search_config: SearchConfig | None = None,
+            train_config: TrainingConfig | None = None,
+    ):
+        self.session_number = session_number
+        self.search_config = SearchConfig() if search_config is None else search_config
+        self.train_config = TrainingConfig() if train_config is None else train_config
 
     def set_defaults(self):
         self.session_number = 1
@@ -216,6 +216,12 @@ class DctCache:
         self.train_config.load_from_dict(data['train_config'])
 
         self.session_number += 1
+
+    @classmethod
+    def from_dict(cls, data: SerializedData):
+        dct_cache = cls()
+        dct_cache.load_from_dict(data)
+        return dct_cache
 
     @staticmethod
     def _check_and_migrate(data: SerializedData) -> SerializedData:
