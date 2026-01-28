@@ -20,4 +20,7 @@ from .trainer import (
     Trainer, TrainingMethod, TrainingOrder, EntrySelection,
     FormSelection, TrainingConfig,
 )
-from .utils import gram_form_to_str
+from .utils import (
+    gram_form_to_str, validate_required_fields,
+    validate_field_type, validate_field_len,
+)
