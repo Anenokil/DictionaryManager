@@ -504,10 +504,11 @@ class Entry:
         data = self.to_dict()
 
         data['forms'] = {
-            'keys': list(self.forms.keys()),
+            'keys': [list(gram_form) for gram_form in self.forms.keys()],
             'values': list(self.forms.values()),
         }
         data['groups'] = list(self.groups)
+        data['latest_att_timestamp'] = list(self.latest_att_timestamp)
 
         return data
 
