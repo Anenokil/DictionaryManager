@@ -103,3 +103,12 @@ class FieldTypeError(DeserializationError):
             f'Field "{self.field}" has invalid type: expected {expected_types_repr}, '
             f'got {gotten_type_repr} (value: {value_repr})'
         )
+
+
+class UnknownVersionError(DeserializationError):
+    def __init__(self, source, version):
+        self.source = source
+        self.version = version
+
+    def __str__(self) -> str:
+        return f'Unknown version of {self.source}: {self.version}'

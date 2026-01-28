@@ -11,7 +11,8 @@ from .types import (
 )
 from .errors import (
     DMError, BackendError, BackendCoreError,
-    DeserializationError, MissingFieldsError, FieldTypeError,
+    DeserializationError, MissingFieldsError,
+    FieldTypeError, UnknownVersionError,
 )
 from .entry import Entry, Translations, Forms, Phrases
 from .dictionary import Dictionary
