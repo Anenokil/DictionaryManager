@@ -5970,7 +5970,7 @@ class PrintW(tk.Toplevel):
             self.frame_search_query, self.var_search_query, 50, font=self.app_data,
             row=0, column=1, padx=(0, 1), pady=6)
         self.btn_search_search = create_button(
-            self.frame_search_query, lambda: self.search_go_to_first_page(True),
+            self.frame_search_query, lambda: self.search_go_to_first_page(True, True),
             'Поиск', width=6,
             row=0, column=2, padx=(0, 6), pady=6)
 
@@ -6705,25 +6705,33 @@ class PrintW(tk.Toplevel):
 
     # Перейти на первую страницу (1)
     def print_go_to_first_page(self, to_reset_selected_keys: bool = False):
-        if to_reset_selected_keys:
-            self.print_selected_keys = []
-            self.frame_print_buttons_for_selected.grid_remove()
-        self.print_go_to_page_with_number(1)
+        if self.print_current_page != 1:
+            if to_reset_selected_keys:
+                self.print_selected_keys = []
+                self.frame_print_buttons_for_selected.grid_remove()
+            self.print_go_to_page_with_number(1)
 
     # Перейти на первую страницу (2)
-    def search_go_to_first_page(self, to_reset_selected_keys: bool = False):
-        if to_reset_selected_keys:
-            self.search_selected_keys = []
-            self.frame_search_buttons_for_selected.grid_remove()
-        self.search_go_to_page_with_number(1)
+    def search_go_to_first_page(
+            self,
+            to_reset_selected_keys: bool = False,
+            forced_refresh: bool = False,
+    ):
+        if self.search_current_page != 1 or forced_refresh:
+            if to_reset_selected_keys:
+                self.search_selected_keys = []
+                self.frame_search_buttons_for_selected.grid_remove()
+            self.search_go_to_page_with_number(1)
 
     # Перейти на последнюю страницу (1)
     def print_go_to_last_page(self):
-        self.print_go_to_page_with_number(self.print_count_pages)
+        if self.print_current_page != self.print_count_pages:
+            self.print_go_to_page_with_number(self.print_count_pages)
 
     # Перейти на последнюю страницу (2)
     def search_go_to_last_page(self):
-        self.search_go_to_page_with_number(self.search_count_pages)
+        if self.search_current_page != self.search_count_pages:
+            self.search_go_to_page_with_number(self.search_count_pages)
 
     # Выделить одну статью (или убрать выделение) (1)
     def print_select_one(self, index: int):
