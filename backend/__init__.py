@@ -10,4 +10,5 @@ from .manager import (
 )
 from .persistence import (
     GlobalSettings, GuiTKSettings, AppData,
+    save_dct, save_dct_settings, save_dct_cache,
 )

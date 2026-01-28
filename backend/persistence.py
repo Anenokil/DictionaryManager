@@ -11,7 +11,7 @@ import json
 from .core.types import SerializedData
 from .core.errors import UnknownVersionError
 from .core.utils import validate_required_fields, validate_field_type
-from .manager import Manager
+from .manager import Manager, DctInfo
 
 
 class GlobalSettings:
@@ -187,3 +187,38 @@ class AppData:
 
         for field_name in required_fields:
             validate_field_type(field_name, data[field_name], SerializedData)
+
+
+def save_dct(dct_info: DctInfo):
+    filepath = dct_info.filepath
+    dct = dct_info.dct
+
+    with open(filepath, 'r') as f:
+        data = json.load(f)
+    data['dct'] = dct.to_json_dict()
+    with open(filepath, 'w') as f:
+        json.dump(data, f)
+
+    dct.mark_saved()
+
+
+def save_dct_settings(dct_info: DctInfo):
+    filepath = dct_info.filepath
+    settings = dct_info.settings
+
+    with open(filepath, 'r') as f:
+        data = json.load(f)
+    data['settings'] = settings.to_dict()
+    with open(filepath, 'w') as f:
+        json.dump(data, f)
+
+
+def save_dct_cache(dct_info: DctInfo):
+    filepath = dct_info.filepath
+    cache = dct_info.cache
+
+    with open(filepath, 'r') as f:
+        data = json.load(f)
+    data['cache'] = cache.to_dict()
+    with open(filepath, 'w') as f:
+        json.dump(data, f)
