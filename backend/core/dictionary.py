@@ -26,7 +26,7 @@ FeatureRegistry = dict[Category, list[CtgValue]]
 GroupRegistry = list[Group]
 GroupID = int
 GroupIDs = set[GroupID]
-Replacements = dict[str, str]
+Replacements = dict[tuple[str, str], str]
 T = TypeVar('T')
 
 
@@ -69,7 +69,7 @@ class Dictionary:
     - _default_group_ids: Set of integer indices of groups that are marked as default.
     - _replacement_modifiers: Set of single-character strings used as modifiers
       to introduce input replacements.
-    - _input_replacements: Mapping from modifier+char sequences to the single
+    - _input_replacements: Mapping from (modifier, char) sequences to the single
       character replacement.
     - _max_entry_id: Current maximum entry ID. Used to assign the next available ID to new entries
       (current max + 1).
@@ -123,7 +123,11 @@ class Dictionary:
         self._groups: GroupRegistry = []
         self._default_group_ids: GroupIDs = set()
         self._replacement_modifiers = set(replacement_modifiers)
-        self._input_replacements = {modifier+modifier: modifier for modifier in replacement_modifiers}
+        self._input_replacements = {
+            (modifier, modifier): modifier
+            for modifier in replacement_modifiers
+            if modifier != ''
+        }
         self._max_entry_id = 0
         self._is_modified = True
 
@@ -223,18 +227,23 @@ class Dictionary:
         assert len(char) == 1
         assert len(replacement) == 1
 
-        self._input_replacements[modifier + char] = replacement
+        self._input_replacements[modifier, char] = replacement
 
     @_mark_modified
     def delete_replacement(self, modifier: str, char: str):
         assert char != modifier
 
-        del self._input_replacements[modifier + char]
+        del self._input_replacements[modifier, char]
 
-    def apply_replacements(self, text: str):
-        pattern = re.compile('|'.join(re.escape(key) for key in self._input_replacements.keys()))
+    def apply_replacements(self, text: str) -> str:
+        replacements = {
+            modifier+char: res
+            for (modifier, char), res in self._input_replacements.items()
+        }
 
-        return pattern.sub(lambda match: self._input_replacements[match.group()], text)
+        pattern = re.compile('|'.join(re.escape(key) for key in replacements.keys()))
+
+        return pattern.sub(lambda match: replacements[match.group()], text)
 
     @property
     def name(self) -> DctName:
