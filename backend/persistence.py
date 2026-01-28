@@ -145,6 +145,8 @@ class AppData:
         with open(self.path, 'r') as f:
             data = json.load(f)
 
+        data = self._check_and_migrate(data)
+
         data['version'] = self.schema_version
         if manager:
             data['manager'] = self.manager.to_dict()
