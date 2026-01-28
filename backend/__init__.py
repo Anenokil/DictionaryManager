@@ -5,4 +5,6 @@ Author: Anenokil
 """
 
 from .core import *
-from .manager import Manager, DctSettings, DctCache, DctInfo
+from .manager import (
+    Manager, DctSettings, SearchConfig, DctCache, DctInfo,
+)

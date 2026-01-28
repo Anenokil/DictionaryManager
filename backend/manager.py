@@ -9,7 +9,7 @@ from types import NoneType
 from typing import Any
 import json
 
-from .core.types import DctName, SerializedData
+from .core.types import Group, DctName, SerializedData
 from .core.errors import UnknownVersionError
 from .core.dictionary import Dictionary
 from .core.utils import validate_required_fields, validate_field_type, validate_field_len
@@ -73,6 +73,98 @@ class DctSettings:
         validate_field_type('is_register_sensitive', data['is_register_sensitive'], bool)
 
 
+class SearchConfig:
+    """ TODO """
+
+    _schema_version = 1
+
+    def __init__(
+            self,
+            to_search_only_fav: bool = False,
+            to_search_only_full: bool = False,
+            to_search_in_words: bool = True,
+            to_search_in_translations: bool = True,
+            to_search_in_forms: bool = False,
+            to_search_in_phrases: bool = False,
+            to_search_in_notes: bool = False,
+            search_groups: list[Group] | None = None,
+    ):
+        self.to_search_only_fav = to_search_only_fav
+        self.to_search_only_full = to_search_only_full
+        self.to_search_in_words = to_search_in_words
+        self.to_search_in_translations = to_search_in_translations
+        self.to_search_in_forms = to_search_in_forms
+        self.to_search_in_phrases = to_search_in_phrases
+        self.to_search_in_notes = to_search_in_notes
+        self.search_groups = search_groups
+
+    def set_defaults(self):
+        self.to_search_only_fav = False
+        self.to_search_only_full = False
+        self.to_search_in_words = True
+        self.to_search_in_translations = True
+        self.to_search_in_forms = False
+        self.to_search_in_phrases = False
+        self.to_search_in_notes = False
+        self.search_groups = None
+
+    def to_dict(self) -> SerializedData:
+        return {
+            'version': self._schema_version,
+            'to_search_only_fav': self.to_search_only_fav,
+            'to_search_only_full': self.to_search_only_full,
+            'to_search_in_words': self.to_search_in_words,
+            'to_search_in_translations': self.to_search_in_translations,
+            'to_search_in_forms': self.to_search_in_forms,
+            'to_search_in_phrases': self.to_search_in_phrases,
+            'to_search_in_notes': self.to_search_in_notes,
+            'search_groups': self.search_groups,
+        }
+
+    def load_from_dict(self, data: SerializedData):
+        data = self._check_and_migrate(data)
+
+        self.to_search_only_fav = data['to_search_only_fav']
+        self.to_search_only_full = data['to_search_only_full']
+        self.to_search_in_words = data['to_search_in_words']
+        self.to_search_in_translations = data['to_search_in_translations']
+        self.to_search_in_forms = data['to_search_in_forms']
+        self.to_search_in_phrases = data['to_search_in_phrases']
+        self.to_search_in_notes = data['to_search_in_notes']
+        self.search_groups = data['search_groups']
+
+    @classmethod
+    def from_dict(cls, data: SerializedData):
+        search_settings = cls()
+        search_settings.load_from_dict(data)
+        return search_settings
+
+    @staticmethod
+    def _check_and_migrate(data: SerializedData) -> SerializedData:
+        validate_required_fields(data, ('version',))
+        validate_field_type('version', data['version'], int)
+
+        version: int = data['version']
+        if version == 1:
+            SearchConfig._validate_data(data)
+            return data
+        raise UnknownVersionError(SearchConfig.__name__, version)
+
+    @staticmethod
+    def _validate_data(data: SerializedData):
+        bool_fields = (
+            'to_search_only_fav', 'to_search_only_full', 'to_search_in_words',
+            'to_search_in_translations', 'to_search_in_forms',
+            'to_search_in_phrases', 'to_search_in_notes',
+        )
+        required_fields = bool_fields + ('search_groups',)
+        validate_required_fields(data, required_fields)
+
+        for field_name in bool_fields:
+            validate_field_type(field_name, data[field_name], bool)
+        validate_field_type('search_groups', data['search_groups'], (list[str], NoneType))
+
+
 class DctCache:
     """
     Dictionary cache for storing user session state.
@@ -93,7 +185,7 @@ class DctCache:
 
     def __init__(self, data: SerializedData | None = None):
         self.session_number: int = ...
-        self.search_config: list[int] = ...
+        self.search_config: SearchConfig = ...
         self.train_config: list[int] = ...
 
         if data is None:
@@ -103,14 +195,14 @@ class DctCache:
 
     def set_defaults(self):
         self.session_number = 1
-        self.search_config = [0, 0, 1, 1, 0, 0, 0, 0]
+        self.search_config.set_defaults()
         self.train_config = [0, 0, 1, 1, 1]
 
     def to_dict(self) -> SerializedData:
         return {
             'version': self._schema_version,
             'session_number': self.session_number,
-            'search_config': self.search_config,
+            'search_config': self.search_config.to_dict(),
             'train_config': self.train_config,
         }
 
@@ -118,7 +210,7 @@ class DctCache:
         data = self._check_and_migrate(data)
 
         self.session_number = data['session_number']
-        self.search_config = data['search_config']
+        self.search_config.load_from_dict(data['search_config'])
         self.train_config = data['train_config']
 
         self.session_number += 1
@@ -140,10 +232,8 @@ class DctCache:
         validate_required_fields(data, required_fields)
 
         validate_field_type('session_number', data['session_number'], int)
-        validate_field_type('search_config', data['search_config'], list[int])
+        validate_field_type('search_config', data['search_config'], SerializedData)
         validate_field_type('train_config', data['train_config'], list[int])
-
-        validate_field_len('search_config', data['search_config'], 8)
         validate_field_len('train_config', data['train_config'], 5)
 
 
