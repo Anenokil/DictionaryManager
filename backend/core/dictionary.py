@@ -169,6 +169,9 @@ class Dictionary:
     def mark_saved(self):
         self._is_modified = False
 
+    def mark_modified(self):
+        self._is_modified = True
+
     @property
     def is_saved(self) -> bool:
         return not self._is_modified
