@@ -92,37 +92,42 @@ STYLE_KEYS = list(STYLES.keys())
 
 
 # Проверить строку на непустоту
-def check_not_void(window_parent, value: str, msg_if_void: str) -> bool:
+def check_not_void(window_parent, app_data: AppData, value: str, msg_if_void: str) -> bool:
     if value == '':
-        warning(window_parent, msg_if_void)
+        warning(window_parent, app_data, msg_if_void)
         return False
     return True
 
 
 # Проверить корректность названия словаря
-def check_dct_savename(window_parent, savename: str) -> bool:
+def check_dct_savename(window_parent, app_data: AppData, savename: str) -> bool:
     if len(savename) > 100:
-        warning(window_parent, 'Название слишком длинное (> 100)!')
+        warning(window_parent, app_data, 'Название слишком длинное (> 100)!')
         return False
     if savename == '':
-        warning(window_parent, 'Название должно содержать хотя бы один символ!')
+        warning(window_parent, app_data, 'Название должно содержать хотя бы один символ!')
         return False
     if savename in os.listdir(SAVES_PATH):
-        warning(window_parent, 'Словарь с таким названием уже существует!')
+        warning(window_parent, app_data, 'Словарь с таким названием уже существует!')
         return False
     return True
 
 
 # Проверить корректность названия словаря при изменении
-def check_dct_savename_edit(window_parent, old_savename: str, new_savename: str) -> bool:
+def check_dct_savename_edit(
+        window_parent,
+        app_data: AppData,
+        old_savename: str,
+        new_savename: str,
+) -> bool:
     if len(new_savename) > 100:
-        warning(window_parent, 'Название слишком длинное (> 100)!')
+        warning(window_parent, app_data, 'Название слишком длинное (> 100)!')
         return False
     if new_savename == '':
-        warning(window_parent, 'Название должно содержать хотя бы один символ!')
+        warning(window_parent, app_data, 'Название должно содержать хотя бы один символ!')
         return False
     if new_savename in os.listdir(SAVES_PATH) and new_savename != old_savename:
-        warning(window_parent, 'Словарь с таким названием уже существует!')
+        warning(window_parent, app_data, 'Словарь с таким названием уже существует!')
         return False
     return True
 
@@ -130,16 +135,18 @@ def check_dct_savename_edit(window_parent, old_savename: str, new_savename: str)
 # Проверить корректность перевода
 def check_tr(
         window_parent,
+        app_data: AppData,
         translations: list[str] | tuple[str, ...],
         new_tr: str,
         lemma: str,
 ) -> bool:
-    new_tr = encode_special_combinations(new_tr, _0_global_special_combinations)
+    dct = app_data.manager.active.dct
+    new_tr = dct.apply_replacements(new_tr)
     if new_tr == '':
-        warning(window_parent, 'Перевод должен содержать хотя бы один символ!')
+        warning(window_parent, app_data, 'Перевод должен содержать хотя бы один символ!')
         return False
     if new_tr in translations:
-        warning(window_parent, f'У слова "{lemma}" уже есть такой перевод!')
+        warning(window_parent, app_data, f'У слова "{lemma}" уже есть такой перевод!')
         return False
     return True
 
@@ -147,17 +154,19 @@ def check_tr(
 # Проверить корректность перевода при изменении
 def check_tr_edit(
         window_parent,
+        app_data: AppData,
         translations: list[str] | tuple[str, ...],
         old_tr: str,
         new_tr: str,
         lemma: str,
 ) -> bool:
-    new_tr = encode_special_combinations(new_tr, _0_global_special_combinations)
+    dct = app_data.manager.active.dct
+    new_tr = dct.apply_replacements(new_tr)
     if new_tr == '':
-        warning(window_parent, 'Перевод должен содержать хотя бы один символ!')
+        warning(window_parent, app_data, 'Перевод должен содержать хотя бы один символ!')
         return False
     if new_tr in translations and new_tr != old_tr:
-        warning(window_parent, f'У слова "{lemma}" уже есть такой перевод!')
+        warning(window_parent, app_data, f'У слова "{lemma}" уже есть такой перевод!')
         return False
     return True
 
@@ -165,17 +174,19 @@ def check_tr_edit(
 # Проверить корректность фразы
 def check_phr(
         window_parent,
+        app_data: AppData,
         phrases: dict[str, list[str]],
         new_phr: tuple[str, str],
         lemma: str,
 ) -> bool:
-    n1 = encode_special_combinations(new_phr[0], _0_global_special_combinations)
-    n2 = encode_special_combinations(new_phr[1], _0_global_special_combinations)
+    dct = app_data.manager.active.dct
+    n1 = dct.apply_replacements(new_phr[0])
+    n2 = dct.apply_replacements(new_phr[1])
     if n1 == '' or n2 == '':
-        warning(window_parent, 'Фраза должна содержать хотя бы один символ!')
+        warning(window_parent, app_data, 'Фраза должна содержать хотя бы один символ!')
         return False
     if new_phr[0] in phrases.keys() and new_phr[1] in phrases[new_phr[0]]:
-        warning(window_parent, f'Со словом "{lemma}" уже есть такая фраза!')
+        warning(window_parent, app_data, f'Со словом "{lemma}" уже есть такая фраза!')
         return False
     return True
 
@@ -183,18 +194,20 @@ def check_phr(
 # Проверить корректность фразы при изменении
 def check_phr_edit(
         window_parent,
+        app_data: AppData,
         phrases: dict[str, list[str]],
         old_phr: tuple[str, str],
         new_phr: tuple[str, str],
         lemma: str,
 ) -> bool:
-    n1 = encode_special_combinations(new_phr[0], _0_global_special_combinations)
-    n2 = encode_special_combinations(new_phr[1], _0_global_special_combinations)
+    dct = app_data.manager.active.dct
+    n1 = dct.apply_replacements(new_phr[0])
+    n2 = dct.apply_replacements(new_phr[1])
     if n1 == '' or n2 == '':
-        warning(window_parent, 'Фраза должна содержать хотя бы один символ!')
+        warning(window_parent, app_data, 'Фраза должна содержать хотя бы один символ!')
         return False
     if new_phr[0] in phrases.keys() and new_phr[1] in phrases[new_phr[0]] and new_phr != old_phr:
-        warning(window_parent, f'Со словом "{lemma}" уже есть такая фраза!')
+        warning(window_parent, app_data, f'Со словом "{lemma}" уже есть такая фраза!')
         return False
     return True
 
@@ -202,16 +215,18 @@ def check_phr_edit(
 # Проверить корректность сноски
 def check_note(
         window_parent,
+        app_data: AppData,
         notes: list[str] | tuple[str, ...],
         new_note: str,
         lemma: str,
 ) -> bool:
-    new_note = encode_special_combinations(new_note, _0_global_special_combinations)
+    dct = app_data.manager.active.dct
+    new_note = dct.apply_replacements(new_note)
     if new_note == '':
-        warning(window_parent, 'Сноска должна содержать хотя бы один символ!')
+        warning(window_parent, app_data, 'Сноска должна содержать хотя бы один символ!')
         return False
     if new_note in notes:
-        warning(window_parent, f'У слова "{lemma}" уже есть такая сноска!')
+        warning(window_parent, app_data, f'У слова "{lemma}" уже есть такая сноска!')
         return False
     return True
 
@@ -219,32 +234,40 @@ def check_note(
 # Проверить корректность сноски при изменении
 def check_note_edit(
         window_parent,
+        app_data: AppData,
         notes: list[str] | tuple[str, ...],
         old_note: str,
         new_note: str,
         lemma: str,
 ) -> bool:
-    new_note = encode_special_combinations(new_note, _0_global_special_combinations)
+    dct = app_data.manager.active.dct
+    new_note = dct.apply_replacements(new_note)
     if new_note == '':
-        warning(window_parent, 'Сноска должна содержать хотя бы один символ!')
+        warning(window_parent, app_data, 'Сноска должна содержать хотя бы один символ!')
         return False
     if new_note in notes and new_note != old_note:
-        warning(window_parent, f'У слова "{lemma}" уже есть такая сноска!')
+        warning(window_parent, app_data, f'У слова "{lemma}" уже есть такая сноска!')
         return False
     return True
 
 
 # Проверить корректность названия группы
-def check_group_name(window_parent, groups: list[str] | tuple[str, ...], new_group: str) -> bool:
-    new_group = encode_special_combinations(new_group, _0_global_special_combinations)
+def check_group_name(
+        window_parent,
+        app_data: AppData,
+        groups: list[str] | tuple[str, ...],
+        new_group: str,
+) -> bool:
+    dct = app_data.manager.active.dct
+    new_group = dct.apply_replacements(new_group)
     if new_group == '':
-        warning(window_parent, 'Название группы должно содержать хотя бы один символ!')
+        warning(window_parent, app_data, 'Название группы должно содержать хотя бы один символ!')
         return False
     if new_group == ALL_GROUPS:
-        warning(window_parent, 'Группа не может иметь такое название!')
+        warning(window_parent, app_data, 'Группа не может иметь такое название!')
         return False
     if new_group in groups:
-        warning(window_parent, f'Группа "{new_group}" уже существует!')
+        warning(window_parent, app_data, f'Группа "{new_group}" уже существует!')
         return False
     return True
 
@@ -252,31 +275,39 @@ def check_group_name(window_parent, groups: list[str] | tuple[str, ...], new_gro
 # Проверить корректность названия группы при изменении
 def check_group_name_edit(
         window_parent,
+        app_data: AppData,
         groups: list[str] | tuple[str, ...],
         old_group: str,
         new_group: str,
 ) -> bool:
-    new_group = encode_special_combinations(new_group, _0_global_special_combinations)
+    dct = app_data.manager.active.dct
+    new_group = dct.apply_replacements(new_group)
     if new_group == '':
-        warning(window_parent, 'Название группы должно содержать хотя бы один символ!')
+        warning(window_parent, app_data, 'Название группы должно содержать хотя бы один символ!')
         return False
     if new_group == ALL_GROUPS:
-        warning(window_parent, 'Группа не может иметь такое название!')
+        warning(window_parent, app_data, 'Группа не может иметь такое название!')
         return False
     if new_group in groups and new_group != old_group:
-        warning(window_parent, f'Группа "{new_group}" уже существует!')
+        warning(window_parent, app_data, f'Группа "{new_group}" уже существует!')
         return False
     return True
 
 
 # Проверить корректность названия категории
-def check_ctg(window_parent, categories: list[str] | tuple[str, ...], new_ctg: str) -> bool:
-    new_ctg = encode_special_combinations(new_ctg, _0_global_special_combinations)
+def check_ctg(
+        window_parent,
+        app_data: AppData,
+        categories: list[str] | tuple[str, ...],
+        new_ctg: str,
+) -> bool:
+    dct = app_data.manager.active.dct
+    new_ctg = dct.apply_replacements(new_ctg)
     if new_ctg == '':
-        warning(window_parent, 'Название категории должно содержать хотя бы один символ!')
+        warning(window_parent, app_data, 'Название категории должно содержать хотя бы один символ!')
         return False
     if new_ctg in categories:
-        warning(window_parent, f'Категория "{new_ctg}" уже существует!')
+        warning(window_parent, app_data, f'Категория "{new_ctg}" уже существует!')
         return False
     return True
 
@@ -284,28 +315,36 @@ def check_ctg(window_parent, categories: list[str] | tuple[str, ...], new_ctg: s
 # Проверить корректность названия категории при изменении
 def check_ctg_edit(
         window_parent,
+        app_data: AppData,
         categories: list[str] | tuple[str, ...],
         old_ctg: str,
         new_ctg: str,
 ) -> bool:
-    new_ctg = encode_special_combinations(new_ctg, _0_global_special_combinations)
+    dct = app_data.manager.active.dct
+    new_ctg = dct.apply_replacements(new_ctg)
     if new_ctg == '':
-        warning(window_parent, 'Название категории должно содержать хотя бы один символ!')
+        warning(window_parent, app_data, 'Название категории должно содержать хотя бы один символ!')
         return False
     if new_ctg in categories and new_ctg != old_ctg:
-        warning(window_parent, f'Категория "{new_ctg}" уже существует!')
+        warning(window_parent, app_data, f'Категория "{new_ctg}" уже существует!')
         return False
     return True
 
 
 # Проверить корректность значения категории
-def check_ctg_val(window_parent, values: list[str] | tuple[str, ...], new_val: str) -> bool:
-    new_val = encode_special_combinations(new_val, _0_global_special_combinations)
+def check_ctg_val(
+        window_parent,
+        app_data: AppData,
+        values: list[str] | tuple[str, ...],
+        new_val: str,
+) -> bool:
+    dct = app_data.manager.active.dct
+    new_val = dct.apply_replacements(new_val)
     if new_val == '':
-        warning(window_parent, 'Значение категории должно содержать хотя бы один символ!')
+        warning(window_parent, app_data, 'Значение категории должно содержать хотя бы один символ!')
         return False
     if new_val in values:
-        warning(window_parent, f'Значение "{new_val}" уже существует!')
+        warning(window_parent, app_data, f'Значение "{new_val}" уже существует!')
         return False
     return True
 
@@ -313,16 +352,18 @@ def check_ctg_val(window_parent, values: list[str] | tuple[str, ...], new_val: s
 # Проверить корректность значения категории при изменении
 def check_ctg_val_edit(
         window_parent,
+        app_data: AppData,
         values: list[str] | tuple[str, ...],
         old_val: str,
         new_val: str,
 ) -> bool:
-    new_val = encode_special_combinations(new_val, _0_global_special_combinations)
+    dct = app_data.manager.active.dct
+    new_val = dct.apply_replacements(new_val)
     if new_val == '':
-        warning(window_parent, 'Значение категории должно содержать хотя бы один символ!')
+        warning(window_parent, app_data, 'Значение категории должно содержать хотя бы один символ!')
         return False
     if new_val in values and new_val != old_val:
-        warning(window_parent, f'Значение "{new_val}" уже существует!')
+        warning(window_parent, app_data, f'Значение "{new_val}" уже существует!')
         return False
     return True
 
@@ -541,41 +582,13 @@ def dct_info_fav(
 
 
 # Преобразовать специальную комбинацию в читаемый вид (для отображения в настройках)
-def special_combination(key: tuple[str, str]) -> str:
-    value = _0_global_special_combinations[key]
+def special_combination(key: tuple[str, str], value: str) -> str:
     return f'{key[0]}{key[1]} -> {value}'
 
 
-# Преобразовать в тексте специальные комбинации в соответствующие символы
-def encode_special_combinations(
-        text: str,
-        special_combinations: dict[tuple[str, str], str],
-) -> str:
-    encoded_text = ''
-
-    opening_symbol = None  # Встречен ли открывающий символ специальной комбинации
-    for symbol in text:
-        if opening_symbol:
-            if (opening_symbol, symbol) in special_combinations.keys():  # Если есть такая комбинация
-                encoded_text += special_combinations[opening_symbol, symbol]
-            elif symbol == opening_symbol:  # Если встречено два открывающих символа подряд
-                encoded_text += opening_symbol  # $$ -> $
-            else:  # Если нет такой комбинации
-                encoded_text += f'{opening_symbol}{symbol}'
-            opening_symbol = None
-        elif symbol in SPECIAL_COMBINATIONS_OPENING_SYMBOLS:  # Если встречен открывающий символ специальной комбинации
-            opening_symbol = symbol
-        else:  # Если встречен обычный символ
-            encoded_text += symbol
-    if opening_symbol:  # Если текст завершается открывающим символом специальной комбинации
-        encoded_text += opening_symbol
-
-    return encoded_text
-
-
-# Заменить буквы в тексте соответствующими английскими (для find_and_highlight)
-def simplify(text: str) -> tuple[str, list[str]]:
-    encoded_text = encode_special_combinations(text, _0_global_special_combinations)
+# Заменить буквы в тексте соответствующими английскими
+def simplify(dct: Dictionary, text: str) -> tuple[str, list[str]]:
+    encoded_text = dct.apply_replacements(text)
     converted_text = ''
     transformations = []
 
@@ -591,32 +604,6 @@ def simplify(text: str) -> tuple[str, list[str]]:
             transformations += [symbol]
 
     return converted_text.lower(), transformations
-
-
-# Найти в строке подстроку и выделить её (только частичные совпадения)
-def find_and_highlight(target_wrd: str, to_search_wrd: str) -> str:
-    if target_wrd == to_search_wrd:  # Полное совпадение не учитывается
-        return ''
-
-    target_wrd = encode_special_combinations(target_wrd, _0_global_special_combinations)
-    to_search_wrd = encode_special_combinations(to_search_wrd, _0_global_special_combinations)
-
-    target_simpl, target_arr = simplify(target_wrd)
-    search_simpl, search_arr = simplify(to_search_wrd)
-
-    pos = target_simpl.find(search_simpl)
-    if pos != -1:
-        search_len = len(encode_special_combinations(search_simpl, _0_global_special_combinations))
-        end_pos = pos + search_len
-        if to_search_wrd == '':  # Если искомая подстрока пустая, то она не выделяется
-            res = target_wrd
-        else:
-            res = ''.join((
-                s for s in
-                target_arr[:pos] + ['['] + target_arr[pos:end_pos] + [']'] + target_arr[end_pos:]
-            ))
-        return res
-    return ''
 
 
 # Разделить строку на слова
@@ -735,11 +722,11 @@ def set_postfix(n: int, wrd_forms: tuple[str, str, str]) -> str:
 
 
 # Выбрать одну статью из нескольких с одинаковыми словами
-def choose_one_of_similar_entries(dct: Dictionary, window_parent, lemma: str):
-    homograph_ids = dct.search([('lemmas', lemma)])
+def choose_one_of_similar_entries(app_data: AppData, window_parent, lemma: str):
+    homograph_ids = app_data.manager.active.dct.search([('lemmas', lemma)])
     if len(homograph_ids) == 1:  # Если статья только одна, то возвращает её ключ
         return homograph_ids.pop()
-    window_entries = ChooseOneOfSimilarEntriesW(window_parent, dct, lemma)
+    window_entries = ChooseOneOfSimilarEntriesW(window_parent, app_data, lemma)
     answer = window_entries.open()
     if not answer:
         return None
@@ -748,14 +735,17 @@ def choose_one_of_similar_entries(dct: Dictionary, window_parent, lemma: str):
 
 # Изменить слово в статье
 def edit_wrd_with_choose(
-        dct: Dictionary,
+        app_data: AppData,
         window_parent,
         key: EntryID,
         new_wrd: str,
 ) -> tuple[EntryID | None, bool]:
+    dct = app_data.manager.active.dct
+
     if dct.search([('lemmas', new_wrd)]):  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(
             window_parent,
+            app_data,
             'Статья с таким словом уже есть в словаре\n'
             'Что вы хотите сделать?',
             'Добавить к существующей статье',
@@ -765,7 +755,7 @@ def edit_wrd_with_choose(
         )
         answer = window.open()
         if answer == 'l':  # Добавить к существующей статье
-            new_key = choose_one_of_similar_entries(dct, window_parent, new_wrd)
+            new_key = choose_one_of_similar_entries(app_data, window_parent, new_wrd)
             if not new_key:
                 return key, False
             dct.merge_entries(new_key, key)
@@ -781,10 +771,13 @@ def edit_wrd_with_choose(
 
 
 # Добавить статью в словарь (для пользователя)
-def add_entry_with_choose(dct: Dictionary, window_parent, lemma: str, tr: str) -> EntryID | None:
+def add_entry_with_choose(app_data: AppData, window_parent, lemma: str, tr: str) -> EntryID | None:
+    dct = app_data.manager.active.dct
+
     if dct.search([('lemmas', lemma)]):  # Если в словаре уже есть статья с таким словом
         window = PopupDialogueW(
             window_parent,
+            app_data,
             'Статья с таким словом уже есть в словаре\n'
             'Что вы хотите сделать?',
             'Добавить к существующей статье',
@@ -794,7 +787,7 @@ def add_entry_with_choose(dct: Dictionary, window_parent, lemma: str, tr: str) -
         )
         answer = window.open()
         if answer == 'l':  # Добавить к существующей статье
-            key = choose_one_of_similar_entries(dct, window_parent, lemma)
+            key = choose_one_of_similar_entries(app_data, window_parent, lemma)
             if not key:
                 return None
             dct.add_tr(key, tr)
@@ -808,28 +801,34 @@ def add_entry_with_choose(dct: Dictionary, window_parent, lemma: str, tr: str) -
 
 
 # Добавить категорию
-def add_ctg(window_parent, dct: Dictionary) -> bool:
+def add_ctg(window_parent, app_data: AppData) -> bool:
+    dct = app_data.manager.active.dct
+
     # Ввод названия новой категории
     window_ctg = PopupEntryW(
         window_parent,
+        app_data,
         'Введите название новой категории',
-        check_answer_function=lambda wnd, val: check_ctg(wnd, tuple(dct.features.keys()), val),
+        check_answer_function=lambda wnd, val: check_ctg(
+            wnd, app_data, tuple(dct.features.keys()), val
+        ),
     )
     closed, new_ctg = window_ctg.open()
     if closed:
         return False
-    new_ctg = encode_special_combinations(new_ctg, _0_global_special_combinations)
+    new_ctg = dct.apply_replacements(new_ctg)
 
     # Ввод первого значения категории
     window_val = PopupEntryW(
         window_parent,
+        app_data,
         'Необходимо добавить хотя бы одно значение для категории',
-        check_answer_function=lambda wnd, val: check_ctg_val(wnd, (), val),
+        check_answer_function=lambda wnd, val: check_ctg_val(wnd, app_data, (), val),
     )
     closed, new_val = window_val.open()
     if closed:
         return False
-    new_val = encode_special_combinations(new_val, _0_global_special_combinations)
+    new_val = dct.apply_replacements(new_val)
 
     # Обновление категорий
     dct.add_ctg(new_ctg, [new_val])
@@ -837,20 +836,23 @@ def add_ctg(window_parent, dct: Dictionary) -> bool:
 
 
 # Переименовать категорию
-def rename_ctg(window_parent, dct: Dictionary, old_ctg_name: str) -> bool | None:
+def rename_ctg(window_parent, app_data: AppData, old_ctg_name: str) -> bool | None:
+    dct = app_data.manager.active.dct
+
     # Ввод нового названия категории
     window_entry = PopupEntryW(
         window_parent,
+        app_data,
         'Введите новое название категории',
         default_value=old_ctg_name,
         check_answer_function=lambda wnd, val: check_ctg_edit(
-            wnd, tuple(dct.features.keys()), old_ctg_name, val
+            wnd, app_data, tuple(dct.features.keys()), old_ctg_name, val
         ),
     )
     closed, new_ctg_name = window_entry.open()
     if closed:
         return False
-    new_ctg_name = encode_special_combinations(new_ctg_name, _0_global_special_combinations)
+    new_ctg_name = dct.apply_replacements(new_ctg_name)
     if new_ctg_name == old_ctg_name:
         return
 
@@ -860,9 +862,12 @@ def rename_ctg(window_parent, dct: Dictionary, old_ctg_name: str) -> bool | None
 
 
 # Удалить категорию
-def delete_ctg(window_parent, dct: Dictionary, ctg_name: str) -> bool:
+def delete_ctg(window_parent, app_data: AppData, ctg_name: str) -> bool:
+    dct = app_data.manager.active.dct
+
     window_dia = PopupDialogueW(
         window_parent,
+        app_data,
         f'Все словоформы, содержащие категорию {ctg_name}, будут удалены!\n'
         f'Хотите продолжить?',
     )  # Подтверждение действия
@@ -878,40 +883,46 @@ def delete_ctg(window_parent, dct: Dictionary, ctg_name: str) -> bool:
 # Добавить значение категории
 def add_ctg_value(
         window_parent,
-        dct: Dictionary,
+        app_data: AppData,
         ctg_name: str,
         values: list[str] | tuple[str, ...],
 ) -> bool:
+    dct = app_data.manager.active.dct
+
     # Ввод нового значения
     window_entry = PopupEntryW(
         window_parent,
+        app_data,
         'Введите новое значение категории',
-        check_answer_function=lambda wnd, val: check_ctg_val(wnd, values, val),
+        check_answer_function=lambda wnd, val: check_ctg_val(wnd, app_data, values, val),
     )
     closed, new_val = window_entry.open()
     if closed:
         return False
 
-    new_val = encode_special_combinations(new_val, _0_global_special_combinations)
+    new_val = dct.apply_replacements(new_val)
     dct.add_ctg_value(ctg_name, new_val)
     return True
 
 
 # Переименовать значение категории
-def rename_ctg_value(window_parent, dct: Dictionary, ctg_name: str, old_ctg_val: str) -> bool:
+def rename_ctg_value(window_parent, app_data: AppData, ctg_name: str, old_ctg_val: str) -> bool:
+    dct = app_data.manager.active.dct
+
     # Ввод нового значения
     window_entry = PopupEntryW(
         window_parent,
+        app_data,
         'Введите новое название значения',
         default_value=old_ctg_val,
         check_answer_function=lambda wnd, val: check_ctg_val_edit(
-            wnd, dct.features[ctg_name], old_ctg_val, val
+            wnd, app_data, dct.features[ctg_name], old_ctg_val, val
         ),
     )
     closed, new_ctg_val = window_entry.open()
     if closed:
         return False
-    new_ctg_val = encode_special_combinations(new_ctg_val, _0_global_special_combinations)
+    new_ctg_val = dct.apply_replacements(new_ctg_val)
     if new_ctg_val == old_ctg_val:
         return False
 
@@ -921,9 +932,12 @@ def rename_ctg_value(window_parent, dct: Dictionary, ctg_name: str, old_ctg_val:
 
 
 # Удалить значение категории
-def delete_ctg_value(window_parent, dct: Dictionary, ctg_name: str, ctg_val: str) -> bool:
+def delete_ctg_value(window_parent, app_data: AppData, ctg_name: str, ctg_val: str) -> bool:
+    dct = app_data.manager.active.dct
+
     window_dia = PopupDialogueW(
         window_parent,
+        app_data,
         f'Все словоформы, содержащие значение {ctg_val}, будут удалены!\n'
         f'Хотите продолжить?',
     )  # Подтверждение действия
@@ -1159,346 +1173,52 @@ def upload_custom_theme(to_print: bool = True):
             print(f'Не удалось загрузить тему, т. к. её версия не соответствует требуемой!')
 
 
-# Загрузить изображения для выбранной темы
-def upload_theme_img(theme: str):
-    global img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group, \
-        img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, \
-        img_select_all, img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, \
-        img_arrow_right, img_double_arrow_left, img_double_arrow_right, img_trashcan
+def img_path(theme: str, img_name: str) -> str:
+    assert img_name in IMG_NAMES
 
     if theme == CUSTOM_TH:
         theme_dir = CUSTOM_THEME_PATH
     else:
         theme_dir = os.path.join(ADDITIONAL_THEMES_PATH, theme)
 
-    images = [
-        img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group,
-        img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page,
-        img_select_all, img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left,
-        img_arrow_right, img_double_arrow_left, img_double_arrow_right, img_trashcan,
-    ]
-
-    for i in range(len(images)):
-        file_name = f'{IMG_NAMES[i]}.png'
-        if file_name in os.listdir(theme_dir):
-            images[i] = os.path.join(theme_dir, file_name)
-        else:
-            images[i] = os.path.join(IMAGES_PATH, file_name)
-
-    img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group, \
-        img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, \
-        img_select_all, img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, \
-        img_arrow_right, img_double_arrow_left, img_double_arrow_right, img_trashcan = images
-
-
-# Загрузить глобальные настройки (настройки программы)
-def upload_global_settings():
-    try:  # Открываем файл с настройками программы
-        open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8')
-    except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-        with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
-            global_settings_file.write(
-                f'v{GLOBAL_SETTINGS_VERSION}\n'
-                f'\n'
-                f'dct\n'
-                f'1\n'
-                f'0\n'
-                f'{DEFAULT_TH}\n'
-                f'{SCALE_DEF}'
-            )
-    else:
-        upgrade_global_settings()
-
-    with open(GLOBAL_SETTINGS_PATH, 'r', encoding='utf-8') as global_settings_file:
-        # Версия глобальных настроек
-        global_settings_file.readline()
-        # Требуется ли обновление ресурсов
-        is_res_upgrade_required = global_settings_file.readline().strip() == 'UPGRADE_REQUIRED'
-        # Название текущего словаря
-        dct_savename = global_settings_file.readline().strip()
-        # Уведомлять ли о выходе новых версий
-        to_show_updates = int(global_settings_file.readline().strip())
-        # Добавлять ли кнопку "Опечатка" при неверном ответе в учёбе
-        typo = int(global_settings_file.readline().strip())
-        # Установленная тема
-        theme = global_settings_file.readline().strip()
-        if theme not in THEMES:
-            theme = DEFAULT_TH
-        # Размер шрифта
-        fontsize = int(global_settings_file.readline().strip())
-
-    if is_res_upgrade_required:  # Если требуется обновление ресурсов
-        # Обновляем
-        upgrade_resources()
-        # Указываем в глобальных настройках, что обновление больше не требуется
-        save_global_settings(dct_savename, to_show_updates, typo, theme, fontsize)
-
-    return dct_savename, to_show_updates, typo, theme, fontsize
-
-
-# Сохранить глобальные настройки (настройки программы)
-def save_global_settings(
-        dct_savename: str,
-        to_show_updates: int,
-        typo: int,
-        theme: str,
-        fontsize: int,
-):
-    with open(GLOBAL_SETTINGS_PATH, 'w', encoding='utf-8') as global_settings_file:
-        global_settings_file.write(
-            f'v{GLOBAL_SETTINGS_VERSION}\n'
-            f'\n'
-            f'{dct_savename}\n'
-            f'{to_show_updates}\n'
-            f'{typo}\n'
-            f'{theme}\n'
-            f'{fontsize}'
-        )
-
-
-# Сохранить название открытого словаря
-def save_dct_name():
-    _, tmp_show_updates, tmp_typo, tmp_th, tmp_fontsize = upload_global_settings()
-    save_global_settings(_0_global_dct_savename, tmp_show_updates, tmp_typo, tmp_th, tmp_fontsize)
-
-
-# Загрузить локальные настройки (настройки словаря)
-def upload_local_settings(savename: str):
-    local_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_SETTINGS_FN)
-    try:
-        open(local_settings_path, 'r', encoding='utf-8')
-    except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-        with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
-            local_settings_file.write(DEFAULT_LOCAL_SETTINGS_FILE)
-    else:
-        upgrade_local_settings(local_settings_path, encode_special_combinations)
-
-    with open(local_settings_path, 'r', encoding='utf-8') as local_settings_file:
-        # Версия локальных настроек
-        local_settings_file.readline()
-        # Учитывать ли регистр букв при учёбе
-        check_register = int(local_settings_file.readline().strip())
-        # Специальные комбинации
-        special_combinations = {}
-        line_special_combinations = local_settings_file.readline()
-        for i in range(0, len(line_special_combinations) - 1, 3):
-            opening_symbol = line_special_combinations[i]
-            key_symbol = line_special_combinations[i + 1]
-            value = line_special_combinations[i + 2]
-            special_combinations[(opening_symbol, key_symbol)] = value
-        # Грамматические категории
-        categories = {}
-        ctg_count = int(local_settings_file.readline().strip())
-        for i in range(ctg_count):
-            ctg_name = local_settings_file.readline().strip('\n')
-            val_count = int(local_settings_file.readline().strip())
-            values = []
-            for j in range(val_count):
-                values += [local_settings_file.readline().strip('\n')]
-            categories[ctg_name] = values
-        # Группы
-        groups = []
-        fav_groups = []
-        gr_count = int(local_settings_file.readline().strip())
-        for i in range(gr_count):
-            line = local_settings_file.readline().strip('\n')
-            group = line[1:]
-            groups += [group]
-            if line[0] == '1':
-                fav_groups += [group]
-    return check_register, special_combinations, categories, groups, fav_groups
-
-
-# Сохранить локальные настройки (настройки словаря)
-def save_local_settings(
-        check_register: int,
-        special_combinations: dict[tuple[str, str], str],
-        categories: dict[str, list[str]],
-        groups: list[str],
-        fav_groups: list[str],
-        savename: str,
-):
-    local_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_SETTINGS_FN)
-    with open(local_settings_path, 'w', encoding='utf-8') as local_settings_file:
-        local_settings_file.write(f'v{LOCAL_SETTINGS_VERSION}\n')  # Версия
-        # Проверять ли регистр букв при учёбе
-        local_settings_file.write(f'{check_register}\n')
-        # Специальные комбинации
-        for key in special_combinations:
-            val = special_combinations[key]
-            local_settings_file.write(f'{key[0]}{key[1]}{val}')
-        local_settings_file.write('\n')
-        # Грамматические категории
-        local_settings_file.write(f'{len(categories)}\n')
-        for key in categories.keys():
-            vals_count = len(categories[key])
-            local_settings_file.write(f'{key}\n')
-            local_settings_file.write(f'{vals_count}\n')
-            for val in categories[key]:
-                local_settings_file.write(f'{val}\n')
-        # Группы
-        local_settings_file.write(f'{len(groups)}\n')
-        for group in groups:
-            if group in fav_groups:
-                local_settings_file.write(f'1{group}\n')
-            else:
-                local_settings_file.write(f'0{group}\n')
-
-
-# Загрузить автосохраняемые локальные настройки (настройки словаря)
-def upload_local_auto_settings(savename: str):
-    local_auto_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_AUTO_SETTINGS_FN)
-    try:
-        open(local_auto_settings_path, 'r', encoding='utf-8')
-    except FileNotFoundError:  # Если файл отсутствует, то создаётся файл по умолчанию
-        with open(local_auto_settings_path, 'w', encoding='utf-8') as local_auto_settings_file:
-            local_auto_settings_file.write(DEFAULT_LOCAL_AUTO_SETTINGS_FILE)
-    else:
-        upgrade_local_auto_settings(local_auto_settings_path)
-
-    with open(local_auto_settings_path, 'r', encoding='utf-8') as local_auto_settings_file:
-        # Версия
-        local_auto_settings_file.readline()
-        # Номер сессии
-        session_number = int(local_auto_settings_file.readline().strip())
-        # Режим поиска
-        search_settings = tuple(
-            int(el) for el in local_auto_settings_file.readline().strip().split()
-        )
-        if len(search_settings) != 8:
-            search_settings = (0, 0, 1, 1, 0, 0, 0, 0)
-        # Режим учёбы
-        learn_settings = [int(el) for el in local_auto_settings_file.readline().strip().split()]
-        if len(learn_settings) != 5:
-            learn_settings = [0, 0, 1, 1, 1]
-
-    # Увеличиваем счётчик сессий на 1 и сохраняем изменение
-    session_number += 1
-    save_local_auto_settings(session_number, search_settings, learn_settings, savename)
-
-    # Возвращаем результат
-    return session_number, search_settings, learn_settings
-
-
-# Сохранить автосохраняемые локальные настройки (настройки словаря)
-def save_local_auto_settings(
-        session_number: int,
-        search_settings: tuple[int, int, int, int, int, int, int, int],
-        learn_settings: list[int, int, int, int, int],
-        savename: str,
-):
-    local_auto_settings_path = os.path.join(SAVES_PATH, savename, LOCAL_AUTO_SETTINGS_FN)
-    with open(local_auto_settings_path, 'w', encoding='utf-8') as local_auto_settings_file:
-        local_auto_settings_file.write(f'v{LOCAL_AUTO_SETTINGS_VERSION}\n')
-        local_auto_settings_file.write(f'{session_number}\n')
-        for el in search_settings:
-            local_auto_settings_file.write(f'{el} ')
-        local_auto_settings_file.write('\n')
-        for el in learn_settings:
-            local_auto_settings_file.write(f'{el} ')
+    file_name = f'{img_name}.png'
+    if file_name in os.listdir(theme_dir):
+        return os.path.join(theme_dir, file_name)
+    return os.path.join(IMAGES_PATH, file_name)
 
 
 # Предложить сохранение настроек, если есть изменения
-def save_settings_if_has_changes(window_parent, dct: Dictionary):
-    window_dia = PopupDialogueW(window_parent, 'Хотите сохранить изменения настроек?', 'Да', 'Нет')
+def save_settings_if_has_changes(window_parent, app_data: AppData):
+    window_dia = PopupDialogueW(
+        window_parent, app_data,
+        'Хотите сохранить изменения настроек?', 'Да', 'Нет',
+    )
     answer = window_dia.open()
     if answer:
-        save_global_settings(
-            _0_global_dct_savename, _0_global_show_updates,
-            _0_global_with_typo, th, _0_global_scale,
-        )
-        save_local_settings(
-            _0_global_check_register, _0_global_special_combinations, dct.features,
-            dct.groups, _0_global_fav_groups, _0_global_dct_savename,
-        )
-        save_local_auto_settings(
-            _0_global_session_number, _0_global_search_settings,
-            _0_global_learn_settings, _0_global_dct_savename,
-        )
-        PopupMsgW(window_parent, 'Настройки успешно сохранены').open()
+        dct_info = app_data.manager.active
+        save_dct_settings(dct_info)
+        save_dct_cache(dct_info)
+        app_data.save()
+        PopupMsgW(window_parent, app_data, 'Настройки успешно сохранены').open()
         print('\nНастройки успешно сохранены')
 
 
-# Создать и загрузить пустой словарь
-def create_dct(savename: str):
-    folder_path = os.path.join(SAVES_PATH, savename)
-    os.mkdir(folder_path)
-    filepath = os.path.join(folder_path, DICTIONARY_SAVE_FN)
-    dct = Dictionary()
-    save_data = dct.to_json_dict()
-    with open(filepath, 'w') as f:
-        json.dump(save_data, f)
-    return dct
-
-
-# Сохранить словарь
-def save_dct(dct: Dictionary, savename: str):
-    filepath = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
-    save_data = dct.to_json_dict()
-    with open(filepath, 'w') as f:
-        json.dump(save_data, f)
-
-
 # Предложить сохранение словаря, если есть изменения
-def save_dct_if_has_progress(window_parent, dct: Dictionary, savename: str):
+def save_dct_if_has_progress(window_parent, app_data: AppData):
+    manager = app_data.manager
+    dct = manager.active.dct
+    dct_id = manager.active_dct_id
+
     if not dct.is_saved:
-        window_dia = PopupDialogueW(window_parent, 'Хотите сохранить свой прогресс?', 'Да', 'Нет')
+        window_dia = PopupDialogueW(
+            window_parent, app_data,
+            'Хотите сохранить свой прогресс?', 'Да', 'Нет',
+        )
         answer = window_dia.open()
         if answer:
-            save_dct(dct, savename)
-            PopupMsgW(window_parent, 'Прогресс успешно сохранён').open()
+            manager.save_dct(dct_id)
+            PopupMsgW(window_parent, app_data, 'Прогресс успешно сохранён').open()
             print('\nПрогресс успешно сохранён')
-
-
-# Загрузить сохранение
-def upload_save(window_parent, dct: Dictionary, savename: str, btn_close_text: str):
-    save_file_path = os.path.join(SAVES_PATH, savename, DICTIONARY_SAVE_FN)
-    try:
-        check_register, special_combinations, dct._features, dct._groups, fav_groups =\
-            upload_local_settings(savename)
-        #upgrade_dct_save(save_file_path, lambda line: encode_special_combinations(line, special_combinations))  # Если требуется, сохранение обновляется  # TODO
-        with open(save_file_path, 'r') as f:
-            save_data = json.load(f)
-        dct.load_from_json_dict(save_data)  # Загрузка словаря
-    except FileNotFoundError:  # Если сохранение не найдено, то создаётся пустой словарь
-        print(f'\nСловарь "{savename}" не найден!')
-        dct = create_dct(savename)
-        check_register, special_combinations, dct._features, dct._groups, fav_groups =\
-            upload_local_settings(savename)
-        print('Создан и загружен пустой словарь')
-        return savename, check_register, special_combinations, fav_groups
-    except Exception as exc:  # Если сохранение повреждено, то предлагается загрузить другое
-        print(f'\nФайл со словарём "{savename}" повреждён или некорректен!'
-              f'\n{exc}')
-        while True:
-            window_dia = PopupDialogueW(
-                window_parent,
-                f'Файл со словарём "{savename}" повреждён или некорректен!\n'
-                f'Хотите открыть другой словарь?',
-                'Да', btn_close_text, set_enter_on_btn='none', title='Warning',
-            )
-            answer = window_dia.open()
-            if answer:
-                window_entry = PopupEntryW(
-                    window_parent,
-                    'Введите название словаря\n'
-                    '(если он ещё не существует, то будет создан пустой словарь)',
-                    validate_function=validate_savename,
-                    check_answer_function=lambda wnd, val: check_not_void(
-                        wnd, val, 'Название словаря должно содержать хотя бы один символ!'
-                    ),
-                )
-                closed, other_savename = window_entry.open()
-                if closed:
-                    continue
-                save_dct_name()
-                dct = Dictionary()
-                return upload_save(window_parent, dct, other_savename, btn_close_text)
-            else:
-                return None
-    else:  # Если чтение прошло успешно, то выводится соответствующее сообщение
-        print(f'\nСловарь "{savename}" успешно загружен')
-        return savename, check_register, special_combinations, fav_groups
 
 
 # Экспортировать словарь
@@ -2214,13 +1934,44 @@ class PopupImgW(tk.Toplevel):
 
 # Окно выбора режима перед изучением слов
 class ChooseLearnModeW(tk.Toplevel):
+    txt_to_method = {
+        'Угадывать слово по переводу': TrainingMethod.TRANS_TO_WORD,
+        'Угадывать перевод по слову': TrainingMethod.WORD_TO_TRANS,
+        'Угадывать фразу по переводу': TrainingMethod.TRANS_TO_PHRASE,
+        'Угадывать перевод по фразе': TrainingMethod.PHRASE_TO_TRANS,
+        'Der-Die-Das (для немецкого)': TrainingMethod.ARTICLES_GERMAN,
+    }
+    txt_to_order = {
+        'Случайный порядок': TrainingOrder.RANDOM,
+        'В первую очередь сложные': TrainingOrder.DIFFICULT_FIRST,
+    }
+    txt_to_entries = {
+        'Все': EntrySelection.ALL,
+        'Преимущ. избранные (рекоменд.)': EntrySelection.MOSTLY_FAV,
+        'Только избранные': EntrySelection.FAV,
+        'Только неотвеченные': EntrySelection.UNANSWERED,
+        '10 случайных': EntrySelection.RANDOM_10,
+        '10 случайных из избранных': EntrySelection.RANDOM_10_FAV,
+    }
+    txt_to_forms = {
+        'Только начальная форма': FormSelection.LEMMAS,
+        'По одной случайной словоформе': FormSelection.RANDOM,
+        'Все формы, кроме начальной': FormSelection.INFLECTED,
+        'Все словоформы': FormSelection.ALL,
+    }
+
+    method_to_txt = {v: k for k, v in txt_to_method.items()}
+    order_to_txt = {v: k for k, v in txt_to_order.items()}
+    entries_to_txt = {v: k for k, v in txt_to_entries.items()}
+    forms_to_txt = {v: k for k, v in txt_to_forms.items()}
+
     def __init__(self, parent, app_data: AppData):
         super().__init__(parent)
         self.parent = parent
 
         self.app_data = app_data
-        self.dct_info = app_data.manager.dct_info
-        self.dct = app_data.manager.dct_info.dct
+        self.dct_info = app_data.manager.active
+        self.dct = app_data.manager.active.dct
         self.train_config = app_data.manager.active.cache.train_config
 
         self.res: tuple[str, str, str, str, str] | None = None
@@ -2228,23 +1979,23 @@ class ChooseLearnModeW(tk.Toplevel):
 
         # Метод учёбы
         self.var_method = tk.StringVar(
-            value=LEARN_VALUES_METHOD[self.train_config[0]]
+            value=self.method_to_txt[self.train_config.method]
         )
         # Группа слов
         self.var_group = tk.StringVar(
-            value=self.group_vals[self.train_config[1]]
+            value=self.train_config.group or ALL_GROUPS
         )
         # Способ набора слов
         self.var_words = tk.StringVar(
-            value=LEARN_VALUES_WORDS[self.train_config[2]]
+            value=self.entries_to_txt[self.train_config.entries]
         )
         # Способ набора словоформ
         self.var_forms = tk.StringVar(
-            value=LEARN_VALUES_FORMS[self.train_config[3]]
+            value=self.forms_to_txt[self.train_config.forms]
         )
         # Порядок следования слов
         self.var_order = tk.StringVar(
-            value=LEARN_VALUES_ORDER[self.train_config[4]]
+            value=self.order_to_txt[self.train_config.order]
         )
 
         self._configure_window()
@@ -2337,18 +2088,16 @@ class ChooseLearnModeW(tk.Toplevel):
             forms = LEARN_VALUES_FORMS[0]
         order = self.var_order.get()
         self.res = (method, group, words, forms, order)
-        learn_settings = [
-            LEARN_VALUES_METHOD.index(method),
-            self.group_vals.index(group),
-            LEARN_VALUES_WORDS.index(words),
-            LEARN_VALUES_FORMS.index(forms),
-            LEARN_VALUES_ORDER.index(order),
-        ]
 
-        save_local_auto_settings(
-            self.dct_info.cache.session_number, self.dct_info.cache.search_config,
-            learn_settings, self.dct_info.dct.name,
+        self.dct_info.cache.train_config = TrainingConfig(
+            self.txt_to_method[self.res[0]],
+            self.txt_to_order[self.res[4]],
+            self.txt_to_entries[self.res[2]],
+            self.txt_to_forms[self.res[3]],
+            None if self.res[1] == ALL_GROUPS else self.res[1],
         )
+
+        save_dct_cache(self.dct_info)
 
         self.destroy()
 
@@ -2365,34 +2114,7 @@ class ChooseLearnModeW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        return create_training_config(
-            method={
-                'Угадывать слово по переводу': TrainingMethod.TRANS_TO_WORD,
-                'Угадывать перевод по слову': TrainingMethod.WORD_TO_TRANS,
-                'Угадывать фразу по переводу': TrainingMethod.TRANS_TO_PHRASE,
-                'Угадывать перевод по фразе': TrainingMethod.PHRASE_TO_TRANS,
-                'Der-Die-Das (для немецкого)': TrainingMethod.ARTICLES_GERMAN,
-            }[self.res[0]],
-            groups=None if self.res[1] == ALL_GROUPS else [self.res[1]],
-            entries={
-                'Все': EntrySelection.ALL,
-                'Преимущ. избранные (рекоменд.)': EntrySelection.MOSTLY_FAV,
-                'Только избранные': EntrySelection.FAV,
-                'Только неотвеченные': EntrySelection.UNANSWERED,
-                '10 случайных': EntrySelection.RANDOM_10,
-                '10 случайных из избранных': EntrySelection.RANDOM_10_FAV,
-            }[self.res[2]],
-            forms={
-                'Только начальная форма': FormSelection.LEMMAS,
-                'По одной случайной словоформе': FormSelection.RANDOM,
-                'Все формы, кроме начальной': FormSelection.INFLECTED,
-                'Все словоформы': FormSelection.ALL,
-            }[self.res[3]],
-            order={
-                'Случайный порядок': TrainingOrder.RANDOM,
-                'В первую очередь сложные': TrainingOrder.DIFFICULT_FIRST,
-            }[self.res[4]],
-        )
+        return self.dct_info.cache.train_config
 
 
 # Окно с сообщением о неверном ответе (для слов, не находящихся в избранном)
@@ -2607,20 +2329,18 @@ class SearchSettingsW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.dct_info.cache.train_config = [
-            int(self.var_search_only_fav.get()),
-            int(self.var_search_only_full.get()),
-            int(self.var_search_wrd.get()),
-            int(self.var_search_tr.get()),
-            int(self.var_search_frm.get()),
-            int(self.var_search_phr.get()),
-            int(self.var_search_nt.get()),
-            self.group_vals.index(self.var_search_group.get()),
-        ]
-        save_local_auto_settings(
-            self.dct_info.cache.session_number, self.dct_info.cache.search_config,
-            self.dct_info.cache.train_config, self.dct_info.dct.name,
+        self.dct_info.cache.search_config = SearchConfig(
+            self.var_search_only_fav.get(),
+            self.var_search_only_full.get(),
+            self.var_search_wrd.get(),
+            self.var_search_tr.get(),
+            self.var_search_frm.get(),
+            self.var_search_phr.get(),
+            self.var_search_nt.get(),
+            None if self.var_search_group.get() == ALL_GROUPS else [self.var_search_group.get()],
         )
+
+        save_dct_cache(self.dct_info)
 
         return self.var_search_only_fav.get(), self.var_search_only_full.get(), \
             self.var_search_wrd.get(), self.var_search_tr.get(), self.var_search_frm.get(), \
@@ -2832,6 +2552,8 @@ class EditW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
+        theme = self.app_data.gui_settings.theme
+
         self._create_main_frame()
         self.btn_back = create_button(
             self, self.back, 'Закончить',
@@ -2839,7 +2561,7 @@ class EditW(tk.Toplevel):
         self.btn_about_window = create_button(
             self, self.about_window, width=2,
             row=1, column=1, padx=(6, 6), pady=(0, 6))
-        set_image(self.btn_about_window, self.img_about, img_about, '?')
+        set_image(self.btn_about_window, self.img_about, img_path(theme, 'about'), '?')
         self.btn_delete = create_button(
             self, self.delete, 'Удалить статью', style='No.TButton',
             row=1, column=2, padx=(0, 6), pady=(0, 6))
@@ -2847,6 +2569,8 @@ class EditW(tk.Toplevel):
         self.tip_btn_about_window = ttip.Hovertip(self.btn_about_window, 'Справка', hover_delay=450)
 
     def _create_main_frame(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_main = create_frame(self, row=0, columnspan=3, padx=6, pady=(6, 4))
 
         self.lbl_wrd = create_label(
@@ -2870,7 +2594,7 @@ class EditW(tk.Toplevel):
         self.btn_wrd_edt = create_button(
             self.frame_main, self.wrd_edt, width=4,
             row=0, column=3, padx=(3, 6), pady=(6, 3), sticky='W')
-        set_image(self.btn_wrd_edt, self.img_edit, img_edit, 'изм.')
+        set_image(self.btn_wrd_edt, self.img_edit, img_path(theme, 'edit'), 'изм.')
         self.lbl_tr = create_label(
             self.frame_main, text='Перевод:',
             row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
@@ -2883,7 +2607,7 @@ class EditW(tk.Toplevel):
         self.btn_tr_add = create_button(
             self.frame_main, self.tr_add, width=2,
             row=1, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
-        set_image(self.btn_tr_add, self.img_add, img_add, '+')
+        set_image(self.btn_tr_add, self.img_add, img_path(theme, 'add'), '+')
         self.lbl_frm = create_label(
             self.frame_main, text='Формы слова:',
             row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
@@ -2896,7 +2620,7 @@ class EditW(tk.Toplevel):
         self.btn_frm_add = create_button(
             self.frame_main, self.frm_add, width=2,
             row=2, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
-        set_image(self.btn_frm_add, self.img_add, img_add, '+')
+        set_image(self.btn_frm_add, self.img_add, img_path(theme, 'add'), '+')
         self.lbl_phrases = create_label(
             self.frame_main, 'Фразы:',
             row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
@@ -2909,7 +2633,7 @@ class EditW(tk.Toplevel):
         self.btn_phrase_add = create_button(
             self.frame_main, self.phrase_add, width=2,
             row=3, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
-        set_image(self.btn_phrase_add, self.img_add, img_add, '+')
+        set_image(self.btn_phrase_add, self.img_add, img_path(theme, 'add'), '+')
         self.lbl_notes = create_label(
             self.frame_main, 'Сноски:',
             row=4, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
@@ -2922,7 +2646,7 @@ class EditW(tk.Toplevel):
         self.btn_note_add = create_button(
             self.frame_main, self.note_add, width=2,
             row=4, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
-        set_image(self.btn_note_add, self.img_add, img_add, '+')
+        set_image(self.btn_note_add, self.img_add, img_path(theme, 'add'), '+')
         self.lbl_gr = create_label(
             self.frame_main, 'Группы:',
             row=5, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
@@ -2935,7 +2659,7 @@ class EditW(tk.Toplevel):
         self.btn_gr_add = create_button(
             self.frame_main, self.gr_add, width=2,
             row=5, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
-        set_image(self.btn_gr_add, self.img_add, img_add, '+')
+        set_image(self.btn_gr_add, self.img_add, img_path(theme, 'add'), '+')
         self.lbl_fav = create_label(
             self.frame_main, 'Избранное:',
             row=6, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
@@ -2969,17 +2693,17 @@ class EditW(tk.Toplevel):
             'Введите новое слово',
             default_value=self.dct[self.dct_key].lemma,
             check_answer_function=lambda wnd, val: check_not_void(
-                wnd, val, 'Слово должно содержать хотя бы один символ!'
+                wnd, self.app_data, val, 'Слово должно содержать хотя бы один символ!'
             ),
         )
         closed, new_wrd = window.open()
         if closed:
             return
-        new_wrd = encode_special_combinations(new_wrd, self.dct.input_replacements)
+        new_wrd = self.dct.apply_replacements(new_wrd)
         if new_wrd == self.dct[self.dct_key].lemma:
             return
 
-        new_key, has_progres = edit_wrd_with_choose(self.dct, self, self.dct_key, new_wrd)
+        new_key, has_progres = edit_wrd_with_choose(self.app_data, self, self.dct_key, new_wrd)
         if not has_progres:
             return
         self.dct_key = new_key
@@ -2992,13 +2716,13 @@ class EditW(tk.Toplevel):
             self, self.app_data,
             'Введите новый перевод',
             check_answer_function=lambda wnd, val: check_tr(
-                wnd, self.dct[self.dct_key].tr, val, self.dct[self.dct_key].lemma,
+                wnd, self.app_data, self.dct[self.dct_key].tr, val, self.dct[self.dct_key].lemma,
             ),
         )
         closed, tr = window.open()
         if closed:
             return
-        tr = encode_special_combinations(tr, self.dct.input_replacements)
+        tr = self.dct.apply_replacements(tr)
 
         self.dct.add_tr(self.dct_key, tr)
 
@@ -3011,14 +2735,14 @@ class EditW(tk.Toplevel):
             'Введите новый перевод',
             default_value=tr,
             check_answer_function=lambda wnd, val: check_tr_edit(
-                wnd, self.dct[self.dct_key].tr, tr,
-                val, self.dct[self.dct_key].lemma,
+                wnd, self.app_data, self.dct[self.dct_key].tr,
+                tr, val, self.dct[self.dct_key].lemma,
             ),
         )
         closed, new_tr = window.open()
         if closed:
             return
-        new_tr = encode_special_combinations(new_tr, self.dct.input_replacements)
+        new_tr = self.dct.apply_replacements(new_tr)
 
         self.dct.edit_tr(self.dct_key, tr, new_tr)
 
@@ -3046,13 +2770,13 @@ class EditW(tk.Toplevel):
             return
 
         window_form = AddFormW(
-            self, self.app_data, self.dct_key,
+            self, self.app_data, self.dct_key, self.dct[self.dct_key].lemma,
             combo_width=combobox_width(tuple(self.dct.features.keys()), 5, 100),
         )  # Создание словоформы
         frm_key, frm = window_form.open()
         if not frm_key:
             return
-        frm = encode_special_combinations(frm, self.dct.input_replacements)
+        frm = self.dct.apply_replacements(frm)
 
         self.dct.add_form(self.dct_key, frm_key, frm)
 
@@ -3069,15 +2793,16 @@ class EditW(tk.Toplevel):
         new_gram_form, new_word_form = window_form.open()
         if not new_gram_form:
             return
-        new_frm = encode_special_combinations(new_frm, self.dct.input_replacements)
+        new_word_form = self.dct.apply_replacements(new_word_form)
 
         self.dct.edit_form(self.dct_key, gram_form, word_form, new_gram_form, new_word_form)
 
         self.refresh(False)
 
     # Удалить словоформу
-    def frm_del(self, frm_key: GramForm):
-        self.dct.delete_form(self.dct_key, frm_key)
+    def frm_del(self, form: tuple[GramForm, WordForm]):
+        gram_form, word_form = form
+        self.dct.delete_form(self.dct_key, gram_form, word_form)
 
         self.refresh(False)
 
@@ -3086,15 +2811,15 @@ class EditW(tk.Toplevel):
         window = AddPhraseW(
             self, 'Добавление фразы', self.app_data,
             check_answer_function=lambda wnd, val: check_phr(
-                wnd, self.dct[self.dct_key].phrases,
+                wnd, self.app_data, self.dct[self.dct_key].phrases,
                 val, self.dct[self.dct_key].lemma,
             ),
         )
         closed, phr, phr_tr = window.open()
         if closed:
             return
-        phr = encode_special_combinations(phr, self.dct.input_replacements)
-        phr_tr = encode_special_combinations(phr_tr, self.dct.input_replacements)
+        phr = self.dct.apply_replacements(phr)
+        phr_tr = self.dct.apply_replacements(phr_tr)
 
         self.dct.add_phrase(self.dct_key, phr, phr_tr)
 
@@ -3108,15 +2833,15 @@ class EditW(tk.Toplevel):
             self, 'Изменение фразы', self.app_data,
             default_value=(phr, phr_tr),
             check_answer_function=lambda wnd, val: check_phr_edit(
-                wnd, self.dct[self.dct_key].phrases, (phr, phr_tr),
-                val, self.dct[self.dct_key].lemma,
+                wnd, self.app_data, self.dct[self.dct_key].phrases,
+                (phr, phr_tr), val, self.dct[self.dct_key].lemma,
             ),
         )
         closed, new_phr, new_phr_tr = window.open()
         if closed:
             return
-        new_phr = encode_special_combinations(new_phr, self.dct.input_replacements)
-        new_phr_tr = encode_special_combinations(new_phr_tr, self.dct.input_replacements)
+        new_phr = self.dct.apply_replacements(new_phr)
+        new_phr_tr = self.dct.apply_replacements(new_phr_tr)
 
         self.dct.edit_phrase(self.dct_key, phr, phr_tr, new_phr, new_phr_tr)
 
@@ -3135,14 +2860,14 @@ class EditW(tk.Toplevel):
             self, self.app_data,
             'Введите сноску',
             check_answer_function=lambda wnd, val: check_note(
-                wnd, self.dct[self.dct_key].notes,
+                wnd, self.app_data, self.dct[self.dct_key].notes,
                 val, self.dct[self.dct_key].lemma,
             ),
         )
         closed, note = window.open()
         if closed:
             return
-        note = encode_special_combinations(note, self.dct.input_replacements)
+        note = self.dct.apply_replacements(note)
 
         self.dct.add_note(self.dct_key, note)
 
@@ -3155,13 +2880,14 @@ class EditW(tk.Toplevel):
             'Введите сноску',
             default_value=note,
             check_answer_function=lambda wnd, val: check_note_edit(
-                wnd, self.dct[self.dct_key].notes, note, val, self.dct[self.dct_key].lemma
+                wnd, self.app_data, self.dct[self.dct_key].notes,
+                note, val, self.dct[self.dct_key].lemma,
             ),
         )
         closed, new_note = window.open()
         if closed:
             return
-        new_note = encode_special_combinations(new_note, self.dct.input_replacements)
+        new_note = self.dct.apply_replacements(new_note)
 
         self.dct.edit_note(self.dct_key, note, new_note)
 
@@ -3196,7 +2922,7 @@ class EditW(tk.Toplevel):
         closed, group = window_group.open()
         if closed:
             return
-        group = encode_special_combinations(group, self.dct.input_replacements)
+        group = self.dct.apply_replacements(group)
 
         self.dct.add_entries_to_group(group, [self.dct_key])
 
@@ -3273,7 +2999,10 @@ class EditW(tk.Toplevel):
         for phr in self.dct[self.dct_key].phrases.keys():
             for pt in self.dct[self.dct_key].phrases[phr]:
                 self.phrases += [(phr, pt)]
-        self.forms = [frm for frm in self.dct[self.dct_key].forms.keys()]
+        self.forms = []
+        for gram_form, word_forms in self.dct[self.dct_key].forms.items():
+            for word_form in word_forms:
+                self.forms.append((gram_form, word_form))
         self.groups = [gr for gr in self.dct[self.dct_key].groups]
         tr_count = len(self.translations)
         nt_count = len(self.notes)
@@ -3360,8 +3089,9 @@ class EditW(tk.Toplevel):
             ) for i in range(frm_count)
         ]
         for i in range(frm_count):
-            frm = self.forms[i]
-            text = f'[{gram_form_to_str(frm)}] {self.dct[self.dct_key].forms[frm]}'
+            gram_form = self.forms[i][0]
+            word_form = self.forms[i][1]
+            text = f'[{gram_form_to_str(gram_form)}] {word_form}'
             self.frm_buttons[i].configure(text=split_text(text, 35))
 
         self.gr_buttons = [
@@ -3552,6 +3282,8 @@ class AddFormW(tk.Toplevel):
             row=4, columnspan=2, padx=6, pady=6)
 
     def _create_val_frame(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_val = create_frame(
             self, 'Invis.TFrame',
             row=1, column=1, padx=(0, 6), pady=1, sticky='W')
@@ -3565,11 +3297,12 @@ class AddFormW(tk.Toplevel):
         self.btn_choose = create_button(
             self.frame_val, self.choose,
             row=0, column=1, padx=(3, 0), pady=0)
-        set_image(self.btn_choose, self.img_ok, img_ok, 'Задать значение')
+        set_image(self.btn_choose, self.img_ok, img_path(theme, 'ok'), 'Задать значение')
         self.btn_none = create_button(
             self.frame_val, self.set_none,
             row=0, column=2, padx=0, pady=0)
-        set_image(self.btn_none, self.img_none, img_cancel, 'Не указывать/неприменимо')
+        set_image(self.btn_none, self.img_none, img_path(theme, 'cancel'),
+                  'Не указывать/неприменимо')
 
         if self.btn_choose['style'] == 'Image.TButton':
             self.tip_btn_choose = ttip.Hovertip(
@@ -3724,10 +3457,12 @@ class CategoriesSettingsW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
+        theme = self.app_data.gui_settings.theme
+
         self.btn_about_window = create_button(
             self, self.about_window, width=2,
             row=0, column=0, padx=(6, 0), pady=(6, 6), sticky='E')
-        set_image(self.btn_about_window, self.img_about, img_about, '?')
+        set_image(self.btn_about_window, self.img_about, img_path(theme, 'about'), '?')
         self.lbl_categories = create_label(
             self, 'Существующие категории слов:', justify='center',
             row=0, column=1, padx=(0, 6), pady=(6, 0), sticky='W')
@@ -3748,17 +3483,17 @@ class CategoriesSettingsW(tk.Toplevel):
 
     # Добавить категорию
     def add(self):
-        self.has_changes = add_ctg(self, self.dct) or self.has_changes
+        self.has_changes = add_ctg(self, self.app_data) or self.has_changes
         self.print_categories(False)
 
     # Переименовать категорию
     def rename(self, ctg_key: str):
-        self.has_changes = rename_ctg(self, self.dct, ctg_key) or self.has_changes
+        self.has_changes = rename_ctg(self, self.app_data, ctg_key) or self.has_changes
         self.print_categories(False)
 
     # Удалить категорию
     def delete(self, ctg_key: str):
-        self.has_changes = delete_ctg(self, self.dct, ctg_key) or self.has_changes
+        self.has_changes = delete_ctg(self, self.app_data, ctg_key) or self.has_changes
         self.print_categories(False)
 
     # Перейти к настройкам значений категории
@@ -3853,6 +3588,7 @@ class GroupsSettingsW(tk.Toplevel):
 
         self.app_data = app_data
         self.dct_info = app_data.manager.active
+        self.dct = self.dct_info.dct
 
         self.has_changes = False
 
@@ -3876,10 +3612,12 @@ class GroupsSettingsW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
+        theme = self.app_data.gui_settings.theme
+
         self.btn_about_window = create_button(
             self, self.about_window, width=2,
             row=0, column=0, padx=(6, 0), pady=(6, 6), sticky='E')
-        set_image(self.btn_about_window, self.img_about, img_about, '?')
+        set_image(self.btn_about_window, self.img_about, img_path(theme, 'about'), '?')
         self.lbl_groups = create_label(
             self, 'Существующие группы:', justify='center',
             row=0, column=1, padx=(0, 6), pady=(6, 0), sticky='W')
@@ -3904,14 +3642,14 @@ class GroupsSettingsW(tk.Toplevel):
             self, self.app_data,
             'Введите название новой группы',
             check_answer_function=lambda wnd, val: check_group_name(
-                wnd, self.dct_info.dct.groups, val
+                wnd, self.app_data, self.dct.groups, val
             ),
         )
         closed, group = window.open()
         if closed:
             return
-        group = encode_special_combinations(group, self.dct_info.dct.input_replacements)
-        self.dct_info.dct.add_group(group)
+        group = self.dct.apply_replacements(group)
+        self.dct.add_group(group)
 
         self.print_groups(False)
         self.has_changes = True
@@ -3923,29 +3661,22 @@ class GroupsSettingsW(tk.Toplevel):
             'Введите новое название группы',
             default_value=group_old,
             check_answer_function=lambda wnd, val: check_group_name_edit(
-                wnd, self.dct_info.dct.groups, group_old, val
+                wnd, self.app_data, self.dct.groups, group_old, val
             ),
         )
         closed, group_new = window.open()
         if closed:
             return
-        group_new = encode_special_combinations(group_new, self.dct_info.dct.input_replacements)
+        group_new = self.dct.apply_replacements(group_new)
 
-        if self.dct_info.dct.groups.index(group_old) + 1 == self.dct_info.cache.train_config[1]:
-            self.dct_info.cache.train_config[1] = len(self.dct_info.dct.groups)
-        elif self.dct_info.dct.groups.index(group_old) + 1 < self.dct_info.cache.train_config[1]:
-            self.dct_info.cache.train_config[1] -= 1
-        self.dct_info.dct.rename_group(group_old, group_new)
-        if self.dct_info.dct.is_default_group(group_old):
-            self.dct_info.dct.unmark_default_group(group_old)
-            self.dct_info.dct.mark_group_as_default(group_new)
+        self.dct.rename_group(group_old, group_new)
 
         self.print_groups(False)
         self.has_changes = True
 
     # Удалить группу
     def delete(self, group: str):
-        group_size = self.dct_info.dct.count_entries_in_group(group)[0]
+        group_size = self.dct.count_entries_in_group(group)[0]
         if group_size != 0:
             tmp = set_postfix(
                 group_size,
@@ -3960,23 +3691,26 @@ class GroupsSettingsW(tk.Toplevel):
             if not answer:
                 return
 
-        if self.dct_info.dct.groups.index(group) + 1 == self.dct_info.cache.train_config[1]:
-            self.dct_info.cache.train_config[1] = 0
-        elif self.dct_info.dct.groups.index(group) + 1 < self.dct_info.cache.train_config[1]:
-            self.dct_info.cache.train_config[1] -= 1
-        self.dct_info.dct.delete_group(group)
-        if self.dct_info.dct.is_default_group(group):
-            self.dct_info.dct.unmark_default_group(group)
+        train_group = self.dct_info.cache.train_config.group
+        if train_group is not None:
+            deleted_group_index = self.dct.groups.index(group)
+            train_group_index = self.dct.groups.index(train_group)
+            if deleted_group_index + 1 == train_group_index:
+                self.dct_info.cache.train_config.group = self.dct.groups[0]
+            elif deleted_group_index + 1 < train_group_index:
+                self.dct_info.cache.train_config.group = self.dct.groups[train_group_index-1]
+
+        self.dct.delete_group(group)
 
         self.print_groups(False)
         self.has_changes = True
 
     # Добавить группу в избранное
     def fav(self, group: str):
-        if self.dct_info.dct.is_default_group(group):
-            self.dct_info.dct.unmark_default_group(group)
+        if self.dct.is_default_group(group):
+            self.dct.unmark_default_group(group)
         else:
-            self.dct_info.dct.mark_group_as_default(group)
+            self.dct.mark_group_as_default(group)
 
         self.print_groups(False)
         self.has_changes = True
@@ -4000,7 +3734,7 @@ class GroupsSettingsW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем группы
-        self.groups = list(self.dct_info.dct.groups)
+        self.groups = list(self.dct.groups)
         groups_count = len(self.groups)
 
         # Создаём новые фреймы
@@ -4023,14 +3757,14 @@ class GroupsSettingsW(tk.Toplevel):
         self.tips = [
             ttip.Hovertip(
                 self.buttons[i],
-                f'Статей в группе: {self.dct_info.dct.count_entries_in_group(self.groups[i])[0]}',
+                f'Статей в группе: {self.dct.count_entries_in_group(self.groups[i])[0]}',
                 hover_delay=500,
             ) for i in range(groups_count)
         ]
         for i in range(groups_count):
             # Выводим текст на кнопки
             group = self.groups[i]
-            if self.dct_info.dct.is_default_group(group):
+            if self.dct.is_default_group(group):
                 self.buttons[i].configure(text=split_text(f'{group} (*)', 35))
             else:
                 self.buttons[i].configure(text=split_text(f'{group}', 35))
@@ -4108,10 +3842,12 @@ class CategoryValuesSettingsW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
+        theme = self.app_data.gui_settings.theme
+
         self.btn_about_window = create_button(
             self, self.about_window, width=2,
             row=0, column=0, padx=(6, 0), pady=(6, 6), sticky='E')
-        set_image(self.btn_about_window, self.img_about, img_about, '?')
+        set_image(self.btn_about_window, self.img_about, img_path(theme, 'about'), '?')
         self.lbl_ctg_values = create_label(
             self,
             f'Существующие значения категории\n'
@@ -4137,18 +3873,18 @@ class CategoryValuesSettingsW(tk.Toplevel):
     # Добавить значение категории
     def add(self):
         self.has_changes = add_ctg_value(
-            self, self.dct, self.ctg_key, self.ctg_values
+            self, self.app_data, self.ctg_key, self.ctg_values
         ) or self.has_changes
         self.print_ctg_values(False)
 
     # Переименовать значение категории
     def rename(self, val: str):
-        self.has_changes = rename_ctg_value(self, self.dct, self.ctg_key, val) or self.has_changes
+        self.has_changes = rename_ctg_value(self, self.app_data, self.ctg_key, val) or self.has_changes
         self.print_ctg_values(False)
 
     # Удалить значение категории
     def delete(self, val: str):
-        self.has_changes = delete_ctg_value(self, self.dct, self.ctg_key, val) or self.has_changes
+        self.has_changes = delete_ctg_value(self, self.app_data, self.ctg_key, val) or self.has_changes
         self.print_ctg_values(False)
         if self.ctg_key not in self.dct.features:
             self.parent.print_categories(False)
@@ -4261,10 +3997,12 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
+        theme = self.app_data.gui_settings.theme
+
         self.btn_about_window = create_button(
             self, self.about_window, width=2,
             row=0, column=0, padx=(6, 0), pady=(6, 6), sticky='E')
-        set_image(self.btn_about_window, self.img_about, img_about, '?')
+        set_image(self.btn_about_window, self.img_about, img_path(theme, 'about'), '?')
         self.lbl_combinations = create_label(
             self, 'Существующие комбинации:', justify='center',
             row=0, column=1, padx=(0, 6), pady=(6, 0), sticky='W')
@@ -4336,8 +4074,12 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем комбинации
-        self.combinations = [key for key in self.dct.input_replacements]
-        combinations_count = len(self.combinations)
+        nontrivial_keys = [
+            key
+            for key in self.dct.input_replacements
+            if key[0] != key[1]
+        ]
+        n_nontrivial_replacements = len(nontrivial_keys)
 
         # Создаём новые фреймы
         self.frames = tuple(
@@ -4345,27 +4087,28 @@ class SpecialCombinationsSettingsW(tk.Toplevel):
                 create_frame(
                     self.scrolled_frame.frame_canvas, 'Invis.TFrame',
                     row=i, column=0, padx=0, pady=0, sticky='WE',
-                ) for i in range(combinations_count)
+                ) for i in range(n_nontrivial_replacements)
             ] + [create_label(
                 self.scrolled_frame.frame_canvas,
                 split_text('## -> #, %% -> % и т. д.', 35),
                 'FlatL.TLabel',
-                row=combinations_count, column=0, padx=0, pady=0, sticky='WE',
+                row=n_nontrivial_replacements, column=0, padx=0, pady=0, sticky='WE',
             )]
         )
         # Создаём новые кнопки
         self.buttons = [
             create_button(
                 self.frames[i],
-                lambda i=i: self.edit(self.combinations[i]),
+                lambda i=i: self.edit(nontrivial_keys[i]),
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
                 row=0, column=0, padx=0, pady=0, sticky='WE',
-            ) for i in range(combinations_count)
+            ) for i in range(n_nontrivial_replacements)
         ]
-        for i in range(combinations_count):
+        for i in range(n_nontrivial_replacements):
             # Выводим текст на кнопки
-            cmb = self.combinations[i]
-            self.buttons[i].configure(text=split_text(special_combination(cmb), 35))
+            cmb_key = nontrivial_keys[i]
+            cmb_val = self.dct.input_replacements[cmb_key]
+            self.buttons[i].configure(text=split_text(special_combination(cmb_key, cmb_val), 35))
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
@@ -4652,6 +4395,8 @@ class CustomThemeSettingsW(tk.Toplevel):
         self._create_history_frame()
 
     def _create_history_frame(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_history = create_frame(
             self.frame_buttons, 'Invis.TFrame',
             row=0, column=1, padx=0, pady=0)
@@ -4659,11 +4404,11 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.btn_undo = create_button(
             self.frame_history, self.undo, width=2,
             row=0, column=0, padx=(0, 6), pady=0, sticky='W')
-        set_image(self.btn_undo, self.img_undo, img_undo, '<<')
+        set_image(self.btn_undo, self.img_undo, img_path(theme, 'undo'), '<<')
         self.btn_redo = create_button(
             self.frame_history, self.redo, width=2,
             row=0, column=1, padx=0, pady=0, sticky='W')
-        set_image(self.btn_redo, self.img_redo, img_redo, '>>')
+        set_image(self.btn_redo, self.img_redo, img_path(theme, 'redo'), '>>')
 
     def _create_demonstration_frame(self):
         self.frame_demonstration = create_frame(
@@ -4826,15 +4571,8 @@ class CustomThemeSettingsW(tk.Toplevel):
                 file.write(f'\n{el} = {self.custom_styles[el]}')
 
         if self.dir_with_images != CUSTOM_THEME_PATH:
-            images = [
-                img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav,
-                img_add_to_group, img_remove_from_group, img_edit, img_add, img_delete,
-                img_select_page, img_unselect_page, img_select_all, img_unselect_all,
-                img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right,
-                img_double_arrow_left, img_double_arrow_right, img_trashcan,
-            ]
-            for i in range(len(images)):
-                file_name = f'{IMG_NAMES[i]}.png'
+            for img_name in IMG_NAMES:
+                file_name = f'{img_name}.png'
                 src_path = os.path.join(self.dir_with_images, file_name)
                 dst_path = os.path.join(CUSTOM_THEME_PATH, file_name)
                 if file_name in os.listdir(CUSTOM_THEME_PATH):
@@ -5446,9 +5184,7 @@ class LearnW(tk.Toplevel):
     # Ввод ответа и переход к следующему слову
     def input(self):
         # Вывод в журнал пользовательского ответа
-        user_answer = encode_special_combinations(
-            self.entry_input.get(), self.dct_info.dct.input_replacements
-        )
+        user_answer = self.dct_info.dct.apply_replacements(self.entry_input.get())
         if user_answer != '':
             self.outp(user_answer)
 
@@ -5555,8 +5291,8 @@ class LearnW(tk.Toplevel):
                     window = PopupDialogueW(
                         self, self.app_data,
                         f'Неверно.\n'
-                        f'Ваш ответ: {encode_special_combinations(
-                            self.entry_input.get(), self.dct_info.dct.input_replacements
+                        f'Ваш ответ: {self.dct_info.dct.apply_replacements(
+                            self.entry_input.get()
                         )}\n'
                         f'Правильный ответ: {correct_answer}',
                         btn_left_text='Ясно', btn_right_text='Просто опечатка',
@@ -5587,9 +5323,7 @@ class LearnW(tk.Toplevel):
             else:
                 window = IncorrectAnswerW(
                     self, self.app_data,
-                    encode_special_combinations(
-                        self.entry_input.get(), self.dct_info.dct.input_replacements,
-                    ),
+                    self.dct_info.dct.apply_replacements(self.entry_input.get()),
                     correct_answer,
                     self.app_data.global_settings.is_typo_btn_on,
                 )
@@ -5635,6 +5369,7 @@ class PrintW(tk.Toplevel):
 
         self.app_data = app_data
         self.dct_info = app_data.manager.active
+        self.dct = self.dct_info.dct
 
         self.current_tab = 0  # Номер текущей вкладки
 
@@ -5653,7 +5388,7 @@ class PrintW(tk.Toplevel):
         self.search_count_elements = None  # Количество элементов на всех страницах ScrollFrame
         self.search_count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
 
-        self.group_vals = [ALL_GROUPS] + self.dct_info.dct.groups
+        self.group_vals = [ALL_GROUPS] + self.dct.groups
 
         # Параметры поиска
         search_config = self.dct_info.cache.search_config
@@ -5665,6 +5400,10 @@ class PrintW(tk.Toplevel):
         self.to_search_phr = search_config.to_search_in_phrases
         self.to_search_nt = search_config.to_search_in_notes
         self.search_group = search_config.search_groups
+        if self.search_group is None:
+            self.search_group = ''
+        else:
+            self.search_group = self.search_group[0]  # TODO: several groups
 
         # Переменные для вкладки печати
         self.var_print_fav = tk.BooleanVar(value=False)
@@ -5719,7 +5458,7 @@ class PrintW(tk.Toplevel):
         self.search_print(True)  # Выводим статьи
 
     def _configure_window(self):
-        self.title(f'{PROGRAM_NAME} - Словарь "{self.dct_info.dct.name}"')
+        self.title(f'{PROGRAM_NAME} - Словарь "{self.dct.name}"')
         self.resizable(width=False, height=False)
         self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
         toplevel_geometry(self.parent, self)
@@ -5775,6 +5514,8 @@ class PrintW(tk.Toplevel):
             row=2, column=1, padx=(6, 0), pady=0, sticky='W')
 
     def _create_print_header_frame(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_print_header = create_frame(
             self.frame_print_menu, 'Invis.TFrame',
             row=0, rowspan=2, column=0, padx=0, pady=0)
@@ -5782,11 +5523,12 @@ class PrintW(tk.Toplevel):
         self.btn_print_about_window = create_button(
             self.frame_print_header, self.about_window, width=2,
             row=0, column=0, padx=0, pady=0)
-        set_image(self.btn_print_about_window, self.img_about, img_about, '?')
+        set_image(self.btn_print_about_window, self.img_about, img_path(theme, 'about'), '?')
         self.btn_print_print_out = create_button(
             self.frame_print_header, self.print_out,
             row=1, column=0, padx=0, pady=0)
-        set_image(self.btn_print_print_out, self.img_print_out, img_print_out, 'Распечатать')
+        set_image(self.btn_print_print_out, self.img_print_out,
+                  img_path(theme, 'print_out'), 'Распечатать')
         self._create_print_parameters_frame()
 
     def _create_print_parameters_frame(self):
@@ -5806,7 +5548,7 @@ class PrintW(tk.Toplevel):
             row=0, column=2, padx=(0, 1), pady=6, sticky='E')
         self.combo_print_group = create_combobox(
             self.frame_print_parameters, self.var_print_group,
-            [ALL_GROUPS] + self.dct_info.dct.groups, 28,
+            [ALL_GROUPS] + self.dct.groups, 28,
             font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
             state='readonly',
             row=0, column=3, padx=(0, 6), pady=6, sticky='W')
@@ -5826,6 +5568,8 @@ class PrintW(tk.Toplevel):
             row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
 
     def _create_print_buttons_for_selected_frame(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_print_buttons_for_selected = create_frame(self.frame_print_menu)
 
         self.btn_print_fav = create_button(
@@ -5833,34 +5577,37 @@ class PrintW(tk.Toplevel):
             lambda: self.fav_selected(self.print_selected_keys),
             width=3,
             row=0, column=0)
-        set_image(self.btn_print_fav, self.img_fav, img_fav, '*+')
+        set_image(self.btn_print_fav, self.img_fav, img_path(theme, 'fav'), '*+')
         self.btn_print_unfav = create_button(
             self.frame_print_buttons_for_selected,
             lambda: self.unfav_selected(self.print_selected_keys),
             width=3,
             row=0, column=1)
-        set_image(self.btn_print_unfav, self.img_unfav, img_unfav, '*-')
+        set_image(self.btn_print_unfav, self.img_unfav, img_path(theme, 'unfav'), '*-')
         self.btn_print_add_to_group = create_button(
             self.frame_print_buttons_for_selected,
             lambda: self.add_selected_to_group(self.print_selected_keys),
             width=3,
             row=0, column=2)
-        set_image(self.btn_print_add_to_group, self.img_add_to_group, img_add_to_group, 'G+')
+        set_image(self.btn_print_add_to_group, self.img_add_to_group,
+                  img_path(theme, 'add_to_group'), 'G+')
         self.btn_print_remove_from_group = create_button(
             self.frame_print_buttons_for_selected,
             lambda: self.remove_selected_from_group(self.print_selected_keys),
             width=3,
             row=0, column=3)
         set_image(self.btn_print_remove_from_group, self.img_remove_from_group,
-                  img_remove_from_group, 'G-')
+                  img_path(theme, 'remove_from_group'), 'G-')
         self.btn_print_delete = create_button(
             self.frame_print_buttons_for_selected,
             lambda: self.delete_selected(self.print_selected_keys),
             width=3,
             row=0, column=4)
-        set_image(self.btn_print_delete, self.img_delete, img_trashcan, 'DEL')
+        set_image(self.btn_print_delete, self.img_delete, img_path(theme, 'trashcan'), 'DEL')
 
     def _create_print_selection_buttons_frame(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_print_selection_buttons = create_frame(
             self.frame_print_menu,
             row=1, column=1, padx=(6, 0), pady=0, sticky='WS')
@@ -5868,19 +5615,19 @@ class PrintW(tk.Toplevel):
         self.btn_print_select_page = create_button(
             self.frame_print_selection_buttons, self.print_select_page, width=3,
             row=0, column=0)
-        set_image(self.btn_print_select_page, self.img_select_page, img_select_page, '[X]')
+        set_image(self.btn_print_select_page, self.img_select_page, img_path(theme, 'select_page'), '[X]')
         self.btn_print_unselect_page = create_button(
             self.frame_print_selection_buttons, self.print_unselect_page, width=3,
             row=0, column=1)
-        set_image(self.btn_print_unselect_page, self.img_unselect_page, img_unselect_page, '[ ]')
+        set_image(self.btn_print_unselect_page, self.img_unselect_page, img_path(theme, 'unselect_page'), '[ ]')
         self.btn_print_select_all = create_button(
             self.frame_print_selection_buttons, self.print_select_all, width=3,
             row=0, column=2)
-        set_image(self.btn_print_select_all, self.img_select_all, img_select_all, '[X]')
+        set_image(self.btn_print_select_all, self.img_select_all, img_path(theme, 'select_all'), '[X]')
         self.btn_print_unselect_all = create_button(
             self.frame_print_selection_buttons, self.print_unselect_all, width=3,
             row=0, column=3)
-        set_image(self.btn_print_unselect_all, self.img_unselect_all, img_unselect_all, '[ ]')
+        set_image(self.btn_print_unselect_all, self.img_unselect_all, img_path(theme, 'unselect_all'), '[ ]')
 
     def _create_print_main_frame(self):
         self.frame_print_main = create_frame(
@@ -5896,6 +5643,8 @@ class PrintW(tk.Toplevel):
         self._create_print_page_buttons_frame()
 
     def _create_print_page_buttons_frame(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_print_page_buttons = create_frame(
             self.frame_print_main, 'Invis.TFrame',
             row=1, column=0, padx=0, pady=0)
@@ -5904,21 +5653,21 @@ class PrintW(tk.Toplevel):
             self.frame_print_page_buttons, self.print_go_to_first_page, width=2,
             row=0, column=0, padx=3, pady=0)
         set_image(self.btn_print_first_page, self.img_double_arrow_left,
-                  img_double_arrow_left, '<<')
+                  img_path(theme, 'double_arrow_left'), '<<')
         self.btn_print_prev_page = create_button(
             self.frame_print_page_buttons, self.print_go_to_prev_page, width=2,
             row=0, column=1, padx=3, pady=0)
-        set_image(self.btn_print_prev_page, self.img_arrow_left, img_arrow_left, '<')
+        set_image(self.btn_print_prev_page, self.img_arrow_left, img_path(theme, 'arrow_left'), '<')
         self._create_print_current_page_frame()
         self.btn_print_next_page = create_button(
             self.frame_print_page_buttons, self.print_go_to_next_page, width=2,
             row=0, column=3, padx=3, pady=0)
-        set_image(self.btn_print_next_page, self.img_arrow_right, img_arrow_right, '>')
+        set_image(self.btn_print_next_page, self.img_arrow_right, img_path(theme, 'arrow_right'), '>')
         self.btn_print_last_page = create_button(
             self.frame_print_page_buttons, self.print_go_to_last_page, width=2,
             row=0, column=4, padx=3, pady=0)
         set_image(self.btn_print_last_page, self.img_double_arrow_right,
-                  img_double_arrow_right, '>>')
+                  img_path(theme, 'double_arrow_right'), '>>')
 
     def _create_print_current_page_frame(self):
         self.frame_print_current_page = create_frame(
@@ -5958,6 +5707,8 @@ class PrintW(tk.Toplevel):
         self._create_search_buttons_for_selected_frame()
 
     def _create_search_query_frame(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_search_query = create_frame(
             self.frame_search_header,
             row=0, column=0, columnspan=2, padx=0, pady=(0, 6))
@@ -5965,7 +5716,8 @@ class PrintW(tk.Toplevel):
         self.btn_search_search_settings = create_button(
             self.frame_search_query, self.search_settings, width=9,
             row=0, column=0, padx=(6, 3), pady=6)
-        set_image(self.btn_search_search_settings, self.img_settings, img_edit, 'Настройки')
+        set_image(self.btn_search_search_settings, self.img_settings,
+                  img_path(theme, 'edit'), 'Настройки')
         self.entry_search_query = create_entry(
             self.frame_search_query, self.var_search_query, 50, font=self.app_data,
             row=0, column=1, padx=(0, 1), pady=6)
@@ -5975,6 +5727,8 @@ class PrintW(tk.Toplevel):
             row=0, column=2, padx=(0, 6), pady=6)
 
     def _create_search_selection_button(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_search_selection_buttons = create_frame(
             self.frame_search_header,
             row=0, column=2, padx=(6, 0), pady=(0, 6), sticky='WS')
@@ -5982,21 +5736,27 @@ class PrintW(tk.Toplevel):
         self.btn_search_select_page = create_button(
             self.frame_search_selection_buttons, self.search_select_page, width=3,
             row=0, column=0)
-        set_image(self.btn_search_select_page, self.img_select_page, img_select_page, '[X]')
+        set_image(self.btn_search_select_page, self.img_select_page,
+                  img_path(theme, 'select_page'), '[X]')
         self.btn_search_unselect_page = create_button(
             self.frame_search_selection_buttons, self.search_unselect_page, width=3,
             row=0, column=1)
-        set_image(self.btn_search_unselect_page, self.img_unselect_page, img_unselect_page, '[ ]')
+        set_image(self.btn_search_unselect_page, self.img_unselect_page,
+                  img_path(theme, 'unselect_page'), '[ ]')
         self.btn_search_select_all = create_button(
             self.frame_search_selection_buttons, self.search_select_all, width=3,
             row=0, column=2)
-        set_image(self.btn_search_select_all, self.img_select_all, img_select_all, '[X]')
+        set_image(self.btn_search_select_all, self.img_select_all,
+                  img_path(theme, 'select_all'), '[X]')
         self.btn_search_unselect_all = create_button(
             self.frame_search_selection_buttons, self.search_unselect_all, width=3,
             row=0, column=3)
-        set_image(self.btn_search_unselect_all, self.img_unselect_all, img_unselect_all, '[ ]')
+        set_image(self.btn_search_unselect_all, self.img_unselect_all,
+                  img_path(theme, 'unselect_all'), '[ ]')
 
     def _create_search_info_frame(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_search_info = create_frame(
             self.frame_search_header, 'Invis.TFrame',
             row=1, column=0, padx=(6, 0), pady=0, sticky='W')
@@ -6004,12 +5764,14 @@ class PrintW(tk.Toplevel):
         self.btn_search_about_window = create_button(
             self.frame_search_info, self.about_window, width=2,
             row=0, column=0, padx=0, pady=0)
-        set_image(self.btn_search_about_window, self.img_about, img_about, '?')
+        set_image(self.btn_search_about_window, self.img_about, img_path(theme, 'about'), '?')
         self.lbl_search_info = create_label(
             self.frame_search_info, textvariable=self.var_search_info,
             row=0, column=1, padx=0, pady=0)
 
     def _create_search_buttons_for_selected_frame(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_search_buttons_for_selected = create_frame(self.frame_search_header)
 
         self.btn_search_fav = create_button(
@@ -6017,32 +5779,33 @@ class PrintW(tk.Toplevel):
             lambda: self.fav_selected(self.search_selected_keys),
             width=3,
             row=0, column=0)
-        set_image(self.btn_search_fav, self.img_fav, img_fav, '*+')
+        set_image(self.btn_search_fav, self.img_fav, img_path(theme, 'fav'), '*+')
         self.btn_search_unfav = create_button(
             self.frame_search_buttons_for_selected,
             lambda: self.unfav_selected(self.search_selected_keys),
             width=3,
             row=0, column=1)
-        set_image(self.btn_search_unfav, self.img_unfav, img_unfav, '*-')
+        set_image(self.btn_search_unfav, self.img_unfav, img_path(theme, 'unfav'), '*-')
         self.btn_search_add_to_group = create_button(
             self.frame_search_buttons_for_selected,
             lambda: self.add_selected_to_group(self.search_selected_keys),
             width=3,
             row=0, column=2)
-        set_image(self.btn_search_add_to_group, self.img_add_to_group, img_add_to_group, 'G+')
+        set_image(self.btn_search_add_to_group, self.img_add_to_group,
+                  img_path(theme, 'add_to_group'), 'G+')
         self.btn_search_remove_from_group = create_button(
             self.frame_search_buttons_for_selected,
             lambda: self.remove_selected_from_group(self.search_selected_keys),
             width=3,
             row=0, column=3)
         set_image(self.btn_search_remove_from_group, self.img_remove_from_group,
-                  img_remove_from_group, 'G-')
+                  img_path(theme, 'remove_from_group'), 'G-')
         self.btn_search_delete = create_button(
             self.frame_search_buttons_for_selected,
             lambda: self.delete_selected(self.search_selected_keys),
             width=3,
             row=0, column=4)
-        set_image(self.btn_search_delete, self.img_delete, img_trashcan, 'DEL')
+        set_image(self.btn_search_delete, self.img_delete, img_path(theme, 'trashcan'), 'DEL')
 
     def _create_search_main_frame(self):
         self.frame_search_main = create_frame(
@@ -6058,6 +5821,8 @@ class PrintW(tk.Toplevel):
         self._create_search_page_buttons()
 
     def _create_search_page_buttons(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_search_page_buttons = create_frame(
             self.frame_search_main, 'Invis.TFrame',
             row=1, column=0, padx=0, pady=0)
@@ -6066,21 +5831,23 @@ class PrintW(tk.Toplevel):
             self.frame_search_page_buttons, self.search_go_to_first_page, width=2,
             row=0, column=0, padx=3, pady=0)
         set_image(self.btn_search_first_page, self.img_double_arrow_left,
-                  img_double_arrow_left, '<<')
+                  img_path(theme, 'double_arrow_left'), '<<')
         self.btn_search_prev_page = create_button(
             self.frame_search_page_buttons, self.search_go_to_prev_page, width=2,
             row=0, column=1, padx=3, pady=0)
-        set_image(self.btn_search_prev_page, self.img_arrow_left, img_arrow_left, '<')
+        set_image(self.btn_search_prev_page, self.img_arrow_left,
+                  img_path(theme, 'arrow_left'), '<')
         self._create_search_current_page()
         self.btn_search_next_page = create_button(
             self.frame_search_page_buttons, self.search_go_to_next_page, width=2,
             row=0, column=3, padx=3, pady=0)
-        set_image(self.btn_search_next_page, self.img_arrow_right, img_arrow_right, '>')
+        set_image(self.btn_search_next_page, self.img_arrow_right,
+                  img_path(theme, 'arrow_right'), '>')
         self.btn_search_last_page = create_button(
             self.frame_search_page_buttons, self.search_go_to_last_page, width=2,
             row=0, column=4, padx=3, pady=0)
         set_image(self.btn_search_last_page, self.img_double_arrow_right,
-                  img_double_arrow_right, '>>')
+                  img_path(theme, 'double_arrow_right'), '>>')
 
     def _create_search_current_page(self):
         self.frame_search_current_page = create_frame(
@@ -6227,13 +5994,13 @@ class PrintW(tk.Toplevel):
         folder = askdirectory(initialdir=MAIN_PATH, title='В какую папку сохранить файл?')
         if not folder:
             return
-        filename = f'Распечатка_{self.dct_info.dct.name}.txt'
-        self.dct_info.dct.to_txt(os.path.join(folder, filename))
+        filename = f'Распечатка_{self.dct.name}.txt'
+        self.dct.to_txt(os.path.join(folder, filename))
 
     # Нажатие на кнопку "Настройки поиска"
     def search_settings(self):
         window = SearchSettingsW(
-            self, self.app_data, self.dct_info, self.to_search_only_fav,
+            self, self.app_data, self.to_search_only_fav,
             self.to_search_only_full, self.to_search_wrd, self.to_search_tr,
             self.to_search_frm, self.to_search_phr, self.to_search_nt,
             self.search_group,
@@ -6254,27 +6021,27 @@ class PrintW(tk.Toplevel):
         group = self.var_print_group.get()
         if group == ALL_GROUPS:
             if self.var_print_fav.get():
-                w, t, gf, wf = self.dct_info.dct.count_fav_entries()
+                w, t, gf, wf = self.dct.count_fav_entries()
                 info = dct_info_fav(
-                    (w, self.dct_info.dct.count('lemmas')),
-                    (t, self.dct_info.dct.count('translations')),
-                    (gf, self.dct_info.dct.count('gram_forms')),
-                    (wf, self.dct_info.dct.count('word_forms')),
+                    (w, self.dct.count('lemmas')),
+                    (t, self.dct.count('translations')),
+                    (gf, self.dct.count('gram_forms')),
+                    (wf, self.dct.count('word_forms')),
                 )
             else:
                 info = dct_info(
-                    self.dct_info.dct.count('lemmas'),
-                    self.dct_info.dct.count('translations'),
-                    self.dct_info.dct.count('gram_forms'),
-                    self.dct_info.dct.count('word_forms'),
+                    self.dct.count('lemmas'),
+                    self.dct.count('translations'),
+                    self.dct.count('gram_forms'),
+                    self.dct.count('word_forms'),
                 )
         else:
             if self.var_print_fav.get():
-                w1, t1, gf1, wf1 = self.dct_info.dct.count_fav_entries(group)
-                w2, t2, gf2, wf2 = self.dct_info.dct.count_entries_in_group(group)
+                w1, t1, gf1, wf1 = self.dct.count_fav_entries(group)
+                w2, t2, gf2, wf2 = self.dct.count_entries_in_group(group)
                 info = dct_info_fav((w1, w2), (t1, t2), (gf1, gf2), (wf1, wf2))
             else:
-                w, t, gf, wf = self.dct_info.dct.count_entries_in_group(group)
+                w, t, gf, wf = self.dct.count_entries_in_group(group)
                 info = dct_info(w, t, gf, wf)
         self.var_print_info.set(info)
 
@@ -6323,21 +6090,21 @@ class PrintW(tk.Toplevel):
         if self.var_print_fav.get():
             if group == ALL_GROUPS:
                 self.print_keys = [
-                    key for key in self.dct_info.dct.get_entry_ids()
-                    if self.dct_info.dct[key].is_fav
+                    key for key in self.dct.get_entry_ids()
+                    if self.dct[key].is_fav
                 ]
             else:
                 self.print_keys = [
-                    key for key in self.dct_info.dct.get_entry_ids()
-                    if self.dct_info.dct[key].is_fav and group in self.dct_info.dct[key].groups
+                    key for key in self.dct.get_entry_ids()
+                    if self.dct[key].is_fav and group in self.dct[key].groups
                 ]
         else:
             if group == ALL_GROUPS:
-                self.print_keys = [key for key in self.dct_info.dct.get_entry_ids()]
+                self.print_keys = [key for key in self.dct.get_entry_ids()]
             else:
                 self.print_keys = [
-                    key for key in self.dct_info.dct.get_entry_ids()
-                    if group in self.dct_info.dct[key].groups
+                    key for key in self.dct.get_entry_ids()
+                    if group in self.dct[key].groups
                 ]
         self.print_selected_keys = [
             key for key in self.print_selected_keys
@@ -6351,70 +6118,70 @@ class PrintW(tk.Toplevel):
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[2]:
             """
             self.print_keys.sort(key=lambda k: (
-                self.dct_info.dct[k].accuracy,
-                self.dct_info.dct[k].win_streak,
+                self.dct[k].accuracy,
+                self.dct[k].win_streak,
             ))
             """
             self.print_keys.sort(key=lambda k: (
-                self.dct_info.dct[k].accuracy,
-                self.dct_info.dct[k].win_streak / (1 + len(self.dct_info.dct[k].forms.keys()) +
-                                                   len(self.dct_info.dct[k].phrases.keys())),
-                self.dct_info.dct[k].lemma.lower(),
-                self.dct_info.dct[k].lemma,
+                self.dct[k].accuracy,
+                self.dct[k].win_streak / (1 + len(self.dct[k].forms.keys()) +
+                                          len(self.dct[k].phrases.keys())),
+                self.dct[k].lemma.lower(),
+                self.dct[k].lemma,
             ))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[3]:
             """
             self.print_keys.sort(
                 key=lambda k: (
-                    self.dct_info.dct[k].accuracy,
-                    self.dct_info.dct[k].win_streak,
+                    self.dct[k].accuracy,
+                    self.dct[k].win_streak,
                 ),
                 reverse=True,
             )
             """
             self.print_keys.sort(key=lambda k: (
-                -self.dct_info.dct[k].accuracy,
-                -self.dct_info.dct[k].win_streak / (1 + len(self.dct_info.dct[k].forms.keys()) +
-                                                    len(self.dct_info.dct[k].phrases.keys())),
-                self.dct_info.dct[k].lemma.lower(),
-                self.dct_info.dct[k].lemma,
+                -self.dct[k].accuracy,
+                -self.dct[k].win_streak / (1 + len(self.dct[k].forms.keys()) +
+                                           len(self.dct[k].phrases.keys())),
+                self.dct[k].lemma.lower(),
+                self.dct[k].lemma,
             ))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[4]:
             self.print_keys.sort(key=lambda k: (
-                self.dct_info.dct[k].latest_att_timestamp,
-                self.dct_info.dct[k].lemma.lower(),
-                self.dct_info.dct[k].lemma,
+                self.dct[k].latest_att_timestamp,
+                self.dct[k].lemma.lower(),
+                self.dct[k].lemma,
             ))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[5]:
             self.print_keys.sort(key=lambda k: (
-                [-val for val in self.dct_info.dct[k].latest_att_timestamp],
-                self.dct_info.dct[k].lemma.lower(),
-                self.dct_info.dct[k].lemma,
+                [-val for val in self.dct[k].latest_att_timestamp],
+                self.dct[k].lemma.lower(),
+                self.dct[k].lemma,
             ))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[6]:
             self.print_keys.sort(key=lambda k: (
-                self.dct_info.dct[k].lemma.lower(),
-                self.dct_info.dct[k].lemma,
+                self.dct[k].lemma.lower(),
+                self.dct[k].lemma,
             ))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[7]:
             self.print_keys.sort(
                 key=lambda k: (
-                    self.dct_info.dct[k].lemma.lower(),
-                    self.dct_info.dct[k].lemma
+                    self.dct[k].lemma.lower(),
+                    self.dct[k].lemma
                 ),
                 reverse=True,
             )
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[8]:
             self.print_keys.sort(key=lambda k: (
-                len(self.dct_info.dct[k].lemma),
-                self.dct_info.dct[k].lemma.lower(),
-                self.dct_info.dct[k].lemma,
+                len(self.dct[k].lemma),
+                self.dct[k].lemma.lower(),
+                self.dct[k].lemma,
             ))
         elif self.var_print_order.get() == PRINT_VALUES_ORDER[9]:
             self.print_keys.sort(key=lambda k: (
-                -len(self.dct_info.dct[k].lemma),
-                self.dct_info.dct[k].lemma.lower(),
-                self.dct_info.dct[k].lemma,
+                -len(self.dct[k].lemma),
+                self.dct[k].lemma.lower(),
+                self.dct[k].lemma,
             ))
         # Выводим информацию о количестве статей
         self.print_print_info()
@@ -6469,10 +6236,10 @@ class PrintW(tk.Toplevel):
             ttip.Hovertip(
                 self.print_buttons[i],
                 f'Верных ответов подряд: {get_correct_att_in_a_row(
-                    self.dct_info.dct[self.print_keys[self.print_start_index + i]]
+                    self.dct[self.print_keys[self.print_start_index + i]]
                 )}\n'
                 f'Доля верных ответов: {get_entry_percent(
-                    self.dct_info.dct[self.print_keys[self.print_start_index + i]]
+                    self.dct[self.print_keys[self.print_start_index + i]]
                 )}',
                 hover_delay=666,
             ) for i in range(self.print_count_elements_on_page)
@@ -6482,13 +6249,13 @@ class PrintW(tk.Toplevel):
             for i in range(self.print_count_elements_on_page):
                 key = self.print_keys[self.print_start_index + i]
                 self.print_buttons[i].configure(
-                    text=get_entry_info_briefly(self.dct_info.dct[key], 75)
+                    text=get_entry_info_briefly(self.dct[key], 75)
                 )
         else:
             for i in range(self.print_count_elements_on_page):
                 key = self.print_keys[self.print_start_index + i]
                 self.print_buttons[i].configure(
-                    text=get_entry_info_detailed(self.dct_info.dct[key], 75)
+                    text=get_entry_info_detailed(self.dct[key], 75)
                 )
 
         for i in range(self.print_count_elements_on_page):
@@ -6520,17 +6287,18 @@ class PrintW(tk.Toplevel):
         # Если нужно, оставляем только избранные
         if self.to_search_only_fav:
             keys = [
-                key for key in self.dct_info.dct.get_entry_ids()
-                if self.dct_info.dct[key].is_fav
+                key for key in self.dct.get_entry_ids()
+                if self.dct[key].is_fav
             ]
         else:
-            keys = [key for key in self.dct_info.dct.get_entry_ids()]
+            keys = [key for key in self.dct.get_entry_ids()]
         # Если нужно, оставляем только одну группу
         if self.search_group != ALL_GROUPS:
-            keys = [key for key in keys if self.search_group in self.dct_info.dct[key].groups]
+            keys = [key for key in keys if self.search_group in self.dct[key].groups]
         # Среди оставшихся ищем статьи, содержащие искомый текст
         results = search_entries(
-            self.dct_info.dct, tuple(keys), self.var_search_query.get(),
+            self.dct, tuple(keys),
+            self.dct.apply_replacements(self.var_search_query.get()),
             self.to_search_wrd, self.to_search_tr, self.to_search_frm,
             self.to_search_phr, self.to_search_nt,
         )
@@ -6539,7 +6307,7 @@ class PrintW(tk.Toplevel):
         for i in range(6 if self.to_search_only_full else 9):
             self.search_keys += sorted(
                 list(results[i]),
-                key=lambda k: (self.dct_info.dct[k].lemma.lower(), self.dct_info.dct[k].lemma),
+                key=lambda k: (self.dct[k].lemma.lower(), self.dct[k].lemma),
             )
         # Из выделенных статей оставляем, только удовлетворяющие поисковому запросу
         self.search_selected_keys = [
@@ -6590,7 +6358,7 @@ class PrintW(tk.Toplevel):
                 self.search_frames[i],
                 lambda i=i: self.edit_entry(self.search_keys[self.search_start_index + i]),
                 get_all_entry_info(
-                    self.dct_info.dct[self.search_keys[self.search_start_index + i]], 75, 13
+                    self.dct[self.search_keys[self.search_start_index + i]], 75, 13
                 ),
                 style=(
                     ('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
@@ -6622,12 +6390,12 @@ class PrintW(tk.Toplevel):
         if self.var_print_briefly.get():
             key = self.print_keys[self.print_start_index + index]
             self.print_buttons[index].configure(
-                text=get_entry_info_briefly(self.dct_info.dct[key], 75)
+                text=get_entry_info_briefly(self.dct[key], 75)
             )
         else:
             key = self.print_keys[self.print_start_index + index]
             self.print_buttons[index].configure(
-                text=get_entry_info_detailed(self.dct_info.dct[key], 75)
+                text=get_entry_info_detailed(self.dct[key], 75)
             )
 
         # Выводим информацию о количестве статей
@@ -6637,7 +6405,7 @@ class PrintW(tk.Toplevel):
     def search_refresh_one_button(self, index: int, key: EntryID):
         # Выводим текст на кнопку
         self.search_buttons[index].configure(
-            text=get_all_entry_info(self.dct_info.dct[key], 75, 13)
+            text=get_all_entry_info(self.dct[key], 75, 13)
         )
 
         # Выводим информацию о количестве статей
@@ -6650,13 +6418,13 @@ class PrintW(tk.Toplevel):
             for i in range(self.print_count_elements_on_page):
                 key = self.print_keys[self.print_start_index + i]
                 self.print_buttons[i].configure(
-                    text=get_entry_info_briefly(self.dct_info.dct[key], 75)
+                    text=get_entry_info_briefly(self.dct[key], 75)
                 )
         else:
             for i in range(self.print_count_elements_on_page):
                 key = self.print_keys[self.print_start_index + i]
                 self.print_buttons[i].configure(
-                    text=get_entry_info_detailed(self.dct_info.dct[key], 75)
+                    text=get_entry_info_detailed(self.dct[key], 75)
                 )
 
     # Обновить все кнопки журнала (2)
@@ -6665,7 +6433,7 @@ class PrintW(tk.Toplevel):
         for i in range(self.search_count_elements_on_page):
             key = self.search_keys[self.search_start_index + i]
             self.search_buttons[i].configure(
-                text=get_all_entry_info(self.dct_info.dct[key], 75, 13)
+                text=get_all_entry_info(self.dct[key], 75, 13)
             )
 
         # Выводим информацию о количестве статей
@@ -6869,7 +6637,7 @@ class PrintW(tk.Toplevel):
         if not keys:
             return
 
-        self.dct_info.dct.add_to_fav(tuple(keys))
+        self.dct.add_to_fav(tuple(keys))
 
         self.print_refresh_all_buttons()
         self.search_refresh_all_buttons()
@@ -6879,7 +6647,7 @@ class PrintW(tk.Toplevel):
         if not keys:
             return
 
-        self.dct_info.dct.remove_from_fav(tuple(keys))
+        self.dct.remove_from_fav(tuple(keys))
 
         self.print_refresh_all_buttons()
         self.search_refresh_all_buttons()
@@ -6888,13 +6656,13 @@ class PrintW(tk.Toplevel):
     def add_selected_to_group(self, keys: list[EntryID]):
         if not keys:
             return
-        if not self.dct_info.dct.groups:
+        if not self.dct.groups:
             PopupMsgW(self, self.app_data, 'Не найдено ни одной группы!').open()
             return
 
-        sets = [self.dct_info.dct[key].groups for key in keys]
+        sets = [self.dct[key].groups for key in keys]
         values_intersec = set.intersection(*sets)
-        values = [gr for gr in self.dct_info.dct.groups if gr not in values_intersec]
+        values = [gr for gr in self.dct.groups if gr not in values_intersec]
         if not values:
             PopupMsgW(
                 self, self.app_data,
@@ -6905,12 +6673,12 @@ class PrintW(tk.Toplevel):
             self, self.app_data,
             msg='Выберите группу, в которую хотите добавить выбранные слова:',
             values=values,
-            default_value=self.dct_info.dct.groups[0],
+            default_value=self.dct.groups[0],
         )
         closed, group = window_groups.open()
         if closed:
             return
-        self.dct_info.dct.add_entries_to_group(group, tuple(keys))
+        self.dct.add_entries_to_group(group, tuple(keys))
 
         if group == self.var_print_group.get():
             self.print_print(True)
@@ -6922,13 +6690,13 @@ class PrintW(tk.Toplevel):
     def remove_selected_from_group(self, keys: list[EntryID]):
         if not keys:
             return
-        if not self.dct_info.dct.groups:
+        if not self.dct.groups:
             PopupMsgW(self, self.app_data, 'Не найдено ни одной группы!').open()
             return
 
         values = []
         for key in keys:
-            for gr in self.dct_info.dct[key].groups:
+            for gr in self.dct[key].groups:
                 if gr not in values:
                     values += [gr]
         if not values:
@@ -6950,7 +6718,7 @@ class PrintW(tk.Toplevel):
         closed, group = window_groups.open()
         if closed:
             return
-        self.dct_info.dct.remove_entries_from_group(group, tuple(keys))
+        self.dct.remove_entries_from_group(group, tuple(keys))
 
         if group == self.var_print_group.get():
             self.print_print(True)
@@ -6975,7 +6743,7 @@ class PrintW(tk.Toplevel):
             return
 
         for key in keys:
-            self.dct_info.dct.delete_entry(key)
+            self.dct.delete_entry(key)
 
         self.print_print(True)
         self.search_print(True)
@@ -7159,8 +6927,8 @@ class AddW(tk.Toplevel):
     def _add_validation(self):
         # При незаполненных полях нельзя нажать кнопку
         def validate_entries(value_wrd: str, value_tr: str):
-            value_wrd = encode_special_combinations(value_wrd, self.dct.input_replacements)
-            value_tr = encode_special_combinations(value_tr, self.dct.input_replacements)
+            value_wrd = self.dct.apply_replacements(value_wrd)
+            value_tr = self.dct.apply_replacements(value_tr)
 
             if value_wrd == '' or value_tr == '':
                 btn_disable(self.btn_add)
@@ -7205,9 +6973,9 @@ class AddW(tk.Toplevel):
     # Добавление статьи
     def add(self):
         self.dct_key = add_entry_with_choose(
-            self.dct, self,
-            encode_special_combinations(self.var_wrd.get(), self.dct.input_replacements),
-            encode_special_combinations(self.var_tr.get(), self.dct.input_replacements),
+            self.app_data, self,
+            self.dct.apply_replacements(self.var_wrd.get()),
+            self.dct.apply_replacements(self.var_tr.get()),
         )
         if not self.dct_key:
             return
@@ -7358,12 +7126,14 @@ class SettingsW(tk.Toplevel):
             row=0, column=1, padx=(0, 6), pady=6)
 
     def _create_typo_button_frame(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_show_typo_button = create_frame(self.tab_global, row=1, padx=6, pady=6)
 
         self.btn_about_typo = create_button(
             self.frame_show_typo_button, self.about_typo, width=2,
             row=0, column=0, padx=(6, 0), pady=6)
-        set_image(self.btn_about_typo, self.img_about, img_about, '?')
+        set_image(self.btn_about_typo, self.img_about, img_path(theme, 'about'), '?')
         self.lbl_show_typo_button = create_label(
             self.frame_show_typo_button, 'Показывать кнопку "Опечатка":',
             row=0, column=1, padx=(3, 3), pady=6)
@@ -7372,6 +7142,8 @@ class SettingsW(tk.Toplevel):
             row=0, column=2, padx=(0, 6), pady=6)
 
     def _create_dictionaries_frame(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_dcts = create_frame(self.tab_global, row=2, padx=6, pady=6)
 
         self.lbl_dcts = create_label(
@@ -7380,7 +7152,7 @@ class SettingsW(tk.Toplevel):
         self.btn_about_dcts = create_button(
             self.frame_dcts, self.about_dcts, width=2,
             row=0, column=1, padx=6, pady=(6, 0))
-        set_image(self.btn_about_dcts, self.img_about, img_about, '?')
+        set_image(self.btn_about_dcts, self.img_about, img_path(theme, 'about'), '?')
         self.scrolled_frame_dcts = ScrollFrame(
             self.frame_dcts, self.app_data,
             SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.gui_settings.scale - SCALE_MIN],
@@ -7432,13 +7204,15 @@ class SettingsW(tk.Toplevel):
             row=1, column=2, padx=6, pady=(0, 6), sticky='WENS')
 
     def _create_scale_frame(self):
+        theme = self.app_data.gui_settings.theme
+
         self.frame_scale = create_frame(self.tab_global, row=4, padx=6, pady=6)
 
         self.btn_scale_minus = create_button(
             self.frame_scale, self.scale_minus,
             width=2, state='normal',
             row=0, column=0, padx=(6, 3), pady=6)
-        set_image(self.btn_scale_minus, self.img_minus, img_delete, '-')
+        set_image(self.btn_scale_minus, self.img_minus, img_path(theme, 'delete'), '-')
         self.lbl_scale = create_label(
             self.frame_scale, f'Масштаб ({self.app_data.gui_settings.scale}x)',
             row=0, column=1, padx=(3, 3), pady=6)
@@ -7446,7 +7220,7 @@ class SettingsW(tk.Toplevel):
             self.frame_scale, self.scale_plus,
             width=2, state='normal',
             row=0, column=2, padx=(3, 6), pady=6)
-        set_image(self.btn_scale_plus, self.img_plus, img_add, '+')
+        set_image(self.btn_scale_plus, self.img_plus, img_path(theme, 'add'), '+')
 
     def _create_tips(self):
         self.tip_btn_about_typo = ttip.Hovertip(self.btn_about_typo, 'Справка', hover_delay=450)
@@ -7472,10 +7246,12 @@ class SettingsW(tk.Toplevel):
 
     # Справка о кнопке "Опечатка" (срабатывает при нажатии на кнопку)
     def about_typo(self):
+        theme = self.app_data.gui_settings.theme
+
         PopupImgW(
             self,
             self.app_data,
-            img_about_typo,
+            img_path(theme, 'about_typo'),
             'Если функция включена, то\n'
             'когда вы неверно отвечаете при учёбе,\n'
             'появляется кнопка "Просто опечатка".\n'
@@ -7502,22 +7278,11 @@ class SettingsW(tk.Toplevel):
         # Если есть прогресс, то предлагается его сохранить
         if self.has_local_changes():
             save_settings_if_has_changes(self, self.manager.active.dct)
-        save_dct_if_has_progress(self, self.manager.active.dct, self.manager.active.dct.name)
+        save_dct_if_has_progress(self, self.app_data)
 
-        self.manager.active.dct = Dictionary()
-        res = upload_save(self, self.manager.active.dct, savename, 'Отмена')
-        if not res:
-            # Если была попытка открыть повреждённый словарь, то при
-            # сохранении настроек, текущий словарь стёрся бы
-            self.destroy()
-            return
-        self.manager.active.dct.name, self.manager.active.settings.is_register_sensitive, \
-            self.manager.active.dct._input_replacements, self.manager.active.dct._default_groups =\
-            res
-        self.manager.active.cache.session_number, self.manager.active.cache.search_config, \
-            self.manager.active.cache.train_config =\
-            upload_local_auto_settings(self.manager.active.dct.name)
-        save_dct_name()
+        filepath = f'./resources/saves/{savename}/dct_data.json'  # TODO: choose filepath
+        self.manager.open_dct(filepath)
+        self.app_data.save(glob=False, gui=False)
 
         self.backup_dct = copy.deepcopy(self.manager.active.dct)
 
@@ -7538,7 +7303,9 @@ class SettingsW(tk.Toplevel):
             f'Введите новое название для словаря "{old_savename}"',
             default_value=old_savename,
             validate_function=validate_savename,
-            check_answer_function=lambda wnd, val: check_dct_savename_edit(wnd, old_savename, val),
+            check_answer_function=lambda wnd, val: check_dct_savename_edit(
+                wnd, self.app_data, old_savename, val
+            ),
         )
         closed, new_savename = window_rename.open()
         if closed or new_savename == old_savename:
@@ -7547,7 +7314,7 @@ class SettingsW(tk.Toplevel):
         os.rename(os.path.join(SAVES_PATH, old_savename), os.path.join(SAVES_PATH, new_savename))
         if self.manager.active.dct.name == old_savename:
             self.manager.active.dct.name = new_savename
-            save_dct_name()
+            self.app_data.save(glob=False, gui=False)
             # Обновляем надписи с названием открытого словаря
             self.refresh_open_dct_name(new_savename)
         print(f'Словарь "{old_savename}" успешно переименован в "{new_savename}"')
@@ -7580,7 +7347,7 @@ class SettingsW(tk.Toplevel):
             self, self.app_data,
             'Введите название нового словаря',
             validate_function=validate_savename,
-            check_answer_function=check_dct_savename,
+            check_answer_function=lambda wnd, val: check_dct_savename(wnd, self.app_data, val),
         )
         closed, savename = window.open()
         if closed:
@@ -7588,17 +7355,12 @@ class SettingsW(tk.Toplevel):
 
         if self.has_local_changes():
             save_settings_if_has_changes(self, self.manager.active.dct)
-        save_dct_if_has_progress(self, self.manager.active.dct, self.manager.active.dct.name)
+        save_dct_if_has_progress(self, self.app_data)
 
-        self.manager.active.dct = create_dct(savename)
-        self.manager.active.settings.is_register_sensitive, \
-            self.manager.active.dct._input_replacements, self.manager.active.dct._features, \
-            self.manager.active.dct._groups, self.manager.active.dct._default_groups =\
-            upload_local_settings(savename)
-        self.manager.active.cache.session_number, self.manager.active.cache.search_config, \
-            self.manager.active.cache.train_config = upload_local_auto_settings(savename)
-        self.manager.active.dct.name = savename
-        save_dct_name()
+        filepath = f'./resources/saves/{savename}/dct_data.json'  # TODO: choose filepath
+        self.manager.create_dct(filepath, savename)
+        self.manager.save_dct(self.manager.active_dct_id, filepath)
+        self.app_data.save(glob=False, gui=False)
 
         print(f'\nСловарь "{savename}" успешно создан и открыт')
 
@@ -7634,7 +7396,7 @@ class SettingsW(tk.Toplevel):
             'Введите название для словаря',
             default_value=default_savename,
             validate_function=validate_savename,
-            check_answer_function=check_dct_savename,
+            check_answer_function=lambda wnd, val: check_dct_savename(wnd, self.app_data, val),
         )
         closed, savename = window.open()
         if closed:
@@ -7667,16 +7429,6 @@ class SettingsW(tk.Toplevel):
         self.combo_themes.configure(font=('DejaVu Sans Mono', self.app_data.gui_settings.scale))
         self.entry_themes_version.configure(font=('StdFont', self.app_data.gui_settings.scale))
 
-        # TODO: remove try-catch
-        # Установка масштаба для окна уведомления об обновлении
-        try:
-            # TODO: remove global variable
-            _0_global_window_last_version.entry_url.configure(
-                font=('StdFont', self.app_data.gui_settings.scale)
-            )
-        except NameError:  # Если окно обновления не открыто
-            pass
-
         self.refresh_scale_buttons()
 
     # Уменьшить масштаб (срабатывает при нажатии на кнопку)
@@ -7693,16 +7445,6 @@ class SettingsW(tk.Toplevel):
         )
         self.combo_themes.configure(font=('DejaVu Sans Mono', self.app_data.gui_settings.scale))
         self.entry_themes_version.configure(font=('StdFont', self.app_data.gui_settings.scale))
-
-        # TODO: remove try-catch
-        # Установка масштаба для окна уведомления об обновлении
-        try:
-            # TODO: remove global variable
-            _0_global_window_last_version.entry_url.configure(
-                font=('StdFont', self.app_data.gui_settings.scale)
-            )
-        except NameError:  # Если окно обновления не открыто
-            pass
 
         self.refresh_scale_buttons()
 
@@ -7725,25 +7467,13 @@ class SettingsW(tk.Toplevel):
         self.backup_scale = self.app_data.gui_settings.scale
 
         # Сохранение настроек в файлы
-        save_local_settings(
-            self.manager.active.settings.is_register_sensitive,
-            self.manager.active.dct.input_replacements, self.manager.active.dct.features,
-            self.manager.active.dct.groups, self.manager.active.dct.default_groups,
-            self.manager.active.dct.name,
-        )
-        save_global_settings(
-            self.manager.active.dct.name, self.app_data.global_settings.to_check_for_updates,
-            self.app_data.global_settings.is_typo_btn_on, self.app_data.gui_settings.theme,
-            self.app_data.gui_settings.scale,
-        )
-        save_local_auto_settings(
-            self.manager.active.cache.session_number, self.manager.active.cache.search_config,
-            self.manager.active.cache.train_config, self.manager.active.dct.name,
-        )
+        self.app_data.save()
+        save_dct_settings(self.manager.active)
+        save_dct_cache(self.manager.active)
 
         # Сохранение словаря, если были изменения локальных настроек
         if self.has_local_changes():
-            save_dct(self.manager.active.dct, self.manager.active.dct.name)
+            save_dct(self.manager.active)
 
         # Обнуление переменных, показывающих наличие изменений
         self.has_ctg_changes = False
@@ -7852,15 +7582,15 @@ class SettingsW(tk.Toplevel):
     # Установить выбранную тему
     def set_theme(self):
         self.app_data.gui_settings.theme = self.var_theme.get()
+        theme = self.app_data.gui_settings.theme
 
         self.parent.setup_styles()  # Установка ttk-стилей
-        upload_theme_img(self.app_data.gui_settings.theme)  # Загрузка изображений темы
 
         # Установка изображений
-        set_image(self.btn_about_typo, self.img_about, img_about, '?')
-        set_image(self.btn_about_dcts, self.img_about, img_about, '?')
-        set_image(self.btn_scale_plus, self.img_plus, img_add, '+')
-        set_image(self.btn_scale_minus, self.img_minus, img_delete, '-')
+        set_image(self.btn_about_typo, self.img_about, img_path(theme, 'about'), '?')
+        set_image(self.btn_about_dcts, self.img_about, img_path(theme, 'about'), '?')
+        set_image(self.btn_scale_plus, self.img_plus, img_path(theme, 'add'), '+')
+        set_image(self.btn_scale_minus, self.img_minus, img_path(theme, 'delete'), '-')
 
         # Установка некоторых стилей для окна настроек
         self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
@@ -7870,16 +7600,6 @@ class SettingsW(tk.Toplevel):
 
         # Установка фона для главного окна
         self.parent.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
-
-        # TODO: remove try-catch
-        # Установка фона для окна уведомления об обновлении
-        try:
-            # TODO: remove global variable
-            _0_global_window_last_version.configure(
-                bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme]
-            )
-        except NameError:  # Если окно обновления не открыто
-            pass
 
     # Были ли изменения локальных настроек
     def has_local_changes(self):
@@ -8006,7 +7726,7 @@ class NewVersionAvailableW(tk.Toplevel):
 
     # Скачать и установить обновление
     def download_and_install(self):
-        save_dct_if_has_progress(self, self.dct, self.dct.name)
+        save_dct_if_has_progress(self, self.app_data)
 
         # Загрузка
         try:
@@ -8196,11 +7916,6 @@ class MainW(tk.Tk):
         SettingsW(self, self.app_data).open()
         self.enable_all_buttons()
 
-        # TODO:
-        # Обновляем глобальные настройки
-        # Обновляем локальные настройки
-        # Обновляем локальные авто-настройки
-
         # Обновляем надпись с названием открытого словаря
         self.lbl_dct_name.config(text=(
             f'Открыт словарь\n'
@@ -8209,48 +7924,22 @@ class MainW(tk.Tk):
             )}"'
         ))
 
-        # TODO: remove try-catch
-        # Установка масштаба для окна уведомления об обновлении
-        try:
-            # TODO: remove global variable
-            _0_global_window_last_version.entry_url.configure(
-                font=('StdFont', self.app_data.gui_settings.scale)
-            )
-        except NameError:  # Если окно обновления не открыто
-            pass
-
         self.setup_styles()  # Установка ttk-стилей
 
     # Нажатие на кнопку "Проверить обновления"
     def check_updates(self):
-        global _0_global_window_last_version
-
-        # TODO: remove try-catch
-        # Если уведомление об обновлении уже открыто, то закрываем его
-        try:
-            # TODO: remove global variable
-            _0_global_window_last_version.destroy()
-        except NameError:
-            pass
-        # Открываем новое уведомление об обновлении
-        _0_global_window_last_version = check_updates(
-            self, self.app_data.manager.active.dct, self.app_data,
-            self.app_data.global_settings.to_check_for_updates, True
-        )
+        print('\nChecking for updates...')
+        check_updates(self, self.app_data, True)
 
     # Нажатие на кнопку "Сохранить словарь"
     def save(self):
-        save_dct(self.app_data.manager.active.dct, self.app_data.manager.active.dct.name)
+        self.app_data.manager.save_dct(self.app_data.manager.active_dct_id)
         PopupMsgW(self, self.app_data, 'Прогресс успешно сохранён').open()
         print('\nПрогресс успешно сохранён')
 
-        self.app_data.manager.active.dct.mark_saved()
-
     # Нажатие на кнопку "Закрыть программу"
     def close(self):
-        save_dct_if_has_progress(
-            self, self.app_data.manager.active.dct, self.app_data.manager.active.dct.name
-        )
+        save_dct_if_has_progress(self, self.app_data)
         self.quit()
 
     # Отключить все кнопки на главном окне
@@ -8733,15 +8422,6 @@ class MainW(tk.Tk):
 
 
 def main():
-    global img_about_typo, img_about, img_ok, img_cancel, img_fav, img_unfav, img_add_to_group, \
-        img_remove_from_group, img_edit, img_add, img_delete, img_select_page, img_unselect_page, img_select_all, \
-        img_unselect_all, img_print_out, img_redo, img_undo, img_arrow_left, img_arrow_right, img_double_arrow_left, \
-        img_double_arrow_right, img_trashcan
-    global _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale, \
-        _0_global_special_combinations, _0_global_check_register, _0_global_learn_settings, \
-        _0_global_session_number, _0_global_search_settings, _0_global_fav_groups, _0_global_has_progress
-    global _0_global_learn_session_number, _0_global_window_last_version
-
     # Если папки отсутствуют, то они создаются
     if RESOURCES_DIR not in os.listdir(MAIN_PATH):
         os.mkdir(RESOURCES_PATH)
@@ -8779,28 +8459,17 @@ def main():
     print()
     print('=' * CONSOLE_LOGO_FRAME_WIDTH)
 
-    dct = Dictionary()
-    _0_global_has_progress = False
-
     print('\nПрограмма запускается...')
     print('\nЗагрузка тем...')
     upload_themes(THEMES)  # Загружаем дополнительные темы
     upload_custom_theme()  # Загружаем пользовательскую тему
-    _0_global_dct_savename, _0_global_show_updates, _0_global_with_typo, th, _0_global_scale =\
-        upload_global_settings()  # Загружаем глобальные настройки
-    upload_theme_img(th)  # Загружаем изображения для выбранной темы
-    root = MainW(dct)  # Создаём графический интерфейс
-    uploaded_save = upload_save(root, dct, _0_global_dct_savename, 'Завершить работу')  # Загружаем словарь
-    if not uploaded_save:
-        exit(EXIT_DCT_LOAD_FAILED)
-    uploaded_save: tuple[str, int, dict[tuple[str, str], str], list[str]]
-    _0_global_dct_savename, _0_global_check_register, _0_global_special_combinations, \
-        _0_global_fav_groups = uploaded_save
-    _0_global_session_number, _0_global_search_settings, _0_global_learn_settings =\
-        upload_local_auto_settings(_0_global_dct_savename)  # Загружаем локальные авто-настройки
-    _0_global_window_last_version = check_updates(root, dct, bool(_0_global_show_updates),
-                                                  False)  # Проверяем наличие обновлений
-    _0_global_learn_session_number = 0
+
+    app_data = AppData('./resources/app_data.json', 'tk')  # TODO: replace with real path
+    app_data.load()
+
+    # Initialize GUI
+    root = MainW(app_data)
+    # Set icon
     if ICON_FN in os.listdir(RESOURCES_PATH):
         root.iconphoto(True, tk.PhotoImage(file=ICON_PATH))  # Устанавливаем иконку
     print('\nЗапуск программы прошёл успешно')
