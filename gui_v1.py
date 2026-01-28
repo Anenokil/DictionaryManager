@@ -1974,7 +1974,7 @@ class ChooseLearnModeW(tk.Toplevel):
         self.dct = app_data.manager.active.dct
         self.train_config = app_data.manager.active.cache.train_config
 
-        self.res: tuple[str, str, str, str, str] | None = None
+        self.res = False
         self.group_vals = [ALL_GROUPS] + self.dct.groups
 
         # Метод учёбы
@@ -2087,15 +2087,16 @@ class ChooseLearnModeW(tk.Toplevel):
         else:
             forms = LEARN_VALUES_FORMS[0]
         order = self.var_order.get()
-        self.res = (method, group, words, forms, order)
 
         self.dct_info.cache.train_config = TrainingConfig(
-            self.txt_to_method[self.res[0]],
-            self.txt_to_order[self.res[4]],
-            self.txt_to_entries[self.res[2]],
-            self.txt_to_forms[self.res[3]],
-            None if self.res[1] == ALL_GROUPS else self.res[1],
+            self.txt_to_method[method],
+            self.txt_to_order[order],
+            self.txt_to_entries[words],
+            self.txt_to_forms[forms],
+            None if group == ALL_GROUPS else group,
         )
+
+        self.res = True
 
         save_dct_cache(self.dct_info)
 
@@ -2114,7 +2115,7 @@ class ChooseLearnModeW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        return self.dct_info.cache.train_config
+        return self.res
 
 
 # Окно с сообщением о неверном ответе (для слов, не находящихся в избранном)
@@ -7878,8 +7879,9 @@ class MainW(tk.Tk):
     def learn(self):
         self.disable_all_buttons()
 
-        train_config = ChooseLearnModeW(self, self.app_data).open()
-        if train_config:
+        res = ChooseLearnModeW(self, self.app_data).open()
+        if res:
+            train_config = self.app_data.manager.active.cache.train_config
             LearnW(self, self.app_data, train_config).open()
 
         self.enable_all_buttons()
