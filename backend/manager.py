@@ -468,7 +468,7 @@ class Manager:
 
         if len(self.opened_dct_info) == 1:
             self.active_dct_id = None
-        elif dct_id < self.active_dct_id:
+        elif dct_id < self.active_dct_id or self.active_dct_id == len(self.opened_dct_info) - 1:
             self.active_dct_id -= 1
 
         del self.opened_dct_info[dct_id]
