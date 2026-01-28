@@ -1092,7 +1092,7 @@ def upload_one_theme(theme_path: str, theme_name: str) -> int:
     if theme_version != REQUIRED_THEME_VERSION:  # Проверка версии темы
         if to_update == '1':
             print(f'Тема устарела. Идёт обновление с версии {theme_version} '
-                  'до версии {REQUIRED_THEME_VERSION}')
+                  f'до версии {REQUIRED_THEME_VERSION}')
             upgrade_theme(styles_path)
         else:
             return RET_TH_OLD
