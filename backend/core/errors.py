@@ -70,7 +70,7 @@ class FieldTypeError(DeserializationError):
             field: Any,
             expected_types: type | tuple[type, ...] | list[type],
             gotten_value: Any,
-            gotten_type: type | None = None,
+            gotten_type: type | str | None = None,
     ):
         """
         Args:
@@ -93,7 +93,11 @@ class FieldTypeError(DeserializationError):
         expected_types_repr = ', or '.join(
             _type_repr(t) for t in self.expected_types
         )
-        gotten_type_repr = _type_repr(self.gotten_type)
+        gotten_type_repr = (
+            self.gotten_type
+            if isinstance(self.gotten_type, str) else
+            _type_repr(self.gotten_type)
+        )
         value_repr = repr(self.gotten_value)
         value_max_len = 50
         if len(value_repr) > value_max_len:
