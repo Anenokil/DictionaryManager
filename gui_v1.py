@@ -93,7 +93,7 @@ STYLE_KEYS = list(STYLES.keys())
 
 
 # Проверить строку на непустоту
-def check_not_void(window_parent, app_data: AppData, value: str, msg_if_void: str) -> bool:
+def check_not_void(window_parent: tk.Misc, app_data: AppData, value: str, msg_if_void: str) -> bool:
     if value == '':
         warning(window_parent, app_data, msg_if_void)
         return False
@@ -101,7 +101,7 @@ def check_not_void(window_parent, app_data: AppData, value: str, msg_if_void: st
 
 
 # Проверить корректность названия словаря
-def check_dct_name(window_parent, app_data: AppData, name: str) -> bool:
+def check_dct_name(window_parent: tk.Misc, app_data: AppData, name: str) -> bool:
     if len(name) > 100:
         warning(window_parent, app_data, 'Название слишком длинное (> 100)!')
         return False
@@ -116,7 +116,7 @@ def check_dct_name(window_parent, app_data: AppData, name: str) -> bool:
 
 # Проверить корректность названия словаря при изменении
 def check_dct_name_edit(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         old_name: str,
         new_name: str,
@@ -135,7 +135,7 @@ def check_dct_name_edit(
 
 # Проверить корректность перевода
 def check_tr(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         translations: list[str] | tuple[str, ...],
         new_tr: str,
@@ -154,7 +154,7 @@ def check_tr(
 
 # Проверить корректность перевода при изменении
 def check_tr_edit(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         translations: list[str] | tuple[str, ...],
         old_tr: str,
@@ -174,7 +174,7 @@ def check_tr_edit(
 
 # Проверить корректность фразы
 def check_phr(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         phrases: dict[str, list[str]],
         new_phrase_pair: tuple[str, str],
@@ -194,7 +194,7 @@ def check_phr(
 
 # Проверить корректность фразы при изменении
 def check_phr_edit(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         phrases: dict[str, list[str]],
         old_phrase_pair: tuple[str, str],
@@ -217,7 +217,7 @@ def check_phr_edit(
 
 # Проверить корректность сноски
 def check_note(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         notes: list[str] | tuple[str, ...],
         new_note: str,
@@ -236,7 +236,7 @@ def check_note(
 
 # Проверить корректность сноски при изменении
 def check_note_edit(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         notes: list[str] | tuple[str, ...],
         old_note: str,
@@ -256,7 +256,7 @@ def check_note_edit(
 
 # Проверить корректность названия группы
 def check_group_name(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         groups: list[str] | tuple[str, ...],
         new_group: str,
@@ -277,7 +277,7 @@ def check_group_name(
 
 # Проверить корректность названия группы при изменении
 def check_group_name_edit(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         groups: list[str] | tuple[str, ...],
         old_group: str,
@@ -299,7 +299,7 @@ def check_group_name_edit(
 
 # Проверить корректность названия категории
 def check_ctg(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         categories: list[str] | tuple[str, ...],
         new_ctg: str,
@@ -317,7 +317,7 @@ def check_ctg(
 
 # Проверить корректность названия категории при изменении
 def check_ctg_edit(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         categories: list[str] | tuple[str, ...],
         old_ctg: str,
@@ -336,7 +336,7 @@ def check_ctg_edit(
 
 # Проверить корректность значения категории
 def check_ctg_val(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         ctg_values: list[str] | tuple[str, ...],
         new_value: str,
@@ -354,7 +354,7 @@ def check_ctg_val(
 
 # Проверить корректность значения категории при изменении
 def check_ctg_val_edit(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         ctg_values: list[str] | tuple[str, ...],
         old_value: str,
@@ -709,7 +709,7 @@ def select_word_form(n: int, word_forms: tuple[str, str, str]) -> str:
 
 
 # Выбрать одну статью из нескольких с одинаковыми словами
-def select_entry(app_data: AppData, window_parent, lemma: str):
+def select_entry(app_data: AppData, window_parent: tk.Misc, lemma: str):
     homograph_ids = app_data.manager.active.dct.search([('lemmas', lemma)])
     if len(homograph_ids) == 1:  # Если статья только одна, то возвращает её ключ
         return homograph_ids.pop()
@@ -720,7 +720,7 @@ def select_entry(app_data: AppData, window_parent, lemma: str):
 # Изменить слово в статье
 def edit_lemma_to_homograph(
         app_data: AppData,
-        window_parent,
+        window_parent: tk.Misc,
         entry_id: EntryID,
         new_lemma: str,
 ) -> tuple[EntryID | None, bool]:
@@ -754,7 +754,7 @@ def edit_lemma_to_homograph(
 
 
 # Добавить статью в словарь (для пользователя)
-def add_homograph(app_data: AppData, window_parent, lemma: str, tr: str) -> EntryID | None:
+def add_homograph(app_data: AppData, window_parent: tk.Misc, lemma: str, tr: str) -> EntryID | None:
     dct = app_data.manager.active.dct
 
     if dct.search([('lemmas', lemma)]):  # Если в словаре уже есть статья с таким словом
@@ -783,7 +783,7 @@ def add_homograph(app_data: AppData, window_parent, lemma: str, tr: str) -> Entr
 
 
 # Добавить категорию
-def add_ctg(window_parent, app_data: AppData) -> bool:
+def add_ctg(window_parent: tk.Misc, app_data: AppData) -> bool:
     dct = app_data.manager.active.dct
 
     # Ввод названия новой категории
@@ -816,7 +816,7 @@ def add_ctg(window_parent, app_data: AppData) -> bool:
 
 
 # Переименовать категорию
-def rename_ctg(window_parent, app_data: AppData, old_ctg_name: str) -> bool | None:
+def rename_ctg(window_parent: tk.Misc, app_data: AppData, old_ctg_name: str) -> bool | None:
     dct = app_data.manager.active.dct
 
     # Ввод нового названия категории
@@ -841,7 +841,7 @@ def rename_ctg(window_parent, app_data: AppData, old_ctg_name: str) -> bool | No
 
 
 # Удалить категорию
-def delete_ctg(window_parent, app_data: AppData, ctg_name: str) -> bool:
+def delete_ctg(window_parent: tk.Misc, app_data: AppData, ctg_name: str) -> bool:
     dct = app_data.manager.active.dct
 
     window_dia = TwoOptionsDialog(
@@ -860,7 +860,7 @@ def delete_ctg(window_parent, app_data: AppData, ctg_name: str) -> bool:
 
 # Добавить значение категории
 def add_ctg_value(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         ctg_name: str,
         ctg_values: list[str] | tuple[str, ...],
@@ -883,7 +883,12 @@ def add_ctg_value(
 
 
 # Переименовать значение категории
-def rename_ctg_value(window_parent, app_data: AppData, ctg_name: str, old_ctg_val: str) -> bool:
+def rename_ctg_value(
+        window_parent: tk.Misc,
+        app_data: AppData,
+        ctg_name: str,
+        old_ctg_val: str,
+) -> bool:
     dct = app_data.manager.active.dct
 
     # Ввод нового значения
@@ -908,7 +913,12 @@ def rename_ctg_value(window_parent, app_data: AppData, ctg_name: str, old_ctg_va
 
 
 # Удалить значение категории
-def delete_ctg_value(window_parent, app_data: AppData, ctg_name: str, ctg_val: str) -> bool:
+def delete_ctg_value(
+        window_parent: tk.Misc,
+        app_data: AppData,
+        ctg_name: str,
+        ctg_val: str,
+) -> bool:
     dct = app_data.manager.active.dct
 
     window_dia = TwoOptionsDialog(
@@ -935,7 +945,7 @@ def word_in_line(line: str, word: str) -> bool:
 # Поиск статей в словаре
 def search_entries(
         dct: Dictionary,
-        entry_ids: tuple[EntryID, ...],
+        entry_ids: Iterable[EntryID],
         query: str,
         to_search_wrd: bool,
         to_search_tr: bool,
@@ -1018,7 +1028,7 @@ def search_entries(
 
 # Проверить наличие обновлений программы
 def check_updates(
-        window_parent,
+        window_parent: tk.Misc,
         app_data: AppData,
         to_show_if_no_updates: bool,
 ):
@@ -1163,7 +1173,7 @@ def img_path(theme: str, img_name: str) -> str:
 
 
 # Предложить сохранение настроек, если есть изменения
-def save_settings_if_has_changes(window_parent, app_data: AppData):
+def save_settings_if_has_changes(window_parent: tk.Misc, app_data: AppData):
     window_dia = TwoOptionsDialog(
         window_parent, app_data,
         'Хотите сохранить изменения настроек?', 'Да', 'Нет',
@@ -1179,7 +1189,7 @@ def save_settings_if_has_changes(window_parent, app_data: AppData):
 
 
 # Предложить сохранение словаря, если есть изменения
-def save_dct_if_has_progress(window_parent, app_data: AppData):
+def save_dct_if_has_progress(window_parent: tk.Misc, app_data: AppData):
     manager = app_data.manager
     dct = manager.active.dct
     dct_id = manager.active_dct_id
@@ -1231,21 +1241,19 @@ def field_height(text: str, str_len: int) -> int:
 
 
 # Разместить окно tk.Toplevel
-def toplevel_geometry(window_parent, window):
+def toplevel_geometry(window_parent: tk.Misc, window: tk.Wm):
     window.geometry(f'+{window_parent.winfo_x() + 20}+{window_parent.winfo_y() + 20}')
 
 
 # Привязать функцию к нажатию клавиши
-def bind_keypress(event, keys_and_cmds: list[tuple[str, any]], is_latin: bool = True):
+def bind_keypress(event, keys_and_cmds: list[tuple[str, Callable[[], Any]]], is_latin: bool = True):
     for key, cmd in keys_and_cmds:
         if event.keycode == ord(key):
             if is_latin or event.keysym.lower() != key.lower():
                 cmd()
 
 
-def bind_ctrl_a(widget):
-    assert isinstance(widget, (tk.Entry, ttk.Entry))
-
+def bind_ctrl_a(widget: tk.Entry | ttk.Entry):
     def handler(event=None):
         widget.select_range(0, 'end')
         widget.icursor('end')
@@ -1256,7 +1264,7 @@ def bind_ctrl_a(widget):
 
 
 # Вывести сообщение с предупреждением
-def warning(window_parent, app_data: AppData, msg: str):
+def warning(window_parent: tk.Misc, app_data: AppData, msg: str):
     MessageDialog(window_parent, app_data, msg, tab=0, title='Warning').open()
 
 
@@ -1266,7 +1274,7 @@ def btn_disable(btn: ttk.Button):
 
 
 # Включить кнопку (т. к. в ttk нельзя убрать уродливую тень текста на выключенных кнопках, пришлось делать по-своему)
-def btn_enable(btn: ttk.Button, command, style='Default'):
+def btn_enable(btn: ttk.Button, command: str | Callable, style: str = 'Default'):
     btn.configure(command=command, style=f'{style}.TButton')
 
 
@@ -1429,7 +1437,7 @@ def validate_savename(value: str) -> bool:
 class ScrollFrame(tk.Frame):
     def __init__(
             self,
-            parent,
+            parent: tk.Misc,
             app_data: AppData,
             height: int,
             width: int,
@@ -1532,7 +1540,7 @@ class ScrollFrame(tk.Frame):
 class MessageDialog(tk.Toplevel):
     def __init__(
             self,
-            parent,
+            parent: tk.Misc,
             app_data: AppData,
             msg: str,
             btn_text: str = 'Ясно',
@@ -1551,7 +1559,7 @@ class MessageDialog(tk.Toplevel):
         self._configure_window(title)
         self._create_widgets(msg, btn_text, msg_max_width, tab, msg_justify)
 
-    def _configure_window(self, title):
+    def _configure_window(self, title: str):
         self.title(title)
         self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
         toplevel_geometry(self.parent, self)
@@ -1584,7 +1592,7 @@ class MessageDialog(tk.Toplevel):
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self):
+    def open(self) -> bool:
         self.set_focus()
 
         self.grab_set()
@@ -1600,7 +1608,7 @@ class TwoOptionsDialog(tk.Toplevel):
 
     def __init__(
             self,
-            parent,
+            parent: tk.Misc,
             app_data: AppData,
             msg: str = 'Вы уверены?',
             left_btn_text: str = 'Да',
@@ -1639,7 +1647,7 @@ class TwoOptionsDialog(tk.Toplevel):
         self._configure_window(title)
         self._create_widgets(msg, left_btn_text, right_btn_text)
 
-    def _configure_window(self, title):
+    def _configure_window(self, title: str):
         self.title(title)
         self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
         toplevel_geometry(self.parent, self)
@@ -1690,16 +1698,16 @@ class TwoOptionsDialog(tk.Toplevel):
 class InputDialog(tk.Toplevel):
     def __init__(
             self,
-            parent,
+            parent: tk.Misc,
             app_data: AppData,
             msg: str = 'Введите строку',
             btn_text: str = 'Подтвердить',
             entry_width: int = 45,
             default_value: str | None = '',
-            validate_function: Any = None,
-            check_answer_function: Any = None,
-            if_correct_function: Any = None,
-            if_incorrect_function: Any = None,
+            validate_function: Callable | None = None,
+            check_answer_function: Callable[[tk.Misc, str], bool] | None = None,
+            if_correct_function: Callable[[], Any] | None = None,
+            if_incorrect_function: Callable[[], Any] | None = None,
             title: str = PROGRAM_NAME,
     ):
         super().__init__(parent)
@@ -1723,7 +1731,7 @@ class InputDialog(tk.Toplevel):
 
         self.entry.icursor(len(default_value))
 
-    def _configure_window(self, title):
+    def _configure_window(self, title: str):
         self.title(title)
         self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
         toplevel_geometry(self.parent, self)
@@ -1763,7 +1771,7 @@ class InputDialog(tk.Toplevel):
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self):
+    def open(self) -> tuple[bool, str]:
         self.set_focus()
 
         self.grab_set()
@@ -1776,7 +1784,7 @@ class InputDialog(tk.Toplevel):
 class ChoiceDialog(tk.Toplevel):
     def __init__(
             self,
-            parent,
+            parent: tk.Misc,
             app_data: AppData,
             values: list[str] | tuple[str, ...],
             msg: str = 'Выберите один из вариантов',
@@ -1797,7 +1805,7 @@ class ChoiceDialog(tk.Toplevel):
         self._configure_window(title)
         self._create_widgets(msg, values, combo_width, btn_text)
 
-    def _configure_window(self, title):
+    def _configure_window(self, title: str):
         self.title(title)
         self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
         toplevel_geometry(self.parent, self)
@@ -1833,7 +1841,7 @@ class ChoiceDialog(tk.Toplevel):
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self):
+    def open(self) -> tuple[bool, str]:
         self.set_focus()
 
         self.grab_set()
@@ -1846,7 +1854,7 @@ class ChoiceDialog(tk.Toplevel):
 class ImageDialog(tk.Toplevel):
     def __init__(
             self,
-            parent,
+            parent: tk.Misc,
             app_data: AppData,
             img_name: str,
             msg: str,
@@ -1863,7 +1871,7 @@ class ImageDialog(tk.Toplevel):
         self._configure_window(title)
         self._create_widgets(img_name, msg, btn_text)
 
-    def _configure_window(self, title):
+    def _configure_window(self, title: str):
         self.title(title)
         self.resizable(width=False, height=False)
         self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
@@ -1899,7 +1907,7 @@ class ImageDialog(tk.Toplevel):
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self):
+    def open(self) -> bool:
         self.set_focus()
 
         self.grab_set()
@@ -1944,7 +1952,7 @@ class TrainSettingsW(tk.Toplevel):
     entries_to_txt = {v: k for k, v in txt_to_entries.items()}
     forms_to_txt = {v: k for k, v in txt_to_forms.items()}
 
-    def __init__(self, parent, app_data: AppData):
+    def __init__(self, parent: tk.Misc, app_data: AppData):
         super().__init__(parent)
         self.parent = parent
 
@@ -2088,7 +2096,7 @@ class TrainSettingsW(tk.Toplevel):
         self.bind('<Return>', lambda event: self.btn_start.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self):
+    def open(self) -> bool:
         self.set_focus()
 
         self.grab_set()
@@ -2101,7 +2109,7 @@ class TrainSettingsW(tk.Toplevel):
 class IncorrectAnswerW(tk.Toplevel):
     def __init__(
             self,
-            parent,
+            parent: tk.Misc,
             app_data: AppData,
             user_answer: str,
             correct_answer: str,
@@ -2181,7 +2189,7 @@ class IncorrectAnswerW(tk.Toplevel):
         if self.with_typo:
             self.bind('<Tab>', lambda event: self.btn_typo.invoke())
 
-    def open(self):
+    def open(self) -> str:
         self.set_focus()
 
         self.grab_set()
@@ -2194,7 +2202,7 @@ class IncorrectAnswerW(tk.Toplevel):
 class SearchSettingsW(tk.Toplevel):
     def __init__(
             self,
-            parent,
+            parent: tk.Misc,
             app_data: AppData,
             to_search_only_fav: bool,
             to_search_only_full: bool,
@@ -2303,7 +2311,7 @@ class SearchSettingsW(tk.Toplevel):
         self.bind('<Return>', lambda event: self.destroy())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self):
+    def open(self) -> tuple[bool, bool, bool, bool, bool, bool, bool, str]:
         self.set_focus()
 
         self.grab_set()
@@ -2329,7 +2337,7 @@ class SearchSettingsW(tk.Toplevel):
 
 # Окно выбора одной статьи из нескольких с одинаковыми словами
 class SelectEntryFromHomographsW(tk.Toplevel):
-    def __init__(self, parent, app_data: AppData, query: str):
+    def __init__(self, parent: tk.Misc, app_data: AppData, query: str):
         super().__init__(parent)
         self.parent = parent
 
@@ -2382,7 +2390,7 @@ class SelectEntryFromHomographsW(tk.Toplevel):
 
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self):
+    def open(self) -> EntryID | None:
         self.set_focus()
 
         self.grab_set()
@@ -2395,11 +2403,11 @@ class SelectEntryFromHomographsW(tk.Toplevel):
 class EnterPhraseW(tk.Toplevel):
     def __init__(
             self,
-            parent,
+            parent: tk.Misc,
             title: str,
             app_data: AppData,
             default_value: tuple[str, str] = ('', ''),
-            check_answer_function: Any = None,
+            check_answer_function: Callable[[tk.Misc, tuple[str, str]], bool] | None = None,
     ):
         super().__init__(parent)
         self.parent = parent
@@ -2418,7 +2426,7 @@ class EnterPhraseW(tk.Toplevel):
 
         self.entry_phr.icursor(len(self.var_phr.get()))
 
-    def _configure_window(self, title):
+    def _configure_window(self, title: str):
         self.title(f'{PROGRAM_NAME} - {title}')
         self.resizable(width=False, height=False)
         self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
@@ -2467,7 +2475,7 @@ class EnterPhraseW(tk.Toplevel):
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self):
+    def open(self) -> tuple[bool, str, str]:
         self.set_focus()
 
         self.grab_set()
@@ -2478,7 +2486,7 @@ class EnterPhraseW(tk.Toplevel):
 
 # Окно изменения статьи
 class EditEntryW(tk.Toplevel):
-    def __init__(self, parent, app_data: AppData, entry_id: EntryID):
+    def __init__(self, parent: tk.Misc, app_data: AppData, entry_id: EntryID):
         super().__init__(parent)
         self.parent = parent
 
@@ -3205,7 +3213,7 @@ class EditEntryW(tk.Toplevel):
 class EnterFormW(tk.Toplevel):
     def __init__(
             self,
-            parent,
+            parent: tk.Misc,
             app_data: AppData,
             entry_id: EntryID,
             initial_value: str = '',
@@ -3405,7 +3413,7 @@ class EnterFormW(tk.Toplevel):
         self.bind('<Escape>', lambda event: self.destroy())
         self.combo_ctg.bind('<<ComboboxSelected>>', lambda event: self.refresh_ctg_values())
 
-    def open(self):
+    def open(self) -> tuple[GramForm, str] | tuple[None, None]:
         self.set_focus()
 
         self.grab_set()
@@ -3425,7 +3433,7 @@ class EnterFormW(tk.Toplevel):
 
 # Окно настроек грамматических категорий
 class CategoriesSettingsW(tk.Toplevel):
-    def __init__(self, parent, app_data: AppData):
+    def __init__(self, parent: tk.Misc, app_data: AppData):
         super().__init__(parent)
         self.parent = parent
 
@@ -3571,7 +3579,7 @@ class CategoriesSettingsW(tk.Toplevel):
         self.bind('<Return>', lambda event: self.destroy())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self):
+    def open(self) -> bool:
         self.set_focus()
 
         self.grab_set()
@@ -3582,7 +3590,7 @@ class CategoriesSettingsW(tk.Toplevel):
 
 # Окно настроек групп
 class GroupsSettingsW(tk.Toplevel):
-    def __init__(self, parent, app_data: AppData):
+    def __init__(self, parent: tk.Misc, app_data: AppData):
         super().__init__(parent)
         self.parent = parent
 
@@ -3806,7 +3814,7 @@ class GroupsSettingsW(tk.Toplevel):
         self.bind('<Return>', lambda event: self.destroy())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self):
+    def open(self) -> bool:
         self.set_focus()
 
         self.grab_set()
@@ -3817,7 +3825,7 @@ class GroupsSettingsW(tk.Toplevel):
 
 # Окно настроек значений грамматической категории
 class CategoryValuesSettingsW(tk.Toplevel):
-    def __init__(self, parent, ctg_key: str, app_data: AppData):
+    def __init__(self, parent: CategoriesSettingsW, ctg_key: str, app_data: AppData):
         super().__init__(parent)
         self.parent = parent
 
@@ -3967,7 +3975,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
         self.bind('<Return>', lambda event: self.destroy())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self):
+    def open(self) -> bool:
         self.set_focus()
 
         self.grab_set()
@@ -3978,7 +3986,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
 
 # Окно настроек специальных комбинаций
 class InputReplacementsSettingsW(tk.Toplevel):
-    def __init__(self, parent, app_data: AppData):
+    def __init__(self, parent: tk.Misc, app_data: AppData):
         super().__init__(parent)
         self.parent = parent
 
@@ -4150,7 +4158,7 @@ class InputReplacementsSettingsW(tk.Toplevel):
         self.bind('<Return>', lambda event: self.destroy())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self):
+    def open(self) -> bool:
         self.set_focus()
 
         self.grab_set()
@@ -4163,7 +4171,7 @@ class InputReplacementsSettingsW(tk.Toplevel):
 class EnterInputReplacementW(tk.Toplevel):
     def __init__(
             self,
-            parent,
+            parent: tk.Misc,
             app_data: AppData,
             default_value: tuple[str, str, str] = (
                 SPECIAL_COMBINATIONS_OPENING_SYMBOLS[0], None, None
@@ -4238,7 +4246,7 @@ class EnterInputReplacementW(tk.Toplevel):
         self.bind('<Return>', lambda event: self.btn_ok.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self):
+    def open(self) -> tuple[bool, str, str, str]:
         self.set_focus()
 
         self.grab_set()
@@ -4249,7 +4257,7 @@ class EnterInputReplacementW(tk.Toplevel):
 
 # Окно настроек пользовательской темы
 class CustomThemeSettingsW(tk.Toplevel):
-    def __init__(self, parent, app_data: AppData):
+    def __init__(self, parent: tk.Misc, app_data: AppData):
         super().__init__(parent)
         self.parent = parent
 
@@ -5025,7 +5033,7 @@ class TrainingW(tk.Toplevel):
 
     def __init__(
             self,
-            parent,
+            parent: tk.Misc,
             app_data: AppData,
             train_config: TrainingConfig,
     ):
@@ -5385,7 +5393,7 @@ class TrainingW(tk.Toplevel):
 
 # Окно просмотра словаря
 class DictionaryW(tk.Toplevel):
-    def __init__(self, parent, app_data: AppData):
+    def __init__(self, parent: tk.Misc, app_data: AppData):
         super().__init__(parent)
         self.parent = parent
 
@@ -6915,7 +6923,7 @@ class DictionaryW(tk.Toplevel):
 
 # Окно добавления статьи
 class AddEntryW(tk.Toplevel):
-    def __init__(self, parent, app_data: AppData):
+    def __init__(self, parent: tk.Misc, app_data: AppData):
         super().__init__(parent)
         self.parent = parent
 
@@ -7047,7 +7055,7 @@ class AddEntryW(tk.Toplevel):
         self.bind('<Return>', lambda event: self.btn_add.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self):
+    def open(self) -> EntryID | None:
         self.set_focus()
 
         self.update()
@@ -7060,7 +7068,7 @@ class AddEntryW(tk.Toplevel):
 
 # Окно настроек
 class SettingsW(tk.Toplevel):
-    def __init__(self, parent, app_data: AppData):
+    def __init__(self, parent: 'MainW', app_data: AppData):
         super().__init__(parent)
         self.parent = parent
 
@@ -7723,7 +7731,7 @@ class SettingsW(tk.Toplevel):
 
 # Окно уведомления о выходе новой версии
 class NewVersionAvailableW(tk.Toplevel):
-    def __init__(self, parent, app_data: AppData, last_version: str):
+    def __init__(self, parent: tk.Misc, app_data: AppData, last_version: str):
         super().__init__(parent)
         self.parent = parent
 
