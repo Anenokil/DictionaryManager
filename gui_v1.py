@@ -38,54 +38,55 @@ DEFAULT_TH = THEMES[1]  # Тема по умолчанию
 
 # Стили
 # {стилизуемый_элемент: (описание, {тема: стиль})}
-STYLES = {'*.BG.*':              ('Цвет фона окна',                                {THEMES[1]: '#F0F0F0', THEMES[2]: '#222222'}),
-          '*.BG.ENTRY':          ('Цвет фона полей ввода',                         {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
-          '*.FG.*':              ('Цвет обычного текста',                          {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          '*.FG.LOGO':           ('Цвет текста логотипа',                          {THEMES[1]: '#FF8800', THEMES[2]: '#AA4600'}),
-          '*.FG.FOOTER':         ('Цвет текста нижнего колонтитула',               {THEMES[1]: '#666666', THEMES[2]: '#666666'}),
-          '*.FG.WARN':           ('Цвет текста предупреждения',                    {THEMES[1]: '#DD2222', THEMES[2]: '#DD2222'}),
-          '*.FG.ENTRY':          ('Цвет вводимого текста',                         {THEMES[1]: '#222222', THEMES[2]: '#777777'}),
-          '*.BG.SEL':            ('Цвет выделения фона',                           {THEMES[1]: '#BBBBBB', THEMES[2]: '#444444'}),
-          '*.FG.SEL':            ('Цвет выделения текста',                         {THEMES[1]: '#101010', THEMES[2]: '#A0A0A0'}),
-          'BTN.BG.*':            ('Цвет фона обычных кнопок',                      {THEMES[1]: '#D0D0D0', THEMES[2]: '#1E1E1E'}),
-          'BTN.BG.ACT':          ('Цвет фона обычных кнопок при нажатии',          {THEMES[1]: '#BABABA', THEMES[2]: '#1A1A1A'}),
-          'BTN.BG.Y':            ('Цвет фона да-кнопок',                           {THEMES[1]: '#88DD88', THEMES[2]: '#446F44'}),
-          'BTN.BG.Y_ACT':        ('Цвет фона да-кнопок при нажатии',               {THEMES[1]: '#77CC77', THEMES[2]: '#558055'}),
-          'BTN.BG.N':            ('Цвет фона нет-кнопок',                          {THEMES[1]: '#FF6666', THEMES[2]: '#803333'}),
-          'BTN.BG.N_ACT':        ('Цвет фона нет-кнопок при нажатии',              {THEMES[1]: '#EE5555', THEMES[2]: '#904444'}),
-          'BTN.BG.IMG_HOV':      ('Цвет фона кнопок-картинок при наведении',       {THEMES[1]: '#E0E0E0', THEMES[2]: '#1E1E1E'}),
-          'BTN.BG.IMG_ACT':      ('Цвет фона кнопок-картинок при нажатии',         {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),
-          'BTN.BG.DISABL':       ('Цвет фона выключенных кнопок',                  {THEMES[1]: '#D9D9D9', THEMES[2]: '#1E1E1E'}),
-          'BTN.FG.DISABL':       ('Цвет текста выключенных кнопок',                {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}),
-          'FLAT_BTN.BG.1':       ('Цвет фона кнопок-записей (1)',                  {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
-          'FLAT_BTN.BG.2':       ('Цвет фона кнопок-записей (2)',                  {THEMES[1]: '#FAFAFA', THEMES[2]: '#171717'}),
-          'FLAT_BTN.BG.HOV':     ('Цвет фона кнопок-записей при наведении',        {THEMES[1]: '#E0F1FF', THEMES[2]: '#1B1B1B'}),
-          'FLAT_BTN.BG.ACT':     ('Цвет фона кнопок-записей при нажатии',          {THEMES[1]: '#CCE8FF', THEMES[2]: '#1F1F1F'}),
-          'FLAT_BTN.FG.1':       ('Цвет текста кнопок-записей (1)',                {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          'FLAT_BTN.FG.2':       ('Цвет текста кнопок-записей (2)',                {THEMES[1]: '#202020', THEMES[2]: '#979797'}),
-          'FLAT_BTN.FG.HOV':     ('Цвет текста кнопок-записей при наведении',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          'FLAT_BTN.FG.ACT':     ('Цвет текста кнопок-записей при нажатии',        {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          'FLAT_BTN.BG.SEL_1':   ('Цвет фона выдел. кн.-записей (1)',              {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),
-          'FLAT_BTN.BG.SEL_2':   ('Цвет фона выдел. кн.-записей (2)',              {THEMES[1]: '#C7FAE3', THEMES[2]: '#1B1B22'}),
-          'FLAT_BTN.BG.SEL_HOV': ('Цвет фона выдел. кн.-записей при наведении',    {THEMES[1]: '#A8FFD6', THEMES[2]: '#1B1B2A'}),
-          'FLAT_BTN.BG.SEL_ACT': ('Цвет фона выдел. кн.-записей при нажатии',      {THEMES[1]: '#82FFC4', THEMES[2]: '#1B1B31'}),
-          'FLAT_BTN.FG.SEL_1':   ('Цвет текста выдел. кн.-записей (1)',            {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          'FLAT_BTN.FG.SEL_2':   ('Цвет текста выдел. кн.-записей (2)',            {THEMES[1]: '#202020', THEMES[2]: '#979797'}),
-          'FLAT_BTN.FG.SEL_HOV': ('Цвет текста выдел. кн.-записей при наведении',  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          'FLAT_BTN.FG.SEL_ACT': ('Цвет текста выдел. кн.-записей при нажатии',    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          'CHECK.BG.SEL':        ('Цвет фона переключателя при наведении на него', {THEMES[1]: '#DDDDDD', THEMES[2]: '#333333'}),
-          'SCROLL.BG.*':         ('Цвет фона ползунка',                            {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),
-          'SCROLL.BG.ACT':       ('Цвет фона ползунка при нажатии',                {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),
-          'SCROLL.FG.*':         ('Цвет ползунка',                                 {THEMES[1]: '#CACACA', THEMES[2]: '#292929'}),
-          'SCROLL.FG.ACT':       ('Цвет ползунка при нажатии',                     {THEMES[1]: '#ABABAB', THEMES[2]: '#333333'}),
-          'TAB.BG.*':            ('Цвет фона закрытой вкладки',                    {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),
-          'TAB.BG.SEL':          ('Цвет фона открытой вкладки',                    {THEMES[1]: '#EAEAEA', THEMES[2]: '#222222'}),
-          'TAB.FG.*':            ('Цвет текста закрытой вкладки',                  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          'TAB.FG.SEL':          ('Цвет текста открытой вкладки',                  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
-          'FRAME.RELIEF.*':      ('Стиль рамок фреймов',                           {THEMES[1]: 'groove',  THEMES[2]: 'solid'  }),
-          'TXT.RELIEF.*':        ('Стиль рамок текстовых полей',                   {THEMES[1]: 'sunken',  THEMES[2]: 'solid'  }),
-          '*.BORDER_CLR.*':      ('Цвет рамок',                                    {THEMES[1]: '#222222', THEMES[2]: '#111111'}),
-          }
+STYLES = {
+    '*.BG.*':              ('Цвет фона окна',                                {THEMES[1]: '#F0F0F0', THEMES[2]: '#222222'}),
+    '*.BG.ENTRY':          ('Цвет фона полей ввода',                         {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
+    '*.FG.*':              ('Цвет обычного текста',                          {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+    '*.FG.LOGO':           ('Цвет текста логотипа',                          {THEMES[1]: '#FF8800', THEMES[2]: '#AA4600'}),
+    '*.FG.FOOTER':         ('Цвет текста нижнего колонтитула',               {THEMES[1]: '#666666', THEMES[2]: '#666666'}),
+    '*.FG.WARN':           ('Цвет текста предупреждения',                    {THEMES[1]: '#DD2222', THEMES[2]: '#DD2222'}),
+    '*.FG.ENTRY':          ('Цвет вводимого текста',                         {THEMES[1]: '#222222', THEMES[2]: '#777777'}),
+    '*.BG.SEL':            ('Цвет выделения фона',                           {THEMES[1]: '#BBBBBB', THEMES[2]: '#444444'}),
+    '*.FG.SEL':            ('Цвет выделения текста',                         {THEMES[1]: '#101010', THEMES[2]: '#A0A0A0'}),
+    'BTN.BG.*':            ('Цвет фона обычных кнопок',                      {THEMES[1]: '#D0D0D0', THEMES[2]: '#1E1E1E'}),
+    'BTN.BG.ACT':          ('Цвет фона обычных кнопок при нажатии',          {THEMES[1]: '#BABABA', THEMES[2]: '#1A1A1A'}),
+    'BTN.BG.Y':            ('Цвет фона да-кнопок',                           {THEMES[1]: '#88DD88', THEMES[2]: '#446F44'}),
+    'BTN.BG.Y_ACT':        ('Цвет фона да-кнопок при нажатии',               {THEMES[1]: '#77CC77', THEMES[2]: '#558055'}),
+    'BTN.BG.N':            ('Цвет фона нет-кнопок',                          {THEMES[1]: '#FF6666', THEMES[2]: '#803333'}),
+    'BTN.BG.N_ACT':        ('Цвет фона нет-кнопок при нажатии',              {THEMES[1]: '#EE5555', THEMES[2]: '#904444'}),
+    'BTN.BG.IMG_HOV':      ('Цвет фона кнопок-картинок при наведении',       {THEMES[1]: '#E0E0E0', THEMES[2]: '#1E1E1E'}),
+    'BTN.BG.IMG_ACT':      ('Цвет фона кнопок-картинок при нажатии',         {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),
+    'BTN.BG.DISABL':       ('Цвет фона выключенных кнопок',                  {THEMES[1]: '#D9D9D9', THEMES[2]: '#1E1E1E'}),
+    'BTN.FG.DISABL':       ('Цвет текста выключенных кнопок',                {THEMES[1]: '#B0B0B0', THEMES[2]: '#454545'}),
+    'FLAT_BTN.BG.1':       ('Цвет фона кнопок-записей (1)',                  {THEMES[1]: '#FFFFFF', THEMES[2]: '#171717'}),
+    'FLAT_BTN.BG.2':       ('Цвет фона кнопок-записей (2)',                  {THEMES[1]: '#FAFAFA', THEMES[2]: '#171717'}),
+    'FLAT_BTN.BG.HOV':     ('Цвет фона кнопок-записей при наведении',        {THEMES[1]: '#E0F1FF', THEMES[2]: '#1B1B1B'}),
+    'FLAT_BTN.BG.ACT':     ('Цвет фона кнопок-записей при нажатии',          {THEMES[1]: '#CCE8FF', THEMES[2]: '#1F1F1F'}),
+    'FLAT_BTN.FG.1':       ('Цвет текста кнопок-записей (1)',                {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+    'FLAT_BTN.FG.2':       ('Цвет текста кнопок-записей (2)',                {THEMES[1]: '#202020', THEMES[2]: '#979797'}),
+    'FLAT_BTN.FG.HOV':     ('Цвет текста кнопок-записей при наведении',      {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+    'FLAT_BTN.FG.ACT':     ('Цвет текста кнопок-записей при нажатии',        {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+    'FLAT_BTN.BG.SEL_1':   ('Цвет фона выдел. кн.-записей (1)',              {THEMES[1]: '#CCFFE8', THEMES[2]: '#1B1B22'}),
+    'FLAT_BTN.BG.SEL_2':   ('Цвет фона выдел. кн.-записей (2)',              {THEMES[1]: '#C7FAE3', THEMES[2]: '#1B1B22'}),
+    'FLAT_BTN.BG.SEL_HOV': ('Цвет фона выдел. кн.-записей при наведении',    {THEMES[1]: '#A8FFD6', THEMES[2]: '#1B1B2A'}),
+    'FLAT_BTN.BG.SEL_ACT': ('Цвет фона выдел. кн.-записей при нажатии',      {THEMES[1]: '#82FFC4', THEMES[2]: '#1B1B31'}),
+    'FLAT_BTN.FG.SEL_1':   ('Цвет текста выдел. кн.-записей (1)',            {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+    'FLAT_BTN.FG.SEL_2':   ('Цвет текста выдел. кн.-записей (2)',            {THEMES[1]: '#202020', THEMES[2]: '#979797'}),
+    'FLAT_BTN.FG.SEL_HOV': ('Цвет текста выдел. кн.-записей при наведении',  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+    'FLAT_BTN.FG.SEL_ACT': ('Цвет текста выдел. кн.-записей при нажатии',    {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+    'CHECK.BG.SEL':        ('Цвет фона переключателя при наведении на него', {THEMES[1]: '#DDDDDD', THEMES[2]: '#333333'}),
+    'SCROLL.BG.*':         ('Цвет фона ползунка',                            {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),
+    'SCROLL.BG.ACT':       ('Цвет фона ползунка при нажатии',                {THEMES[1]: '#E0E0E0', THEMES[2]: '#1B1B1B'}),
+    'SCROLL.FG.*':         ('Цвет ползунка',                                 {THEMES[1]: '#CACACA', THEMES[2]: '#292929'}),
+    'SCROLL.FG.ACT':       ('Цвет ползунка при нажатии',                     {THEMES[1]: '#ABABAB', THEMES[2]: '#333333'}),
+    'TAB.BG.*':            ('Цвет фона закрытой вкладки',                    {THEMES[1]: '#D0D0D0', THEMES[2]: '#1A1A1A'}),
+    'TAB.BG.SEL':          ('Цвет фона открытой вкладки',                    {THEMES[1]: '#EAEAEA', THEMES[2]: '#222222'}),
+    'TAB.FG.*':            ('Цвет текста закрытой вкладки',                  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+    'TAB.FG.SEL':          ('Цвет текста открытой вкладки',                  {THEMES[1]: '#222222', THEMES[2]: '#979797'}),
+    'FRAME.RELIEF.*':      ('Стиль рамок фреймов',                           {THEMES[1]: 'groove',  THEMES[2]: 'solid'  }),
+    'TXT.RELIEF.*':        ('Стиль рамок текстовых полей',                   {THEMES[1]: 'sunken',  THEMES[2]: 'solid'  }),
+    '*.BORDER_CLR.*':      ('Цвет рамок',                                    {THEMES[1]: '#222222', THEMES[2]: '#111111'}),
+}
 STYLE_KEYS = list(STYLES.keys())
 
 """ Функции проверки """
@@ -206,7 +207,9 @@ def check_phr_edit(
     if new_phrase_src == '' or new_phrase_tr == '':
         warning(window_parent, app_data, 'Фраза должна содержать хотя бы один символ!')
         return False
-    if new_phrase_pair[0] in phrases.keys() and new_phrase_pair[1] in phrases[new_phrase_pair[0]] and new_phrase_pair != old_phrase_pair:
+    if new_phrase_pair[0] in phrases.keys() and \
+            new_phrase_pair[1] in phrases[new_phrase_pair[0]] and \
+            new_phrase_pair != old_phrase_pair:
         warning(window_parent, app_data, f'Со словом "{lemma}" уже есть такая фраза!')
         return False
     return True
@@ -386,22 +389,21 @@ def tr_repr(entry: Entry) -> str:
 
 # Вывести словоформы
 def forms_repr(entry: Entry, tab: int = 0) -> str:
-    gram_forms = entry.forms.keys()
     return ('\n' + ' ' * tab).join((
-        f'[{gram_form_to_str(gram_form)}] {', '.join(entry.forms[gram_form])}'
-        for gram_form in gram_forms
+        f'[{gram_form_to_str(gram_form)}] {', '.join(word_form)}'
+        for gram_form, word_form in entry.forms.items()
     ))
 
 
 # Вывести переводы фразы
 def phrase_tr_repr(entry: Entry, phrase: str) -> str:
-    return ', '.join(pt for pt in entry.phrases[phrase])
+    return ', '.join(entry.phrases[phrase])
 
 
 # Вывести фразы
 def phrases_repr(entry: Entry, tab: int = 0) -> str:
     return ('\n' + ' ' * tab).join((
-        phrase + ' - ' + phrase_tr_repr(entry, phrase)
+        f'{phrase} - {phrase_tr_repr(entry, phrase)}'
         for phrase in entry.phrases
     ))
 
@@ -414,31 +416,26 @@ def notes_repr(entry: Entry, tab: int = 0) -> str:
 # Вывести группы
 def groups_repr(entry: Entry) -> str:
     if entry.groups:
-        return ', '.join(tuple(entry.groups))
-    else:
-        return '-'
+        return ', '.join(entry.groups)
+    return '-'
 
 
 # Вывести количество ошибок после последнего верного ответа
 def win_streak_repr(entry: Entry) -> str:
-    if entry.total_att == 0:  # Если ещё не было попыток
-        res = '-'
-    elif entry.win_streak > 999:
-        res = '+∞'
-    elif entry.win_streak < -99:
-        res = '-∞'
-    else:
-        res = entry.win_streak
-    return res
+    if entry.total_att == 0:
+        return '-'
+    if entry.win_streak > 999:
+        return '+∞'
+    if entry.win_streak < -99:
+        return '-∞'
+    return str(entry.win_streak)
 
 
 # Вывести процент верных ответов
 def accuracy_repr(entry: Entry) -> str:
     if entry.total_att == 0:  # Если ещё не было попыток
-        res = '-'
-    else:
-        res = '{:.0%}'.format(entry.accuracy)
-    return res
+        return '-'
+    return '{:.0%}'.format(entry.accuracy)
 
 
 # Вывести статистику
@@ -447,18 +444,13 @@ def entry_stats_repr(entry: Entry) -> str:
     accuracy = accuracy_repr(entry)
     tab_win_streak = ' ' * (3 - len(str(win_streak)))
     tab_accuracy = ' ' * (4 - len(accuracy))
-    res = f'[{tab_win_streak}{win_streak}:{tab_accuracy}{accuracy}]'
-    return res
+    return f'[{tab_win_streak}{win_streak}:{tab_accuracy}{accuracy}]'
 
 
 # Служебная функция для entry_repr_brief и entry_repr_details
 def _entry_repr_brief(entry: Entry) -> str:
-    if entry.is_fav:
-        res = '(*)'
-    else:
-        res = '   '
-    res += f' {entry_stats_repr(entry)} {entry.lemma}: {tr_repr(entry)}'
-    return res
+    fav = '(*)' if entry.is_fav else '   '
+    return f'{fav} {entry_stats_repr(entry)} {entry.lemma}: {tr_repr(entry)}'
 
 
 # Вывести статью - кратко
@@ -489,10 +481,11 @@ def entry_repr_complete(entry: Entry, str_len: int, tab: int = 0) -> str:
     if entry.n_gram_forms == 0:
         res += '-\n'
     else:
-        gram_forms = [gram_form for gram_form in entry.forms.keys()]
+        gram_forms = tuple(entry.forms.keys())
         res += f'[{gram_form_to_str(gram_forms[0])}] {', '.join(entry.forms[gram_forms[0]])}\n'
         for i in range(1, entry.n_gram_forms):
-            res += f'             [{gram_form_to_str(gram_forms[i])}] {', '.join(entry.forms[gram_forms[i]])}\n'
+            res += f'             [{gram_form_to_str(gram_forms[i])}] '\
+                   f'{', '.join(entry.forms[gram_forms[i]])}\n'
 
     res += '      Фразы: '
     if entry.n_phrases == 0:
@@ -514,7 +507,7 @@ def entry_repr_complete(entry: Entry, str_len: int, tab: int = 0) -> str:
 
     res += f'\n     Группы: {groups_repr(entry)}\n'
 
-    if entry.total_att == 0:  # Если ещё не было попыток
+    if entry.total_att == 0:
         res += ' Статистика: 1) Верных ответов подряд: -\n'
         res += '             2) Доля верных ответов: -'
     else:
@@ -527,36 +520,31 @@ def entry_repr_complete(entry: Entry, str_len: int, tab: int = 0) -> str:
 
 # Вывести слово со статистикой
 def lemma_and_stats_repr(entry: Entry) -> str:
-    res = f'{entry.lemma} {entry_stats_repr(entry)}'
-    return res
+    return f'{entry.lemma} {entry_stats_repr(entry)}'
 
 
 # Вывести перевод со статистикой
 def tr_and_stats_repr(entry: Entry) -> str:
-    res = f'{tr_repr(entry)} {entry_stats_repr(entry)}'
-    return res
+    return f'{tr_repr(entry)} {entry_stats_repr(entry)}'
 
 
 # Вывести перевод со словоформой и со статистикой
 def tr_and_forms_and_stats_repr(entry: Entry, gram_form: GramForm | list[str]) -> str:
-    res = f'{tr_repr(entry)} ({gram_form_to_str(gram_form)}) {entry_stats_repr(entry)}'
-    return res
+    return f'{tr_repr(entry)} ({gram_form_to_str(gram_form)}) {entry_stats_repr(entry)}'
 
 
 # Вывести фразу со статистикой
 def phrase_and_stats_repr(entry: Entry, phrase: str) -> str:
-    res = f'{phrase} {entry_stats_repr(entry)}'
-    return res
+    return f'{phrase} {entry_stats_repr(entry)}'
 
 
 # Вывести перевод фразы со статистикой
 def phrase_tr_and_stats_repr(entry: Entry, phrase: str) -> str:
-    res = f'{phrase_tr_repr(entry, phrase)} {entry_stats_repr(entry)}'
-    return res
+    return f'{phrase_tr_repr(entry, phrase)} {entry_stats_repr(entry)}'
 
 
 # Вывести информацию о количестве статей в словаре
-def dct_stats_repr(count_e: int, count_t: int, count_gf: int, count_wf: int) -> str:
+def dct_stats_repr(count_e: int, count_t: int, count_wf: int) -> str:
     w = select_word_form(count_e, ('слово', 'слова', 'слов'))
     f = select_word_form(count_e + count_wf, ('словоформа', 'словоформы', 'словоформ'))
     t = select_word_form(count_t, ('перевод', 'перевода', 'переводов'))
@@ -567,7 +555,6 @@ def dct_stats_repr(count_e: int, count_t: int, count_gf: int, count_wf: int) -> 
 def dct_fav_stats_repr(
         count_e: tuple[int, int],
         count_t: tuple[int, int],
-        count_gf: tuple[int, int],
         count_wf: tuple[int, int],
 ) -> str:
     w = select_word_form(count_e[0], ('слово', 'слова', 'слов'))
@@ -589,6 +576,7 @@ def replacement_repr(key: tuple[str, str], value: str) -> str:
 # Заменить буквы в тексте соответствующими английскими
 def simplify(dct: Dictionary, text: str) -> tuple[str, list[str]]:
     replaced_text = dct.apply_replacements(text)
+
     converted_text = ''
     transformations = []
 
@@ -601,7 +589,7 @@ def simplify(dct: Dictionary, text: str) -> tuple[str, list[str]]:
             )[idx]
         else:
             converted_text += char
-            transformations += [char]
+            transformations.append(char)
 
     return converted_text.lower(), transformations
 
@@ -615,7 +603,7 @@ def split_line(line: str) -> list[list[str]]:
     while i < line_len and is_splittable(line[i]):
         i += 1
     if i != 0:
-        res += [['', line[0:i]]]
+        res.append(['', line[0:i]])
 
     while i < line_len:
         word = ''
@@ -626,7 +614,7 @@ def split_line(line: str) -> list[list[str]]:
         while i < line_len and is_splittable(line[i]):
             separator += line[i]
             i += 1
-        res += [[word, separator]]
+        res.append([word, separator])
 
     return res
 
@@ -653,7 +641,7 @@ def split_text(text: str, max_str_len: int, tab: int = 0, to_add_right_spaces: b
             current_len = 0
             to_indent = False
             words = split_line(line)
-            for (word, separator) in words:
+            for word, separator in words:
                 word_len = len(word)
                 separator_len = len(separator)
 
@@ -708,14 +696,13 @@ def split_text(text: str, max_str_len: int, tab: int = 0, to_add_right_spaces: b
 
 # Выбрать окончание слова в зависимости от количественного числительного
 def select_word_form(n: int, word_forms: tuple[str, str, str]) -> str:
-    if 5 <= (n % 100) <= 20:
+    if 5 <= n % 100 <= 20:
         return word_forms[2]  # Пример: 5 яблок
-    elif n % 10 == 1:
+    if n % 10 == 1:
         return word_forms[0]  # Пример: 1 яблоко
-    elif 1 < n % 10 < 5:
+    if 1 < n % 10 < 5:
         return word_forms[1]  # Пример: 2 яблока
-    else:
-        return word_forms[2]  # Пример: 0 яблок
+    return word_forms[2]  # Пример: 0 яблок
 
 
 """ Основные функции """
@@ -726,10 +713,7 @@ def select_entry(app_data: AppData, window_parent, lemma: str):
     homograph_ids = app_data.manager.active.dct.search([('lemmas', lemma)])
     if len(homograph_ids) == 1:  # Если статья только одна, то возвращает её ключ
         return homograph_ids.pop()
-    window_entries = SelectEntryFromHomographsW(window_parent, app_data, lemma)
-    result = window_entries.open()
-    if not result:
-        return None
+    result = SelectEntryFromHomographsW(window_parent, app_data, lemma).open()
     return result
 
 
@@ -744,8 +728,7 @@ def edit_lemma_to_homograph(
 
     if dct.search([('lemmas', new_lemma)]):  # Если в словаре уже есть статья с таким словом
         window = TwoOptionsDialog(
-            window_parent,
-            app_data,
+            window_parent, app_data,
             'Статья с таким словом уже есть в словаре\n'
             'Что вы хотите сделать?',
             'Добавить к существующей статье',
@@ -776,8 +759,7 @@ def add_homograph(app_data: AppData, window_parent, lemma: str, tr: str) -> Entr
 
     if dct.search([('lemmas', lemma)]):  # Если в словаре уже есть статья с таким словом
         window = TwoOptionsDialog(
-            window_parent,
-            app_data,
+            window_parent, app_data,
             'Статья с таким словом уже есть в словаре\n'
             'Что вы хотите сделать?',
             'Добавить к существующей статье',
@@ -806,8 +788,7 @@ def add_ctg(window_parent, app_data: AppData) -> bool:
 
     # Ввод названия новой категории
     window_ctg = InputDialog(
-        window_parent,
-        app_data,
+        window_parent, app_data,
         'Введите название новой категории',
         check_answer_function=lambda wnd, val: check_ctg(
             wnd, app_data, tuple(dct.features.keys()), val
@@ -820,8 +801,7 @@ def add_ctg(window_parent, app_data: AppData) -> bool:
 
     # Ввод первого значения категории
     window_val = InputDialog(
-        window_parent,
-        app_data,
+        window_parent, app_data,
         'Необходимо добавить хотя бы одно значение для категории',
         check_answer_function=lambda wnd, val: check_ctg_val(wnd, app_data, (), val),
     )
@@ -841,8 +821,7 @@ def rename_ctg(window_parent, app_data: AppData, old_ctg_name: str) -> bool | No
 
     # Ввод нового названия категории
     window_entry = InputDialog(
-        window_parent,
-        app_data,
+        window_parent, app_data,
         'Введите новое название категории',
         default_value=old_ctg_name,
         check_answer_function=lambda wnd, val: check_ctg_edit(
@@ -854,7 +833,7 @@ def rename_ctg(window_parent, app_data: AppData, old_ctg_name: str) -> bool | No
         return False
     new_ctg_name = dct.apply_replacements(new_ctg_name)
     if new_ctg_name == old_ctg_name:
-        return
+        return None
 
     # Обновление категорий
     dct.rename_ctg(old_ctg_name, new_ctg_name)
@@ -866,8 +845,7 @@ def delete_ctg(window_parent, app_data: AppData, ctg_name: str) -> bool:
     dct = app_data.manager.active.dct
 
     window_dia = TwoOptionsDialog(
-        window_parent,
-        app_data,
+        window_parent, app_data,
         f'Все словоформы, содержащие категорию {ctg_name}, будут удалены!\n'
         f'Хотите продолжить?',
     )  # Подтверждение действия
@@ -891,8 +869,7 @@ def add_ctg_value(
 
     # Ввод нового значения
     window_entry = InputDialog(
-        window_parent,
-        app_data,
+        window_parent, app_data,
         'Введите новое значение категории',
         check_answer_function=lambda wnd, val: check_ctg_val(wnd, app_data, ctg_values, val),
     )
@@ -911,8 +888,7 @@ def rename_ctg_value(window_parent, app_data: AppData, ctg_name: str, old_ctg_va
 
     # Ввод нового значения
     window_entry = InputDialog(
-        window_parent,
-        app_data,
+        window_parent, app_data,
         'Введите новое название значения',
         default_value=old_ctg_val,
         check_answer_function=lambda wnd, val: check_ctg_val_edit(
@@ -936,8 +912,7 @@ def delete_ctg_value(window_parent, app_data: AppData, ctg_name: str, ctg_val: s
     dct = app_data.manager.active.dct
 
     window_dia = TwoOptionsDialog(
-        window_parent,
-        app_data,
+        window_parent, app_data,
         f'Все словоформы, содержащие значение {ctg_val}, будут удалены!\n'
         f'Хотите продолжить?',
     )  # Подтверждение действия
@@ -978,7 +953,7 @@ def search_entries(
         phrases = list(entry.phrases.keys())
         for phrase in entry.phrases.keys():
             for phrase_tr in entry.phrases[phrase]:
-                phrases += [phrase_tr]
+                phrases.append(phrase_tr)
 
         # TODO: code style
 
@@ -1149,7 +1124,7 @@ def upload_themes(themes: list[str]):
             if ret == RET_TH_OK:
                 print(f'Тема успешно загружена')
                 if theme_name not in themes:  # Добавляем название новой темы
-                    themes += [theme_name]
+                    themes.append(theme_name)
             elif ret == RET_TH_OLD:
                 print(f'Не удалось загрузить тему, т. к. её версия не соответствует требуемой!'
                       f' Актуальные темы можно загрузить здесь: {URL_RELEASES}')
@@ -1262,7 +1237,7 @@ def toplevel_geometry(window_parent, window):
 
 # Привязать функцию к нажатию клавиши
 def bind_keypress(event, keys_and_cmds: list[tuple[str, any]], is_latin: bool = True):
-    for (key, cmd) in keys_and_cmds:
+    for key, cmd in keys_and_cmds:
         if event.keycode == ord(key):
             if is_latin or event.keysym.lower() != key.lower():
                 cmd()
@@ -1620,6 +1595,9 @@ class MessageDialog(tk.Toplevel):
 
 # Всплывающее окно с сообщением и двумя кнопками
 class TwoOptionsDialog(tk.Toplevel):
+    ALLOWED_ST_VALUES = ('Default', 'Yes', 'No')  # Проверка корректности параметров
+    ALLOWED_FOCUS_VALUES = ('left', 'right', 'none')  # Проверка корректности параметров
+
     def __init__(
             self,
             parent,
@@ -1635,14 +1613,15 @@ class TwoOptionsDialog(tk.Toplevel):
             focused_btn: Literal['left', 'right', 'none'] = 'left',  # Какая кнопка срабатывает при нажатии кнопки enter
             title: str = PROGRAM_NAME,
     ):
-        ALLOWED_ST_VALUES = ['Default', 'Yes', 'No']  # Проверка корректности параметров
-        assert left_btn_style in ALLOWED_ST_VALUES, f'Bad value: st_left\n' \
-                                                    f'Allowed values: {ALLOWED_ST_VALUES}'
-        assert right_btn_style in ALLOWED_ST_VALUES, f'Bad value: st_right\n' \
-                                                     f'Allowed values: {ALLOWED_ST_VALUES}'
-        ALLOWED_FOCUS_VALUES = ['left', 'right', 'none']  # Проверка корректности параметров
-        assert focused_btn in ALLOWED_FOCUS_VALUES, f'Bad value: focused_btn\n' \
-                                                    f'Allowed values: {ALLOWED_FOCUS_VALUES}'
+        assert left_btn_style in self.ALLOWED_ST_VALUES,\
+            f'Bad value: st_left\n' \
+            f'Allowed values: {self.ALLOWED_ST_VALUES}'
+        assert right_btn_style in self.ALLOWED_ST_VALUES,\
+            f'Bad value: st_right\n' \
+            f'Allowed values: {self.ALLOWED_ST_VALUES}'
+        assert focused_btn in self.ALLOWED_FOCUS_VALUES,\
+            f'Bad value: focused_btn\n' \
+            f'Allowed values: {self.ALLOWED_FOCUS_VALUES}'
 
         super().__init__(parent)
         self.parent = parent
@@ -2704,7 +2683,9 @@ class EditEntryW(tk.Toplevel):
         if new_wrd == self.dct[self.entry_id].lemma:
             return
 
-        new_entry_id, has_progres = edit_lemma_to_homograph(self.app_data, self, self.entry_id, new_wrd)
+        new_entry_id, has_progres = edit_lemma_to_homograph(
+            self.app_data, self, self.entry_id, new_wrd
+        )
         if not has_progres:
             return
         self.entry_id = new_entry_id
@@ -2717,7 +2698,8 @@ class EditEntryW(tk.Toplevel):
             self, self.app_data,
             'Введите новый перевод',
             check_answer_function=lambda wnd, val: check_tr(
-                wnd, self.app_data, self.dct[self.entry_id].tr, val, self.dct[self.entry_id].lemma,
+                wnd, self.app_data, self.dct[self.entry_id].tr,
+                val, self.dct[self.entry_id].lemma,
             ),
         )
         cancelled, tr = window.open()
@@ -2910,7 +2892,10 @@ class EditEntryW(tk.Toplevel):
                 'Настройки/Настройки открытого словаря/Группы',
             )
             return
-        values = [group for group in self.dct.groups if group not in self.dct[self.entry_id].groups]
+        values = [
+            group for group in self.dct.groups
+            if group not in self.dct[self.entry_id].groups
+        ]
         if not values:
             warning(self, self.app_data, 'Статья уже добавлена во все группы')
             return
@@ -2999,12 +2984,12 @@ class EditEntryW(tk.Toplevel):
         self.phrases = []
         for phrase in self.dct[self.entry_id].phrases.keys():
             for pt in self.dct[self.entry_id].phrases[phrase]:
-                self.phrases += [(phrase, pt)]
+                self.phrases.append((phrase, pt))
         self.forms = []
         for gram_form, word_forms in self.dct[self.entry_id].forms.items():
             for word_form in word_forms:
                 self.forms.append((gram_form, word_form))
-        self.groups = [group for group in self.dct[self.entry_id].groups]
+        self.groups = list(self.dct[self.entry_id].groups)
         tr_count = len(self.translations)
         nt_count = len(self.notes)
         phr_count = len(self.phrases)
@@ -3110,28 +3095,38 @@ class EditEntryW(tk.Toplevel):
         for i in range(tr_count):
             self.tr_frames[i].bind('<Enter>', lambda event, i=i: self.tr_frames[i].focus_set())
             self.tr_frames[i].bind('<Leave>', lambda event: self.focus_set())
-            self.tr_frames[i].bind('<Control-d>', lambda event, i=i: self.remove_translation(self.translations[i]))
-            self.tr_frames[i].bind('<Control-D>', lambda event, i=i: self.remove_translation(self.translations[i]))
+            self.tr_frames[i].bind(
+                '<Control-d>', lambda event, i=i: self.remove_translation(self.translations[i]))
+            self.tr_frames[i].bind(
+                '<Control-D>', lambda event, i=i: self.remove_translation(self.translations[i]))
         for i in range(nt_count):
             self.nt_frames[i].bind('<Enter>', lambda event, i=i: self.nt_frames[i].focus_set())
             self.nt_frames[i].bind('<Leave>', lambda event: self.focus_set())
-            self.nt_frames[i].bind('<Control-d>', lambda event, i=i: self.remove_note(self.notes[i]))
-            self.nt_frames[i].bind('<Control-D>', lambda event, i=i: self.remove_note(self.notes[i]))
+            self.nt_frames[i].bind(
+                '<Control-d>', lambda event, i=i: self.remove_note(self.notes[i]))
+            self.nt_frames[i].bind(
+                '<Control-D>', lambda event, i=i: self.remove_note(self.notes[i]))
         for i in range(phr_count):
             self.phr_frames[i].bind('<Enter>', lambda event, i=i: self.phr_frames[i].focus_set())
             self.phr_frames[i].bind('<Leave>', lambda event: self.focus_set())
-            self.phr_frames[i].bind('<Control-d>', lambda event, i=i: self.remove_phrase(self.phrases[i]))
-            self.phr_frames[i].bind('<Control-D>', lambda event, i=i: self.remove_phrase(self.phrases[i]))
+            self.phr_frames[i].bind(
+                '<Control-d>', lambda event, i=i: self.remove_phrase(self.phrases[i]))
+            self.phr_frames[i].bind(
+                '<Control-D>', lambda event, i=i: self.remove_phrase(self.phrases[i]))
         for i in range(frm_count):
             self.frm_frames[i].bind('<Enter>', lambda event, i=i: self.frm_frames[i].focus_set())
             self.frm_frames[i].bind('<Leave>', lambda event: self.focus_set())
-            self.frm_frames[i].bind('<Control-d>', lambda event, i=i: self.remove_form(self.forms[i]))
-            self.frm_frames[i].bind('<Control-D>', lambda event, i=i: self.remove_form(self.forms[i]))
+            self.frm_frames[i].bind(
+                '<Control-d>', lambda event, i=i: self.remove_form(self.forms[i]))
+            self.frm_frames[i].bind(
+                '<Control-D>', lambda event, i=i: self.remove_form(self.forms[i]))
         for i in range(gr_count):
             self.gr_frames[i].bind('<Enter>', lambda event, i=i: self.gr_frames[i].focus_set())
             self.gr_frames[i].bind('<Leave>', lambda event: self.focus_set())
-            self.gr_frames[i].bind('<Control-d>', lambda event, i=i: self.remove_group(self.groups[i]))
-            self.gr_frames[i].bind('<Control-D>', lambda event, i=i: self.remove_group(self.groups[i]))
+            self.gr_frames[i].bind(
+                '<Control-d>', lambda event, i=i: self.remove_group(self.groups[i]))
+            self.gr_frames[i].bind(
+                '<Control-D>', lambda event, i=i: self.remove_group(self.groups[i]))
 
         # Изменяем высоту полей
         self.scrolled_frame_tr.resize(
@@ -3546,10 +3541,14 @@ class CategoriesSettingsW(tk.Toplevel):
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
-            self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename_ctg(self.categories[i]))
-            self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename_ctg(self.categories[i]))
-            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete_ctg(self.categories[i]))
-            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete_ctg(self.categories[i]))
+            self.frames[i].bind(
+                '<Control-r>', lambda event, i=i: self.rename_ctg(self.categories[i]))
+            self.frames[i].bind(
+                '<Control-R>', lambda event, i=i: self.rename_ctg(self.categories[i]))
+            self.frames[i].bind(
+                '<Control-d>', lambda event, i=i: self.delete_ctg(self.categories[i]))
+            self.frames[i].bind(
+                '<Control-D>', lambda event, i=i: self.delete_ctg(self.categories[i]))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -3885,12 +3884,16 @@ class CategoryValuesSettingsW(tk.Toplevel):
 
     # Переименовать значение категории
     def rename_value(self, val: str):
-        self.has_changes = rename_ctg_value(self, self.app_data, self.ctg_key, val) or self.has_changes
+        self.has_changes = rename_ctg_value(
+            self, self.app_data, self.ctg_key, val
+        ) or self.has_changes
         self.print_values(False)
 
     # Удалить значение категории
     def delete_value(self, val: str):
-        self.has_changes = delete_ctg_value(self, self.app_data, self.ctg_key, val) or self.has_changes
+        self.has_changes = delete_ctg_value(
+            self, self.app_data, self.ctg_key, val
+        ) or self.has_changes
         self.print_values(False)
         if self.ctg_key not in self.dct.features:
             self.parent.print_categories(False)
@@ -3912,7 +3915,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем значения
-        self.values = [val for val in self.ctg_values]
+        self.values = self.ctg_values
         categories_count = len(self.values)
 
         # Создаём новые фреймы
@@ -3986,7 +3989,6 @@ class InputReplacementsSettingsW(tk.Toplevel):
 
         self.img_help = tk.PhotoImage()
 
-        self.replacements = []
         self.frames = []
         self.buttons = []
 
@@ -4030,37 +4032,37 @@ class InputReplacementsSettingsW(tk.Toplevel):
     # Добавить комбинацию
     def add_replacement(self):
         window = EnterInputReplacementW(self, self.app_data)
-        cancelled, key, val = window.open()
-        if cancelled or key[0] == '' or key[1] == '' or val == '':
+        cancelled, modifier, key, val = window.open()
+        if cancelled or modifier == '' or key == '' or val == '':
             return
-        if key in self.dct.input_replacements.keys():
-            warning(self, self.app_data, f'Комбинация {key[0]}{key[1]} уже существует!')
+        if (modifier, key) in self.dct.input_replacements.keys():
+            warning(self, self.app_data, f'Комбинация {modifier}{key} уже существует!')
             return
-        self.dct.add_replacement(*key, val)
+        self.dct.add_replacement(modifier, key, val)
         self.print_replacements(False)
         self.has_changes = True
 
     # Изменить комбинацию
-    def edit_replacement(self, old_key: tuple[str, str]):
-        old_val = self.dct.input_replacements[old_key]
+    def edit_replacement(self, old_modifier: str, old_key: str):
+        old_val = self.dct.input_replacements[old_modifier, old_key]
         window = EnterInputReplacementW(
-            self, self.app_data, default_value=old_key+tuple(old_val)
+            self, self.app_data, default_value=(old_modifier, old_key, old_val)
         )
-        cancelled, new_key, new_val = window.open()
-        if cancelled or new_key[0] == '' or new_key[1] == '' or new_val == '':
+        cancelled, new_modifier, new_key, new_val = window.open()
+        if cancelled or new_modifier == '' or new_key == '' or new_val == '':
             return
-        if new_key == old_key and new_val == old_val:
+        if new_modifier == old_modifier and new_key == old_key and new_val == old_val:
             return
 
-        self.dct.delete_replacement(*old_key)
+        self.dct.delete_replacement(old_modifier, old_key)
 
-        self.dct.add_replacement(*new_key, new_val)
+        self.dct.add_replacement(new_modifier, new_key, new_val)
         self.print_replacements(False)
         self.has_changes = True
 
     # Удалить комбинацию
-    def delete_replacement(self, key: tuple[str, str]):
-        self.dct.delete_replacement(*key)
+    def delete_replacement(self, modifier: str, key: str):
+        self.dct.delete_replacement(modifier, key)
         self.print_replacements(False)
         self.has_changes = True
 
@@ -4105,7 +4107,7 @@ class InputReplacementsSettingsW(tk.Toplevel):
         self.buttons = [
             create_button(
                 self.frames[i],
-                lambda i=i: self.edit_replacement(nontrivial_keys[i]),
+                lambda i=i: self.edit_replacement(*nontrivial_keys[i]),
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
                 row=0, column=0, padx=0, pady=0, sticky='WE',
             ) for i in range(n_nontrivial_replacements)
@@ -4119,10 +4121,14 @@ class InputReplacementsSettingsW(tk.Toplevel):
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
-            self.frames[i].bind('<Control-e>', lambda event, i=i: self.edit_replacement(nontrivial_keys[i]))
-            self.frames[i].bind('<Control-E>', lambda event, i=i: self.edit_replacement(nontrivial_keys[i]))
-            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete_replacement(nontrivial_keys[i]))
-            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete_replacement(nontrivial_keys[i]))
+            self.frames[i].bind(
+                '<Control-e>', lambda event, i=i: self.edit_replacement(*nontrivial_keys[i]))
+            self.frames[i].bind(
+                '<Control-E>', lambda event, i=i: self.edit_replacement(*nontrivial_keys[i]))
+            self.frames[i].bind(
+                '<Control-d>', lambda event, i=i: self.delete_replacement(*nontrivial_keys[i]))
+            self.frames[i].bind(
+                '<Control-D>', lambda event, i=i: self.delete_replacement(*nontrivial_keys[i]))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -4159,8 +4165,9 @@ class EnterInputReplacementW(tk.Toplevel):
             self,
             parent,
             app_data: AppData,
-            default_value: tuple[str, str, str] = (SPECIAL_COMBINATIONS_OPENING_SYMBOLS[0],
-                                                   None, None),
+            default_value: tuple[str, str, str] = (
+                SPECIAL_COMBINATIONS_OPENING_SYMBOLS[0], None, None
+            ),
     ):
         super().__init__(parent)
         self.parent = parent
@@ -4237,11 +4244,7 @@ class EnterInputReplacementW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        return (
-            self.cancelled,
-            (self.var_modifier.get(), self.var_key.get()),
-            self.var_val.get(),
-        )
+        return self.cancelled, self.var_modifier.get(), self.var_key.get(), self.var_val.get()
 
 
 # Окно настроек пользовательской темы
@@ -4359,7 +4362,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         # Выбор стиля рамок
         def _choose_relief(elem, value):
             if self.custom_styles[elem] != value:
-                self.history += [(elem, self.custom_styles[elem], value)]
+                self.history.append((elem, self.custom_styles[elem], value))
                 self.history_undo.clear()
             self.set_demo_styles()
             return True
@@ -4523,13 +4526,13 @@ class CustomThemeSettingsW(tk.Toplevel):
             else:
                 self.buttons[i].config(bg=st_val, activebackground=st_val)
 
-            old_vals += [self.custom_styles[st_key]]
-            new_vals += [st_val]
+            old_vals.append(self.custom_styles[st_key])
+            new_vals.append(st_val)
             self.custom_styles[st_key] = st_val
 
         self.set_demo_styles()
 
-        self.history += [('all', old_vals, new_vals)]
+        self.history.append(('all', old_vals, new_vals))
         self.history_undo.clear()
 
         self.var_images.set(theme_name)
@@ -4542,7 +4545,7 @@ class CustomThemeSettingsW(tk.Toplevel):
 
         self.dir_with_images = new_img
 
-        self.history += [('img', old_img, new_img)]
+        self.history.append(('img', old_img, new_img))
         self.history_undo.clear()
 
         self.refresh_images()
@@ -4562,7 +4565,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.set_demo_styles()
 
         if new_hx != hx:
-            self.history += [(st_key, hx, new_hx)]
+            self.history.append((st_key, hx, new_hx))
             self.history_undo.clear()
 
     # Сохранить пользовательскую тему
@@ -4622,7 +4625,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                     i = STYLE_KEYS.index(el)
                     self.buttons[i].config(bg=val, activebackground=val)
 
-            self.history_undo += [last_action]
+            self.history_undo.append(last_action)
             self.history.pop(-1)
 
             self.set_demo_styles()
@@ -4663,7 +4666,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                     i = STYLE_KEYS.index(el)
                     self.buttons[i].config(bg=val, activebackground=val)
 
-            self.history += [last_undo_action]
+            self.history.append(last_undo_action)
             self.history_undo.pop(-1)
 
             self.set_demo_styles()
@@ -4802,9 +4805,11 @@ class CustomThemeSettingsW(tk.Toplevel):
         )
         self.st_btn_default.map(
             'DemoDefault.TButton',
-            relief=[('pressed', 'sunken'),
-                    ('active', 'flat'),
-                    ('!active', 'raised')],
+            relief=[
+                ('pressed', 'sunken'),
+                ('active', 'flat'),
+                ('!active', 'raised'),
+            ],
             background=[
                 ('pressed', self.custom_styles['BTN.BG.ACT']),
                 ('active', self.custom_styles['BTN.BG.*']),
@@ -4827,8 +4832,10 @@ class CustomThemeSettingsW(tk.Toplevel):
         )
         self.st_btn_disabled.map(
             'DemoDisabled.TButton',
-            relief=[('active', 'raised'),
-                    ('!active', 'raised')],
+            relief=[
+                ('active', 'raised'),
+                ('!active', 'raised'),
+            ],
             background=[
                 ('active', self.custom_styles['BTN.BG.DISABL']),
                 ('!active', self.custom_styles['BTN.BG.DISABL']),
@@ -4849,9 +4856,11 @@ class CustomThemeSettingsW(tk.Toplevel):
         )
         self.st_btn_yes.map(
             'DemoYes.TButton',
-            relief=[('pressed', 'sunken'),
-                    ('active', 'flat'),
-                    ('!active', 'raised')],
+            relief=[
+                ('pressed', 'sunken'),
+                ('active', 'flat'),
+                ('!active', 'raised'),
+            ],
             background=[
                 ('pressed', self.custom_styles['BTN.BG.Y_ACT']),
                 ('active', self.custom_styles['BTN.BG.Y']),
@@ -4874,9 +4883,11 @@ class CustomThemeSettingsW(tk.Toplevel):
         )
         self.st_btn_no.map(
             'DemoNo.TButton',
-            relief=[('pressed', 'sunken'),
-                    ('active', 'flat'),
-                    ('!active', 'raised')],
+            relief=[
+                ('pressed', 'sunken'),
+                ('active', 'flat'),
+                ('!active', 'raised'),
+            ],
             background=[
                 ('pressed', self.custom_styles['BTN.BG.N_ACT']),
                 ('active', self.custom_styles['BTN.BG.N']),
@@ -4899,9 +4910,11 @@ class CustomThemeSettingsW(tk.Toplevel):
         )
         self.st_btn_image.map(
             'DemoImage.TButton',
-            relief=[('pressed', 'flat'),
-                    ('active', 'flat'),
-                    ('!active', 'flat')],
+            relief=[
+                ('pressed', 'flat'),
+                ('active', 'flat'),
+                ('!active', 'flat'),
+            ],
             background=[
                 ('pressed', self.custom_styles['BTN.BG.IMG_ACT']),
                 ('active', self.custom_styles['BTN.BG.IMG_HOV']),
@@ -5244,7 +5257,10 @@ class TrainingW(tk.Toplevel):
     def show_homonyms(self):
         self.print('Омонимы:')
         for entry_id in self.homonyms:
-            self.print('> ' + self.trainer.dct[entry_id].lemma + ': ' + tr_repr(self.trainer.dct[entry_id]))
+            self.print(
+                '> ' + self.trainer.dct[entry_id].lemma +
+                ': ' + tr_repr(self.trainer.dct[entry_id])
+            )
         btn_disable(self.btn_show_homonyms)
 
     # Нажатие на кнопку "Закончить"
@@ -5621,19 +5637,23 @@ class DictionaryW(tk.Toplevel):
         self.btn_print_select_page = create_button(
             self.frame_print_selection_buttons, self.select_page_in_all_tab, width=3,
             row=0, column=0)
-        set_image(self.btn_print_select_page, self.img_select_page, img_path(theme, 'select_page'), '[X]')
+        set_image(self.btn_print_select_page, self.img_select_page,
+                  img_path(theme, 'select_page'), '[X]')
         self.btn_print_unselect_page = create_button(
             self.frame_print_selection_buttons, self.unselect_page_in_all_tab, width=3,
             row=0, column=1)
-        set_image(self.btn_print_unselect_page, self.img_unselect_page, img_path(theme, 'unselect_page'), '[ ]')
+        set_image(self.btn_print_unselect_page, self.img_unselect_page,
+                  img_path(theme, 'unselect_page'), '[ ]')
         self.btn_print_select_all = create_button(
             self.frame_print_selection_buttons, self.select_all_in_all_tab, width=3,
             row=0, column=2)
-        set_image(self.btn_print_select_all, self.img_select_all, img_path(theme, 'select_all'), '[X]')
+        set_image(self.btn_print_select_all, self.img_select_all,
+                  img_path(theme, 'select_all'), '[X]')
         self.btn_print_unselect_all = create_button(
             self.frame_print_selection_buttons, self.unselect_all_in_all_tab, width=3,
             row=0, column=3)
-        set_image(self.btn_print_unselect_all, self.img_unselect_all, img_path(theme, 'unselect_all'), '[ ]')
+        set_image(self.btn_print_unselect_all, self.img_unselect_all,
+                  img_path(theme, 'unselect_all'), '[ ]')
 
     def _create_print_main_frame(self):
         self.frame_print_main = create_frame(
@@ -5663,12 +5683,14 @@ class DictionaryW(tk.Toplevel):
         self.btn_print_prev_page = create_button(
             self.frame_print_page_buttons, self.go_to_prev_page_in_all_tab, width=2,
             row=0, column=1, padx=3, pady=0)
-        set_image(self.btn_print_prev_page, self.img_arrow_left, img_path(theme, 'arrow_left'), '<')
+        set_image(self.btn_print_prev_page, self.img_arrow_left,
+                  img_path(theme, 'arrow_left'), '<')
         self._create_print_current_page_frame()
         self.btn_print_next_page = create_button(
             self.frame_print_page_buttons, self.go_to_next_page_in_all_tab, width=2,
             row=0, column=3, padx=3, pady=0)
-        set_image(self.btn_print_next_page, self.img_arrow_right, img_path(theme, 'arrow_right'), '>')
+        set_image(self.btn_print_next_page, self.img_arrow_right,
+                  img_path(theme, 'arrow_right'), '>')
         self.btn_print_last_page = create_button(
             self.frame_print_page_buttons, self.go_to_last_page_in_all_tab, width=2,
             row=0, column=4, padx=3, pady=0)
@@ -5989,11 +6011,10 @@ class DictionaryW(tk.Toplevel):
             self.btn_search_last_page, 'В конец', hover_delay=650)
 
     def _create_bindings(self):
-        self.combo_print_order.bind('<<ComboboxSelected>>', lambda event: self.display_entries_in_all_tab(False))
+        self.combo_print_order.bind(
+            '<<ComboboxSelected>>', lambda event: self.display_entries_in_all_tab(False))
         self.combo_print_group.bind(
-            '<<ComboboxSelected>>',
-            lambda event: self.go_to_first_page_in_all_tab(True),
-        )
+            '<<ComboboxSelected>>', lambda event: self.go_to_first_page_in_all_tab(True))
 
     # Нажатие на кнопку "Распечатать словарь в файл"
     def export(self):
@@ -6031,24 +6052,22 @@ class DictionaryW(tk.Toplevel):
                 info = dct_fav_stats_repr(
                     (w, self.dct.count('lemmas')),
                     (t, self.dct.count('translations')),
-                    (gf, self.dct.count('gram_forms')),
                     (wf, self.dct.count('word_forms')),
                 )
             else:
                 info = dct_stats_repr(
                     self.dct.count('lemmas'),
                     self.dct.count('translations'),
-                    self.dct.count('gram_forms'),
                     self.dct.count('word_forms'),
                 )
         else:
             if self.var_print_fav.get():
                 w1, t1, gf1, wf1 = self.dct.count_fav_entries(group)
                 w2, t2, gf2, wf2 = self.dct.count_entries_in_group(group)
-                info = dct_fav_stats_repr((w1, w2), (t1, t2), (gf1, gf2), (wf1, wf2))
+                info = dct_fav_stats_repr((w1, w2), (t1, t2), (wf1, wf2))
             else:
                 w, t, gf, wf = self.dct.count_entries_in_group(group)
-                info = dct_stats_repr(w, t, gf, wf)
+                info = dct_stats_repr(w, t, wf)
         self.var_print_info.set(info)
 
         count_selected = len(self.selected_entry_ids_in_all_tab)
@@ -6231,7 +6250,8 @@ class DictionaryW(tk.Toplevel):
                 lambda i=i: self.edit_entry(self.entry_ids_in_all_tab[self.print_start_index + i]),
                 style=(
                     ('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
-                    if self.entry_ids_in_all_tab[self.print_start_index + i] in self.selected_entry_ids_in_all_tab
+                    if self.entry_ids_in_all_tab[self.print_start_index + i]
+                       in self.selected_entry_ids_in_all_tab
                     else ('FlatD.TButton' if i % 2 else 'FlatL.TButton')
                 ),
                 row=0, column=0, padx=0, pady=0, sticky='WE',
@@ -6267,11 +6287,11 @@ class DictionaryW(tk.Toplevel):
         for i in range(self.print_count_elements_on_page):
             # Привязываем события
             self.entry_frames_in_all_tab[i].bind(
-                '<Enter>',
-                lambda event, i=i: self.entry_frames_in_all_tab[i].focus_set(),
-            )
-            self.entry_buttons_in_all_tab[i].bind('<Button-2>', lambda event, i=i: self.select_entry_in_all_tab(i))
-            self.entry_buttons_in_all_tab[i].bind('<Button-3>', lambda event, i=i: self.select_entry_in_all_tab(i))
+                '<Enter>', lambda event, i=i: self.entry_frames_in_all_tab[i].focus_set())
+            self.entry_buttons_in_all_tab[i].bind(
+                '<Button-2>', lambda event, i=i: self.select_entry_in_all_tab(i))
+            self.entry_buttons_in_all_tab[i].bind(
+                '<Button-3>', lambda event, i=i: self.select_entry_in_all_tab(i))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -6300,10 +6320,13 @@ class DictionaryW(tk.Toplevel):
             entry_ids = [entry_id for entry_id in self.dct.get_entry_ids()]
         # Если нужно, оставляем только одну группу
         if self.search_group != ALL_GROUPS:
-            entry_ids = [entry_id for entry_id in entry_ids if self.search_group in self.dct[entry_id].groups]
+            entry_ids = [
+                entry_id for entry_id in entry_ids
+                if self.search_group in self.dct[entry_id].groups
+            ]
         # Среди оставшихся ищем статьи, содержащие искомый текст
         results = search_entries(
-            self.dct, tuple(entry_ids),
+            self.dct, entry_ids,
             self.dct.apply_replacements(self.var_search_query.get()),
             self.to_search_wrd, self.to_search_tr, self.to_search_frm,
             self.to_search_phr, self.to_search_nt,
@@ -6317,7 +6340,8 @@ class DictionaryW(tk.Toplevel):
             )
         # Из выделенных статей оставляем, только удовлетворяющие поисковому запросу
         self.selected_entry_ids_in_search_tab = [
-            entry_id for entry_id in self.selected_entry_ids_in_search_tab if entry_id in self.entry_ids_in_search_tab
+            entry_id for entry_id in self.selected_entry_ids_in_search_tab
+            if entry_id in self.entry_ids_in_search_tab
         ]
         # Если выделенных статей нет, убираем связанные с ними кнопки
         if not self.selected_entry_ids_in_search_tab:
@@ -6362,13 +6386,16 @@ class DictionaryW(tk.Toplevel):
         self.entry_buttons_in_search_tab = [
             create_button(
                 self.entry_frames_in_search_tab[i],
-                lambda i=i: self.edit_entry(self.entry_ids_in_search_tab[self.search_start_index + i]),
+                lambda i=i: self.edit_entry(
+                    self.entry_ids_in_search_tab[self.search_start_index + i]
+                ),
                 entry_repr_complete(
                     self.dct[self.entry_ids_in_search_tab[self.search_start_index + i]], 75, 13
                 ),
                 style=(
                     ('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
-                    if self.entry_ids_in_search_tab[self.search_start_index + i] in self.selected_entry_ids_in_search_tab
+                    if self.entry_ids_in_search_tab[self.search_start_index + i]
+                       in self.selected_entry_ids_in_search_tab
                     else ('FlatD.TButton' if i % 2 else 'FlatL.TButton')
                 ),
                 row=0, column=0, padx=0, pady=0, sticky='WE',
@@ -6378,13 +6405,13 @@ class DictionaryW(tk.Toplevel):
         for i in range(self.search_count_elements_on_page):
             # Привязываем события
             self.entry_frames_in_search_tab[i].bind(
-                '<Enter>', lambda event, i=i: self.entry_frames_in_search_tab[i].focus_set()
-            )
+                '<Enter>', lambda event, i=i: self.entry_frames_in_search_tab[i].focus_set())
             self.entry_frames_in_search_tab[i].bind(
-                '<Leave>', lambda event, i=i: self.entry_search_query.focus_set()
-            )
-            self.entry_buttons_in_search_tab[i].bind('<Button-2>', lambda event, i=i: self.select_entry_in_search_tab(i))
-            self.entry_buttons_in_search_tab[i].bind('<Button-3>', lambda event, i=i: self.select_entry_in_search_tab(i))
+                '<Leave>', lambda event, i=i: self.entry_search_query.focus_set())
+            self.entry_buttons_in_search_tab[i].bind(
+                '<Button-2>', lambda event, i=i: self.select_entry_in_search_tab(i))
+            self.entry_buttons_in_search_tab[i].bind(
+                '<Button-3>', lambda event, i=i: self.select_entry_in_search_tab(i))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -6514,7 +6541,7 @@ class DictionaryW(tk.Toplevel):
             if not self.selected_entry_ids_in_all_tab:
                 self.frame_print_buttons_for_selected.grid_remove()
         else:
-            self.selected_entry_ids_in_all_tab += [entry_id]
+            self.selected_entry_ids_in_all_tab.append(entry_id)
             self.entry_buttons_in_all_tab[index].configure(
                 style='FlatSelectedD.TButton' if index % 2 else 'FlatSelectedL.TButton'
             )
@@ -6534,7 +6561,7 @@ class DictionaryW(tk.Toplevel):
             if not self.selected_entry_ids_in_search_tab:
                 self.frame_search_buttons_for_selected.grid_remove()
         else:
-            self.selected_entry_ids_in_search_tab += [entry_id]
+            self.selected_entry_ids_in_search_tab.append(entry_id)
             self.entry_buttons_in_search_tab[index].configure(
                 style='FlatSelectedD.TButton' if index % 2 else 'FlatSelectedL.TButton')
             self.frame_search_buttons_for_selected.grid(
@@ -6547,7 +6574,7 @@ class DictionaryW(tk.Toplevel):
         for i in range(self.print_count_elements_on_page):
             entry_id = self.entry_ids_in_all_tab[self.print_start_index + i]
             if entry_id not in self.selected_entry_ids_in_all_tab:
-                self.selected_entry_ids_in_all_tab += [entry_id]
+                self.selected_entry_ids_in_all_tab.append(entry_id)
             btn = self.entry_buttons_in_all_tab[i]
             btn.configure(style='FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
         self.frame_print_buttons_for_selected.grid(
@@ -6560,7 +6587,7 @@ class DictionaryW(tk.Toplevel):
         for i in range(self.search_count_elements_on_page):
             entry_id = self.entry_ids_in_search_tab[self.search_start_index + i]
             if entry_id not in self.selected_entry_ids_in_search_tab:
-                self.selected_entry_ids_in_search_tab += [entry_id]
+                self.selected_entry_ids_in_search_tab.append(entry_id)
             btn = self.entry_buttons_in_search_tab[i]
             btn.configure(style='FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
         self.frame_search_buttons_for_selected.grid(
@@ -6639,7 +6666,7 @@ class DictionaryW(tk.Toplevel):
         if not entry_ids:
             return
 
-        self.dct.add_to_fav(tuple(entry_ids))
+        self.dct.add_to_fav(entry_ids)
 
         self.refresh_all_entries_in_all_tab()
         self.refresh_all_entries_in_search_tab()
@@ -6649,7 +6676,7 @@ class DictionaryW(tk.Toplevel):
         if not entry_ids:
             return
 
-        self.dct.remove_from_fav(tuple(entry_ids))
+        self.dct.remove_from_fav(entry_ids)
 
         self.refresh_all_entries_in_all_tab()
         self.refresh_all_entries_in_search_tab()
@@ -6680,7 +6707,7 @@ class DictionaryW(tk.Toplevel):
         cancelled, group = window_groups.open()
         if cancelled:
             return
-        self.dct.add_entries_to_group(group, tuple(entry_ids))
+        self.dct.add_entries_to_group(group, entry_ids)
 
         if group == self.var_print_group.get():
             self.display_entries_in_all_tab(True)
@@ -6700,7 +6727,7 @@ class DictionaryW(tk.Toplevel):
         for entry_id in entry_ids:
             for group in self.dct[entry_id].groups:
                 if group not in values:
-                    values += [group]
+                    values.append(group)
         if not values:
             MessageDialog(
                 self, self.app_data,
@@ -6720,7 +6747,7 @@ class DictionaryW(tk.Toplevel):
         cancelled, group = window_groups.open()
         if cancelled:
             return
-        self.dct.remove_entries_from_group(group, tuple(entry_ids))
+        self.dct.remove_entries_from_group(group, entry_ids)
 
         if group == self.var_print_group.get():
             self.display_entries_in_all_tab(True)
@@ -6787,16 +6814,24 @@ class DictionaryW(tk.Toplevel):
         self.bind('<Alt-Shift-P>', lambda event: self.unselect_page_in_all_tab())
         self.bind('<Alt-Shift-a>', lambda event: self.unselect_all_in_all_tab())
         self.bind('<Alt-Shift-A>', lambda event: self.unselect_all_in_all_tab())
-        self.bind('<Alt-Shift-g>', lambda event: self.remove_selected_from_group(self.selected_entry_ids_in_all_tab))
-        self.bind('<Alt-Shift-G>', lambda event: self.remove_selected_from_group(self.selected_entry_ids_in_all_tab))
-        self.bind('<Alt-Shift-f>', lambda event: self.unfav_selected(self.selected_entry_ids_in_all_tab))
-        self.bind('<Alt-Shift-F>', lambda event: self.unfav_selected(self.selected_entry_ids_in_all_tab))
+        self.bind(
+            '<Alt-Shift-g>',
+            lambda event: self.remove_selected_from_group(self.selected_entry_ids_in_all_tab))
+        self.bind(
+            '<Alt-Shift-G>',
+            lambda event: self.remove_selected_from_group(self.selected_entry_ids_in_all_tab))
+        self.bind(
+            '<Alt-Shift-f>', lambda event: self.unfav_selected(self.selected_entry_ids_in_all_tab))
+        self.bind(
+            '<Alt-Shift-F>', lambda event: self.unfav_selected(self.selected_entry_ids_in_all_tab))
         self.bind('<Alt-p>', lambda event: self.select_page_in_all_tab())
         self.bind('<Alt-P>', lambda event: self.select_page_in_all_tab())
         self.bind('<Alt-a>', lambda event: self.select_all_in_all_tab())
         self.bind('<Alt-A>', lambda event: self.select_all_in_all_tab())
-        self.bind('<Alt-g>', lambda event: self.add_selected_to_group(self.selected_entry_ids_in_all_tab))
-        self.bind('<Alt-G>', lambda event: self.add_selected_to_group(self.selected_entry_ids_in_all_tab))
+        self.bind(
+            '<Alt-g>', lambda event: self.add_selected_to_group(self.selected_entry_ids_in_all_tab))
+        self.bind(
+            '<Alt-G>', lambda event: self.add_selected_to_group(self.selected_entry_ids_in_all_tab))
         self.bind('<Alt-f>', lambda event: self.fav_selected(self.selected_entry_ids_in_all_tab))
         self.bind('<Alt-F>', lambda event: self.fav_selected(self.selected_entry_ids_in_all_tab))
         self.bind('<Alt-d>', lambda event: self.delete_selected(self.selected_entry_ids_in_all_tab))
@@ -6819,20 +6854,34 @@ class DictionaryW(tk.Toplevel):
         self.bind('<Alt-Shift-P>', lambda event: self.unselect_page_in_search_tab())
         self.bind('<Alt-Shift-a>', lambda event: self.unselect_all_in_search_tab())
         self.bind('<Alt-Shift-A>', lambda event: self.unselect_all_in_search_tab())
-        self.bind('<Alt-Shift-g>', lambda event: self.remove_selected_from_group(self.selected_entry_ids_in_search_tab))
-        self.bind('<Alt-Shift-G>', lambda event: self.remove_selected_from_group(self.selected_entry_ids_in_search_tab))
-        self.bind('<Alt-Shift-f>', lambda event: self.unfav_selected(self.selected_entry_ids_in_search_tab))
-        self.bind('<Alt-Shift-F>', lambda event: self.unfav_selected(self.selected_entry_ids_in_search_tab))
+        self.bind(
+            '<Alt-Shift-g>',
+            lambda event: self.remove_selected_from_group(self.selected_entry_ids_in_search_tab))
+        self.bind(
+            '<Alt-Shift-G>',
+            lambda event: self.remove_selected_from_group(self.selected_entry_ids_in_search_tab))
+        self.bind(
+            '<Alt-Shift-f>',
+            lambda event: self.unfav_selected(self.selected_entry_ids_in_search_tab))
+        self.bind(
+            '<Alt-Shift-F>',
+            lambda event: self.unfav_selected(self.selected_entry_ids_in_search_tab))
         self.bind('<Alt-p>', lambda event: self.select_page_in_search_tab())
         self.bind('<Alt-P>', lambda event: self.select_page_in_search_tab())
         self.bind('<Alt-a>', lambda event: self.select_all_in_search_tab())
         self.bind('<Alt-A>', lambda event: self.select_all_in_search_tab())
-        self.bind('<Alt-g>', lambda event: self.add_selected_to_group(self.selected_entry_ids_in_search_tab))
-        self.bind('<Alt-G>', lambda event: self.add_selected_to_group(self.selected_entry_ids_in_search_tab))
+        self.bind(
+            '<Alt-g>',
+            lambda event: self.add_selected_to_group(self.selected_entry_ids_in_search_tab))
+        self.bind(
+            '<Alt-G>',
+            lambda event: self.add_selected_to_group(self.selected_entry_ids_in_search_tab))
         self.bind('<Alt-f>', lambda event: self.fav_selected(self.selected_entry_ids_in_search_tab))
         self.bind('<Alt-F>', lambda event: self.fav_selected(self.selected_entry_ids_in_search_tab))
-        self.bind('<Alt-d>', lambda event: self.delete_selected(self.selected_entry_ids_in_search_tab))
-        self.bind('<Alt-D>', lambda event: self.delete_selected(self.selected_entry_ids_in_search_tab))
+        self.bind(
+            '<Alt-d>', lambda event: self.delete_selected(self.selected_entry_ids_in_search_tab))
+        self.bind(
+            '<Alt-D>', lambda event: self.delete_selected(self.selected_entry_ids_in_search_tab))
 
     # Смена вкладки
     def change_tab(self):
@@ -6938,24 +6987,25 @@ class AddEntryW(tk.Toplevel):
                 btn_enable(self.btn_add, self.on_add_clicked)
 
             words = (entry.lemma for entry in self.dct.get_entries())
-            translations = []
-            for tr in (entry.tr for entry in self.dct.get_entries()):
-                translations += tr
 
             if value_word in words:
-                entry_ids_with_this_word = (entry_id for entry_id in self.dct.get_entry_ids()
-                                            if self.dct[entry_id].lemma == value_word)
-                translations = []
-                for tr in (self.dct[entry_id].tr for entry_id in entry_ids_with_this_word):
-                    translations += tr
+                entry_ids_with_this_word = (
+                    entry_id for entry_id in self.dct.get_entry_ids()
+                    if self.dct[entry_id].lemma == value_word
+                )
+                translations = set(chain(*(
+                    self.dct[entry_id].tr for entry_id in entry_ids_with_this_word
+                )))
                 if value_tr in translations:
                     self.lbl_msg.configure(text='Такая статья уже есть в словаре')
                 else:
                     self.lbl_msg.configure(text='Такое слово уже есть в словаре')
-            elif value_tr in translations:
-                self.lbl_msg.configure(text='Слово с таким переводом уже есть в словаре')
             else:
-                self.lbl_msg.configure(text='')
+                translations = set(chain(*(entry.tr for entry in self.dct.get_entries())))
+                if value_tr in translations:
+                    self.lbl_msg.configure(text='Слово с таким переводом уже есть в словаре')
+                else:
+                    self.lbl_msg.configure(text='')
 
             return True
 
@@ -7017,7 +7067,7 @@ class SettingsW(tk.Toplevel):
         self.app_data = app_data
         self.manager = app_data.manager
 
-        self.active_tab = 1  # Текущая вкладка (1 или 2)
+        self.active_tab = 0  # Текущая вкладка (0 или 1)
         self.is_ctg_modified = False
         self.is_groups_modified = False
         self.is_replacements_modified = False
@@ -7551,12 +7601,18 @@ class SettingsW(tk.Toplevel):
             # Привязываем события
             self.dct_frames[i].bind('<Enter>', lambda event, i=i: self.dct_frames[i].focus_set())
             self.dct_frames[i].bind('<Leave>', lambda event: self.focus_set())
-            self.dct_frames[i].bind('<Control-r>', lambda event, i=i: self.rename_dct(self.dct_names[i]))
-            self.dct_frames[i].bind('<Control-R>', lambda event, i=i: self.rename_dct(self.dct_names[i]))
-            self.dct_frames[i].bind('<Control-d>', lambda event, i=i: self.delete_dct(self.dct_names[i]))
-            self.dct_frames[i].bind('<Control-D>', lambda event, i=i: self.delete_dct(self.dct_names[i]))
-            self.dct_frames[i].bind('<Control-e>', lambda event, i=i: self.export_dct(self.dct_names[i]))
-            self.dct_frames[i].bind('<Control-E>', lambda event, i=i: self.export_dct(self.dct_names[i]))
+            self.dct_frames[i].bind(
+                '<Control-r>', lambda event, i=i: self.rename_dct(self.dct_names[i]))
+            self.dct_frames[i].bind(
+                '<Control-R>', lambda event, i=i: self.rename_dct(self.dct_names[i]))
+            self.dct_frames[i].bind(
+                '<Control-d>', lambda event, i=i: self.delete_dct(self.dct_names[i]))
+            self.dct_frames[i].bind(
+                '<Control-D>', lambda event, i=i: self.delete_dct(self.dct_names[i]))
+            self.dct_frames[i].bind(
+                '<Control-e>', lambda event, i=i: self.export_dct(self.dct_names[i]))
+            self.dct_frames[i].bind(
+                '<Control-E>', lambda event, i=i: self.export_dct(self.dct_names[i]))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -7630,7 +7686,7 @@ class SettingsW(tk.Toplevel):
 
     # Изменить размер окна в зависимости от открытой вкладки
     def on_tab_changed(self):
-        if self.active_tab == 1:
+        if self.active_tab == 0:
             self.frame_show_updates.grid(    row=0, padx=0, pady=0)
             self.frame_show_typo_button.grid(row=0, padx=0, pady=0)
             self.frame_dcts.grid(            row=0, padx=0, pady=0)
@@ -7639,14 +7695,14 @@ class SettingsW(tk.Toplevel):
             self.frame_dcts.grid_remove()
             self.frame_themes.grid_remove()
 
-            self.active_tab = 2
+            self.active_tab = 1
         else:
             self.frame_show_updates.grid(    row=0, padx=6, pady=6)
             self.frame_show_typo_button.grid(row=1, padx=6, pady=6)
             self.frame_dcts.grid(            row=2, padx=6, pady=6)
             self.frame_themes.grid(          row=3, padx=6, pady=6)
 
-            self.active_tab = 1
+            self.active_tab = 0
 
     # Установить фокус
     def set_focus(self):
@@ -8074,9 +8130,11 @@ class MainW(tk.Tk):
         )
         self.st_btn_default.map(
             'Default.TButton',
-            relief=[('pressed', 'sunken'),
-                    ('active', 'flat'),
-                    ('!active', 'raised')],
+            relief=[
+                ('pressed', 'sunken'),
+                ('active', 'flat'),
+                ('!active', 'raised'),
+            ],
             background=[
                 ('pressed', STYLES['BTN.BG.ACT'][1][theme]),
                 ('active', STYLES['BTN.BG.*'][1][theme]),
@@ -8099,8 +8157,10 @@ class MainW(tk.Tk):
         )
         self.st_btn_disabled.map(
             'Disabled.TButton',
-            relief=[('active', 'raised'),
-                    ('!active', 'raised')],
+            relief=[
+                ('active', 'raised'),
+                ('!active', 'raised'),
+            ],
             background=[
                 ('active', STYLES['BTN.BG.DISABL'][1][theme]),
                 ('!active', STYLES['BTN.BG.DISABL'][1][theme]),
@@ -8121,9 +8181,11 @@ class MainW(tk.Tk):
         )
         self.st_btn_yes.map(
             'Yes.TButton',
-            relief=[('pressed', 'sunken'),
-                    ('active', 'flat'),
-                    ('!active', 'raised')],
+            relief=[
+                ('pressed', 'sunken'),
+                ('active', 'flat'),
+                ('!active', 'raised'),
+            ],
             background=[
                 ('pressed', STYLES['BTN.BG.Y_ACT'][1][theme]),
                 ('active', STYLES['BTN.BG.Y'][1][theme]),
@@ -8146,9 +8208,11 @@ class MainW(tk.Tk):
         )
         self.st_btn_no.map(
             'No.TButton',
-            relief=[('pressed', 'sunken'),
-                    ('active', 'flat'),
-                    ('!active', 'raised')],
+            relief=[
+                ('pressed', 'sunken'),
+                ('active', 'flat'),
+                ('!active', 'raised'),
+            ],
             background=[
                 ('pressed', STYLES['BTN.BG.N_ACT'][1][theme]),
                 ('active', STYLES['BTN.BG.N'][1][theme]),
@@ -8171,9 +8235,11 @@ class MainW(tk.Tk):
         )
         self.st_btn_image.map(
             'Image.TButton',
-            relief=[('pressed', 'flat'),
-                    ('active', 'flat'),
-                    ('!active', 'flat')],
+            relief=[
+                ('pressed', 'flat'),
+                ('active', 'flat'),
+                ('!active', 'flat'),
+            ],
             background=[
                 ('pressed', STYLES['BTN.BG.IMG_ACT'][1][theme]),
                 ('active', STYLES['BTN.BG.IMG_HOV'][1][theme]),
@@ -8196,9 +8262,11 @@ class MainW(tk.Tk):
         )
         self.st_btn_note.map(
             'FlatL.TButton',
-            relief=[('pressed', 'flat'),
-                    ('active', 'flat'),
-                    ('!active', 'flat')],
+            relief=[
+                ('pressed', 'flat'),
+                ('active', 'flat'),
+                ('!active', 'flat'),
+            ],
             background=[
                 ('pressed', STYLES['FLAT_BTN.BG.ACT'][1][theme]),
                 ('active', STYLES['FLAT_BTN.BG.HOV'][1][theme]),
@@ -8221,9 +8289,11 @@ class MainW(tk.Tk):
         )
         self.st_btn_note.map(
             'FlatD.TButton',
-            relief=[('pressed', 'flat'),
-                    ('active', 'flat'),
-                    ('!active', 'flat')],
+            relief=[
+                ('pressed', 'flat'),
+                ('active', 'flat'),
+                ('!active', 'flat'),
+            ],
             background=[
                 ('pressed', STYLES['FLAT_BTN.BG.ACT'][1][theme]),
                 ('active', STYLES['FLAT_BTN.BG.HOV'][1][theme]),
@@ -8246,9 +8316,11 @@ class MainW(tk.Tk):
         )
         self.st_btn_note_selected.map(
             'FlatSelectedL.TButton',
-            relief=[('pressed', 'flat'),
-                    ('active', 'flat'),
-                    ('!active', 'flat')],
+            relief=[
+                ('pressed', 'flat'),
+                ('active', 'flat'),
+                ('!active', 'flat'),
+            ],
             background=[
                 ('pressed', STYLES['FLAT_BTN.BG.SEL_ACT'][1][theme]),
                 ('active', STYLES['FLAT_BTN.BG.SEL_HOV'][1][theme]),
@@ -8271,9 +8343,11 @@ class MainW(tk.Tk):
         )
         self.st_btn_note_selected.map(
             'FlatSelectedD.TButton',
-            relief=[('pressed', 'flat'),
-                    ('active', 'flat'),
-                    ('!active', 'flat')],
+            relief=[
+                ('pressed', 'flat'),
+                ('active', 'flat'),
+                ('!active', 'flat'),
+            ],
             background=[
                 ('pressed', STYLES['FLAT_BTN.BG.SEL_ACT'][1][theme]),
                 ('active', STYLES['FLAT_BTN.BG.SEL_HOV'][1][theme]),
@@ -8463,6 +8537,7 @@ def main():
     print('=' * CONSOLE_LOGO_FRAME_WIDTH)
 
     print('\nПрограмма запускается...')
+
     print('\nЗагрузка тем...')
     upload_themes(THEMES)  # Загружаем дополнительные темы
     upload_custom_theme()  # Загружаем пользовательскую тему
@@ -8475,8 +8550,10 @@ def main():
     # Set icon
     if ICON_FN in os.listdir(RESOURCES_PATH):
         root.iconphoto(True, tk.PhotoImage(file=ICON_PATH))  # Устанавливаем иконку
+
     print('\nЗапуск программы прошёл успешно')
     root.mainloop()
+
     print('\nПрограмма успешно завершилась')
 
 
