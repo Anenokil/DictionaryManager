@@ -141,8 +141,6 @@ def check_tr(
         new_tr: str,
         lemma: str,
 ) -> bool:
-    dct = app_data.manager.active.dct
-    new_tr = dct.apply_replacements(new_tr)
     if new_tr == '':
         warning(window_parent, app_data, 'Перевод должен содержать хотя бы один символ!')
         return False
@@ -161,8 +159,6 @@ def check_tr_edit(
         new_tr: str,
         lemma: str,
 ) -> bool:
-    dct = app_data.manager.active.dct
-    new_tr = dct.apply_replacements(new_tr)
     if new_tr == '':
         warning(window_parent, app_data, 'Перевод должен содержать хотя бы один символ!')
         return False
@@ -180,9 +176,8 @@ def check_phr(
         new_phrase_pair: tuple[str, str],
         lemma: str,
 ) -> bool:
-    dct = app_data.manager.active.dct
-    phrase = dct.apply_replacements(new_phrase_pair[0])
-    phrase_tr = dct.apply_replacements(new_phrase_pair[1])
+    phrase, phrase_tr = new_phrase_pair
+
     if phrase == '' or phrase_tr == '':
         warning(window_parent, app_data, 'Фраза должна содержать хотя бы один символ!')
         return False
@@ -201,9 +196,8 @@ def check_phr_edit(
         new_phrase_pair: tuple[str, str],
         lemma: str,
 ) -> bool:
-    dct = app_data.manager.active.dct
-    new_phrase_src = dct.apply_replacements(new_phrase_pair[0])
-    new_phrase_tr = dct.apply_replacements(new_phrase_pair[1])
+    new_phrase_src, new_phrase_tr = new_phrase_pair
+
     if new_phrase_src == '' or new_phrase_tr == '':
         warning(window_parent, app_data, 'Фраза должна содержать хотя бы один символ!')
         return False
@@ -223,8 +217,6 @@ def check_note(
         new_note: str,
         lemma: str,
 ) -> bool:
-    dct = app_data.manager.active.dct
-    new_note = dct.apply_replacements(new_note)
     if new_note == '':
         warning(window_parent, app_data, 'Сноска должна содержать хотя бы один символ!')
         return False
@@ -243,8 +235,6 @@ def check_note_edit(
         new_note: str,
         lemma: str,
 ) -> bool:
-    dct = app_data.manager.active.dct
-    new_note = dct.apply_replacements(new_note)
     if new_note == '':
         warning(window_parent, app_data, 'Сноска должна содержать хотя бы один символ!')
         return False
@@ -261,8 +251,6 @@ def check_group_name(
         groups: list[str] | tuple[str, ...],
         new_group: str,
 ) -> bool:
-    dct = app_data.manager.active.dct
-    new_group = dct.apply_replacements(new_group)
     if new_group == '':
         warning(window_parent, app_data, 'Название группы должно содержать хотя бы один символ!')
         return False
@@ -283,8 +271,6 @@ def check_group_name_edit(
         old_group: str,
         new_group: str,
 ) -> bool:
-    dct = app_data.manager.active.dct
-    new_group = dct.apply_replacements(new_group)
     if new_group == '':
         warning(window_parent, app_data, 'Название группы должно содержать хотя бы один символ!')
         return False
@@ -304,8 +290,6 @@ def check_ctg(
         categories: list[str] | tuple[str, ...],
         new_ctg: str,
 ) -> bool:
-    dct = app_data.manager.active.dct
-    new_ctg = dct.apply_replacements(new_ctg)
     if new_ctg == '':
         warning(window_parent, app_data, 'Название категории должно содержать хотя бы один символ!')
         return False
@@ -323,8 +307,6 @@ def check_ctg_edit(
         old_ctg: str,
         new_ctg: str,
 ) -> bool:
-    dct = app_data.manager.active.dct
-    new_ctg = dct.apply_replacements(new_ctg)
     if new_ctg == '':
         warning(window_parent, app_data, 'Название категории должно содержать хотя бы один символ!')
         return False
@@ -341,8 +323,6 @@ def check_ctg_val(
         ctg_values: list[str] | tuple[str, ...],
         new_value: str,
 ) -> bool:
-    dct = app_data.manager.active.dct
-    new_value = dct.apply_replacements(new_value)
     if new_value == '':
         warning(window_parent, app_data, 'Значение категории должно содержать хотя бы один символ!')
         return False
@@ -360,8 +340,6 @@ def check_ctg_val_edit(
         old_value: str,
         new_value: str,
 ) -> bool:
-    dct = app_data.manager.active.dct
-    new_value = dct.apply_replacements(new_value)
     if new_value == '':
         warning(window_parent, app_data, 'Значение категории должно содержать хотя бы один символ!')
         return False
@@ -574,13 +552,11 @@ def replacement_repr(key: tuple[str, str], value: str) -> str:
 
 
 # Заменить буквы в тексте соответствующими английскими
-def simplify(dct: Dictionary, text: str) -> tuple[str, list[str]]:
-    replaced_text = dct.apply_replacements(text)
-
+def simplify(text: str) -> tuple[str, list[str]]:
     converted_text = ''
     transformations = []
 
-    for char in replaced_text:
+    for char in text:
         if char in ('ä', 'Ä', 'ë', 'Ë', 'ö', 'Ö', 'ü', 'Ü', 'ß', 'ẞ'):
             idx = ('ä', 'Ä', 'ë', 'Ë', 'ö', 'Ö', 'ü', 'Ü', 'ß', 'ẞ').index(char)
             converted_text += ('a', 'A', 'e', 'E', 'o', 'O', 'u', 'U', 'ss', 'SS')[idx]
@@ -797,7 +773,6 @@ def add_ctg(window_parent: tk.Misc, app_data: AppData) -> bool:
     cancelled, new_ctg = window_ctg.open()
     if cancelled:
         return False
-    new_ctg = dct.apply_replacements(new_ctg)
 
     # Ввод первого значения категории
     window_val = InputDialog(
@@ -808,7 +783,6 @@ def add_ctg(window_parent: tk.Misc, app_data: AppData) -> bool:
     cancelled, new_ctg_val = window_val.open()
     if cancelled:
         return False
-    new_ctg_val = dct.apply_replacements(new_ctg_val)
 
     # Обновление категорий
     dct.add_ctg(new_ctg, [new_ctg_val])
@@ -831,7 +805,6 @@ def rename_ctg(window_parent: tk.Misc, app_data: AppData, old_ctg_name: str) -> 
     cancelled, new_ctg_name = window_entry.open()
     if cancelled:
         return False
-    new_ctg_name = dct.apply_replacements(new_ctg_name)
     if new_ctg_name == old_ctg_name:
         return None
 
@@ -877,7 +850,6 @@ def add_ctg_value(
     if cancelled:
         return False
 
-    new_ctg_val = dct.apply_replacements(new_ctg_val)
     dct.add_ctg_value(ctg_name, new_ctg_val)
     return True
 
@@ -903,7 +875,6 @@ def rename_ctg_value(
     cancelled, new_ctg_val = window_entry.open()
     if cancelled:
         return False
-    new_ctg_val = dct.apply_replacements(new_ctg_val)
     if new_ctg_val == old_ctg_val:
         return False
 
@@ -1704,29 +1675,39 @@ class InputDialog(tk.Toplevel):
             btn_text: str = 'Подтвердить',
             entry_width: int = 45,
             default_value: str | None = '',
-            validate_function: Callable | None = None,
+            validate_function: Callable[[str], bool] | None = None,
             check_answer_function: Callable[[tk.Misc, str], bool] | None = None,
             if_correct_function: Callable[[], Any] | None = None,
             if_incorrect_function: Callable[[], Any] | None = None,
             title: str = PROGRAM_NAME,
+            to_replace: bool = True,
     ):
         super().__init__(parent)
         self.parent = parent
 
         self.app_data = app_data
+        self.replacer = app_data.manager.active.replacer
 
         self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
         self.if_correct_function = if_correct_function  # Функция, вызываемая при корректном ответе
         self.if_incorrect_function = if_incorrect_function  # Функция, вызываемая при некорректном ответе
+        self.to_replace = to_replace
+
         self.cancelled = True  # Закрыто ли окно крестиком
 
+        if to_replace:
+            default_value = self.replacer.escape(default_value)
         self.var_text = tk.StringVar(value=default_value)
 
         self._configure_window(title)
         self._create_widgets(msg, btn_text, entry_width)
 
         if validate_function:
-            self.vcmd = (self.register(validate_function), '%P')
+            if to_replace:
+                replace_and_validate = lambda x: validate_function(self.replacer.apply_replacements(x))
+                self.vcmd = (self.register(replace_and_validate), '%P')
+            else:
+                self.vcmd = (self.register(validate_function), '%P')
             self.entry.configure(validate='key', validatecommand=self.vcmd)
 
         self.entry.icursor(len(default_value))
@@ -1751,7 +1732,10 @@ class InputDialog(tk.Toplevel):
     # Нажатие на кнопку
     def on_ok(self):
         if self.check_answer_function:
-            is_correct = self.check_answer_function(self, self.var_text.get())
+            text = self.var_text.get()
+            if self.to_replace:
+                text = self.replacer.apply_replacements(text)
+            is_correct = self.check_answer_function(self, text)
             if is_correct:
                 if self.if_correct_function:
                     self.if_correct_function()
@@ -1777,7 +1761,11 @@ class InputDialog(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        return self.cancelled, self.var_text.get()
+        text = self.var_text.get()
+        if self.to_replace:
+            text = self.replacer.apply_replacements(text)
+
+        return self.cancelled, text
 
 
 # Всплывающее окно с полем Combobox
@@ -2413,12 +2401,15 @@ class EnterPhraseW(tk.Toplevel):
         self.parent = parent
 
         self.app_data = app_data
+        self.replacer = app_data.manager.active.replacer
 
         self.cancelled = True  # Закрыто ли окно крестиком
         self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
 
-        self.var_phr = tk.StringVar(value=default_value[0])
-        self.var_tr = tk.StringVar(value=default_value[1])
+        phr = self.replacer.escape(default_value[0])
+        phr_tr = self.replacer.escape(default_value[1])
+        self.var_phr = tk.StringVar(value=phr)
+        self.var_tr = tk.StringVar(value=phr_tr)
 
         self._configure_window(title)
         self._create_widgets()
@@ -2458,7 +2449,9 @@ class EnterPhraseW(tk.Toplevel):
     # Добавление фразы
     def on_ok(self):
         if self.check_answer_function:
-            is_correct = self.check_answer_function(self, (self.var_phr.get(), self.var_tr.get()))
+            phr = self.replacer.apply_replacements(self.var_phr.get())
+            phr_tr = self.replacer.apply_replacements(self.var_tr.get())
+            is_correct = self.check_answer_function(self, (phr, phr_tr))
             if not is_correct:
                 return
 
@@ -2481,7 +2474,9 @@ class EnterPhraseW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        return self.cancelled, self.var_phr.get(), self.var_tr.get()
+        phr = self.replacer.apply_replacements(self.var_phr.get())
+        phr_tr = self.replacer.apply_replacements(self.var_tr.get())
+        return self.cancelled, phr, phr_tr
 
 
 # Окно изменения статьи
@@ -2687,7 +2682,6 @@ class EditEntryW(tk.Toplevel):
         cancelled, new_wrd = window.open()
         if cancelled:
             return
-        new_wrd = self.dct.apply_replacements(new_wrd)
         if new_wrd == self.dct[self.entry_id].lemma:
             return
 
@@ -2713,7 +2707,6 @@ class EditEntryW(tk.Toplevel):
         cancelled, tr = window.open()
         if cancelled:
             return
-        tr = self.dct.apply_replacements(tr)
 
         self.dct.add_tr(self.entry_id, tr)
 
@@ -2733,7 +2726,6 @@ class EditEntryW(tk.Toplevel):
         cancelled, new_tr = window.open()
         if cancelled:
             return
-        new_tr = self.dct.apply_replacements(new_tr)
 
         self.dct.edit_tr(self.entry_id, tr, new_tr)
 
@@ -2767,7 +2759,6 @@ class EditEntryW(tk.Toplevel):
         gram_form, word_form = window_form.open()
         if not gram_form:
             return
-        word_form = self.dct.apply_replacements(word_form)
 
         self.dct.add_form(self.entry_id, gram_form, word_form)
 
@@ -2784,7 +2775,6 @@ class EditEntryW(tk.Toplevel):
         new_gram_form, new_word_form = window_form.open()
         if not new_gram_form:
             return
-        new_word_form = self.dct.apply_replacements(new_word_form)
 
         self.dct.edit_form(self.entry_id, gram_form, word_form, new_gram_form, new_word_form)
 
@@ -2809,8 +2799,6 @@ class EditEntryW(tk.Toplevel):
         cancelled, phrase, phrase_tr = window.open()
         if cancelled:
             return
-        phrase = self.dct.apply_replacements(phrase)
-        phrase_tr = self.dct.apply_replacements(phrase_tr)
 
         self.dct.add_phrase(self.entry_id, phrase, phrase_tr)
 
@@ -2831,8 +2819,6 @@ class EditEntryW(tk.Toplevel):
         cancelled, new_phrase, new_phrase_tr = window.open()
         if cancelled:
             return
-        new_phrase = self.dct.apply_replacements(new_phrase)
-        new_phrase_tr = self.dct.apply_replacements(new_phrase_tr)
 
         self.dct.edit_phrase(self.entry_id, phrase, phrase_tr, new_phrase, new_phrase_tr)
 
@@ -2858,7 +2844,6 @@ class EditEntryW(tk.Toplevel):
         cancelled, note = window.open()
         if cancelled:
             return
-        note = self.dct.apply_replacements(note)
 
         self.dct.add_note(self.entry_id, note)
 
@@ -2878,7 +2863,6 @@ class EditEntryW(tk.Toplevel):
         cancelled, new_note = window.open()
         if cancelled:
             return
-        new_note = self.dct.apply_replacements(new_note)
 
         self.dct.edit_note(self.entry_id, note, new_note)
 
@@ -2916,7 +2900,6 @@ class EditEntryW(tk.Toplevel):
         cancelled, group = window_group.open()
         if cancelled:
             return
-        group = self.dct.apply_replacements(group)
 
         self.dct.add_entries_to_group(group, [self.entry_id])
 
@@ -3224,7 +3207,10 @@ class EnterFormW(tk.Toplevel):
         self.parent = parent
 
         self.app_data = app_data
-        self.dct = app_data.manager.active.dct
+        self.dct_info = app_data.manager.active
+        self.dct = self.dct_info.dct
+        self.replacer = self.dct_info.replacer
+
         self.entry_id = entry_id
 
         self.cancelled = True  # Закрыто ли окно крестиком
@@ -3238,7 +3224,7 @@ class EnterFormW(tk.Toplevel):
         self.var_gram_form = tk.StringVar(
             value=f'Текущий шаблон словоформы: "{gram_form_to_str(self.gram_form)}"'
         )
-        self.var_form = tk.StringVar(value=initial_value)
+        self.var_form = tk.StringVar(value=self.replacer.escape(initial_value))
 
         self.img_ok = tk.PhotoImage()
         self.img_none = tk.PhotoImage()
@@ -3380,7 +3366,7 @@ class EnterFormW(tk.Toplevel):
     def save(self):
         forms = self.dct[self.entry_id].forms
         gram_form = tuple(self.gram_form)
-        word_form = self.var_form.get()
+        word_form = self.replacer.apply_replacements(self.var_form.get())
 
         if gram_form in forms and word_form == forms[gram_form]:
             warning(
@@ -3425,10 +3411,10 @@ class EnterFormW(tk.Toplevel):
             return None, None
         forms = self.dct[self.entry_id].forms
         gram_form = tuple(self.gram_form)
-        word_form = self.var_form.get()
+        word_form = self.replacer.apply_replacements(self.var_form.get())
         if gram_form in forms and word_form == forms[gram_form]:
             return None, None
-        return tuple(self.gram_form), self.var_form.get()
+        return gram_form, word_form
 
 
 # Окно настроек грамматических категорий
@@ -3656,7 +3642,6 @@ class GroupsSettingsW(tk.Toplevel):
         cancelled, group = window.open()
         if cancelled:
             return
-        group = self.dct.apply_replacements(group)
         self.dct.add_group(group)
 
         self.print_groups(False)
@@ -3677,7 +3662,6 @@ class GroupsSettingsW(tk.Toplevel):
         cancelled, group_new = window.open()
         if cancelled:
             return
-        group_new = self.dct.apply_replacements(group_new)
 
         self.dct.rename_group(group_old, group_new)
 
@@ -3991,7 +3975,9 @@ class InputReplacementsSettingsW(tk.Toplevel):
         self.parent = parent
 
         self.app_data = app_data
-        self.dct = app_data.manager.active.dct
+        self.dct_info = app_data.manager.active
+        self.dct = self.dct_info.dct
+        self.replacer = self.dct_info.replacer
 
         self.has_changes = False
 
@@ -4043,16 +4029,16 @@ class InputReplacementsSettingsW(tk.Toplevel):
         cancelled, modifier, key, val = window.open()
         if cancelled or modifier == '' or key == '' or val == '':
             return
-        if (modifier, key) in self.dct.input_replacements.keys():
+        if (modifier, key) in self.replacer.replacements.keys():
             warning(self, self.app_data, f'Комбинация {modifier}{key} уже существует!')
             return
-        self.dct.add_replacement(modifier, key, val)
+        self.replacer.add_replacement(modifier, key, val)
         self.print_replacements(False)
         self.has_changes = True
 
     # Изменить комбинацию
     def edit_replacement(self, old_modifier: str, old_key: str):
-        old_val = self.dct.input_replacements[old_modifier, old_key]
+        old_val = self.replacer.replacements[old_modifier, old_key]
         window = EnterInputReplacementW(
             self, self.app_data, default_value=(old_modifier, old_key, old_val)
         )
@@ -4062,15 +4048,15 @@ class InputReplacementsSettingsW(tk.Toplevel):
         if new_modifier == old_modifier and new_key == old_key and new_val == old_val:
             return
 
-        self.dct.delete_replacement(old_modifier, old_key)
+        self.replacer.delete_replacement(old_modifier, old_key)
 
-        self.dct.add_replacement(new_modifier, new_key, new_val)
+        self.replacer.add_replacement(new_modifier, new_key, new_val)
         self.print_replacements(False)
         self.has_changes = True
 
     # Удалить комбинацию
     def delete_replacement(self, modifier: str, key: str):
-        self.dct.delete_replacement(modifier, key)
+        self.replacer.delete_replacement(modifier, key)
         self.print_replacements(False)
         self.has_changes = True
 
@@ -4092,7 +4078,7 @@ class InputReplacementsSettingsW(tk.Toplevel):
         # Выбираем комбинации
         nontrivial_keys = [
             key
-            for key in self.dct.input_replacements
+            for key in self.replacer.replacements
             if key[0] != key[1]
         ]
         n_nontrivial_replacements = len(nontrivial_keys)
@@ -4123,7 +4109,7 @@ class InputReplacementsSettingsW(tk.Toplevel):
         for i in range(n_nontrivial_replacements):
             # Выводим текст на кнопки
             key = nontrivial_keys[i]
-            val = self.dct.input_replacements[key]
+            val = self.replacer.replacements[key]
             self.buttons[i].configure(text=split_text(replacement_repr(key, val), 35))
 
             # Привязываем события
@@ -5042,6 +5028,8 @@ class TrainingW(tk.Toplevel):
 
         self.app_data = app_data
         self.dct_info = app_data.manager.active
+        self.replacer = self.dct_info.replacer
+
         self.trainer = Trainer(self.dct_info.dct, train_config)
         self.trainer.initialize()
         self.initial_pool_size = len(self.trainer.pool)
@@ -5211,7 +5199,7 @@ class TrainingW(tk.Toplevel):
     # Ввод ответа и переход к следующему слову
     def on_input(self):
         # Вывод в журнал пользовательского ответа
-        user_answer = self.dct_info.dct.apply_replacements(self.entry_input.get())
+        user_answer = self.replacer.apply_replacements(self.entry_input.get())
         if user_answer != '':
             self.print(user_answer)
 
@@ -5321,7 +5309,7 @@ class TrainingW(tk.Toplevel):
                     window = TwoOptionsDialog(
                         self, self.app_data,
                         f'Неверно.\n'
-                        f'Ваш ответ: {self.dct_info.dct.apply_replacements(
+                        f'Ваш ответ: {self.replacer.apply_replacements(
                             self.entry_input.get()
                         )}\n'
                         f'Правильный ответ: {correct_answers_repr}',
@@ -5353,7 +5341,7 @@ class TrainingW(tk.Toplevel):
             else:
                 window = IncorrectAnswerW(
                     self, self.app_data,
-                    self.dct_info.dct.apply_replacements(self.entry_input.get()),
+                    self.replacer.apply_replacements(self.entry_input.get()),
                     correct_answers_repr,
                     self.app_data.global_settings.is_typo_btn_on,
                 )
@@ -5400,6 +5388,7 @@ class DictionaryW(tk.Toplevel):
         self.app_data = app_data
         self.dct_info = app_data.manager.active
         self.dct = self.dct_info.dct
+        self.replacer = self.dct_info.replacer
 
         self.active_tab = 0  # Номер текущей вкладки
 
@@ -6335,7 +6324,7 @@ class DictionaryW(tk.Toplevel):
         # Среди оставшихся ищем статьи, содержащие искомый текст
         results = search_entries(
             self.dct, entry_ids,
-            self.dct.apply_replacements(self.var_search_query.get()),
+            self.replacer.apply_replacements(self.var_search_query.get()),
             self.to_search_wrd, self.to_search_tr, self.to_search_frm,
             self.to_search_phr, self.to_search_nt,
         )
@@ -6928,7 +6917,9 @@ class AddEntryW(tk.Toplevel):
         self.parent = parent
 
         self.app_data = app_data
-        self.dct = app_data.manager.active.dct
+        self.dct_info = app_data.manager.active
+        self.dct = self.dct_info.dct
+        self.replacer = self.dct_info.replacer
 
         self.entry_id = None
 
@@ -6986,8 +6977,8 @@ class AddEntryW(tk.Toplevel):
     def _add_validation(self):
         # При незаполненных полях нельзя нажать кнопку
         def validate_entries(value_word: str, value_tr: str):
-            value_word = self.dct.apply_replacements(value_word)
-            value_tr = self.dct.apply_replacements(value_tr)
+            value_word = self.replacer.apply_replacements(value_word)
+            value_tr = self.replacer.apply_replacements(value_tr)
 
             if value_word == '' or value_tr == '':
                 btn_disable(self.btn_add)
@@ -7034,8 +7025,8 @@ class AddEntryW(tk.Toplevel):
     def on_add_clicked(self):
         self.entry_id = add_homograph(
             self.app_data, self,
-            self.dct.apply_replacements(self.var_word.get()),
-            self.dct.apply_replacements(self.var_tr.get()),
+            self.replacer.apply_replacements(self.var_word.get()),
+            self.replacer.apply_replacements(self.var_tr.get()),
         )
         if not self.entry_id:
             return
@@ -7366,6 +7357,7 @@ class SettingsW(tk.Toplevel):
             check_answer_function=lambda wnd, val: check_dct_name_edit(
                 wnd, self.app_data, old_name, val
             ),
+            to_replace=False,
         )
         cancelled, new_name = window_rename.open()
         if cancelled or new_name == old_name:
@@ -7408,6 +7400,7 @@ class SettingsW(tk.Toplevel):
             'Введите название нового словаря',
             validate_function=validate_savename,
             check_answer_function=lambda wnd, val: check_dct_name(wnd, self.app_data, val),
+            to_replace=False,
         )
         cancelled, savename = window.open()
         if cancelled:
@@ -7457,6 +7450,7 @@ class SettingsW(tk.Toplevel):
             default_value=default_savename,
             validate_function=validate_savename,
             check_answer_function=lambda wnd, val: check_dct_name(wnd, self.app_data, val),
+            to_replace=False,
         )
         cancelled, savename = window.open()
         if cancelled:

@@ -14,6 +14,7 @@ from .core.errors import UnknownVersionError
 from .core.dictionary import Dictionary
 from .core.trainer import TrainingConfig, Trainer
 from .core.utils import validate_required_fields, validate_field_type
+from .replacements import Replacer
 
 
 class DctSettings:
@@ -270,17 +271,20 @@ class DctInfo:
             dct: Dictionary | None = None,
             settings: DctSettings | None = None,
             cache: DctCache | None = None,
+            replacer: Replacer | None = None,
     ):
         self.filepath = os.path.abspath(filepath)
         self.dct = Dictionary() if dct is None else dct
         self.settings = DctSettings() if settings is None else settings
         self.cache = DctCache() if cache is None else cache
+        self.replacer = Replacer() if replacer is None else replacer
         self.trainer = Trainer(self.dct, self.cache.train_config)
 
     def set_defaults(self):
         self.dct = Dictionary()
         self.settings.set_defaults()
         self.cache.set_defaults()
+        self.replacer = Replacer()
         self.trainer = Trainer(self.dct, self.cache.train_config)
 
     def to_dict(self) -> SerializedData:
@@ -289,6 +293,7 @@ class DctInfo:
             'dct': self.dct.to_json_dict(),
             'settings': self.settings.to_dict(),
             'cache': self.cache.to_dict(),
+            'replacer': self.replacer.to_json_dict(),
         }
 
     def load_from_dict(self, data: SerializedData):
@@ -297,6 +302,7 @@ class DctInfo:
         self.dct.load_from_json_dict(data['dct'])
         self.settings.load_from_dict(data['settings'])
         self.cache.load_from_dict(data['cache'])
+        self.replacer.load_from_json_dict(data['replacer'])
         self.trainer = Trainer(self.dct, self.cache.train_config)
 
     @classmethod
@@ -318,12 +324,13 @@ class DctInfo:
 
     @staticmethod
     def _validate_data(data: SerializedData):
-        required_fields = ('dct', 'settings', 'cache')
+        required_fields = ('dct', 'settings', 'cache', 'replacer')
         validate_required_fields(data, required_fields)
 
         validate_field_type('dct', data['dct'], SerializedData)
         validate_field_type('settings', data['settings'], SerializedData)
         validate_field_type('cache', data['cache'], SerializedData)
+        validate_field_type('replacer', data['replacer'], SerializedData)
 
 
 class Manager:
