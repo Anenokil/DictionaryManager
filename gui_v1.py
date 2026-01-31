@@ -913,7 +913,7 @@ def delete_ctg_value(
 # Есть ли слово в строке
 def word_in_line(line: str, word: str) -> bool:
     words = re.split(r'[.,;:!? \n()\[\]{}]', line)
-    words = [w for w in words if w != '']
+    words = {w for w in words if w != ''}
     return word in words
 
 
