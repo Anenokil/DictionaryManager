@@ -1258,10 +1258,9 @@ def set_image(
         text_if_no_img: str,
         compound: CompoundValues = 'image',
 ):
-    # TODO: remove try-except
     try:
         img.configure(file=img_name)
-    except:
+    except tk.TclError:
         btn.configure(text=text_if_no_img, compound='text', style='Default.TButton')
     else:
         btn.configure(image=img, compound=compound, style='Image.TButton')
@@ -4977,14 +4976,12 @@ class CustomThemeSettingsW(tk.Toplevel):
     def refresh_images(self):
         for i in range(len(ICON_NAMES)):
             img = f'{ICON_NAMES[i]}.png'
-            # TODO: remove try-except
             try:
                 self.images[i].config(file=os.path.join(self.dir_with_images, img))
-            except:
-                # TODO: remove try-except
+            except tk.TclError:
                 try:
                     self.images[i].config(file=os.path.join(IMAGES_PATH, img))
-                except:
+                except tk.TclError:
                     self.img_buttons[i].config(
                         text='-', image='', compound='text', style='DemoDefault.TButton'
                     )
