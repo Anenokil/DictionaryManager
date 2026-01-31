@@ -3217,7 +3217,7 @@ class EnterFormW(tk.Toplevel):
         self.categories = list(self.dct.features.keys())  # Список категорий
         self.ctg_values = list(self.dct.features[self.categories[0]])  # Список значений выбранной категории
         self.initial_gram_form = ['' for _ in range(len(self.categories))]  # Пустой шаблон (для сравнения на пустоту)
-        self.gram_form = gram_form or self.initial_gram_form  # Шаблон словоформы
+        self.gram_form = gram_form or ['' for _ in range(len(self.categories))]  # Шаблон словоформы
 
         self.var_ctg = tk.StringVar(value=self.categories[0])
         self.var_val = tk.StringVar(value=self.ctg_values[0])
