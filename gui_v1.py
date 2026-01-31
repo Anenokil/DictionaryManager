@@ -196,9 +196,9 @@ def check_phr_edit(
         new_phrase_pair: tuple[str, str],
         lemma: str,
 ) -> bool:
-    new_phrase_src, new_phrase_tr = new_phrase_pair
+    new_phrase, new_phrase_tr = new_phrase_pair
 
-    if new_phrase_src == '' or new_phrase_tr == '':
+    if new_phrase == '' or new_phrase_tr == '':
         warning(window_parent, app_data, 'Фраза должна содержать хотя бы один символ!')
         return False
     if new_phrase_pair[0] in phrases.keys() and \
@@ -547,8 +547,8 @@ def dct_fav_stats_repr(
 
 
 # Преобразовать специальную комбинацию в читаемый вид (для отображения в настройках)
-def replacement_repr(key: tuple[str, str], value: str) -> str:
-    return f'{key[0]}{key[1]} -> {value}'
+def replacement_repr(input_pair: tuple[str, str], output: str) -> str:
+    return f'{input_pair[0]}{input_pair[1]} -> {output}'
 
 
 # Заменить буквы в тексте соответствующими английскими
@@ -1373,12 +1373,12 @@ def validate_replacement_modifier(value: str) -> bool:
 
 
 # Валидация ключевого символа специальной комбинации
-def validate_replacement_key(value: str) -> bool:
+def validate_replacement_base(value: str) -> bool:
     return len(value) <= 1 and value not in SPECIAL_COMBINATIONS_OPENING_SYMBOLS
 
 
 # Валидация значения специальной комбинации
-def validate_replacement_value(value: str) -> bool:
+def validate_replacement_output(value: str) -> bool:
     return len(value) <= 1
 
 
@@ -3468,19 +3468,19 @@ class CategoriesSettingsW(tk.Toplevel):
         self.print_categories(False)
 
     # Переименовать категорию
-    def rename_ctg(self, ctg_key: str):
-        self.has_changes = rename_ctg(self, self.app_data, ctg_key) or self.has_changes
+    def rename_ctg(self, gram_form: str):
+        self.has_changes = rename_ctg(self, self.app_data, gram_form) or self.has_changes
         self.print_categories(False)
 
     # Удалить категорию
-    def delete_ctg(self, ctg_key: str):
-        self.has_changes = delete_ctg(self, self.app_data, ctg_key) or self.has_changes
+    def delete_ctg(self, gram_form: str):
+        self.has_changes = delete_ctg(self, self.app_data, gram_form) or self.has_changes
         self.print_categories(False)
 
     # Перейти к настройкам значений категории
-    def edit_ctg_values(self, ctg_key: str):
+    def edit_ctg_values(self, gram_form: str):
         self.has_changes = CategoryValuesSettingsW(
-            self, ctg_key, self.app_data
+            self, gram_form, self.app_data
         ).open() or self.has_changes
 
     # Напечатать существующие категории
@@ -3800,15 +3800,15 @@ class GroupsSettingsW(tk.Toplevel):
 
 # Окно настроек значений грамматической категории
 class CategoryValuesSettingsW(tk.Toplevel):
-    def __init__(self, parent: CategoriesSettingsW, ctg_key: str, app_data: AppData):
+    def __init__(self, parent: CategoriesSettingsW, gram_form: str, app_data: AppData):
         super().__init__(parent)
         self.parent = parent
 
         self.app_data = app_data
         self.dct = app_data.manager.active.dct
 
-        self.ctg_key = ctg_key  # Название изменяемой категории
-        self.ctg_values = self.dct.features[self.ctg_key]  # Значения изменяемой категории
+        self.gram_form = gram_form  # Название изменяемой категории
+        self.ctg_values = self.dct.features[self.gram_form]  # Значения изменяемой категории
         self.has_changes = False
 
         self.img_help = tk.PhotoImage()
@@ -3839,7 +3839,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
         self.lbl_ctg_values = create_label(
             self,
             f'Существующие значения категории\n'
-            f'"{self.ctg_key}":',
+            f'"{self.gram_form}":',
             justify='center',
             row=0, column=1, padx=(0, 6), pady=(6, 0), sticky='W')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
@@ -3861,24 +3861,24 @@ class CategoryValuesSettingsW(tk.Toplevel):
     # Добавить значение категории
     def add_value(self):
         self.has_changes = add_ctg_value(
-            self, self.app_data, self.ctg_key, self.ctg_values
+            self, self.app_data, self.gram_form, self.ctg_values
         ) or self.has_changes
         self.print_values(False)
 
     # Переименовать значение категории
     def rename_value(self, val: str):
         self.has_changes = rename_ctg_value(
-            self, self.app_data, self.ctg_key, val
+            self, self.app_data, self.gram_form, val
         ) or self.has_changes
         self.print_values(False)
 
     # Удалить значение категории
     def delete_value(self, val: str):
         self.has_changes = delete_ctg_value(
-            self, self.app_data, self.ctg_key, val
+            self, self.app_data, self.gram_form, val
         ) or self.has_changes
         self.print_values(False)
-        if self.ctg_key not in self.dct.features:
+        if self.gram_form not in self.dct.features:
             self.parent.print_categories(False)
             self.destroy()
 
@@ -4162,14 +4162,14 @@ class EnterInputReplacementW(tk.Toplevel):
         self.cancelled = True  # Закрыто ли окно крестиком
 
         self.var_modifier = tk.StringVar(value=default_value[0])
-        self.var_key = tk.StringVar(value=default_value[1])
-        self.var_val = tk.StringVar(value=default_value[2])
+        self.var_base = tk.StringVar(value=default_value[1])
+        self.var_output = tk.StringVar(value=default_value[2])
 
         self.vcmd_modifier = (
             self.register(validate_replacement_modifier), '%P'
         )
-        self.vcmd_key = (self.register(validate_replacement_key), '%P')
-        self.vcmd_val = (self.register(validate_replacement_value), '%P')
+        self.vcmd_base = (self.register(validate_replacement_base), '%P')
+        self.vcmd_output = (self.register(validate_replacement_output), '%P')
 
         self._configure_window()
         self._create_widgets()
@@ -4197,15 +4197,15 @@ class EnterInputReplacementW(tk.Toplevel):
             validate='all', validatecommand=self.vcmd_modifier,
             row=0, column=0, padx=0, pady=0)
         self.entry_key = create_entry(
-            self.frame_main, self.var_key, 2, font=self.app_data,
-            justify='right', validate='key', validatecommand=self.vcmd_key,
+            self.frame_main, self.var_base, 2, font=self.app_data,
+            justify='right', validate='key', validatecommand=self.vcmd_base,
             row=0, column=1, padx=0, pady=0)
         self.lbl_arrow = create_label(
             self.frame_main, '->', justify='center',
             row=0, column=2, padx=2, pady=0)
         self.entry_val = create_entry(
-            self.frame_main, self.var_val, 2, font=self.app_data,
-            validate='key', validatecommand=self.vcmd_val,
+            self.frame_main, self.var_output, 2, font=self.app_data,
+            validate='key', validatecommand=self.vcmd_output,
             row=0, column=3, padx=0, pady=0)
 
     # Нажатие на кнопку
@@ -4229,7 +4229,7 @@ class EnterInputReplacementW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        return self.cancelled, self.var_modifier.get(), self.var_key.get(), self.var_val.get()
+        return self.cancelled, self.var_modifier.get(), self.var_base.get(), self.var_output.get()
 
 
 # Окно настроек пользовательской темы
