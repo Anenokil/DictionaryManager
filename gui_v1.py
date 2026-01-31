@@ -181,7 +181,7 @@ def check_phr(
     if phrase == '' or phrase_tr == '':
         warning(window_parent, app_data, 'Фраза должна содержать хотя бы один символ!')
         return False
-    if new_phrase_pair[0] in phrases.keys() and new_phrase_pair[1] in phrases[new_phrase_pair[0]]:
+    if phrase in phrases and phrase_tr in phrases[phrase]:
         warning(window_parent, app_data, f'Со словом "{lemma}" уже есть такая фраза!')
         return False
     return True
@@ -201,9 +201,11 @@ def check_phr_edit(
     if new_phrase == '' or new_phrase_tr == '':
         warning(window_parent, app_data, 'Фраза должна содержать хотя бы один символ!')
         return False
-    if new_phrase_pair[0] in phrases.keys() and \
-            new_phrase_pair[1] in phrases[new_phrase_pair[0]] and \
-            new_phrase_pair != old_phrase_pair:
+    if all((
+            new_phrase in phrases,
+            new_phrase_tr in phrases[new_phrase],
+            new_phrase_pair != old_phrase_pair,
+    )):
         warning(window_parent, app_data, f'Со словом "{lemma}" уже есть такая фраза!')
         return False
     return True
@@ -538,9 +540,11 @@ def dct_fav_stats_repr(
     w = select_word_form(count_e[0], ('слово', 'слова', 'слов'))
     f = select_word_form(count_e[0] + count_wf[0], ('словоформа', 'словоформы', 'словоформ'))
     t = select_word_form(count_t[0], ('перевод', 'перевода', 'переводов'))
-    return f'[ {count_e[0]}/{count_e[1]} {w} '\
-           f'| {count_e[0] + count_wf[0]}/{count_e[1] + count_wf[1]} {f} '\
-           f'| {count_t[0]}/{count_t[1]} {t} ]'
+    return (
+        f'[ {count_e[0]}/{count_e[1]} {w} '
+        f'| {count_e[0] + count_wf[0]}/{count_e[1] + count_wf[1]} {f} '
+        f'| {count_t[0]}/{count_t[1]} {t} ]'
+    )
 
 
 """ Вспомогательные функции """
@@ -2309,9 +2313,11 @@ class SearchSettingsW(tk.Toplevel):
 
         save_dct_cache(self.dct_info)
 
-        return self.var_search_only_fav.get(), self.var_search_only_full.get(), \
-            self.var_search_wrd.get(), self.var_search_tr.get(), self.var_search_frm.get(), \
+        return (
+            self.var_search_only_fav.get(), self.var_search_only_full.get(),
+            self.var_search_wrd.get(), self.var_search_tr.get(), self.var_search_frm.get(),
             self.var_search_phr.get(), self.var_search_nt.get(), self.var_search_group.get()
+        )
 
 
 # Окно выбора одной статьи из нескольких с одинаковыми словами
@@ -5157,8 +5163,8 @@ class TrainingW(tk.Toplevel):
             self.dct_info.dct.mark_modified()
 
         # Выбор слова
-        self.current_entry_id, self.current_form, self.current_phrase, \
-            self.homonyms = self.trainer.get_task()
+        (self.current_entry_id, self.current_form, self.current_phrase,
+         self.homonyms) = self.trainer.get_task()
 
         # Вывод слова в журнал
         if self.trainer.config.method == TrainingMethod.TRANS_TO_WORD:
@@ -6018,9 +6024,9 @@ class DictionaryW(tk.Toplevel):
             self.to_search_frm, self.to_search_phr, self.to_search_nt,
             self.search_group,
         )
-        self.to_search_only_fav, self.to_search_only_full, self.to_search_wrd, \
-            self.to_search_tr, self.to_search_frm, self.to_search_phr, \
-            self.to_search_nt, self.search_group = window.open()
+        (self.to_search_only_fav, self.to_search_only_full, self.to_search_wrd,
+         self.to_search_tr, self.to_search_frm, self.to_search_phr,
+         self.to_search_nt, self.search_group) = window.open()
 
     # Изменить статью
     def edit_entry(self, entry_id: EntryID):
@@ -6209,12 +6215,15 @@ class DictionaryW(tk.Toplevel):
             self.print_current_page = self.print_count_pages
             self.print_start_index = (self.print_count_pages - 1) * self.print_max_elements_on_page
         if self.print_current_page == self.print_count_pages:
-            if self.print_count_elements % self.print_max_elements_on_page == 0 and\
-                    self.print_count_elements != 0:
+            if all((
+                    self.print_count_elements % self.print_max_elements_on_page == 0,
+                    self.print_count_elements != 0,
+            )):
                 self.print_count_elements_on_page = self.print_max_elements_on_page
             else:
-                self.print_count_elements_on_page =\
+                self.print_count_elements_on_page = (
                     self.print_count_elements % self.print_max_elements_on_page
+                )
         else:
             self.print_count_elements_on_page = self.print_max_elements_on_page
         # Выводим номер страницы
@@ -6343,15 +6352,19 @@ class DictionaryW(tk.Toplevel):
             )
         if self.search_current_page > self.search_count_pages:
             self.search_current_page = self.search_count_pages
-            self.search_start_index =\
+            self.search_start_index = (
                 (self.search_count_pages - 1) * self.search_max_elements_on_page
+            )
         if self.search_current_page == self.search_count_pages:
-            if self.search_count_elements % self.search_max_elements_on_page == 0 and\
-                    self.search_count_elements != 0:
+            if all((
+                    self.search_count_elements % self.search_max_elements_on_page == 0,
+                    self.search_count_elements != 0,
+            )):
                 self.search_count_elements_on_page = self.search_max_elements_on_page
             else:
-                self.search_count_elements_on_page =\
+                self.search_count_elements_on_page = (
                     self.search_count_elements % self.search_max_elements_on_page
+                )
         else:
             self.search_count_elements_on_page = self.search_max_elements_on_page
         # Выводим информацию о количестве статей
@@ -7652,18 +7665,22 @@ class SettingsW(tk.Toplevel):
 
     # Были ли изменения локальных настроек
     def has_local_changes(self):
-        return self.is_ctg_modified or\
-            self.is_groups_modified or\
-            self.is_replacements_modified or\
+        return (
+            self.is_ctg_modified or
+            self.is_groups_modified or
+            self.is_replacements_modified or
             self.var_check_register.get() != self.manager.active.settings.is_register_sensitive
+        )
 
     # Были ли изменения настроек
     def has_changes(self):
-        return self.has_local_changes() or\
-            self.var_show_updates.get() != self.app_data.global_settings.to_check_for_updates or\
-            self.var_show_typo_button.get() != self.app_data.global_settings.is_typo_btn_on or\
-            self.var_theme.get() != self.app_data.gui_settings.theme or\
+        return (
+            self.has_local_changes() or
+            self.var_show_updates.get() != self.app_data.global_settings.to_check_for_updates or
+            self.var_show_typo_button.get() != self.app_data.global_settings.is_typo_btn_on or
+            self.var_theme.get() != self.app_data.gui_settings.theme or
             self.backup_scale != self.app_data.gui_settings.scale
+        )
 
     # Обновить надписи с названием открытого словаря
     def refresh_open_dct_name(self, savename: str):
