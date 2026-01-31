@@ -1372,13 +1372,13 @@ def validate_int_min_max(value: str, min_val: int, max_val: int) -> bool:
 
 
 # Валидация открывающего символа специальной комбинации
-def validate_replacement_modifier(value: str) -> bool:
-    return value == '' or value in SPECIAL_COMBINATIONS_OPENING_SYMBOLS
+def validate_replacement_modifier(value: str, replacer: Replacer) -> bool:
+    return value in replacer.modifiers
 
 
 # Валидация ключевого символа специальной комбинации
-def validate_replacement_base(value: str) -> bool:
-    return len(value) <= 1 and value not in SPECIAL_COMBINATIONS_OPENING_SYMBOLS
+def validate_replacement_base(value: str, replacer: Replacer) -> bool:
+    return len(value) <= 1 and value not in replacer.modifiers
 
 
 # Валидация значения специальной комбинации
@@ -3981,7 +3981,7 @@ class InputReplacementsSettingsW(tk.Toplevel):
         self.img_help = tk.PhotoImage()
 
         self.frames = []
-        self.buttons = []
+        self.buttons = {}
 
         self._configure_window()
         self._create_widgets()
@@ -4060,7 +4060,7 @@ class InputReplacementsSettingsW(tk.Toplevel):
     # Напечатать существующие комбинации
     def print_replacements(self, move_scroll: bool):
         # Удаляем старые кнопки
-        for btn in self.buttons:
+        for btn in self.buttons.values():
             btn.destroy()
         # Удаляем старые фреймы
         for fr in self.frames:
@@ -4073,53 +4073,52 @@ class InputReplacementsSettingsW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем комбинации
-        nontrivial_keys = [
-            key
-            for key in self.replacer.replacements
-            if key[0] != key[1]
-        ]
-        n_nontrivial_replacements = len(nontrivial_keys)
+        input_pairs = tuple(self.replacer.replacements.keys())
 
         # Создаём новые фреймы
-        self.frames = tuple(
-            [
-                create_frame(
-                    self.scrolled_frame.frame_canvas, 'Invis.TFrame',
-                    row=i, column=0, padx=0, pady=0, sticky='WE',
-                ) for i in range(n_nontrivial_replacements)
-            ] + [create_label(
+        self.frames = [
+            create_label(
                 self.scrolled_frame.frame_canvas,
-                split_text('## -> #, %% -> % и т. д.', 35),
+                replacement_repr(pair, self.replacer.replacements[pair]),
                 'FlatL.TLabel',
-                row=n_nontrivial_replacements, column=0, padx=0, pady=0, sticky='WE',
-            )]
-        )
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            )
+            if pair[0] == pair[1] else
+            create_frame(
+                self.scrolled_frame.frame_canvas, 'Invis.TFrame',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            )
+            for i, pair in enumerate(input_pairs)
+        ]
         # Создаём новые кнопки
-        self.buttons = [
-            create_button(
+        self.buttons = {
+            i: create_button(
                 self.frames[i],
-                lambda i=i: self.edit_replacement(*nontrivial_keys[i]),
+                lambda i=i: self.edit_replacement(*input_pairs[i]),
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
                 row=0, column=0, padx=0, pady=0, sticky='WE',
-            ) for i in range(n_nontrivial_replacements)
-        ]
-        for i in range(n_nontrivial_replacements):
+            ) for i, pair in enumerate(input_pairs) if pair[0] != pair[1]
+        }
+
+        for i, pair in enumerate(input_pairs):
+            if pair[0] == pair[1]:
+                continue
+
             # Выводим текст на кнопки
-            key = nontrivial_keys[i]
-            val = self.replacer.replacements[key]
-            self.buttons[i].configure(text=split_text(replacement_repr(key, val), 35))
+            output = self.replacer.replacements[pair]
+            self.buttons[i].configure(text=split_text(replacement_repr(pair, output), 35))
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
             self.frames[i].bind(
-                '<Control-e>', lambda event, i=i: self.edit_replacement(*nontrivial_keys[i]))
+                '<Control-e>', lambda event, i=i: self.edit_replacement(*input_pairs[i]))
             self.frames[i].bind(
-                '<Control-E>', lambda event, i=i: self.edit_replacement(*nontrivial_keys[i]))
+                '<Control-E>', lambda event, i=i: self.edit_replacement(*input_pairs[i]))
             self.frames[i].bind(
-                '<Control-d>', lambda event, i=i: self.delete_replacement(*nontrivial_keys[i]))
+                '<Control-d>', lambda event, i=i: self.delete_replacement(*input_pairs[i]))
             self.frames[i].bind(
-                '<Control-D>', lambda event, i=i: self.delete_replacement(*nontrivial_keys[i]))
+                '<Control-D>', lambda event, i=i: self.delete_replacement(*input_pairs[i]))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -4156,25 +4155,28 @@ class EnterInputReplacementW(tk.Toplevel):
             self,
             parent: tk.Misc,
             app_data: AppData,
-            default_value: tuple[str, str, str] = (
-                SPECIAL_COMBINATIONS_OPENING_SYMBOLS[0], None, None
-            ),
+            default_value: tuple[str, str, str] | None = None,
     ):
         super().__init__(parent)
         self.parent = parent
 
         self.app_data = app_data
+        self.replacer = app_data.manager.active.replacer
 
         self.cancelled = True  # Закрыто ли окно крестиком
 
+        if not default_value:
+            default_value = (tuple(self.replacer.modifiers)[0], None, None)
         self.var_modifier = tk.StringVar(value=default_value[0])
         self.var_base = tk.StringVar(value=default_value[1])
         self.var_output = tk.StringVar(value=default_value[2])
 
         self.vcmd_modifier = (
-            self.register(validate_replacement_modifier), '%P'
+            self.register(lambda val: validate_replacement_modifier(val, self.replacer)), '%P'
         )
-        self.vcmd_base = (self.register(validate_replacement_base), '%P')
+        self.vcmd_base = (
+            self.register(lambda val: validate_replacement_base(val, self.replacer)), '%P'
+        )
         self.vcmd_output = (self.register(validate_replacement_output), '%P')
 
         self._configure_window()
@@ -4198,7 +4200,7 @@ class EnterInputReplacementW(tk.Toplevel):
         self.frame_main = create_frame(self, 'Invis.TFrame', row=1, padx=6, pady=0)
 
         self.combo_modifier = create_combobox(
-            self.frame_main, self.var_modifier, SPECIAL_COMBINATIONS_OPENING_SYMBOLS, 3,
+            self.frame_main, self.var_modifier, tuple(self.replacer.modifiers), 3,
             font=('DejaVu Sans Mono', self.app_data.gui_settings.scale), state='normal',
             validate='all', validatecommand=self.vcmd_modifier,
             row=0, column=0, padx=0, pady=0)
