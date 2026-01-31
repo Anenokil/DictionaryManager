@@ -1216,14 +1216,6 @@ def toplevel_geometry(window_parent: tk.Misc, window: tk.Wm):
     window.geometry(f'+{window_parent.winfo_x() + 20}+{window_parent.winfo_y() + 20}')
 
 
-# Привязать функцию к нажатию клавиши
-def bind_keypress(event, keys_and_cmds: list[tuple[str, Callable[[], Any]]], is_latin: bool = True):
-    for key, cmd in keys_and_cmds:
-        if event.keycode == ord(key):
-            if is_latin or event.keysym.lower() != key.lower():
-                cmd()
-
-
 def bind_ctrl_a(widget: tk.Entry | ttk.Entry):
     def handler(event=None):
         widget.select_range(0, 'end')
