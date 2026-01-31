@@ -155,7 +155,8 @@ class Entry:
         """
 
         if new_tr in self.tr:
-            self.tr.remove(new_tr)
+            if new_tr != tr:
+                self.tr.remove(new_tr)
         else:
             index = self.tr.index(tr)
             self.tr[index] = new_tr
@@ -207,7 +208,8 @@ class Entry:
         if new_gram_form == gram_form:
             word_forms = self.forms[gram_form]
             if new_word_form in word_forms:
-                word_forms.remove(word_form)
+                if new_word_form != word_form:
+                    word_forms.remove(word_form)
             else:
                 index = word_forms.index(word_form)
                 word_forms[index] = new_word_form
@@ -264,7 +266,8 @@ class Entry:
         if new_phrase == phrase:
             phrase_trs = self.phrases[new_phrase]
             if new_phrase_tr in phrase_trs:
-                phrase_trs.remove(phrase_tr)
+                if new_phrase_tr != phrase_tr:
+                    phrase_trs.remove(phrase_tr)
             else:
                 index = phrase_trs.index(phrase_tr)
                 phrase_trs[index] = new_phrase_tr
@@ -303,7 +306,8 @@ class Entry:
         """
 
         if new_note in self.notes:
-            self.notes.remove(note)
+            if new_note != note:
+                self.notes.remove(note)
         else:
             index = self.notes.index(note)
             self.notes[index] = new_note
