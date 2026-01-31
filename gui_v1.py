@@ -509,7 +509,7 @@ def tr_and_stats_repr(entry: Entry) -> str:
 
 
 # Вывести перевод со словоформой и со статистикой
-def tr_and_forms_and_stats_repr(entry: Entry, gram_form: GramForm | list[str]) -> str:
+def tr_and_forms_and_stats_repr(entry: Entry, gram_form: Iterable[str]) -> str:
     return f'{tr_repr(entry)} ({gram_form_to_str(gram_form)}) {entry_stats_repr(entry)}'
 
 
