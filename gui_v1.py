@@ -3745,7 +3745,7 @@ class GroupsSettingsW(tk.Toplevel):
         self.buttons = [
             create_button(
                 self.frames[i],
-                lambda i=i: self.rename_group(self.groups[i]),
+                lambda i=i: self.rename_group(i),
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
                 row=0, column=0, padx=0, pady=0, sticky='WE',
             ) for i in range(groups_count)
