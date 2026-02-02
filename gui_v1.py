@@ -5383,28 +5383,212 @@ class DictionaryW(tk.Toplevel):
         self.parent = parent
 
         self.app_data = app_data
+        self.dct = app_data.manager.active.dct
+
+        self.active_tab = 0  # Номер текущей вкладки
+
+        self._configure_window()
+        self._create_widgets()
+
+    def _configure_window(self):
+        self.title(f'{PROGRAM_NAME} - Словарь "{self.dct.name}"')
+        self.resizable(width=False, height=False)
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        toplevel_geometry(self.parent, self)
+
+    def _create_widgets(self):
+        self.tabs = ttk.Notebook(self, style='Default.TNotebook')
+        self.tabs.grid(row=0, column=0, padx=0, pady=0)
+
+        self.tab_print = SearchTab(self, 'Invis.TFrame', self.app_data)
+        self.tabs.add(self.tab_print, text='Просмотр словаря')
+
+        self.tab_search = BrowseDctTab(self, 'Invis.TFrame', self.app_data)
+        self.tabs.add(self.tab_search, text='Поиск')
+
+        self.tab_add = create_frame(self.tabs, 'Invis.TFrame')
+        self.tabs.add(self.tab_add, text='Добавить запись в словарь')
+
+    # Добавить выделенные статьи в избранное
+    def fav_selected(self, entry_ids: list[EntryID]):
+        if not entry_ids:
+            return
+
+        self.dct.add_to_fav(entry_ids)
+
+        self.tab_print.refresh_all_entries_in_all_tab()
+        self.tab_search.refresh_all_entries_in_search_tab()
+
+    # Убрать выделенные статьи из избранного
+    def unfav_selected(self, entry_ids: list[EntryID]):
+        if not entry_ids:
+            return
+
+        self.dct.remove_from_fav(entry_ids)
+
+        self.tab_print.refresh_all_entries_in_all_tab()
+        self.tab_search.refresh_all_entries_in_search_tab()
+
+    # Добавить выделенные статьи в группу
+    def add_selected_to_group(self, entry_ids: list[EntryID]):
+        if not entry_ids:
+            return
+        if not self.dct.groups:
+            MessageDialog(self, self.app_data, 'Не найдено ни одной группы!').open()
+            return
+
+        sets = [self.dct[entry_id].groups for entry_id in entry_ids]
+        values_intersec = set.intersection(*sets)
+        values = [group for group in self.dct.groups if group not in values_intersec]
+        if not values:
+            MessageDialog(
+                self, self.app_data,
+                'Выделенные статьи уже состоят во всех группах!',
+            ).open()
+            return
+        window_groups = ChoiceDialog(
+            self, self.app_data,
+            msg='Выберите группу, в которую хотите добавить выбранные слова:',
+            values=values,
+            default_value=self.dct.groups[0],
+        )
+        cancelled, group = window_groups.open()
+        if cancelled:
+            return
+        self.dct.add_entries_to_group(group, entry_ids)
+
+        if group == self.tab_print.var_print_group.get():
+            self.tab_print.display_entries_in_all_tab(True)
+        else:
+            self.tab_print.refresh_all_entries_in_all_tab()
+        self.tab_search.refresh_all_entries_in_search_tab()
+
+    # Убрать выделенные статьи из группы
+    def remove_selected_from_group(self, entry_ids: list[EntryID]):
+        if not entry_ids:
+            return
+        if not self.dct.groups:
+            MessageDialog(self, self.app_data, 'Не найдено ни одной группы!').open()
+            return
+
+        values = []
+        for entry_id in entry_ids:
+            for group in self.dct[entry_id].groups:
+                if group not in values:
+                    values.append(group)
+        if not values:
+            MessageDialog(
+                self, self.app_data,
+                'Выделенные статьи не состоят ни в каких группах!',
+            ).open()
+            return
+        if self.tab_print.var_print_group.get() == ALL_GROUPS or self.tabs.index(self.tabs.select()) == 1:
+            default_value = values[0]
+        else:
+            default_value = self.tab_print.var_print_group.get()
+        window_groups = ChoiceDialog(
+            self, self.app_data,
+            msg='Выберите группу, из которой хотите убрать выбранные слова:',
+            values=values,
+            default_value=default_value,
+        )
+        cancelled, group = window_groups.open()
+        if cancelled:
+            return
+        self.dct.remove_entries_from_group(group, entry_ids)
+
+        if group == self.tab_print.var_print_group.get():
+            self.tab_print.display_entries_in_all_tab(True)
+        else:
+            self.tab_print.refresh_all_entries_in_all_tab()
+        self.tab_search.refresh_all_entries_in_search_tab()
+
+    # Удалить выделенные статьи
+    def delete_selected(self, entry_ids: list[EntryID]):
+        if not entry_ids:
+            return
+
+        count_selected = len(entry_ids)
+        tmp = select_word_form(count_selected, ('статью', 'статьи', 'статей'))
+        window = TwoOptionsDialog(
+            self, self.app_data,
+            f'Вы действительно хотите удалить {count_selected} {tmp}?',
+            focused_btn='none',
+        )
+        result = window.open()
+        if not result:
+            return
+
+        for entry_id in entry_ids:
+            self.dct.delete_entry(entry_id)
+
+        self.tab_print.display_entries_in_all_tab(True)
+        self.tab_search.display_entries_in_search_tab(True)
+
+    # Изменить статью
+    def edit_entry(self, entry_id: EntryID):
+        EditEntryW(self, self.app_data, entry_id).open()
+
+        self.tab_search.display_entries_in_search_tab(False)
+        self.tab_print.display_entries_in_all_tab(False)
+
+    # Нажатие на кнопку "Добавить запись в словарь"
+    def add_entry(self):
+        entry_id = AddEntryW(self, self.app_data).open()
+        if not entry_id:
+            return
+        EditEntryW(self, self.app_data, entry_id).open()
+
+        self.tab_search.display_entries_in_search_tab(False)
+        self.tab_print.display_entries_in_all_tab(False)
+
+    # Смена вкладки
+    def change_tab(self):
+        if self.tabs.index(self.tabs.select()) == 0:
+            self.active_tab = 0
+            self.tab_print.set_focus_in_all_tab()
+        elif self.tabs.index(self.tabs.select()) == 1:
+            self.active_tab = 1
+            self.tab_search.set_focus_in_search_tab()
+        else:
+            self.tabs.select(self.active_tab)
+            self.add_entry()
+
+    def open(self, tab: Literal['print', 'search'] = 'print'):
+        self.focus_set()
+        self.bind('<Escape>', lambda event: self.destroy())
+
+        if tab == 'print':
+            self.active_tab = 0
+            self.tab_print.set_focus_in_all_tab()
+        elif tab == 'search':
+            self.active_tab = 1
+            self.tabs.select(self.tab_search)
+            self.tab_search.set_focus_in_search_tab()
+
+        self.tabs.bind('<<NotebookTabChanged>>', lambda event: self.change_tab())
+
+        self.grab_set()
+        self.wait_window()
+
+
+class BrowseDctTab(ttk.Frame):
+    def __init__(self, master: DictionaryW, style: str, app_data: AppData):
+        super().__init__(master, style=style)
+        self.master: DictionaryW = master
+
+        self.app_data = app_data
         self.dct_info = app_data.manager.active
         self.dct = self.dct_info.dct
         self.replacer = self.dct_info.replacer
 
-        self.active_tab = 0  # Номер текущей вкладки
-
-        # Константы для вкладки печати
-        self.print_max_elements_on_page = 100  # Максимальное количество элементов на одной странице ScrollFrame
-        self.print_current_page = 1  # Номер текущей страницы ScrollFrame (начиная с 1)
-        self.print_start_index = 0  # Номер по порядку первого слова на текущей странице ScrollFrame (начиная с 0)
-        self.print_count_pages = None  # Количество страниц ScrollFrame
-        self.print_count_elements = None  # Количество элементов на всех страницах ScrollFrame
-        self.print_count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
-        # Константы для вкладки поиска
+        # Константы
         self.search_max_elements_on_page = 50  # Максимальное количество элементов на одной странице ScrollFrame
         self.search_current_page = 1  # Номер текущей страницы ScrollFrame (начиная с 1)
         self.search_start_index = 0  # Номер по порядку первого слова на текущей странице ScrollFrame (начиная с 0)
         self.search_count_pages = None  # Количество страниц ScrollFrame
         self.search_count_elements = None  # Количество элементов на всех страницах ScrollFrame
         self.search_count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
-
-        self.group_options = [ALL_GROUPS] + self.dct.groups
 
         # Параметры поиска
         search_config = self.dct_info.cache.search_config
@@ -5421,15 +5605,7 @@ class DictionaryW(tk.Toplevel):
         else:
             self.search_group = self.search_group[0]  # TODO: several groups
 
-        # Переменные для вкладки печати
-        self.var_print_fav = tk.BooleanVar(value=False)
-        self.var_print_briefly = tk.BooleanVar(value=False)
-        self.var_print_info = tk.StringVar()
-        self.var_print_info_selected = tk.StringVar()
-        self.var_print_current_page = tk.StringVar(value=str(self.print_current_page))
-        self.var_print_order = tk.StringVar(value=PRINT_VALUES_ORDER[0])
-        self.var_print_group = tk.StringVar(value=ALL_GROUPS)
-        # Переменные для вкладки поиска
+        # Переменные
         self.var_search_query = tk.StringVar()
         self.var_search_info = tk.StringVar()
         self.var_search_info_selected = tk.StringVar()
@@ -5440,7 +5616,6 @@ class DictionaryW(tk.Toplevel):
         self.img_arrow_right = tk.PhotoImage()
         self.img_double_arrow_left = tk.PhotoImage()
         self.img_double_arrow_right = tk.PhotoImage()
-        self.img_print_out = tk.PhotoImage()
         self.img_select_page = tk.PhotoImage()
         self.img_unselect_page = tk.PhotoImage()
         self.img_select_all = tk.PhotoImage()
@@ -5452,272 +5627,34 @@ class DictionaryW(tk.Toplevel):
         self.img_delete = tk.PhotoImage()
         self.img_settings = tk.PhotoImage()
 
-        # Вспомогательные массивы для ScrollFrame для вкладки печати
-        self.entry_ids_in_all_tab = []
-        self.selected_entry_ids_in_all_tab = []
-        self.entry_frames_in_all_tab = []
-        self.entry_buttons_in_all_tab = []
-        self.entry_tips_in_all_tab = []
-        # Вспомогательные массивы для ScrollFrame для вкладки поиска
+        # Вспомогательные массивы для ScrollFrame
         self.entry_ids_in_search_tab = []
         self.selected_entry_ids_in_search_tab = []
         self.entry_frames_in_search_tab = []
         self.entry_buttons_in_search_tab = []
 
-        self._configure_window()
         self._add_validation()
         self._create_widgets()
         self._create_tips()
-        self._create_bindings()
 
-        self.display_entries_in_all_tab(True)  # Выводим статьи
         self.display_entries_in_search_tab(True)  # Выводим статьи
 
-    def _configure_window(self):
-        self.title(f'{PROGRAM_NAME} - Словарь "{self.dct.name}"')
-        self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
-        toplevel_geometry(self.parent, self)
-
     def _add_validation(self):
-        def print_validate_and_goto_page_number(value: str):
-            res = validate_int_min_max(value, 1, self.print_count_pages)
-            if res and value != '' and int(value) != self.print_current_page:
-                self.go_to_page_in_all_tab(int(value))
-            return res
-
         def validate_and_goto_page_number(value: str):
             res = validate_int_min_max(value, 1, self.search_count_pages)
             if res and value != '' and int(value) != self.search_current_page:
                 self.go_to_page_in_search_tab(int(value))
             return res
 
-        self.vcmd_print_page = (self.register(print_validate_and_goto_page_number), '%P')
         self.vcmd_search_page = (self.register(validate_and_goto_page_number), '%P')
 
     def _create_widgets(self):
-        self.tabs = ttk.Notebook(self, style='Default.TNotebook')
-        self.tabs.grid(row=0, column=0, padx=0, pady=0)
-
-        self._create_print_tab()
-        self._create_search_tab()
-
-        self.tab_add = create_frame(self.tabs, 'Invis.TFrame')
-        self.tabs.add(self.tab_add, text='Добавить запись в словарь')
-
-    def _create_print_tab(self):
-        self.tab_print = create_frame(self.tabs, 'Invis.TFrame')
-        self.tabs.add(self.tab_print, text='Просмотр словаря')
-
-        self._create_print_menu_frame()
-        self._create_print_main_frame()
-
-    def _create_print_menu_frame(self):
-        self.frame_print_menu = create_frame(
-            self.tab_print, 'Invis.TFrame',
-            row=0, column=0, padx=6, pady=(6, 0), sticky='W')
-
-        self._create_print_header_frame()
-        self._create_print_buttons_for_selected_frame()
-        self._create_print_selection_buttons_frame()
-        self.lbl_print_info = create_label(
-            self.frame_print_menu,
-            textvariable=self.var_print_info,
-            row=2, column=0, padx=0, pady=0)
-        self.lbl_print_info_selected = create_label(
-            self.frame_print_menu, justify='left',
-            textvariable=self.var_print_info_selected,
-            row=2, column=1, padx=(6, 0), pady=0, sticky='W')
-
-    def _create_print_header_frame(self):
-        theme = self.app_data.gui_settings.theme
-
-        self.frame_print_header = create_frame(
-            self.frame_print_menu, 'Invis.TFrame',
-            row=0, rowspan=2, column=0, padx=0, pady=0)
-
-        self.btn_print_show_help = create_button(
-            self.frame_print_header, self.show_help, width=2,
-            row=0, column=0, padx=0, pady=0)
-        set_image(self.btn_print_show_help, self.img_help, img_path(theme, 'about'), '?')
-        self.btn_print_print_out = create_button(
-            self.frame_print_header, self.export,
-            row=1, column=0, padx=0, pady=0)
-        set_image(self.btn_print_print_out, self.img_print_out,
-                  img_path(theme, 'print_out'), 'Распечатать')
-        self._create_print_parameters_frame()
-
-    def _create_print_parameters_frame(self):
-        self.frame_print_parameters = create_frame(
-            self.frame_print_header,
-            row=0, rowspan=2, column=1, padx=(6, 0), pady=0)
-
-        self.lbl_print_fav = create_label(
-            self.frame_print_parameters, 'Только избр.:',
-            row=0, column=0, padx=(6, 1), pady=6, sticky='E')
-        self.check_print_fav = create_checkbutton(
-            self.frame_print_parameters, self.var_print_fav,
-            command=lambda: self.go_to_first_page_in_all_tab(True),
-            row=0, column=1, padx=(0, 6), pady=6, sticky='W')
-        self.lbl_print_group = create_label(
-            self.frame_print_parameters, 'Группа:',
-            row=0, column=2, padx=(0, 1), pady=6, sticky='E')
-        self.combo_print_group = create_combobox(
-            self.frame_print_parameters, self.var_print_group,
-            [ALL_GROUPS] + self.dct.groups, 28,
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
-            state='readonly',
-            row=0, column=3, padx=(0, 6), pady=6, sticky='W')
-        self.lbl_print_briefly = create_label(
-            self.frame_print_parameters, 'Кратко:',
-            row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
-        self.check_print_briefly = create_checkbutton(
-            self.frame_print_parameters, self.var_print_briefly,
-            command=lambda: self.display_entries_in_all_tab(True),
-            row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
-        self.lbl_print_order = create_label(
-            self.frame_print_parameters, 'Порядок:',
-            row=1, column=2, padx=(0, 1), pady=(0, 6), sticky='E')
-        self.combo_print_order = create_combobox(
-            self.frame_print_parameters, self.var_print_order, PRINT_VALUES_ORDER, 28,
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale), state='readonly',
-            row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
-
-    def _create_print_buttons_for_selected_frame(self):
-        theme = self.app_data.gui_settings.theme
-
-        self.frame_print_buttons_for_selected = create_frame(self.frame_print_menu)
-
-        self.btn_print_fav = create_button(
-            self.frame_print_buttons_for_selected,
-            lambda: self.fav_selected(self.selected_entry_ids_in_all_tab),
-            width=3,
-            row=0, column=0)
-        set_image(self.btn_print_fav, self.img_fav, img_path(theme, 'fav'), '*+')
-        self.btn_print_unfav = create_button(
-            self.frame_print_buttons_for_selected,
-            lambda: self.unfav_selected(self.selected_entry_ids_in_all_tab),
-            width=3,
-            row=0, column=1)
-        set_image(self.btn_print_unfav, self.img_unfav, img_path(theme, 'unfav'), '*-')
-        self.btn_print_add_to_group = create_button(
-            self.frame_print_buttons_for_selected,
-            lambda: self.add_selected_to_group(self.selected_entry_ids_in_all_tab),
-            width=3,
-            row=0, column=2)
-        set_image(self.btn_print_add_to_group, self.img_add_to_group,
-                  img_path(theme, 'add_to_group'), 'G+')
-        self.btn_print_remove_from_group = create_button(
-            self.frame_print_buttons_for_selected,
-            lambda: self.remove_selected_from_group(self.selected_entry_ids_in_all_tab),
-            width=3,
-            row=0, column=3)
-        set_image(self.btn_print_remove_from_group, self.img_remove_from_group,
-                  img_path(theme, 'remove_from_group'), 'G-')
-        self.btn_print_delete = create_button(
-            self.frame_print_buttons_for_selected,
-            lambda: self.delete_selected(self.selected_entry_ids_in_all_tab),
-            width=3,
-            row=0, column=4)
-        set_image(self.btn_print_delete, self.img_delete, img_path(theme, 'trashcan'), 'DEL')
-
-    def _create_print_selection_buttons_frame(self):
-        theme = self.app_data.gui_settings.theme
-
-        self.frame_print_selection_buttons = create_frame(
-            self.frame_print_menu,
-            row=1, column=1, padx=(6, 0), pady=0, sticky='WS')
-
-        self.btn_print_select_page = create_button(
-            self.frame_print_selection_buttons, self.select_page_in_all_tab, width=3,
-            row=0, column=0)
-        set_image(self.btn_print_select_page, self.img_select_page,
-                  img_path(theme, 'select_page'), '[X]')
-        self.btn_print_unselect_page = create_button(
-            self.frame_print_selection_buttons, self.unselect_page_in_all_tab, width=3,
-            row=0, column=1)
-        set_image(self.btn_print_unselect_page, self.img_unselect_page,
-                  img_path(theme, 'unselect_page'), '[ ]')
-        self.btn_print_select_all = create_button(
-            self.frame_print_selection_buttons, self.select_all_in_all_tab, width=3,
-            row=0, column=2)
-        set_image(self.btn_print_select_all, self.img_select_all,
-                  img_path(theme, 'select_all'), '[X]')
-        self.btn_print_unselect_all = create_button(
-            self.frame_print_selection_buttons, self.unselect_all_in_all_tab, width=3,
-            row=0, column=3)
-        set_image(self.btn_print_unselect_all, self.img_unselect_all,
-                  img_path(theme, 'unselect_all'), '[ ]')
-
-    def _create_print_main_frame(self):
-        self.frame_print_main = create_frame(
-            self.tab_print, 'Invis.TFrame',
-            row=1, column=0, padx=6, pady=6)
-
-        self.scrolled_frame_print = ScrollFrame(
-            self.frame_print_main, self.app_data,
-            SCALE_DEFAULT_FRAME_HEIGHT[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_DEFAULT_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
-        self.scrolled_frame_print.grid(
-            row=0, column=0, padx=0, pady=(0, 6))
-        self._create_print_page_buttons_frame()
-
-    def _create_print_page_buttons_frame(self):
-        theme = self.app_data.gui_settings.theme
-
-        self.frame_print_page_buttons = create_frame(
-            self.frame_print_main, 'Invis.TFrame',
-            row=1, column=0, padx=0, pady=0)
-
-        self.btn_print_first_page = create_button(
-            self.frame_print_page_buttons, self.go_to_first_page_in_all_tab, width=2,
-            row=0, column=0, padx=3, pady=0)
-        set_image(self.btn_print_first_page, self.img_double_arrow_left,
-                  img_path(theme, 'double_arrow_left'), '<<')
-        self.btn_print_prev_page = create_button(
-            self.frame_print_page_buttons, self.go_to_prev_page_in_all_tab, width=2,
-            row=0, column=1, padx=3, pady=0)
-        set_image(self.btn_print_prev_page, self.img_arrow_left,
-                  img_path(theme, 'arrow_left'), '<')
-        self._create_print_current_page_frame()
-        self.btn_print_next_page = create_button(
-            self.frame_print_page_buttons, self.go_to_next_page_in_all_tab, width=2,
-            row=0, column=3, padx=3, pady=0)
-        set_image(self.btn_print_next_page, self.img_arrow_right,
-                  img_path(theme, 'arrow_right'), '>')
-        self.btn_print_last_page = create_button(
-            self.frame_print_page_buttons, self.go_to_last_page_in_all_tab, width=2,
-            row=0, column=4, padx=3, pady=0)
-        set_image(self.btn_print_last_page, self.img_double_arrow_right,
-                  img_path(theme, 'double_arrow_right'), '>>')
-
-    def _create_print_current_page_frame(self):
-        self.frame_print_current_page = create_frame(
-            self.frame_print_page_buttons, 'Invis.TFrame',
-            row=0, column=2, padx=3, pady=0)
-
-        self.lbl_print_current_page_1 = create_label(
-            self.frame_print_current_page, 'Страница',
-            row=0, column=0, padx=0, pady=0)
-        self.entry_print_current_page = create_entry(
-            self.frame_print_current_page, self.var_print_current_page, 3,
-            font=self.app_data, justify='center',
-            validate='key', validatecommand=self.vcmd_print_page,
-            row=0, column=1, padx=3, pady=0)
-        self.lbl_print_current_page_2 = create_label(
-            self.frame_print_current_page, 'из 1',
-            row=0, column=2, padx=0, pady=0)
-
-    def _create_search_tab(self):
-        self.tab_search = create_frame(self.tabs, 'Invis.TFrame')
-        self.tabs.add(self.tab_search, text='Поиск')
-
         self._create_search_header_frame()
         self._create_search_main_frame()
 
     def _create_search_header_frame(self):
         self.frame_search_header = create_frame(
-            self.tab_search, 'Invis.TFrame',
+            self, 'Invis.TFrame',
             row=0, column=0, padx=6, pady=(6, 0), sticky='W')
 
         self._create_search_query_frame()
@@ -5798,40 +5735,40 @@ class DictionaryW(tk.Toplevel):
 
         self.btn_search_fav = create_button(
             self.frame_search_buttons_for_selected,
-            lambda: self.fav_selected(self.selected_entry_ids_in_search_tab),
+            lambda: self.master.fav_selected(self.selected_entry_ids_in_search_tab),
             width=3,
             row=0, column=0)
         set_image(self.btn_search_fav, self.img_fav, img_path(theme, 'fav'), '*+')
         self.btn_search_unfav = create_button(
             self.frame_search_buttons_for_selected,
-            lambda: self.unfav_selected(self.selected_entry_ids_in_search_tab),
+            lambda: self.master.unfav_selected(self.selected_entry_ids_in_search_tab),
             width=3,
             row=0, column=1)
         set_image(self.btn_search_unfav, self.img_unfav, img_path(theme, 'unfav'), '*-')
         self.btn_search_add_to_group = create_button(
             self.frame_search_buttons_for_selected,
-            lambda: self.add_selected_to_group(self.selected_entry_ids_in_search_tab),
+            lambda: self.master.add_selected_to_group(self.selected_entry_ids_in_search_tab),
             width=3,
             row=0, column=2)
         set_image(self.btn_search_add_to_group, self.img_add_to_group,
                   img_path(theme, 'add_to_group'), 'G+')
         self.btn_search_remove_from_group = create_button(
             self.frame_search_buttons_for_selected,
-            lambda: self.remove_selected_from_group(self.selected_entry_ids_in_search_tab),
+            lambda: self.master.remove_selected_from_group(self.selected_entry_ids_in_search_tab),
             width=3,
             row=0, column=3)
         set_image(self.btn_search_remove_from_group, self.img_remove_from_group,
                   img_path(theme, 'remove_from_group'), 'G-')
         self.btn_search_delete = create_button(
             self.frame_search_buttons_for_selected,
-            lambda: self.delete_selected(self.selected_entry_ids_in_search_tab),
+            lambda: self.master.delete_selected(self.selected_entry_ids_in_search_tab),
             width=3,
             row=0, column=4)
         set_image(self.btn_search_delete, self.img_delete, img_path(theme, 'trashcan'), 'DEL')
 
     def _create_search_main_frame(self):
         self.frame_search_main = create_frame(
-            self.tab_search, 'Invis.TFrame',
+            self, 'Invis.TFrame',
             row=1, column=0, padx=6, pady=6)
 
         self.scrolled_frame_search = ScrollFrame(
@@ -5886,6 +5823,656 @@ class DictionaryW(tk.Toplevel):
             row=0, column=1, padx=3, pady=0)
         self.lbl_search_current_page_2 = create_label(
             self.frame_search_current_page, 'из 1',
+            row=0, column=2, padx=0, pady=0)
+
+    def _create_tips(self):
+        self.tip_btn_help = ttip.Hovertip(
+            self.btn_search_show_help, 'Справка', hover_delay=450)
+        self.tip_btn_search_settings = ttip.Hovertip(
+            self.btn_search_search_settings, 'Параметры поиска', hover_delay=450)
+        self.tip_btn_fav = ttip.Hovertip(
+            self.btn_search_fav,
+            'Добавить выделенные статьи в избранное\n'
+            'Alt+F',
+            hover_delay=450)
+        self.tip_btn_unfav = ttip.Hovertip(
+            self.btn_search_unfav,
+            'Убрать выделенные статьи из избранного\n'
+            'Alt+Shift+F',
+            hover_delay=450)
+        self.tip_btn_add_to_group = ttip.Hovertip(
+            self.btn_search_add_to_group,
+            'Добавить выделенные статьи в группу\n'
+            'Alt+G',
+            hover_delay=450)
+        self.tip_btn_remove_from_group = ttip.Hovertip(
+            self.btn_search_remove_from_group,
+            'Убрать выделенные статьи из группы\n'
+            'Alt+Shift+G',
+            hover_delay=450)
+        self.tip_btn_delete = ttip.Hovertip(
+            self.btn_search_delete,
+            'Удалить выделенные статьи\n'
+            'Alt+D',
+            hover_delay=450)
+        self.tip_btn_select_page = ttip.Hovertip(
+            self.btn_search_select_page,
+            'Выделить все статьи на текущей странице\n'
+            'Alt+P',
+            hover_delay=450)
+        self.tip_btn_unselect_page = ttip.Hovertip(
+            self.btn_search_unselect_page,
+            'Снять выделение со всех статей на текущей странице\n'
+            'Alt+Shift+P',
+            hover_delay=450)
+        self.tip_btn_select_all = ttip.Hovertip(
+            self.btn_search_select_all,
+            'Выделить все статьи\n'
+            'Alt+A',
+            hover_delay=450)
+        self.tip_btn_unselect_all = ttip.Hovertip(
+            self.btn_search_unselect_all,
+            'Снять выделение со всех статей\n'
+            'Alt+Shift+A',
+            hover_delay=450)
+        self.tip_btn_first_page = ttip.Hovertip(
+            self.btn_search_first_page, 'В начало', hover_delay=650)
+        self.tip_btn_prev_page = ttip.Hovertip(
+            self.btn_search_prev_page, 'На предыдущую страницу', hover_delay=650)
+        self.tip_btn_next_page = ttip.Hovertip(
+            self.btn_search_next_page, 'На следующую страницу', hover_delay=650)
+        self.tip_btn_last_page = ttip.Hovertip(
+            self.btn_search_last_page, 'В конец', hover_delay=650)
+
+    # Нажатие на кнопку "Настройки поиска"
+    def open_search_settings(self):
+        window = SearchSettingsW(
+            self, self.app_data, self.to_search_only_fav,
+            self.to_search_only_full, self.to_search_wrd, self.to_search_tr,
+            self.to_search_frm, self.to_search_phr, self.to_search_nt,
+            self.search_group,
+        )
+        (self.to_search_only_fav, self.to_search_only_full, self.to_search_wrd,
+         self.to_search_tr, self.to_search_frm, self.to_search_phr,
+         self.to_search_nt, self.search_group) = window.open()
+
+    # Вывести информацию о количестве статей (2)
+    def display_stats_in_search_tab(self):
+        tmp_1 = select_word_form(self.search_count_elements, ('Найдена', 'Найдены', 'Найдено'))
+        tmp_2 = select_word_form(self.search_count_elements, ('статья', 'статьи', 'статей'))
+        info = f'{tmp_1} {self.search_count_elements} {tmp_2}'
+        self.var_search_info.set(info)
+
+        count_selected = len(self.selected_entry_ids_in_search_tab)
+        if count_selected == 0:
+            info_selected = ''
+        else:
+            tmp_1 = select_word_form(count_selected, ('Выделена', 'Выделены', 'Выделено'))
+            tmp_2 = select_word_form(count_selected, ('статья', 'статьи', 'статей'))
+            info_selected = f'{tmp_1} {count_selected} {tmp_2}'
+        self.var_search_info_selected.set(info_selected)
+
+    # Нажатие на кнопку "Поиск"
+    def display_entries_in_search_tab(self, move_scroll: bool):
+        # Удаляем старые кнопки
+        for btn in self.entry_buttons_in_search_tab:
+            btn.destroy()
+        # Удаляем старые фреймы
+        for fr in self.entry_frames_in_search_tab:
+            fr.unbind('<Enter>')
+            fr.unbind('<Button-2>')
+            fr.unbind('<Button-3>')
+            fr.destroy()
+
+        # Выбираем нужные статьи
+        # Если нужно, оставляем только избранные
+        if self.to_search_only_fav:
+            entry_ids = [
+                entry_id for entry_id in self.dct.get_entry_ids()
+                if self.dct[entry_id].is_fav
+            ]
+        else:
+            entry_ids = [entry_id for entry_id in self.dct.get_entry_ids()]
+        # Если нужно, оставляем только одну группу
+        if self.search_group != ALL_GROUPS:
+            entry_ids = [
+                entry_id for entry_id in entry_ids
+                if self.search_group in self.dct[entry_id].groups
+            ]
+        # Среди оставшихся ищем статьи, содержащие искомый текст
+        results = search_entries(
+            self.dct, entry_ids,
+            self.replacer.apply_replacements(self.var_search_query.get()),
+            self.to_search_wrd, self.to_search_tr, self.to_search_frm,
+            self.to_search_phr, self.to_search_nt,
+        )
+        # Объединяем результаты в один список
+        self.entry_ids_in_search_tab = []
+        for i in range(6 if self.to_search_only_full else 9):
+            self.entry_ids_in_search_tab += sorted(
+                list(results[i]),
+                key=lambda k: (self.dct[k].lemma.lower(), self.dct[k].lemma),
+            )
+        # Из выделенных статей оставляем, только удовлетворяющие поисковому запросу
+        self.selected_entry_ids_in_search_tab = [
+            entry_id for entry_id in self.selected_entry_ids_in_search_tab
+            if entry_id in self.entry_ids_in_search_tab
+        ]
+        # Если выделенных статей нет, убираем связанные с ними кнопки
+        if not self.selected_entry_ids_in_search_tab:
+            self.frame_search_buttons_for_selected.grid_remove()
+
+        # Вычисляем значения некоторых количественных переменных
+        self.search_count_elements = len(self.entry_ids_in_search_tab)
+        if self.search_count_elements == 0:
+            self.search_count_pages = 1
+        else:
+            self.search_count_pages = math.ceil(
+                self.search_count_elements / self.search_max_elements_on_page
+            )
+        if self.search_current_page > self.search_count_pages:
+            self.search_current_page = self.search_count_pages
+            self.search_start_index = (
+                (self.search_count_pages - 1) * self.search_max_elements_on_page
+            )
+        if self.search_current_page == self.search_count_pages:
+            if all((
+                    self.search_count_elements % self.search_max_elements_on_page == 0,
+                    self.search_count_elements != 0,
+            )):
+                self.search_count_elements_on_page = self.search_max_elements_on_page
+            else:
+                self.search_count_elements_on_page = (
+                    self.search_count_elements % self.search_max_elements_on_page
+                )
+        else:
+            self.search_count_elements_on_page = self.search_max_elements_on_page
+        # Выводим информацию о количестве статей
+        self.display_stats_in_search_tab()
+        # Выводим номер страницы
+        self.var_search_current_page.set(str(self.search_current_page))
+        self.entry_search_current_page.icursor(len(str(self.search_current_page)))
+        self.lbl_search_current_page_2.configure(text=f'из {self.search_count_pages}')
+
+        # Создаём новые фреймы
+        self.entry_frames_in_search_tab = [
+            create_frame(
+                self.scrolled_frame_search.frame_canvas, 'Invis.TFrame',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(self.search_count_elements_on_page)
+        ]
+        # Создаём новые кнопки
+        self.entry_buttons_in_search_tab = [
+            create_button(
+                self.entry_frames_in_search_tab[i],
+                lambda i=i: self.master.edit_entry(
+                    self.entry_ids_in_search_tab[self.search_start_index + i]
+                ),
+                entry_repr_complete(
+                    self.dct[self.entry_ids_in_search_tab[self.search_start_index + i]], 75, 13
+                ),
+                style=(
+                    ('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
+                    if self.entry_ids_in_search_tab[self.search_start_index + i]
+                       in self.selected_entry_ids_in_search_tab
+                    else ('FlatD.TButton' if i % 2 else 'FlatL.TButton')
+                ),
+                row=0, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(self.search_count_elements_on_page)
+        ]
+
+        for i in range(self.search_count_elements_on_page):
+            # Привязываем события
+            self.entry_frames_in_search_tab[i].bind(
+                '<Enter>', lambda event, i=i: self.entry_frames_in_search_tab[i].focus_set())
+            self.entry_frames_in_search_tab[i].bind(
+                '<Leave>', lambda event, i=i: self.entry_search_query.focus_set())
+            self.entry_buttons_in_search_tab[i].bind(
+                '<Button-2>', lambda event, i=i: self.select_entry_in_search_tab(i))
+            self.entry_buttons_in_search_tab[i].bind(
+                '<Button-3>', lambda event, i=i: self.select_entry_in_search_tab(i))
+
+        # Если требуется, прокручиваем вверх
+        if move_scroll:
+            self.scrolled_frame_search.canvas.yview_moveto(0.0)
+
+    # Обновить одну из кнопок журнала (2)
+    def refresh_entry_in_search_tab(self, index: int, entry_id: EntryID):
+        # Выводим текст на кнопку
+        self.entry_buttons_in_search_tab[index].configure(
+            text=entry_repr_complete(self.dct[entry_id], 75, 13)
+        )
+
+        # Выводим информацию о количестве статей
+        self.display_stats_in_search_tab()
+
+    # Обновить все кнопки журнала (2)
+    def refresh_all_entries_in_search_tab(self):
+        # Выводим текст на кнопки
+        for i in range(self.search_count_elements_on_page):
+            entry_id = self.entry_ids_in_search_tab[self.search_start_index + i]
+            self.entry_buttons_in_search_tab[i].configure(
+                text=entry_repr_complete(self.dct[entry_id], 75, 13)
+            )
+
+        # Выводим информацию о количестве статей
+        self.display_stats_in_search_tab()
+
+    # Перейти на страницу с заданным номером (2)
+    def go_to_page_in_search_tab(self, number: int):
+        self.search_current_page = number
+        self.search_start_index = (self.search_current_page - 1) * self.search_max_elements_on_page
+        self.display_entries_in_search_tab(True)
+
+    # Перейти на предыдущую страницу (2)
+    def go_to_prev_page_in_search_tab(self):
+        if self.search_current_page != 1:
+            self.go_to_page_in_search_tab(self.search_current_page - 1)
+
+    # Перейти на следующую страницу (2)
+    def go_to_next_page_in_search_tab(self):
+        if self.search_current_page != self.search_count_pages:
+            self.go_to_page_in_search_tab(self.search_current_page + 1)
+
+    # Перейти на первую страницу (2)
+    def go_to_first_page_in_search_tab(self, to_reset_selected_entry_ids: bool = False):
+        if self.search_current_page != 1 or to_reset_selected_entry_ids:
+            if to_reset_selected_entry_ids:
+                self.selected_entry_ids_in_search_tab = []
+                self.frame_search_buttons_for_selected.grid_remove()
+            self.go_to_page_in_search_tab(1)
+
+    # Перейти на последнюю страницу (2)
+    def go_to_last_page_in_search_tab(self):
+        if self.search_current_page != self.search_count_pages:
+            self.go_to_page_in_search_tab(self.search_count_pages)
+
+    # Выделить одну статью (или убрать выделение) (2)
+    def select_entry_in_search_tab(self, index: int):
+        entry_id = self.entry_ids_in_search_tab[self.search_start_index + index]
+        if entry_id in self.selected_entry_ids_in_search_tab:
+            self.selected_entry_ids_in_search_tab.remove(entry_id)
+            self.entry_buttons_in_search_tab[index].configure(
+                style='FlatD.TButton' if index % 2 else 'FlatL.TButton'
+            )
+            if not self.selected_entry_ids_in_search_tab:
+                self.frame_search_buttons_for_selected.grid_remove()
+        else:
+            self.selected_entry_ids_in_search_tab.append(entry_id)
+            self.entry_buttons_in_search_tab[index].configure(
+                style='FlatSelectedD.TButton' if index % 2 else 'FlatSelectedL.TButton')
+            self.frame_search_buttons_for_selected.grid(
+                row=1, column=2, padx=(6, 0), pady=0, sticky='W'
+            )
+        self.display_stats_in_search_tab()
+
+    # Выделить все статьи на странице (2)
+    def select_page_in_search_tab(self):
+        for i in range(self.search_count_elements_on_page):
+            entry_id = self.entry_ids_in_search_tab[self.search_start_index + i]
+            if entry_id not in self.selected_entry_ids_in_search_tab:
+                self.selected_entry_ids_in_search_tab.append(entry_id)
+            btn = self.entry_buttons_in_search_tab[i]
+            btn.configure(style='FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
+        self.frame_search_buttons_for_selected.grid(
+            row=1, column=2, padx=(6, 0), pady=0, sticky='W'
+        )
+        self.display_stats_in_search_tab()
+
+    # Снять выделение со всех статей на странице (2)
+    def unselect_page_in_search_tab(self):
+        for i in range(self.search_count_elements_on_page):
+            entry_id = self.entry_ids_in_search_tab[self.search_start_index + i]
+            if entry_id in self.selected_entry_ids_in_search_tab:
+                self.selected_entry_ids_in_search_tab.remove(entry_id)
+        for i in range(len(self.entry_buttons_in_search_tab)):
+            btn = self.entry_buttons_in_search_tab[i]
+            btn.configure(style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
+        if not self.selected_entry_ids_in_search_tab:
+            self.frame_search_buttons_for_selected.grid_remove()
+        self.display_stats_in_search_tab()
+
+    # Выделить все статьи (2)
+    def select_all_in_search_tab(self):
+        self.selected_entry_ids_in_search_tab = list(self.entry_ids_in_search_tab)
+        for i in range(len(self.entry_buttons_in_search_tab)):
+            btn = self.entry_buttons_in_search_tab[i]
+            btn.configure(style='FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
+        self.frame_search_buttons_for_selected.grid(
+            row=1, column=2, padx=(6, 0), pady=0, sticky='W'
+        )
+        self.display_stats_in_search_tab()
+
+    # Снять выделение со всех статей (2)
+    def unselect_all_in_search_tab(self):
+        self.selected_entry_ids_in_search_tab = []
+        for i in range(len(self.entry_buttons_in_search_tab)):
+            btn = self.entry_buttons_in_search_tab[i]
+            btn.configure(style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
+        self.frame_search_buttons_for_selected.grid_remove()
+        self.display_stats_in_search_tab()
+
+    # Установить фокус (вкладка "Поиск")
+    def set_focus_in_search_tab(self):
+        self.entry_search_query.focus_set()
+
+        bind_ctrl_a(self.entry_search_query)
+        bind_ctrl_a(self.entry_search_current_page)
+        self.frame_search_query.bind('<Return>', lambda event: self.btn_search_search.invoke())
+        self.bind('<Up>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+        self.bind('<Control-u>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+        self.bind('<Control-U>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+        self.bind('<Down>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
+        self.bind('<Control-d>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
+        self.bind('<Control-D>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
+        self.bind('<Alt-Shift-p>', lambda event: self.unselect_page_in_search_tab())
+        self.bind('<Alt-Shift-P>', lambda event: self.unselect_page_in_search_tab())
+        self.bind('<Alt-Shift-a>', lambda event: self.unselect_all_in_search_tab())
+        self.bind('<Alt-Shift-A>', lambda event: self.unselect_all_in_search_tab())
+        self.bind(
+            '<Alt-Shift-g>',
+            lambda event: self.master.remove_selected_from_group(self.selected_entry_ids_in_search_tab))
+        self.bind(
+            '<Alt-Shift-G>',
+            lambda event: self.master.remove_selected_from_group(self.selected_entry_ids_in_search_tab))
+        self.bind(
+            '<Alt-Shift-f>',
+            lambda event: self.master.unfav_selected(self.selected_entry_ids_in_search_tab))
+        self.bind(
+            '<Alt-Shift-F>',
+            lambda event: self.master.unfav_selected(self.selected_entry_ids_in_search_tab))
+        self.bind('<Alt-p>', lambda event: self.select_page_in_search_tab())
+        self.bind('<Alt-P>', lambda event: self.select_page_in_search_tab())
+        self.bind('<Alt-a>', lambda event: self.select_all_in_search_tab())
+        self.bind('<Alt-A>', lambda event: self.select_all_in_search_tab())
+        self.bind(
+            '<Alt-g>',
+            lambda event: self.master.add_selected_to_group(self.selected_entry_ids_in_search_tab))
+        self.bind(
+            '<Alt-G>',
+            lambda event: self.master.add_selected_to_group(self.selected_entry_ids_in_search_tab))
+        self.bind('<Alt-f>', lambda event: self.master.fav_selected(self.selected_entry_ids_in_search_tab))
+        self.bind('<Alt-F>', lambda event: self.master.fav_selected(self.selected_entry_ids_in_search_tab))
+        self.bind(
+            '<Alt-d>', lambda event: self.master.delete_selected(self.selected_entry_ids_in_search_tab))
+        self.bind(
+            '<Alt-D>', lambda event: self.master.delete_selected(self.selected_entry_ids_in_search_tab))
+
+    # Справка об окне
+    def show_help(self):
+        MessageDialog(
+            self, self.app_data,
+            '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
+            '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
+            '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
+            msg_justify='left',
+        ).open()
+
+
+class SearchTab(ttk.Frame):
+    def __init__(self, master: DictionaryW, style: str, app_data: AppData):
+        super().__init__(master, style=style)
+        self.master: DictionaryW = master
+
+        self.app_data = app_data
+        self.dct = app_data.manager.active.dct
+
+        self.print_max_elements_on_page = 100  # Максимальное количество элементов на одной странице ScrollFrame
+        self.print_current_page = 1  # Номер текущей страницы ScrollFrame (начиная с 1)
+        self.print_start_index = 0  # Номер по порядку первого слова на текущей странице ScrollFrame (начиная с 0)
+        self.print_count_pages = None  # Количество страниц ScrollFrame
+        self.print_count_elements = None  # Количество элементов на всех страницах ScrollFrame
+        self.print_count_elements_on_page = None  # Количество элементов на текущей странице ScrollFrame
+
+        self.group_options = [ALL_GROUPS] + self.dct.groups
+
+        # Переменные
+        self.var_print_fav = tk.BooleanVar(value=False)
+        self.var_print_briefly = tk.BooleanVar(value=False)
+        self.var_print_info = tk.StringVar()
+        self.var_print_info_selected = tk.StringVar()
+        self.var_print_current_page = tk.StringVar(value=str(self.print_current_page))
+        self.var_print_order = tk.StringVar(value=PRINT_VALUES_ORDER[0])
+        self.var_print_group = tk.StringVar(value=ALL_GROUPS)
+
+        # Иконки
+        self.img_help = tk.PhotoImage()
+        self.img_arrow_left = tk.PhotoImage()
+        self.img_arrow_right = tk.PhotoImage()
+        self.img_double_arrow_left = tk.PhotoImage()
+        self.img_double_arrow_right = tk.PhotoImage()
+        self.img_print_out = tk.PhotoImage()
+        self.img_select_page = tk.PhotoImage()
+        self.img_unselect_page = tk.PhotoImage()
+        self.img_select_all = tk.PhotoImage()
+        self.img_unselect_all = tk.PhotoImage()
+        self.img_fav = tk.PhotoImage()
+        self.img_unfav = tk.PhotoImage()
+        self.img_add_to_group = tk.PhotoImage()
+        self.img_remove_from_group = tk.PhotoImage()
+        self.img_delete = tk.PhotoImage()
+
+        # Вспомогательные массивы для ScrollFrame
+        self.entry_ids_in_all_tab = []
+        self.selected_entry_ids_in_all_tab = []
+        self.entry_frames_in_all_tab = []
+        self.entry_buttons_in_all_tab = []
+        self.entry_tips_in_all_tab = []
+
+        self._add_validation()
+        self._create_widgets()
+        self._create_tips()
+        self._create_bindings()
+
+        self.display_entries_in_all_tab(True)  # Выводим статьи
+
+    def _add_validation(self):
+        def print_validate_and_goto_page_number(value: str):
+            res = validate_int_min_max(value, 1, self.print_count_pages)
+            if res and value != '' and int(value) != self.print_current_page:
+                self.go_to_page_in_all_tab(int(value))
+            return res
+
+        self.vcmd_print_page = (self.register(print_validate_and_goto_page_number), '%P')
+
+    def _create_widgets(self):
+        self._create_print_menu_frame()
+        self._create_print_main_frame()
+
+    def _create_print_menu_frame(self):
+        self.frame_print_menu = create_frame(
+            self, 'Invis.TFrame',
+            row=0, column=0, padx=6, pady=(6, 0), sticky='W')
+
+        self._create_print_header_frame()
+        self._create_print_buttons_for_selected_frame()
+        self._create_print_selection_buttons_frame()
+        self.lbl_print_info = create_label(
+            self.frame_print_menu,
+            textvariable=self.var_print_info,
+            row=2, column=0, padx=0, pady=0)
+        self.lbl_print_info_selected = create_label(
+            self.frame_print_menu, justify='left',
+            textvariable=self.var_print_info_selected,
+            row=2, column=1, padx=(6, 0), pady=0, sticky='W')
+
+    def _create_print_header_frame(self):
+        theme = self.app_data.gui_settings.theme
+
+        self.frame_print_header = create_frame(
+            self.frame_print_menu, 'Invis.TFrame',
+            row=0, rowspan=2, column=0, padx=0, pady=0)
+
+        self.btn_print_show_help = create_button(
+            self.frame_print_header, self.show_help, width=2,
+            row=0, column=0, padx=0, pady=0)
+        set_image(self.btn_print_show_help, self.img_help, img_path(theme, 'about'), '?')
+        self.btn_print_print_out = create_button(
+            self.frame_print_header, self.export,
+            row=1, column=0, padx=0, pady=0)
+        set_image(self.btn_print_print_out, self.img_print_out,
+                  img_path(theme, 'print_out'), 'Распечатать')
+        self._create_print_parameters_frame()
+
+    def _create_print_parameters_frame(self):
+        self.frame_print_parameters = create_frame(
+            self.frame_print_header,
+            row=0, rowspan=2, column=1, padx=(6, 0), pady=0)
+
+        self.lbl_print_fav = create_label(
+            self.frame_print_parameters, 'Только избр.:',
+            row=0, column=0, padx=(6, 1), pady=6, sticky='E')
+        self.check_print_fav = create_checkbutton(
+            self.frame_print_parameters, self.var_print_fav,
+            command=lambda: self.go_to_first_page_in_all_tab(True),
+            row=0, column=1, padx=(0, 6), pady=6, sticky='W')
+        self.lbl_print_group = create_label(
+            self.frame_print_parameters, 'Группа:',
+            row=0, column=2, padx=(0, 1), pady=6, sticky='E')
+        self.combo_print_group = create_combobox(
+            self.frame_print_parameters, self.var_print_group,
+            [ALL_GROUPS] + self.dct.groups, 28,
+            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            state='readonly',
+            row=0, column=3, padx=(0, 6), pady=6, sticky='W')
+        self.lbl_print_briefly = create_label(
+            self.frame_print_parameters, 'Кратко:',
+            row=1, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+        self.check_print_briefly = create_checkbutton(
+            self.frame_print_parameters, self.var_print_briefly,
+            command=lambda: self.display_entries_in_all_tab(True),
+            row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+        self.lbl_print_order = create_label(
+            self.frame_print_parameters, 'Порядок:',
+            row=1, column=2, padx=(0, 1), pady=(0, 6), sticky='E')
+        self.combo_print_order = create_combobox(
+            self.frame_print_parameters, self.var_print_order, PRINT_VALUES_ORDER, 28,
+            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale), state='readonly',
+            row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
+
+    def _create_print_buttons_for_selected_frame(self):
+        theme = self.app_data.gui_settings.theme
+
+        self.frame_print_buttons_for_selected = create_frame(self.frame_print_menu)
+
+        self.btn_print_fav = create_button(
+            self.frame_print_buttons_for_selected,
+            lambda: self.master.fav_selected(self.selected_entry_ids_in_all_tab),
+            width=3,
+            row=0, column=0)
+        set_image(self.btn_print_fav, self.img_fav, img_path(theme, 'fav'), '*+')
+        self.btn_print_unfav = create_button(
+            self.frame_print_buttons_for_selected,
+            lambda: self.master.unfav_selected(self.selected_entry_ids_in_all_tab),
+            width=3,
+            row=0, column=1)
+        set_image(self.btn_print_unfav, self.img_unfav, img_path(theme, 'unfav'), '*-')
+        self.btn_print_add_to_group = create_button(
+            self.frame_print_buttons_for_selected,
+            lambda: self.master.add_selected_to_group(self.selected_entry_ids_in_all_tab),
+            width=3,
+            row=0, column=2)
+        set_image(self.btn_print_add_to_group, self.img_add_to_group,
+                  img_path(theme, 'add_to_group'), 'G+')
+        self.btn_print_remove_from_group = create_button(
+            self.frame_print_buttons_for_selected,
+            lambda: self.master.remove_selected_from_group(self.selected_entry_ids_in_all_tab),
+            width=3,
+            row=0, column=3)
+        set_image(self.btn_print_remove_from_group, self.img_remove_from_group,
+                  img_path(theme, 'remove_from_group'), 'G-')
+        self.btn_print_delete = create_button(
+            self.frame_print_buttons_for_selected,
+            lambda: self.master.delete_selected(self.selected_entry_ids_in_all_tab),
+            width=3,
+            row=0, column=4)
+        set_image(self.btn_print_delete, self.img_delete, img_path(theme, 'trashcan'), 'DEL')
+
+    def _create_print_selection_buttons_frame(self):
+        theme = self.app_data.gui_settings.theme
+
+        self.frame_print_selection_buttons = create_frame(
+            self.frame_print_menu,
+            row=1, column=1, padx=(6, 0), pady=0, sticky='WS')
+
+        self.btn_print_select_page = create_button(
+            self.frame_print_selection_buttons, self.select_page_in_all_tab, width=3,
+            row=0, column=0)
+        set_image(self.btn_print_select_page, self.img_select_page,
+                  img_path(theme, 'select_page'), '[X]')
+        self.btn_print_unselect_page = create_button(
+            self.frame_print_selection_buttons, self.unselect_page_in_all_tab, width=3,
+            row=0, column=1)
+        set_image(self.btn_print_unselect_page, self.img_unselect_page,
+                  img_path(theme, 'unselect_page'), '[ ]')
+        self.btn_print_select_all = create_button(
+            self.frame_print_selection_buttons, self.select_all_in_all_tab, width=3,
+            row=0, column=2)
+        set_image(self.btn_print_select_all, self.img_select_all,
+                  img_path(theme, 'select_all'), '[X]')
+        self.btn_print_unselect_all = create_button(
+            self.frame_print_selection_buttons, self.unselect_all_in_all_tab, width=3,
+            row=0, column=3)
+        set_image(self.btn_print_unselect_all, self.img_unselect_all,
+                  img_path(theme, 'unselect_all'), '[ ]')
+
+    def _create_print_main_frame(self):
+        self.frame_print_main = create_frame(
+            self, 'Invis.TFrame',
+            row=1, column=0, padx=6, pady=6)
+
+        self.scrolled_frame_print = ScrollFrame(
+            self.frame_print_main, self.app_data,
+            SCALE_DEFAULT_FRAME_HEIGHT[self.app_data.gui_settings.scale - SCALE_MIN],
+            SCALE_DEFAULT_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+        self.scrolled_frame_print.grid(
+            row=0, column=0, padx=0, pady=(0, 6))
+        self._create_print_page_buttons_frame()
+
+    def _create_print_page_buttons_frame(self):
+        theme = self.app_data.gui_settings.theme
+
+        self.frame_print_page_buttons = create_frame(
+            self.frame_print_main, 'Invis.TFrame',
+            row=1, column=0, padx=0, pady=0)
+
+        self.btn_print_first_page = create_button(
+            self.frame_print_page_buttons, self.go_to_first_page_in_all_tab, width=2,
+            row=0, column=0, padx=3, pady=0)
+        set_image(self.btn_print_first_page, self.img_double_arrow_left,
+                  img_path(theme, 'double_arrow_left'), '<<')
+        self.btn_print_prev_page = create_button(
+            self.frame_print_page_buttons, self.go_to_prev_page_in_all_tab, width=2,
+            row=0, column=1, padx=3, pady=0)
+        set_image(self.btn_print_prev_page, self.img_arrow_left,
+                  img_path(theme, 'arrow_left'), '<')
+        self._create_print_current_page_frame()
+        self.btn_print_next_page = create_button(
+            self.frame_print_page_buttons, self.go_to_next_page_in_all_tab, width=2,
+            row=0, column=3, padx=3, pady=0)
+        set_image(self.btn_print_next_page, self.img_arrow_right,
+                  img_path(theme, 'arrow_right'), '>')
+        self.btn_print_last_page = create_button(
+            self.frame_print_page_buttons, self.go_to_last_page_in_all_tab, width=2,
+            row=0, column=4, padx=3, pady=0)
+        set_image(self.btn_print_last_page, self.img_double_arrow_right,
+                  img_path(theme, 'double_arrow_right'), '>>')
+
+    def _create_print_current_page_frame(self):
+        self.frame_print_current_page = create_frame(
+            self.frame_print_page_buttons, 'Invis.TFrame',
+            row=0, column=2, padx=3, pady=0)
+
+        self.lbl_print_current_page_1 = create_label(
+            self.frame_print_current_page, 'Страница',
+            row=0, column=0, padx=0, pady=0)
+        self.entry_print_current_page = create_entry(
+            self.frame_print_current_page, self.var_print_current_page, 3,
+            font=self.app_data, justify='center',
+            validate='key', validatecommand=self.vcmd_print_page,
+            row=0, column=1, padx=3, pady=0)
+        self.lbl_print_current_page_2 = create_label(
+            self.frame_print_current_page, 'из 1',
             row=0, column=2, padx=0, pady=0)
 
     def _create_tips(self):
@@ -5946,63 +6533,6 @@ class DictionaryW(tk.Toplevel):
             self.btn_print_next_page, 'На следующую страницу', hover_delay=650)
         self.tip_btn_last_page = ttip.Hovertip(
             self.btn_print_last_page, 'В конец', hover_delay=650)
-        self.tip_btn_help = ttip.Hovertip(
-            self.btn_search_show_help, 'Справка', hover_delay=450)
-        self.tip_btn_search_settings = ttip.Hovertip(
-            self.btn_search_search_settings, 'Параметры поиска', hover_delay=450)
-        self.tip_btn_fav = ttip.Hovertip(
-            self.btn_search_fav,
-            'Добавить выделенные статьи в избранное\n'
-            'Alt+F',
-            hover_delay=450)
-        self.tip_btn_unfav = ttip.Hovertip(
-            self.btn_search_unfav,
-            'Убрать выделенные статьи из избранного\n'
-            'Alt+Shift+F',
-            hover_delay=450)
-        self.tip_btn_add_to_group = ttip.Hovertip(
-            self.btn_search_add_to_group,
-            'Добавить выделенные статьи в группу\n'
-            'Alt+G',
-            hover_delay=450)
-        self.tip_btn_remove_from_group = ttip.Hovertip(
-            self.btn_search_remove_from_group,
-            'Убрать выделенные статьи из группы\n'
-            'Alt+Shift+G',
-            hover_delay=450)
-        self.tip_btn_delete = ttip.Hovertip(
-            self.btn_search_delete,
-            'Удалить выделенные статьи\n'
-            'Alt+D',
-            hover_delay=450)
-        self.tip_btn_select_page = ttip.Hovertip(
-            self.btn_search_select_page,
-            'Выделить все статьи на текущей странице\n'
-            'Alt+P',
-            hover_delay=450)
-        self.tip_btn_unselect_page = ttip.Hovertip(
-            self.btn_search_unselect_page,
-            'Снять выделение со всех статей на текущей странице\n'
-            'Alt+Shift+P',
-            hover_delay=450)
-        self.tip_btn_select_all = ttip.Hovertip(
-            self.btn_search_select_all,
-            'Выделить все статьи\n'
-            'Alt+A',
-            hover_delay=450)
-        self.tip_btn_unselect_all = ttip.Hovertip(
-            self.btn_search_unselect_all,
-            'Снять выделение со всех статей\n'
-            'Alt+Shift+A',
-            hover_delay=450)
-        self.tip_btn_first_page = ttip.Hovertip(
-            self.btn_search_first_page, 'В начало', hover_delay=650)
-        self.tip_btn_prev_page = ttip.Hovertip(
-            self.btn_search_prev_page, 'На предыдущую страницу', hover_delay=650)
-        self.tip_btn_next_page = ttip.Hovertip(
-            self.btn_search_next_page, 'На следующую страницу', hover_delay=650)
-        self.tip_btn_last_page = ttip.Hovertip(
-            self.btn_search_last_page, 'В конец', hover_delay=650)
 
     def _create_bindings(self):
         self.combo_print_order.bind(
@@ -6017,25 +6547,6 @@ class DictionaryW(tk.Toplevel):
             return
         filename = f'Распечатка_{self.dct.name}.txt'
         self.dct.to_txt(os.path.join(folder, filename))
-
-    # Нажатие на кнопку "Настройки поиска"
-    def open_search_settings(self):
-        window = SearchSettingsW(
-            self, self.app_data, self.to_search_only_fav,
-            self.to_search_only_full, self.to_search_wrd, self.to_search_tr,
-            self.to_search_frm, self.to_search_phr, self.to_search_nt,
-            self.search_group,
-        )
-        (self.to_search_only_fav, self.to_search_only_full, self.to_search_wrd,
-         self.to_search_tr, self.to_search_frm, self.to_search_phr,
-         self.to_search_nt, self.search_group) = window.open()
-
-    # Изменить статью
-    def edit_entry(self, entry_id: EntryID):
-        EditEntryW(self, self.app_data, entry_id).open()
-
-        self.display_entries_in_search_tab(False)
-        self.display_entries_in_all_tab(False)
 
     # Вывести информацию о количестве статей (1)
     def display_stats_in_all_tab(self):
@@ -6072,22 +6583,6 @@ class DictionaryW(tk.Toplevel):
             tmp_2 = select_word_form(count_selected, ('статья', 'статьи', 'статей'))
             info_selected = f'{tmp_1} {count_selected} {tmp_2}'
         self.var_print_info_selected.set(info_selected)
-
-    # Вывести информацию о количестве статей (2)
-    def display_stats_in_search_tab(self):
-        tmp_1 = select_word_form(self.search_count_elements, ('Найдена', 'Найдены', 'Найдено'))
-        tmp_2 = select_word_form(self.search_count_elements, ('статья', 'статьи', 'статей'))
-        info = f'{tmp_1} {self.search_count_elements} {tmp_2}'
-        self.var_search_info.set(info)
-
-        count_selected = len(self.selected_entry_ids_in_search_tab)
-        if count_selected == 0:
-            info_selected = ''
-        else:
-            tmp_1 = select_word_form(count_selected, ('Выделена', 'Выделены', 'Выделено'))
-            tmp_2 = select_word_form(count_selected, ('статья', 'статьи', 'статей'))
-            info_selected = f'{tmp_1} {count_selected} {tmp_2}'
-        self.var_search_info_selected.set(info_selected)
 
     # Напечатать словарь
     def display_entries_in_all_tab(self, move_scroll: bool):
@@ -6244,7 +6739,7 @@ class DictionaryW(tk.Toplevel):
         self.entry_buttons_in_all_tab = [
             create_button(
                 self.entry_frames_in_all_tab[i],
-                lambda i=i: self.edit_entry(self.entry_ids_in_all_tab[self.print_start_index + i]),
+                lambda i=i: self.master.edit_entry(self.entry_ids_in_all_tab[self.print_start_index + i]),
                 style=(
                     ('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
                     if self.entry_ids_in_all_tab[self.print_start_index + i]
@@ -6294,130 +6789,6 @@ class DictionaryW(tk.Toplevel):
         if move_scroll:
             self.scrolled_frame_print.canvas.yview_moveto(0.0)
 
-    # Нажатие на кнопку "Поиск"
-    def display_entries_in_search_tab(self, move_scroll: bool):
-        # Удаляем старые кнопки
-        for btn in self.entry_buttons_in_search_tab:
-            btn.destroy()
-        # Удаляем старые фреймы
-        for fr in self.entry_frames_in_search_tab:
-            fr.unbind('<Enter>')
-            fr.unbind('<Button-2>')
-            fr.unbind('<Button-3>')
-            fr.destroy()
-
-        # Выбираем нужные статьи
-        # Если нужно, оставляем только избранные
-        if self.to_search_only_fav:
-            entry_ids = [
-                entry_id for entry_id in self.dct.get_entry_ids()
-                if self.dct[entry_id].is_fav
-            ]
-        else:
-            entry_ids = [entry_id for entry_id in self.dct.get_entry_ids()]
-        # Если нужно, оставляем только одну группу
-        if self.search_group != ALL_GROUPS:
-            entry_ids = [
-                entry_id for entry_id in entry_ids
-                if self.search_group in self.dct[entry_id].groups
-            ]
-        # Среди оставшихся ищем статьи, содержащие искомый текст
-        results = search_entries(
-            self.dct, entry_ids,
-            self.replacer.apply_replacements(self.var_search_query.get()),
-            self.to_search_wrd, self.to_search_tr, self.to_search_frm,
-            self.to_search_phr, self.to_search_nt,
-        )
-        # Объединяем результаты в один список
-        self.entry_ids_in_search_tab = []
-        for i in range(6 if self.to_search_only_full else 9):
-            self.entry_ids_in_search_tab += sorted(
-                list(results[i]),
-                key=lambda k: (self.dct[k].lemma.lower(), self.dct[k].lemma),
-            )
-        # Из выделенных статей оставляем, только удовлетворяющие поисковому запросу
-        self.selected_entry_ids_in_search_tab = [
-            entry_id for entry_id in self.selected_entry_ids_in_search_tab
-            if entry_id in self.entry_ids_in_search_tab
-        ]
-        # Если выделенных статей нет, убираем связанные с ними кнопки
-        if not self.selected_entry_ids_in_search_tab:
-            self.frame_search_buttons_for_selected.grid_remove()
-
-        # Вычисляем значения некоторых количественных переменных
-        self.search_count_elements = len(self.entry_ids_in_search_tab)
-        if self.search_count_elements == 0:
-            self.search_count_pages = 1
-        else:
-            self.search_count_pages = math.ceil(
-                self.search_count_elements / self.search_max_elements_on_page
-            )
-        if self.search_current_page > self.search_count_pages:
-            self.search_current_page = self.search_count_pages
-            self.search_start_index = (
-                (self.search_count_pages - 1) * self.search_max_elements_on_page
-            )
-        if self.search_current_page == self.search_count_pages:
-            if all((
-                    self.search_count_elements % self.search_max_elements_on_page == 0,
-                    self.search_count_elements != 0,
-            )):
-                self.search_count_elements_on_page = self.search_max_elements_on_page
-            else:
-                self.search_count_elements_on_page = (
-                    self.search_count_elements % self.search_max_elements_on_page
-                )
-        else:
-            self.search_count_elements_on_page = self.search_max_elements_on_page
-        # Выводим информацию о количестве статей
-        self.display_stats_in_search_tab()
-        # Выводим номер страницы
-        self.var_search_current_page.set(str(self.search_current_page))
-        self.entry_search_current_page.icursor(len(str(self.search_current_page)))
-        self.lbl_search_current_page_2.configure(text=f'из {self.search_count_pages}')
-
-        # Создаём новые фреймы
-        self.entry_frames_in_search_tab = [
-            create_frame(
-                self.scrolled_frame_search.frame_canvas, 'Invis.TFrame',
-                row=i, column=0, padx=0, pady=0, sticky='WE',
-            ) for i in range(self.search_count_elements_on_page)
-        ]
-        # Создаём новые кнопки
-        self.entry_buttons_in_search_tab = [
-            create_button(
-                self.entry_frames_in_search_tab[i],
-                lambda i=i: self.edit_entry(
-                    self.entry_ids_in_search_tab[self.search_start_index + i]
-                ),
-                entry_repr_complete(
-                    self.dct[self.entry_ids_in_search_tab[self.search_start_index + i]], 75, 13
-                ),
-                style=(
-                    ('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
-                    if self.entry_ids_in_search_tab[self.search_start_index + i]
-                       in self.selected_entry_ids_in_search_tab
-                    else ('FlatD.TButton' if i % 2 else 'FlatL.TButton')
-                ),
-                row=0, column=0, padx=0, pady=0, sticky='WE',
-            ) for i in range(self.search_count_elements_on_page)
-        ]
-
-        for i in range(self.search_count_elements_on_page):
-            # Привязываем события
-            self.entry_frames_in_search_tab[i].bind(
-                '<Enter>', lambda event, i=i: self.entry_frames_in_search_tab[i].focus_set())
-            self.entry_frames_in_search_tab[i].bind(
-                '<Leave>', lambda event, i=i: self.entry_search_query.focus_set())
-            self.entry_buttons_in_search_tab[i].bind(
-                '<Button-2>', lambda event, i=i: self.select_entry_in_search_tab(i))
-            self.entry_buttons_in_search_tab[i].bind(
-                '<Button-3>', lambda event, i=i: self.select_entry_in_search_tab(i))
-
-        # Если требуется, прокручиваем вверх
-        if move_scroll:
-            self.scrolled_frame_search.canvas.yview_moveto(0.0)
-
     # Обновить одну из кнопок журнала (1)
     def refresh_entry_in_all_tab(self, index: int):
         # Выводим текст на кнопку
@@ -6435,16 +6806,6 @@ class DictionaryW(tk.Toplevel):
         # Выводим информацию о количестве статей
         self.display_stats_in_all_tab()
 
-    # Обновить одну из кнопок журнала (2)
-    def refresh_entry_in_search_tab(self, index: int, entry_id: EntryID):
-        # Выводим текст на кнопку
-        self.entry_buttons_in_search_tab[index].configure(
-            text=entry_repr_complete(self.dct[entry_id], 75, 13)
-        )
-
-        # Выводим информацию о количестве статей
-        self.display_stats_in_search_tab()
-
     # Обновить все кнопки журнала (1)
     def refresh_all_entries_in_all_tab(self):
         # Выводим текст на кнопки
@@ -6461,49 +6822,21 @@ class DictionaryW(tk.Toplevel):
                     text=entry_repr_details(self.dct[entry_id], 75)
                 )
 
-    # Обновить все кнопки журнала (2)
-    def refresh_all_entries_in_search_tab(self):
-        # Выводим текст на кнопки
-        for i in range(self.search_count_elements_on_page):
-            entry_id = self.entry_ids_in_search_tab[self.search_start_index + i]
-            self.entry_buttons_in_search_tab[i].configure(
-                text=entry_repr_complete(self.dct[entry_id], 75, 13)
-            )
-
-        # Выводим информацию о количестве статей
-        self.display_stats_in_search_tab()
-
     # Перейти на страницу с заданным номером (1)
     def go_to_page_in_all_tab(self, number: int):
         self.print_current_page = number
         self.print_start_index = (self.print_current_page - 1) * self.print_max_elements_on_page
         self.display_entries_in_all_tab(True)
 
-    # Перейти на страницу с заданным номером (2)
-    def go_to_page_in_search_tab(self, number: int):
-        self.search_current_page = number
-        self.search_start_index = (self.search_current_page - 1) * self.search_max_elements_on_page
-        self.display_entries_in_search_tab(True)
-
     # Перейти на предыдущую страницу (1)
     def go_to_prev_page_in_all_tab(self):
         if self.print_current_page != 1:
             self.go_to_page_in_all_tab(self.print_current_page - 1)
 
-    # Перейти на предыдущую страницу (2)
-    def go_to_prev_page_in_search_tab(self):
-        if self.search_current_page != 1:
-            self.go_to_page_in_search_tab(self.search_current_page - 1)
-
     # Перейти на следующую страницу (1)
     def go_to_next_page_in_all_tab(self):
         if self.print_current_page != self.print_count_pages:
             self.go_to_page_in_all_tab(self.print_current_page + 1)
-
-    # Перейти на следующую страницу (2)
-    def go_to_next_page_in_search_tab(self):
-        if self.search_current_page != self.search_count_pages:
-            self.go_to_page_in_search_tab(self.search_current_page + 1)
 
     # Перейти на первую страницу (1)
     def go_to_first_page_in_all_tab(self, to_reset_selected_entry_ids: bool = False):
@@ -6513,23 +6846,10 @@ class DictionaryW(tk.Toplevel):
                 self.frame_print_buttons_for_selected.grid_remove()
             self.go_to_page_in_all_tab(1)
 
-    # Перейти на первую страницу (2)
-    def go_to_first_page_in_search_tab(self, to_reset_selected_entry_ids: bool = False):
-        if self.search_current_page != 1 or to_reset_selected_entry_ids:
-            if to_reset_selected_entry_ids:
-                self.selected_entry_ids_in_search_tab = []
-                self.frame_search_buttons_for_selected.grid_remove()
-            self.go_to_page_in_search_tab(1)
-
     # Перейти на последнюю страницу (1)
     def go_to_last_page_in_all_tab(self):
         if self.print_current_page != self.print_count_pages:
             self.go_to_page_in_all_tab(self.print_count_pages)
-
-    # Перейти на последнюю страницу (2)
-    def go_to_last_page_in_search_tab(self):
-        if self.search_current_page != self.search_count_pages:
-            self.go_to_page_in_search_tab(self.search_count_pages)
 
     # Выделить одну статью (или убрать выделение) (1)
     def select_entry_in_all_tab(self, index: int):
@@ -6551,25 +6871,6 @@ class DictionaryW(tk.Toplevel):
             )
         self.display_stats_in_all_tab()
 
-    # Выделить одну статью (или убрать выделение) (2)
-    def select_entry_in_search_tab(self, index: int):
-        entry_id = self.entry_ids_in_search_tab[self.search_start_index + index]
-        if entry_id in self.selected_entry_ids_in_search_tab:
-            self.selected_entry_ids_in_search_tab.remove(entry_id)
-            self.entry_buttons_in_search_tab[index].configure(
-                style='FlatD.TButton' if index % 2 else 'FlatL.TButton'
-            )
-            if not self.selected_entry_ids_in_search_tab:
-                self.frame_search_buttons_for_selected.grid_remove()
-        else:
-            self.selected_entry_ids_in_search_tab.append(entry_id)
-            self.entry_buttons_in_search_tab[index].configure(
-                style='FlatSelectedD.TButton' if index % 2 else 'FlatSelectedL.TButton')
-            self.frame_search_buttons_for_selected.grid(
-                row=1, column=2, padx=(6, 0), pady=0, sticky='W'
-            )
-        self.display_stats_in_search_tab()
-
     # Выделить все статьи на странице (1)
     def select_page_in_all_tab(self):
         for i in range(self.print_count_elements_on_page):
@@ -6582,19 +6883,6 @@ class DictionaryW(tk.Toplevel):
             row=0, column=1, padx=(6, 0), pady=0, sticky='WS'
         )
         self.display_stats_in_all_tab()
-
-    # Выделить все статьи на странице (2)
-    def select_page_in_search_tab(self):
-        for i in range(self.search_count_elements_on_page):
-            entry_id = self.entry_ids_in_search_tab[self.search_start_index + i]
-            if entry_id not in self.selected_entry_ids_in_search_tab:
-                self.selected_entry_ids_in_search_tab.append(entry_id)
-            btn = self.entry_buttons_in_search_tab[i]
-            btn.configure(style='FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
-        self.frame_search_buttons_for_selected.grid(
-            row=1, column=2, padx=(6, 0), pady=0, sticky='W'
-        )
-        self.display_stats_in_search_tab()
 
     # Снять выделение со всех статей на странице (1)
     def unselect_page_in_all_tab(self):
@@ -6609,19 +6897,6 @@ class DictionaryW(tk.Toplevel):
             self.frame_print_buttons_for_selected.grid_remove()
         self.display_stats_in_all_tab()
 
-    # Снять выделение со всех статей на странице (2)
-    def unselect_page_in_search_tab(self):
-        for i in range(self.search_count_elements_on_page):
-            entry_id = self.entry_ids_in_search_tab[self.search_start_index + i]
-            if entry_id in self.selected_entry_ids_in_search_tab:
-                self.selected_entry_ids_in_search_tab.remove(entry_id)
-        for i in range(len(self.entry_buttons_in_search_tab)):
-            btn = self.entry_buttons_in_search_tab[i]
-            btn.configure(style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
-        if not self.selected_entry_ids_in_search_tab:
-            self.frame_search_buttons_for_selected.grid_remove()
-        self.display_stats_in_search_tab()
-
     # Выделить все статьи (1)
     def select_all_in_all_tab(self):
         self.selected_entry_ids_in_all_tab = list(self.entry_ids_in_all_tab)
@@ -6633,17 +6908,6 @@ class DictionaryW(tk.Toplevel):
         )
         self.display_stats_in_all_tab()
 
-    # Выделить все статьи (2)
-    def select_all_in_search_tab(self):
-        self.selected_entry_ids_in_search_tab = list(self.entry_ids_in_search_tab)
-        for i in range(len(self.entry_buttons_in_search_tab)):
-            btn = self.entry_buttons_in_search_tab[i]
-            btn.configure(style='FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
-        self.frame_search_buttons_for_selected.grid(
-            row=1, column=2, padx=(6, 0), pady=0, sticky='W'
-        )
-        self.display_stats_in_search_tab()
-
     # Снять выделение со всех статей (1)
     def unselect_all_in_all_tab(self):
         self.selected_entry_ids_in_all_tab = []
@@ -6652,151 +6916,6 @@ class DictionaryW(tk.Toplevel):
             btn.configure(style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
         self.frame_print_buttons_for_selected.grid_remove()
         self.display_stats_in_all_tab()
-
-    # Снять выделение со всех статей (2)
-    def unselect_all_in_search_tab(self):
-        self.selected_entry_ids_in_search_tab = []
-        for i in range(len(self.entry_buttons_in_search_tab)):
-            btn = self.entry_buttons_in_search_tab[i]
-            btn.configure(style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
-        self.frame_search_buttons_for_selected.grid_remove()
-        self.display_stats_in_search_tab()
-
-    # Добавить выделенные статьи в избранное
-    def fav_selected(self, entry_ids: list[EntryID]):
-        if not entry_ids:
-            return
-
-        self.dct.add_to_fav(entry_ids)
-
-        self.refresh_all_entries_in_all_tab()
-        self.refresh_all_entries_in_search_tab()
-
-    # Убрать выделенные статьи из избранного
-    def unfav_selected(self, entry_ids: list[EntryID]):
-        if not entry_ids:
-            return
-
-        self.dct.remove_from_fav(entry_ids)
-
-        self.refresh_all_entries_in_all_tab()
-        self.refresh_all_entries_in_search_tab()
-
-    # Добавить выделенные статьи в группу
-    def add_selected_to_group(self, entry_ids: list[EntryID]):
-        if not entry_ids:
-            return
-        if not self.dct.groups:
-            MessageDialog(self, self.app_data, 'Не найдено ни одной группы!').open()
-            return
-
-        sets = [self.dct[entry_id].groups for entry_id in entry_ids]
-        values_intersec = set.intersection(*sets)
-        values = [group for group in self.dct.groups if group not in values_intersec]
-        if not values:
-            MessageDialog(
-                self, self.app_data,
-                'Выделенные статьи уже состоят во всех группах!',
-            ).open()
-            return
-        window_groups = ChoiceDialog(
-            self, self.app_data,
-            msg='Выберите группу, в которую хотите добавить выбранные слова:',
-            values=values,
-            default_value=self.dct.groups[0],
-        )
-        cancelled, group = window_groups.open()
-        if cancelled:
-            return
-        self.dct.add_entries_to_group(group, entry_ids)
-
-        if group == self.var_print_group.get():
-            self.display_entries_in_all_tab(True)
-        else:
-            self.refresh_all_entries_in_all_tab()
-        self.refresh_all_entries_in_search_tab()
-
-    # Убрать выделенные статьи из группы
-    def remove_selected_from_group(self, entry_ids: list[EntryID]):
-        if not entry_ids:
-            return
-        if not self.dct.groups:
-            MessageDialog(self, self.app_data, 'Не найдено ни одной группы!').open()
-            return
-
-        values = []
-        for entry_id in entry_ids:
-            for group in self.dct[entry_id].groups:
-                if group not in values:
-                    values.append(group)
-        if not values:
-            MessageDialog(
-                self, self.app_data,
-                'Выделенные статьи не состоят ни в каких группах!',
-            ).open()
-            return
-        if self.var_print_group.get() == ALL_GROUPS or self.tabs.index(self.tabs.select()) == 1:
-            default_value = values[0]
-        else:
-            default_value = self.var_print_group.get()
-        window_groups = ChoiceDialog(
-            self, self.app_data,
-            msg='Выберите группу, из которой хотите убрать выбранные слова:',
-            values=values,
-            default_value=default_value,
-        )
-        cancelled, group = window_groups.open()
-        if cancelled:
-            return
-        self.dct.remove_entries_from_group(group, entry_ids)
-
-        if group == self.var_print_group.get():
-            self.display_entries_in_all_tab(True)
-        else:
-            self.refresh_all_entries_in_all_tab()
-        self.refresh_all_entries_in_search_tab()
-
-    # Удалить выделенные статьи
-    def delete_selected(self, entry_ids: list[EntryID]):
-        if not entry_ids:
-            return
-
-        count_selected = len(entry_ids)
-        tmp = select_word_form(count_selected, ('статью', 'статьи', 'статей'))
-        window = TwoOptionsDialog(
-            self, self.app_data,
-            f'Вы действительно хотите удалить {count_selected} {tmp}?',
-            focused_btn='none',
-        )
-        result = window.open()
-        if not result:
-            return
-
-        for entry_id in entry_ids:
-            self.dct.delete_entry(entry_id)
-
-        self.display_entries_in_all_tab(True)
-        self.display_entries_in_search_tab(True)
-
-    # Справка об окне
-    def show_help(self):
-        MessageDialog(
-            self, self.app_data,
-            '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
-            '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
-            '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
-            msg_justify='left',
-        ).open()
-
-    # Нажатие на кнопку "Добавить запись в словарь"
-    def add_entry(self):
-        entry_id = AddEntryW(self, self.app_data).open()
-        if not entry_id:
-            return
-        EditEntryW(self, self.app_data, entry_id).open()
-
-        self.display_entries_in_search_tab(False)
-        self.display_entries_in_all_tab(False)
 
     # Установить фокус (вкладка "Просмотр словаря")
     def set_focus_in_all_tab(self):
@@ -6817,101 +6936,36 @@ class DictionaryW(tk.Toplevel):
         self.bind('<Alt-Shift-A>', lambda event: self.unselect_all_in_all_tab())
         self.bind(
             '<Alt-Shift-g>',
-            lambda event: self.remove_selected_from_group(self.selected_entry_ids_in_all_tab))
+            lambda event: self.master.remove_selected_from_group(self.selected_entry_ids_in_all_tab))
         self.bind(
             '<Alt-Shift-G>',
-            lambda event: self.remove_selected_from_group(self.selected_entry_ids_in_all_tab))
+            lambda event: self.master.remove_selected_from_group(self.selected_entry_ids_in_all_tab))
         self.bind(
-            '<Alt-Shift-f>', lambda event: self.unfav_selected(self.selected_entry_ids_in_all_tab))
+            '<Alt-Shift-f>', lambda event: self.master.unfav_selected(self.selected_entry_ids_in_all_tab))
         self.bind(
-            '<Alt-Shift-F>', lambda event: self.unfav_selected(self.selected_entry_ids_in_all_tab))
+            '<Alt-Shift-F>', lambda event: self.master.unfav_selected(self.selected_entry_ids_in_all_tab))
         self.bind('<Alt-p>', lambda event: self.select_page_in_all_tab())
         self.bind('<Alt-P>', lambda event: self.select_page_in_all_tab())
         self.bind('<Alt-a>', lambda event: self.select_all_in_all_tab())
         self.bind('<Alt-A>', lambda event: self.select_all_in_all_tab())
         self.bind(
-            '<Alt-g>', lambda event: self.add_selected_to_group(self.selected_entry_ids_in_all_tab))
+            '<Alt-g>', lambda event: self.master.add_selected_to_group(self.selected_entry_ids_in_all_tab))
         self.bind(
-            '<Alt-G>', lambda event: self.add_selected_to_group(self.selected_entry_ids_in_all_tab))
-        self.bind('<Alt-f>', lambda event: self.fav_selected(self.selected_entry_ids_in_all_tab))
-        self.bind('<Alt-F>', lambda event: self.fav_selected(self.selected_entry_ids_in_all_tab))
-        self.bind('<Alt-d>', lambda event: self.delete_selected(self.selected_entry_ids_in_all_tab))
-        self.bind('<Alt-D>', lambda event: self.delete_selected(self.selected_entry_ids_in_all_tab))
+            '<Alt-G>', lambda event: self.master.add_selected_to_group(self.selected_entry_ids_in_all_tab))
+        self.bind('<Alt-f>', lambda event: self.master.fav_selected(self.selected_entry_ids_in_all_tab))
+        self.bind('<Alt-F>', lambda event: self.master.fav_selected(self.selected_entry_ids_in_all_tab))
+        self.bind('<Alt-d>', lambda event: self.master.delete_selected(self.selected_entry_ids_in_all_tab))
+        self.bind('<Alt-D>', lambda event: self.master.delete_selected(self.selected_entry_ids_in_all_tab))
 
-    # Установить фокус (вкладка "Поиск")
-    def set_focus_in_search_tab(self):
-        self.entry_search_query.focus_set()
-
-        bind_ctrl_a(self.entry_search_query)
-        bind_ctrl_a(self.entry_search_current_page)
-        self.frame_search_query.bind('<Return>', lambda event: self.btn_search_search.invoke())
-        self.bind('<Up>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
-        self.bind('<Control-u>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
-        self.bind('<Control-U>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
-        self.bind('<Down>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
-        self.bind('<Control-d>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
-        self.bind('<Control-D>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
-        self.bind('<Alt-Shift-p>', lambda event: self.unselect_page_in_search_tab())
-        self.bind('<Alt-Shift-P>', lambda event: self.unselect_page_in_search_tab())
-        self.bind('<Alt-Shift-a>', lambda event: self.unselect_all_in_search_tab())
-        self.bind('<Alt-Shift-A>', lambda event: self.unselect_all_in_search_tab())
-        self.bind(
-            '<Alt-Shift-g>',
-            lambda event: self.remove_selected_from_group(self.selected_entry_ids_in_search_tab))
-        self.bind(
-            '<Alt-Shift-G>',
-            lambda event: self.remove_selected_from_group(self.selected_entry_ids_in_search_tab))
-        self.bind(
-            '<Alt-Shift-f>',
-            lambda event: self.unfav_selected(self.selected_entry_ids_in_search_tab))
-        self.bind(
-            '<Alt-Shift-F>',
-            lambda event: self.unfav_selected(self.selected_entry_ids_in_search_tab))
-        self.bind('<Alt-p>', lambda event: self.select_page_in_search_tab())
-        self.bind('<Alt-P>', lambda event: self.select_page_in_search_tab())
-        self.bind('<Alt-a>', lambda event: self.select_all_in_search_tab())
-        self.bind('<Alt-A>', lambda event: self.select_all_in_search_tab())
-        self.bind(
-            '<Alt-g>',
-            lambda event: self.add_selected_to_group(self.selected_entry_ids_in_search_tab))
-        self.bind(
-            '<Alt-G>',
-            lambda event: self.add_selected_to_group(self.selected_entry_ids_in_search_tab))
-        self.bind('<Alt-f>', lambda event: self.fav_selected(self.selected_entry_ids_in_search_tab))
-        self.bind('<Alt-F>', lambda event: self.fav_selected(self.selected_entry_ids_in_search_tab))
-        self.bind(
-            '<Alt-d>', lambda event: self.delete_selected(self.selected_entry_ids_in_search_tab))
-        self.bind(
-            '<Alt-D>', lambda event: self.delete_selected(self.selected_entry_ids_in_search_tab))
-
-    # Смена вкладки
-    def change_tab(self):
-        if self.tabs.index(self.tabs.select()) == 0:
-            self.active_tab = 0
-            self.set_focus_in_all_tab()
-        elif self.tabs.index(self.tabs.select()) == 1:
-            self.active_tab = 1
-            self.set_focus_in_search_tab()
-        else:
-            self.tabs.select(self.active_tab)
-            self.add_entry()
-
-    def open(self, tab: Literal['print', 'search'] = 'print'):
-        self.focus_set()
-        self.bind('<Escape>', lambda event: self.destroy())
-
-        if tab == 'print':
-            self.active_tab = 0
-            self.set_focus_in_all_tab()
-        elif tab == 'search':
-            self.active_tab = 1
-            self.tabs.select(self.tab_search)
-            self.set_focus_in_search_tab()
-
-        self.tabs.bind('<<NotebookTabChanged>>', lambda event: self.change_tab())
-
-        self.grab_set()
-        self.wait_window()
+    # Справка об окне
+    def show_help(self):
+        MessageDialog(
+            self, self.app_data,
+            '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
+            '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
+            '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
+            msg_justify='left',
+        ).open()
 
 
 # Окно добавления статьи
