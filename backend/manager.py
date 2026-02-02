@@ -118,8 +118,6 @@ class DctInfo:
     ----------
     - filepath: Absolute path to the dictionary file.
     - dct: The main dictionary data structure.
-    - is_register_sensitive: Whether dictionary operations should
-      be case-sensitive.
     - session_number: Last active session identifier.
     - search_config: Search settings.
     - train_config: Training settings.
@@ -138,7 +136,6 @@ class DctInfo:
             self,
             filepath: str,
             dct: Dictionary | None = None,
-            is_register_sensitive: bool = True,
             session_number: int = 1,
             search_config: SearchConfig | None = None,
             train_config: TrainingConfig | None = None,
@@ -146,7 +143,6 @@ class DctInfo:
     ):
         self.filepath = os.path.abspath(filepath)
         self.dct = Dictionary() if dct is None else dct
-        self.is_register_sensitive = is_register_sensitive
         self.session_number = session_number
         self.search_config = SearchConfig() if search_config is None else search_config
         self.train_config = TrainingConfig() if train_config is None else train_config
@@ -155,7 +151,6 @@ class DctInfo:
 
     def set_defaults(self):
         self.dct = Dictionary()
-        self.is_register_sensitive = True
         self.session_number = 1
         self.search_config.set_defaults()
         self.train_config.set_defaults()
@@ -167,7 +162,6 @@ class DctInfo:
             'version': self._schema_version,
             'data': {
                 'dct': self.dct.to_json_dict(),
-                'is_register_sensitive': self.is_register_sensitive,
                 'session_number': self.session_number,
                 'search_config': self.search_config.to_dict(),
                 'train_config': self.train_config.to_dict(),
@@ -180,7 +174,6 @@ class DctInfo:
         data = data['data']
 
         self.dct.load_from_json_dict(data['dct'])
-        self.is_register_sensitive = data['is_register_sensitive']
         self.session_number = data['session_number']
         self.search_config.load_from_dict(data['search_config'])
         self.train_config.load_from_dict(data['train_config'])
@@ -212,13 +205,11 @@ class DctInfo:
         data = data['data']
 
         required_fields = (
-            'dct', 'is_register_sensitive', 'session_number',
-            'search_config', 'train_config', 'replacer',
+            'dct', 'session_number', 'search_config', 'train_config', 'replacer',
         )
         validate_required_fields(data, required_fields)
 
         validate_field_type('dct', data['dct'], SerializedData)
-        validate_field_type('is_register_sensitive', data['is_register_sensitive'], bool)
         validate_field_type('session_number', data['session_number'], int)
         validate_field_type('search_config', data['search_config'], SerializedData)
         validate_field_type('train_config', data['train_config'], SerializedData)

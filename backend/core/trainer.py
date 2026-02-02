@@ -61,6 +61,7 @@ class TrainingConfig:
 
     def __init__(
             self,
+            is_case_sensitive: bool = False,
             method: TrainingMethod = TrainingMethod.TRANS_TO_WORD,
             order: TrainingOrder = TrainingOrder.DIFFICULT_FIRST,
             entries: EntrySelection = EntrySelection.MOSTLY_FAV,
@@ -68,6 +69,7 @@ class TrainingConfig:
             group: Group | None = None
             #groups: list[Group] | None = None,  # TODO
     ):
+        self.is_case_sensitive = is_case_sensitive
         self.method = method
         self.order = order
         self.entries = entries
@@ -75,6 +77,7 @@ class TrainingConfig:
         self.group = group
 
     def set_defaults(self):
+        self.is_case_sensitive = True
         self.method = TrainingMethod.TRANS_TO_WORD
         self.order = TrainingOrder.DIFFICULT_FIRST
         self.entries = EntrySelection.MOSTLY_FAV
@@ -84,6 +87,7 @@ class TrainingConfig:
     def to_dict(self) -> SerializedData:
         return {
             'version': self._schema_version,
+            'is_case_sensitive': self.is_case_sensitive,
             'method': self.method.value,
             'order': self.order.value,
             'entries': self.entries.value,
@@ -94,6 +98,7 @@ class TrainingConfig:
     def load_from_dict(self, data: SerializedData):
         data = self._check_and_migrate(data)
 
+        self.is_case_sensitive = data['is_case_sensitive']
         self.method = TrainingMethod(data['method'])
         self.order = TrainingOrder(data['order'])
         self.entries = EntrySelection(data['entries'])
@@ -120,11 +125,12 @@ class TrainingConfig:
     @staticmethod
     def _validate_data(data: SerializedData):
         str_fields = ('method', 'order', 'entries', 'forms')
-        required_fields = str_fields + ('group',)
+        required_fields = str_fields + ('is_case_sensitive', 'group',)
         validate_required_fields(data, required_fields)
 
         for field_name in str_fields:
             validate_field_type(field_name, data[field_name], str)
+        validate_field_type('is_case_sensitive', data['is_case_sensitive'], bool)
         validate_field_type('group', data['group'], (str, NoneType))
 
 
@@ -406,7 +412,7 @@ class Trainer:
 
         return correct_answers
 
-    def is_answer_correct(self, user_answer: str, is_case_sensitive: bool = False) -> bool:
+    def is_answer_correct(self, user_answer: str) -> bool:
         """
         Check a user's answer against the current task's correct answers.
 
@@ -418,8 +424,6 @@ class Trainer:
 
         Args:
             user_answer: The answer string provided by the user.
-            is_case_sensitive: Whether to compare answers using case
-                sensitivity.
 
         Returns:
             True if the answer is correct, False otherwise.
@@ -428,7 +432,7 @@ class Trainer:
         entry_id, gram_form, phrase, _ = self._current_task
 
         correct_answers = self.get_correct_answers()
-        if not is_case_sensitive:
+        if not self._config.is_case_sensitive:
             user_answer = user_answer.lower()
             correct_answers = [word.lower() for word in correct_answers]
 

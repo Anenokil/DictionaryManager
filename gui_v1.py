@@ -1947,6 +1947,9 @@ class TrainSettingsW(tk.Toplevel):
         self.cancelled = False
         self.group_options = [ALL_GROUPS] + self.dct.groups
 
+        self.var_case_sensitive = tk.BooleanVar(
+            value=self.train_config.is_case_sensitive
+        )
         # Метод учёбы
         self.var_method = tk.StringVar(
             value=self.method_to_txt[self.train_config.method]
@@ -1990,53 +1993,60 @@ class TrainSettingsW(tk.Toplevel):
     def _create_main_frame(self):
         self.frame_main = create_frame(self, row=1, column=0, padx=6, pady=(0, 3))
 
+        self.lbl_case_sensitive = create_label(
+            self.frame_main,
+            'Учитывать регистр:',
+            row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
+        self.check_case_sensitive = create_checkbutton(
+            self.frame_main, self.var_case_sensitive,
+            row=0, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
         self.lbl_method = create_label(
             self.frame_main, 'Метод:',
-            row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
+            row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_method = create_combobox(
             self.frame_main, self.var_method, LEARN_VALUES_METHOD, 30,
             font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
             state='readonly', validate='focusin',
-            row=0, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
+            row=1, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_group = create_label(
             self.frame_main, 'Группа:',
-            row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+            row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_group = create_combobox(
             self.frame_main, self.var_group, self.group_options, 30,
             font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
             state='readonly',
-            row=1, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+            row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_words = create_label(
             self.frame_main, 'Набор статей:',
-            row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+            row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_words = create_combobox(
             self.frame_main, self.var_words, LEARN_VALUES_WORDS, 30,
             font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
             state='readonly',
-            row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+            row=3, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_forms = create_label(
             self.frame_main, 'Набор словоформ:',
-            row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+            row=4, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_forms = create_combobox(
             self.frame_main, self.var_forms, LEARN_VALUES_FORMS, 30,
             font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
             state='readonly',
-            row=3, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+            row=4, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_order = create_label(
             self.frame_main, 'Порядок заданий:',
-            row=4, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
+            row=5, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
         self.combo_order = create_combobox(
             self.frame_main, self.var_order, LEARN_VALUES_ORDER, 30,
             font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
             state='readonly',
-            row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
+            row=5, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
 
     def _add_validation(self):
         # При выборе любого метода учёбы кроме первого нельзя добавить словоформы
         def validate_method_and_forms(value: str):
             if value == LEARN_VALUES_METHOD[0]:
-                self.lbl_forms.grid(  row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
-                self.combo_forms.grid(row=3, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
+                self.lbl_forms.grid(  row=4, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
+                self.combo_forms.grid(row=4, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
             else:
                 self.lbl_forms.grid_remove()
                 self.combo_forms.grid_remove()
@@ -2059,6 +2069,7 @@ class TrainSettingsW(tk.Toplevel):
         order = self.var_order.get()
 
         self.dct_info.train_config = TrainingConfig(
+            self.var_case_sensitive.get(),
             self.txt_to_method[method],
             self.txt_to_order[order],
             self.txt_to_entries[words],
@@ -5270,10 +5281,7 @@ class TrainingW(tk.Toplevel):
 
     # Проверка введённого ответа
     def check_answer(self, result: str):
-        is_correct = self.trainer.is_answer_correct(
-            result,
-            is_case_sensitive=self.dct_info.is_register_sensitive,
-        )
+        is_correct = self.trainer.is_answer_correct(result)
         correct_answers = self.trainer.get_correct_answers()
         correct_answers_repr = ', '.join(correct_answers)
 
@@ -7130,9 +7138,6 @@ class SettingsW(tk.Toplevel):
         self.backup_dct = copy.deepcopy(self.manager.active.dct)
         self.backup_scale = self.app_data.gui_settings.scale
 
-        self.var_check_register = tk.BooleanVar(
-            value=self.manager.active.is_register_sensitive
-        )
         self.var_show_updates = tk.BooleanVar(
             value=self.app_data.global_settings.to_check_for_updates
         )
@@ -7186,32 +7191,20 @@ class SettingsW(tk.Toplevel):
         self.tab_local = create_frame(self.tabs, 'Invis.TFrame')
         self.tabs.add(self.tab_local, text='Настройки открытого словаря')
 
-        self._create_register_frame()
         self.btn_forms = create_button(
             self.tab_local, self.categories_settings, 'Грамматические категории',
-            row=2, padx=6, pady=6)
+            row=1, padx=6, pady=6)
         self.btn_groups = create_button(
             self.tab_local, self.groups_settings, 'Группы',
-            row=3, padx=6, pady=6)
+            row=2, padx=6, pady=6)
         self.btn_replacements = create_button(
             self.tab_local, self.replacements_settings, 'Специальные комбинации',
-            row=4, padx=6, pady=6)
+            row=3, padx=6, pady=6)
         self.lbl_save_warn = create_label(
             self.tab_local,
             'При сохранении настроек словаря, сохраняется и сам словарь!',
             'Warn.TLabel',
-            row=5, padx=6, pady=6, sticky='S')
-
-    def _create_register_frame(self):
-        self.frame_check_register = create_frame(self.tab_local, row=1, padx=6, pady=6)
-
-        self.lbl_check_register = create_label(
-            self.frame_check_register,
-            'Учитывать регистр букв при проверке ответа во время учёбы:',
-            row=0, column=0, padx=(6, 1), pady=6, sticky='E')
-        self.check_check_register = create_checkbutton(
-            self.frame_check_register, self.var_check_register,
-            row=0, column=1, padx=(0, 6), pady=6, sticky='W')
+            row=4, padx=6, pady=6, sticky='S')
 
     def _create_global_settings_frame(self):
         self.tab_global = create_frame(self.tabs, 'Invis.TFrame')
@@ -7561,9 +7554,6 @@ class SettingsW(tk.Toplevel):
 
     # Сохранить настройки (срабатывает при нажатии на кнопку)
     def save(self):
-        # Учитывать/не учитывать регистр букв при проверке введённого ответа при учёбе
-        self.manager.active.is_register_sensitive = self.var_check_register.get()
-
         # Разрешить/запретить сообщать о новых версиях
         self.app_data.global_settings.to_check_for_updates = self.var_show_updates.get()
 
@@ -7693,7 +7683,6 @@ class SettingsW(tk.Toplevel):
 
     # Обновить настройки при открытии другого словаря
     def refresh(self):
-        self.var_check_register.set(self.manager.active.is_register_sensitive)
         self.print_dct_list(False)
 
     # Установить выбранную тему
@@ -7723,8 +7712,7 @@ class SettingsW(tk.Toplevel):
         return (
             self.is_ctg_modified or
             self.is_groups_modified or
-            self.is_replacements_modified or
-            self.var_check_register.get() != self.manager.active.is_register_sensitive
+            self.is_replacements_modified
         )
 
     # Были ли изменения настроек

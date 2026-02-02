@@ -192,7 +192,6 @@ class AppData:
 def partial_save(
         dct_info: DctInfo,
         dct: bool = False,
-        is_register_sensitive: bool = False,
         session_number: bool = False,
         search_config: bool = False,
         train_config: bool = False,
@@ -206,8 +205,6 @@ def partial_save(
     if dct:
         data['data']['dct'] = dct_info.dct.to_json_dict()
         dct_info.dct.mark_saved()
-    if is_register_sensitive:
-        data['data']['is_register_sensitive'] = dct_info.is_register_sensitive
     if session_number:
         data['data']['session_number'] = dct_info.session_number
     if search_config:
@@ -225,7 +222,7 @@ def save_dct(dct_info: DctInfo):
 
 
 def save_dct_settings(dct_info: DctInfo):
-    partial_save(dct_info, is_register_sensitive=True)
+    partial_save(dct_info, replacer=True)
 
 
 def save_dct_cache(dct_info: DctInfo):
