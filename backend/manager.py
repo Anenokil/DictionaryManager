@@ -17,65 +17,6 @@ from .core.utils import validate_required_fields, validate_field_type
 from .replacements import Replacer
 
 
-class DctSettings:
-    """
-    Dictionary configuration settings.
-
-    Attributes:
-    ----------
-    - is_register_sensitive: Whether dictionary operations should
-      be case-sensitive.
-
-    Protected Attributes:
-    --------------------
-    - _schema_version: The version of the data format used for
-      serialization.
-    """
-
-    _schema_version = 1
-
-    def __init__(self, is_register_sensitive: bool = True):
-        self.is_register_sensitive = is_register_sensitive
-
-    def set_defaults(self):
-        self.is_register_sensitive = True
-
-    def to_dict(self) -> SerializedData:
-        return {
-            'version': self._schema_version,
-            'is_register_sensitive': self.is_register_sensitive,
-        }
-
-    def load_from_dict(self, data: SerializedData):
-        data = self._check_and_migrate(data)
-
-        self.is_register_sensitive = data['is_register_sensitive']
-
-    @classmethod
-    def from_dict(cls, data: SerializedData):
-        dct_settings = cls()
-        dct_settings.load_from_dict(data)
-        return dct_settings
-
-    @staticmethod
-    def _check_and_migrate(data: SerializedData) -> SerializedData:
-        validate_required_fields(data, ('version',))
-        validate_field_type('version', data['version'], int)
-
-        version: int = data['version']
-        if version == 1:
-            DctSettings._validate_data(data)
-            return data
-        raise UnknownVersionError(DctSettings.__name__, version)
-
-    @staticmethod
-    def _validate_data(data: SerializedData):
-        required_fields = ('is_register_sensitive',)
-        validate_required_fields(data, required_fields)
-
-        validate_field_type('is_register_sensitive', data['is_register_sensitive'], bool)
-
-
 class SearchConfig:
     """ TODO """
 
@@ -168,94 +109,22 @@ class SearchConfig:
         validate_field_type('search_groups', data['search_groups'], (list[str], NoneType))
 
 
-class DctCache:
-    """
-    Dictionary cache for storing user session state.
-
-    Attributes:
-    ----------
-    - session_number: Last active session identifier.
-    - search_config: Search settings.
-    - train_config: Training settings.
-
-    Protected Attributes:
-    --------------------
-    - _schema_version: The version of the data format used for
-      serialization.
-    """
-
-    _schema_version = 1
-
-    def __init__(
-            self,
-            session_number: int = 1,
-            search_config: SearchConfig | None = None,
-            train_config: TrainingConfig | None = None,
-    ):
-        self.session_number = session_number
-        self.search_config = SearchConfig() if search_config is None else search_config
-        self.train_config = TrainingConfig() if train_config is None else train_config
-
-    def set_defaults(self):
-        self.session_number = 1
-        self.search_config.set_defaults()
-        self.train_config.set_defaults()
-
-    def to_dict(self) -> SerializedData:
-        return {
-            'version': self._schema_version,
-            'session_number': self.session_number,
-            'search_config': self.search_config.to_dict(),
-            'train_config': self.train_config.to_dict(),
-        }
-
-    def load_from_dict(self, data: SerializedData):
-        data = self._check_and_migrate(data)
-
-        self.session_number = data['session_number']
-        self.search_config.load_from_dict(data['search_config'])
-        self.train_config.load_from_dict(data['train_config'])
-
-        self.session_number += 1
-
-    @classmethod
-    def from_dict(cls, data: SerializedData):
-        dct_cache = cls()
-        dct_cache.load_from_dict(data)
-        return dct_cache
-
-    @staticmethod
-    def _check_and_migrate(data: SerializedData) -> SerializedData:
-        validate_required_fields(data, ('version',))
-        validate_field_type('version', data['version'], int)
-
-        version: int = data['version']
-        if version == 1:
-            DctCache._validate_data(data)
-            return data
-        raise UnknownVersionError(DctCache.__name__, version)
-
-    @staticmethod
-    def _validate_data(data: SerializedData):
-        required_fields = ('session_number', 'search_config', 'train_config')
-        validate_required_fields(data, required_fields)
-
-        validate_field_type('session_number', data['session_number'], int)
-        validate_field_type('search_config', data['search_config'], SerializedData)
-        validate_field_type('train_config', data['train_config'], SerializedData)
-
-
 class DctInfo:
     """
-    Main dictionary container holding dictionary data, settings, cache,
-    and file information.
+    Main dictionary container holding dictionary configuration,
+    settings and file information.
 
     Attributes:
     ----------
     - filepath: Absolute path to the dictionary file.
     - dct: The main dictionary data structure.
-    - settings: Dictionary settings.
-    - cache: User session state.
+    - is_register_sensitive: Whether dictionary operations should
+      be case-sensitive.
+    - session_number: Last active session identifier.
+    - search_config: Search settings.
+    - train_config: Training settings.
+    - replacer: Replacer instance.
+    - trainer: Trainer instance.
 
     Protected Attributes:
     --------------------
@@ -269,41 +138,56 @@ class DctInfo:
             self,
             filepath: str,
             dct: Dictionary | None = None,
-            settings: DctSettings | None = None,
-            cache: DctCache | None = None,
+            is_register_sensitive: bool = True,
+            session_number: int = 1,
+            search_config: SearchConfig | None = None,
+            train_config: TrainingConfig | None = None,
             replacer: Replacer | None = None,
     ):
         self.filepath = os.path.abspath(filepath)
         self.dct = Dictionary() if dct is None else dct
-        self.settings = DctSettings() if settings is None else settings
-        self.cache = DctCache() if cache is None else cache
+        self.is_register_sensitive = is_register_sensitive
+        self.session_number = session_number
+        self.search_config = SearchConfig() if search_config is None else search_config
+        self.train_config = TrainingConfig() if train_config is None else train_config
         self.replacer = Replacer() if replacer is None else replacer
-        self.trainer = Trainer(self.dct, self.cache.train_config)
+        self.trainer = Trainer(self.dct, self.train_config)
 
     def set_defaults(self):
         self.dct = Dictionary()
-        self.settings.set_defaults()
-        self.cache.set_defaults()
+        self.is_register_sensitive = True
+        self.session_number = 1
+        self.search_config.set_defaults()
+        self.train_config.set_defaults()
         self.replacer = Replacer()
-        self.trainer = Trainer(self.dct, self.cache.train_config)
+        self.trainer = Trainer(self.dct, self.train_config)
 
     def to_dict(self) -> SerializedData:
         return {
             'version': self._schema_version,
-            'dct': self.dct.to_json_dict(),
-            'settings': self.settings.to_dict(),
-            'cache': self.cache.to_dict(),
-            'replacer': self.replacer.to_json_dict(),
+            'data': {
+                'dct': self.dct.to_json_dict(),
+                'is_register_sensitive': self.is_register_sensitive,
+                'session_number': self.session_number,
+                'search_config': self.search_config.to_dict(),
+                'train_config': self.train_config.to_dict(),
+                'replacer': self.replacer.to_json_dict(),
+            }
         }
 
     def load_from_dict(self, data: SerializedData):
         data = self._check_and_migrate(data)
+        data = data['data']
 
         self.dct.load_from_json_dict(data['dct'])
-        self.settings.load_from_dict(data['settings'])
-        self.cache.load_from_dict(data['cache'])
+        self.is_register_sensitive = data['is_register_sensitive']
+        self.session_number = data['session_number']
+        self.search_config.load_from_dict(data['search_config'])
+        self.train_config.load_from_dict(data['train_config'])
         self.replacer.load_from_json_dict(data['replacer'])
-        self.trainer = Trainer(self.dct, self.cache.train_config)
+        self.trainer = Trainer(self.dct, self.train_config)
+
+        self.session_number += 1
 
     @classmethod
     def from_dict(cls, filepath: str, data: SerializedData):
@@ -324,12 +208,20 @@ class DctInfo:
 
     @staticmethod
     def _validate_data(data: SerializedData):
-        required_fields = ('dct', 'settings', 'cache', 'replacer')
+        validate_required_fields(data, ('data',))
+        data = data['data']
+
+        required_fields = (
+            'dct', 'is_register_sensitive', 'session_number',
+            'search_config', 'train_config', 'replacer',
+        )
         validate_required_fields(data, required_fields)
 
         validate_field_type('dct', data['dct'], SerializedData)
-        validate_field_type('settings', data['settings'], SerializedData)
-        validate_field_type('cache', data['cache'], SerializedData)
+        validate_field_type('is_register_sensitive', data['is_register_sensitive'], bool)
+        validate_field_type('session_number', data['session_number'], int)
+        validate_field_type('search_config', data['search_config'], SerializedData)
+        validate_field_type('train_config', data['train_config'], SerializedData)
         validate_field_type('replacer', data['replacer'], SerializedData)
 
 

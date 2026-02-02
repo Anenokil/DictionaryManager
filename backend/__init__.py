@@ -6,10 +6,11 @@ Author: Anenokil
 
 from .core import *
 from .manager import (
-    Manager, DctSettings, SearchConfig, DctCache, DctInfo,
+    Manager, SearchConfig, DctInfo,
 )
 from .replacements import Replacer, Replacements
 from .persistence import (
     GlobalSettings, GuiTKSettings, AppData,
-    save_dct, save_dct_settings, save_dct_cache,
+    partial_save, save_dct, save_dct_settings,
+    save_dct_cache,
 )

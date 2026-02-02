@@ -189,36 +189,44 @@ class AppData:
             validate_field_type(field_name, data[field_name], SerializedData)
 
 
-def save_dct(dct_info: DctInfo):
+def partial_save(
+        dct_info: DctInfo,
+        dct: bool = False,
+        is_register_sensitive: bool = False,
+        session_number: bool = False,
+        search_config: bool = False,
+        train_config: bool = False,
+        replacer: bool = False,
+):
     filepath = dct_info.filepath
-    dct = dct_info.dct
 
     with open(filepath, 'r') as f:
         data = json.load(f)
-    data['dct'] = dct.to_json_dict()
+
+    if dct:
+        data['data']['dct'] = dct_info.dct.to_json_dict()
+        dct_info.dct.mark_saved()
+    if is_register_sensitive:
+        data['data']['is_register_sensitive'] = dct_info.is_register_sensitive
+    if session_number:
+        data['data']['session_number'] = dct_info.session_number
+    if search_config:
+        data['data']['search_config'] = dct_info.search_config.to_dict()
+    if train_config:
+        data['data']['train_config'] = dct_info.train_config.to_dict()
+    if replacer:
+        data['data']['replacer'] = dct_info.replacer.to_json_dict()
+
     with open(filepath, 'w') as f:
         json.dump(data, f)
 
-    dct.mark_saved()
+def save_dct(dct_info: DctInfo):
+    partial_save(dct_info, dct=True)
 
 
 def save_dct_settings(dct_info: DctInfo):
-    filepath = dct_info.filepath
-    settings = dct_info.settings
-
-    with open(filepath, 'r') as f:
-        data = json.load(f)
-    data['settings'] = settings.to_dict()
-    with open(filepath, 'w') as f:
-        json.dump(data, f)
+    partial_save(dct_info, is_register_sensitive=True)
 
 
 def save_dct_cache(dct_info: DctInfo):
-    filepath = dct_info.filepath
-    cache = dct_info.cache
-
-    with open(filepath, 'r') as f:
-        data = json.load(f)
-    data['cache'] = cache.to_dict()
-    with open(filepath, 'w') as f:
-        json.dump(data, f)
+    partial_save(dct_info, session_number=True, search_config=True, train_config=True)

@@ -1942,7 +1942,7 @@ class TrainSettingsW(tk.Toplevel):
         self.app_data = app_data
         self.dct_info = app_data.manager.active
         self.dct = app_data.manager.active.dct
-        self.train_config = app_data.manager.active.cache.train_config
+        self.train_config = app_data.manager.active.train_config
 
         self.cancelled = False
         self.group_options = [ALL_GROUPS] + self.dct.groups
@@ -2058,7 +2058,7 @@ class TrainSettingsW(tk.Toplevel):
             forms = LEARN_VALUES_FORMS[0]
         order = self.var_order.get()
 
-        self.dct_info.cache.train_config = TrainingConfig(
+        self.dct_info.train_config = TrainingConfig(
             self.txt_to_method[method],
             self.txt_to_order[order],
             self.txt_to_entries[words],
@@ -2300,7 +2300,7 @@ class SearchSettingsW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.dct_info.cache.search_config = SearchConfig(
+        self.dct_info.search_config = SearchConfig(
             self.var_search_only_fav.get(),
             self.var_search_only_full.get(),
             self.var_search_wrd.get(),
@@ -3662,9 +3662,9 @@ class GroupsSettingsW(tk.Toplevel):
 
         self.dct.rename_group(group_old, group_new)
 
-        train_group = self.dct_info.cache.train_config.group
+        train_group = self.dct_info.train_config.group
         if train_group == group_old:
-            self.dct_info.cache.train_config.group = group_new
+            self.dct_info.train_config.group = group_new
 
         self.print_groups(False)
         self.has_changes = True
@@ -3688,9 +3688,9 @@ class GroupsSettingsW(tk.Toplevel):
             if not result:
                 return
 
-        train_group = self.dct_info.cache.train_config.group
+        train_group = self.dct_info.train_config.group
         if train_group == group:
-            self.dct_info.cache.train_config.group = ALL_GROUPS
+            self.dct_info.train_config.group = ALL_GROUPS
 
         self.dct.delete_group(group)
 
@@ -5272,7 +5272,7 @@ class TrainingW(tk.Toplevel):
     def check_answer(self, result: str):
         is_correct = self.trainer.is_answer_correct(
             result,
-            is_case_sensitive=self.dct_info.settings.is_register_sensitive,
+            is_case_sensitive=self.dct_info.is_register_sensitive,
         )
         correct_answers = self.trainer.get_correct_answers()
         correct_answers_repr = ', '.join(correct_answers)
@@ -5280,7 +5280,7 @@ class TrainingW(tk.Toplevel):
         entry = self.trainer.dct[self.current_entry_id]
         if is_correct:
             entry.correct((
-                self.dct_info.cache.session_number,
+                self.dct_info.session_number,
                 self._session_number,
                 self.count_all,
             ))
@@ -5323,14 +5323,14 @@ class TrainingW(tk.Toplevel):
                     result = window.open()
                     if result != 'typo':
                         entry.incorrect((
-                            self.dct_info.cache.session_number,
+                            self.dct_info.session_number,
                             self._session_number,
                             self.count_all,
                         ))
                         self.count_all += 1
                 else:
                     entry.incorrect((
-                        self.dct_info.cache.session_number,
+                        self.dct_info.session_number,
                         self._session_number,
                         self.count_all,
                     ))
@@ -5345,7 +5345,7 @@ class TrainingW(tk.Toplevel):
                 result = window.open()
                 if result != 'typo':
                     entry.incorrect((
-                        self.dct_info.cache.session_number,
+                        self.dct_info.session_number,
                         self._session_number,
                         self.count_all,
                     ))
@@ -5593,7 +5593,7 @@ class BrowseDctTab(ttk.Frame):
         self.n_entries_on_page = None
 
         # Параметры поиска
-        search_config = self.dct_info.cache.search_config
+        search_config = self.dct_info.search_config
         self.to_search_only_fav = search_config.to_search_only_fav
         self.to_search_only_full = search_config.to_search_only_full
         self.to_search_wrd = search_config.to_search_in_words
@@ -7131,7 +7131,7 @@ class SettingsW(tk.Toplevel):
         self.backup_scale = self.app_data.gui_settings.scale
 
         self.var_check_register = tk.BooleanVar(
-            value=self.manager.active.settings.is_register_sensitive
+            value=self.manager.active.is_register_sensitive
         )
         self.var_show_updates = tk.BooleanVar(
             value=self.app_data.global_settings.to_check_for_updates
@@ -7562,7 +7562,7 @@ class SettingsW(tk.Toplevel):
     # Сохранить настройки (срабатывает при нажатии на кнопку)
     def save(self):
         # Учитывать/не учитывать регистр букв при проверке введённого ответа при учёбе
-        self.manager.active.settings.is_register_sensitive = self.var_check_register.get()
+        self.manager.active.is_register_sensitive = self.var_check_register.get()
 
         # Разрешить/запретить сообщать о новых версиях
         self.app_data.global_settings.to_check_for_updates = self.var_show_updates.get()
@@ -7693,7 +7693,7 @@ class SettingsW(tk.Toplevel):
 
     # Обновить настройки при открытии другого словаря
     def refresh(self):
-        self.var_check_register.set(self.manager.active.settings.is_register_sensitive)
+        self.var_check_register.set(self.manager.active.is_register_sensitive)
         self.print_dct_list(False)
 
     # Установить выбранную тему
@@ -7724,7 +7724,7 @@ class SettingsW(tk.Toplevel):
             self.is_ctg_modified or
             self.is_groups_modified or
             self.is_replacements_modified or
-            self.var_check_register.get() != self.manager.active.settings.is_register_sensitive
+            self.var_check_register.get() != self.manager.active.is_register_sensitive
         )
 
     # Были ли изменения настроек
@@ -8005,7 +8005,7 @@ class MainW(tk.Tk):
 
         result = TrainSettingsW(self, self.app_data).open()
         if result:
-            train_config = self.app_data.manager.active.cache.train_config
+            train_config = self.app_data.manager.active.train_config
             TrainingW(self, self.app_data, train_config).open()
 
         self.enable_all_buttons()
