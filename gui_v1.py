@@ -6177,8 +6177,12 @@ class SearchTab(ttk.Frame):
     def set_focus(self):
         self.entry_query.focus_set()
 
+        self.entry_current_page.bind(
+            '<Enter>', lambda event: self.entry_current_page.focus_set())
+
         bind_ctrl_a(self.entry_query)
         bind_ctrl_a(self.entry_current_page)
+
         self.entry_query.bind(
             '<Return>',
             lambda event: self.go_to_first_page(True))
@@ -7011,7 +7015,11 @@ class BrowseDctTab(ttk.Frame):
 
         self.unbind('<Return>')
 
+        self.entry_current_page.bind(
+            '<Enter>', lambda event: self.entry_current_page.focus_set())
+
         bind_ctrl_a(self.entry_current_page)
+
         self.master.bind(
             '<Right>',
             lambda event: self.go_to_next_page())
