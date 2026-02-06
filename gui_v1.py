@@ -5408,10 +5408,10 @@ class DictionaryW(tk.Toplevel):
         self.tabs = ttk.Notebook(self, style='Default.TNotebook')
         self.tabs.grid(row=0, column=0, padx=0, pady=0)
 
-        self.tab_browse = SearchTab(self, 'Invis.TFrame', self.app_data)
+        self.tab_browse = BrowseDctTab(self, 'Invis.TFrame', self.app_data)
         self.tabs.add(self.tab_browse, text='Просмотр словаря')
 
-        self.tab_search = BrowseDctTab(self, 'Invis.TFrame', self.app_data)
+        self.tab_search = SearchTab(self, 'Invis.TFrame', self.app_data)
         self.tabs.add(self.tab_search, text='Поиск')
 
         self.tab_add_entry = create_frame(self.tabs, 'Invis.TFrame')
@@ -5583,7 +5583,7 @@ class DictionaryW(tk.Toplevel):
         self.wait_window()
 
 
-class BrowseDctTab(ttk.Frame):
+class SearchTab(ttk.Frame):
     def __init__(self, master: DictionaryW, style: str, app_data: AppData):
         super().__init__(master, style=style)
         self.master: DictionaryW = master
@@ -6218,7 +6218,7 @@ class BrowseDctTab(ttk.Frame):
         ).open()
 
 
-class SearchTab(ttk.Frame):
+class BrowseDctTab(ttk.Frame):
     def __init__(self, master: DictionaryW, style: str, app_data: AppData):
         super().__init__(master, style=style)
         self.master: DictionaryW = master
