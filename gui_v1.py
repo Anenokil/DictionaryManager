@@ -6167,38 +6167,63 @@ class SearchTab(ttk.Frame):
 
         bind_ctrl_a(self.entry_query)
         bind_ctrl_a(self.entry_current_page)
-        self.entry_query.bind('<Return>', lambda event: self.go_to_first_page(True))
-        self.master.bind('<Up>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+        self.entry_query.bind(
+            '<Return>',
+            lambda event: self.go_to_first_page(True))
         self.master.bind(
-            '<Control-u>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+            '<Up>',
+            lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
         self.master.bind(
-            '<Control-U>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+            '<Control-u>',
+            lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
         self.master.bind(
-            '<Down>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
+            '<Control-U>',
+            lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
         self.master.bind(
-            '<Control-d>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
+            '<Down>',
+            lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
         self.master.bind(
-            '<Control-D>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
-        self.master.bind('<Control-Shift-p>', lambda event: self.unselect_page())
-        self.master.bind('<Control-Shift-P>', lambda event: self.unselect_page())
-        self.master.bind('<Control-Shift-a>', lambda event: self.unselect_all())
-        self.master.bind('<Control-Shift-A>', lambda event: self.unselect_all())
+            '<Control-d>',
+            lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
         self.master.bind(
-            '<Control-Shift-g>',
-            lambda event: self.master.remove_selected_from_group(self.selected_entry_ids))
+            '<Control-D>',
+            lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
         self.master.bind(
-            '<Control-Shift-G>',
-            lambda event: self.master.remove_selected_from_group(self.selected_entry_ids))
+            '<Control-p>',
+            lambda event: self.select_page())
+        self.master.bind(
+            '<Control-P>',
+            lambda event: self.select_page())
+        self.master.bind(
+            '<Control-Shift-p>',
+            lambda event: self.unselect_page())
+        self.master.bind(
+            '<Control-Shift-P>',
+            lambda event: self.unselect_page())
+        self.master.bind(
+            '<Control-a>',
+            lambda event: self.select_all())
+        self.master.bind(
+            '<Control-A>',
+            lambda event: self.select_all())
+        self.master.bind(
+            '<Control-Shift-a>',
+            lambda event: self.unselect_all())
+        self.master.bind(
+            '<Control-Shift-A>',
+            lambda event: self.unselect_all())
+        self.master.bind(
+            '<Control-f>',
+            lambda event: self.master.fav_selected(self.selected_entry_ids))
+        self.master.bind(
+            '<Control-F>',
+            lambda event: self.master.fav_selected(self.selected_entry_ids))
         self.master.bind(
             '<Control-Shift-f>',
             lambda event: self.master.unfav_selected(self.selected_entry_ids))
         self.master.bind(
             '<Control-Shift-F>',
             lambda event: self.master.unfav_selected(self.selected_entry_ids))
-        self.master.bind('<Control-p>', lambda event: self.select_page())
-        self.master.bind('<Control-P>', lambda event: self.select_page())
-        self.master.bind('<Control-a>', lambda event: self.select_all())
-        self.master.bind('<Control-A>', lambda event: self.select_all())
         self.master.bind(
             '<Control-g>',
             lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
@@ -6206,13 +6231,17 @@ class SearchTab(ttk.Frame):
             '<Control-G>',
             lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
         self.master.bind(
-            '<Control-f>', lambda event: self.master.fav_selected(self.selected_entry_ids))
+            '<Control-Shift-g>',
+            lambda event: self.master.remove_selected_from_group(self.selected_entry_ids))
         self.master.bind(
-            '<Control-F>', lambda event: self.master.fav_selected(self.selected_entry_ids))
+            '<Control-Shift-G>',
+            lambda event: self.master.remove_selected_from_group(self.selected_entry_ids))
         self.master.bind(
-            '<Alt-d>', lambda event: self.master.delete_selected(self.selected_entry_ids))
+            '<Alt-d>',
+            lambda event: self.master.delete_selected(self.selected_entry_ids))
         self.master.bind(
-            '<Alt-D>', lambda event: self.master.delete_selected(self.selected_entry_ids))
+            '<Alt-D>',
+            lambda event: self.master.delete_selected(self.selected_entry_ids))
 
     # Справка об окне
     def show_help(self):
@@ -6938,20 +6967,66 @@ class BrowseDctTab(ttk.Frame):
         self.unbind('<Return>')
 
         bind_ctrl_a(self.entry_current_page)
-        self.master.bind('<Up>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
         self.master.bind(
-            '<Control-u>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
+            '<Up>',
+            lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
         self.master.bind(
-            '<Control-U>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
-        self.master.bind('<Down>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
+            '<Control-u>',
+            lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
         self.master.bind(
-            '<Control-d>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
+            '<Control-U>',
+            lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
         self.master.bind(
-            '<Control-D>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
-        self.master.bind('<Control-Shift-p>', lambda event: self.unselect_page())
-        self.master.bind('<Control-Shift-P>', lambda event: self.unselect_page())
-        self.master.bind('<Control-Shift-a>', lambda event: self.unselect_all())
-        self.master.bind('<Control-Shift-A>', lambda event: self.unselect_all())
+            '<Down>',
+            lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
+        self.master.bind(
+            '<Control-d>',
+            lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
+        self.master.bind(
+            '<Control-D>',
+            lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
+        self.master.bind(
+            '<Control-p>',
+            lambda event: self.select_page())
+        self.master.bind(
+            '<Control-P>',
+            lambda event: self.select_page())
+        self.master.bind(
+            '<Control-Shift-p>',
+            lambda event: self.unselect_page())
+        self.master.bind(
+            '<Control-Shift-P>',
+            lambda event: self.unselect_page())
+        self.master.bind(
+            '<Control-a>',
+            lambda event: self.select_all())
+        self.master.bind(
+            '<Control-A>',
+            lambda event: self.select_all())
+        self.master.bind(
+            '<Control-Shift-a>',
+            lambda event: self.unselect_all())
+        self.master.bind(
+            '<Control-Shift-A>',
+            lambda event: self.unselect_all())
+        self.master.bind(
+            '<Control-f>',
+            lambda event: self.master.fav_selected(self.selected_entry_ids))
+        self.master.bind(
+            '<Control-F>',
+            lambda event: self.master.fav_selected(self.selected_entry_ids))
+        self.master.bind(
+            '<Control-Shift-f>',
+            lambda event: self.master.unfav_selected(self.selected_entry_ids))
+        self.master.bind(
+            '<Control-Shift-F>',
+            lambda event: self.master.unfav_selected(self.selected_entry_ids))
+        self.master.bind(
+            '<Control-g>',
+            lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
+        self.master.bind(
+            '<Control-G>',
+            lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
         self.master.bind(
             '<Control-Shift-g>',
             lambda event: self.master.remove_selected_from_group(self.selected_entry_ids))
@@ -6959,25 +7034,11 @@ class BrowseDctTab(ttk.Frame):
             '<Control-Shift-G>',
             lambda event: self.master.remove_selected_from_group(self.selected_entry_ids))
         self.master.bind(
-            '<Control-Shift-f>', lambda event: self.master.unfav_selected(self.selected_entry_ids))
+            '<Alt-d>',
+            lambda event: self.master.delete_selected(self.selected_entry_ids))
         self.master.bind(
-            '<Control-Shift-F>', lambda event: self.master.unfav_selected(self.selected_entry_ids))
-        self.master.bind('<Control-p>', lambda event: self.select_page())
-        self.master.bind('<Control-P>', lambda event: self.select_page())
-        self.master.bind('<Control-a>', lambda event: self.select_all())
-        self.master.bind('<Control-A>', lambda event: self.select_all())
-        self.master.bind(
-            '<Control-g>', lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
-        self.master.bind(
-            '<Control-G>', lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
-        self.master.bind(
-            '<Control-f>', lambda event: self.master.fav_selected(self.selected_entry_ids))
-        self.master.bind(
-            '<Control-F>', lambda event: self.master.fav_selected(self.selected_entry_ids))
-        self.master.bind(
-            '<Alt-d>', lambda event: self.master.delete_selected(self.selected_entry_ids))
-        self.master.bind(
-            '<Alt-D>', lambda event: self.master.delete_selected(self.selected_entry_ids))
+            '<Alt-D>',
+            lambda event: self.master.delete_selected(self.selected_entry_ids))
 
     # Справка об окне
     def show_help(self):
