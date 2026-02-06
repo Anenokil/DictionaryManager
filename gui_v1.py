@@ -1491,6 +1491,14 @@ class ScrollFrame(tk.Frame):
         else:
             self.canvas.unbind_all('<MouseWheel>')
 
+    def scroll_down_small(self):
+        self.canvas.yview_scroll(1, 'units')
+        return 'break'
+
+    def scroll_up_small(self):
+        self.canvas.yview_scroll(-1, 'units')
+        return 'break'
+
     # Изменить размеры фрейма
     def resize(self, height: int = None, width: int = None):
         if height:
@@ -6200,7 +6208,7 @@ class SearchTab(ttk.Frame):
             lambda event: self.go_to_first_page())
         self.master.bind(
             '<Up>',
-            lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+            lambda event: self.scrolled_frame_search.scroll_up_small())
         self.master.bind(
             '<Control-u>',
             lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
@@ -6209,7 +6217,7 @@ class SearchTab(ttk.Frame):
             lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
         self.master.bind(
             '<Down>',
-            lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
+            lambda event: self.scrolled_frame_search.scroll_down_small())
         self.master.bind(
             '<Control-d>',
             lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
@@ -6284,8 +6292,8 @@ class SearchTab(ttk.Frame):
     def show_help(self):
         MessageDialog(
             self, self.app_data,
-            '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
-            '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
+            '* Чтобы прокрутить в самый низ, нажмите Ctrl+D\n'
+            '* Чтобы прокрутить в самый верх, нажмите Ctrl+U\n'
             '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
             msg_justify='left',
         ).open()
@@ -7034,7 +7042,7 @@ class BrowseDctTab(ttk.Frame):
             lambda event: self.go_to_first_page())
         self.master.bind(
             '<Up>',
-            lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
+            lambda event: self.scrolled_frame_print.scroll_up_small())
         self.master.bind(
             '<Control-u>',
             lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
@@ -7043,7 +7051,7 @@ class BrowseDctTab(ttk.Frame):
             lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
         self.master.bind(
             '<Down>',
-            lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
+            lambda event: self.scrolled_frame_print.scroll_down_small())
         self.master.bind(
             '<Control-d>',
             lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
@@ -7112,8 +7120,8 @@ class BrowseDctTab(ttk.Frame):
     def show_help(self):
         MessageDialog(
             self, self.app_data,
-            '* Чтобы прокрутить в самый низ, нажмите Ctrl+D или DOWN\n'
-            '* Чтобы прокрутить в самый верх, нажмите Ctrl+U или UP\n'
+            '* Чтобы прокрутить в самый низ, нажмите Ctrl+D\n'
+            '* Чтобы прокрутить в самый верх, нажмите Ctrl+U\n'
             '* Чтобы выделить статью, наведите на неё мышку и нажмите ПКМ',
             msg_justify='left',
         ).open()
