@@ -5862,7 +5862,7 @@ class SearchTab(ttk.Frame):
         self.tip_btn_delete = ttip.Hovertip(
             self.btn_delete,
             'Удалить выделенные статьи\n'
-            'Alt+D',
+            'Alt+D / Delete',
             hover_delay=450)
         self.tip_btn_select_page = ttip.Hovertip(
             self.btn_select_page,
@@ -5877,7 +5877,7 @@ class SearchTab(ttk.Frame):
         self.tip_btn_select_all = ttip.Hovertip(
             self.btn_select_all,
             'Выделить все статьи\n'
-            'Ctrl+A',
+            'Ctrl+A / Alt+A',
             hover_delay=450)
         self.tip_btn_unselect_all = ttip.Hovertip(
             self.btn_unselect_all,
@@ -5885,13 +5885,25 @@ class SearchTab(ttk.Frame):
             'Ctrl+Shift+A',
             hover_delay=450)
         self.tip_btn_first_page = ttip.Hovertip(
-            self.btn_first_page, 'В начало', hover_delay=650)
+            self.btn_first_page,
+            'В начало\n'
+            'Shift+Left',
+            hover_delay=650)
         self.tip_btn_prev_page = ttip.Hovertip(
-            self.btn_prev_page, 'На предыдущую страницу', hover_delay=650)
+            self.btn_prev_page,
+            'На предыдущую страницу\n'
+            'Left',
+            hover_delay=650)
         self.tip_btn_next_page = ttip.Hovertip(
-            self.btn_next_page, 'На следующую страницу', hover_delay=650)
+            self.btn_next_page,
+            'На следующую страницу\n'
+            'Right',
+            hover_delay=650)
         self.tip_btn_last_page = ttip.Hovertip(
-            self.btn_last_page, 'В конец', hover_delay=650)
+            self.btn_last_page,
+            'В конец\n'
+            'Shift+Right',
+            hover_delay=650)
 
     # Нажатие на кнопку "Настройки поиска"
     def open_search_settings(self):
@@ -6171,6 +6183,18 @@ class SearchTab(ttk.Frame):
             '<Return>',
             lambda event: self.go_to_first_page(True))
         self.master.bind(
+            '<Right>',
+            lambda event: self.go_to_next_page())
+        self.master.bind(
+            '<Shift-Right>',
+            lambda event: self.go_to_last_page())
+        self.master.bind(
+            '<Left>',
+            lambda event: self.go_to_prev_page())
+        self.master.bind(
+            '<Shift-Left>',
+            lambda event: self.go_to_first_page())
+        self.master.bind(
             '<Up>',
             lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
         self.master.bind(
@@ -6200,6 +6224,12 @@ class SearchTab(ttk.Frame):
         self.master.bind(
             '<Control-Shift-P>',
             lambda event: self.unselect_page())
+        self.master.bind(
+            '<Alt-a>',
+            lambda event: self.select_all())
+        self.master.bind(
+            '<Alt-A>',
+            lambda event: self.select_all())
         self.master.bind(
             '<Control-a>',
             lambda event: self.select_all())
@@ -6241,6 +6271,9 @@ class SearchTab(ttk.Frame):
             lambda event: self.master.delete_selected(self.selected_entry_ids))
         self.master.bind(
             '<Alt-D>',
+            lambda event: self.master.delete_selected(self.selected_entry_ids))
+        self.master.bind(
+            '<Delete>',
             lambda event: self.master.delete_selected(self.selected_entry_ids))
 
     # Справка об окне
@@ -6546,7 +6579,7 @@ class BrowseDctTab(ttk.Frame):
         self.tip_btn_delete = ttip.Hovertip(
             self.btn_delete,
             'Удалить выделенные статьи\n'
-            'Alt+D',
+            'Alt+D / Delete',
             hover_delay=450)
         self.tip_btn_select_page = ttip.Hovertip(
             self.btn_select_page,
@@ -6569,13 +6602,25 @@ class BrowseDctTab(ttk.Frame):
             'Ctrl+Shift+A',
             hover_delay=450)
         self.tip_btn_first_page = ttip.Hovertip(
-            self.btn_first_page, 'В начало', hover_delay=650)
+            self.btn_first_page,
+            'В начало\n'
+            'Shift+Left',
+            hover_delay=650)
         self.tip_btn_prev_page = ttip.Hovertip(
-            self.btn_prev_page, 'На предыдущую страницу', hover_delay=650)
+            self.btn_prev_page,
+            'На предыдущую страницу\n'
+            'Left',
+            hover_delay=650)
         self.tip_btn_next_page = ttip.Hovertip(
-            self.btn_next_page, 'На следующую страницу', hover_delay=650)
+            self.btn_next_page,
+            'На следующую страницу\n'
+            'Right',
+            hover_delay=650)
         self.tip_btn_last_page = ttip.Hovertip(
-            self.btn_last_page, 'В конец', hover_delay=650)
+            self.btn_last_page,
+            'В конец\n'
+            'Shift+Right',
+            hover_delay=650)
 
     def _create_bindings(self):
         self.combo_order.bind(
@@ -6968,6 +7013,18 @@ class BrowseDctTab(ttk.Frame):
 
         bind_ctrl_a(self.entry_current_page)
         self.master.bind(
+            '<Right>',
+            lambda event: self.go_to_next_page())
+        self.master.bind(
+            '<Shift-Right>',
+            lambda event: self.go_to_last_page())
+        self.master.bind(
+            '<Left>',
+            lambda event: self.go_to_prev_page())
+        self.master.bind(
+            '<Shift-Left>',
+            lambda event: self.go_to_first_page())
+        self.master.bind(
             '<Up>',
             lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
         self.master.bind(
@@ -7038,6 +7095,9 @@ class BrowseDctTab(ttk.Frame):
             lambda event: self.master.delete_selected(self.selected_entry_ids))
         self.master.bind(
             '<Alt-D>',
+            lambda event: self.master.delete_selected(self.selected_entry_ids))
+        self.master.bind(
+            '<Delete>',
             lambda event: self.master.delete_selected(self.selected_entry_ids))
 
     # Справка об окне
