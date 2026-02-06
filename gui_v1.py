@@ -5842,22 +5842,22 @@ class SearchTab(ttk.Frame):
         self.tip_btn_fav = ttip.Hovertip(
             self.btn_fav,
             'Добавить выделенные статьи в избранное\n'
-            'Alt+F',
+            'Ctrl+F',
             hover_delay=450)
         self.tip_btn_unfav = ttip.Hovertip(
             self.btn_unfav,
             'Убрать выделенные статьи из избранного\n'
-            'Alt+Shift+F',
+            'Ctrl+Shift+F',
             hover_delay=450)
         self.tip_btn_add_to_group = ttip.Hovertip(
             self.btn_add_to_group,
             'Добавить выделенные статьи в группу\n'
-            'Alt+G',
+            'Ctrl+G',
             hover_delay=450)
         self.tip_btn_remove_from_group = ttip.Hovertip(
             self.btn_remove_from_group,
             'Убрать выделенные статьи из группы\n'
-            'Alt+Shift+G',
+            'Ctrl+Shift+G',
             hover_delay=450)
         self.tip_btn_delete = ttip.Hovertip(
             self.btn_delete,
@@ -5867,22 +5867,22 @@ class SearchTab(ttk.Frame):
         self.tip_btn_select_page = ttip.Hovertip(
             self.btn_select_page,
             'Выделить все статьи на текущей странице\n'
-            'Alt+P',
+            'Ctrl+P',
             hover_delay=450)
         self.tip_btn_unselect_page = ttip.Hovertip(
             self.btn_unselect_page,
             'Снять выделение со всех статей на текущей странице\n'
-            'Alt+Shift+P',
+            'Ctrl+Shift+P',
             hover_delay=450)
         self.tip_btn_select_all = ttip.Hovertip(
             self.btn_select_all,
             'Выделить все статьи\n'
-            'Alt+A',
+            'Ctrl+A',
             hover_delay=450)
         self.tip_btn_unselect_all = ttip.Hovertip(
             self.btn_unselect_all,
             'Снять выделение со всех статей\n'
-            'Alt+Shift+A',
+            'Ctrl+Shift+A',
             hover_delay=450)
         self.tip_btn_first_page = ttip.Hovertip(
             self.btn_first_page, 'В начало', hover_delay=650)
@@ -6167,44 +6167,51 @@ class SearchTab(ttk.Frame):
 
         bind_ctrl_a(self.entry_query)
         bind_ctrl_a(self.entry_current_page)
-        self.frame_query.bind('<Return>', lambda event: self.btn_search.invoke())
-        self.bind('<Up>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
-        self.bind('<Control-u>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
-        self.bind('<Control-U>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
-        self.bind('<Down>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
-        self.bind('<Control-d>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
-        self.bind('<Control-D>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
-        self.bind('<Alt-Shift-p>', lambda event: self.unselect_page())
-        self.bind('<Alt-Shift-P>', lambda event: self.unselect_page())
-        self.bind('<Alt-Shift-a>', lambda event: self.unselect_all())
-        self.bind('<Alt-Shift-A>', lambda event: self.unselect_all())
-        self.bind(
-            '<Alt-Shift-g>',
+        self.entry_query.bind('<Return>', lambda event: self.go_to_first_page(True))
+        self.master.bind('<Up>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+        self.master.bind(
+            '<Control-u>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+        self.master.bind(
+            '<Control-U>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+        self.master.bind(
+            '<Down>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
+        self.master.bind(
+            '<Control-d>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
+        self.master.bind(
+            '<Control-D>', lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
+        self.master.bind('<Control-Shift-p>', lambda event: self.unselect_page())
+        self.master.bind('<Control-Shift-P>', lambda event: self.unselect_page())
+        self.master.bind('<Control-Shift-a>', lambda event: self.unselect_all())
+        self.master.bind('<Control-Shift-A>', lambda event: self.unselect_all())
+        self.master.bind(
+            '<Control-Shift-g>',
             lambda event: self.master.remove_selected_from_group(self.selected_entry_ids))
-        self.bind(
-            '<Alt-Shift-G>',
+        self.master.bind(
+            '<Control-Shift-G>',
             lambda event: self.master.remove_selected_from_group(self.selected_entry_ids))
-        self.bind(
-            '<Alt-Shift-f>',
+        self.master.bind(
+            '<Control-Shift-f>',
             lambda event: self.master.unfav_selected(self.selected_entry_ids))
-        self.bind(
-            '<Alt-Shift-F>',
+        self.master.bind(
+            '<Control-Shift-F>',
             lambda event: self.master.unfav_selected(self.selected_entry_ids))
-        self.bind('<Alt-p>', lambda event: self.select_page())
-        self.bind('<Alt-P>', lambda event: self.select_page())
-        self.bind('<Alt-a>', lambda event: self.select_all())
-        self.bind('<Alt-A>', lambda event: self.select_all())
-        self.bind(
-            '<Alt-g>',
+        self.master.bind('<Control-p>', lambda event: self.select_page())
+        self.master.bind('<Control-P>', lambda event: self.select_page())
+        self.master.bind('<Control-a>', lambda event: self.select_all())
+        self.master.bind('<Control-A>', lambda event: self.select_all())
+        self.master.bind(
+            '<Control-g>',
             lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
-        self.bind(
-            '<Alt-G>',
+        self.master.bind(
+            '<Control-G>',
             lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
-        self.bind('<Alt-f>', lambda event: self.master.fav_selected(self.selected_entry_ids))
-        self.bind('<Alt-F>', lambda event: self.master.fav_selected(self.selected_entry_ids))
-        self.bind(
+        self.master.bind(
+            '<Control-f>', lambda event: self.master.fav_selected(self.selected_entry_ids))
+        self.master.bind(
+            '<Control-F>', lambda event: self.master.fav_selected(self.selected_entry_ids))
+        self.master.bind(
             '<Alt-d>', lambda event: self.master.delete_selected(self.selected_entry_ids))
-        self.bind(
+        self.master.bind(
             '<Alt-D>', lambda event: self.master.delete_selected(self.selected_entry_ids))
 
     # Справка об окне
@@ -6490,22 +6497,22 @@ class BrowseDctTab(ttk.Frame):
         self.tip_btn_fav = ttip.Hovertip(
             self.btn_fav,
             'Добавить выделенные статьи в избранное\n'
-            'Alt+F',
+            'Ctrl+F',
             hover_delay=450)
         self.tip_btn_unfav = ttip.Hovertip(
             self.btn_unfav,
             'Убрать выделенные статьи из избранного\n'
-            'Alt+Shift+F',
+            'Ctrl+Shift+F',
             hover_delay=450)
         self.tip_btn_add_to_group = ttip.Hovertip(
             self.btn_add_to_group,
             'Добавить выделенные статьи в группу\n'
-            'Alt+G',
+            'Ctrl+G',
             hover_delay=450)
         self.tip_btn_remove_from_group = ttip.Hovertip(
             self.btn_remove_from_group,
             'Убрать выделенные статьи из группы\n'
-            'Alt+Shift+G',
+            'Ctrl+Shift+G',
             hover_delay=450)
         self.tip_btn_delete = ttip.Hovertip(
             self.btn_delete,
@@ -6515,22 +6522,22 @@ class BrowseDctTab(ttk.Frame):
         self.tip_btn_select_page = ttip.Hovertip(
             self.btn_select_page,
             'Выделить все статьи на текущей странице\n'
-            'Alt+P',
+            'Ctrl+P',
             hover_delay=450)
         self.tip_btn_unselect_page = ttip.Hovertip(
             self.btn_unselect_page,
             'Снять выделение со всех статей на текущей странице\n'
-            'Alt+Shift+P',
+            'Ctrl+Shift+P',
             hover_delay=450)
         self.tip_btn_select_all = ttip.Hovertip(
             self.btn_select_all,
             'Выделить все статьи\n'
-            'Alt+A',
+            'Ctrl+A',
             hover_delay=450)
         self.tip_btn_unselect_all = ttip.Hovertip(
             self.btn_unselect_all,
             'Снять выделение со всех статей\n'
-            'Alt+Shift+A',
+            'Ctrl+Shift+A',
             hover_delay=450)
         self.tip_btn_first_page = ttip.Hovertip(
             self.btn_first_page, 'В начало', hover_delay=650)
@@ -6931,38 +6938,46 @@ class BrowseDctTab(ttk.Frame):
         self.unbind('<Return>')
 
         bind_ctrl_a(self.entry_current_page)
-        self.bind('<Up>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
-        self.bind('<Control-u>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
-        self.bind('<Control-U>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
-        self.bind('<Down>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
-        self.bind('<Control-d>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
-        self.bind('<Control-D>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
-        self.bind('<Alt-Shift-p>', lambda event: self.unselect_page())
-        self.bind('<Alt-Shift-P>', lambda event: self.unselect_page())
-        self.bind('<Alt-Shift-a>', lambda event: self.unselect_all())
-        self.bind('<Alt-Shift-A>', lambda event: self.unselect_all())
-        self.bind(
-            '<Alt-Shift-g>',
+        self.master.bind('<Up>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
+        self.master.bind(
+            '<Control-u>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
+        self.master.bind(
+            '<Control-U>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
+        self.master.bind('<Down>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
+        self.master.bind(
+            '<Control-d>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
+        self.master.bind(
+            '<Control-D>', lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
+        self.master.bind('<Control-Shift-p>', lambda event: self.unselect_page())
+        self.master.bind('<Control-Shift-P>', lambda event: self.unselect_page())
+        self.master.bind('<Control-Shift-a>', lambda event: self.unselect_all())
+        self.master.bind('<Control-Shift-A>', lambda event: self.unselect_all())
+        self.master.bind(
+            '<Control-Shift-g>',
             lambda event: self.master.remove_selected_from_group(self.selected_entry_ids))
-        self.bind(
-            '<Alt-Shift-G>',
+        self.master.bind(
+            '<Control-Shift-G>',
             lambda event: self.master.remove_selected_from_group(self.selected_entry_ids))
-        self.bind(
-            '<Alt-Shift-f>', lambda event: self.master.unfav_selected(self.selected_entry_ids))
-        self.bind(
-            '<Alt-Shift-F>', lambda event: self.master.unfav_selected(self.selected_entry_ids))
-        self.bind('<Alt-p>', lambda event: self.select_page())
-        self.bind('<Alt-P>', lambda event: self.select_page())
-        self.bind('<Alt-a>', lambda event: self.select_all())
-        self.bind('<Alt-A>', lambda event: self.select_all())
-        self.bind(
-            '<Alt-g>', lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
-        self.bind(
-            '<Alt-G>', lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
-        self.bind('<Alt-f>', lambda event: self.master.fav_selected(self.selected_entry_ids))
-        self.bind('<Alt-F>', lambda event: self.master.fav_selected(self.selected_entry_ids))
-        self.bind('<Alt-d>', lambda event: self.master.delete_selected(self.selected_entry_ids))
-        self.bind('<Alt-D>', lambda event: self.master.delete_selected(self.selected_entry_ids))
+        self.master.bind(
+            '<Control-Shift-f>', lambda event: self.master.unfav_selected(self.selected_entry_ids))
+        self.master.bind(
+            '<Control-Shift-F>', lambda event: self.master.unfav_selected(self.selected_entry_ids))
+        self.master.bind('<Control-p>', lambda event: self.select_page())
+        self.master.bind('<Control-P>', lambda event: self.select_page())
+        self.master.bind('<Control-a>', lambda event: self.select_all())
+        self.master.bind('<Control-A>', lambda event: self.select_all())
+        self.master.bind(
+            '<Control-g>', lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
+        self.master.bind(
+            '<Control-G>', lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
+        self.master.bind(
+            '<Control-f>', lambda event: self.master.fav_selected(self.selected_entry_ids))
+        self.master.bind(
+            '<Control-F>', lambda event: self.master.fav_selected(self.selected_entry_ids))
+        self.master.bind(
+            '<Alt-d>', lambda event: self.master.delete_selected(self.selected_entry_ids))
+        self.master.bind(
+            '<Alt-D>', lambda event: self.master.delete_selected(self.selected_entry_ids))
 
     # Справка об окне
     def show_help(self):
