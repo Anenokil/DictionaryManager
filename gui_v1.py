@@ -5573,11 +5573,11 @@ class DictionaryW(tk.Toplevel):
             self.tabs.select(self.active_tab)
             self.add_entry()
 
-    def open(self, tab: Literal['print', 'search'] = 'print'):
+    def open(self, tab: Literal['browse', 'search'] = 'browse'):
         self.focus_set()
         self.bind('<Escape>', lambda event: self.destroy())
 
-        if tab == 'print':
+        if tab == 'browse':
             self.active_tab = 0
             self.tab_browse.set_focus()
         elif tab == 'search':
@@ -5788,11 +5788,11 @@ class SearchTab(ttk.Frame):
             self, 'Invis.TFrame',
             row=1, column=0, padx=6, pady=6)
 
-        self.scrolled_frame_search = ScrollFrame(
+        self.scrolled_frame = ScrollFrame(
             self.frame_main, self.app_data,
             SCALE_DEFAULT_FRAME_HEIGHT[self.app_data.gui_settings.scale - SCALE_MIN],
             SCALE_DEFAULT_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
-        self.scrolled_frame_search.grid(
+        self.scrolled_frame.grid(
             row=0, column=0, padx=0, pady=(0, 6))
         self._create_navigation_frame()
 
@@ -6026,7 +6026,7 @@ class SearchTab(ttk.Frame):
         # Создаём новые фреймы
         self.entry_frames = [
             create_frame(
-                self.scrolled_frame_search.frame_canvas, 'Invis.TFrame',
+                self.scrolled_frame.frame_canvas, 'Invis.TFrame',
                 row=i, column=0, padx=0, pady=0, sticky='WE',
             ) for i in range(self.n_entries_on_page)
         ]
@@ -6063,7 +6063,7 @@ class SearchTab(ttk.Frame):
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
-            self.scrolled_frame_search.canvas.yview_moveto(0.0)
+            self.scrolled_frame.canvas.yview_moveto(0.0)
 
     # Обновить одну из кнопок журнала
     def refresh_entry(self, index: int, entry_id: EntryID):
@@ -6208,22 +6208,22 @@ class SearchTab(ttk.Frame):
             lambda event: self.go_to_first_page())
         self.master.bind(
             '<Up>',
-            lambda event: self.scrolled_frame_search.scroll_up_small())
+            lambda event: self.scrolled_frame.scroll_up_small())
         self.master.bind(
             '<Control-u>',
-            lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+            lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
         self.master.bind(
             '<Control-U>',
-            lambda event: self.scrolled_frame_search.canvas.yview_moveto(0.0))
+            lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
         self.master.bind(
             '<Down>',
-            lambda event: self.scrolled_frame_search.scroll_down_small())
+            lambda event: self.scrolled_frame.scroll_down_small())
         self.master.bind(
             '<Control-d>',
-            lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
+            lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
         self.master.bind(
             '<Control-D>',
-            lambda event: self.scrolled_frame_search.canvas.yview_moveto(1.0))
+            lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
         self.master.bind(
             '<Control-p>',
             lambda event: self.select_page())
@@ -6509,11 +6509,11 @@ class BrowseDctTab(ttk.Frame):
             self, 'Invis.TFrame',
             row=1, column=0, padx=6, pady=6)
 
-        self.scrolled_frame_print = ScrollFrame(
+        self.scrolled_frame = ScrollFrame(
             self.frame_main, self.app_data,
             SCALE_DEFAULT_FRAME_HEIGHT[self.app_data.gui_settings.scale - SCALE_MIN],
             SCALE_DEFAULT_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
-        self.scrolled_frame_print.grid(
+        self.scrolled_frame.grid(
             row=0, column=0, padx=0, pady=(0, 6))
         self._create_navigation_frame()
 
@@ -6831,7 +6831,7 @@ class BrowseDctTab(ttk.Frame):
         # Создаём новые фреймы
         self.entry_frames = [
             create_frame(
-                self.scrolled_frame_print.frame_canvas, 'Invis.TFrame',
+                self.scrolled_frame.frame_canvas, 'Invis.TFrame',
                 row=i, column=0, padx=0, pady=0, sticky='WE',
             ) for i in range(self.n_entries_on_page)
         ]
@@ -6887,7 +6887,7 @@ class BrowseDctTab(ttk.Frame):
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
-            self.scrolled_frame_print.canvas.yview_moveto(0.0)
+            self.scrolled_frame.canvas.yview_moveto(0.0)
 
     # Обновить одну из кнопок журнала
     def refresh_entry(self, index: int):
@@ -7042,22 +7042,22 @@ class BrowseDctTab(ttk.Frame):
             lambda event: self.go_to_first_page())
         self.master.bind(
             '<Up>',
-            lambda event: self.scrolled_frame_print.scroll_up_small())
+            lambda event: self.scrolled_frame.scroll_up_small())
         self.master.bind(
             '<Control-u>',
-            lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
+            lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
         self.master.bind(
             '<Control-U>',
-            lambda event: self.scrolled_frame_print.canvas.yview_moveto(0.0))
+            lambda event: self.scrolled_frame.canvas.yview_moveto(0.0))
         self.master.bind(
             '<Down>',
-            lambda event: self.scrolled_frame_print.scroll_down_small())
+            lambda event: self.scrolled_frame.scroll_down_small())
         self.master.bind(
             '<Control-d>',
-            lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
+            lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
         self.master.bind(
             '<Control-D>',
-            lambda event: self.scrolled_frame_print.canvas.yview_moveto(1.0))
+            lambda event: self.scrolled_frame.canvas.yview_moveto(1.0))
         self.master.bind(
             '<Control-p>',
             lambda event: self.select_page())
