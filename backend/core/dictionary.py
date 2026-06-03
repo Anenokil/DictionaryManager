@@ -5,7 +5,7 @@ Author: Anenokil
 """
 
 from types import NoneType
-from typing import Iterable, Generator, Mapping, Callable, Literal
+from typing import Iterable, Collection, Generator, Mapping, Callable, Literal
 from itertools import chain
 from functools import wraps
 
@@ -287,7 +287,7 @@ class Dictionary:
 
         yield from self._entries.values()
 
-    def search(self, query: Iterable[tuple[str, str]]) -> set[EntryID]:
+    def search(self, query: Collection[tuple[str, str]]) -> set[EntryID]:
         """
         Search for entries across multiple indexes using the specified query conditions.
 
