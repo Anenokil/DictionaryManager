@@ -13,8 +13,8 @@ from .types import (
 )
 from .errors import DeserializationError
 from .utils import (
-    gram_form_to_str, validate_required_fields, validate_field_type,
-    validate_field_len,
+    remove_dup, gram_form_to_str, validate_required_fields,
+    validate_field_type, validate_field_len,
 )
 
 # Typing aliases used in the module
@@ -85,18 +85,21 @@ class Entry:
         """
 
         self.lemma = lemma
-        self.tr: Translations = [tr] if isinstance(tr, Translation) else list(tr)
+        self.tr: Translations = [tr] if isinstance(tr, Translation) else remove_dup(list(tr))
         self.forms: Forms = {
-            pattern: list(forms)
+            pattern: remove_dup(list(forms))
             for pattern, forms in forms.items()
         } if forms else dict()
-        self.phrases: Phrases = {phrase: list(phrase_tr) for phrase, phrase_tr in phrases.items()} if phrases else dict()
+        self.phrases: Phrases = {
+            phrase: remove_dup(list(phrase_tr))
+            for phrase, phrase_tr in phrases.items()
+        } if phrases else dict()
         if not notes:
             self.notes: Notes = []
         elif isinstance(notes, Note):
             self.notes = [notes]
         else:
-            self.notes = list(notes)
+            self.notes = remove_dup(list(notes))
         self.groups: Groups = set(groups) if groups else set()
         self.is_fav = is_fav
         self.total_att = total_att

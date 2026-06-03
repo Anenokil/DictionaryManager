@@ -7,7 +7,7 @@ Author: Anenokil
 
 from types import GenericAlias
 from typing import (
-    Any, Iterable, Collection, Generator, Mapping,
+    Any, Iterable, Collection, Generator, Mapping, TypeVar,
     _GenericAlias, get_origin, get_args, TYPE_CHECKING,
 )
 
@@ -15,6 +15,12 @@ from .types import Word, CtgValue, SerializedData
 from .errors import DeserializationError, MissingFieldsError, FieldTypeError
 if TYPE_CHECKING:
     from .entry import Entry
+
+T = TypeVar('T')
+
+
+def remove_dup(data: list[T]) -> list[T]:
+    return [val for i, val in enumerate(data) if val not in data[:i]]
 
 
 def gram_form_to_str(gram_form: Iterable[CtgValue]) -> str:

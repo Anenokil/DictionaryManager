@@ -21,6 +21,6 @@ from .trainer import (
     FormSelection, TrainingConfig,
 )
 from .utils import (
-    gram_form_to_str, validate_required_fields,
+    remove_dup, gram_form_to_str, validate_required_fields,
     validate_field_type, validate_field_len,
 )
