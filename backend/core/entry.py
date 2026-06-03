@@ -40,12 +40,13 @@ class Entry:
     - forms: Inflected forms (except the lemma).
     - phrases: Phrases containing the word; usage examples.
     - notes: Notes field.
+    - groups: Groups assigned to the entry.
     - n_translations: Number of translations for the word.
     - n_gram_forms: Number of grammatical forms.
+    - n_word_forms: Number of word forms.
     - n_phrases: Number of phrases.
     - n_notes: Number of notes.
     - is_fav: True if the entry is favorite.
-    - groups: Groups assigned to the entry.
     - total_att: Total number of game attempts.
     - correct_att: Number of correct guesses (wins).
     - accuracy: Ratio of correct guesses to total attempts (correct_att / total_att).
@@ -366,7 +367,7 @@ class Entry:
 
     def delete_ctg_value(self, pos: int, ctg_val: CtgValue):
         """
-        Delete the specified category value from all word forms.
+        Delete the specified category value from all grammatical form tuples.
 
         Args:
             pos: The position (index) of the category in grammatical form tuple.
@@ -381,7 +382,7 @@ class Entry:
 
     def rename_ctg_value(self, pos: int, old_ctg_val: CtgValue, new_ctg_val: CtgValue):
         """
-        Rename the specified category value in all word forms.
+        Rename the specified category value in all grammatical form tuples.
 
         Args:
             pos: The position (index) of the category in grammatical form tuple.
@@ -400,7 +401,7 @@ class Entry:
         }
 
     def add_ctg(self):
-        """Add a new empty category to all word forms."""
+        """Add a new empty category to all grammatical form tuples."""
 
         def update_gram_form(gram_form: GramForm) -> GramForm:
             return tuple(gram_form + ('',))
@@ -412,7 +413,7 @@ class Entry:
 
     def delete_ctg(self, pos: int):
         """
-        Delete the category at the specified position from all word forms.
+        Delete the category at the specified position from all grammatical form tuples.
 
         Removes the entire category (including all its values) at position `pos`
         from all word forms in the entry.
