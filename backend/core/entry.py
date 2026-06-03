@@ -127,6 +127,101 @@ class Entry:
         self.win_streak = win_streak
         self.latest_att_timestamp = latest_att_timestamp
 
+    @classmethod
+    def from_json_dict(cls, data: SerializedData) -> 'Entry':
+        """
+        Deserialize Entry data from a JSON format.
+
+        Args:
+            data: Dictionary containing entry data.
+
+        Returns:
+            An Entry object.
+        """
+
+        # Validate required fields
+        required_fields = (
+            'lemma', 'translations', 'total_att', 'correct_att',
+            'win_streak', 'latest_att_timestamp',
+        )
+        validate_required_fields(data, required_fields)
+
+        # Read required fields
+        lemma = data['lemma']
+        translations = data['translations']
+        total_att = data['total_att']
+        correct_att = data['correct_att']
+        win_streak = data['win_streak']
+        latest_att_timestamp = data['latest_att_timestamp']
+
+        # Read optional fields
+        forms = data.get('forms', {'keys': [], 'values': []})
+        phrases = data.get('phrases', None)
+        notes = data.get('notes', None)
+        groups = data.get('groups', None)
+        is_fav = data.get('is_fav', False)
+
+        # Validate types
+        validate_field_type('lemma', lemma, str)
+        validate_field_type('translations', translations, list[str])
+        validate_field_type('forms', forms, dict)
+
+        validate_required_fields(forms, ('keys', 'values'))
+        validate_field_type('keys', forms['keys'], list[list[str]])
+        validate_field_type('values', forms['values'], list[list[str]])
+
+        validate_field_type('phrases', phrases, (dict[str, list[str]], NoneType))
+        validate_field_type('notes', notes, (list[str], NoneType))
+        validate_field_type('groups', groups, (list[str], NoneType))
+        validate_field_type('is_fav', is_fav, bool)
+        validate_field_type('total_att', total_att, int)
+        validate_field_type('correct_att', correct_att, int)
+        validate_field_type('win_streak', win_streak, int)
+        validate_field_type('latest_att_timestamp', latest_att_timestamp, list[int])
+
+        # Validate values
+        validate_field_len('latest_att_timestamp', latest_att_timestamp, 3)
+        if len(forms['keys']) != len(forms['values']):
+            raise DeserializationError('Field "keys" and "values" must have same length')
+
+        # Convert types and values
+        forms = {
+            tuple(key): val
+            for key, val in zip(forms['keys'], forms['values'])
+        }
+        latest_att_timestamp = tuple(latest_att_timestamp)
+
+        return cls(
+            lemma, translations, forms, phrases, notes, groups, is_fav,
+            total_att, correct_att, win_streak, latest_att_timestamp,
+        )
+
+    def __str__(self) -> str:
+        """
+        Get string representation of the entry.
+
+        Returns:
+            A formatted representation of the entire dictionary entry including
+            lemma, translations, inflected forms, phrases, notes, and learning statistics.
+        """
+
+        tokens = []
+        if self.is_fav:
+            tokens.append('* (fav)\n')
+        tokens.append(f'| {self.lemma} - ')
+        tokens.append(', '.join(tr for tr in self.tr))
+        tokens.append('\n')
+        for gram_form, word_forms in self.forms.items():
+            tokens.append(f'|  [{gram_form_to_str(gram_form)}] {', '.join(word_forms)}\n')
+        for phrase, phrase_tr in self.phrases.items():
+            tokens.append(f'|  {phrase} - ')
+            tokens.append(', '.join(tr for tr in phrase_tr))
+            tokens.append('\n')
+        for note in self.notes:
+            tokens.append(f'| > {note}\n')
+
+        return ''.join(tokens)
+
     @property
     def n_translations(self) -> int:
         return len(self.tr)
@@ -146,6 +241,10 @@ class Entry:
     @property
     def n_notes(self) -> int:
         return len(self.notes)
+
+    @property
+    def accuracy(self) -> float:
+        return 0 if (self.total_att == 0) else self.correct_att / self.total_att
 
     def add_tr(self, tr: Translation):
         """
@@ -468,36 +567,6 @@ class Entry:
             self.win_streak -= 1
         self.latest_att_timestamp = session_number
 
-    @property
-    def accuracy(self) -> float:
-        return 0 if (self.total_att == 0) else self.correct_att / self.total_att
-
-    def __str__(self) -> str:
-        """
-        Get string representation of the entry.
-
-        Returns:
-            A formatted representation of the entire dictionary entry including
-            lemma, translations, inflected forms, phrases, notes, and learning statistics.
-        """
-
-        tokens = []
-        if self.is_fav:
-            tokens.append('* (fav)\n')
-        tokens.append(f'| {self.lemma} - ')
-        tokens.append(', '.join(tr for tr in self.tr))
-        tokens.append('\n')
-        for gram_form, word_forms in self.forms.items():
-            tokens.append(f'|  [{gram_form_to_str(gram_form)}] {', '.join(word_forms)}\n')
-        for phrase, phrase_tr in self.phrases.items():
-            tokens.append(f'|  {phrase} - ')
-            tokens.append(', '.join(tr for tr in phrase_tr))
-            tokens.append('\n')
-        for note in self.notes:
-            tokens.append(f'| > {note}\n')
-
-        return ''.join(tokens)
-
     def to_dict(self) -> SerializedData:
         """
         Serialize the entry to a dictionary format.
@@ -551,72 +620,3 @@ class Entry:
             data['groups'] = list(self.groups)
 
         return data
-
-    @classmethod
-    def from_json_dict(cls, data: SerializedData) -> 'Entry':
-        """
-        Deserialize Entry data from a JSON format.
-
-        Args:
-            data: Dictionary containing entry data.
-
-        Returns:
-            An Entry object.
-        """
-
-        # Validate required fields
-        required_fields = (
-            'lemma', 'translations', 'total_att', 'correct_att',
-            'win_streak', 'latest_att_timestamp',
-        )
-        validate_required_fields(data, required_fields)
-
-        # Read required fields
-        lemma = data['lemma']
-        translations = data['translations']
-        total_att = data['total_att']
-        correct_att = data['correct_att']
-        win_streak = data['win_streak']
-        latest_att_timestamp = data['latest_att_timestamp']
-
-        # Read optional fields
-        forms = data.get('forms', {'keys': [], 'values': []})
-        phrases = data.get('phrases', None)
-        notes = data.get('notes', None)
-        groups = data.get('groups', None)
-        is_fav = data.get('is_fav', False)
-
-        # Validate types
-        validate_field_type('lemma', lemma, str)
-        validate_field_type('translations', translations, list[str])
-        validate_field_type('forms', forms, dict)
-
-        validate_required_fields(forms, ('keys', 'values'))
-        validate_field_type('keys', forms['keys'], list[list[str]])
-        validate_field_type('values', forms['values'], list[list[str]])
-
-        validate_field_type('phrases', phrases, (dict[str, list[str]], NoneType))
-        validate_field_type('notes', notes, (list[str], NoneType))
-        validate_field_type('groups', groups, (list[str], NoneType))
-        validate_field_type('is_fav', is_fav, bool)
-        validate_field_type('total_att', total_att, int)
-        validate_field_type('correct_att', correct_att, int)
-        validate_field_type('win_streak', win_streak, int)
-        validate_field_type('latest_att_timestamp', latest_att_timestamp, list[int])
-
-        # Validate values
-        validate_field_len('latest_att_timestamp', latest_att_timestamp, 3)
-        if len(forms['keys']) != len(forms['values']):
-            raise DeserializationError('Field "keys" and "values" must have same length')
-
-        # Convert types and values
-        forms = {
-            tuple(key): val
-            for key, val in zip(forms['keys'], forms['values'])
-        }
-        latest_att_timestamp = tuple(latest_att_timestamp)
-
-        return cls(
-            lemma, translations, forms, phrases, notes, groups, is_fav,
-            total_att, correct_att, win_streak, latest_att_timestamp,
-        )
