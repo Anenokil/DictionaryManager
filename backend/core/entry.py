@@ -159,7 +159,7 @@ class Entry:
 
         if new_tr in self.tr:
             if new_tr != tr:
-                self.tr.remove(new_tr)
+                self.tr.remove(tr)
         else:
             index = self.tr.index(tr)
             self.tr[index] = new_tr
