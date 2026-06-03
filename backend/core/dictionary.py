@@ -44,6 +44,16 @@ class Dictionary:
 
     _schema_version = 1
 
+    @staticmethod
+    def _mark_modified(method: Callable) -> Callable:
+        @wraps(method)
+        def wrapper(self, *args, **kwargs):
+            result = method(self, *args, **kwargs)
+            self._is_modified = True
+            return result
+
+        return wrapper
+
     def __init__(self, name: DctName = None):
         """
         Initialize a dictionary.
@@ -91,65 +101,24 @@ class Dictionary:
 
         self._is_modified = True
 
-    @staticmethod
-    def _mark_modified(method: Callable) -> Callable:
-        @wraps(method)
-        def wrapper(self, *args, **kwargs):
-            result = method(self, *args, **kwargs)
-            self._is_modified = True
-            return result
+    @classmethod
+    def from_json_dict(cls, data: SerializedData) -> 'Dictionary':
+        """
+        Deserialize Dictionary data from a JSON format.
 
-        return wrapper
+        Args:
+            data: Dictionary containing saving version and dictionary data.
 
-    def mark_saved(self):
-        self._is_modified = False
+        Returns:
+            A Dictionary object.
+        """
 
-    def mark_modified(self):
-        self._is_modified = True
-
-    @property
-    def is_modified(self) -> bool:
-        return self._is_modified
+        dct = cls()
+        dct.load_from_json_dict(data)
+        return dct
 
     def __getitem__(self, item: EntryID) -> Entry:
         return self._entries[item]
-
-    def _update_index(
-            self,
-            index_name: str,
-            search_terms: str | Iterable[str],
-            entry_ids: EntryID | Iterable[EntryID],
-            action: Literal['add', 'remove'],
-    ):
-        """
-        Update a search index by adding or removing an entry.
-
-        Args:
-            index_name: Name of the index to update ('lemmas', 'translations', 'forms', or 'groups').
-            search_terms: One or more search terms to add to or remove from the index.
-            entry_ids: One or more entry IDs to associate with the search terms.
-            action: Either 'add' or 'remove'.
-        """
-
-        assert index_name in self._indexes.keys()
-        assert action in ('add', 'remove')
-
-        search_terms = {search_terms} if isinstance(search_terms, str) else set(search_terms)
-        entry_ids = {entry_ids} if isinstance(entry_ids, EntryID) else set(entry_ids)
-
-        index = self._indexes[index_name]
-
-        if action == 'add':
-            for term in search_terms:
-                if term in index:
-                    index[term].update(entry_ids)
-                else:
-                    index[term] = set(entry_ids)
-        else:
-            for term in search_terms:
-                index[term].difference_update(entry_ids)
-                if not index[term]:
-                    index.pop(term)
 
     @property
     def name(self) -> DctName:
@@ -158,6 +127,43 @@ class Dictionary:
     @name.setter
     def name(self, new_name: DctName):
         self.rename(new_name)
+
+    @property
+    def is_modified(self) -> bool:
+        return self._is_modified
+
+    @property
+    def features(self) -> FeatureRegistry:
+        return self._features
+
+    @property
+    def groups(self) -> GroupRegistry:
+        return self._groups
+
+    @property
+    def default_groups(self) -> GroupRegistry:
+        return [self._groups[i] for i in self._default_group_ids]
+
+    @property
+    def total_score(self) -> tuple[int, int]:
+        """
+        Get the global count of correct attempts and total attempts across all entries.
+
+        Returns:
+            A tuple containing two integers:
+            - Total number of correct attempts (wins) across all entries;
+            - Total number of all learning attempts across all entries.
+        """
+
+        correct = sum(entry.correct_att for entry in self._entries.values())
+        total = sum(entry.total_att for entry in self._entries.values())
+        return correct, total
+
+    def mark_saved(self):
+        self._is_modified = False
+
+    def mark_modified(self):
+        self._is_modified = True
 
     @_mark_modified
     def rename(self, new_name: DctName):
@@ -243,21 +249,6 @@ class Dictionary:
             return sum(len(ctg_vals) for ctg_vals in self._features.values())
         return self._counters[counter_name]
 
-    @property
-    def total_score(self) -> tuple[int, int]:
-        """
-        Get the global count of correct attempts and total attempts across all entries.
-
-        Returns:
-            A tuple containing two integers:
-            - Total number of correct attempts (wins) across all entries;
-            - Total number of all learning attempts across all entries.
-        """
-
-        correct = sum(entry.correct_att for entry in self._entries.values())
-        total = sum(entry.total_att for entry in self._entries.values())
-        return correct, total
-
     def get_entry_ids(self) -> Generator[EntryID, None, None]:
         """
         Iterate over all entry keys in the dictionary.
@@ -308,18 +299,6 @@ class Dictionary:
             if search_term in index:
                 results.append(index[search_term])
         return set.intersection(*results) if results else set()
-
-    @property
-    def groups(self) -> GroupRegistry:
-        return self._groups
-
-    @property
-    def default_groups(self) -> GroupRegistry:
-        return [self._groups[i] for i in self._default_group_ids]
-
-    @property
-    def features(self) -> FeatureRegistry:
-        return self._features
 
     @_mark_modified
     def add_entry(
@@ -1078,22 +1057,6 @@ class Dictionary:
         self._max_entry_id = max_entry_id
         self._is_modified = is_modified
 
-    @classmethod
-    def from_json_dict(cls, data: SerializedData) -> 'Dictionary':
-        """
-        Deserialize Dictionary data from a JSON format.
-
-        Args:
-            data: Dictionary containing saving version and dictionary data.
-
-        Returns:
-            A Dictionary object.
-        """
-
-        dct = cls()
-        dct.load_from_json_dict(data)
-        return dct
-
     def to_txt(self, filepath: str):
         """
         Print the dictionary to the specified file.
@@ -1108,3 +1071,40 @@ class Dictionary:
             for entry in self._entries.values():
                 file.write(str(entry))
                 file.write('\n')
+
+    def _update_index(
+            self,
+            index_name: str,
+            search_terms: str | Iterable[str],
+            entry_ids: EntryID | Iterable[EntryID],
+            action: Literal['add', 'remove'],
+    ):
+        """
+        Update a search index by adding or removing an entry.
+
+        Args:
+            index_name: Name of the index to update ('lemmas', 'translations', 'forms', or 'groups').
+            search_terms: One or more search terms to add to or remove from the index.
+            entry_ids: One or more entry IDs to associate with the search terms.
+            action: Either 'add' or 'remove'.
+        """
+
+        assert index_name in self._indexes.keys()
+        assert action in ('add', 'remove')
+
+        search_terms = {search_terms} if isinstance(search_terms, str) else set(search_terms)
+        entry_ids = {entry_ids} if isinstance(entry_ids, EntryID) else set(entry_ids)
+
+        index = self._indexes[index_name]
+
+        if action == 'add':
+            for term in search_terms:
+                if term in index:
+                    index[term].update(entry_ids)
+                else:
+                    index[term] = set(entry_ids)
+        else:
+            for term in search_terms:
+                index[term].difference_update(entry_ids)
+                if not index[term]:
+                    index.pop(term)
