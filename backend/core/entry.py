@@ -5,7 +5,7 @@ Author: Anenokil
 """
 
 from types import NoneType
-from typing import Iterable, Mapping
+from typing import Iterable, Iterator, Mapping
 
 from .types import (
     Word, Translation, CtgValue, GramForm, WordForm,
@@ -17,12 +17,360 @@ from .utils import (
     validate_field_type, validate_field_len,
 )
 
-# Typing aliases used in the module
-Translations = list[Translation]
-Forms = dict[GramForm, list[WordForm]]
-Phrases = dict[Phrase, list[PhraseTr]]
-Notes = list[Note]
-Groups = set[Group]
+
+class Translations:
+    def __init__(self, translations: Translation | Iterable[Translation]):
+        if isinstance(translations, Translation):
+            self._data = [translations]
+        else:
+            self._data = remove_dup(list(translations))
+            if not self._data:
+                raise ValueError('Entry must have at least one translation')
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __iter__(self) -> Iterator[Translation]:
+        return iter(self._data)
+
+    def add(self, translation: Translation):
+        """
+        Add a new translation.
+
+        Args:
+            translation: The translation to add.
+        """
+
+        if translation not in self._data:
+            self._data.append(translation)
+
+    def edit(self, translation: Translation, new_translation: Translation):
+        """
+        Replace an existing translation with a new translation.
+
+        Args:
+            translation: The translation to edit.
+            new_translation: The new translation.
+        """
+
+        if new_translation in self._data:
+            if new_translation != translation:
+                self._data.remove(translation)
+        else:
+            index = self._data.index(translation)
+            self._data[index] = new_translation
+
+    def delete(self, translation: Translation):
+        """
+        Delete a translation.
+
+        Args:
+            translation: The translation to delete.
+        """
+
+        if len(self._data) == 1:
+            raise ValueError('Entry must have at least one translation')
+        self._data.remove(translation)
+
+    def serialize(self) -> list[Translation]:
+        return self._data
+
+
+class Forms:
+    def __init__(self, forms: Mapping[GramForm, Iterable[WordForm]] | None):
+        self._data: dict[GramForm, list[WordForm]] = {
+            gram_form: remove_dup(list(word_forms))
+            for gram_form, word_forms in forms.items()
+        } if forms else dict()
+
+        # Drop invalid forms
+        self._data = {
+            k: v for k, v in self._data.items() if v
+        }
+
+    def __bool__(self) -> bool:
+        return bool(self._data)
+
+    def __getitem__(self, key: GramForm) -> list[WordForm]:
+        return self._data[key]
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __iter__(self) -> Iterator[GramForm]:
+        return iter(self._data)
+
+    def keys(self):
+        return self._data.keys()
+
+    def values(self):
+        return self._data.values()
+
+    def items(self):
+        return self._data.items()
+
+    def add(self, gram_form: GramForm, word_form: WordForm):
+        """
+        Add a new inflected form.
+
+        Args:
+            gram_form: Grammatical form for the inflection.
+            word_form: The actual inflected form to add.
+        """
+
+        if gram_form not in self._data.keys():
+            self._data[gram_form] = [word_form]
+        elif word_form not in self._data[gram_form]:
+            self._data[gram_form].append(word_form)
+
+    def edit(
+            self,
+            gram_form: GramForm,
+            word_form: WordForm,
+            new_gram_form: GramForm,
+            new_word_form: WordForm,
+    ):
+        """
+        Replace an existing form with a new form.
+
+        Args:
+            gram_form: Grammatical form identifying the inflection to replace.
+            word_form: The actual inflected form to replace.
+            new_gram_form: The new grammatical form.
+            new_word_form: The new inflected form.
+        """
+
+        if new_gram_form == gram_form:
+            word_forms = self._data[gram_form]
+            if new_word_form in word_forms:
+                if new_word_form != word_form:
+                    word_forms.remove(word_form)
+            else:
+                index = word_forms.index(word_form)
+                word_forms[index] = new_word_form
+        else:
+            self.delete(gram_form, word_form)
+            self.add(new_gram_form, new_word_form)
+
+    def delete(self, gram_form: GramForm, word_form: WordForm):
+        """
+        Remove an inflected form.
+
+        Args:
+            gram_form: Grammatical form identifying the inflection to remove.
+            word_form: The actual inflected form to remove.
+        """
+
+        self._data[gram_form].remove(word_form)
+        if not self._data[gram_form]:
+            self._data.pop(gram_form)
+
+    def serialize(self) -> SerializedData:
+        return {
+            'keys': [list(gram_form) for gram_form in self.keys()],
+            'values': list(self.values()),
+        }
+
+
+class Phrases:
+    def __init__(self, phrases: Mapping[Phrase, Iterable[PhraseTr]] | None):
+        self._data: dict[Phrase, list[PhraseTr]] = {
+            phrase: remove_dup(list(phrase_tr))
+            for phrase, phrase_tr in phrases.items()
+        } if phrases else dict()
+
+        # Drop invalid phrases
+        self._data = {
+            k: v for k, v in self._data.items() if v
+        }
+
+    def __bool__(self) -> bool:
+        return bool(self._data)
+
+    def __getitem__(self, key: Phrase) -> list[PhraseTr]:
+        return self._data[key]
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __iter__(self) -> Iterator[Phrase]:
+        return iter(self._data)
+
+    def keys(self):
+        return self._data.keys()
+
+    def values(self):
+        return self._data.values()
+
+    def items(self):
+        return self._data.items()
+
+    def add(self, phrase: Phrase, phrase_tr: PhraseTr):
+        """
+        Add a new phrase/usage example with its translation.
+
+        Args:
+            phrase: The phrase or usage example containing the word.
+            phrase_tr: The translation of the phrase.
+        """
+
+        if phrase not in self._data.keys():
+            self._data[phrase] = [phrase_tr]
+        elif phrase_tr not in self._data[phrase]:
+            self._data[phrase].append(phrase_tr)
+
+    def edit(
+            self,
+            phrase: Phrase,
+            phrase_tr: PhraseTr,
+            new_phrase: Phrase,
+            new_phrase_tr: PhraseTr,
+    ):
+        """
+        Replace an existing phrase with a new phrase.
+
+        Args:
+            phrase: The phrase to replace.
+            phrase_tr: The translation of the phrase to replace.
+            new_phrase: The new phrase.
+            new_phrase_tr: The new phrase translation.
+        """
+
+        if new_phrase == phrase:
+            phrase_trs = self._data[phrase]
+            if new_phrase_tr in phrase_trs:
+                if new_phrase_tr != phrase_tr:
+                    phrase_trs.remove(phrase_tr)
+            else:
+                index = phrase_trs.index(phrase_tr)
+                phrase_trs[index] = new_phrase_tr
+        else:
+            self.delete(phrase, phrase_tr)
+            self.add(new_phrase, new_phrase_tr)
+
+    def delete(self, phrase: Phrase, phrase_tr: PhraseTr):
+        """
+        Remove a phrase and its translation.
+
+        Args:
+            phrase: The phrase to remove.
+            phrase_tr: The translation of the phrase to remove.
+        """
+
+        self._data[phrase].remove(phrase_tr)
+        if not self._data[phrase]:
+            self._data.pop(phrase)
+
+    def serialize(self) -> SerializedData:
+        return self._data
+
+
+class Notes:
+    def __init__(self, notes: Note | Iterable[Note] | None):
+        if not notes:
+            self._data: list[Note] = []
+        elif isinstance(notes, Note):
+            self._data = [notes]
+        else:
+            self._data = remove_dup(list(notes))
+
+    def __bool__(self) -> bool:
+        return bool(self._data)
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __iter__(self) -> Iterator[Note]:
+        return iter(self._data)
+
+    def add(self, note: Note):
+        """
+        Add a new note.
+
+        Args:
+            note: The note text to add.
+        """
+
+        if note not in self._data:
+            self._data.append(note)
+
+    def edit(self, note: Note, new_note: Note):
+        """
+        Replace an existing note with a new note.
+
+        Args:
+            note: The note to edit.
+            new_note: The new note.
+        """
+
+        if new_note in self._data:
+            if new_note != note:
+                self._data.remove(note)
+        else:
+            index = self._data.index(note)
+            self._data[index] = new_note
+
+    def delete(self, note: Note):
+        """
+        Remove a note.
+
+        Args:
+            note: The note text to remove.
+        """
+
+        self._data.remove(note)
+
+    def serialize(self) -> list[Note]:
+        return self._data
+
+
+class Groups:
+    def __init__(self, groups: Iterable[Group] | None):
+        self._data: set[Group] = set(groups) if groups else set()
+
+    def __bool__(self) -> bool:
+        return bool(self._data)
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __iter__(self) -> Iterator[Group]:
+        return iter(self._data)
+
+    def add(self, group: Group):
+        """
+        Add a new group.
+
+        Args:
+            group: The group name to add.
+        """
+
+        self._data.add(group)
+
+    def edit(self, group: Group, new_group: Group):
+        """
+        Rename an existing group.
+
+        Args:
+            group: The group to rename.
+            new_group: The new group name.
+        """
+
+        self._data.remove(group)
+        self._data.add(new_group)
+
+    def delete(self, group: Group):
+        """
+        Remove a group.
+
+        Args:
+            group: The group name to remove.
+        """
+
+        self._data.remove(group)
+
+    def serialize(self) -> list[Group]:
+        return list(self._data)
 
 
 class Entry:
@@ -86,41 +434,11 @@ class Entry:
         """
 
         self.lemma = lemma
-
-        if isinstance(tr, Translation):
-            self.tr: Translations = [tr]
-        else:
-            tr = list(tr)
-            if not tr:
-                raise ValueError('Entry must have at least one translation')
-            self.tr = remove_dup(tr)
-
-        self.forms: Forms = {
-            pattern: remove_dup(list(forms))
-            for pattern, forms in forms.items()
-        } if forms else dict()
-        # Drop invalid forms
-        self.forms = {
-            k: v for k, v in self.forms.items() if v
-        }
-
-        self.phrases: Phrases = {
-            phrase: remove_dup(list(phrase_tr))
-            for phrase, phrase_tr in phrases.items()
-        } if phrases else dict()
-        # Drop invalid phrases
-        self.phrases = {
-            k: v for k, v in self.phrases.items() if v
-        }
-
-        if not notes:
-            self.notes: Notes = []
-        elif isinstance(notes, Note):
-            self.notes = [notes]
-        else:
-            self.notes = remove_dup(list(notes))
-
-        self.groups: Groups = set(groups) if groups else set()
+        self.tr = Translations(tr)
+        self.forms = Forms(forms)
+        self.phrases = Phrases(phrases)
+        self.notes = Notes(notes)
+        self.groups = Groups(groups)
         self.is_fav = is_fav
         self.total_att = total_att
         self.correct_att = correct_att
@@ -246,214 +564,6 @@ class Entry:
     def accuracy(self) -> float:
         return 0 if (self.total_att == 0) else self.correct_att / self.total_att
 
-    def add_tr(self, tr: Translation):
-        """
-        Add a new translation to the entry.
-
-        Args:
-            tr: The translation to add.
-        """
-
-        if tr not in self.tr:
-            self.tr.append(tr)
-
-    def delete_tr(self, tr: Translation):
-        """
-        Delete a translation from the entry.
-
-        Args:
-            tr: The translation to delete.
-        """
-
-        self.tr.remove(tr)
-
-    def edit_tr(self, tr: Translation, new_tr: Translation):
-        """
-        Replace an existing translation with a new translation.
-
-        Args:
-            tr: The translation to edit.
-            new_tr: The new translation.
-        """
-
-        if new_tr in self.tr:
-            if new_tr != tr:
-                self.tr.remove(tr)
-        else:
-            index = self.tr.index(tr)
-            self.tr[index] = new_tr
-
-    def add_form(self, gram_form: GramForm, word_form: WordForm):
-        """
-        Add a new inflected form to the entry.
-
-        Args:
-            gram_form: Grammatical form for the inflection.
-            word_form: The actual inflected form to add.
-        """
-
-        if gram_form not in self.forms.keys():
-            self.forms[gram_form] = [word_form]
-        elif word_form not in self.forms[gram_form]:
-            self.forms[gram_form].append(word_form)
-
-    def delete_form(self, gram_form: GramForm, word_form: WordForm):
-        """
-        Remove an inflected form from the entry.
-
-        Args:
-            gram_form: Grammatical form identifying the inflection to remove.
-            word_form: The actual inflected form to remove.
-        """
-
-        self.forms[gram_form].remove(word_form)
-        if len(self.forms[gram_form]) == 0:
-            self.forms.pop(gram_form)
-
-    def edit_form(
-            self,
-            gram_form: GramForm,
-            word_form: WordForm,
-            new_gram_form: GramForm,
-            new_word_form: WordForm,
-    ):
-        """
-        Replace an existing form with a new form.
-
-        Args:
-            gram_form: Grammatical form identifying the inflection to replace.
-            word_form: The actual inflected form to replace.
-            new_gram_form: The new grammatical form.
-            new_word_form: The new inflected form.
-        """
-
-        if new_gram_form == gram_form:
-            word_forms = self.forms[gram_form]
-            if new_word_form in word_forms:
-                if new_word_form != word_form:
-                    word_forms.remove(word_form)
-            else:
-                index = word_forms.index(word_form)
-                word_forms[index] = new_word_form
-        else:
-            self.delete_form(gram_form, word_form)
-            self.add_form(new_gram_form, new_word_form)
-
-    def add_phrase(self, phrase: Phrase, phrase_tr: PhraseTr):
-        """
-        Add a new phrase/usage example with its translation.
-
-        Args:
-            phrase: The phrase or usage example containing the word.
-            phrase_tr: The translation of the phrase.
-        """
-
-        if phrase not in self.phrases.keys():
-            self.phrases[phrase] = [phrase_tr]
-        elif phrase_tr not in self.phrases[phrase]:
-            self.phrases[phrase].append(phrase_tr)
-
-    def delete_phrase(self, phrase: Phrase, phrase_tr: PhraseTr):
-        """
-        Remove a phrase and its translation from the entry.
-
-        Removes the specified phrase-translation pair from `phrases`.
-
-        Args:
-            phrase: The phrase to remove.
-            phrase_tr: The translation of the phrase to remove.
-        """
-
-        self.phrases[phrase].remove(phrase_tr)
-        if len(self.phrases[phrase]) == 0:
-            self.phrases.pop(phrase)
-
-    def edit_phrase(
-            self,
-            phrase: Phrase,
-            phrase_tr: PhraseTr,
-            new_phrase: Phrase,
-            new_phrase_tr: PhraseTr,
-    ):
-        """
-        Replace an existing phrase with a new phrase.
-
-        Args:
-            phrase: The phrase to replace.
-            phrase_tr: The translation of the phrase to replace.
-            new_phrase: The new phrase.
-            new_phrase_tr: The new phrase translation.
-        """
-
-        if new_phrase == phrase:
-            phrase_trs = self.phrases[new_phrase]
-            if new_phrase_tr in phrase_trs:
-                if new_phrase_tr != phrase_tr:
-                    phrase_trs.remove(phrase_tr)
-            else:
-                index = phrase_trs.index(phrase_tr)
-                phrase_trs[index] = new_phrase_tr
-        else:
-            self.delete_phrase(phrase, phrase_tr)
-            self.add_phrase(new_phrase, new_phrase_tr)
-
-    def add_note(self, note: Note):
-        """
-        Add a new note to the entry.
-
-        Args:
-            note: The note text to add.
-        """
-
-        if note not in self.notes:
-            self.notes.append(note)
-
-    def delete_note(self, note: Note):
-        """
-        Remove a note from the entry.
-
-        Args:
-            note: The note text to remove.
-        """
-
-        self.notes.remove(note)
-
-    def edit_note(self, note: Note, new_note: Note):
-        """
-        Replace an existing note with a new note.
-
-        Args:
-            note: The note to edit.
-            new_note: The new note.
-        """
-
-        if new_note in self.notes:
-            if new_note != note:
-                self.notes.remove(note)
-        else:
-            index = self.notes.index(note)
-            self.notes[index] = new_note
-
-    def add_to_group(self, group: Group):
-        """
-        Assign this entry to a group.
-
-        Args:
-            group: The group name to add this entry to.
-        """
-
-        self.groups.add(group)
-
-    def remove_from_group(self, group: Group):
-        """
-        Remove this entry from a group.
-
-        Args:
-            group: The group name to remove this entry from.
-        """
-
-        self.groups.remove(group)
-
     def add_to_fav(self):
         """Mark this entry as favorite."""
 
@@ -473,11 +583,11 @@ class Entry:
             ctg_val: The category value to be removed.
         """
 
-        self.forms = {
+        self.forms = Forms({
             gram_form: word_forms
             for gram_form, word_forms in self.forms.items()
             if gram_form[pos] != ctg_val
-        }
+        })
 
     def rename_ctg_value(self, pos: int, old_ctg_val: CtgValue, new_ctg_val: CtgValue):
         """
@@ -494,10 +604,10 @@ class Entry:
                 return gram_form
             return tuple(gram_form[:pos] + (new_ctg_val,) + gram_form[pos+1:])
 
-        self.forms = {
+        self.forms = Forms({
             update_gram_form(gram_form): word_forms
             for gram_form, word_forms in self.forms.items()
-        }
+        })
 
     def add_ctg(self):
         """Add a new empty category to all grammatical form tuples."""
@@ -505,10 +615,10 @@ class Entry:
         def update_gram_form(gram_form: GramForm) -> GramForm:
             return tuple(gram_form + ('',))
 
-        self.forms = {
+        self.forms = Forms({
             update_gram_form(gram_form): word_forms
             for gram_form, word_forms in self.forms.items()
-        }
+        })
 
     def delete_ctg(self, pos: int):
         """
@@ -524,11 +634,11 @@ class Entry:
         def update_gram_form(gram_form: GramForm) -> GramForm:
             return tuple(gram_form[:pos] + gram_form[pos+1:])
 
-        self.forms = {
+        self.forms = Forms({
             update_gram_form(gram_form): word_forms
             for gram_form, word_forms in self.forms.items()
             if gram_form[pos] == ''
-        }
+        })
 
     def register_correct_answer(self, session_number: Timestamp):
         """
@@ -599,7 +709,7 @@ class Entry:
 
         data = {
             'lemma': self.lemma,
-            'translations': self.tr,
+            'translations': self.tr.serialize(),
             'is_fav': self.is_fav,
             'total_att': self.total_att,
             'correct_att': self.correct_att,
@@ -608,15 +718,12 @@ class Entry:
         }
 
         if self.forms:
-            data['forms'] = {
-                'keys': [list(gram_form) for gram_form in self.forms.keys()],
-                'values': list(self.forms.values()),
-            }
+            data['forms'] = self.forms.serialize()
         if self.phrases:
-            data['phrases'] = self.phrases
+            data['phrases'] = self.phrases.serialize()
         if self.notes:
-            data['notes'] = self.notes
+            data['notes'] = self.notes.serialize()
         if self.groups:
-            data['groups'] = list(self.groups)
+            data['groups'] = self.groups.serialize()
 
         return data

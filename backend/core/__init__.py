@@ -14,7 +14,7 @@ from .errors import (
     DeserializationError, MissingFieldsError,
     FieldTypeError, UnknownVersionError,
 )
-from .entry import Entry, Translations, Forms, Phrases
+from .entry import Entry, Translations, Forms, Phrases, Notes, Groups
 from .dictionary import Dictionary
 from .trainer import (
     Trainer, TrainingMethod, TrainingOrder, EntrySelection,
