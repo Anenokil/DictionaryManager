@@ -33,39 +33,13 @@ class Dictionary:
 
     Attributes:
     ----------
-    - name: Dictionary name.
-    - is_saved: True when the dictionary has no unsaved changes.
+    - name: Dictionary name (read-write).
+    - is_modified: True when the dictionary has unsaved changes.
+    - features: All grammar categories and their values.
     - groups: All group names defined in the dictionary.
     - default_groups: Groups marked as default.
-    - features: All grammar categories and their values.
-
-    Protected Attributes:
-    --------------------
-    - _name: Dictionary name.
-    - _entries: The main dictionary data structure mapping entry IDs to Entry objects.
-    - _indexes: Search indexes for fast entry lookup by content. Keys:
-
-      - 'lemmas': Maps lemmas to entry IDs containing them.
-      - 'translations': Maps translations to entry IDs containing them.
-      - 'forms': Maps inflected forms to entry IDs containing them.
-      - 'groups': Maps group names to entry IDs belonging to them.
-
-    - _counters: Word counts statistics with keys:
-
-      - 'lemmas': Total number of entries (lemmas) in the dictionary.
-      - 'translations': Total number of translations across all entries in the dictionary.
-      - 'forms': Total number of inflected forms across all entries in the dictionary.
-      - 'phrases': Total number of phrase examples across all entries.
-      - 'notes': Total number of notes across all entries.
-
-    - _features: Collection of all grammatical categories and their values present in the dictionary.
-    - _groups: All groups/tags assigned to entries across the entire dictionary.
-      Used for organizing and grouping dictionary content.
-    - _default_group_ids: Set of integer indices of groups that are marked as default.
-    - _max_entry_id: Current maximum entry ID. Used to assign the next available ID to new entries
-      (current max + 1).
-    - _is_modified: Boolean flag set when the dictionary has unsaved changes.
-    - _schema_version: The version of the data format used for serialization.
+    - total_score: Pair; the global count of correct attempts
+      and total attempts across all entries.
     """
 
     _schema_version = 1
@@ -79,13 +53,19 @@ class Dictionary:
         """
 
         self._name = name
+
+        # The main dictionary data structure mapping entry IDs to Entry objects
         self._entries: Entries = dict()
+
+        # Search indexes for fast entry lookup by content
         self._indexes: Indexes = {
             'lemmas': {},
             'translations': {},
             'forms': {},
             'groups': {},
         }
+
+        # Word counts statistics
         self._counters = {
             'lemmas': 0,
             'translations': 0,
@@ -94,10 +74,21 @@ class Dictionary:
             'phrases': 0,
             'notes': 0,
         }
+
+        # Collection of all grammatical categories and their values present in the dictionary
         self._features: FeatureRegistry = dict()
+
+        # All groups/tags assigned to entries across the entire dictionary.
+        # Used for organizing and grouping dictionary content.
         self._groups: GroupRegistry = []
+
+        # Groups that are marked as default
         self._default_group_ids: GroupIDs = set()
+
+        # Current maximum entry ID.
+        # Used to assign the next available ID to new entries (current max + 1).
         self._max_entry_id = 0
+
         self._is_modified = True
 
     @staticmethod
@@ -294,7 +285,7 @@ class Dictionary:
         Performs a logical AND search - returns entries that match ALL specified conditions.
 
         Args:
-            query: Iterable of (index_name, search_term) pairs defining search conditions.
+            query: Collection of (index_name, search_term) pairs defining search conditions.
                    - index_name: Name of the index to search in. Valid values:
                      'lemmas', 'translations', 'forms', 'groups'.
                    - search_term: The search term to look for in the index.
