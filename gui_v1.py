@@ -5295,7 +5295,7 @@ class TrainingW(tk.Toplevel):
 
         entry = self.trainer.dct[self.current_entry_id]
         if is_correct:
-            entry.correct((
+            entry.register_correct_answer((
                 self.dct_info.session_number,
                 self._session_number,
                 self.count_all,
@@ -5338,14 +5338,14 @@ class TrainingW(tk.Toplevel):
                     window.bind('<Tab>', lambda event: window.btn_right.invoke())
                     result = window.open()
                     if result != 'typo':
-                        entry.incorrect((
+                        entry.register_incorrect_answer((
                             self.dct_info.session_number,
                             self._session_number,
                             self.count_all,
                         ))
                         self.count_all += 1
                 else:
-                    entry.incorrect((
+                    entry.register_incorrect_answer((
                         self.dct_info.session_number,
                         self._session_number,
                         self.count_all,
@@ -5360,7 +5360,7 @@ class TrainingW(tk.Toplevel):
                 )
                 result = window.open()
                 if result != 'typo':
-                    entry.incorrect((
+                    entry.register_incorrect_answer((
                         self.dct_info.session_number,
                         self._session_number,
                         self.count_all,

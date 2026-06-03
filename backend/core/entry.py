@@ -530,7 +530,7 @@ class Entry:
             if gram_form[pos] == ''
         }
 
-    def correct(self, session_number: Timestamp):
+    def register_correct_answer(self, session_number: Timestamp):
         """
         Update learning statistics when a correct attempt is made.
 
@@ -549,7 +549,7 @@ class Entry:
             self.win_streak += 1
         self.latest_att_timestamp = session_number
 
-    def incorrect(self, session_number: Timestamp):
+    def register_incorrect_answer(self, session_number: Timestamp):
         """
         Update learning statistics when an incorrect attempt is made.
 
