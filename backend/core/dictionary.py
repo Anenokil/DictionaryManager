@@ -117,8 +117,8 @@ class Dictionary:
         self._is_modified = True
 
     @property
-    def is_saved(self) -> bool:
-        return not self._is_modified
+    def is_modified(self) -> bool:
+        return self._is_modified
 
     def __getitem__(self, item: EntryID) -> Entry:
         return self._entries[item]
@@ -252,7 +252,8 @@ class Dictionary:
             return sum(len(ctg_vals) for ctg_vals in self._features.values())
         return self._counters[counter_name]
 
-    def score(self) -> tuple[int, int]:
+    @property
+    def total_score(self) -> tuple[int, int]:
         """
         Get the global count of correct attempts and total attempts across all entries.
 
@@ -504,7 +505,9 @@ class Dictionary:
         """
 
         entry = self._entries[entry_id]
+
         self._update_index('translations', tr, entry_id, 'add')
+
         self._counters['translations'] -= entry.n_translations
         entry.tr.add(tr)
         self._counters['translations'] += entry.n_translations
@@ -520,7 +523,9 @@ class Dictionary:
         """
 
         entry = self._entries[entry_id]
+
         self._update_index('translations', tr, entry_id, 'remove')
+
         self._counters['translations'] -= entry.n_translations
         entry.tr.delete(tr)
         self._counters['translations'] += entry.n_translations
@@ -548,7 +553,9 @@ class Dictionary:
         """
 
         entry = self._entries[entry_id]
+
         self._update_index('forms', word_form, entry_id, 'add')
+
         self._counters['gram_forms'] -= entry.n_gram_forms
         self._counters['word_forms'] -= entry.n_word_forms
         entry.forms.add(gram_form, word_form)
@@ -567,9 +574,11 @@ class Dictionary:
         """
 
         entry = self._entries[entry_id]
+
         # An entry may contain homographs
         # Therefore, we need to first remove all forms from the index, then add them back to the index
         self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
+
         self._counters['gram_forms'] -= entry.n_gram_forms
         self._counters['word_forms'] -= entry.n_word_forms
         entry.forms.delete(gram_form, word_form)
@@ -613,6 +622,7 @@ class Dictionary:
         """
 
         entry = self._entries[entry_id]
+
         self._counters['phrases'] -= entry.n_phrases
         entry.phrases.add(phrase, phrase_tr)
         self._counters['phrases'] += entry.n_phrases
@@ -629,6 +639,7 @@ class Dictionary:
         """
 
         entry = self._entries[entry_id]
+
         self._counters['phrases'] -= entry.n_phrases
         entry.phrases.delete(phrase, phrase_tr)
         self._counters['phrases'] += entry.n_phrases
@@ -659,6 +670,7 @@ class Dictionary:
         """
 
         entry = self._entries[entry_id]
+
         self._counters['notes'] -= entry.n_notes
         entry.notes.add(note)
         self._counters['notes'] += entry.n_notes
@@ -674,6 +686,7 @@ class Dictionary:
         """
 
         entry = self._entries[entry_id]
+
         self._counters['notes'] -= entry.n_notes
         entry.notes.delete(note)
         self._counters['notes'] += entry.n_notes
@@ -813,7 +826,7 @@ class Dictionary:
         assert ctg_name in self._features.keys()
         assert ctg_value not in self._features[ctg_name]
 
-        self._features[ctg_name] += [ctg_value]
+        self._features[ctg_name].append(ctg_value)
 
     @_mark_modified
     def delete_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
@@ -846,7 +859,12 @@ class Dictionary:
             self.delete_ctg(ctg_name)
 
     @_mark_modified
-    def rename_ctg_value(self, ctg_name: Category, ctg_value_old: CtgValue, ctg_value_new: CtgValue):
+    def rename_ctg_value(
+            self,
+            ctg_name: Category,
+            ctg_value_old: CtgValue,
+            ctg_value_new: CtgValue,
+    ):
         """
         Rename a value in a grammatical category.
 
@@ -882,7 +900,7 @@ class Dictionary:
         assert group not in self._groups
 
         self._indexes['groups'][group] = set()
-        self._groups += [group]
+        self._groups.append(group)
 
         if is_default:
             group_id = len(self._groups) - 1
@@ -1029,7 +1047,7 @@ class Dictionary:
 
         # Validate types
         validate_field_type('name', name, (str, NoneType))
-        validate_field_type('entries.keys()', entries.keys(), Iterable[str])
+        validate_field_type('entries', entries, dict[str, SerializedData])
         validate_field_type('indexes', indexes, dict[str, dict[str, list[int]]])
         validate_field_type('counters', counters, dict[str, int])
         validate_field_type('features', features, dict[str, list[str]])

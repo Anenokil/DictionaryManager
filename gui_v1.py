@@ -1169,7 +1169,7 @@ def save_dct_if_has_progress(window_parent: tk.Misc, app_data: AppData):
     dct = manager.active.dct
     dct_id = manager.active_dct_id
 
-    if not dct.is_saved:
+    if dct.is_modified:
         window_dia = TwoOptionsDialog(
             window_parent, app_data,
             'Хотите сохранить свой прогресс?', 'Да', 'Нет',
@@ -5170,7 +5170,7 @@ class TrainingW(tk.Toplevel):
 
     # Получить глобальный процент угадываний
     def calc_stats(self):
-        correct, total = self.trainer.dct.score()
+        correct, total = self.trainer.dct.total_score
         percent = (100 * correct / total) if total else 0
         return f'{correct} / {total} = {percent:.1f}%'
 

@@ -527,7 +527,7 @@ class Entry:
         if self.is_fav:
             tokens.append('* (fav)\n')
         tokens.append(f'| {self.lemma} - ')
-        tokens.append(', '.join(tr for tr in self.tr))
+        tokens.append(', '.join(self.tr))
         tokens.append('\n')
         for gram_form, word_forms in self.forms.items():
             tokens.append(f'|  [{gram_form_to_str(gram_form)}] {', '.join(word_forms)}\n')
@@ -640,7 +640,7 @@ class Entry:
             if gram_form[pos] == ''
         })
 
-    def register_correct_answer(self, session_number: Timestamp):
+    def register_correct_answer(self, timestamp: Timestamp):
         """
         Update learning statistics when a correct attempt is made.
 
@@ -648,7 +648,7 @@ class Entry:
         the win streak, and sets the latest attempt timestamp.
 
         Args:
-            session_number: A tuple representing the session identifier.
+            timestamp: A tuple representing the session identifier.
         """
 
         self.total_att += 1
@@ -657,9 +657,9 @@ class Entry:
             self.win_streak = 1
         else:
             self.win_streak += 1
-        self.latest_att_timestamp = session_number
+        self.latest_att_timestamp = timestamp
 
-    def register_incorrect_answer(self, session_number: Timestamp):
+    def register_incorrect_answer(self, timestamp: Timestamp):
         """
         Update learning statistics when an incorrect attempt is made.
 
@@ -667,7 +667,7 @@ class Entry:
         and sets the latest attempt timestamp.
 
         Args:
-            session_number: A tuple representing the session identifier.
+            timestamp: A tuple representing the session identifier.
         """
 
         self.total_att += 1
@@ -675,7 +675,7 @@ class Entry:
             self.win_streak = -1
         else:
             self.win_streak -= 1
-        self.latest_att_timestamp = session_number
+        self.latest_att_timestamp = timestamp
 
     def to_dict(self) -> SerializedData:
         """
