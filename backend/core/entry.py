@@ -85,21 +85,40 @@ class Entry:
         """
 
         self.lemma = lemma
-        self.tr: Translations = [tr] if isinstance(tr, Translation) else remove_dup(list(tr))
+
+        if isinstance(tr, Translation):
+            self.tr: Translations = [tr]
+        else:
+            tr = list(tr)
+            if not tr:
+                raise ValueError('Entry must have at least one translation')
+            self.tr = remove_dup(tr)
+
         self.forms: Forms = {
             pattern: remove_dup(list(forms))
             for pattern, forms in forms.items()
         } if forms else dict()
+        # Drop invalid forms
+        self.forms = {
+            k: v for k, v in self.forms.items() if v
+        }
+
         self.phrases: Phrases = {
             phrase: remove_dup(list(phrase_tr))
             for phrase, phrase_tr in phrases.items()
         } if phrases else dict()
+        # Drop invalid phrases
+        self.phrases = {
+            k: v for k, v in self.phrases.items() if v
+        }
+
         if not notes:
             self.notes: Notes = []
         elif isinstance(notes, Note):
             self.notes = [notes]
         else:
             self.notes = remove_dup(list(notes))
+
         self.groups: Groups = set(groups) if groups else set()
         self.is_fav = is_fav
         self.total_att = total_att
