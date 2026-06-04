@@ -557,8 +557,16 @@ class Entry:
         return len(self.phrases)
 
     @property
+    def n_phrase_translations(self) -> int:
+        return sum(len(phrase_tr) for phrase_tr in self.phrases.values())
+
+    @property
     def n_notes(self) -> int:
         return len(self.notes)
+
+    @property
+    def n_groups(self) -> int:
+        return len(self.groups)
 
     @property
     def accuracy(self) -> float:
