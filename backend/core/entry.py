@@ -685,28 +685,6 @@ class Entry:
             self.win_streak -= 1
         self.latest_att_timestamp = timestamp
 
-    def to_dict(self) -> SerializedData:
-        """
-        Serialize the entry to a dictionary format.
-
-        Returns:
-            Dictionary containing entry data.
-        """
-
-        return {
-            'lemma': self.lemma,
-            'translations': self.tr,
-            'forms': self.forms,
-            'phrases': self.phrases,
-            'notes': self.notes,
-            'groups': self.groups,
-            'is_fav': self.is_fav,
-            'total_att': self.total_att,
-            'correct_att': self.correct_att,
-            'win_streak': self.win_streak,
-            'latest_att_timestamp': self.latest_att_timestamp,
-        }
-
     def to_json_dict(self) -> SerializedData:
         """
         Serialize the entry to a JSON format.

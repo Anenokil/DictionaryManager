@@ -88,16 +88,13 @@ class Replacer:
             for char in text
         )
 
-    def to_dict(self) -> SerializedData:
+    def to_json_dict(self) -> SerializedData:
         return {
             'version': self._schema_version,
             'data': {
                 'replacements': self._replacements,
             }
         }
-
-    def to_json_dict(self) -> SerializedData:
-        return self.to_dict()
 
     def load_from_json_dict(self, data: SerializedData):
         # Validate required fields

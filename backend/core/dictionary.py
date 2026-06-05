@@ -941,29 +941,6 @@ class Dictionary:
         group_id = self._groups.index(group)
         return group_id in self._default_group_ids
 
-    def to_dict(self) -> SerializedData:
-        """
-        Serialize the Dictionary to a dictionary format.
-
-        Returns:
-            Dictionary containing saving version and all Dictionary data.
-        """
-
-        return {
-            'version': self._schema_version,
-            'data': {
-                'name': self._name,
-                'entries': self._entries,
-                'indexes': self._indexes,
-                'counters': self._counters,
-                'features': self._features,
-                'groups': self._groups,
-                'default_group_ids': self._default_group_ids,
-                'max_entry_id': self._max_entry_id,
-                'is_modified': self._is_modified,
-            }
-        }
-
     def to_json_dict(self) -> SerializedData:
         """
         Serialize the Dictionary to a JSON format.
@@ -972,19 +949,30 @@ class Dictionary:
             Dictionary containing saving version and all Dictionary data.
         """
 
-        data = self.to_dict()
-
-        data['data']['entries'] = {
+        entries = {
             str(entry_id): entry.to_json_dict()
             for entry_id, entry in self._entries.items()
         }
-        data['data']['indexes'] = {
+        indexes = {
             index_name: {query: list(ids) for query, ids in index_data.items()}
             for index_name, index_data in self._indexes.items()
         }
-        data['data']['default_group_ids'] = list(self._default_group_ids)
+        default_group_ids = list(self._default_group_ids)
 
-        return data
+        return {
+            'version': self._schema_version,
+            'data': {
+                'name': self._name,
+                'entries': entries,
+                'indexes': indexes,
+                'counters': self._counters,
+                'features': self._features,
+                'groups': self._groups,
+                'default_group_ids': default_group_ids,
+                'max_entry_id': self._max_entry_id,
+                'is_modified': self._is_modified,
+            }
+        }
 
     def load_from_json_dict(self, data: SerializedData):
         """
