@@ -227,7 +227,7 @@ class Trainer:
 
         def filter_by_tag() -> Iterable[EntryID]:
             if self._config.tags is None:
-                yield from self.dct.get_entry_ids()
+                yield from self.dct.iter_entry_ids()
             else:
                 yield from self.dct.search(
                     [('tags', tag) for tag in self._config.tags]
@@ -245,7 +245,7 @@ class Trainer:
         def filter_by_forms(ids: Iterable[EntryID]) -> Iterable[EntryID]:
             if self._config.forms == FormSelection.INFLECTED:
                 for entry_id in ids:
-                    if self.dct[entry_id].count_f != 0:
+                    if self.dct[entry_id].n_gram_forms != 0:
                         yield entry_id
             else:
                 yield from ids
@@ -371,7 +371,7 @@ class Trainer:
         elif self._config.method == TrainingMethod.ARTICLES_GERMAN:
             lemma = self.dct[entry_id].lemma
             homonyms = set(
-                eid for eid in self.dct.get_entry_ids()
+                eid for eid in self.dct.iter_entry_ids()
                 if lemma == self.dct[eid].lemma and
                 has_article(self.dct[eid].lemma, ('der ', 'die ', 'das '))
             )

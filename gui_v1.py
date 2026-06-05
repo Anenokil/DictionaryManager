@@ -5957,11 +5957,11 @@ class SearchTab(ttk.Frame):
         # Если нужно, оставляем только избранные
         if self.to_search_only_fav:
             entry_ids = [
-                entry_id for entry_id in self.dct.get_entry_ids()
+                entry_id for entry_id in self.dct.iter_entry_ids()
                 if self.dct[entry_id].is_fav
             ]
         else:
-            entry_ids = list(self.dct.get_entry_ids())
+            entry_ids = list(self.dct.iter_entry_ids())
         # Если нужно, оставляем только одну группу
         if self.search_tag != ALL_TAGS:
             entry_ids = [
@@ -6704,20 +6704,20 @@ class BrowseDctTab(ttk.Frame):
         if self.var_fav_only.get():
             if tag == ALL_TAGS:
                 self.entry_ids = [
-                    entry_id for entry_id in self.dct.get_entry_ids()
+                    entry_id for entry_id in self.dct.iter_entry_ids()
                     if self.dct[entry_id].is_fav
                 ]
             else:
                 self.entry_ids = [
-                    entry_id for entry_id in self.dct.get_entry_ids()
+                    entry_id for entry_id in self.dct.iter_entry_ids()
                     if self.dct[entry_id].is_fav and tag in self.dct[entry_id].tags
                 ]
         else:
             if tag == ALL_TAGS:
-                self.entry_ids = list(self.dct.get_entry_ids())
+                self.entry_ids = list(self.dct.iter_entry_ids())
             else:
                 self.entry_ids = [
-                    entry_id for entry_id in self.dct.get_entry_ids()
+                    entry_id for entry_id in self.dct.iter_entry_ids()
                     if tag in self.dct[entry_id].tags
                 ]
         self.selected_entry_ids = [
@@ -7202,11 +7202,11 @@ class AddEntryW(tk.Toplevel):
             else:
                 btn_enable(self.btn_add, self.on_add_clicked)
 
-            words = (entry.lemma for entry in self.dct.get_entries())
+            words = (entry.lemma for entry in self.dct.iter_entries())
 
             if value_word in words:
                 entry_ids_with_this_word = (
-                    entry_id for entry_id in self.dct.get_entry_ids()
+                    entry_id for entry_id in self.dct.iter_entry_ids()
                     if self.dct[entry_id].lemma == value_word
                 )
                 translations = set(chain(*(
@@ -7217,7 +7217,7 @@ class AddEntryW(tk.Toplevel):
                 else:
                     self.lbl_msg.configure(text='Такое слово уже есть в словаре')
             else:
-                translations = set(chain(*(entry.tr for entry in self.dct.get_entries())))
+                translations = set(chain(*(entry.tr for entry in self.dct.iter_entries())))
                 if value_tr in translations:
                     self.lbl_msg.configure(text='Слово с таким переводом уже есть в словаре')
                 else:

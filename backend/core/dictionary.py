@@ -118,8 +118,8 @@ class Dictionary:
         dct.load_from_json_dict(data)
         return dct
 
-    def __getitem__(self, item: EntryID) -> Entry:
-        return self._entries[item]
+    def __getitem__(self, key: EntryID) -> Entry:
+        return self._entries[key]
 
     @property
     def name(self) -> DctName:
@@ -241,16 +241,16 @@ class Dictionary:
                     n_word_forms += entry.n_word_forms
         return n_entries, n_translations, n_gram_forms, n_word_forms
 
-    def count(self, counter_name: str) -> int:
-        if counter_name == 'tags':
+    def count(self, target: str) -> int:
+        if target == 'tags':
             return len(self._tags)
-        if counter_name == 'categories':
+        if target == 'categories':
             return len(self._features)
-        if counter_name == 'ctg_values':
+        if target == 'ctg_values':
             return sum(len(ctg_vals) for ctg_vals in self._features.values())
-        return self._counters[counter_name]
+        return self._counters[target]
 
-    def get_entry_ids(self) -> Generator[EntryID, None, None]:
+    def iter_entry_ids(self) -> Generator[EntryID, None, None]:
         """
         Iterate over all entry keys in the dictionary.
 
@@ -260,7 +260,7 @@ class Dictionary:
 
         yield from self._entries.keys()
 
-    def get_entries(self) -> Generator[Entry, None, None]:
+    def iter_entries(self) -> Generator[Entry, None, None]:
         """
         Iterate over all entries in the dictionary.
 
@@ -394,43 +394,43 @@ class Dictionary:
         del self._entries[entry_id]
 
     @_mark_modified
-    def merge_entries(self, entry_id_1: EntryID, entry_id_2: EntryID):
+    def merge_entries(self, target_entry_id: EntryID, source_entry_id: EntryID):
         """
         Merge two entries with the same word into one.
 
-        Combines all data from the second entry into the first entry.
-        The second entry is deleted after merging.
+        Combines all data from the source entry into the target entry.
+        The source entry is deleted after merging.
 
         Args:
-            entry_id_1: ID of the main entry (will be kept).
-            entry_id_2: ID of the entry to merge into the main entry (will be deleted).
+            target_entry_id: ID of the entry to merge into (will be kept).
+            source_entry_id: ID of the entry to merge into the target entry (will be deleted).
         """
 
-        main_entry = self._entries[entry_id_1]
-        additional_entry = self._entries[entry_id_2]
+        target_entry = self._entries[target_entry_id]
+        source_entry = self._entries[source_entry_id]
 
-        self._update_index('lemmas', additional_entry.lemma, entry_id_1, 'add')
-        self._update_index('translations', additional_entry.tr, entry_id_1, 'add')
-        self._update_index('forms', chain(*additional_entry.forms.values()), entry_id_1, 'add')
-        self._update_index('tags', additional_entry.tags, entry_id_1, 'add')
+        self._update_index('lemmas', source_entry.lemma, target_entry_id, 'add')
+        self._update_index('translations', source_entry.tr, target_entry_id, 'add')
+        self._update_index('forms', chain(*source_entry.forms.values()), target_entry_id, 'add')
+        self._update_index('tags', source_entry.tags, target_entry_id, 'add')
 
-        self._counters['translations'] -= main_entry.n_translations
-        self._counters['gram_forms']   -= main_entry.n_gram_forms
-        self._counters['word_forms']   -= main_entry.n_word_forms
-        self._counters['phrases']      -= main_entry.n_phrases
-        self._counters['phrase_trs']   -= main_entry.n_phrase_translations
-        self._counters['notes']        -= main_entry.n_notes
+        self._counters['translations'] -= target_entry.n_translations
+        self._counters['gram_forms']   -= target_entry.n_gram_forms
+        self._counters['word_forms']   -= target_entry.n_word_forms
+        self._counters['phrases']      -= target_entry.n_phrases
+        self._counters['phrase_trs']   -= target_entry.n_phrase_translations
+        self._counters['notes']        -= target_entry.n_notes
 
-        main_entry.merge(additional_entry)
+        target_entry.merge(source_entry)
 
-        self._counters['translations'] += main_entry.n_translations
-        self._counters['gram_forms']   += main_entry.n_gram_forms
-        self._counters['word_forms']   += main_entry.n_word_forms
-        self._counters['phrases']      += main_entry.n_phrases
-        self._counters['phrase_trs']   += main_entry.n_phrase_translations
-        self._counters['notes']        += main_entry.n_notes
+        self._counters['translations'] += target_entry.n_translations
+        self._counters['gram_forms']   += target_entry.n_gram_forms
+        self._counters['word_forms']   += target_entry.n_word_forms
+        self._counters['phrases']      += target_entry.n_phrases
+        self._counters['phrase_trs']   += target_entry.n_phrase_translations
+        self._counters['notes']        += target_entry.n_notes
 
-        self.delete_entry(entry_id_2)
+        self.delete_entry(source_entry_id)
 
     @_mark_modified
     def edit_lemma(self, entry_id: EntryID, new_lemma: Word):
@@ -845,12 +845,12 @@ class Dictionary:
         assert ctg_value_old in self._features[ctg_name]
         assert ctg_value_new not in self._features[ctg_name]
 
-        index = tuple(self._features.keys()).index(ctg_name)
+        index_ctg = tuple(self._features.keys()).index(ctg_name)
         for entry in self._entries.values():
-            entry.forms.rename_ctg_value(index, ctg_value_old, ctg_value_new)
+            entry.forms.rename_ctg_value(index_ctg, ctg_value_old, ctg_value_new)
 
-        index = self._features[ctg_name].index(ctg_value_old)
-        self._features[ctg_name][index] = ctg_value_new
+        index_val = self._features[ctg_name].index(ctg_value_old)
+        self._features[ctg_name][index_val] = ctg_value_new
 
     @_mark_modified
     def add_tag(self, tag: Tag, is_default: bool = False):

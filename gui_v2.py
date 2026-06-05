@@ -283,7 +283,7 @@ class WorkspaceWidget(QWidget):
         self.table_widget.setRowCount(n_entries)
 
         # Add entries to table
-        for row, entry in enumerate(self.dct.get_entries()):
+        for row, entry in enumerate(self.dct.iter_entries()):
             # Column 0: Lemma
             lemma_item = QTableWidgetItem(entry.lemma)
             lemma_item.setData(Qt.UserRole, entry)
