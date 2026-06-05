@@ -72,6 +72,9 @@ class Replacer:
             self._replacements[modifier] = {}
 
     def apply_replacements(self, text: str) -> str:
+        if not self.active_modifiers:
+            return text
+
         replacements = {
             modifier+input_char: output_char
             for modifier, char_pair in self._replacements.items()
