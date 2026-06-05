@@ -82,6 +82,7 @@ class Dictionary:
             'gram_forms': 0,
             'word_forms': 0,
             'phrases': 0,
+            'phrase_trs': 0,
             'notes': 0,
         }
 
@@ -358,6 +359,7 @@ class Dictionary:
         self._counters['gram_forms']   += entry.n_gram_forms
         self._counters['word_forms']   += entry.n_word_forms
         self._counters['phrases']      += entry.n_phrases
+        self._counters['phrase_trs']   += entry.n_phrase_translations
         self._counters['notes']        += entry.n_notes
 
         return entry_id
@@ -381,6 +383,7 @@ class Dictionary:
         self._counters['gram_forms']   -= entry.n_gram_forms
         self._counters['word_forms']   -= entry.n_word_forms
         self._counters['phrases']      -= entry.n_phrases
+        self._counters['phrase_trs']   -= entry.n_phrase_translations
         self._counters['notes']        -= entry.n_notes
 
         self._update_index('lemmas', entry.lemma, entry_id, 'remove')
@@ -415,6 +418,7 @@ class Dictionary:
         self._counters['gram_forms']   -= main_entry.n_gram_forms
         self._counters['word_forms']   -= main_entry.n_word_forms
         self._counters['phrases']      -= main_entry.n_phrases
+        self._counters['phrase_trs']   -= main_entry.n_phrase_translations
         self._counters['notes']        -= main_entry.n_notes
 
         main_entry.merge(additional_entry)
@@ -423,6 +427,7 @@ class Dictionary:
         self._counters['gram_forms']   += main_entry.n_gram_forms
         self._counters['word_forms']   += main_entry.n_word_forms
         self._counters['phrases']      += main_entry.n_phrases
+        self._counters['phrase_trs']   += main_entry.n_phrase_translations
         self._counters['notes']        += main_entry.n_notes
 
         self.delete_entry(entry_id_2)
@@ -577,9 +582,11 @@ class Dictionary:
 
         entry = self._entries[entry_id]
 
-        self._counters['phrases'] -= entry.n_phrases
+        self._counters['phrases']    -= entry.n_phrases
+        self._counters['phrase_trs'] -= entry.n_phrase_translations
         entry.phrases.add(phrase, phrase_tr)
-        self._counters['phrases'] += entry.n_phrases
+        self._counters['phrases']    += entry.n_phrases
+        self._counters['phrase_trs'] += entry.n_phrase_translations
 
     @_mark_modified
     def delete_phrase(self, entry_id: EntryID, phrase: Phrase, phrase_tr: PhraseTr):
@@ -594,9 +601,11 @@ class Dictionary:
 
         entry = self._entries[entry_id]
 
-        self._counters['phrases'] -= entry.n_phrases
+        self._counters['phrases']    -= entry.n_phrases
+        self._counters['phrase_trs'] -= entry.n_phrase_translations
         entry.phrases.delete(phrase, phrase_tr)
-        self._counters['phrases'] += entry.n_phrases
+        self._counters['phrases']    += entry.n_phrases
+        self._counters['phrase_trs'] += entry.n_phrase_translations
 
     @_mark_modified
     def edit_phrase(
@@ -609,9 +618,11 @@ class Dictionary:
     ):
         entry = self._entries[entry_id]
 
-        self._counters['phrases'] -= entry.n_phrases
+        self._counters['phrases']    -= entry.n_phrases
+        self._counters['phrase_trs'] -= entry.n_phrase_translations
         entry.phrases.edit(phrase, phrase_tr, new_phrase, new_phrase_tr)
-        self._counters['phrases'] += entry.n_phrases
+        self._counters['phrases']    += entry.n_phrases
+        self._counters['phrase_trs'] += entry.n_phrase_translations
 
     @_mark_modified
     def add_note(self, entry_id: EntryID, note: Note):
