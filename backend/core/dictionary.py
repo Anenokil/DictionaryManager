@@ -417,23 +417,7 @@ class Dictionary:
         self._counters['phrases']      -= main_entry.n_phrases
         self._counters['notes']        -= main_entry.n_notes
 
-        for tr in additional_entry.tr:
-            main_entry.tr.add(tr)
-        for note in additional_entry.notes:
-            main_entry.notes.add(note)
-        for phrase in additional_entry.phrases.keys():
-            for phrase_tr in additional_entry.phrases[phrase]:
-                main_entry.phrases.add(phrase, phrase_tr)
-        for gram_form, word_forms in additional_entry.forms.items():
-            for word_form in word_forms:
-                main_entry.forms.add(gram_form, word_form)
-        if additional_entry.is_fav:
-            main_entry.is_fav = True
-        for group in additional_entry.groups:
-            main_entry.groups.add(group)
-        main_entry.total_att += additional_entry.total_att
-        main_entry.correct_att += additional_entry.correct_att
-        main_entry.win_streak += additional_entry.win_streak
+        main_entry.merge(additional_entry)
 
         self._counters['translations'] += main_entry.n_translations
         self._counters['gram_forms']   += main_entry.n_gram_forms
@@ -708,7 +692,7 @@ class Dictionary:
         """
 
         for entry_id in entry_ids:
-            self._entries[entry_id].add_to_fav()
+            self._entries[entry_id].is_fav = True
 
     @_mark_modified
     def remove_from_fav(self, entry_ids: Iterable[EntryID]):
@@ -720,7 +704,7 @@ class Dictionary:
         """
 
         for entry_id in entry_ids:
-            self._entries[entry_id].remove_from_fav()
+            self._entries[entry_id].is_fav = False
 
     @_mark_modified
     def add_ctg(self, ctg_name: Category, ctg_values: list[CtgValue]):
@@ -737,7 +721,7 @@ class Dictionary:
         assert ctg_name not in self._features.keys()
 
         for entry in self._entries.values():
-            entry.add_ctg()
+            entry.forms.add_ctg()
 
         self._features[ctg_name] = ctg_values
 
@@ -760,7 +744,7 @@ class Dictionary:
             self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
             self._counters['gram_forms'] -= entry.n_gram_forms
             self._counters['word_forms'] -= entry.n_word_forms
-            entry.delete_ctg(index)
+            entry.forms.delete_ctg(index)
             self._counters['gram_forms'] += entry.n_gram_forms
             self._counters['word_forms'] += entry.n_word_forms
             self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
@@ -819,7 +803,7 @@ class Dictionary:
             self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
             self._counters['gram_forms'] -= entry.n_gram_forms
             self._counters['word_forms'] -= entry.n_word_forms
-            entry.delete_ctg_value(index, ctg_value)
+            entry.forms.delete_ctg_value(index, ctg_value)
             self._counters['gram_forms'] += entry.n_gram_forms
             self._counters['word_forms'] += entry.n_word_forms
             self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
@@ -852,7 +836,7 @@ class Dictionary:
 
         index = tuple(self._features.keys()).index(ctg_name)
         for entry in self._entries.values():
-            entry.rename_ctg_value(index, ctg_value_old, ctg_value_new)
+            entry.forms.rename_ctg_value(index, ctg_value_old, ctg_value_new)
 
         index = self._features[ctg_name].index(ctg_value_old)
         self._features[ctg_name][index] = ctg_value_new

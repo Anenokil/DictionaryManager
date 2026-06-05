@@ -72,7 +72,7 @@ class Translations:
             raise ValueError('Entry must have at least one translation')
         self._data.remove(translation)
 
-    def serialize(self) -> list[Translation]:
+    def _serialize(self) -> list[Translation]:
         return self._data
 
 
@@ -165,7 +165,73 @@ class Forms:
         if not self._data[gram_form]:
             self._data.pop(gram_form)
 
-    def serialize(self) -> SerializedData:
+    def add_ctg(self):
+        """Add a new empty category to all grammatical form tuples."""
+
+        def update_gram_form(gram_form: GramForm) -> GramForm:
+            return tuple(gram_form + ('',))
+
+        self._data = {
+            update_gram_form(gram_form): word_forms
+            for gram_form, word_forms in self._data.items()
+        }
+
+    def delete_ctg(self, pos: int):
+        """
+        Delete the category at the specified position from all grammatical form tuples.
+
+        Removes the entire category (including all its values) at position `pos`
+        from all word forms.
+
+        Args:
+            pos: The position (index) of the category to be deleted in grammatical form tuple.
+        """
+
+        def update_gram_form(gram_form: GramForm) -> GramForm:
+            return tuple(gram_form[:pos] + gram_form[pos+1:])
+
+        self._data = {
+            update_gram_form(gram_form): word_forms
+            for gram_form, word_forms in self._data.items()
+            if gram_form[pos] == ''
+        }
+
+    def rename_ctg_value(self, pos: int, old_ctg_val: CtgValue, new_ctg_val: CtgValue):
+        """
+        Rename the specified category value in all grammatical form tuples.
+
+        Args:
+            pos: The position (index) of the category in grammatical form tuple.
+            old_ctg_val: The current category value to be replaced.
+            new_ctg_val: The new category value that will replace the old one.
+        """
+
+        def update_gram_form(gram_form: GramForm) -> GramForm:
+            if gram_form[pos] != old_ctg_val:
+                return gram_form
+            return tuple(gram_form[:pos] + (new_ctg_val,) + gram_form[pos+1:])
+
+        self._data = {
+            update_gram_form(gram_form): word_forms
+            for gram_form, word_forms in self._data.items()
+        }
+
+    def delete_ctg_value(self, pos: int, ctg_val: CtgValue):
+        """
+        Delete the specified category value from all grammatical form tuples.
+
+        Args:
+            pos: The position (index) of the category in grammatical form tuple.
+            ctg_val: The category value to be removed.
+        """
+
+        self._data = {
+            gram_form: word_forms
+            for gram_form, word_forms in self._data.items()
+            if gram_form[pos] != ctg_val
+        }
+
+    def _serialize(self) -> SerializedData:
         return {
             'keys': [list(gram_form) for gram_form in self.keys()],
             'values': list(self.values()),
@@ -261,7 +327,7 @@ class Phrases:
         if not self._data[phrase]:
             self._data.pop(phrase)
 
-    def serialize(self) -> SerializedData:
+    def _serialize(self) -> SerializedData:
         return self._data
 
 
@@ -320,7 +386,7 @@ class Notes:
 
         self._data.remove(note)
 
-    def serialize(self) -> list[Note]:
+    def _serialize(self) -> list[Note]:
         return self._data
 
 
@@ -369,7 +435,7 @@ class Groups:
 
         self._data.remove(group)
 
-    def serialize(self) -> list[Group]:
+    def _serialize(self) -> list[Group]:
         return list(self._data)
 
 
@@ -440,10 +506,10 @@ class Entry:
         self.notes = Notes(notes)
         self.groups = Groups(groups)
         self.is_fav = is_fav
-        self.total_att = total_att
-        self.correct_att = correct_att
-        self.win_streak = win_streak
-        self.latest_att_timestamp = latest_att_timestamp
+        self._total_att = total_att
+        self._correct_att = correct_att
+        self._win_streak = win_streak
+        self._latest_att_timestamp = latest_att_timestamp
 
     @classmethod
     def from_json_dict(cls, data: SerializedData) -> 'Entry':
@@ -569,84 +635,24 @@ class Entry:
         return len(self.groups)
 
     @property
+    def total_att(self) -> int:
+        return self._total_att
+
+    @property
+    def correct_att(self) -> int:
+        return self._correct_att
+
+    @property
     def accuracy(self) -> float:
-        return 0 if (self.total_att == 0) else self.correct_att / self.total_att
+        return 0 if (self._total_att == 0) else self._correct_att / self._total_att
 
-    def add_to_fav(self):
-        """Mark this entry as favorite."""
+    @property
+    def win_streak(self) -> int:
+        return self._win_streak
 
-        self.is_fav = True
-
-    def remove_from_fav(self):
-        """Remove this entry from favorites."""
-
-        self.is_fav = False
-
-    def delete_ctg_value(self, pos: int, ctg_val: CtgValue):
-        """
-        Delete the specified category value from all grammatical form tuples.
-
-        Args:
-            pos: The position (index) of the category in grammatical form tuple.
-            ctg_val: The category value to be removed.
-        """
-
-        self.forms = Forms({
-            gram_form: word_forms
-            for gram_form, word_forms in self.forms.items()
-            if gram_form[pos] != ctg_val
-        })
-
-    def rename_ctg_value(self, pos: int, old_ctg_val: CtgValue, new_ctg_val: CtgValue):
-        """
-        Rename the specified category value in all grammatical form tuples.
-
-        Args:
-            pos: The position (index) of the category in grammatical form tuple.
-            old_ctg_val: The current category value to be replaced.
-            new_ctg_val: The new category value that will replace the old one.
-        """
-
-        def update_gram_form(gram_form: GramForm) -> GramForm:
-            if gram_form[pos] != old_ctg_val:
-                return gram_form
-            return tuple(gram_form[:pos] + (new_ctg_val,) + gram_form[pos+1:])
-
-        self.forms = Forms({
-            update_gram_form(gram_form): word_forms
-            for gram_form, word_forms in self.forms.items()
-        })
-
-    def add_ctg(self):
-        """Add a new empty category to all grammatical form tuples."""
-
-        def update_gram_form(gram_form: GramForm) -> GramForm:
-            return tuple(gram_form + ('',))
-
-        self.forms = Forms({
-            update_gram_form(gram_form): word_forms
-            for gram_form, word_forms in self.forms.items()
-        })
-
-    def delete_ctg(self, pos: int):
-        """
-        Delete the category at the specified position from all grammatical form tuples.
-
-        Removes the entire category (including all its values) at position `pos`
-        from all word forms in the entry.
-
-        Args:
-            pos: The position (index) of the category to be deleted in grammatical form tuple.
-        """
-
-        def update_gram_form(gram_form: GramForm) -> GramForm:
-            return tuple(gram_form[:pos] + gram_form[pos+1:])
-
-        self.forms = Forms({
-            update_gram_form(gram_form): word_forms
-            for gram_form, word_forms in self.forms.items()
-            if gram_form[pos] == ''
-        })
+    @property
+    def latest_att_timestamp(self) -> Timestamp:
+        return self._latest_att_timestamp
 
     def register_correct_answer(self, timestamp: Timestamp):
         """
@@ -659,13 +665,13 @@ class Entry:
             timestamp: A tuple representing the session identifier.
         """
 
-        self.total_att += 1
-        self.correct_att += 1
-        if self.win_streak <= 0:
-            self.win_streak = 1
+        self._total_att += 1
+        self._correct_att += 1
+        if self._win_streak <= 0:
+            self._win_streak = 1
         else:
-            self.win_streak += 1
-        self.latest_att_timestamp = timestamp
+            self._win_streak += 1
+        self._latest_att_timestamp = timestamp
 
     def register_incorrect_answer(self, timestamp: Timestamp):
         """
@@ -678,12 +684,32 @@ class Entry:
             timestamp: A tuple representing the session identifier.
         """
 
-        self.total_att += 1
-        if self.win_streak > 0:
-            self.win_streak = -1
+        self._total_att += 1
+        if self._win_streak > 0:
+            self._win_streak = -1
         else:
-            self.win_streak -= 1
-        self.latest_att_timestamp = timestamp
+            self._win_streak -= 1
+        self._latest_att_timestamp = timestamp
+
+    def merge(self, other: 'Entry'):
+        for tr in other.tr:
+            self.tr.add(tr)
+        for gram_form, word_forms in other.forms.items():
+            for word_form in word_forms:
+                self.forms.add(gram_form, word_form)
+        for phrase in other.phrases.keys():
+            for phrase_tr in other.phrases[phrase]:
+                self.phrases.add(phrase, phrase_tr)
+        for note in other.notes:
+            self.notes.add(note)
+        for group in other.groups:
+            self.groups.add(group)
+        if other.is_fav:
+            self.is_fav = True
+        self._total_att += other._total_att
+        self._correct_att += other._correct_att
+        self._win_streak += other._win_streak
+        self._latest_att_timestamp = max(self._latest_att_timestamp, other._latest_att_timestamp)
 
     def to_json_dict(self) -> SerializedData:
         """
@@ -693,23 +719,23 @@ class Entry:
             Dictionary containing entry data.
         """
 
-        data = {
+        data: SerializedData = {
             'lemma': self.lemma,
-            'translations': self.tr.serialize(),
+            'translations': self.tr._serialize(),
             'is_fav': self.is_fav,
-            'total_att': self.total_att,
-            'correct_att': self.correct_att,
-            'win_streak': self.win_streak,
-            'latest_att_timestamp': list(self.latest_att_timestamp),
+            'total_att': self._total_att,
+            'correct_att': self._correct_att,
+            'win_streak': self._win_streak,
+            'latest_att_timestamp': list(self._latest_att_timestamp),
         }
 
         if self.forms:
-            data['forms'] = self.forms.serialize()
+            data['forms'] = self.forms._serialize()
         if self.phrases:
-            data['phrases'] = self.phrases.serialize()
+            data['phrases'] = self.phrases._serialize()
         if self.notes:
-            data['notes'] = self.notes.serialize()
+            data['notes'] = self.notes._serialize()
         if self.groups:
-            data['groups'] = self.groups.serialize()
+            data['groups'] = self.groups._serialize()
 
         return data
