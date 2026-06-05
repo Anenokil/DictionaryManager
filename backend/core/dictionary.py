@@ -157,7 +157,7 @@ class Dictionary:
         """
 
         correct = sum(entry.correct_att for entry in self._entries.values())
-        total = sum(entry.total_att for entry in self._entries.values())
+        total   = sum(entry.total_att   for entry in self._entries.values())
         return correct, total
 
     def mark_saved(self):
@@ -290,7 +290,7 @@ class Dictionary:
             AssertionError: If index_name is not a valid index.
         """
 
-        index_names = set(condition[0] for condition in query)
+        index_names = {condition[0] for condition in query}
         unexpected_index_names = index_names - set(self._indexes.keys())
         assert not unexpected_index_names, f'No index named "{unexpected_index_names.pop()}"'
 
@@ -336,12 +336,12 @@ class Dictionary:
             New entry ID.
         """
 
-        self._max_entry_id += 1
-        entry_id = self._max_entry_id
-
         if tags is not None:
             default_tags = {self._tags[i] for i in self._default_tag_ids}
             tags = set(tags).union(default_tags)
+
+        self._max_entry_id += 1
+        entry_id = self._max_entry_id
 
         self._entries[entry_id] = Entry(
             lemma, tr, forms, phrases, notes, tags, is_fav,
@@ -354,7 +354,7 @@ class Dictionary:
         self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
         self._update_index('tags', entry.tags, entry_id, 'add')
 
-        self._counters['lemmas'] += 1
+        self._counters['lemmas']       += 1
         self._counters['translations'] += entry.n_translations
         self._counters['gram_forms']   += entry.n_gram_forms
         self._counters['word_forms']   += entry.n_word_forms
@@ -378,7 +378,7 @@ class Dictionary:
 
         entry = self._entries[entry_id]
 
-        self._counters['lemmas'] -= 1
+        self._counters['lemmas']       -= 1
         self._counters['translations'] -= entry.n_translations
         self._counters['gram_forms']   -= entry.n_gram_forms
         self._counters['word_forms']   -= entry.n_word_forms
@@ -422,6 +422,7 @@ class Dictionary:
         self._counters['notes']        -= target_entry.n_notes
 
         target_entry.merge(source_entry)
+        self.delete_entry(source_entry_id)
 
         self._counters['translations'] += target_entry.n_translations
         self._counters['gram_forms']   += target_entry.n_gram_forms
@@ -429,8 +430,6 @@ class Dictionary:
         self._counters['phrases']      += target_entry.n_phrases
         self._counters['phrase_trs']   += target_entry.n_phrase_translations
         self._counters['notes']        += target_entry.n_notes
-
-        self.delete_entry(source_entry_id)
 
     @_mark_modified
     def edit_lemma(self, entry_id: EntryID, new_lemma: Word):
@@ -449,8 +448,10 @@ class Dictionary:
         """
 
         old_lemma = self._entries[entry_id].lemma
-        self._update_index('lemmas', old_lemma, entry_id, 'remove')
+
         self._entries[entry_id].lemma = new_lemma
+
+        self._update_index('lemmas', old_lemma, entry_id, 'remove')
         self._update_index('lemmas', new_lemma, entry_id, 'add')
 
     @_mark_modified
@@ -465,11 +466,11 @@ class Dictionary:
 
         entry = self._entries[entry_id]
 
-        self._update_index('translations', tr, entry_id, 'add')
-
         self._counters['translations'] -= entry.n_translations
         entry.tr.add(tr)
         self._counters['translations'] += entry.n_translations
+
+        self._update_index('translations', tr, entry_id, 'add')
 
     @_mark_modified
     def delete_tr(self, entry_id: EntryID, tr: Translation):
@@ -483,22 +484,22 @@ class Dictionary:
 
         entry = self._entries[entry_id]
 
-        self._update_index('translations', tr, entry_id, 'remove')
-
         self._counters['translations'] -= entry.n_translations
         entry.tr.delete(tr)
         self._counters['translations'] += entry.n_translations
+
+        self._update_index('translations', tr, entry_id, 'remove')
 
     @_mark_modified
     def edit_tr(self, entry_id: EntryID, tr: Translation, new_tr: Translation):
         entry = self._entries[entry_id]
 
-        self._update_index('translations', tr, entry_id, 'remove')
-        self._update_index('translations', new_tr, entry_id, 'add')
-
         self._counters['translations'] -= entry.n_translations
         entry.tr.edit(tr, new_tr)
         self._counters['translations'] += entry.n_translations
+
+        self._update_index('translations', tr, entry_id, 'remove')
+        self._update_index('translations', new_tr, entry_id, 'add')
 
     @_mark_modified
     def add_form(self, entry_id: EntryID, gram_form: GramForm, word_form: WordForm):
@@ -513,13 +514,13 @@ class Dictionary:
 
         entry = self._entries[entry_id]
 
-        self._update_index('forms', word_form, entry_id, 'add')
-
         self._counters['gram_forms'] -= entry.n_gram_forms
         self._counters['word_forms'] -= entry.n_word_forms
         entry.forms.add(gram_form, word_form)
         self._counters['gram_forms'] += entry.n_gram_forms
         self._counters['word_forms'] += entry.n_word_forms
+
+        self._update_index('forms', word_form, entry_id, 'add')
 
     @_mark_modified
     def delete_form(self, entry_id: EntryID, gram_form: GramForm, word_form: WordForm):
@@ -751,6 +752,7 @@ class Dictionary:
         assert ctg_name in self._features.keys()
 
         index = tuple(self._features.keys()).index(ctg_name)
+
         for entry_id, entry in self._entries.items():
             self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
             self._counters['gram_forms'] -= entry.n_gram_forms
@@ -775,8 +777,7 @@ class Dictionary:
         assert ctg_name_old in self._features.keys()
         assert ctg_name_new not in self._features.keys()
 
-        self._features[ctg_name_new] = self._features[ctg_name_old].copy()
-        self._features.pop(ctg_name_old)
+        self._features[ctg_name_new] = self._features.pop(ctg_name_old)
 
     @_mark_modified
     def add_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
@@ -810,6 +811,7 @@ class Dictionary:
         assert ctg_value in self._features[ctg_name]
 
         index = tuple(self._features.keys()).index(ctg_name)
+
         for entry_id, entry in self._entries.items():
             self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
             self._counters['gram_forms'] -= entry.n_gram_forms
