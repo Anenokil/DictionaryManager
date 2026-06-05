@@ -11,7 +11,7 @@ from functools import wraps
 
 from .types import (
     Word, Translation, Category, CtgValue, GramForm, WordForm, Phrase,
-    PhraseTr, Note, Group, Timestamp, EntryID, DctName, SerializedData,
+    PhraseTr, Note, Tag, Timestamp, EntryID, DctName, SerializedData,
 )
 from .errors import DeserializationError
 from .entry import Entry
@@ -22,9 +22,9 @@ Entries = dict[EntryID, Entry]
 Index = dict[str, set[EntryID]]
 Indexes = dict[str, Index]
 FeatureRegistry = dict[Category, list[CtgValue]]
-GroupRegistry = list[Group]
-GroupID = int
-GroupIDs = set[GroupID]
+TagRegistry = list[Tag]
+TagID = int
+TagIDs = set[TagID]
 
 
 class Dictionary:
@@ -36,8 +36,8 @@ class Dictionary:
     - name: Dictionary name (read-write).
     - is_modified: True when the dictionary has unsaved changes.
     - features: All grammar categories and their values.
-    - groups: All group names defined in the dictionary.
-    - default_groups: Groups marked as default.
+    - tags: All tags defined in the dictionary.
+    - default_tags: Tags marked as default.
     - total_score: Pair; the global count of correct attempts
       and total attempts across all entries.
     """
@@ -72,7 +72,7 @@ class Dictionary:
             'lemmas': {},
             'translations': {},
             'forms': {},
-            'groups': {},
+            'tags': {},
         }
 
         # Word counts statistics
@@ -88,12 +88,12 @@ class Dictionary:
         # Collection of all grammatical categories and their values present in the dictionary
         self._features: FeatureRegistry = dict()
 
-        # All groups/tags assigned to entries across the entire dictionary.
+        # All tags assigned to entries across the entire dictionary.
         # Used for organizing and grouping dictionary content.
-        self._groups: GroupRegistry = []
+        self._tags: TagRegistry = []
 
-        # Groups that are marked as default
-        self._default_group_ids: GroupIDs = set()
+        # Tags that are marked as default
+        self._default_tag_ids: TagIDs = set()
 
         # Current maximum entry ID.
         # Used to assign the next available ID to new entries (current max + 1).
@@ -137,12 +137,12 @@ class Dictionary:
         return self._features
 
     @property
-    def groups(self) -> GroupRegistry:
-        return self._groups
+    def tags(self) -> TagRegistry:
+        return self._tags
 
     @property
-    def default_groups(self) -> GroupRegistry:
-        return [self._groups[i] for i in self._default_group_ids]
+    def default_tags(self) -> TagRegistry:
+        return [self._tags[i] for i in self._default_tag_ids]
 
     @property
     def total_score(self) -> tuple[int, int]:
@@ -176,26 +176,26 @@ class Dictionary:
 
         self._name = new_name
 
-    def count_entries_in_group(self, group: Group) -> tuple[int, int, int, int]:
+    def count_by_tag(self, tag: Tag) -> tuple[int, int, int, int]:
         """
-        Count the number of entries, translations, and inflected forms in the specified group.
+        Count the number of entries, translations, and inflected forms with the specified tag.
 
         Args:
-            group: The group for which to count statistics.
+            tag: The tag for which to count statistics.
 
         Returns:
             A tuple containing three integers:
-            - Number of dictionary entries (lemmas) in the group;
-            - Total number of translations across all entries in the group;
-            - Total number of grammatical forms across all entries in the group;
-            - Total number of word forms across all entries in the group.
+            - Number of dictionary entries (lemmas) with the tag;
+            - Total number of translations across all entries with the tag;
+            - Total number of grammatical forms across all entries with the tag;
+            - Total number of word forms across all entries with the tag.
         """
 
         n_entries = 0
         n_translations = 0
         n_gram_forms = 0
         n_word_forms = 0
-        for entry_id in self._indexes['groups'][group]:
+        for entry_id in self._indexes['tags'][tag]:
             entry = self._entries[entry_id]
             n_entries += 1
             n_translations += entry.n_translations
@@ -203,27 +203,27 @@ class Dictionary:
             n_word_forms += entry.n_word_forms
         return n_entries, n_translations, n_gram_forms, n_word_forms
 
-    def count_fav_entries(self, group: Group | None = None) -> tuple[int, int, int, int]:
+    def count_by_fav(self, tag: Tag | None = None) -> tuple[int, int, int, int]:
         """
         Count the number of favorite entries, their translations, and inflected forms.
 
         Args:
-            group: If specified, counts only favorite entries within the given group.
-                   If None, counts all favorite entries in the dictionary.
+            tag: If specified, counts only favorite entries within the tag.
+                 If None, counts all favorite entries in the dictionary.
 
         Returns:
             A tuple containing three integers:
             - Number of favorite dictionary entries (lemmas);
             - Total number of translations across favorite entries;
             - Total number of grammatical forms across favorite entries;
-            - Total number of word forms across favorite entries in the group.
+            - Total number of word forms across favorite entries.
         """
 
         n_entries = 0
         n_translations = 0
         n_gram_forms = 0
         n_word_forms = 0
-        if group is None:
+        if tag is None:
             for entry in self._entries.values():
                 if entry.is_fav:
                     n_entries += 1
@@ -231,7 +231,7 @@ class Dictionary:
                     n_gram_forms += entry.n_gram_forms
                     n_word_forms += entry.n_word_forms
         else:
-            for entry_id in self._indexes['groups'][group]:
+            for entry_id in self._indexes['tags'][tag]:
                 entry = self._entries[entry_id]
                 if entry.is_fav:
                     n_entries += 1
@@ -241,8 +241,8 @@ class Dictionary:
         return n_entries, n_translations, n_gram_forms, n_word_forms
 
     def count(self, counter_name: str) -> int:
-        if counter_name == 'groups':
-            return len(self._groups)
+        if counter_name == 'tags':
+            return len(self._tags)
         if counter_name == 'categories':
             return len(self._features)
         if counter_name == 'ctg_values':
@@ -278,7 +278,7 @@ class Dictionary:
         Args:
             query: Collection of (index_name, search_term) pairs defining search conditions.
                    - index_name: Name of the index to search in. Valid values:
-                     'lemmas', 'translations', 'forms', 'groups'.
+                     'lemmas', 'translations', 'forms', 'tags'.
                    - search_term: The search term to look for in the index.
 
         Returns:
@@ -308,7 +308,7 @@ class Dictionary:
             forms: Mapping[GramForm, Iterable[WordForm]] | None = None,
             phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
             notes: Note | Iterable[Note] | None = None,
-            groups: Iterable[Group] | None = None,
+            tags: Iterable[Tag] | None = None,
             is_fav: bool = False,
             total_att: int = 0,
             correct_att: int = 0,
@@ -324,7 +324,7 @@ class Dictionary:
             forms: Inflected forms of the word (except the lemma).
             phrases: Phrases containing the word; usage examples.
             notes: Notes field.
-            groups: Groups assigned to the entry.
+            tags: Tags assigned to the entry.
             is_fav: Whether the entry is favorite.
             total_att: Total number of game attempts.
             correct_att: Number of correct guesses (wins).
@@ -338,12 +338,12 @@ class Dictionary:
         self._max_entry_id += 1
         entry_id = self._max_entry_id
 
-        if groups is not None:
-            default_groups = {self._groups[i] for i in self._default_group_ids}
-            groups = set(groups).union(default_groups)
+        if tags is not None:
+            default_tags = {self._tags[i] for i in self._default_tag_ids}
+            tags = set(tags).union(default_tags)
 
         self._entries[entry_id] = Entry(
-            lemma, tr, forms, phrases, notes, groups, is_fav,
+            lemma, tr, forms, phrases, notes, tags, is_fav,
             total_att, correct_att, win_streak, latest_att_timestamp
         )
         entry = self._entries[entry_id]
@@ -351,7 +351,7 @@ class Dictionary:
         self._update_index('lemmas', entry.lemma, entry_id, 'add')
         self._update_index('translations', entry.tr, entry_id, 'add')
         self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
-        self._update_index('groups', entry.groups, entry_id, 'add')
+        self._update_index('tags', entry.tags, entry_id, 'add')
 
         self._counters['lemmas'] += 1
         self._counters['translations'] += entry.n_translations
@@ -386,7 +386,7 @@ class Dictionary:
         self._update_index('lemmas', entry.lemma, entry_id, 'remove')
         self._update_index('translations', entry.tr, entry_id, 'remove')
         self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
-        self._update_index('groups', entry.groups, entry_id, 'remove')
+        self._update_index('tags', entry.tags, entry_id, 'remove')
 
         del self._entries[entry_id]
 
@@ -409,7 +409,7 @@ class Dictionary:
         self._update_index('lemmas', additional_entry.lemma, entry_id_1, 'add')
         self._update_index('translations', additional_entry.tr, entry_id_1, 'add')
         self._update_index('forms', chain(*additional_entry.forms.values()), entry_id_1, 'add')
-        self._update_index('groups', additional_entry.groups, entry_id_1, 'add')
+        self._update_index('tags', additional_entry.tags, entry_id_1, 'add')
 
         self._counters['translations'] -= main_entry.n_translations
         self._counters['gram_forms']   -= main_entry.n_gram_forms
@@ -654,33 +654,33 @@ class Dictionary:
         self._counters['notes'] += entry.n_notes
 
     @_mark_modified
-    def add_entries_to_group(self, group: Group, entry_ids: Iterable[EntryID]):
+    def add_tag_to_entries(self, tag: Tag, entry_ids: Iterable[EntryID]):
         """
-        Add multiple entries to a group.
+        Assign a tag to multiple entries.
 
         Args:
-            group: Group name to add entries to.
-            entry_ids: Iterable of entry IDs to add to the group.
+            tag: The tag to assign to the entries.
+            entry_ids: Iterable of entry IDs to assign the tag to.
         """
 
         for entry_id in entry_ids:
-            self._update_index('groups', group, entry_id, 'add')
-            self._entries[entry_id].groups.add(group)
+            self._update_index('tags', tag, entry_id, 'add')
+            self._entries[entry_id].tags.add(tag)
 
     @_mark_modified
-    def remove_entries_from_group(self, group: Group, entry_ids: Iterable[EntryID]):
+    def remove_tag_from_entries(self, tag: Tag, entry_ids: Iterable[EntryID]):
         """
-        Remove multiple entries from a group.
+        Remove a tag from multiple entries.
 
         Args:
-            group: Group name to remove entries from.
-            entry_ids: Iterable of entry IDs to remove from the group.
+            tag: The tag to remove from the entries.
+            entry_ids: Iterable of entry IDs to remove the tag from.
         """
 
         for entry_id in entry_ids:
-            if group in self._entries[entry_id].groups:
-                self._update_index('groups', group, entry_id, 'remove')
-                self._entries[entry_id].groups.delete(group)
+            if tag in self._entries[entry_id].tags:
+                self._update_index('tags', tag, entry_id, 'remove')
+                self._entries[entry_id].tags.delete(tag)
 
     @_mark_modified
     def add_to_fav(self, entry_ids: Iterable[EntryID]):
@@ -842,88 +842,88 @@ class Dictionary:
         self._features[ctg_name][index] = ctg_value_new
 
     @_mark_modified
-    def add_group(self, group: Group, is_default: bool = False):
+    def add_tag(self, tag: Tag, is_default: bool = False):
         """
-        Add a new group to the dictionary.
+        Add a new tag to the dictionary.
 
         Args:
-            group: Name of the group to add.
-            is_default: Whether the group is default.
+            tag: The tag to add.
+            is_default: Whether the tag is default.
         """
 
-        assert group not in self._groups
+        assert tag not in self._tags
 
-        self._indexes['groups'][group] = set()
-        self._groups.append(group)
+        self._indexes['tags'][tag] = set()
+        self._tags.append(tag)
 
         if is_default:
-            group_id = len(self._groups) - 1
-            self._default_group_ids.add(group_id)
+            tag_id = len(self._tags) - 1
+            self._default_tag_ids.add(tag_id)
 
     @_mark_modified
-    def delete_group(self, group: Group):
+    def delete_tag(self, tag: Tag):
         """
-        Delete a group from the dictionary.
+        Delete a tag from the dictionary.
 
-        Removes the group from all entries that belong to it.
+        Removes the tag from all entries that.
 
         Args:
-            group: Name of the group to delete.
+            tag: The tag to delete.
         """
 
-        assert group in self._groups
+        assert tag in self._tags
 
-        group_id = self._groups.index(group)
-        self._default_group_ids = set.union(
-            {g_id     for g_id in self._default_group_ids if g_id < group_id},
-            {g_id - 1 for g_id in self._default_group_ids if g_id > group_id}
+        tag_id = self._tags.index(tag)
+        self._default_tag_ids = set.union(
+            {def_tag_id     for def_tag_id in self._default_tag_ids if def_tag_id < tag_id},
+            {def_tag_id - 1 for def_tag_id in self._default_tag_ids if def_tag_id > tag_id}
         )
 
-        for entry_id in self._indexes['groups'][group]:
+        for entry_id in self._indexes['tags'][tag]:
             entry = self._entries[entry_id]
-            self._update_index('groups', group, entry_id, 'remove')
-            entry.groups.delete(group)
-        del self._indexes['groups'][group]
-        self._groups.remove(group)
+            self._update_index('tags', tag, entry_id, 'remove')
+            entry.tags.delete(tag)
+        del self._indexes['tags'][tag]
+        self._tags.remove(tag)
 
     @_mark_modified
-    def rename_group(self, group_old: Group, group_new: Group):
+    def rename_tag(self, tag_old: Tag, tag_new: Tag):
         """
-        Rename a group.
+        Rename a tag.
 
-        Updates all entries that belong to the old group to use the new name.
+        Updates all entries with the old tag to use the new name.
 
         Args:
-            group_old: Current name of the group.
-            group_new: New name for the group.
+            tag_old: The tag ro rename.
+            tag_new: New tag name.
         """
 
-        assert group_old in self._groups
-        assert group_new not in self._groups
+        assert tag_old in self._tags
+        assert tag_new not in self._tags
 
-        group_id = self._groups.index(group_old)
-        self._groups[group_id] = group_new
+        tag_id = self._tags.index(tag_old)
+        self._tags[tag_id] = tag_new
 
-        for entry_id in self._indexes['groups'][group_old]:
+        for entry_id in self._indexes['tags'][tag_old]:
             entry = self._entries[entry_id]
-            entry.groups.edit(group_old, group_new)
+            entry.tags.edit(tag_old, tag_new)
 
-        self._indexes['groups'][group_new] = self._indexes['groups'][group_old]
-        del self._indexes['groups'][group_old]
-
-    @_mark_modified
-    def mark_group_as_default(self, group: Group):
-        group_id = self._groups.index(group)
-        self._default_group_ids.add(group_id)
+        self._indexes['tags'][tag_new] = self._indexes['tags'][tag_old]
+        del self._indexes['tags'][tag_old]
 
     @_mark_modified
-    def unmark_default_group(self, group: Group):
-        group_id = self._groups.index(group)
-        self._default_group_ids.discard(group_id)
+    def mark_tag_as_default(self, tag: Tag):
+        tag_id = self._tags.index(tag)
+        self._default_tag_ids.add(tag_id)
 
-    def is_default_group(self, group: Group) -> bool:
-        group_id = self._groups.index(group)
-        return group_id in self._default_group_ids
+    @_mark_modified
+    def unmark_default_tag(self, tag: Tag):
+        tag_id = self._tags.index(tag)
+        self._default_tag_ids.discard(tag_id)
+
+    def is_default_tag(self, tag: Tag) -> bool:
+        tag_id = self._tags.index(tag)
+        return tag_id in self._default_tag_ids
 
     def to_json_dict(self) -> SerializedData:
         """
@@ -941,7 +941,7 @@ class Dictionary:
             index_name: {query: list(ids) for query, ids in index_data.items()}
             for index_name, index_data in self._indexes.items()
         }
-        default_group_ids = list(self._default_group_ids)
+        default_tag_ids = list(self._default_tag_ids)
 
         return {
             'version': self._schema_version,
@@ -951,8 +951,8 @@ class Dictionary:
                 'indexes': indexes,
                 'counters': self._counters,
                 'features': self._features,
-                'groups': self._groups,
-                'default_group_ids': default_group_ids,
+                'tags': self._tags,
+                'default_tag_ids': default_tag_ids,
                 'max_entry_id': self._max_entry_id,
                 'is_modified': self._is_modified,
             }
@@ -984,8 +984,8 @@ class Dictionary:
         name = data.get('name', None)
         entries = data.get('entries', {})
         features = data.get('features', {})
-        groups = data.get('groups', [])
-        default_group_ids = data.get('default_group_ids', [])
+        tags = data.get('tags', [])
+        default_tag_ids = data.get('default_tag_ids', [])
 
         # Validate types
         validate_field_type('name', name, (str, NoneType))
@@ -993,8 +993,8 @@ class Dictionary:
         validate_field_type('indexes', indexes, dict[str, dict[str, list[int]]])
         validate_field_type('counters', counters, dict[str, int])
         validate_field_type('features', features, dict[str, list[str]])
-        validate_field_type('groups', groups, list[str])
-        validate_field_type('default_group_ids', default_group_ids, list[int])
+        validate_field_type('tags', tags, list[str])
+        validate_field_type('default_tag_ids', default_tag_ids, list[int])
         validate_field_type('max_entry_id', max_entry_id, int)
         validate_field_type('is_modified', is_modified, bool)
 
@@ -1016,7 +1016,7 @@ class Dictionary:
             } for index_name, index_data in indexes.items()
         }
 
-        default_group_ids = set(default_group_ids)
+        default_tag_ids = set(default_tag_ids)
 
         # Set attributes
         self._name = name
@@ -1024,8 +1024,8 @@ class Dictionary:
         self._indexes = indexes
         self._counters = counters
         self._features = features
-        self._groups = groups
-        self._default_group_ids = default_group_ids
+        self._tags = tags
+        self._default_tag_ids = default_tag_ids
         self._max_entry_id = max_entry_id
         self._is_modified = is_modified
 
@@ -1055,7 +1055,7 @@ class Dictionary:
         Update a search index by adding or removing an entry.
 
         Args:
-            index_name: Name of the index to update ('lemmas', 'translations', 'forms', or 'groups').
+            index_name: Name of the index to update ('lemmas', 'translations', 'forms', or 'tags').
             search_terms: One or more search terms to add to or remove from the index.
             entry_ids: One or more entry IDs to associate with the search terms.
             action: Either 'add' or 'remove'.

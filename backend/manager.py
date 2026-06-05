@@ -9,7 +9,7 @@ import os
 from types import NoneType
 import json
 
-from .core.types import Group, DctName, SerializedData
+from .core.types import Tag, DctName, SerializedData
 from .core.errors import UnknownVersionError
 from .core.dictionary import Dictionary
 from .core.trainer import TrainingConfig, Trainer
@@ -31,7 +31,7 @@ class SearchConfig:
             to_search_in_forms: bool = False,
             to_search_in_phrases: bool = False,
             to_search_in_notes: bool = False,
-            search_groups: list[Group] | None = None,
+            search_tags: list[Tag] | None = None,
     ):
         self.to_search_only_fav = to_search_only_fav
         self.to_search_only_full = to_search_only_full
@@ -40,7 +40,7 @@ class SearchConfig:
         self.to_search_in_forms = to_search_in_forms
         self.to_search_in_phrases = to_search_in_phrases
         self.to_search_in_notes = to_search_in_notes
-        self.search_groups = search_groups
+        self.search_tags = search_tags
 
     def set_defaults(self):
         self.to_search_only_fav = False
@@ -50,7 +50,7 @@ class SearchConfig:
         self.to_search_in_forms = False
         self.to_search_in_phrases = False
         self.to_search_in_notes = False
-        self.search_groups = None
+        self.search_tags = None
 
     def to_dict(self) -> SerializedData:
         return {
@@ -62,7 +62,7 @@ class SearchConfig:
             'to_search_in_forms': self.to_search_in_forms,
             'to_search_in_phrases': self.to_search_in_phrases,
             'to_search_in_notes': self.to_search_in_notes,
-            'search_groups': self.search_groups,
+            'search_tags': self.search_tags,
         }
 
     def load_from_dict(self, data: SerializedData):
@@ -75,7 +75,7 @@ class SearchConfig:
         self.to_search_in_forms = data['to_search_in_forms']
         self.to_search_in_phrases = data['to_search_in_phrases']
         self.to_search_in_notes = data['to_search_in_notes']
-        self.search_groups = data['search_groups']
+        self.search_tags = data['search_tags']
 
     @classmethod
     def from_dict(cls, data: SerializedData):
@@ -101,12 +101,12 @@ class SearchConfig:
             'to_search_in_translations', 'to_search_in_forms',
             'to_search_in_phrases', 'to_search_in_notes',
         )
-        required_fields = bool_fields + ('search_groups',)
+        required_fields = bool_fields + ('search_tags',)
         validate_required_fields(data, required_fields)
 
         for field_name in bool_fields:
             validate_field_type(field_name, data[field_name], bool)
-        validate_field_type('search_groups', data['search_groups'], (list[str], NoneType))
+        validate_field_type('search_tags', data['search_tags'], (list[str], NoneType))
 
 
 class DctInfo:

@@ -247,40 +247,40 @@ def check_note_edit(
 
 
 # Проверить корректность названия группы
-def check_group_name(
+def check_tag_name(
         window_parent: tk.Misc,
         app_data: AppData,
-        groups: list[str] | tuple[str, ...],
-        new_group: str,
+        tags: list[str] | tuple[str, ...],
+        new_tag: str,
 ) -> bool:
-    if new_group == '':
+    if new_tag == '':
         warning(window_parent, app_data, 'Название группы должно содержать хотя бы один символ!')
         return False
-    if new_group == ALL_GROUPS:
+    if new_tag == ALL_TAGS:
         warning(window_parent, app_data, 'Группа не может иметь такое название!')
         return False
-    if new_group in groups:
-        warning(window_parent, app_data, f'Группа "{new_group}" уже существует!')
+    if new_tag in tags:
+        warning(window_parent, app_data, f'Группа "{new_tag}" уже существует!')
         return False
     return True
 
 
 # Проверить корректность названия группы при изменении
-def check_group_name_edit(
+def check_tag_name_edit(
         window_parent: tk.Misc,
         app_data: AppData,
-        groups: list[str] | tuple[str, ...],
-        old_group: str,
-        new_group: str,
+        tags: list[str] | tuple[str, ...],
+        old_tag: str,
+        new_tag: str,
 ) -> bool:
-    if new_group == '':
+    if new_tag == '':
         warning(window_parent, app_data, 'Название группы должно содержать хотя бы один символ!')
         return False
-    if new_group == ALL_GROUPS:
+    if new_tag == ALL_TAGS:
         warning(window_parent, app_data, 'Группа не может иметь такое название!')
         return False
-    if new_group in groups and new_group != old_group:
-        warning(window_parent, app_data, f'Группа "{new_group}" уже существует!')
+    if new_tag in tags and new_tag != old_tag:
+        warning(window_parent, app_data, f'Группа "{new_tag}" уже существует!')
         return False
     return True
 
@@ -394,9 +394,9 @@ def notes_repr(entry: Entry, tab: int = 0) -> str:
 
 
 # Вывести группы
-def groups_repr(entry: Entry) -> str:
-    if entry.groups:
-        return ', '.join(entry.groups)
+def tags_repr(entry: Entry) -> str:
+    if entry.tags:
+        return ', '.join(entry.tags)
     return '-'
 
 
@@ -447,8 +447,8 @@ def entry_repr_details(entry: Entry, str_len: int) -> str:
         res += f'\n        Фразы: {phrases_repr(entry, tab=15)}'
     if entry.n_notes != 0:
         res += f'\n       Сноски: {notes_repr(entry, tab=15)}'
-    if entry.groups:
-        res += f'\n       Группы: {groups_repr(entry)}'
+    if entry.tags:
+        res += f'\n       Группы: {tags_repr(entry)}'
     return split_text(res, str_len, tab=15)
 
 
@@ -485,7 +485,7 @@ def entry_repr_complete(entry: Entry, str_len: int, tab: int = 0) -> str:
     else:
         res += '-'
 
-    res += f'\n     Группы: {groups_repr(entry)}\n'
+    res += f'\n     Группы: {tags_repr(entry)}\n'
 
     if entry.total_att == 0:
         res += ' Статистика: 1) Верных ответов подряд: -\n'
@@ -1953,7 +1953,7 @@ class TrainSettingsW(tk.Toplevel):
         self.train_config = app_data.manager.active.train_config
 
         self.cancelled = False
-        self.group_options = [ALL_GROUPS] + self.dct.groups
+        self.tag_options = [ALL_TAGS] + self.dct.tags
 
         self.var_case_sensitive = tk.BooleanVar(
             value=self.train_config.is_case_sensitive
@@ -1963,8 +1963,8 @@ class TrainSettingsW(tk.Toplevel):
             value=self.method_to_txt[self.train_config.method]
         )
         # Группа слов
-        self.var_group = tk.StringVar(
-            value=self.train_config.group or ALL_GROUPS
+        self.var_tag = tk.StringVar(
+            value=self.train_config.tag or ALL_TAGS
         )
         # Способ набора слов
         self.var_words = tk.StringVar(
@@ -2016,11 +2016,11 @@ class TrainSettingsW(tk.Toplevel):
             font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
             state='readonly', validate='focusin',
             row=1, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
-        self.lbl_group = create_label(
+        self.lbl_tag = create_label(
             self.frame_main, 'Группа:',
             row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
-        self.combo_group = create_combobox(
-            self.frame_main, self.var_group, self.group_options, 30,
+        self.combo_tag = create_combobox(
+            self.frame_main, self.var_tag, self.tag_options, 30,
             font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
             state='readonly',
             row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
@@ -2068,7 +2068,7 @@ class TrainSettingsW(tk.Toplevel):
     # Начать учить слова
     def on_start(self):
         method = self.var_method.get()
-        group = self.var_group.get()
+        tag = self.var_tag.get()
         words = self.var_words.get()
         if method == LEARN_VALUES_METHOD[0]:
             forms = self.var_forms.get()
@@ -2082,7 +2082,7 @@ class TrainSettingsW(tk.Toplevel):
             self.txt_to_order[order],
             self.txt_to_entries[words],
             self.txt_to_forms[forms],
-            None if group == ALL_GROUPS else group,
+            None if tag == ALL_TAGS else tag,
         )
 
         self.cancelled = True
@@ -2213,7 +2213,7 @@ class SearchSettingsW(tk.Toplevel):
             to_search_frm: bool,
             to_search_phr: bool,
             to_search_nt: bool,
-            search_group: str,
+            search_tag: str,
     ):
         super().__init__(parent)
         self.parent = parent
@@ -2221,7 +2221,7 @@ class SearchSettingsW(tk.Toplevel):
         self.app_data = app_data
         self.dct_info = app_data.manager.active
 
-        self.group_options = [ALL_GROUPS] + self.dct_info.dct.groups
+        self.tag_options = [ALL_TAGS] + self.dct_info.dct.tags
 
         self.var_search_only_fav = tk.BooleanVar(value=to_search_only_fav)
         self.var_search_only_full = tk.BooleanVar(value=to_search_only_full)
@@ -2230,7 +2230,7 @@ class SearchSettingsW(tk.Toplevel):
         self.var_search_frm = tk.BooleanVar(value=to_search_frm)
         self.var_search_phr = tk.BooleanVar(value=to_search_phr)
         self.var_search_nt = tk.BooleanVar(value=to_search_nt)
-        self.var_search_group = tk.StringVar(value=search_group)
+        self.var_search_tag = tk.StringVar(value=search_tag)
 
         self._configure_window()
         self._create_widgets()
@@ -2255,7 +2255,7 @@ class SearchSettingsW(tk.Toplevel):
             self, self.var_search_only_full,
             row=1, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
         self._create_main_frame()
-        self._create_group_frame()
+        self._create_tag_frame()
 
     def _create_main_frame(self):
         self.frame_main = create_frame(self, row=2, column=0, columnspan=2, padx=6, pady=6)
@@ -2291,17 +2291,17 @@ class SearchSettingsW(tk.Toplevel):
             self.frame_main, self.var_search_nt,
             row=4, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
 
-    def _create_group_frame(self):
-        self.frame_group = create_frame(
+    def _create_tag_frame(self):
+        self.frame_tag = create_frame(
             self, 'Invis.TFrame',
             row=3, column=0, columnspan=2, padx=6, pady=6)
 
-        self.lbl_search_group = create_label(
-            self.frame_group, 'Группа:',
+        self.lbl_search_tag = create_label(
+            self.frame_tag, 'Группа:',
             row=0, column=0, padx=(6, 1), pady=6, sticky='E')
-        self.combo_search_group = create_combobox(
-            self.frame_group, self.var_search_group,
-            [ALL_GROUPS] + self.dct_info.dct.groups, 26,
+        self.combo_search_tag = create_combobox(
+            self.frame_tag, self.var_search_tag,
+            [ALL_TAGS] + self.dct_info.dct.tags, 26,
             state='readonly',
             font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
             row=0, column=1, padx=(0, 6), pady=6, sticky='W')
@@ -2327,7 +2327,7 @@ class SearchSettingsW(tk.Toplevel):
             self.var_search_frm.get(),
             self.var_search_phr.get(),
             self.var_search_nt.get(),
-            None if self.var_search_group.get() == ALL_GROUPS else [self.var_search_group.get()],
+            None if self.var_search_tag.get() == ALL_TAGS else [self.var_search_tag.get()],
         )
 
         save_dct_cache(self.dct_info)
@@ -2335,7 +2335,7 @@ class SearchSettingsW(tk.Toplevel):
         return (
             self.var_search_only_fav.get(), self.var_search_only_full.get(),
             self.var_search_wrd.get(), self.var_search_tr.get(), self.var_search_frm.get(),
-            self.var_search_phr.get(), self.var_search_nt.get(), self.var_search_group.get()
+            self.var_search_phr.get(), self.var_search_nt.get(), self.var_search_tag.get()
         )
 
 
@@ -2535,7 +2535,7 @@ class EditEntryW(tk.Toplevel):
         self.nt_frames = []
         self.nt_buttons = []
         #
-        self.groups = []
+        self.tags = []
         self.gr_frames = []
         self.gr_buttons = []
 
@@ -2656,7 +2656,7 @@ class EditEntryW(tk.Toplevel):
         self.scrolled_frame_gr.grid(
             row=5, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
         self.btn_gr_add = create_button(
-            self.frame_main, self.add_group, width=2,
+            self.frame_main, self.add_tag, width=2,
             row=5, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
         set_image(self.btn_gr_add, self.img_add, img_path(theme, 'add'), '+')
         self.lbl_fav = create_label(
@@ -2891,8 +2891,8 @@ class EditEntryW(tk.Toplevel):
         self.refresh(False)
 
     # Добавить группу
-    def add_group(self):
-        if not self.dct.groups:
+    def add_tag(self):
+        if not self.dct.tags:
             warning(
                 self, self.app_data,
                 'Отсутствуют группы!\n'
@@ -2901,29 +2901,29 @@ class EditEntryW(tk.Toplevel):
             )
             return
         values = [
-            group for group in self.dct.groups
-            if group not in self.dct[self.entry_id].groups
+            tag for tag in self.dct.tags
+            if tag not in self.dct[self.entry_id].tags
         ]
         if not values:
             warning(self, self.app_data, 'Статья уже добавлена во все группы')
             return
 
-        window_group = ChoiceDialog(
+        window_tag = ChoiceDialog(
             self, self.app_data, values,
             'Выберите группу',
             default_value=values[0],
         )
-        cancelled, group = window_group.open()
+        cancelled, tag = window_tag.open()
         if cancelled:
             return
 
-        self.dct.add_entries_to_group(group, [self.entry_id])
+        self.dct.add_tag_to_entries(tag, [self.entry_id])
 
         self.refresh(False)
 
     # Удалить группу
-    def remove_group(self, group: str):
-        self.dct.remove_entries_from_group(group, [self.entry_id])
+    def remove_tag(self, tag: str):
+        self.dct.remove_tag_from_entries(tag, [self.entry_id])
 
         self.refresh(False)
 
@@ -2996,12 +2996,12 @@ class EditEntryW(tk.Toplevel):
         for gram_form, word_forms in self.dct[self.entry_id].forms.items():
             for word_form in word_forms:
                 self.forms.append((gram_form, word_form))
-        self.groups = list(self.dct[self.entry_id].groups)
+        self.tags = list(self.dct[self.entry_id].tags)
         tr_count = len(self.translations)
         nt_count = len(self.notes)
         phr_count = len(self.phrases)
         frm_count = len(self.forms)
-        gr_count = len(self.groups)
+        gr_count = len(self.tags)
 
         # Создаём новые фреймы
         self.tr_frames = tuple(
@@ -3095,8 +3095,8 @@ class EditEntryW(tk.Toplevel):
             ) for i in range(gr_count)
         ]
         for i in range(gr_count):
-            group = self.groups[i]
-            self.gr_buttons[i].configure(text=split_text(group, 35))
+            tag = self.tags[i]
+            self.gr_buttons[i].configure(text=split_text(tag, 35))
 
         # Привязываем события
         for i in range(tr_count):
@@ -3131,9 +3131,9 @@ class EditEntryW(tk.Toplevel):
             self.gr_frames[i].bind('<Enter>', lambda event, i=i: self.gr_frames[i].focus_set())
             self.gr_frames[i].bind('<Leave>', lambda event: self.focus_set())
             self.gr_frames[i].bind(
-                '<Control-d>', lambda event, i=i: self.remove_group(self.groups[i]))
+                '<Control-d>', lambda event, i=i: self.remove_tag(self.tags[i]))
             self.gr_frames[i].bind(
-                '<Control-D>', lambda event, i=i: self.remove_group(self.groups[i]))
+                '<Control-D>', lambda event, i=i: self.remove_tag(self.tags[i]))
 
         # Изменяем высоту полей
         self.scrolled_frame_tr.resize(
@@ -3591,7 +3591,7 @@ class CategoriesSettingsW(tk.Toplevel):
 
 
 # Окно настроек групп
-class GroupsSettingsW(tk.Toplevel):
+class TagSettingsW(tk.Toplevel):
     def __init__(self, parent: tk.Misc, app_data: AppData):
         super().__init__(parent)
         self.parent = parent
@@ -3604,7 +3604,7 @@ class GroupsSettingsW(tk.Toplevel):
 
         self.img_help = tk.PhotoImage()
 
-        self.groups = []
+        self.tags = []
         self.frames = []
         self.buttons = []
         self.tips = []
@@ -3613,7 +3613,7 @@ class GroupsSettingsW(tk.Toplevel):
         self._create_widgets()
         self._create_tips()
 
-        self.print_groups(True)
+        self.print_tags(True)
 
     def _configure_window(self):
         self.title(PROGRAM_NAME)
@@ -3628,7 +3628,7 @@ class GroupsSettingsW(tk.Toplevel):
             self, self.show_help, width=2,
             row=0, column=0, padx=(6, 0), pady=(6, 6), sticky='E')
         set_image(self.btn_help, self.img_help, img_path(theme, 'about'), '?')
-        self.lbl_groups = create_label(
+        self.lbl_tags = create_label(
             self, 'Существующие группы:', justify='center',
             row=0, column=1, padx=(0, 6), pady=(6, 0), sticky='W')
         self.scrolled_frame = ScrollFrame(
@@ -3638,7 +3638,7 @@ class GroupsSettingsW(tk.Toplevel):
         self.scrolled_frame.grid(
             row=1, column=0, columnspan=2, padx=6, pady=(0, 6))
         self.btn_add = create_button(
-            self, self.add_group, 'Добавить группу',
+            self, self.add_tag, 'Добавить группу',
             row=2, column=0, columnspan=2, padx=6, pady=(0, 6))
 
     def _create_tips(self):
@@ -3647,89 +3647,89 @@ class GroupsSettingsW(tk.Toplevel):
         )
 
     # Добавить группу
-    def add_group(self):
+    def add_tag(self):
         window = InputDialog(
             self, self.app_data,
             'Введите название новой группы',
-            check_answer_function=lambda wnd, val: check_group_name(
-                wnd, self.app_data, self.dct.groups, val
+            check_answer_function=lambda wnd, val: check_tag_name(
+                wnd, self.app_data, self.dct.tags, val
             ),
         )
-        cancelled, group = window.open()
+        cancelled, tag = window.open()
         if cancelled:
             return
-        self.dct.add_group(group)
+        self.dct.add_tag(tag)
 
-        self.print_groups(False)
+        self.print_tags(False)
         self.has_changes = True
 
     # Переименовать группу
-    def rename_group(self, group_id: int):
-        group_old = self.groups[group_id]
+    def rename_tag(self, tag_id: int):
+        tag_old = self.tags[tag_id]
 
         window = InputDialog(
             self, self.app_data,
             'Введите новое название группы',
-            default_value=group_old,
-            check_answer_function=lambda wnd, val: check_group_name_edit(
-                wnd, self.app_data, self.dct.groups, group_old, val
+            default_value=tag_old,
+            check_answer_function=lambda wnd, val: check_tag_name_edit(
+                wnd, self.app_data, self.dct.tags, tag_old, val
             ),
         )
-        cancelled, group_new = window.open()
+        cancelled, tag_new = window.open()
         if cancelled:
             return
 
-        self.dct.rename_group(group_old, group_new)
+        self.dct.rename_tag(tag_old, tag_new)
 
-        train_group = self.dct_info.train_config.group
-        if train_group == group_old:
-            self.dct_info.train_config.group = group_new
+        train_tag = self.dct_info.train_config.tag
+        if train_tag == tag_old:
+            self.dct_info.train_config.tag = tag_new
 
-        self.print_groups(False)
+        self.print_tags(False)
         self.has_changes = True
 
     # Удалить группу
-    def delete_group(self, group_id: int):
-        group = self.groups[group_id]
+    def delete_tag(self, tag_id: int):
+        tag = self.tags[tag_id]
 
-        group_size = self.dct.count_entries_in_group(group)[0]
-        if group_size != 0:
+        tag_size = self.dct.count_by_tag(tag)[0]
+        if tag_size != 0:
             tmp = select_word_form(
-                group_size,
+                tag_size,
                 ('слово будет убрано', 'слова будут убраны', 'слов будут убраны'),
             )
             window_dia = TwoOptionsDialog(
                 self, self.app_data,
-                f'{group_size} {tmp} из группы "{group}", а сама группа будет удалена!\n'
+                f'{tag_size} {tmp} из группы "{tag}", а сама группа будет удалена!\n'
                 f'Хотите продолжить?',
             )
             result = window_dia.open()
             if not result:
                 return
 
-        train_group = self.dct_info.train_config.group
-        if train_group == group:
-            self.dct_info.train_config.group = ALL_GROUPS
+        train_tag = self.dct_info.train_config.tag
+        if train_tag == tag:
+            self.dct_info.train_config.tag = ALL_TAGS
 
-        self.dct.delete_group(group)
+        self.dct.delete_tag(tag)
 
-        self.print_groups(False)
+        self.print_tags(False)
         self.has_changes = True
 
     # Добавить группу в избранное
-    def set_group_default(self, group_id: int):
-        group = self.groups[group_id]
+    def set_tag_default(self, tag_id: int):
+        tag = self.tags[tag_id]
 
-        if self.dct.is_default_group(group):
-            self.dct.unmark_default_group(group)
+        if self.dct.is_default_tag(tag):
+            self.dct.unmark_default_tag(tag)
         else:
-            self.dct.mark_group_as_default(group)
+            self.dct.mark_tag_as_default(tag)
 
-        self.print_groups(False)
+        self.print_tags(False)
         self.has_changes = True
 
     # Напечатать существующие группы
-    def print_groups(self, move_scroll: bool):
+    def print_tags(self, move_scroll: bool):
         # Удаляем старые подсказки
         for tip in self.tips:
             tip.__del__()
@@ -3747,50 +3747,50 @@ class GroupsSettingsW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем группы
-        self.groups = list(self.dct.groups)
-        groups_count = len(self.groups)
+        self.tags = list(self.dct.tags)
+        tags_count = len(self.tags)
 
         # Создаём новые фреймы
         self.frames = [
             create_frame(
                 self.scrolled_frame.frame_canvas, 'Invis.TFrame',
                 row=i, column=0, padx=0, pady=0, sticky='WE',
-            ) for i in range(groups_count)
+            ) for i in range(tags_count)
         ]
         # Создаём новые кнопки
         self.buttons = [
             create_button(
                 self.frames[i],
-                lambda i=i: self.rename_group(i),
+                lambda i=i: self.rename_tag(i),
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
                 row=0, column=0, padx=0, pady=0, sticky='WE',
-            ) for i in range(groups_count)
+            ) for i in range(tags_count)
         ]
         # Создаём новые подсказки
         self.tips = [
             ttip.Hovertip(
                 self.buttons[i],
-                f'Статей в группе: {self.dct.count_entries_in_group(self.groups[i])[0]}',
+                f'Статей в группе: {self.dct.count_by_tag(self.tags[i])[0]}',
                 hover_delay=500,
-            ) for i in range(groups_count)
+            ) for i in range(tags_count)
         ]
-        for i in range(groups_count):
+        for i in range(tags_count):
             # Выводим текст на кнопки
-            group = self.groups[i]
-            if self.dct.is_default_group(group):
-                self.buttons[i].configure(text=split_text(f'{group} (*)', 35))
+            tag = self.tags[i]
+            if self.dct.is_default_tag(tag):
+                self.buttons[i].configure(text=split_text(f'{tag} (*)', 35))
             else:
-                self.buttons[i].configure(text=split_text(f'{group}', 35))
+                self.buttons[i].configure(text=split_text(f'{tag}', 35))
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
-            self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename_group(i))
-            self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename_group(i))
-            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete_group(i))
-            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete_group(i))
-            self.frames[i].bind('<Control-f>', lambda event, i=i: self.set_group_default(i))
-            self.frames[i].bind('<Control-F>', lambda event, i=i: self.set_group_default(i))
+            self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename_tag(i))
+            self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename_tag(i))
+            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete_tag(i))
+            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete_tag(i))
+            self.frames[i].bind('<Control-f>', lambda event, i=i: self.set_tag_default(i))
+            self.frames[i].bind('<Control-F>', lambda event, i=i: self.set_tag_default(i))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -5446,52 +5446,52 @@ class DictionaryW(tk.Toplevel):
         self.tab_search.refresh_all_entries()
 
     # Добавить выделенные статьи в группу
-    def add_selected_to_group(self, entry_ids: list[EntryID]):
+    def add_tag_to_selected(self, entry_ids: list[EntryID]):
         if not entry_ids:
             return
-        if not self.dct.groups:
+        if not self.dct.tags:
             MessageDialog(self, self.app_data, 'Не найдено ни одной группы!').open()
             return
 
-        sets = [self.dct[entry_id].groups for entry_id in entry_ids]
+        sets = [self.dct[entry_id].tags for entry_id in entry_ids]
         values_intersec = set.intersection(*sets)
-        values = [group for group in self.dct.groups if group not in values_intersec]
+        values = [tag for tag in self.dct.tags if tag not in values_intersec]
         if not values:
             MessageDialog(
                 self, self.app_data,
                 'Выделенные статьи уже состоят во всех группах!',
             ).open()
             return
-        window_groups = ChoiceDialog(
+        window_tags = ChoiceDialog(
             self, self.app_data,
             msg='Выберите группу, в которую хотите добавить выбранные слова:',
             values=values,
-            default_value=self.dct.groups[0],
+            default_value=self.dct.tags[0],
         )
-        cancelled, group = window_groups.open()
+        cancelled, tag = window_tags.open()
         if cancelled:
             return
-        self.dct.add_entries_to_group(group, entry_ids)
+        self.dct.add_tag_to_entries(tag, entry_ids)
 
-        if group == self.tab_browse.var_group.get():
+        if tag == self.tab_browse.var_tag.get():
             self.tab_browse.display_entries(True)
         else:
             self.tab_browse.refresh_all_entries()
         self.tab_search.refresh_all_entries()
 
     # Убрать выделенные статьи из группы
-    def remove_selected_from_group(self, entry_ids: list[EntryID]):
+    def remove_tag_from_selected(self, entry_ids: list[EntryID]):
         if not entry_ids:
             return
-        if not self.dct.groups:
+        if not self.dct.tags:
             MessageDialog(self, self.app_data, 'Не найдено ни одной группы!').open()
             return
 
         values = []
         for entry_id in entry_ids:
-            for group in self.dct[entry_id].groups:
-                if group not in values:
-                    values.append(group)
+            for tag in self.dct[entry_id].tags:
+                if tag not in values:
+                    values.append(tag)
         if not values:
             MessageDialog(
                 self, self.app_data,
@@ -5499,24 +5499,24 @@ class DictionaryW(tk.Toplevel):
             ).open()
             return
         if any((
-                self.tab_browse.var_group.get() == ALL_GROUPS,
+                self.tab_browse.var_tag.get() == ALL_TAGS,
                 self.tabs.index(self.tabs.select()) == 1,
         )):
             default_value = values[0]
         else:
-            default_value = self.tab_browse.var_group.get()
-        window_groups = ChoiceDialog(
+            default_value = self.tab_browse.var_tag.get()
+        window_tags = ChoiceDialog(
             self, self.app_data,
             msg='Выберите группу, из которой хотите убрать выбранные слова:',
             values=values,
             default_value=default_value,
         )
-        cancelled, group = window_groups.open()
+        cancelled, tag = window_tags.open()
         if cancelled:
             return
-        self.dct.remove_entries_from_group(group, entry_ids)
+        self.dct.remove_tag_from_entries(tag, entry_ids)
 
-        if group == self.tab_browse.var_group.get():
+        if tag == self.tab_browse.var_tag.get():
             self.tab_browse.display_entries(True)
         else:
             self.tab_browse.refresh_all_entries()
@@ -5617,11 +5617,11 @@ class SearchTab(ttk.Frame):
         self.to_search_frm = search_config.to_search_in_forms
         self.to_search_phr = search_config.to_search_in_phrases
         self.to_search_nt = search_config.to_search_in_notes
-        self.search_group = search_config.search_groups
-        if self.search_group is None:
-            self.search_group = ''
+        self.search_tag = search_config.search_tags
+        if self.search_tag is None:
+            self.search_tag = ''
         else:
-            self.search_group = self.search_group[0]  # TODO: several groups
+            self.search_tag = self.search_tag[0]  # TODO: several tags
 
         self.var_query = tk.StringVar()
         self.var_info = tk.StringVar()
@@ -5639,8 +5639,8 @@ class SearchTab(ttk.Frame):
         self.img_unselect_all = tk.PhotoImage()
         self.img_fav = tk.PhotoImage()
         self.img_unfav = tk.PhotoImage()
-        self.img_add_to_group = tk.PhotoImage()
-        self.img_remove_from_group = tk.PhotoImage()
+        self.img_add_tag = tk.PhotoImage()
+        self.img_remove_tag = tk.PhotoImage()
         self.img_delete = tk.PhotoImage()
         self.img_settings = tk.PhotoImage()
 
@@ -5762,19 +5762,19 @@ class SearchTab(ttk.Frame):
             width=3,
             row=0, column=1)
         set_image(self.btn_unfav, self.img_unfav, img_path(theme, 'unfav'), '*-')
-        self.btn_add_to_group = create_button(
+        self.btn_add_tag = create_button(
             self.frame_selection_actions,
-            lambda: self.master.add_selected_to_group(self.selected_entry_ids),
+            lambda: self.master.add_tag_to_selected(self.selected_entry_ids),
             width=3,
             row=0, column=2)
-        set_image(self.btn_add_to_group, self.img_add_to_group,
+        set_image(self.btn_add_tag, self.img_add_tag,
                   img_path(theme, 'add_to_group'), 'G+')
-        self.btn_remove_from_group = create_button(
+        self.btn_remove_tag = create_button(
             self.frame_selection_actions,
-            lambda: self.master.remove_selected_from_group(self.selected_entry_ids),
+            lambda: self.master.remove_tag_from_selected(self.selected_entry_ids),
             width=3,
             row=0, column=3)
-        set_image(self.btn_remove_from_group, self.img_remove_from_group,
+        set_image(self.btn_remove_tag, self.img_remove_tag,
                   img_path(theme, 'remove_from_group'), 'G-')
         self.btn_delete = create_button(
             self.frame_selection_actions,
@@ -5857,13 +5857,13 @@ class SearchTab(ttk.Frame):
             'Убрать выделенные статьи из избранного\n'
             'Ctrl+Shift+F',
             hover_delay=450)
-        self.tip_btn_add_to_group = ttip.Hovertip(
-            self.btn_add_to_group,
+        self.tip_btn_add_tag = ttip.Hovertip(
+            self.btn_add_tag,
             'Добавить выделенные статьи в группу\n'
             'Ctrl+G',
             hover_delay=450)
-        self.tip_btn_remove_from_group = ttip.Hovertip(
-            self.btn_remove_from_group,
+        self.tip_btn_remove_tag = ttip.Hovertip(
+            self.btn_remove_tag,
             'Убрать выделенные статьи из группы\n'
             'Ctrl+Shift+G',
             hover_delay=450)
@@ -5919,11 +5919,11 @@ class SearchTab(ttk.Frame):
             self, self.app_data, self.to_search_only_fav,
             self.to_search_only_full, self.to_search_wrd, self.to_search_tr,
             self.to_search_frm, self.to_search_phr, self.to_search_nt,
-            self.search_group,
+            self.search_tag,
         )
         (self.to_search_only_fav, self.to_search_only_full, self.to_search_wrd,
          self.to_search_tr, self.to_search_frm, self.to_search_phr,
-         self.to_search_nt, self.search_group) = window.open()
+         self.to_search_nt, self.search_tag) = window.open()
 
     # Вывести информацию о количестве статей
     def display_stats(self):
@@ -5963,10 +5963,10 @@ class SearchTab(ttk.Frame):
         else:
             entry_ids = list(self.dct.get_entry_ids())
         # Если нужно, оставляем только одну группу
-        if self.search_group != ALL_GROUPS:
+        if self.search_tag != ALL_TAGS:
             entry_ids = [
                 entry_id for entry_id in entry_ids
-                if self.search_group in self.dct[entry_id].groups
+                if self.search_tag in self.dct[entry_id].tags
             ]
         # Среди оставшихся ищем статьи, содержащие искомый текст
         results = search_entries(
@@ -6268,16 +6268,16 @@ class SearchTab(ttk.Frame):
             lambda event: self.master.unfav_selected(self.selected_entry_ids))
         self.master.bind(
             '<Control-g>',
-            lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
+            lambda event: self.master.add_tag_to_selected(self.selected_entry_ids))
         self.master.bind(
             '<Control-G>',
-            lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
+            lambda event: self.master.add_tag_to_selected(self.selected_entry_ids))
         self.master.bind(
             '<Control-Shift-g>',
-            lambda event: self.master.remove_selected_from_group(self.selected_entry_ids))
+            lambda event: self.master.remove_tag_from_selected(self.selected_entry_ids))
         self.master.bind(
             '<Control-Shift-G>',
-            lambda event: self.master.remove_selected_from_group(self.selected_entry_ids))
+            lambda event: self.master.remove_tag_from_selected(self.selected_entry_ids))
         self.master.bind(
             '<Alt-d>',
             lambda event: self.master.delete_selected(self.selected_entry_ids))
@@ -6314,7 +6314,7 @@ class BrowseDctTab(ttk.Frame):
         self.n_entries_total = None
         self.n_entries_on_page = None
 
-        self.group_options = [ALL_GROUPS] + self.dct.groups
+        self.tag_options = [ALL_TAGS] + self.dct.tags
 
         self.var_fav_only = tk.BooleanVar(value=False)
         self.var_briefly = tk.BooleanVar(value=False)
@@ -6322,7 +6322,7 @@ class BrowseDctTab(ttk.Frame):
         self.var_info_selected = tk.StringVar()
         self.var_current_page = tk.StringVar(value=str(self.current_page))
         self.var_order = tk.StringVar(value=PRINT_VALUES_ORDER[0])
-        self.var_group = tk.StringVar(value=ALL_GROUPS)
+        self.var_tag = tk.StringVar(value=ALL_TAGS)
 
         self.img_help = tk.PhotoImage()
         self.img_arrow_left = tk.PhotoImage()
@@ -6336,8 +6336,8 @@ class BrowseDctTab(ttk.Frame):
         self.img_unselect_all = tk.PhotoImage()
         self.img_fav = tk.PhotoImage()
         self.img_unfav = tk.PhotoImage()
-        self.img_add_to_group = tk.PhotoImage()
-        self.img_remove_from_group = tk.PhotoImage()
+        self.img_add_tag = tk.PhotoImage()
+        self.img_remove_tag = tk.PhotoImage()
         self.img_delete = tk.PhotoImage()
 
         # Вспомогательные массивы для ScrollFrame
@@ -6414,12 +6414,12 @@ class BrowseDctTab(ttk.Frame):
             self.frame_parameters, self.var_fav_only,
             command=lambda: self.go_to_first_page(True),
             row=0, column=1, padx=(0, 6), pady=6, sticky='W')
-        self.lbl_group = create_label(
+        self.lbl_tag = create_label(
             self.frame_parameters, 'Группа:',
             row=0, column=2, padx=(0, 1), pady=6, sticky='E')
-        self.combo_group = create_combobox(
-            self.frame_parameters, self.var_group,
-            self.group_options, 28,
+        self.combo_tag = create_combobox(
+            self.frame_parameters, self.var_tag,
+            self.tag_options, 28,
             font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
             state='readonly',
             row=0, column=3, padx=(0, 6), pady=6, sticky='W')
@@ -6455,19 +6455,19 @@ class BrowseDctTab(ttk.Frame):
             width=3,
             row=0, column=1)
         set_image(self.btn_unfav, self.img_unfav, img_path(theme, 'unfav'), '*-')
-        self.btn_add_to_group = create_button(
+        self.btn_add_tag = create_button(
             self.frame_selection_actions,
-            lambda: self.master.add_selected_to_group(self.selected_entry_ids),
+            lambda: self.master.add_tag_to_selected(self.selected_entry_ids),
             width=3,
             row=0, column=2)
-        set_image(self.btn_add_to_group, self.img_add_to_group,
+        set_image(self.btn_add_tag, self.img_add_tag,
                   img_path(theme, 'add_to_group'), 'G+')
-        self.btn_remove_from_group = create_button(
+        self.btn_remove_tag = create_button(
             self.frame_selection_actions,
-            lambda: self.master.remove_selected_from_group(self.selected_entry_ids),
+            lambda: self.master.remove_tag_from_selected(self.selected_entry_ids),
             width=3,
             row=0, column=3)
-        set_image(self.btn_remove_from_group, self.img_remove_from_group,
+        set_image(self.btn_remove_tag, self.img_remove_tag,
                   img_path(theme, 'remove_from_group'), 'G-')
         self.btn_delete = create_button(
             self.frame_selection_actions,
@@ -6578,13 +6578,13 @@ class BrowseDctTab(ttk.Frame):
             'Убрать выделенные статьи из избранного\n'
             'Ctrl+Shift+F',
             hover_delay=450)
-        self.tip_btn_add_to_group = ttip.Hovertip(
-            self.btn_add_to_group,
+        self.tip_btn_add_tag = ttip.Hovertip(
+            self.btn_add_tag,
             'Добавить выделенные статьи в группу\n'
             'Ctrl+G',
             hover_delay=450)
-        self.tip_btn_remove_from_group = ttip.Hovertip(
-            self.btn_remove_from_group,
+        self.tip_btn_remove_tag = ttip.Hovertip(
+            self.btn_remove_tag,
             'Убрать выделенные статьи из группы\n'
             'Ctrl+Shift+G',
             hover_delay=450)
@@ -6637,7 +6637,7 @@ class BrowseDctTab(ttk.Frame):
     def _create_bindings(self):
         self.combo_order.bind(
             '<<ComboboxSelected>>', lambda event: self.display_entries(False))
-        self.combo_group.bind(
+        self.combo_tag.bind(
             '<<ComboboxSelected>>', lambda event: self.go_to_first_page(True))
 
     # Нажатие на кнопку "Распечатать словарь в файл"
@@ -6650,10 +6650,10 @@ class BrowseDctTab(ttk.Frame):
 
     # Вывести информацию о количестве статей
     def display_stats(self):
-        group = self.var_group.get()
-        if group == ALL_GROUPS:
+        tag = self.var_tag.get()
+        if tag == ALL_TAGS:
             if self.var_fav_only.get():
-                w, t, gf, wf = self.dct.count_fav_entries()
+                w, t, gf, wf = self.dct.count_by_fav()
                 info = dct_fav_stats_repr(
                     (w, self.dct.count('lemmas')),
                     (t, self.dct.count('translations')),
@@ -6667,11 +6667,11 @@ class BrowseDctTab(ttk.Frame):
                 )
         else:
             if self.var_fav_only.get():
-                w1, t1, gf1, wf1 = self.dct.count_fav_entries(group)
-                w2, t2, gf2, wf2 = self.dct.count_entries_in_group(group)
+                w1, t1, gf1, wf1 = self.dct.count_by_fav(tag)
+                w2, t2, gf2, wf2 = self.dct.count_by_tag(tag)
                 info = dct_fav_stats_repr((w1, w2), (t1, t2), (wf1, wf2))
             else:
-                w, t, gf, wf = self.dct.count_entries_in_group(group)
+                w, t, gf, wf = self.dct.count_by_tag(tag)
                 info = dct_stats_repr(w, t, wf)
         self.var_info.set(info)
 
@@ -6700,9 +6700,9 @@ class BrowseDctTab(ttk.Frame):
             fr.destroy()
 
         # Выбираем нужные статьи
-        group = self.var_group.get()
+        tag = self.var_tag.get()
         if self.var_fav_only.get():
-            if group == ALL_GROUPS:
+            if tag == ALL_TAGS:
                 self.entry_ids = [
                     entry_id for entry_id in self.dct.get_entry_ids()
                     if self.dct[entry_id].is_fav
@@ -6710,15 +6710,15 @@ class BrowseDctTab(ttk.Frame):
             else:
                 self.entry_ids = [
                     entry_id for entry_id in self.dct.get_entry_ids()
-                    if self.dct[entry_id].is_fav and group in self.dct[entry_id].groups
+                    if self.dct[entry_id].is_fav and tag in self.dct[entry_id].tags
                 ]
         else:
-            if group == ALL_GROUPS:
+            if tag == ALL_TAGS:
                 self.entry_ids = list(self.dct.get_entry_ids())
             else:
                 self.entry_ids = [
                     entry_id for entry_id in self.dct.get_entry_ids()
-                    if group in self.dct[entry_id].groups
+                    if tag in self.dct[entry_id].tags
                 ]
         self.selected_entry_ids = [
             entry_id for entry_id in self.selected_entry_ids
@@ -7096,16 +7096,16 @@ class BrowseDctTab(ttk.Frame):
             lambda event: self.master.unfav_selected(self.selected_entry_ids))
         self.master.bind(
             '<Control-g>',
-            lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
+            lambda event: self.master.add_tag_to_selected(self.selected_entry_ids))
         self.master.bind(
             '<Control-G>',
-            lambda event: self.master.add_selected_to_group(self.selected_entry_ids))
+            lambda event: self.master.add_tag_to_selected(self.selected_entry_ids))
         self.master.bind(
             '<Control-Shift-g>',
-            lambda event: self.master.remove_selected_from_group(self.selected_entry_ids))
+            lambda event: self.master.remove_tag_from_selected(self.selected_entry_ids))
         self.master.bind(
             '<Control-Shift-G>',
-            lambda event: self.master.remove_selected_from_group(self.selected_entry_ids))
+            lambda event: self.master.remove_tag_from_selected(self.selected_entry_ids))
         self.master.bind(
             '<Alt-d>',
             lambda event: self.master.delete_selected(self.selected_entry_ids))
@@ -7248,8 +7248,8 @@ class AddEntryW(tk.Toplevel):
         if not self.entry_id:
             return
         self.dct[self.entry_id].is_fav = self.var_fav.get()
-        for group in self.dct.default_groups:
-            self.dct[self.entry_id].add_to_group(group)
+        for tag in self.dct.default_tags:
+            self.dct[self.entry_id].add_tag(tag)
 
         self.destroy()
 
@@ -7285,7 +7285,7 @@ class SettingsW(tk.Toplevel):
 
         self.active_tab = 0  # Текущая вкладка (0 или 1)
         self.is_ctg_modified = False
-        self.is_groups_modified = False
+        self.are_tags_modified = False
         self.is_replacements_modified = False
         self.backup_dct = copy.deepcopy(self.manager.active.dct)
         self.backup_scale = self.app_data.gui_settings.scale
@@ -7346,8 +7346,8 @@ class SettingsW(tk.Toplevel):
         self.btn_forms = create_button(
             self.tab_local, self.categories_settings, 'Грамматические категории',
             row=1, padx=6, pady=6)
-        self.btn_groups = create_button(
-            self.tab_local, self.groups_settings, 'Группы',
+        self.btn_tags = create_button(
+            self.tab_local, self.tags_settings, 'Группы',
             row=2, padx=6, pady=6)
         self.btn_replacements = create_button(
             self.tab_local, self.replacements_settings, 'Специальные комбинации',
@@ -7486,10 +7486,10 @@ class SettingsW(tk.Toplevel):
         ).open() or self.is_ctg_modified
 
     # Настройки групп (срабатывает при нажатии на кнопку)
-    def groups_settings(self):
-        self.is_groups_modified = GroupsSettingsW(
+    def tags_settings(self):
+        self.are_tags_modified = TagSettingsW(
             self, self.app_data
-        ).open() or self.is_groups_modified
+        ).open() or self.are_tags_modified
 
     # Настройки специальных комбинаций (срабатывает при нажатии на кнопку)
     def replacements_settings(self):
@@ -7543,7 +7543,7 @@ class SettingsW(tk.Toplevel):
         self.refresh_open_dct_name(self.manager.active.dct.name)
 
         self.is_ctg_modified = False
-        self.is_groups_modified = False
+        self.are_tags_modified = False
         self.is_replacements_modified = False
         self.manager.active.dct.mark_saved()
 
@@ -7625,7 +7625,7 @@ class SettingsW(tk.Toplevel):
         self.refresh_open_dct_name(savename)
 
         self.is_ctg_modified = False
-        self.is_groups_modified = False
+        self.are_tags_modified = False
         self.is_replacements_modified = False
         self.manager.active.dct.mark_saved()
 
@@ -7730,7 +7730,7 @@ class SettingsW(tk.Toplevel):
 
         # Обнуление переменных, показывающих наличие изменений
         self.is_ctg_modified = False
-        self.is_groups_modified = False
+        self.are_tags_modified = False
         self.is_replacements_modified = False
         self.manager.active.dct.mark_saved()
 
@@ -7863,7 +7863,7 @@ class SettingsW(tk.Toplevel):
     def has_local_changes(self):
         return (
             self.is_ctg_modified or
-            self.is_groups_modified or
+            self.are_tags_modified or
             self.is_replacements_modified
         )
 

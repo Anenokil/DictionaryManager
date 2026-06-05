@@ -116,8 +116,8 @@ img_unselect_all = os.path.join(IMAGES_PATH, 'unselect_all.png')
 #
 img_fav = os.path.join(IMAGES_PATH, 'fav.png')
 img_unfav = os.path.join(IMAGES_PATH, 'unfav.png')
-img_add_to_group = os.path.join(IMAGES_PATH, 'add_to_group.png')
-img_remove_from_group = os.path.join(IMAGES_PATH, 'remove_from_group.png')
+img_add_tag = os.path.join(IMAGES_PATH, 'add_to_group.png')
+img_remove_tag = os.path.join(IMAGES_PATH, 'remove_from_group.png')
 #
 img_undo = os.path.join(IMAGES_PATH, 'undo.png')
 img_redo = os.path.join(IMAGES_PATH, 'redo.png')
@@ -176,7 +176,7 @@ DEFAULT_LOCAL_AUTO_SETTINGS_FILE = f'v{LOCAL_AUTO_SETTINGS_VERSION}\n' \
 """ Другие константы """
 
 # Показать все группы
-ALL_GROUPS = 'Все'
+ALL_TAGS = 'Все'
 # Открывающие символы специальных комбинаций
 SPECIAL_COMBINATIONS_OPENING_SYMBOLS = (
     '^', '~', '`', '\'', '"', '*', '_', ':', '/', '\\', '|', '#', '$', '%', '&', '@', '§',

@@ -9,7 +9,7 @@ from typing import Iterable, Iterator, Mapping
 
 from .types import (
     Word, Translation, CtgValue, GramForm, WordForm,
-    Phrase, PhraseTr, Note, Group, Timestamp, SerializedData,
+    Phrase, PhraseTr, Note, Tag, Timestamp, SerializedData,
 )
 from .errors import DeserializationError
 from .utils import (
@@ -390,9 +390,9 @@ class Notes:
         return self._data
 
 
-class Groups:
-    def __init__(self, groups: Iterable[Group] | None):
-        self._data: set[Group] = set(groups) if groups else set()
+class Tags:
+    def __init__(self, tags: Iterable[Tag] | None):
+        self._data: set[Tag] = set(tags) if tags else set()
 
     def __bool__(self) -> bool:
         return bool(self._data)
@@ -400,42 +400,42 @@ class Groups:
     def __len__(self) -> int:
         return len(self._data)
 
-    def __iter__(self) -> Iterator[Group]:
+    def __iter__(self) -> Iterator[Tag]:
         return iter(self._data)
 
-    def add(self, group: Group):
+    def add(self, tag: Tag):
         """
-        Add a new group.
+        Add a new tag.
 
         Args:
-            group: The group name to add.
+            tag: The tag to add.
         """
 
-        self._data.add(group)
+        self._data.add(tag)
 
-    def edit(self, group: Group, new_group: Group):
+    def edit(self, tag: Tag, new_tag: Tag):
         """
-        Rename an existing group.
+        Rename an existing tag.
 
         Args:
-            group: The group to rename.
-            new_group: The new group name.
+            tag: The tag to rename.
+            new_tag: The new tag name.
         """
 
-        self._data.remove(group)
-        self._data.add(new_group)
+        self._data.remove(tag)
+        self._data.add(new_tag)
 
-    def delete(self, group: Group):
+    def delete(self, tag: Tag):
         """
-        Remove a group.
+        Remove a tag.
 
         Args:
-            group: The group name to remove.
+            tag: The tag to remove.
         """
 
-        self._data.remove(group)
+        self._data.remove(tag)
 
-    def _serialize(self) -> list[Group]:
+    def _serialize(self) -> list[Tag]:
         return list(self._data)
 
 
@@ -454,7 +454,7 @@ class Entry:
     - forms: Inflected forms (except the lemma).
     - phrases: Phrases containing the word; usage examples.
     - notes: Notes field.
-    - groups: Groups assigned to the entry.
+    - tags: Tags assigned to the entry.
     - n_translations: Number of translations for the word.
     - n_gram_forms: Number of grammatical forms.
     - n_word_forms: Number of word forms.
@@ -475,7 +475,7 @@ class Entry:
             forms: Mapping[GramForm, Iterable[WordForm]] | None = None,
             phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
             notes: Note | Iterable[Note] | None = None,
-            groups: Iterable[Group] | None = None,
+            tags: Iterable[Tag] | None = None,
             is_fav: bool = False,
             total_att: int = 0,
             correct_att: int = 0,
@@ -491,7 +491,7 @@ class Entry:
             forms: Inflected forms of the word (except the lemma).
             phrases: Phrases containing the word; usage examples.
             notes: Notes field.
-            groups: Groups assigned to the entry.
+            tags: Tags assigned to the entry.
             is_fav: Whether the entry is favorite.
             total_att: Total number of game attempts.
             correct_att: Number of correct guesses (wins).
@@ -504,7 +504,7 @@ class Entry:
         self.forms = Forms(forms)
         self.phrases = Phrases(phrases)
         self.notes = Notes(notes)
-        self.groups = Groups(groups)
+        self.tags = Tags(tags)
         self.is_fav = is_fav
         self._total_att = total_att
         self._correct_att = correct_att
@@ -542,7 +542,7 @@ class Entry:
         forms = data.get('forms', {'keys': [], 'values': []})
         phrases = data.get('phrases', None)
         notes = data.get('notes', None)
-        groups = data.get('groups', None)
+        tags = data.get('tags', None)
         is_fav = data.get('is_fav', False)
 
         # Validate types
@@ -556,7 +556,7 @@ class Entry:
 
         validate_field_type('phrases', phrases, (dict[str, list[str]], NoneType))
         validate_field_type('notes', notes, (list[str], NoneType))
-        validate_field_type('groups', groups, (list[str], NoneType))
+        validate_field_type('tags', tags, (list[str], NoneType))
         validate_field_type('is_fav', is_fav, bool)
         validate_field_type('total_att', total_att, int)
         validate_field_type('correct_att', correct_att, int)
@@ -576,7 +576,7 @@ class Entry:
         latest_att_timestamp = tuple(latest_att_timestamp)
 
         return cls(
-            lemma, translations, forms, phrases, notes, groups, is_fav,
+            lemma, translations, forms, phrases, notes, tags, is_fav,
             total_att, correct_att, win_streak, latest_att_timestamp,
         )
 
@@ -631,8 +631,8 @@ class Entry:
         return len(self.notes)
 
     @property
-    def n_groups(self) -> int:
-        return len(self.groups)
+    def n_tags(self) -> int:
+        return len(self.tags)
 
     @property
     def total_att(self) -> int:
@@ -702,8 +702,8 @@ class Entry:
                 self.phrases.add(phrase, phrase_tr)
         for note in other.notes:
             self.notes.add(note)
-        for group in other.groups:
-            self.groups.add(group)
+        for tag in other.tags:
+            self.tags.add(tag)
         if other.is_fav:
             self.is_fav = True
         self._total_att += other._total_att
@@ -735,7 +735,7 @@ class Entry:
             data['phrases'] = self.phrases._serialize()
         if self.notes:
             data['notes'] = self.notes._serialize()
-        if self.groups:
-            data['groups'] = self.groups._serialize()
+        if self.tags:
+            data['tags'] = self.tags._serialize()
 
         return data

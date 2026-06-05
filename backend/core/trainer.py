@@ -10,7 +10,7 @@ from typing import Iterable
 from enum import Enum
 import random
 
-from .types import GramForm, Phrase, Group, EntryID, SerializedData
+from .types import GramForm, Phrase, Tag, EntryID, SerializedData
 from .errors import UnknownVersionError
 from .dictionary import Dictionary
 from .utils import (
@@ -66,15 +66,15 @@ class TrainingConfig:
             order: TrainingOrder = TrainingOrder.DIFFICULT_FIRST,
             entries: EntrySelection = EntrySelection.MOSTLY_FAV,
             forms: FormSelection = FormSelection.RANDOM,
-            group: Group | None = None
-            #groups: list[Group] | None = None,  # TODO
+            tag: Tag | None = None
+            #tags: list[Tag] | None = None,  # TODO
     ):
         self.is_case_sensitive = is_case_sensitive
         self.method = method
         self.order = order
         self.entries = entries
         self.forms = forms
-        self.group = group
+        self.tag = tag
 
     def set_defaults(self):
         self.is_case_sensitive = True
@@ -82,7 +82,7 @@ class TrainingConfig:
         self.order = TrainingOrder.DIFFICULT_FIRST
         self.entries = EntrySelection.MOSTLY_FAV
         self.forms = FormSelection.RANDOM
-        self.group = None
+        self.tag = None
 
     def to_dict(self) -> SerializedData:
         return {
@@ -92,7 +92,7 @@ class TrainingConfig:
             'order': self.order.value,
             'entries': self.entries.value,
             'forms': self.forms.value,
-            'group': self.group,
+            'tag': self.tag,
         }
 
     def load_from_dict(self, data: SerializedData):
@@ -103,7 +103,7 @@ class TrainingConfig:
         self.order = TrainingOrder(data['order'])
         self.entries = EntrySelection(data['entries'])
         self.forms = FormSelection(data['forms'])
-        self.group = data['group']
+        self.tag = data['tag']
 
     @classmethod
     def from_dict(cls, data: SerializedData):
@@ -125,13 +125,13 @@ class TrainingConfig:
     @staticmethod
     def _validate_data(data: SerializedData):
         str_fields = ('method', 'order', 'entries', 'forms')
-        required_fields = str_fields + ('is_case_sensitive', 'group',)
+        required_fields = str_fields + ('is_case_sensitive', 'tag',)
         validate_required_fields(data, required_fields)
 
         for field_name in str_fields:
             validate_field_type(field_name, data[field_name], str)
         validate_field_type('is_case_sensitive', data['is_case_sensitive'], bool)
-        validate_field_type('group', data['group'], (str, NoneType))
+        validate_field_type('tag', data['tag'], (str, NoneType))
 
 
 class Trainer:
@@ -225,12 +225,12 @@ class Trainer:
         via `get_task`.
         """
 
-        def filter_by_group() -> Iterable[EntryID]:
-            if self._config.groups is None:
+        def filter_by_tag() -> Iterable[EntryID]:
+            if self._config.tags is None:
                 yield from self.dct.get_entry_ids()
             else:
                 yield from self.dct.search(
-                    [('groups', group) for group in self._config.groups]
+                    [('tags', tag) for tag in self._config.tags]
                 )
 
         def filter_by_method(ids: Iterable[EntryID]) -> Iterable[EntryID]:
@@ -321,7 +321,7 @@ class Trainer:
                 for key, form in items:
                     yield key, form, None
 
-        pool = filter_by_group()
+        pool = filter_by_tag()
         pool = filter_by_method(pool)
         pool = filter_by_forms(pool)
         pool = filter_by_entries(pool)

@@ -82,10 +82,10 @@ class EntryDetailsDialog(QDialog):
         self.notes_table = self.create_single_column_table(entry.notes)
         form_layout.addRow(notes_label, self.notes_table)
 
-        # Groups table
-        groups_label = QLabel('Groups:')
-        self.groups_table = self.create_single_column_table(entry.groups, is_active=False)
-        form_layout.addRow(groups_label, self.groups_table)
+        # Tags table
+        tags_label = QLabel('Tags:')
+        self.tags_table = self.create_single_column_table(entry.tags, is_active=False)
+        form_layout.addRow(tags_label, self.tags_table)
 
         # Fav checkbox
         fav_label = QLabel('Favorite:')

@@ -6,7 +6,7 @@ Author: Anenokil
 
 from .types import (
     Word, Translation, Category, CtgValue, GramForm, WordForm,
-    Phrase, PhraseTr, Note, Group, Timestamp, EntryID, DctName,
+    Phrase, PhraseTr, Note, Tag, Timestamp, EntryID, DctName,
     SerializedData,
 )
 from .errors import (
@@ -14,7 +14,7 @@ from .errors import (
     DeserializationError, MissingFieldsError,
     FieldTypeError, UnknownVersionError,
 )
-from .entry import Entry, Translations, Forms, Phrases, Notes, Groups
+from .entry import Entry, Translations, Forms, Phrases, Notes, Tags
 from .dictionary import Dictionary
 from .trainer import (
     Trainer, TrainingMethod, TrainingOrder, EntrySelection,
