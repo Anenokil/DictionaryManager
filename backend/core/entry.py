@@ -33,32 +33,49 @@ class Translations:
     def __iter__(self) -> Iterator[Translation]:
         return iter(self._data)
 
-    def add(self, translation: Translation):
+    def add(self, translation: Translation) -> tuple[bool, int]:
         """
         Add a new translation.
 
         Args:
             translation: The translation to add.
+
+        Returns:
+            Pair (is_modified, delta).
+            - is_modified: True if the object was modified.
+            - delta: Change in the number of translations.
         """
 
-        if translation not in self._data:
+        if translation in self._data:
+            return False, 0
+        else:
             self._data.append(translation)
+            return True, 1
 
-    def edit(self, translation: Translation, new_translation: Translation):
+    def edit(self, translation: Translation, new_translation: Translation) -> tuple[bool, int]:
         """
         Replace an existing translation with a new translation.
 
         Args:
             translation: The translation to edit.
             new_translation: The new translation.
+
+        Returns:
+            Pair (is_modified, delta).
+            - is_modified: True if the object was modified.
+            - delta: Change in the number of translations.
         """
 
         if new_translation in self._data:
-            if new_translation != translation:
+            if new_translation == translation:
+                return False, 0
+            else:
                 self._data.remove(translation)
+                return True, -1
         else:
             index = self._data.index(translation)
             self._data[index] = new_translation
+            return True, 0
 
     def delete(self, translation: Translation):
         """
@@ -109,19 +126,30 @@ class Forms:
     def items(self):
         return self._data.items()
 
-    def add(self, gram_form: GramForm, word_form: WordForm):
+    def add(self, gram_form: GramForm, word_form: WordForm) -> tuple[bool, int, int]:
         """
         Add a new inflected form.
 
         Args:
             gram_form: Grammatical form for the inflection.
             word_form: The actual inflected form to add.
+
+        Returns:
+            Tuple (is_modified, delta_gram, delta_word).
+            - is_modified: True if the object was modified.
+            - delta_gram: Change in the number of grammatical forms.
+            - delta_word: Change in the number of word forms.
         """
 
-        if gram_form not in self._data.keys():
+        if gram_form in self._data.keys():
+            if word_form in self._data[gram_form]:
+                return False, 0, 0
+            else:
+                self._data[gram_form].append(word_form)
+                return True, 0, 1
+        else:
             self._data[gram_form] = [word_form]
-        elif word_form not in self._data[gram_form]:
-            self._data[gram_form].append(word_form)
+            return True, 1, 1
 
     def edit(
             self,
@@ -129,7 +157,7 @@ class Forms:
             word_form: WordForm,
             new_gram_form: GramForm,
             new_word_form: WordForm,
-    ):
+    ) -> tuple[bool, int, int]:
         """
         Replace an existing form with a new form.
 
@@ -138,32 +166,52 @@ class Forms:
             word_form: The actual inflected form to replace.
             new_gram_form: The new grammatical form.
             new_word_form: The new inflected form.
+
+        Returns:
+            Tuple (is_modified, delta_gram, delta_word).
+            - is_modified: True if the object was modified.
+            - delta_gram: Change in the number of grammatical forms.
+            - delta_word: Change in the number of word forms.
         """
 
         if new_gram_form == gram_form:
             word_forms = self._data[gram_form]
             if new_word_form in word_forms:
-                if new_word_form != word_form:
+                if new_word_form == word_form:
+                    return False, 0, 0
+                else:
                     word_forms.remove(word_form)
+                    return True, 0, -1
             else:
                 index = word_forms.index(word_form)
                 word_forms[index] = new_word_form
+                return True, 0, 0
         else:
-            self.delete(gram_form, word_form)
-            self.add(new_gram_form, new_word_form)
+            m1, g1, w1 = self.delete(gram_form, word_form)
+            m2, g2, w2 = self.add(new_gram_form, new_word_form)
+            return m1 or m2, g1 + g2, w1 + w2
 
-    def delete(self, gram_form: GramForm, word_form: WordForm):
+    def delete(self, gram_form: GramForm, word_form: WordForm) -> tuple[bool, int, int]:
         """
         Remove an inflected form.
 
         Args:
             gram_form: Grammatical form identifying the inflection to remove.
             word_form: The actual inflected form to remove.
+
+        Returns:
+            Tuple (is_modified, delta_gram, delta_word).
+            - is_modified: True if the object was modified.
+            - delta_gram: Change in the number of grammatical forms.
+            - delta_word: Change in the number of word forms.
         """
 
         self._data[gram_form].remove(word_form)
-        if not self._data[gram_form]:
+        if self._data[gram_form]:
+            return True, 0, -1
+        else:
             self._data.pop(gram_form)
+            return True, -1, -1
 
     def add_ctg(self):
         """Add a new empty category to all grammatical form tuples."""
@@ -271,19 +319,30 @@ class Phrases:
     def items(self):
         return self._data.items()
 
-    def add(self, phrase: Phrase, phrase_tr: PhraseTr):
+    def add(self, phrase: Phrase, phrase_tr: PhraseTr) -> tuple[bool, int, int]:
         """
         Add a new phrase/usage example with its translation.
 
         Args:
             phrase: The phrase or usage example containing the word.
             phrase_tr: The translation of the phrase.
+
+        Returns:
+            Tuple (is_modified, delta_ph, delta_tr).
+            - is_modified: True if the object was modified.
+            - delta_ph: Change in the number of phrases.
+            - delta_tr: Change in the number of phrase translations.
         """
 
-        if phrase not in self._data.keys():
+        if phrase in self._data.keys():
+            if phrase_tr in self._data[phrase]:
+                return False, 0, 0
+            else:
+                self._data[phrase].append(phrase_tr)
+                return True, 0, 1
+        else:
             self._data[phrase] = [phrase_tr]
-        elif phrase_tr not in self._data[phrase]:
-            self._data[phrase].append(phrase_tr)
+            return True, 1, 1
 
     def edit(
             self,
@@ -291,7 +350,7 @@ class Phrases:
             phrase_tr: PhraseTr,
             new_phrase: Phrase,
             new_phrase_tr: PhraseTr,
-    ):
+    ) -> tuple[bool, int, int]:
         """
         Replace an existing phrase with a new phrase.
 
@@ -300,32 +359,52 @@ class Phrases:
             phrase_tr: The translation of the phrase to replace.
             new_phrase: The new phrase.
             new_phrase_tr: The new phrase translation.
+
+        Returns:
+            Tuple (is_modified, delta_ph, delta_tr).
+            - is_modified: True if the object was modified.
+            - delta_ph: Change in the number of phrases.
+            - delta_tr: Change in the number of phrase translations.
         """
 
         if new_phrase == phrase:
             phrase_trs = self._data[phrase]
             if new_phrase_tr in phrase_trs:
-                if new_phrase_tr != phrase_tr:
+                if new_phrase_tr == phrase_tr:
+                    return False, 0, 0
+                else:
                     phrase_trs.remove(phrase_tr)
+                    return True, 0, -1
             else:
                 index = phrase_trs.index(phrase_tr)
                 phrase_trs[index] = new_phrase_tr
+                return True, 0, 0
         else:
-            self.delete(phrase, phrase_tr)
-            self.add(new_phrase, new_phrase_tr)
+            m1, p1, t1 = self.delete(phrase, phrase_tr)
+            m2, p2, t2 = self.add(new_phrase, new_phrase_tr)
+            return m1 or m2, p1 + p2, t1 + t2
 
-    def delete(self, phrase: Phrase, phrase_tr: PhraseTr):
+    def delete(self, phrase: Phrase, phrase_tr: PhraseTr) -> tuple[bool, int, int]:
         """
         Remove a phrase and its translation.
 
         Args:
             phrase: The phrase to remove.
             phrase_tr: The translation of the phrase to remove.
+
+        Returns:
+            Tuple (is_modified, delta_ph, delta_tr).
+            - is_modified: True if the object was modified.
+            - delta_ph: Change in the number of phrases.
+            - delta_tr: Change in the number of phrase translations.
         """
 
         self._data[phrase].remove(phrase_tr)
-        if not self._data[phrase]:
+        if self._data[phrase]:
+            return True, 0, -1
+        else:
             self._data.pop(phrase)
+            return True, -1, -1
 
     def _serialize(self) -> SerializedData:
         return self._data
@@ -349,32 +428,49 @@ class Notes:
     def __iter__(self) -> Iterator[Note]:
         return iter(self._data)
 
-    def add(self, note: Note):
+    def add(self, note: Note) -> tuple[bool, int]:
         """
         Add a new note.
 
         Args:
             note: The note text to add.
+
+        Returns:
+            Pair (is_modified, delta).
+            - is_modified: True if the object was modified.
+            - delta: Change in the number of notes.
         """
 
-        if note not in self._data:
+        if note in self._data:
+            return False, 0
+        else:
             self._data.append(note)
+            return True, 1
 
-    def edit(self, note: Note, new_note: Note):
+    def edit(self, note: Note, new_note: Note) -> tuple[bool, int]:
         """
         Replace an existing note with a new note.
 
         Args:
             note: The note to edit.
             new_note: The new note.
+
+        Returns:
+            Pair (is_modified, delta).
+            - is_modified: True if the object was modified.
+            - delta: Change in the number of notes.
         """
 
         if new_note in self._data:
-            if new_note != note:
+            if new_note == note:
+                return False, 0
+            else:
                 self._data.remove(note)
+                return True, -1
         else:
             index = self._data.index(note)
             self._data[index] = new_note
+            return True, 0
 
     def delete(self, note: Note):
         """
@@ -403,27 +499,49 @@ class Tags:
     def __iter__(self) -> Iterator[Tag]:
         return iter(self._data)
 
-    def add(self, tag: Tag):
+    def add(self, tag: Tag) -> tuple[bool, int]:
         """
         Add a new tag.
 
         Args:
             tag: The tag to add.
+
+        Returns:
+            Pair (is_modified, delta).
+            - is_modified: True if the object was modified.
+            - delta: Change in the number of tags.
         """
 
-        self._data.add(tag)
+        if tag in self._data:
+            return False, 0
+        else:
+            self._data.add(tag)
+            return True, 1
 
-    def edit(self, tag: Tag, new_tag: Tag):
+    def edit(self, tag: Tag, new_tag: Tag) -> tuple[bool, int]:
         """
         Rename an existing tag.
 
         Args:
             tag: The tag to rename.
             new_tag: The new tag name.
+
+        Returns:
+            Pair (is_modified, delta).
+            - is_modified: True if the object was modified.
+            - delta: Change in the number of tags.
         """
 
-        self._data.remove(tag)
-        self._data.add(new_tag)
+        if new_tag in self._data:
+            if tag == new_tag:
+                return False, 0
+            else:
+                self._data.remove(tag)
+                return True, -1
+        else:
+            self._data.remove(tag)
+            self._data.add(new_tag)
+            return True, 0
 
     def delete(self, tag: Tag):
         """
