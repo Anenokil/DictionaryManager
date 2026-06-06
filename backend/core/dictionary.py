@@ -466,10 +466,9 @@ class Dictionary:
 
         entry = self._entries[entry_id]
 
-        self._counters['translations'] -= entry.n_translations
-        entry.tr.add(tr)
-        self._counters['translations'] += entry.n_translations
+        is_modified, counter_delta = entry.tr.add(tr)
 
+        self._counters['translations'] += counter_delta
         self._update_index('translations', tr, entry_id, 'add')
 
     @_mark_modified
@@ -484,20 +483,18 @@ class Dictionary:
 
         entry = self._entries[entry_id]
 
-        self._counters['translations'] -= entry.n_translations
         entry.tr.delete(tr)
-        self._counters['translations'] += entry.n_translations
 
+        self._counters['translations'] -= 1
         self._update_index('translations', tr, entry_id, 'remove')
 
     @_mark_modified
     def edit_tr(self, entry_id: EntryID, tr: Translation, new_tr: Translation):
         entry = self._entries[entry_id]
 
-        self._counters['translations'] -= entry.n_translations
-        entry.tr.edit(tr, new_tr)
-        self._counters['translations'] += entry.n_translations
+        is_modified, counter_delta = entry.tr.edit(tr, new_tr)
 
+        self._counters['translations'] += counter_delta
         self._update_index('translations', tr, entry_id, 'remove')
         self._update_index('translations', new_tr, entry_id, 'add')
 
@@ -514,12 +511,10 @@ class Dictionary:
 
         entry = self._entries[entry_id]
 
-        self._counters['gram_forms'] -= entry.n_gram_forms
-        self._counters['word_forms'] -= entry.n_word_forms
-        entry.forms.add(gram_form, word_form)
-        self._counters['gram_forms'] += entry.n_gram_forms
-        self._counters['word_forms'] += entry.n_word_forms
+        is_modified, cnt_delta_gram, cnt_delta_word = entry.forms.add(gram_form, word_form)
 
+        self._counters['gram_forms'] += cnt_delta_gram
+        self._counters['word_forms'] += cnt_delta_word
         self._update_index('forms', word_form, entry_id, 'add')
 
     @_mark_modified
@@ -539,12 +534,10 @@ class Dictionary:
         # Therefore, we need to first remove all forms from the index, then add them back to the index
         self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
 
-        self._counters['gram_forms'] -= entry.n_gram_forms
-        self._counters['word_forms'] -= entry.n_word_forms
-        entry.forms.delete(gram_form, word_form)
-        self._counters['gram_forms'] += entry.n_gram_forms
-        self._counters['word_forms'] += entry.n_word_forms
+        is_modified, cnt_delta_gram, cnt_delta_word = entry.forms.delete(gram_form, word_form)
 
+        self._counters['gram_forms'] += cnt_delta_gram
+        self._counters['word_forms'] += cnt_delta_word
         self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
 
     @_mark_modified
@@ -562,12 +555,12 @@ class Dictionary:
         # Therefore, we need to first remove all forms from the index, then add them back to the index
         self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
 
-        self._counters['gram_forms'] -= entry.n_gram_forms
-        self._counters['word_forms'] -= entry.n_word_forms
-        entry.forms.edit(gram_form, word_form, new_gram_form, new_word_form)
-        self._counters['gram_forms'] += entry.n_gram_forms
-        self._counters['word_forms'] += entry.n_word_forms
+        is_modified, cnt_delta_gram, cnt_delta_word = entry.forms.edit(
+            gram_form, word_form, new_gram_form, new_word_form
+        )
 
+        self._counters['gram_forms'] += cnt_delta_gram
+        self._counters['word_forms'] += cnt_delta_word
         self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
 
     @_mark_modified
@@ -583,11 +576,10 @@ class Dictionary:
 
         entry = self._entries[entry_id]
 
-        self._counters['phrases']    -= entry.n_phrases
-        self._counters['phrase_trs'] -= entry.n_phrase_translations
-        entry.phrases.add(phrase, phrase_tr)
-        self._counters['phrases']    += entry.n_phrases
-        self._counters['phrase_trs'] += entry.n_phrase_translations
+        is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases.add(phrase, phrase_tr)
+
+        self._counters['phrases']    += cnt_delta_ph
+        self._counters['phrase_trs'] += cnt_delta_tr
 
     @_mark_modified
     def delete_phrase(self, entry_id: EntryID, phrase: Phrase, phrase_tr: PhraseTr):
@@ -602,11 +594,10 @@ class Dictionary:
 
         entry = self._entries[entry_id]
 
-        self._counters['phrases']    -= entry.n_phrases
-        self._counters['phrase_trs'] -= entry.n_phrase_translations
-        entry.phrases.delete(phrase, phrase_tr)
-        self._counters['phrases']    += entry.n_phrases
-        self._counters['phrase_trs'] += entry.n_phrase_translations
+        is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases.delete(phrase, phrase_tr)
+
+        self._counters['phrases']    += cnt_delta_ph
+        self._counters['phrase_trs'] += cnt_delta_tr
 
     @_mark_modified
     def edit_phrase(
@@ -619,11 +610,12 @@ class Dictionary:
     ):
         entry = self._entries[entry_id]
 
-        self._counters['phrases']    -= entry.n_phrases
-        self._counters['phrase_trs'] -= entry.n_phrase_translations
-        entry.phrases.edit(phrase, phrase_tr, new_phrase, new_phrase_tr)
-        self._counters['phrases']    += entry.n_phrases
-        self._counters['phrase_trs'] += entry.n_phrase_translations
+        is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases.edit(
+            phrase, phrase_tr, new_phrase, new_phrase_tr
+        )
+
+        self._counters['phrases']    += cnt_delta_ph
+        self._counters['phrase_trs'] += cnt_delta_tr
 
     @_mark_modified
     def add_note(self, entry_id: EntryID, note: Note):
@@ -637,9 +629,9 @@ class Dictionary:
 
         entry = self._entries[entry_id]
 
-        self._counters['notes'] -= entry.n_notes
-        entry.notes.add(note)
-        self._counters['notes'] += entry.n_notes
+        is_modified, counter_delta = entry.notes.add(note)
+
+        self._counters['notes'] += counter_delta
 
     @_mark_modified
     def delete_note(self, entry_id: EntryID, note: Note):
@@ -653,17 +645,17 @@ class Dictionary:
 
         entry = self._entries[entry_id]
 
-        self._counters['notes'] -= entry.n_notes
         entry.notes.delete(note)
-        self._counters['notes'] += entry.n_notes
+
+        self._counters['notes'] -= 1
 
     @_mark_modified
     def edit_note(self, entry_id: EntryID, note: Note, new_note: Note):
         entry = self._entries[entry_id]
 
-        self._counters['notes'] -= entry.n_notes
-        entry.notes.edit(note, new_note)
-        self._counters['notes'] += entry.n_notes
+        is_modified, counter_delta = entry.notes.edit(note, new_note)
+
+        self._counters['notes'] += counter_delta
 
     @_mark_modified
     def add_tag_to_entries(self, tag: Tag, entry_ids: Iterable[EntryID]):
@@ -675,9 +667,15 @@ class Dictionary:
             entry_ids: Iterable of entry IDs to assign the tag to.
         """
 
-        for entry_id in entry_ids:
-            self._update_index('tags', tag, entry_id, 'add')
+        if tag in self._tags:
+            entry_ids_to_update = set(entry_ids).difference(self._indexes['tags'][tag])
+        else:
+            entry_ids_to_update = entry_ids
+
+        for entry_id in entry_ids_to_update:
             self._entries[entry_id].tags.add(tag)
+
+        self._update_index('tags', tag, entry_ids_to_update, 'add')
 
     @_mark_modified
     def remove_tag_from_entries(self, tag: Tag, entry_ids: Iterable[EntryID]):
@@ -689,10 +687,12 @@ class Dictionary:
             entry_ids: Iterable of entry IDs to remove the tag from.
         """
 
-        for entry_id in entry_ids:
-            if tag in self._entries[entry_id].tags:
-                self._update_index('tags', tag, entry_id, 'remove')
-                self._entries[entry_id].tags.delete(tag)
+        entry_ids_to_update = set(entry_ids).intersection(self._indexes['tags'][tag])
+
+        for entry_id in entry_ids_to_update:
+            self._entries[entry_id].tags.delete(tag)
+
+        self._update_index('tags', tag, entry_ids_to_update, 'remove')
 
     @_mark_modified
     def add_to_fav(self, entry_ids: Iterable[EntryID]):
@@ -892,10 +892,14 @@ class Dictionary:
             {def_tag_id - 1 for def_tag_id in self._default_tag_ids if def_tag_id > tag_id}
         )
 
-        for entry_id in self._indexes['tags'][tag]:
+        entry_ids = self._indexes['tags'][tag]
+
+        for entry_id in entry_ids:
             entry = self._entries[entry_id]
-            self._update_index('tags', tag, entry_id, 'remove')
             entry.tags.delete(tag)
+
+        self._update_index('tags', tag, entry_ids, 'remove')
+
         del self._indexes['tags'][tag]
         self._tags.remove(tag)
 
@@ -1087,7 +1091,7 @@ class Dictionary:
                 if term in index:
                     index[term].update(entry_ids)
                 else:
-                    index[term] = set(entry_ids)
+                    index[term] = entry_ids
         else:
             for term in search_terms:
                 index[term].difference_update(entry_ids)
