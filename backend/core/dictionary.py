@@ -166,7 +166,6 @@ class Dictionary:
     def mark_modified(self):
         self._is_modified = True
 
-    @_mark_modified
     def rename(self, new_name: DctName):
         """
         Rename a dictionary.
@@ -175,7 +174,11 @@ class Dictionary:
             new_name: New name of the dictionary.
         """
 
+        if self._name == new_name:
+            return
+
         self._name = new_name
+        self._is_modified = True
 
     def count_by_tag(self, tag: Tag) -> tuple[int, int, int, int]:
         """
@@ -432,7 +435,6 @@ class Dictionary:
         self._counters['phrase_trs']   += target_entry.n_phrase_translations
         self._counters['notes']        += target_entry.n_notes
 
-    @_mark_modified
     def edit_lemma(self, entry_id: EntryID, new_lemma: Word):
         """
         Update the lemma of an existing dictionary entry.
@@ -450,12 +452,16 @@ class Dictionary:
 
         old_lemma = self._entries[entry_id].lemma
 
+        if old_lemma == new_lemma:
+            return
+
         self._entries[entry_id].lemma = new_lemma
 
         self._update_index('lemmas', old_lemma, entry_id, 'remove')
         self._update_index('lemmas', new_lemma, entry_id, 'add')
 
-    @_mark_modified
+        self._is_modified = True
+
     def add_tr(self, entry_id: EntryID, tr: Translation):
         """
         Add a translation to an entry.
@@ -471,6 +477,8 @@ class Dictionary:
 
         self._counters['translations'] += counter_delta
         self._update_index('translations', tr, entry_id, 'add')
+
+        self._is_modified |= is_modified
 
     @_mark_modified
     def delete_tr(self, entry_id: EntryID, tr: Translation):
@@ -489,7 +497,6 @@ class Dictionary:
         self._counters['translations'] -= 1
         self._update_index('translations', tr, entry_id, 'remove')
 
-    @_mark_modified
     def edit_tr(self, entry_id: EntryID, tr: Translation, new_tr: Translation):
         entry = self._entries[entry_id]
 
@@ -499,7 +506,8 @@ class Dictionary:
         self._update_index('translations', tr, entry_id, 'remove')
         self._update_index('translations', new_tr, entry_id, 'add')
 
-    @_mark_modified
+        self._is_modified |= is_modified
+
     def add_form(self, entry_id: EntryID, gram_form: GramForm, word_form: WordForm):
         """
         Add an inflected form to an entry.
@@ -518,7 +526,8 @@ class Dictionary:
         self._counters['word_forms'] += cnt_delta_word
         self._update_index('forms', word_form, entry_id, 'add')
 
-    @_mark_modified
+        self._is_modified |= is_modified
+
     def delete_form(self, entry_id: EntryID, gram_form: GramForm, word_form: WordForm):
         """
         Delete an inflected form from an entry.
@@ -541,7 +550,8 @@ class Dictionary:
         self._counters['word_forms'] += cnt_delta_word
         self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
 
-    @_mark_modified
+        self._is_modified |= is_modified
+
     def edit_form(
             self,
             entry_id: EntryID,
@@ -564,7 +574,8 @@ class Dictionary:
         self._counters['word_forms'] += cnt_delta_word
         self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
 
-    @_mark_modified
+        self._is_modified |= is_modified
+
     def add_phrase(self, entry_id: EntryID, phrase: Phrase, phrase_tr: PhraseTr):
         """
         Add a phrase with its translation to an entry.
@@ -582,7 +593,8 @@ class Dictionary:
         self._counters['phrases']    += cnt_delta_ph
         self._counters['phrase_trs'] += cnt_delta_tr
 
-    @_mark_modified
+        self._is_modified |= is_modified
+
     def delete_phrase(self, entry_id: EntryID, phrase: Phrase, phrase_tr: PhraseTr):
         """
         Delete a phrase and its translation from an entry.
@@ -600,7 +612,8 @@ class Dictionary:
         self._counters['phrases']    += cnt_delta_ph
         self._counters['phrase_trs'] += cnt_delta_tr
 
-    @_mark_modified
+        self._is_modified |= is_modified
+
     def edit_phrase(
             self,
             entry_id: EntryID,
@@ -618,7 +631,8 @@ class Dictionary:
         self._counters['phrases']    += cnt_delta_ph
         self._counters['phrase_trs'] += cnt_delta_tr
 
-    @_mark_modified
+        self._is_modified |= is_modified
+
     def add_note(self, entry_id: EntryID, note: Note):
         """
         Add a note to an entry.
@@ -633,6 +647,8 @@ class Dictionary:
         is_modified, counter_delta = entry.notes.add(note)
 
         self._counters['notes'] += counter_delta
+
+        self._is_modified |= is_modified
 
     @_mark_modified
     def delete_note(self, entry_id: EntryID, note: Note):
@@ -650,7 +666,6 @@ class Dictionary:
 
         self._counters['notes'] -= 1
 
-    @_mark_modified
     def edit_note(self, entry_id: EntryID, note: Note, new_note: Note):
         entry = self._entries[entry_id]
 
@@ -658,7 +673,8 @@ class Dictionary:
 
         self._counters['notes'] += counter_delta
 
-    @_mark_modified
+        self._is_modified |= is_modified
+
     def add_tag_to_entries(self, tag: Tag, entry_ids: Iterable[EntryID]):
         """
         Assign a tag to multiple entries.
@@ -673,12 +689,16 @@ class Dictionary:
         else:
             entry_ids_to_update = entry_ids
 
+        if not entry_ids_to_update:
+            return
+
         for entry_id in entry_ids_to_update:
             self._entries[entry_id].tags.add(tag)
 
         self._update_index('tags', tag, entry_ids_to_update, 'add')
 
-    @_mark_modified
+        self._is_modified = True
+
     def remove_tag_from_entries(self, tag: Tag, entry_ids: Iterable[EntryID]):
         """
         Remove a tag from multiple entries.
@@ -690,12 +710,16 @@ class Dictionary:
 
         entry_ids_to_update = set(entry_ids).intersection(self._indexes['tags'][tag])
 
+        if not entry_ids_to_update:
+            return
+
         for entry_id in entry_ids_to_update:
             self._entries[entry_id].tags.delete(tag)
 
         self._update_index('tags', tag, entry_ids_to_update, 'remove')
 
-    @_mark_modified
+        self._is_modified = True
+
     def add_to_fav(self, entry_ids: Iterable[EntryID]):
         """
         Mark multiple entries as favorites.
@@ -705,9 +729,10 @@ class Dictionary:
         """
 
         for entry_id in entry_ids:
-            self._entries[entry_id].is_fav = True
+            if not self._entries[entry_id].is_fav:
+                self._entries[entry_id].is_fav = True
+                self._is_modified = True
 
-    @_mark_modified
     def remove_from_fav(self, entry_ids: Iterable[EntryID]):
         """
         Remove multiple entries from favorites.
@@ -717,7 +742,9 @@ class Dictionary:
         """
 
         for entry_id in entry_ids:
-            self._entries[entry_id].is_fav = False
+            if self._entries[entry_id].is_fav:
+                self._entries[entry_id].is_fav = False
+                self._is_modified = True
 
     @_mark_modified
     def add_ctg(self, ctg_name: Category, ctg_values: list[CtgValue]):
@@ -779,7 +806,6 @@ class Dictionary:
 
         self._features[ctg_name_new] = self._features.pop(ctg_name_old)
 
-    @_mark_modified
     def add_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
         """
         Add a new value to a grammatical category.
@@ -793,6 +819,8 @@ class Dictionary:
             return
 
         self._features[ctg_name].append(ctg_value)
+
+        self._is_modified = True
 
     @_mark_modified
     def delete_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
@@ -850,7 +878,6 @@ class Dictionary:
         index_val = self._features[ctg_name].index(ctg_value_old)
         self._features[ctg_name][index_val] = ctg_value_new
 
-    @_mark_modified
     def add_tag(self, tag: Tag, is_default: bool = False):
         """
         Add a new tag to the dictionary.
@@ -869,6 +896,8 @@ class Dictionary:
         if is_default:
             tag_id = len(self._tags) - 1
             self._default_tag_ids.add(tag_id)
+
+        self._is_modified = True
 
     @_mark_modified
     def delete_tag(self, tag: Tag):
@@ -898,7 +927,6 @@ class Dictionary:
         del self._indexes['tags'][tag]
         self._tags.remove(tag)
 
-    @_mark_modified
     def rename_tag(self, tag_old: Tag, tag_new: Tag):
         """
         Rename a tag.
@@ -911,6 +939,9 @@ class Dictionary:
         """
 
         tag_id = self._tags.index(tag_old)
+
+        if tag_old == tag_new:
+            return
 
         for entry_id in self._indexes['tags'][tag_old]:
             entry = self._entries[entry_id]
@@ -931,15 +962,25 @@ class Dictionary:
             self._indexes['tags'][tag_new] = self._indexes['tags'][tag_old]
             del self._indexes['tags'][tag_old]
 
-    @_mark_modified
+        self._is_modified = True
+
     def mark_tag_as_default(self, tag: Tag):
         tag_id = self._tags.index(tag)
-        self._default_tag_ids.add(tag_id)
 
-    @_mark_modified
+        if tag_id in self._default_tag_ids:
+            return
+
+        self._default_tag_ids.add(tag_id)
+        self._is_modified = True
+
     def unmark_default_tag(self, tag: Tag):
         tag_id = self._tags.index(tag)
+
+        if tag_id not in self._default_tag_ids:
+            return
+
         self._default_tag_ids.discard(tag_id)
+        self._is_modified = True
 
     def is_default_tag(self, tag: Tag) -> bool:
         tag_id = self._tags.index(tag)
