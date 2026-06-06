@@ -340,9 +340,21 @@ class Dictionary:
             New entry ID.
         """
 
+        if forms is not None:
+            for gram_form in forms.keys():
+                if len(gram_form) != len(self._features):
+                    raise ValueError('Invalid grammatical form')
+                for ctg_val, ctg in zip(gram_form, self._features):
+                    if ctg_val not in self._features[ctg]:
+                        raise ValueError(f'Unknown grammatical category value: {ctg_val}')
+
         if tags is not None:
+            tags = set(tags)
+            unknown_tags = tags.difference(set(self._tags))
+            if unknown_tags:
+                raise ValueError(f'Unknown tags are specified: {unknown_tags}')
             default_tags = {self._tags[i] for i in self._default_tag_ids}
-            tags = set(tags).union(default_tags)
+            tags.update(default_tags)
 
         self._max_entry_id += 1
         entry_id = self._max_entry_id
