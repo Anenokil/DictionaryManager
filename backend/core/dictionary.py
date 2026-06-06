@@ -292,7 +292,8 @@ class Dictionary:
 
         index_names = {condition[0] for condition in query}
         unexpected_index_names = index_names - set(self._indexes.keys())
-        assert not unexpected_index_names, f'No index named "{unexpected_index_names.pop()}"'
+        if unexpected_index_names:
+            raise KeyError(f'No index named "{unexpected_index_names.pop()}"')
 
         results = []
         for index_name, search_term in query:
@@ -730,7 +731,8 @@ class Dictionary:
             ctg_values: List of possible values for this category.
         """
 
-        assert ctg_name not in self._features.keys()
+        if ctg_name in self._features.keys():
+            raise ValueError(f'Category {ctg_name} already exists')
 
         for entry in self._entries.values():
             entry.forms.add_ctg()
@@ -748,8 +750,6 @@ class Dictionary:
         Args:
             ctg_name: Name of the category to delete.
         """
-
-        assert ctg_name in self._features.keys()
 
         index = tuple(self._features.keys()).index(ctg_name)
 
@@ -774,8 +774,8 @@ class Dictionary:
             ctg_name_new: New name for the category.
         """
 
-        assert ctg_name_old in self._features.keys()
-        assert ctg_name_new not in self._features.keys()
+        if ctg_name_new in self._features.keys():
+            raise ValueError(f'Category {ctg_name_new} already exists')
 
         self._features[ctg_name_new] = self._features.pop(ctg_name_old)
 
@@ -789,8 +789,8 @@ class Dictionary:
             ctg_value: New value to add to the category.
         """
 
-        assert ctg_name in self._features.keys()
-        assert ctg_value not in self._features[ctg_name]
+        if ctg_value in self._features[ctg_name]:
+            return
 
         self._features[ctg_name].append(ctg_value)
 
@@ -806,9 +806,6 @@ class Dictionary:
             ctg_name: Name of the category.
             ctg_value: Value to remove from the category.
         """
-
-        assert ctg_name in self._features.keys()
-        assert ctg_value in self._features[ctg_name]
 
         index = tuple(self._features.keys()).index(ctg_name)
 
@@ -843,9 +840,8 @@ class Dictionary:
             ctg_value_new: New value to replace the old one.
         """
 
-        assert ctg_name in self._features.keys()
-        assert ctg_value_old in self._features[ctg_name]
-        assert ctg_value_new not in self._features[ctg_name]
+        if ctg_value_new in self._features[ctg_name]:
+            raise ValueError(f'Category value {ctg_value_new} already exists')
 
         index_ctg = tuple(self._features.keys()).index(ctg_name)
         for entry in self._entries.values():
@@ -864,7 +860,8 @@ class Dictionary:
             is_default: Whether the tag is default.
         """
 
-        assert tag not in self._tags
+        if tag in self._tags:
+            return
 
         self._indexes['tags'][tag] = set()
         self._tags.append(tag)
@@ -883,8 +880,6 @@ class Dictionary:
         Args:
             tag: The tag to delete.
         """
-
-        assert tag in self._tags
 
         tag_id = self._tags.index(tag)
         self._default_tag_ids = set.union(
@@ -915,18 +910,26 @@ class Dictionary:
             tag_new: New tag name.
         """
 
-        assert tag_old in self._tags
-        assert tag_new not in self._tags
-
         tag_id = self._tags.index(tag_old)
-        self._tags[tag_id] = tag_new
 
         for entry_id in self._indexes['tags'][tag_old]:
             entry = self._entries[entry_id]
             entry.tags.edit(tag_old, tag_new)
 
-        self._indexes['tags'][tag_new] = self._indexes['tags'][tag_old]
-        del self._indexes['tags'][tag_old]
+        if tag_new in self._tags:
+            self._tags.remove(tag_old)
+            self._default_tag_ids = set.union(
+                {def_tag_id     for def_tag_id in self._default_tag_ids if def_tag_id < tag_id},
+                {def_tag_id - 1 for def_tag_id in self._default_tag_ids if def_tag_id > tag_id}
+            )
+
+            self._indexes['tags'][tag_new].update(self._indexes['tags'][tag_old])
+            del self._indexes['tags'][tag_old]
+        else:
+            self._tags[tag_id] = tag_new
+
+            self._indexes['tags'][tag_new] = self._indexes['tags'][tag_old]
+            del self._indexes['tags'][tag_old]
 
     @_mark_modified
     def mark_tag_as_default(self, tag: Tag):
@@ -1077,9 +1080,6 @@ class Dictionary:
             entry_ids: One or more entry IDs to associate with the search terms.
             action: Either 'add' or 'remove'.
         """
-
-        assert index_name in self._indexes.keys()
-        assert action in ('add', 'remove')
 
         search_terms = {search_terms} if isinstance(search_terms, str) else set(search_terms)
         entry_ids = {entry_ids} if isinstance(entry_ids, EntryID) else set(entry_ids)
