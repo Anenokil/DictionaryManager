@@ -1,5 +1,5 @@
 """
-Implements the Dictionary class which stores entries and maintains indexes.
+Implements the Dictionary class which stores Entries.
 
 Author: Anenokil
 """
@@ -29,17 +29,16 @@ TagIDs = set[TagID]
 
 class Dictionary:
     """
-    A bilingual dictionary.
+    Bilingual dictionary.
 
     Attributes:
-    ----------
-    - name: Dictionary name (read-write).
-    - is_modified: True when the dictionary has unsaved changes.
-    - features: All grammar categories and their values.
-    - tags: All tags defined in the dictionary.
-    - default_tags: Tags marked as default.
-    - total_score: Pair; the global count of correct attempts
-      and total attempts across all entries.
+        name: Dictionary name.
+        is_modified: True when the Dictionary has unsaved changes.
+        features: All grammar categories and their values.
+        tags: All tags defined in the Dictionary.
+        default_tags: Tags marked as default. Default tags are automatically added to all newly
+                      created Entries.
+        total_score: Total correct and total attempts across all Entries, as a pair of ints.
     """
 
     _schema_version = 1
@@ -56,18 +55,18 @@ class Dictionary:
 
     def __init__(self, name: DctName = None):
         """
-        Initialize a dictionary.
+        Initialize a Dictionary.
 
         Args:
-            name: The dictionary name.
+            name: Dictionary name.
         """
 
         self._name = name
 
-        # The main dictionary data structure mapping entry IDs to Entry objects
+        # The main Dictionary data structure mapping entry IDs to Entry objects
         self._entries: Entries = dict()
 
-        # Search indexes for fast entry lookup by content
+        # Search indexes for fast Entry lookup by content
         self._indexes: Indexes = {
             'lemmas': {},
             'translations': {},
@@ -86,18 +85,18 @@ class Dictionary:
             'notes': 0,
         }
 
-        # Collection of all grammatical categories and their values present in the dictionary
+        # Collection of all grammatical categories and their values present in the Dictionary
         self._features: FeatureRegistry = dict()
 
-        # All tags assigned to entries across the entire dictionary.
-        # Used for organizing and grouping dictionary content.
+        # All tags which can be assigned to Dictionary Entries.
+        # Used for organizing and grouping Dictionary content.
         self._tags: TagRegistry = []
 
         # Tags that are marked as default
         self._default_tag_ids: TagIDs = set()
 
         # Current maximum entry ID.
-        # Used to assign the next available ID to new entries (current max + 1).
+        # Used to assign the next available ID to new Entries (current max + 1).
         self._max_entry_id = 0
 
         self._is_modified = True
@@ -108,10 +107,14 @@ class Dictionary:
         Deserialize Dictionary data from a JSON format.
 
         Args:
-            data: Dictionary containing saving version and dictionary data.
+            data: Dict containing saving version and Dictionary data.
 
         Returns:
-            A Dictionary object.
+            Dictionary object.
+
+        Raises:
+            MissingFieldError: If any of the required fields are missing from the data.
+            FieldTypeError: If any of fields has an unexpected type.
         """
 
         dct = cls()
@@ -119,6 +122,19 @@ class Dictionary:
         return dct
 
     def __getitem__(self, key: EntryID) -> Entry:
+        """
+        Return the Entry with the given ID.
+
+        Args:
+            key: ID of the Entry to retrieve.
+
+        Returns:
+            Entry associated with the given ID.
+
+        Raises:
+            KeyError: If no Entry exists with the given ID.
+        """
+
         return self._entries[key]
 
     @property
@@ -148,12 +164,12 @@ class Dictionary:
     @property
     def total_score(self) -> tuple[int, int]:
         """
-        Get the global count of correct attempts and total attempts across all entries.
+        Get the global count of correct attempts and total attempts across all Entries.
 
         Returns:
-            A tuple containing two integers:
-            - Total number of correct attempts (wins) across all entries;
-            - Total number of all learning attempts across all entries.
+            Pair (correct, all).
+            - correct: Total number of correct attempts (wins) across all Entries.
+            - all: Total number of all learning attempts across all Entries.
         """
 
         correct = sum(entry.correct_att for entry in self._entries.values())
@@ -168,10 +184,10 @@ class Dictionary:
 
     def rename(self, new_name: DctName):
         """
-        Rename a dictionary.
+        Rename a Dictionary.
 
         Args:
-            new_name: New name of the dictionary.
+            new_name: New name of the Dictionary.
         """
 
         if self._name == new_name:
@@ -182,17 +198,20 @@ class Dictionary:
 
     def count_by_tag(self, tag: Tag) -> tuple[int, int, int, int]:
         """
-        Count the number of entries, translations, and inflected forms with the specified tag.
+        Count the number of Entries, translations, and inflected forms with the specified tag.
 
         Args:
-            tag: The tag for which to count statistics.
+            tag: Tag for which to count statistics.
 
         Returns:
-            A tuple containing three integers:
-            - Number of dictionary entries (lemmas) with the tag;
-            - Total number of translations across all entries with the tag;
-            - Total number of grammatical forms across all entries with the tag;
-            - Total number of word forms across all entries with the tag.
+            Tuple (n_entries, n_translations, n_gram_forms, n_word_forms).
+            - n_entries: Number of Dictionary Entries with the tag.
+            - n_translations: Total number of translations across all Entries with the tag.
+            - n_gram_forms: Total number of grammatical forms across all Entries with the tag.
+            - n_word_forms: Total number of word forms across all Entries with the tag.
+
+        Raises:
+            KeyError: If the tag does not exist.
         """
 
         n_entries = 0
@@ -209,18 +228,21 @@ class Dictionary:
 
     def count_by_fav(self, tag: Tag | None = None) -> tuple[int, int, int, int]:
         """
-        Count the number of favorite entries, their translations, and inflected forms.
+        Count the number of favorite Entries, their translations, and inflected forms.
 
         Args:
-            tag: If specified, counts only favorite entries within the tag.
-                 If None, counts all favorite entries in the dictionary.
+            tag: If specified, counts only favorite Entries within the tag.
+                 If None, counts all favorite Entries in the Dictionary.
 
         Returns:
-            A tuple containing three integers:
-            - Number of favorite dictionary entries (lemmas);
-            - Total number of translations across favorite entries;
-            - Total number of grammatical forms across favorite entries;
-            - Total number of word forms across favorite entries.
+            Tuple (n_entries, n_translations, n_gram_forms, n_word_forms).
+            - n_entries: Number of favorite Dictionary Entries.
+            - n_translations: Total number of translations across favorite Entries.
+            - n_gram_forms: Total number of grammatical forms across favorite Entries.
+            - n_word_forms: Total number of word forms across favorite Entries.
+
+        Raises:
+            KeyError: If the tag does not exist.
         """
 
         n_entries = 0
@@ -245,6 +267,20 @@ class Dictionary:
         return n_entries, n_translations, n_gram_forms, n_word_forms
 
     def count(self, target: str) -> int:
+        """
+        Count the total number of objects of the given type across the Dictionary.
+
+        Args:
+            target: Object to count. Options: 'lemmas', 'translations', 'gram_forms', 'word_forms',
+                    'phrases', 'phrase_trs', 'notes', 'tags', 'categories', 'ctg_values'.
+
+        Returns:
+            Total count of target objects across the entire Dictionary.
+
+        Raises:
+            KeyError: If an invalid target is specified.
+        """
+
         if target == 'tags':
             return len(self._tags)
         if target == 'categories':
@@ -255,42 +291,42 @@ class Dictionary:
 
     def iter_entry_ids(self) -> Generator[EntryID, None, None]:
         """
-        Iterate over all entry keys in the dictionary.
+        Iterate over all entry IDs in the Dictionary.
 
         Yields:
-            The next entry key in the dictionary.
+            The next entry ID in the Dictionary.
         """
 
         yield from self._entries.keys()
 
     def iter_entries(self) -> Generator[Entry, None, None]:
         """
-        Iterate over all entries in the dictionary.
+        Iterate over all Entries in the Dictionary.
 
         Yields:
-            The next entry in the dictionary.
+            The next Entry in the Dictionary.
         """
 
         yield from self._entries.values()
 
     def search(self, query: Collection[tuple[str, str]]) -> set[EntryID]:
         """
-        Search for entries across multiple indexes using the specified query conditions.
+        Search for Entries across multiple indexes using the specified query conditions.
 
-        Performs a logical AND search - returns entries that match ALL specified conditions.
+        Performs a logical AND search - returns Entries that match ALL specified conditions.
 
         Args:
             query: Collection of (index_name, search_term) pairs defining search conditions.
                    - index_name: Name of the index to search in. Valid values:
-                     'lemmas', 'translations', 'forms', 'tags'.
-                   - search_term: The search term to look for in the index.
+                                 'lemmas', 'translations', 'forms', 'tags'.
+                   - search_term: Search term to look for in the index.
 
         Returns:
             Set of entry IDs that satisfy ALL the specified search conditions.
             Returns empty set if no matches found or index doesn't contain the query.
 
         Raises:
-            AssertionError: If index_name is not a valid index.
+            KeyError: If invalid index names are specified.
         """
 
         index_names = {condition[0] for condition in query}
@@ -321,16 +357,16 @@ class Dictionary:
             latest_att_timestamp: Timestamp = (0, 0, 0),
     ) -> EntryID:
         """
-        Add a new dictionary entry.
+        Add a new Entry.
 
         Args:
-            lemma: The lemma (canonical/dictionary form of the word).
+            lemma: Lemma (canonical/dictionary form of the word).
             tr: One or more translations.
             forms: Inflected forms of the word (except the lemma).
             phrases: Phrases containing the word; usage examples.
             notes: Notes field.
-            tags: Tags assigned to the entry.
-            is_fav: Whether the entry is favorite.
+            tags: Tags assigned to the Entry.
+            is_fav: Whether the Entry is favorite.
             total_att: Total number of game attempts.
             correct_att: Number of correct guesses (wins).
             win_streak: Count of consecutive wins.
@@ -338,6 +374,9 @@ class Dictionary:
 
         Returns:
             New entry ID.
+
+        Raises:
+            ValueError: If invalid tags or grammatical forms are specified.
         """
 
         if forms is not None:
@@ -383,13 +422,16 @@ class Dictionary:
     @_mark_modified
     def delete_entry(self, entry_id: EntryID):
         """
-        Delete a dictionary entry.
+        Delete an Entry.
 
-        Removes the entry from the dictionary, updates all indexes, and
-        adjusts counters accordingly.
+        Removes the Entry from the Dictionary, updates all indexes, and adjusts counters
+        accordingly.
 
         Args:
-            entry_id: ID of the entry to delete.
+            entry_id: ID of the Entry to delete.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id.
         """
 
         entry = self._entries[entry_id]
@@ -412,14 +454,17 @@ class Dictionary:
     @_mark_modified
     def merge_entries(self, target_entry_id: EntryID, source_entry_id: EntryID):
         """
-        Merge two entries with the same word into one.
+        Merge two Entries with the same word into one.
 
-        Combines all data from the source entry into the target entry.
-        The source entry is deleted after merging.
+        Combines all data from the source Entry into the target Entry.
+        The source Entry is deleted after merging.
 
         Args:
-            target_entry_id: ID of the entry to merge into (will be kept).
-            source_entry_id: ID of the entry to merge into the target entry (will be deleted).
+            target_entry_id: ID of the Entry to merge into (will be kept).
+            source_entry_id: ID of the Entry to merge into the target Entry (will be deleted).
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id.
         """
 
         target_entry = self._entries[target_entry_id]
@@ -449,17 +494,16 @@ class Dictionary:
 
     def edit_lemma(self, entry_id: EntryID, new_lemma: Word):
         """
-        Update the lemma of an existing dictionary entry.
+        Update the lemma of an existing Entry.
 
-        Replaces the current lemma with a new one and updates all relevant indexes
-        to maintain search consistency.
+        Adjusts indexes to maintain search consistency.
 
         Args:
-            entry_id: Unique identifier of the entry to modify.
-            new_lemma: New lemma word to assign to the entry.
+            entry_id: Unique identifier of the Entry to modify.
+            new_lemma: New lemma word to assign to the Entry.
 
         Raises:
-            KeyError: If no entry exists with the given entry_id.
+            KeyError: If no Entry exists with the given entry_id.
         """
 
         old_lemma = self._entries[entry_id].lemma
@@ -476,11 +520,14 @@ class Dictionary:
 
     def add_tr(self, entry_id: EntryID, tr: Translation):
         """
-        Add a translation to an entry.
+        Add a translation to an Entry.
 
         Args:
-            entry_id: ID of the entry.
+            entry_id: ID of the Entry.
             tr: Translation to add.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id.
         """
 
         entry = self._entries[entry_id]
@@ -495,11 +542,15 @@ class Dictionary:
     @_mark_modified
     def delete_tr(self, entry_id: EntryID, tr: Translation):
         """
-        Delete a translation from an entry.
+        Delete a translation from an Entry.
 
         Args:
-            entry_id: ID of the entry.
+            entry_id: ID of the Entry.
             tr: Translation to delete.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id.
+            ValueError: If the Entry does not have the specified translation.
         """
 
         entry = self._entries[entry_id]
@@ -510,6 +561,19 @@ class Dictionary:
         self._update_index('translations', tr, entry_id, 'remove')
 
     def edit_tr(self, entry_id: EntryID, tr: Translation, new_tr: Translation):
+        """
+        Replace an existing translation with a new translation.
+
+        Args:
+            entry_id: ID of the Entry.
+            tr: Translation to replace.
+            new_tr: New translation.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id.
+            ValueError: If the Entry does not have the specified translation.
+        """
+
         entry = self._entries[entry_id]
 
         is_modified, counter_delta = entry.tr.edit(tr, new_tr)
@@ -522,12 +586,15 @@ class Dictionary:
 
     def add_form(self, entry_id: EntryID, gram_form: GramForm, word_form: WordForm):
         """
-        Add an inflected form to an entry.
+        Add an inflected form to an Entry.
 
         Args:
-            entry_id: ID of the entry.
+            entry_id: ID of the Entry.
             gram_form: Grammatical form for the inflection.
-            word_form: The inflected form to add.
+            word_form: Inflected form to add.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id.
         """
 
         entry = self._entries[entry_id]
@@ -542,18 +609,24 @@ class Dictionary:
 
     def delete_form(self, entry_id: EntryID, gram_form: GramForm, word_form: WordForm):
         """
-        Delete an inflected form from an entry.
+        Delete an inflected form from an Entry.
 
         Args:
-            entry_id: ID of the entry.
+            entry_id: ID of the Entry.
             gram_form: Grammatical form identifying the form to remove.
-            word_form: The actual inflected form to remove.
+            word_form: Inflected form to remove.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id, or if the specified gram_form is
+                      not found.
+            ValueError: If the specified word_form is not found.
         """
 
         entry = self._entries[entry_id]
 
-        # An entry may contain homographs
-        # Therefore, we need to first remove all forms from the index, then add them back to the index
+        # An Entry may contain homographs.
+        # Therefore, we need to first remove all forms from the index, then add them back to the
+        # index.
         self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
 
         is_modified, cnt_delta_gram, cnt_delta_word = entry.forms.delete(gram_form, word_form)
@@ -572,10 +645,27 @@ class Dictionary:
             new_gram_form: GramForm,
             new_word_form: WordForm,
     ):
+        """
+        Edit grammatical or/and inflected form of an Entry.
+
+        Args:
+            entry_id: ID of the Entry.
+            gram_form: Grammatical form to edit.
+            word_form: Inflected form to edit.
+            new_gram_form: Replacement grammatical form.
+            new_word_form: Replacement inflected form.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id, or if the specified gram_form is
+                      not found.
+            ValueError: If the specified word_form is not found.
+        """
+
         entry = self._entries[entry_id]
 
-        # An entry may contain homographs
-        # Therefore, we need to first remove all forms from the index, then add them back to the index
+        # An Entry may contain homographs.
+        # Therefore, we need to first remove all forms from the index, then add them back to the
+        # index.
         self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
 
         is_modified, cnt_delta_gram, cnt_delta_word = entry.forms.edit(
@@ -590,12 +680,15 @@ class Dictionary:
 
     def add_phrase(self, entry_id: EntryID, phrase: Phrase, phrase_tr: PhraseTr):
         """
-        Add a phrase with its translation to an entry.
+        Add a phrase with its translation to an Entry.
 
         Args:
-            entry_id: ID of the entry.
-            phrase: The phrase or usage example.
-            phrase_tr: Translation of the phrase.
+            entry_id: ID of the Entry.
+            phrase: Phrase to add.
+            phrase_tr: Phrase translation to add.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id.
         """
 
         entry = self._entries[entry_id]
@@ -609,12 +702,17 @@ class Dictionary:
 
     def delete_phrase(self, entry_id: EntryID, phrase: Phrase, phrase_tr: PhraseTr):
         """
-        Delete a phrase and its translation from an entry.
+        Delete a phrase and its translation from an Entry.
 
         Args:
-            entry_id: ID of the entry.
-            phrase: The phrase to remove.
-            phrase_tr: The translation of the phrase to remove.
+            entry_id: ID of the Entry.
+            phrase: Phrase to remove.
+            phrase_tr: Phrase translation to remove.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id, or if the specified phrase is not
+                      found.
+            ValueError: If the specified phrase_tr is not found.
         """
 
         entry = self._entries[entry_id]
@@ -634,6 +732,22 @@ class Dictionary:
             new_phrase: Phrase,
             new_phrase_tr: PhraseTr,
     ):
+        """
+        Edit a phrase or/and its translation.
+
+        Args:
+            entry_id: ID of the Entry.
+            phrase: Phrase to edit.
+            phrase_tr: Phrase translation to edit.
+            new_phrase: Replacement phrase.
+            new_phrase_tr: Replacement phrase translation.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id, or if the specified phrase is not
+                      found.
+            ValueError: If the specified phrase_tr is not found.
+        """
+
         entry = self._entries[entry_id]
 
         is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases.edit(
@@ -647,11 +761,14 @@ class Dictionary:
 
     def add_note(self, entry_id: EntryID, note: Note):
         """
-        Add a note to an entry.
+        Add a note to an Entry.
 
         Args:
-            entry_id: ID of the entry.
+            entry_id: ID of the Entry.
             note: Note text to add.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id.
         """
 
         entry = self._entries[entry_id]
@@ -665,11 +782,15 @@ class Dictionary:
     @_mark_modified
     def delete_note(self, entry_id: EntryID, note: Note):
         """
-        Delete a note from an entry.
+        Delete a note from an Entry.
 
         Args:
-            entry_id: ID of the entry.
+            entry_id: ID of the Entry.
             note: Note text to remove.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id.
+            ValueError: If the specified note is not found.
         """
 
         entry = self._entries[entry_id]
@@ -679,6 +800,19 @@ class Dictionary:
         self._counters['notes'] -= 1
 
     def edit_note(self, entry_id: EntryID, note: Note, new_note: Note):
+        """
+        Edit a note
+
+        Args:
+            entry_id: ID of the Entry.
+            note: Note to edit.
+            new_note: Replacement note.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id.
+            ValueError: If the specified note is not found.
+        """
+
         entry = self._entries[entry_id]
 
         is_modified, counter_delta = entry.notes.edit(note, new_note)
@@ -689,11 +823,14 @@ class Dictionary:
 
     def add_tag_to_entries(self, tag: Tag, entry_ids: Iterable[EntryID]):
         """
-        Assign a tag to multiple entries.
+        Assign a tag to multiple Entries.
 
         Args:
-            tag: The tag to assign to the entries.
+            tag: Tag to assign to the Entries.
             entry_ids: Iterable of entry IDs to assign the tag to.
+
+        Raises:
+            KeyError: If no Entry exists with the given ID, or if the specified tag does not exist.
         """
 
         if tag in self._tags:
@@ -713,11 +850,14 @@ class Dictionary:
 
     def remove_tag_from_entries(self, tag: Tag, entry_ids: Iterable[EntryID]):
         """
-        Remove a tag from multiple entries.
+        Remove a tag from multiple Entries.
 
         Args:
-            tag: The tag to remove from the entries.
+            tag: Tag to remove from the Entries.
             entry_ids: Iterable of entry IDs to remove the tag from.
+
+        Raises:
+            KeyError: If no Entry exists with the given ID, or if the specified tag does not exist.
         """
 
         entry_ids_to_update = set(entry_ids).intersection(self._indexes['tags'][tag])
@@ -734,10 +874,13 @@ class Dictionary:
 
     def add_to_fav(self, entry_ids: Iterable[EntryID]):
         """
-        Mark multiple entries as favorites.
+        Mark multiple Entries as favorites.
 
         Args:
             entry_ids: Iterable of entry IDs to mark as favorites.
+
+        Raises:
+            KeyError: If no Entry exists with the given ID.
         """
 
         for entry_id in entry_ids:
@@ -747,10 +890,13 @@ class Dictionary:
 
     def remove_from_fav(self, entry_ids: Iterable[EntryID]):
         """
-        Remove multiple entries from favorites.
+        Remove multiple Entries from favorites.
 
         Args:
             entry_ids: Iterable of entry IDs to remove from favorites.
+
+        Raises:
+            KeyError: If no Entry exists with the given ID.
         """
 
         for entry_id in entry_ids:
@@ -761,13 +907,16 @@ class Dictionary:
     @_mark_modified
     def add_ctg(self, ctg_name: Category, ctg_values: list[CtgValue]):
         """
-        Add a new grammatical category to the dictionary.
+        Add a new grammatical category to the Dictionary.
 
-        Adds an empty category position to all existing word forms in all entries.
+        Adds an empty category position to all existing word forms in all Entries.
 
         Args:
             ctg_name: Name of the new category.
             ctg_values: List of possible values for this category.
+
+        Raises:
+            ValueError: If the specified category is already in the Dictionary.
         """
 
         if ctg_name in self._features.keys():
@@ -781,13 +930,16 @@ class Dictionary:
     @_mark_modified
     def delete_ctg(self, ctg_name: Category):
         """
-        Delete a grammatical category from the dictionary.
+        Delete a grammatical category from the Dictionary.
 
-        Removes the category from all word forms. Forms with non-empty values
-        at this category position are deleted entirely.
+        Removes the category from all word forms. Forms with non-empty values at this category
+        position are deleted entirely.
 
         Args:
             ctg_name: Name of the category to delete.
+
+        Raises:
+            ValueError: If the specified category does not exist.
         """
 
         index = tuple(self._features.keys()).index(ctg_name)
@@ -811,6 +963,10 @@ class Dictionary:
         Args:
             ctg_name_old: Current name of the category.
             ctg_name_new: New name for the category.
+
+        Raises:
+            KeyError: If the specified category does not exist.
+            ValueError: If the specified new name already exists.
         """
 
         if ctg_name_new in self._features.keys():
@@ -825,6 +981,9 @@ class Dictionary:
         Args:
             ctg_name: Name of the category.
             ctg_value: New value to add to the category.
+
+        Raises:
+            KeyError: If the specified category does not exist.
         """
 
         if ctg_value in self._features[ctg_name]:
@@ -839,12 +998,15 @@ class Dictionary:
         """
         Delete a value from a grammatical category.
 
-        Removes all word forms that use this category value. If the category
-        has no values left after deletion, the category itself is removed.
+        Removes all word forms that use this category value.
+        If the category has no values left after deletion, the category itself is removed.
 
         Args:
             ctg_name: Name of the category.
             ctg_value: Value to remove from the category.
+
+        Raises:
+            ValueError: If the specified category or its value does not exist.
         """
 
         index = tuple(self._features.keys()).index(ctg_name)
@@ -878,6 +1040,11 @@ class Dictionary:
             ctg_name: Name of the category.
             ctg_value_old: Current value to be replaced.
             ctg_value_new: New value to replace the old one.
+
+        Raises:
+            KeyError: If the specified category does not exist.
+            ValueError: If the specified old value does not exist, or if the new value already
+                        exists.
         """
 
         if ctg_value_new in self._features[ctg_name]:
@@ -892,10 +1059,12 @@ class Dictionary:
 
     def add_tag(self, tag: Tag, is_default: bool = False):
         """
-        Add a new tag to the dictionary.
+        Add a new tag to the Dictionary.
+
+        If the tag already exists in the Dictionary, no changes are made.
 
         Args:
-            tag: The tag to add.
+            tag: Tag to add.
             is_default: Whether the tag is default.
         """
 
@@ -914,12 +1083,15 @@ class Dictionary:
     @_mark_modified
     def delete_tag(self, tag: Tag):
         """
-        Delete a tag from the dictionary.
+        Delete a tag from the Dictionary.
 
-        Removes the tag from all entries that.
+        Removes the tag from all Entries it was assigned to.
 
         Args:
-            tag: The tag to delete.
+            tag: Tag to delete.
+
+        Raises:
+            ValueError: If the specified tag does not exist.
         """
 
         tag_id = self._tags.index(tag)
@@ -943,11 +1115,14 @@ class Dictionary:
         """
         Rename a tag.
 
-        Updates all entries with the old tag to use the new name.
+        Updates all Entries with the old tag to use the new name.
 
         Args:
-            tag_old: The tag ro rename.
+            tag_old: Tag to rename.
             tag_new: New tag name.
+
+        Raises:
+            ValueError: If the specified tag does not exist.
         """
 
         tag_id = self._tags.index(tag_old)
@@ -977,6 +1152,18 @@ class Dictionary:
         self._is_modified = True
 
     def mark_tag_as_default(self, tag: Tag):
+        """
+        Mark the given tag as default.
+
+        Default tags are automatically added to all newly created Entries.
+
+        Args:
+            tag: Tag to mark as default.
+
+        Raises:
+            ValueError: If the specified tag does not exist.
+        """
+
         tag_id = self._tags.index(tag)
 
         if tag_id in self._default_tag_ids:
@@ -986,6 +1173,18 @@ class Dictionary:
         self._is_modified = True
 
     def unmark_default_tag(self, tag: Tag):
+        """
+        Unmark the given tag as default.
+
+        The tag will no longer be automatically added to newly created Entries.
+
+        Args:
+            tag: Tag to unmark as default.
+
+        Raises:
+            ValueError: If the specified tag does not exist.
+        """
+
         tag_id = self._tags.index(tag)
 
         if tag_id not in self._default_tag_ids:
@@ -1003,7 +1202,7 @@ class Dictionary:
         Serialize the Dictionary to a JSON format.
 
         Returns:
-            Dictionary containing saving version and all Dictionary data.
+            Dict containing saving version and all Dictionary data.
         """
 
         entries = {
@@ -1036,7 +1235,11 @@ class Dictionary:
         Deserialize Dictionary data from a JSON format.
 
         Args:
-            data: Dictionary containing saving version and dictionary data.
+            data: Dict containing saving version and Dictionary data.
+
+        Raises:
+            MissingFieldError: If any of the required fields are missing from the data.
+            FieldTypeError: If any of fields has an unexpected type.
         """
 
         # Validate required fields
@@ -1104,12 +1307,12 @@ class Dictionary:
 
     def to_txt(self, filepath: str):
         """
-        Print the dictionary to the specified file.
+        Print the Dictionary to the specified file.
 
-        Outputs a formatted representation of the entire dictionary.
+        Outputs a formatted representation of the entire Dictionary.
 
         Args:
-            filepath: The path to the text file. The file's contents will be overwritten.
+            filepath: Path to the text file. The file's contents will be overwritten.
         """
 
         with open(filepath, 'w', encoding='utf-8') as file:
@@ -1125,13 +1328,16 @@ class Dictionary:
             action: Literal['add', 'remove'],
     ):
         """
-        Update a search index by adding or removing an entry.
+        Update a search index by adding or removing an Entry.
 
         Args:
             index_name: Name of the index to update ('lemmas', 'translations', 'forms', or 'tags').
             search_terms: One or more search terms to add to or remove from the index.
             entry_ids: One or more entry IDs to associate with the search terms.
             action: Either 'add' or 'remove'.
+
+        Raises:
+            KeyError: If an invalid index is specified.
         """
 
         search_terms = {search_terms} if isinstance(search_terms, str) else set(search_terms)
