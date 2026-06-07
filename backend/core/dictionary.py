@@ -627,13 +627,13 @@ class Dictionary:
         # An Entry may contain homographs.
         # Therefore, we need to first remove all forms from the index, then add them back to the
         # index.
-        self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
-
+        to_rm_from_index = set(chain(*entry.forms.values()))
         is_modified, cnt_delta_gram, cnt_delta_word = entry.forms.delete(gram_form, word_form)
+        to_rm_from_index.difference_update(*entry.forms.values())
 
         self._counters['gram_forms'] += cnt_delta_gram
         self._counters['word_forms'] += cnt_delta_word
-        self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
+        self._update_index('forms', to_rm_from_index, entry_id, 'add')
 
         self._is_modified |= is_modified
 
@@ -666,15 +666,15 @@ class Dictionary:
         # An Entry may contain homographs.
         # Therefore, we need to first remove all forms from the index, then add them back to the
         # index.
-        self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
-
+        to_rm_from_index = set(chain(*entry.forms.values()))
         is_modified, cnt_delta_gram, cnt_delta_word = entry.forms.edit(
             gram_form, word_form, new_gram_form, new_word_form
         )
+        to_rm_from_index.difference_update(*entry.forms.values())
 
         self._counters['gram_forms'] += cnt_delta_gram
         self._counters['word_forms'] += cnt_delta_word
-        self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
+        self._update_index('forms', to_rm_from_index, entry_id, 'add')
 
         self._is_modified |= is_modified
 
@@ -944,6 +944,8 @@ class Dictionary:
 
         index = tuple(self._features.keys()).index(ctg_name)
 
+        self._features.pop(ctg_name)
+
         for entry_id, entry in self._entries.items():
             self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
             self._counters['gram_forms'] -= entry.n_gram_forms
@@ -952,8 +954,6 @@ class Dictionary:
             self._counters['gram_forms'] += entry.n_gram_forms
             self._counters['word_forms'] += entry.n_word_forms
             self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
-
-        self._features.pop(ctg_name)
 
     @_mark_modified
     def rename_ctg(self, ctg_name_old: Category, ctg_name_new: Category):
@@ -1009,20 +1009,21 @@ class Dictionary:
             ValueError: If the specified category or its value does not exist.
         """
 
-        index = tuple(self._features.keys()).index(ctg_name)
-
-        for entry_id, entry in self._entries.items():
-            self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
-            self._counters['gram_forms'] -= entry.n_gram_forms
-            self._counters['word_forms'] -= entry.n_word_forms
-            entry.forms.delete_ctg_value(index, ctg_value)
-            self._counters['gram_forms'] += entry.n_gram_forms
-            self._counters['word_forms'] += entry.n_word_forms
-            self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
-
-        self._features[ctg_name].remove(ctg_value)
-        if len(self._features[ctg_name]) == 0:  # If a category has no values left, it is removed
+        if self._features[ctg_name] == [ctg_value]:
             self.delete_ctg(ctg_name)
+        else:
+            index = tuple(self._features.keys()).index(ctg_name)
+
+            self._features[ctg_name].remove(ctg_value)
+
+            for entry_id, entry in self._entries.items():
+                self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
+                self._counters['gram_forms'] -= entry.n_gram_forms
+                self._counters['word_forms'] -= entry.n_word_forms
+                entry.forms.delete_ctg_value(index, ctg_value)
+                self._counters['gram_forms'] += entry.n_gram_forms
+                self._counters['word_forms'] += entry.n_word_forms
+                self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
 
     @_mark_modified
     def rename_ctg_value(
@@ -1051,11 +1052,12 @@ class Dictionary:
             raise ValueError(f'Category value {ctg_value_new} already exists')
 
         index_ctg = tuple(self._features.keys()).index(ctg_name)
+        index_val = self._features[ctg_name].index(ctg_value_old)
+
+        self._features[ctg_name][index_val] = ctg_value_new
+
         for entry in self._entries.values():
             entry.forms.rename_ctg_value(index_ctg, ctg_value_old, ctg_value_new)
-
-        index_val = self._features[ctg_name].index(ctg_value_old)
-        self._features[ctg_name][index_val] = ctg_value_new
 
     def add_tag(self, tag: Tag, is_default: bool = False):
         """
