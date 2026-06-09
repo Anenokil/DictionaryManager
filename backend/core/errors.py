@@ -7,8 +7,11 @@ Author: Anenokil
 from types import GenericAlias
 from typing import Any, _GenericAlias, get_origin, get_args
 
+# Typing aliases used in the module
+TypeRef = type | str
 
-def _type_repr(t: type) -> str:
+
+def _type_repr(t: TypeRef) -> str:
     if t is Ellipsis:
         return '...'
     if isinstance(t, (GenericAlias, _GenericAlias)):
@@ -68,9 +71,9 @@ class FieldTypeError(DeserializationError):
     def __init__(
             self,
             field: Any,
-            expected_types: type | tuple[type, ...] | list[type],
+            expected_types: TypeRef | tuple[TypeRef, ...] | list[TypeRef],
             gotten_value: Any,
-            gotten_type: type | str | None = None,
+            gotten_type: TypeRef | None = None,
     ):
         """
         Args:
