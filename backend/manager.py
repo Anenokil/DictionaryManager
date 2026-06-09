@@ -385,6 +385,9 @@ class Manager:
 
         filepath = filepath or self.opened_dct_bundles[dct_id].filepath
 
+        if filepath is None:
+            raise ValueError('No filepath was specified')
+
         self.active.dct.mark_saved()
 
         data = self.active.to_dict()
@@ -408,6 +411,9 @@ class Manager:
             new_name: New name of the dictionary.
         """
 
+        if not (0 <= dct_id < len(self.opened_dct_bundles)):
+            raise KeyError('Index out of range')
+
         self.opened_dct_bundles[dct_id].dct.rename(new_name)
 
     def move_dct(self, from_index: int, to_index: int):
@@ -418,6 +424,11 @@ class Manager:
             from_index: Index of the dictionary to move.
             to_index: New index of the dictionary.
         """
+
+        if not (0 <= from_index < len(self.opened_dct_bundles)):
+            raise KeyError('Index out of range')
+        if not (0 <= to_index < len(self.opened_dct_bundles)):
+            raise KeyError('Index out of range')
 
         target_dct = self.opened_dct_bundles[from_index]
         is_active = from_index == self.active_dct_id
