@@ -109,7 +109,7 @@ class SearchConfig:
         validate_field_type('search_tags', data['search_tags'], (list[str], NoneType))
 
 
-class DctInfo:
+class DctBundle:
     """
     Main dictionary container holding dictionary configuration,
     settings and file information.
@@ -184,9 +184,9 @@ class DctInfo:
 
     @classmethod
     def from_dict(cls, filepath: str, data: SerializedData):
-        dct_info = cls(filepath)
-        dct_info.load_from_dict(data)
-        return dct_info
+        dct_bundle = cls(filepath)
+        dct_bundle.load_from_dict(data)
+        return dct_bundle
 
     @staticmethod
     def _check_and_migrate(data: SerializedData) -> SerializedData:
@@ -195,9 +195,9 @@ class DctInfo:
 
         version: int = data['version']
         if version == 1:
-            DctInfo._validate_data(data)
+            DctBundle._validate_data(data)
             return data
-        raise UnknownVersionError(DctInfo.__name__, version)
+        raise UnknownVersionError(DctBundle.__name__, version)
 
     @staticmethod
     def _validate_data(data: SerializedData):
@@ -250,7 +250,7 @@ class Manager:
         Creates an empty manager with no opened dictionaries.
         """
 
-        self.opened_dct_info: list[DctInfo] = []
+        self.opened_dct_bundles: list[DctBundle] = []
         self.active_dct_id: int | None = None
 
     @property
@@ -262,10 +262,10 @@ class Manager:
             Number of opened dictionaries.
         """
 
-        return len(self.opened_dct_info)
+        return len(self.opened_dct_bundles)
 
     @property
-    def active(self) -> DctInfo | None:
+    def active(self) -> DctBundle | None:
         """
         Get the file path of the currently active dictionary.
 
@@ -276,13 +276,13 @@ class Manager:
 
         if self.active_dct_id is None:
             return None
-        return self.opened_dct_info[self.active_dct_id]
+        return self.opened_dct_bundles[self.active_dct_id]
 
-    def add_dct(self, dct_info: DctInfo, to_activate: bool = True):
-        self.opened_dct_info.append(dct_info)
+    def add_dct(self, dct_bundle: DctBundle, to_activate: bool = True):
+        self.opened_dct_bundles.append(dct_bundle)
 
         if to_activate or self.n_opened == 1:
-            self.active_dct_id = len(self.opened_dct_info) - 1
+            self.active_dct_id = len(self.opened_dct_bundles) - 1
 
     def create_dct(self, filepath: str, name: DctName = None, to_activate: bool = True):
         """
@@ -297,13 +297,13 @@ class Manager:
                 active index.
         """
 
-        new_dct_info = DctInfo(filepath)
-        new_dct_info.dct.rename(name)
-        self.opened_dct_info.append(new_dct_info)
+        new_dct_bundle = DctBundle(filepath)
+        new_dct_bundle.dct.rename(name)
+        self.opened_dct_bundles.append(new_dct_bundle)
 
         # If needed, set this dictionary as active
         if to_activate or self.n_opened == 1:
-            self.active_dct_id = len(self.opened_dct_info) - 1
+            self.active_dct_id = len(self.opened_dct_bundles) - 1
 
     def open_dct(self, filepath: str, to_activate: bool = True):
         """
@@ -318,13 +318,13 @@ class Manager:
 
         with open(filepath, 'r') as file:
             data = json.load(file)
-        dct_info = DctInfo.from_dict(filepath, data)
-        dct_info.dct.mark_saved()
-        self.opened_dct_info.append(dct_info)
+        dct_bundle = DctBundle.from_dict(filepath, data)
+        dct_bundle.dct.mark_saved()
+        self.opened_dct_bundles.append(dct_bundle)
 
         # If needed, set this dictionary as active
         if to_activate or self.n_opened == 1:
-            self.active_dct_id = len(self.opened_dct_info) - 1
+            self.active_dct_id = len(self.opened_dct_bundles) - 1
 
     def switch_dct(self, dct_id: int):
         """
@@ -337,7 +337,7 @@ class Manager:
             AssertionError: If the dictionary index is out of range.
         """
 
-        assert 0 <= dct_id <= len(self.opened_dct_info)
+        assert 0 <= dct_id <= len(self.opened_dct_bundles)
 
         self.active_dct_id = dct_id
 
@@ -354,14 +354,14 @@ class Manager:
             AssertionError: If the dictionary index is out of range.
         """
 
-        assert 0 <= dct_id <= len(self.opened_dct_info)
+        assert 0 <= dct_id <= len(self.opened_dct_bundles)
 
-        if len(self.opened_dct_info) == 1:
+        if len(self.opened_dct_bundles) == 1:
             self.active_dct_id = None
-        elif dct_id < self.active_dct_id or self.active_dct_id == len(self.opened_dct_info) - 1:
+        elif dct_id < self.active_dct_id or self.active_dct_id == len(self.opened_dct_bundles) - 1:
             self.active_dct_id -= 1
 
-        del self.opened_dct_info[dct_id]
+        del self.opened_dct_bundles[dct_id]
 
     def save_dct(self, dct_id: int, filepath: str | None = None):
         """
@@ -378,9 +378,9 @@ class Manager:
                 has none.
         """
 
-        assert 0 <= dct_id <= len(self.opened_dct_info)
+        assert 0 <= dct_id <= len(self.opened_dct_bundles)
 
-        filepath = filepath or self.opened_dct_info[dct_id].filepath
+        filepath = filepath or self.opened_dct_bundles[dct_id].filepath
 
         self.active.dct.mark_saved()
 
@@ -394,9 +394,9 @@ class Manager:
             json.dump(data, file)
 
 
-        self.opened_dct_info[dct_id].filepath = filepath
+        self.opened_dct_bundles[dct_id].filepath = filepath
 
-    def rename_dict(self, dct_id: int, new_name: str):
+    def rename_dct(self, dct_id: int, new_name: str):
         """
         Rename a dictionary.
 
@@ -405,9 +405,9 @@ class Manager:
             new_name: New name of the dictionary.
         """
 
-        self.opened_dct_info[dct_id].dct.rename(new_name)
+        self.opened_dct_bundles[dct_id].dct.rename(new_name)
 
-    def reorder(self, from_index: int, to_index: int):
+    def move_dct(self, from_index: int, to_index: int):
         """
         Reorder opened dictionaries.
 
@@ -416,14 +416,15 @@ class Manager:
             to_index: New index of the dictionary.
         """
 
-        target_dct = self.opened_dct_info[from_index]
+        target_dct = self.opened_dct_bundles[from_index]
         is_active = from_index == self.active_dct_id
 
         if not is_active and self.active_dct_id > from_index:
             self.active_dct_id -= 1
 
-        del self.opened_dct_info[from_index]
-        self.opened_dct_info = self.opened_dct_info[:to_index] + [target_dct] + self.opened_dct_info[to_index:]
+        del self.opened_dct_bundles[from_index]
+        self.opened_dct_bundles = self.opened_dct_bundles[:to_index] + [target_dct] + \
+                                  self.opened_dct_bundles[to_index:]
 
         if is_active:
             self.active_dct_id = to_index
@@ -441,16 +442,16 @@ class Manager:
         return {
             'version': self._schema_version,
             'data': {
-                'opened_dct_info': [dct_info.filepath for dct_info in self.opened_dct_info],
+                'opened_dct_bundles': [bundle.filepath for bundle in self.opened_dct_bundles],
                 'active_dct_id': self.active_dct_id,
             }
         }
 
     @staticmethod
-    def _load_dct(filepath: str) -> DctInfo:
+    def _load_dct(filepath: str) -> DctBundle:
         with open(filepath, 'r') as file:
             data = json.load(file)
-        return DctInfo.from_dict(filepath, data)
+        return DctBundle.from_dict(filepath, data)
 
     def load_from_json_dict(self, data: SerializedData):
         """
@@ -464,23 +465,23 @@ class Manager:
         required_fields = ('version', 'data')
         validate_required_fields(data, required_fields)
 
-        required_fields = ('opened_dct_info', 'active_dct_id')
+        required_fields = ('opened_dct_bundles', 'active_dct_id')
         validate_required_fields(data['data'], required_fields)
 
         # Read required fields
         data = data['data']
-        opened_dct_info = data['opened_dct_info']
+        opened_dct_bundles = data['opened_dct_bundles']
         active_dct_id = data['active_dct_id']
 
         # Validate types
-        validate_field_type('opened_dct_info', opened_dct_info, list[str])
+        validate_field_type('opened_dct_bundles', opened_dct_bundles, list[str])
         validate_field_type('active_dct_id', active_dct_id, (int, NoneType))
 
         # Read opened dictionaries
-        opened_dct_info = [self._load_dct(filepath) for filepath in data['opened_dct_info']]
+        opened_dct_bundles = [self._load_dct(filepath) for filepath in data['opened_dct_bundles']]
 
         # Set attributes
-        self.opened_dct_info = opened_dct_info
+        self.opened_dct_bundles = opened_dct_bundles
         self.active_dct_id = active_dct_id
 
     @classmethod

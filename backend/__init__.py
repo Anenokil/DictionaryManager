@@ -6,7 +6,7 @@ Author: Anenokil
 
 from .core import *
 from .manager import (
-    Manager, SearchConfig, DctInfo,
+    Manager, SearchConfig, DctBundle,
 )
 from .replacements import Replacer, Replacements
 from .persistence import (

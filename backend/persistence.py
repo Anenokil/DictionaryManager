@@ -11,7 +11,7 @@ import json
 from .core.types import SerializedData
 from .core.errors import UnknownVersionError
 from .core.utils import validate_required_fields, validate_field_type
-from .manager import Manager, DctInfo
+from .manager import Manager, DctBundle
 
 
 class GlobalSettings:
@@ -190,40 +190,40 @@ class AppData:
 
 
 def partial_save(
-        dct_info: DctInfo,
+        dct_bundle: DctBundle,
         dct: bool = False,
         session_number: bool = False,
         search_config: bool = False,
         train_config: bool = False,
         replacer: bool = False,
 ):
-    filepath = dct_info.filepath
+    filepath = dct_bundle.filepath
 
     with open(filepath, 'r') as f:
         data = json.load(f)
 
     if dct:
-        data['data']['dct'] = dct_info.dct.to_json_dict()
-        dct_info.dct.mark_saved()
+        data['data']['dct'] = dct_bundle.dct.to_json_dict()
+        dct_bundle.dct.mark_saved()
     if session_number:
-        data['data']['session_number'] = dct_info.session_number
+        data['data']['session_number'] = dct_bundle.session_number
     if search_config:
-        data['data']['search_config'] = dct_info.search_config.to_dict()
+        data['data']['search_config'] = dct_bundle.search_config.to_dict()
     if train_config:
-        data['data']['train_config'] = dct_info.train_config.to_dict()
+        data['data']['train_config'] = dct_bundle.train_config.to_dict()
     if replacer:
-        data['data']['replacer'] = dct_info.replacer.to_json_dict()
+        data['data']['replacer'] = dct_bundle.replacer.to_json_dict()
 
     with open(filepath, 'w') as f:
         json.dump(data, f)
 
-def save_dct(dct_info: DctInfo):
-    partial_save(dct_info, dct=True)
+def save_dct(dct_bundle: DctBundle):
+    partial_save(dct_bundle, dct=True)
 
 
-def save_dct_settings(dct_info: DctInfo):
-    partial_save(dct_info, replacer=True)
+def save_dct_settings(dct_bundle: DctBundle):
+    partial_save(dct_bundle, replacer=True)
 
 
-def save_dct_cache(dct_info: DctInfo):
-    partial_save(dct_info, session_number=True, search_config=True, train_config=True)
+def save_dct_cache(dct_bundle: DctBundle):
+    partial_save(dct_bundle, session_number=True, search_config=True, train_config=True)

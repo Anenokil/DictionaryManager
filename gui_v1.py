@@ -1155,9 +1155,9 @@ def save_settings_if_has_changes(window_parent: tk.Misc, app_data: AppData):
     )
     result = window_dia.open()
     if result:
-        dct_info = app_data.manager.active
-        save_dct_settings(dct_info)
-        save_dct_cache(dct_info)
+        dct_bundle = app_data.manager.active
+        save_dct_settings(dct_bundle)
+        save_dct_cache(dct_bundle)
         app_data.save()
         MessageDialog(window_parent, app_data, 'Настройки успешно сохранены').open()
         print('\nНастройки успешно сохранены')
@@ -1948,7 +1948,7 @@ class TrainSettingsW(tk.Toplevel):
         self.parent = parent
 
         self.app_data = app_data
-        self.dct_info = app_data.manager.active
+        self.dct_bundle = app_data.manager.active
         self.dct = app_data.manager.active.dct
         self.train_config = app_data.manager.active.train_config
 
@@ -2076,7 +2076,7 @@ class TrainSettingsW(tk.Toplevel):
             forms = LEARN_VALUES_FORMS[0]
         order = self.var_order.get()
 
-        self.dct_info.train_config = TrainingConfig(
+        self.dct_bundle.train_config = TrainingConfig(
             self.var_case_sensitive.get(),
             self.txt_to_method[method],
             self.txt_to_order[order],
@@ -2087,7 +2087,7 @@ class TrainSettingsW(tk.Toplevel):
 
         self.cancelled = True
 
-        save_dct_cache(self.dct_info)
+        save_dct_cache(self.dct_bundle)
 
         self.destroy()
 
@@ -2219,9 +2219,9 @@ class SearchSettingsW(tk.Toplevel):
         self.parent = parent
 
         self.app_data = app_data
-        self.dct_info = app_data.manager.active
+        self.dct_bundle = app_data.manager.active
 
-        self.tag_options = [ALL_TAGS] + self.dct_info.dct.tags
+        self.tag_options = [ALL_TAGS] + self.dct_bundle.dct.tags
 
         self.var_search_only_fav = tk.BooleanVar(value=to_search_only_fav)
         self.var_search_only_full = tk.BooleanVar(value=to_search_only_full)
@@ -2301,7 +2301,7 @@ class SearchSettingsW(tk.Toplevel):
             row=0, column=0, padx=(6, 1), pady=6, sticky='E')
         self.combo_search_tag = create_combobox(
             self.frame_tag, self.var_search_tag,
-            [ALL_TAGS] + self.dct_info.dct.tags, 26,
+            [ALL_TAGS] + self.dct_bundle.dct.tags, 26,
             state='readonly',
             font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
             row=0, column=1, padx=(0, 6), pady=6, sticky='W')
@@ -2319,7 +2319,7 @@ class SearchSettingsW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.dct_info.search_config = SearchConfig(
+        self.dct_bundle.search_config = SearchConfig(
             self.var_search_only_fav.get(),
             self.var_search_only_full.get(),
             self.var_search_wrd.get(),
@@ -2330,7 +2330,7 @@ class SearchSettingsW(tk.Toplevel):
             None if self.var_search_tag.get() == ALL_TAGS else [self.var_search_tag.get()],
         )
 
-        save_dct_cache(self.dct_info)
+        save_dct_cache(self.dct_bundle)
 
         return (
             self.var_search_only_fav.get(), self.var_search_only_full.get(),
@@ -3223,9 +3223,9 @@ class EnterFormW(tk.Toplevel):
         self.parent = parent
 
         self.app_data = app_data
-        self.dct_info = app_data.manager.active
-        self.dct = self.dct_info.dct
-        self.replacer = self.dct_info.replacer
+        self.dct_bundle = app_data.manager.active
+        self.dct = self.dct_bundle.dct
+        self.replacer = self.dct_bundle.replacer
 
         self.entry_id = entry_id
 
@@ -3597,8 +3597,8 @@ class TagSettingsW(tk.Toplevel):
         self.parent = parent
 
         self.app_data = app_data
-        self.dct_info = app_data.manager.active
-        self.dct = self.dct_info.dct
+        self.dct_bundle = app_data.manager.active
+        self.dct = self.dct_bundle.dct
 
         self.has_changes = False
 
@@ -3681,9 +3681,9 @@ class TagSettingsW(tk.Toplevel):
 
         self.dct.rename_tag(tag_old, tag_new)
 
-        train_tag = self.dct_info.train_config.tag
+        train_tag = self.dct_bundle.train_config.tag
         if train_tag == tag_old:
-            self.dct_info.train_config.tag = tag_new
+            self.dct_bundle.train_config.tag = tag_new
 
         self.print_tags(False)
         self.has_changes = True
@@ -3707,9 +3707,9 @@ class TagSettingsW(tk.Toplevel):
             if not result:
                 return
 
-        train_tag = self.dct_info.train_config.tag
+        train_tag = self.dct_bundle.train_config.tag
         if train_tag == tag:
-            self.dct_info.train_config.tag = ALL_TAGS
+            self.dct_bundle.train_config.tag = ALL_TAGS
 
         self.dct.delete_tag(tag)
 
@@ -3991,9 +3991,9 @@ class InputReplacementsSettingsW(tk.Toplevel):
         self.parent = parent
 
         self.app_data = app_data
-        self.dct_info = app_data.manager.active
-        self.dct = self.dct_info.dct
-        self.replacer = self.dct_info.replacer
+        self.dct_bundle = app_data.manager.active
+        self.dct = self.dct_bundle.dct
+        self.replacer = self.dct_bundle.replacer
 
         self.has_changes = False
 
@@ -5043,10 +5043,10 @@ class TrainingW(tk.Toplevel):
         self.parent = parent
 
         self.app_data = app_data
-        self.dct_info = app_data.manager.active
-        self.replacer = self.dct_info.replacer
+        self.dct_bundle = app_data.manager.active
+        self.replacer = self.dct_bundle.replacer
 
-        self.trainer = Trainer(self.dct_info.dct, train_config)
+        self.trainer = Trainer(self.dct_bundle.dct, train_config)
         self.trainer.initialize()
         self.initial_pool_size = len(self.trainer.pool)
         self.current_entry_id = None  # Текущее слово
@@ -5181,7 +5181,7 @@ class TrainingW(tk.Toplevel):
             self.on_stop()
             return
         else:
-            self.dct_info.dct.mark_modified()
+            self.dct_bundle.dct.mark_modified()
 
         # Выбор слова
         (self.current_entry_id, self.current_form, self.current_phrase,
@@ -5296,7 +5296,7 @@ class TrainingW(tk.Toplevel):
         entry = self.trainer.dct[self.current_entry_id]
         if is_correct:
             entry.register_correct_answer((
-                self.dct_info.session_number,
+                self.dct_bundle.session_number,
                 self._session_number,
                 self.count_all,
             ))
@@ -5339,14 +5339,14 @@ class TrainingW(tk.Toplevel):
                     result = window.open()
                     if result != 'typo':
                         entry.register_incorrect_answer((
-                            self.dct_info.session_number,
+                            self.dct_bundle.session_number,
                             self._session_number,
                             self.count_all,
                         ))
                         self.count_all += 1
                 else:
                     entry.register_incorrect_answer((
-                        self.dct_info.session_number,
+                        self.dct_bundle.session_number,
                         self._session_number,
                         self.count_all,
                     ))
@@ -5361,7 +5361,7 @@ class TrainingW(tk.Toplevel):
                 result = window.open()
                 if result != 'typo':
                     entry.register_incorrect_answer((
-                        self.dct_info.session_number,
+                        self.dct_bundle.session_number,
                         self._session_number,
                         self.count_all,
                     ))
@@ -5597,9 +5597,9 @@ class SearchTab(ttk.Frame):
         self.master: DictionaryW = master
 
         self.app_data = app_data
-        self.dct_info = app_data.manager.active
-        self.dct = self.dct_info.dct
-        self.replacer = self.dct_info.replacer
+        self.dct_bundle = app_data.manager.active
+        self.dct = self.dct_bundle.dct
+        self.replacer = self.dct_bundle.replacer
 
         self.max_entries_on_page = 50
         self.current_page = 1
@@ -5609,7 +5609,7 @@ class SearchTab(ttk.Frame):
         self.n_entries_on_page = None
 
         # Параметры поиска
-        search_config = self.dct_info.search_config
+        search_config = self.dct_bundle.search_config
         self.to_search_only_fav = search_config.to_search_only_fav
         self.to_search_only_full = search_config.to_search_only_full
         self.to_search_wrd = search_config.to_search_in_words
@@ -7134,9 +7134,9 @@ class AddEntryW(tk.Toplevel):
         self.parent = parent
 
         self.app_data = app_data
-        self.dct_info = app_data.manager.active
-        self.dct = self.dct_info.dct
-        self.replacer = self.dct_info.replacer
+        self.dct_bundle = app_data.manager.active
+        self.dct = self.dct_bundle.dct
+        self.replacer = self.dct_bundle.replacer
 
         self.entry_id = None
 

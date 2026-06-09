@@ -473,7 +473,7 @@ class MainWindow(QMainWindow):
     def on_tab_moved(self, to_index, from_index):
         """Handle tab movement and update manager."""
 
-        self.manager.reorder(from_index, to_index)
+        self.manager.move_dct(from_index, to_index)
 
     def save_state(self):
         """
@@ -502,12 +502,12 @@ class MainWindow(QMainWindow):
             self.manager.deserialize(savedata)
 
             # Restore tabs for all opened dictionaries
-            if self.manager.opened_dct_info:
+            if self.manager.opened_dct_bundles:
                 # Temporarily disconnect signal to avoid calling switch_dct during restoration
                 self.tab_widget.currentChanged.disconnect()
 
-                for dct_info in self.manager.opened_dct_info:
-                    dct = dct_info['dct']
+                for dct_bundle in self.manager.opened_dct_bundles:
+                    dct = dct_bundle['dct']
                     self.create_new_tab(dct.name, dct, set_active=False)
 
                 # Restore active tab
@@ -612,7 +612,7 @@ class MainWindow(QMainWindow):
             )
             if ok and new_name:
                 self.tab_widget.setTabText(index, new_name)
-                self.manager.rename_dict(index, new_name)
+                self.manager.rename_dct(index, new_name)
 
     def on_tab_changed(self, index):
         """
