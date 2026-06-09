@@ -3721,7 +3721,7 @@ class TagSettingsW(tk.Toplevel):
         tag = self.tags[tag_id]
 
         if self.dct.is_default_tag(tag):
-            self.dct.unmark_default_tag(tag)
+            self.dct.unmark_tag_as_default(tag)
         else:
             self.dct.mark_tag_as_default(tag)
 

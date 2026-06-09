@@ -1174,7 +1174,7 @@ class Dictionary:
         self._default_tag_ids.add(tag_id)
         self._is_modified = True
 
-    def unmark_default_tag(self, tag: Tag):
+    def unmark_tag_as_default(self, tag: Tag):
         """
         Unmark the given tag as default.
 
