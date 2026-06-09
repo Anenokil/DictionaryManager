@@ -1,6 +1,5 @@
 """
-Implements the Manager class which opens, closes, switches, and saves
-multiple Dictionary instances and tracks the active dictionary.
+Implements the Manager class which stores Dictionaries and tracks the active one.
 
 Author: Anenokil
 """
@@ -18,7 +17,19 @@ from .replacements import Replacer
 
 
 class SearchConfig:
-    """ TODO """
+    """
+    Configuration for Dictionary search.
+
+    Attributes:
+        to_search_only_fav: Whether to search only across favorite Entries.
+        to_search_only_full: Whether to search only full matches.
+        to_search_in_words: Whether to include lemmas in search.
+        to_search_in_translations: Whether to include translations in search.
+        to_search_in_forms: Whether to include forms in search.
+        to_search_in_phrases: Whether to include phrases in search.
+        to_search_in_notes: Whether to include notes in search.
+        search_tags: List of tags to restrict search to, or None to search across all tags.
+    """
 
     _schema_version = 1
 
@@ -111,23 +122,16 @@ class SearchConfig:
 
 class DctBundle:
     """
-    Main dictionary container holding dictionary configuration,
-    settings and file information.
+    Main Dictionary container holding its configuration, settings and file information.
 
     Attributes:
-    ----------
-    - filepath: Absolute path to the dictionary file.
-    - dct: The main dictionary data structure.
-    - session_number: Last active session identifier.
-    - search_config: Search settings.
-    - train_config: Training settings.
-    - replacer: Replacer instance.
-    - trainer: Trainer instance.
-
-    Protected Attributes:
-    --------------------
-    - _schema_version: The version of the data format used for
-      serialization.
+        filepath: Absolute path to the Dictionary file.
+        dct: The main Dictionary data structure.
+        session_number: Last active session identifier.
+        search_config: Search settings.
+        train_config: Training settings.
+        replacer: Replacer instance.
+        trainer: Trainer instance.
     """
 
     _schema_version = 1
@@ -218,36 +222,22 @@ class DctBundle:
 
 class Manager:
     """
-    Manager for multiple dictionary instances.
-
-    Handles opening, closing, switching between, and saving multiple
-    dictionary files. Maintains a list of opened dictionaries and
-    tracks the currently active one.
+    Manages multiple Dictionary instances and tracks the currently active one.
 
     Attributes:
-    ----------
-    - opened_dct_info: currently open dictionaries with metadata about
-      each dictionary instance.
-    - active_dct_id: ID of the currently active dictionary.
-    - n_opened: Number of dictionaries currently opened in the manager.
-    - dct: The currently active `Dictionary` instance or ``None`` when
-      no dictionary is active.
-    - filepath: File path associated with the currently active
-      dictionary or ``None`` for new/unsaved dictionaries.
-
-    Protected Attributes:
-    --------------------
-    - _schema_version: The version of the data format used for
-      serialization.
+        opened_dct_bundles: Currently opened Dictionary instances with their associated Bundles.
+        active_dct_id: ID of the currently active Dictionary.
+        n_opened: Number of currently opened Dictionary instances.
+        active: DctBundle of the currently active Dictionary, or None if no Dictionary is active.
     """
 
     _schema_version = 1
 
     def __init__(self):
         """
-        Initialize the dictionary manager.
+        Initialize the Manager.
 
-        Creates an empty manager with no opened dictionaries.
+        Creates an empty Manager with no opened Dictionaries.
         """
 
         self.opened_dct_bundles: list[DctBundle] = []
@@ -256,10 +246,10 @@ class Manager:
     @property
     def n_opened(self) -> int:
         """
-        Get the number of opened dictionaries.
+        Get the number of opened Dictionaries.
 
         Returns:
-            Number of opened dictionaries.
+            Number of opened Dictionaries.
         """
 
         return len(self.opened_dct_bundles)
@@ -267,11 +257,10 @@ class Manager:
     @property
     def active(self) -> DctBundle | None:
         """
-        Get the file path of the currently active dictionary.
+        Get the Bundle of the currently active Dictionary.
 
         Returns:
-            File path of the active dictionary, or None if no
-            dictionary is active or if it's a new unsaved dictionary.
+            Bundle of the active Dictionary, or None if no Dictionary is active.
         """
 
         if self.active_dct_id is None:
@@ -279,6 +268,15 @@ class Manager:
         return self.opened_dct_bundles[self.active_dct_id]
 
     def add_dct(self, dct_bundle: DctBundle, to_activate: bool = True):
+        """
+        Add an existing Dictionary to the Manager.
+
+        Args:
+            dct_bundle: Bundle of the Dictionary to add.
+            to_activate: If True, switch the Manager's active Dictionary to the one just added.
+                         If False, add it without switching the active index.
+        """
+
         self.opened_dct_bundles.append(dct_bundle)
 
         if to_activate or self.n_opened == 1:
@@ -286,15 +284,13 @@ class Manager:
 
     def create_dct(self, filepath: str, name: DctName = None, to_activate: bool = True):
         """
-        Create a new empty dictionary and add it to the manager.
+        Create a new empty Dictionary and add it to the Manager.
 
         Args:
-            filepath: Path to the dictionary file.
-            name: Name for the new dictionary.
-            to_activate: If True, make the newly created dictionary the
-                currently active dictionary. If False, add it to the
-                list of opened dictionaries without switching the
-                active index.
+            filepath: Path where the Dictionary file will be saved.
+            name: Name for the new Dictionary.
+            to_activate: If True, switch the Manager's active Dictionary to the one just created.
+                         If False, add it without switching the active index.
         """
 
         new_dct_bundle = DctBundle(filepath)
@@ -302,19 +298,20 @@ class Manager:
 
         self.opened_dct_bundles.append(new_dct_bundle)
 
-        # If needed, set this dictionary as active
         if to_activate or self.n_opened == 1:
             self.active_dct_id = len(self.opened_dct_bundles) - 1
 
     def open_dct(self, filepath: str, to_activate: bool = True):
         """
-        Open a dictionary from a file and add it to the manager.
+        Load a Dictionary from a file and add it to the Manager.
 
         Args:
-            filepath: Path to the dictionary file to open.
-            to_activate: If True, switch the manager's active
-                dictionary to the one just opened. If False, keep the
-                current active dictionary.
+            filepath: Path to the Dictionary file to open.
+            to_activate: If True, switch the Manager's active Dictionary to the one just opened.
+                         If False, add it without switching the active index.
+
+        Raises:
+            FileNotFoundError: If the file does not exist.
         """
 
         with open(filepath, 'r') as file:
@@ -324,19 +321,18 @@ class Manager:
 
         self.opened_dct_bundles.append(dct_bundle)
 
-        # If needed, set this dictionary as active
         if to_activate or self.n_opened == 1:
             self.active_dct_id = len(self.opened_dct_bundles) - 1
 
     def switch_dct(self, dct_id: int):
         """
-        Switch to a different dictionary as the active one.
+        Switch to a different Dictionary as the active one.
 
         Args:
-            dct_id: Index of the dictionary to make active.
+            dct_id: Index of the Dictionary to make active.
 
         Raises:
-            AssertionError: If the dictionary index is out of range.
+            KeyError: If the Dictionary index is out of range.
         """
 
         if not (0 <= dct_id < len(self.opened_dct_bundles)):
@@ -346,15 +342,13 @@ class Manager:
 
     def close_dct(self, dct_id: int):
         """
-        Close a dictionary and remove it from the manager.
-
-        Updates the active dictionary index if necessary.
+        Close a Dictionary and remove it from the Manager.
 
         Args:
-            dct_id: Index of the dictionary to close.
+            dct_id: Index of the Dictionary to close.
 
         Raises:
-            AssertionError: If the dictionary index is out of range.
+            KeyError: If the Dictionary index is out of range.
         """
 
         if not (0 <= dct_id < len(self.opened_dct_bundles)):
@@ -369,17 +363,16 @@ class Manager:
 
     def save_dct(self, dct_id: int, filepath: str | None = None):
         """
-        Save a dictionary to a file.
+        Save a Dictionary along with its Bundle to a file.
 
         Args:
-            dct_id: Index of the dictionary to save.
-            filepath: Path where to save the dictionary. If None, uses
-                the dictionary's current filepath.
+            dct_id: Index of the Dictionary to save.
+            filepath: Path where to save the Dictionary. If None, uses the Dictionary's current
+                      filepath.
 
         Raises:
-            AssertionError: If the dictionary index is out of range.
-            ValueError: If no filepath is specified and the dictionary
-                has none.
+            KeyError: If the Dictionary index is out of range.
+            ValueError: If no filepath is specified and the Dictionary has none.
         """
 
         if not (0 <= dct_id < len(self.opened_dct_bundles)):
@@ -404,11 +397,14 @@ class Manager:
 
     def rename_dct(self, dct_id: int, new_name: str):
         """
-        Rename a dictionary.
+        Rename a Dictionary.
 
         Args:
-            dct_id: Index of the dictionary to rename.
-            new_name: New name of the dictionary.
+            dct_id: Index of the Dictionary to rename.
+            new_name: New Dictionary name.
+
+        Raises:
+            KeyError: If the Dictionary index is out of range.
         """
 
         if not (0 <= dct_id < len(self.opened_dct_bundles)):
@@ -418,11 +414,14 @@ class Manager:
 
     def move_dct(self, from_index: int, to_index: int):
         """
-        Reorder opened dictionaries.
+        Reorder opened Dictionaries.
 
         Args:
-            from_index: Index of the dictionary to move.
-            to_index: New index of the dictionary.
+            from_index: Index of the Dictionary to move.
+            to_index: New index of the Dictionary.
+
+        Raises:
+            KeyError: If the Dictionary index is out of range.
         """
 
         if not (0 <= from_index < len(self.opened_dct_bundles)):
@@ -447,10 +446,10 @@ class Manager:
 
     def to_dict(self) -> SerializedData:
         """
-        Serialize the manager state to a dictionary format.
+        Serialize the Manager state to a JSON format.
 
         Returns:
-            Dictionary containing manager data.
+            Dict containing Manager data.
         """
 
         return {
@@ -469,10 +468,10 @@ class Manager:
 
     def load_from_json_dict(self, data: SerializedData):
         """
-        Deserialize manager state from a JSON format.
+        Deserialize Manager state from a JSON format.
 
         Args:
-            data: Dictionary containing manager data.
+            data: Dictionary containing Manager data.
         """
 
         # Validate required fields
@@ -491,7 +490,7 @@ class Manager:
         validate_field_type('opened_dct_bundles', opened_dct_bundles, list[str])
         validate_field_type('active_dct_id', active_dct_id, (int, NoneType))
 
-        # Read opened dictionaries
+        # Read opened Dictionaries
         opened_dct_bundles = [self._load_dct(filepath) for filepath in data['opened_dct_bundles']]
 
         # Set attributes
@@ -501,13 +500,13 @@ class Manager:
     @classmethod
     def from_json_dict(cls, data: SerializedData) -> 'Manager':
         """
-        Deserialize manager state from a JSON format.
+        Deserialize Manager state from a JSON format.
 
         Args:
-            data: Dictionary containing manager data.
+            data: Dictionary containing Manager data.
 
         Returns:
-            A manager object.
+            Manager object.
         """
 
         manager = cls()
