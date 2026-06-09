@@ -299,6 +299,7 @@ class Manager:
 
         new_dct_bundle = DctBundle(filepath)
         new_dct_bundle.dct.rename(name)
+
         self.opened_dct_bundles.append(new_dct_bundle)
 
         # If needed, set this dictionary as active
@@ -320,6 +321,7 @@ class Manager:
             data = json.load(file)
         dct_bundle = DctBundle.from_dict(filepath, data)
         dct_bundle.dct.mark_saved()
+
         self.opened_dct_bundles.append(dct_bundle)
 
         # If needed, set this dictionary as active
@@ -388,19 +390,17 @@ class Manager:
         if filepath is None:
             raise ValueError('No filepath was specified')
 
-        self.active.dct.mark_saved()
-
-        data = self.active.to_dict()
-
         if not os.path.exists(filepath):
             parent_dir = os.path.split(filepath)[0]
             os.makedirs(parent_dir, exist_ok=True)
 
+        data = self.active.to_dict()
         with open(filepath, 'w') as file:
             json.dump(data, file)
 
-
         self.opened_dct_bundles[dct_id].filepath = filepath
+
+        self.active.dct.mark_saved()
 
     def rename_dct(self, dct_id: int, new_name: str):
         """
