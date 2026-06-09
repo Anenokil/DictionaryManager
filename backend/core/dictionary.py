@@ -13,7 +13,7 @@ from .types import (
     Word, Translation, Category, CtgValue, GramForm, WordForm, Phrase,
     PhraseTr, Note, Tag, Timestamp, EntryID, DctName, SerializedData,
 )
-from .errors import DeserializationError
+from .errors import FieldTypeError
 from .entry import Entry
 from .utils import validate_required_fields, validate_field_type
 
@@ -1283,8 +1283,16 @@ class Dictionary:
                 for entry_id, entry_data in entries.items()
             }
         except ValueError as e:
-            if 'invalid literal for int()' in str(e):
-                raise DeserializationError('Entry IDs must be numeric.')
+            error_msg = str(e)
+            expected_msg = 'invalid literal for int() with base 10: '
+            if expected_msg in error_msg:
+                gotten_value = error_msg[len(expected_msg)+1:-1]
+                raise FieldTypeError(
+                    'entries',
+                    'dict[numeric_str, Any]',
+                    gotten_value,
+                    'dict[str, Any]'
+                )
             raise
 
         indexes = {
