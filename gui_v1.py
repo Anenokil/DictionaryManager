@@ -690,7 +690,7 @@ def select_word_form(n: int, word_forms: tuple[str, str, str]) -> str:
 
 # Выбрать одну статью из нескольких с одинаковыми словами
 def select_entry(app_data: AppData, window_parent: tk.Misc, lemma: str):
-    homograph_ids = app_data.manager.active.dct.search([('lemmas', lemma)])
+    homograph_ids = app_data.manager.active.dct.search(lemma=lemma)
     if len(homograph_ids) == 1:  # Если статья только одна, то возвращает её ключ
         return homograph_ids.pop()
     result = SelectEntryFromHomographsW(window_parent, app_data, lemma).open()
@@ -706,7 +706,7 @@ def edit_lemma_to_homograph(
 ) -> tuple[EntryID | None, bool]:
     dct = app_data.manager.active.dct
 
-    if dct.search([('lemmas', new_lemma)]):  # Если в словаре уже есть статья с таким словом
+    if dct.search(lemma=new_lemma):  # Если в словаре уже есть статья с таким словом
         window = TwoOptionsDialog(
             window_parent, app_data,
             'Статья с таким словом уже есть в словаре\n'
@@ -737,7 +737,7 @@ def edit_lemma_to_homograph(
 def add_homograph(app_data: AppData, window_parent: tk.Misc, lemma: str, tr: str) -> EntryID | None:
     dct = app_data.manager.active.dct
 
-    if dct.search([('lemmas', lemma)]):  # Если в словаре уже есть статья с таким словом
+    if dct.search(lemma=lemma):  # Если в словаре уже есть статья с таким словом
         window = TwoOptionsDialog(
             window_parent, app_data,
             'Статья с таким словом уже есть в словаре\n'
@@ -2372,7 +2372,7 @@ class SelectEntryFromHomographsW(tk.Toplevel):
             row=1, column=0, padx=6, pady=(0, 6))
         self.scrolled_frame_wrd.canvas.yview_moveto(0.0)
 
-        entry_ids = self.dct.search([('lemmas', self.to_search_wrd)])
+        entry_ids = self.dct.search(lemma=self.to_search_wrd)
         self.widgets_wrd = [
             create_button(
                 self.scrolled_frame_wrd.frame_canvas,

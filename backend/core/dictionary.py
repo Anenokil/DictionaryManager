@@ -5,7 +5,7 @@ Author: Anenokil
 """
 
 from types import NoneType
-from typing import Iterable, Collection, Generator, Mapping, Callable, Literal
+from typing import Iterable, Generator, Mapping, Callable, Literal
 from itertools import chain
 from functools import wraps
 
@@ -289,36 +289,45 @@ class Dictionary:
                     n_word_forms += entry.n_word_forms
         return n_entries, n_translations, n_gram_forms, n_word_forms
 
-    def search(self, query: Collection[tuple[str, str]]) -> set[EntryID]:
+    def search(
+            self,
+            lemma: str | None = None,
+            translations: list[str] | None = None,
+            forms: list[str] | None = None,
+            tags: list[str] | None = None,
+    ) -> set[EntryID]:
         """
         Search for Entries across multiple indexes using the specified query conditions.
 
         Performs a logical AND search - returns Entries that match ALL specified conditions.
 
         Args:
-            query: Collection of (index_name, search_term) pairs defining search conditions.
-                   - index_name: Name of the index to search in. Valid values:
-                                 'lemmas', 'translations', 'forms', 'tags'.
-                   - search_term: Search term to look for in the index.
+            lemma: Lemma to look for.
+            translations: Translations to look for.
+            forms: Word forms to look for.
+            tags: Tags to look for.
 
         Returns:
             Set of entry IDs that satisfy ALL the specified search conditions.
-            Returns empty set if no matches found or index doesn't contain the query.
-
-        Raises:
-            KeyError: If invalid index names are specified.
+            Returns empty set if no matches found.
         """
 
-        index_names = {condition[0] for condition in query}
-        unexpected_index_names = index_names - set(self._indexes.keys())
-        if unexpected_index_names:
-            raise KeyError(f'No index named "{unexpected_index_names.pop()}"')
+        query = {}
+        if lemma is not None:
+            query['lemmas'] = [lemma]
+        if translations is not None:
+            query['translations'] = translations
+        if forms is not None:
+            query['forms'] = forms
+        if tags is not None:
+            query['tags'] = tags
 
         results = []
-        for index_name, search_term in query:
+        for index_name, search_terms in query.items():
             index = self._indexes[index_name]
-            if search_term in index:
-                results.append(index[search_term])
+            for search_term in search_terms:
+                if search_term in index:
+                    results.append(index[search_term])
         return set.intersection(*results) if results else set()
 
     def mark_saved(self):

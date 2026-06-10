@@ -229,9 +229,7 @@ class Trainer:
             if self._config.tags is None:
                 yield from self.dct.iter_entry_ids()
             else:
-                yield from self.dct.search(
-                    [('tags', tag) for tag in self._config.tags]
-                )
+                yield from self.dct.search(tags=self._config.tags)
 
         def filter_by_method(ids: Iterable[EntryID]) -> Iterable[EntryID]:
             if self._config.method == TrainingMethod.ARTICLES_GERMAN:
@@ -364,10 +362,10 @@ class Trainer:
 
         if self._config.method == TrainingMethod.WORD_TO_TRANS:
             lemma = self.dct[entry_id].lemma
-            homonyms = self.dct.search([('lemmas', lemma)])
+            homonyms = self.dct.search(lemma=lemma)
         elif self._config.method == TrainingMethod.TRANS_TO_WORD:
             translations = self.dct[entry_id].tr
-            homonyms = self.dct.search([('translations', tr) for tr in translations])
+            homonyms = self.dct.search(translations=translations)
         elif self._config.method == TrainingMethod.ARTICLES_GERMAN:
             lemma = self.dct[entry_id].lemma
             homonyms = set(
