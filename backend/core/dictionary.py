@@ -176,25 +176,48 @@ class Dictionary:
         total   = sum(entry.total_att   for entry in self._entries.values())
         return correct, total
 
-    def mark_saved(self):
-        self._is_modified = False
-
-    def mark_modified(self):
-        self._is_modified = True
-
-    def rename(self, new_name: DctName):
+    def iter_entry_ids(self) -> Generator[EntryID, None, None]:
         """
-        Rename a Dictionary.
+        Iterate over all entry IDs in the Dictionary.
+
+        Yields:
+            The next entry ID in the Dictionary.
+        """
+
+        yield from self._entries.keys()
+
+    def iter_entries(self) -> Generator[Entry, None, None]:
+        """
+        Iterate over all Entries in the Dictionary.
+
+        Yields:
+            The next Entry in the Dictionary.
+        """
+
+        yield from self._entries.values()
+
+    def count(self, target: str) -> int:
+        """
+        Count the total number of objects of the given type across the Dictionary.
 
         Args:
-            new_name: New name of the Dictionary.
+            target: Object to count. Options: 'lemmas', 'translations', 'gram_forms', 'word_forms',
+                    'phrases', 'phrase_trs', 'notes', 'tags', 'categories', 'ctg_values'.
+
+        Returns:
+            Total count of target objects across the entire Dictionary.
+
+        Raises:
+            KeyError: If an invalid target is specified.
         """
 
-        if self._name == new_name:
-            return
-
-        self._name = new_name
-        self._is_modified = True
+        if target == 'tags':
+            return len(self._tags)
+        if target == 'categories':
+            return len(self._features)
+        if target == 'ctg_values':
+            return sum(len(ctg_vals) for ctg_vals in self._features.values())
+        return self._counters[target]
 
     def count_by_tag(self, tag: Tag) -> tuple[int, int, int, int]:
         """
@@ -266,49 +289,6 @@ class Dictionary:
                     n_word_forms += entry.n_word_forms
         return n_entries, n_translations, n_gram_forms, n_word_forms
 
-    def count(self, target: str) -> int:
-        """
-        Count the total number of objects of the given type across the Dictionary.
-
-        Args:
-            target: Object to count. Options: 'lemmas', 'translations', 'gram_forms', 'word_forms',
-                    'phrases', 'phrase_trs', 'notes', 'tags', 'categories', 'ctg_values'.
-
-        Returns:
-            Total count of target objects across the entire Dictionary.
-
-        Raises:
-            KeyError: If an invalid target is specified.
-        """
-
-        if target == 'tags':
-            return len(self._tags)
-        if target == 'categories':
-            return len(self._features)
-        if target == 'ctg_values':
-            return sum(len(ctg_vals) for ctg_vals in self._features.values())
-        return self._counters[target]
-
-    def iter_entry_ids(self) -> Generator[EntryID, None, None]:
-        """
-        Iterate over all entry IDs in the Dictionary.
-
-        Yields:
-            The next entry ID in the Dictionary.
-        """
-
-        yield from self._entries.keys()
-
-    def iter_entries(self) -> Generator[Entry, None, None]:
-        """
-        Iterate over all Entries in the Dictionary.
-
-        Yields:
-            The next Entry in the Dictionary.
-        """
-
-        yield from self._entries.values()
-
     def search(self, query: Collection[tuple[str, str]]) -> set[EntryID]:
         """
         Search for Entries across multiple indexes using the specified query conditions.
@@ -340,6 +320,26 @@ class Dictionary:
             if search_term in index:
                 results.append(index[search_term])
         return set.intersection(*results) if results else set()
+
+    def mark_saved(self):
+        self._is_modified = False
+
+    def mark_modified(self):
+        self._is_modified = True
+
+    def rename(self, new_name: DctName):
+        """
+        Rename a Dictionary.
+
+        Args:
+            new_name: New name of the Dictionary.
+        """
+
+        if self._name == new_name:
+            return
+
+        self._name = new_name
+        self._is_modified = True
 
     @_mark_modified
     def add_entry(
@@ -539,27 +539,6 @@ class Dictionary:
 
         self._is_modified |= is_modified
 
-    @_mark_modified
-    def delete_tr(self, entry_id: EntryID, tr: Translation):
-        """
-        Delete a translation from an Entry.
-
-        Args:
-            entry_id: ID of the Entry.
-            tr: Translation to delete.
-
-        Raises:
-            KeyError: If no Entry exists with the given entry_id.
-            ValueError: If the Entry does not have the specified translation.
-        """
-
-        entry = self._entries[entry_id]
-
-        entry.tr.delete(tr)
-
-        self._counters['translations'] -= 1
-        self._update_index('translations', tr, entry_id, 'remove')
-
     def edit_tr(self, entry_id: EntryID, tr: Translation, new_tr: Translation):
         """
         Replace an existing translation with a new translation.
@@ -584,6 +563,27 @@ class Dictionary:
 
         self._is_modified |= is_modified
 
+    @_mark_modified
+    def delete_tr(self, entry_id: EntryID, tr: Translation):
+        """
+        Delete a translation from an Entry.
+
+        Args:
+            entry_id: ID of the Entry.
+            tr: Translation to delete.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id.
+            ValueError: If the Entry does not have the specified translation.
+        """
+
+        entry = self._entries[entry_id]
+
+        entry.tr.delete(tr)
+
+        self._counters['translations'] -= 1
+        self._update_index('translations', tr, entry_id, 'remove')
+
     def add_form(self, entry_id: EntryID, gram_form: GramForm, word_form: WordForm):
         """
         Add an inflected form to an Entry.
@@ -604,36 +604,6 @@ class Dictionary:
         self._counters['gram_forms'] += cnt_delta_gram
         self._counters['word_forms'] += cnt_delta_word
         self._update_index('forms', word_form, entry_id, 'add')
-
-        self._is_modified |= is_modified
-
-    def delete_form(self, entry_id: EntryID, gram_form: GramForm, word_form: WordForm):
-        """
-        Delete an inflected form from an Entry.
-
-        Args:
-            entry_id: ID of the Entry.
-            gram_form: Grammatical form identifying the form to remove.
-            word_form: Inflected form to remove.
-
-        Raises:
-            KeyError: If no Entry exists with the given entry_id, or if the specified gram_form is
-                      not found.
-            ValueError: If the specified word_form is not found.
-        """
-
-        entry = self._entries[entry_id]
-
-        # An Entry may contain homographs.
-        # Therefore, we need to first remove all forms from the index, then add them back to the
-        # index.
-        to_rm_from_index = set(chain(*entry.forms.values()))
-        is_modified, cnt_delta_gram, cnt_delta_word = entry.forms.delete(gram_form, word_form)
-        to_rm_from_index.difference_update(*entry.forms.values())
-
-        self._counters['gram_forms'] += cnt_delta_gram
-        self._counters['word_forms'] += cnt_delta_word
-        self._update_index('forms', to_rm_from_index, entry_id, 'add')
 
         self._is_modified |= is_modified
 
@@ -678,6 +648,36 @@ class Dictionary:
 
         self._is_modified |= is_modified
 
+    def delete_form(self, entry_id: EntryID, gram_form: GramForm, word_form: WordForm):
+        """
+        Delete an inflected form from an Entry.
+
+        Args:
+            entry_id: ID of the Entry.
+            gram_form: Grammatical form identifying the form to remove.
+            word_form: Inflected form to remove.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id, or if the specified gram_form is
+                      not found.
+            ValueError: If the specified word_form is not found.
+        """
+
+        entry = self._entries[entry_id]
+
+        # An Entry may contain homographs.
+        # Therefore, we need to first remove all forms from the index, then add them back to the
+        # index.
+        to_rm_from_index = set(chain(*entry.forms.values()))
+        is_modified, cnt_delta_gram, cnt_delta_word = entry.forms.delete(gram_form, word_form)
+        to_rm_from_index.difference_update(*entry.forms.values())
+
+        self._counters['gram_forms'] += cnt_delta_gram
+        self._counters['word_forms'] += cnt_delta_word
+        self._update_index('forms', to_rm_from_index, entry_id, 'add')
+
+        self._is_modified |= is_modified
+
     def add_phrase(self, entry_id: EntryID, phrase: Phrase, phrase_tr: PhraseTr):
         """
         Add a phrase with its translation to an Entry.
@@ -694,30 +694,6 @@ class Dictionary:
         entry = self._entries[entry_id]
 
         is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases.add(phrase, phrase_tr)
-
-        self._counters['phrases']    += cnt_delta_ph
-        self._counters['phrase_trs'] += cnt_delta_tr
-
-        self._is_modified |= is_modified
-
-    def delete_phrase(self, entry_id: EntryID, phrase: Phrase, phrase_tr: PhraseTr):
-        """
-        Delete a phrase and its translation from an Entry.
-
-        Args:
-            entry_id: ID of the Entry.
-            phrase: Phrase to remove.
-            phrase_tr: Phrase translation to remove.
-
-        Raises:
-            KeyError: If no Entry exists with the given entry_id, or if the specified phrase is not
-                      found.
-            ValueError: If the specified phrase_tr is not found.
-        """
-
-        entry = self._entries[entry_id]
-
-        is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases.delete(phrase, phrase_tr)
 
         self._counters['phrases']    += cnt_delta_ph
         self._counters['phrase_trs'] += cnt_delta_tr
@@ -759,6 +735,30 @@ class Dictionary:
 
         self._is_modified |= is_modified
 
+    def delete_phrase(self, entry_id: EntryID, phrase: Phrase, phrase_tr: PhraseTr):
+        """
+        Delete a phrase and its translation from an Entry.
+
+        Args:
+            entry_id: ID of the Entry.
+            phrase: Phrase to remove.
+            phrase_tr: Phrase translation to remove.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id, or if the specified phrase is not
+                      found.
+            ValueError: If the specified phrase_tr is not found.
+        """
+
+        entry = self._entries[entry_id]
+
+        is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases.delete(phrase, phrase_tr)
+
+        self._counters['phrases']    += cnt_delta_ph
+        self._counters['phrase_trs'] += cnt_delta_tr
+
+        self._is_modified |= is_modified
+
     def add_note(self, entry_id: EntryID, note: Note):
         """
         Add a note to an Entry.
@@ -774,6 +774,28 @@ class Dictionary:
         entry = self._entries[entry_id]
 
         is_modified, counter_delta = entry.notes.add(note)
+
+        self._counters['notes'] += counter_delta
+
+        self._is_modified |= is_modified
+
+    def edit_note(self, entry_id: EntryID, note: Note, new_note: Note):
+        """
+        Edit a note
+
+        Args:
+            entry_id: ID of the Entry.
+            note: Note to edit.
+            new_note: Replacement note.
+
+        Raises:
+            KeyError: If no Entry exists with the given entry_id.
+            ValueError: If the specified note is not found.
+        """
+
+        entry = self._entries[entry_id]
+
+        is_modified, counter_delta = entry.notes.edit(note, new_note)
 
         self._counters['notes'] += counter_delta
 
@@ -798,28 +820,6 @@ class Dictionary:
         entry.notes.delete(note)
 
         self._counters['notes'] -= 1
-
-    def edit_note(self, entry_id: EntryID, note: Note, new_note: Note):
-        """
-        Edit a note
-
-        Args:
-            entry_id: ID of the Entry.
-            note: Note to edit.
-            new_note: Replacement note.
-
-        Raises:
-            KeyError: If no Entry exists with the given entry_id.
-            ValueError: If the specified note is not found.
-        """
-
-        entry = self._entries[entry_id]
-
-        is_modified, counter_delta = entry.notes.edit(note, new_note)
-
-        self._counters['notes'] += counter_delta
-
-        self._is_modified |= is_modified
 
     def add_tag_to_entries(self, tag: Tag, entry_ids: Iterable[EntryID]):
         """
@@ -928,6 +928,25 @@ class Dictionary:
         self._features[ctg_name] = ctg_values
 
     @_mark_modified
+    def rename_ctg(self, ctg_name_old: Category, ctg_name_new: Category):
+        """
+        Rename a grammatical category.
+
+        Args:
+            ctg_name_old: Current name of the category.
+            ctg_name_new: New name for the category.
+
+        Raises:
+            KeyError: If the specified category does not exist.
+            ValueError: If the specified new name already exists.
+        """
+
+        if ctg_name_new in self._features.keys():
+            raise ValueError(f'Category {ctg_name_new} already exists')
+
+        self._features[ctg_name_new] = self._features.pop(ctg_name_old)
+
+    @_mark_modified
     def delete_ctg(self, ctg_name: Category):
         """
         Delete a grammatical category from the Dictionary.
@@ -955,25 +974,6 @@ class Dictionary:
             self._counters['word_forms'] += entry.n_word_forms
             self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
 
-    @_mark_modified
-    def rename_ctg(self, ctg_name_old: Category, ctg_name_new: Category):
-        """
-        Rename a grammatical category.
-
-        Args:
-            ctg_name_old: Current name of the category.
-            ctg_name_new: New name for the category.
-
-        Raises:
-            KeyError: If the specified category does not exist.
-            ValueError: If the specified new name already exists.
-        """
-
-        if ctg_name_new in self._features.keys():
-            raise ValueError(f'Category {ctg_name_new} already exists')
-
-        self._features[ctg_name_new] = self._features.pop(ctg_name_old)
-
     def add_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
         """
         Add a new value to a grammatical category.
@@ -992,38 +992,6 @@ class Dictionary:
         self._features[ctg_name].append(ctg_value)
 
         self._is_modified = True
-
-    @_mark_modified
-    def delete_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
-        """
-        Delete a value from a grammatical category.
-
-        Removes all word forms that use this category value.
-        If the category has no values left after deletion, the category itself is removed.
-
-        Args:
-            ctg_name: Name of the category.
-            ctg_value: Value to remove from the category.
-
-        Raises:
-            ValueError: If the specified category or its value does not exist.
-        """
-
-        if self._features[ctg_name] == [ctg_value]:
-            self.delete_ctg(ctg_name)
-        else:
-            index = tuple(self._features.keys()).index(ctg_name)
-
-            self._features[ctg_name].remove(ctg_value)
-
-            for entry_id, entry in self._entries.items():
-                self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
-                self._counters['gram_forms'] -= entry.n_gram_forms
-                self._counters['word_forms'] -= entry.n_word_forms
-                entry.forms.delete_ctg_value(index, ctg_value)
-                self._counters['gram_forms'] += entry.n_gram_forms
-                self._counters['word_forms'] += entry.n_word_forms
-                self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
 
     @_mark_modified
     def rename_ctg_value(
@@ -1059,6 +1027,38 @@ class Dictionary:
         for entry in self._entries.values():
             entry.forms.rename_ctg_value(index_ctg, ctg_value_old, ctg_value_new)
 
+    @_mark_modified
+    def delete_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
+        """
+        Delete a value from a grammatical category.
+
+        Removes all word forms that use this category value.
+        If the category has no values left after deletion, the category itself is removed.
+
+        Args:
+            ctg_name: Name of the category.
+            ctg_value: Value to remove from the category.
+
+        Raises:
+            ValueError: If the specified category or its value does not exist.
+        """
+
+        if self._features[ctg_name] == [ctg_value]:
+            self.delete_ctg(ctg_name)
+        else:
+            index = tuple(self._features.keys()).index(ctg_name)
+
+            self._features[ctg_name].remove(ctg_value)
+
+            for entry_id, entry in self._entries.items():
+                self._update_index('forms', chain(*entry.forms.values()), entry_id, 'remove')
+                self._counters['gram_forms'] -= entry.n_gram_forms
+                self._counters['word_forms'] -= entry.n_word_forms
+                entry.forms.delete_ctg_value(index, ctg_value)
+                self._counters['gram_forms'] += entry.n_gram_forms
+                self._counters['word_forms'] += entry.n_word_forms
+                self._update_index('forms', chain(*entry.forms.values()), entry_id, 'add')
+
     def add_tag(self, tag: Tag, is_default: bool = False):
         """
         Add a new tag to the Dictionary.
@@ -1081,37 +1081,6 @@ class Dictionary:
             self._default_tag_ids.add(tag_id)
 
         self._is_modified = True
-
-    @_mark_modified
-    def delete_tag(self, tag: Tag):
-        """
-        Delete a tag from the Dictionary.
-
-        Removes the tag from all Entries it was assigned to.
-
-        Args:
-            tag: Tag to delete.
-
-        Raises:
-            ValueError: If the specified tag does not exist.
-        """
-
-        tag_id = self._tags.index(tag)
-        self._default_tag_ids = set.union(
-            {def_tag_id     for def_tag_id in self._default_tag_ids if def_tag_id < tag_id},
-            {def_tag_id - 1 for def_tag_id in self._default_tag_ids if def_tag_id > tag_id}
-        )
-
-        entry_ids = self._indexes['tags'][tag]
-
-        for entry_id in entry_ids:
-            entry = self._entries[entry_id]
-            entry.tags.delete(tag)
-
-        self._update_index('tags', tag, entry_ids, 'remove')
-
-        del self._indexes['tags'][tag]
-        self._tags.remove(tag)
 
     def rename_tag(self, tag_old: Tag, tag_new: Tag):
         """
@@ -1152,6 +1121,37 @@ class Dictionary:
             del self._indexes['tags'][tag_old]
 
         self._is_modified = True
+
+    @_mark_modified
+    def delete_tag(self, tag: Tag):
+        """
+        Delete a tag from the Dictionary.
+
+        Removes the tag from all Entries it was assigned to.
+
+        Args:
+            tag: Tag to delete.
+
+        Raises:
+            ValueError: If the specified tag does not exist.
+        """
+
+        tag_id = self._tags.index(tag)
+        self._default_tag_ids = set.union(
+            {def_tag_id     for def_tag_id in self._default_tag_ids if def_tag_id < tag_id},
+            {def_tag_id - 1 for def_tag_id in self._default_tag_ids if def_tag_id > tag_id}
+        )
+
+        entry_ids = self._indexes['tags'][tag]
+
+        for entry_id in entry_ids:
+            entry = self._entries[entry_id]
+            entry.tags.delete(tag)
+
+        self._update_index('tags', tag, entry_ids, 'remove')
+
+        del self._indexes['tags'][tag]
+        self._tags.remove(tag)
 
     def mark_tag_as_default(self, tag: Tag):
         """
@@ -1198,6 +1198,21 @@ class Dictionary:
     def is_default_tag(self, tag: Tag) -> bool:
         tag_id = self._tags.index(tag)
         return tag_id in self._default_tag_ids
+
+    def to_txt(self, filepath: str):
+        """
+        Print the Dictionary to the specified file.
+
+        Outputs a formatted representation of the entire Dictionary.
+
+        Args:
+            filepath: Path to the text file. The file's contents will be overwritten.
+        """
+
+        with open(filepath, 'w', encoding='utf-8') as file:
+            for entry in self._entries.values():
+                file.write(str(entry))
+                file.write('\n')
 
     def to_json_dict(self) -> SerializedData:
         """
@@ -1314,21 +1329,6 @@ class Dictionary:
         self._default_tag_ids = default_tag_ids
         self._max_entry_id = max_entry_id
         self._is_modified = is_modified
-
-    def to_txt(self, filepath: str):
-        """
-        Print the Dictionary to the specified file.
-
-        Outputs a formatted representation of the entire Dictionary.
-
-        Args:
-            filepath: Path to the text file. The file's contents will be overwritten.
-        """
-
-        with open(filepath, 'w', encoding='utf-8') as file:
-            for entry in self._entries.values():
-                file.write(str(entry))
-                file.write('\n')
 
     def _update_index(
             self,
