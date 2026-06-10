@@ -1159,7 +1159,6 @@ class Dictionary:
 
         self._update_index('tags', tag, entry_ids, 'remove')
 
-        del self._indexes['tags'][tag]
         self._tags.remove(tag)
 
     def mark_tag_as_default(self, tag: Tag):
@@ -1373,5 +1372,5 @@ class Dictionary:
         else:
             for term in search_terms:
                 index[term].difference_update(entry_ids)
-                if not index[term]:
-                    index.pop(term)
+                if index_name != 'tags' and not index[term]:
+                    del index[term]
