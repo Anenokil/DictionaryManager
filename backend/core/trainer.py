@@ -408,7 +408,7 @@ class Trainer:
             if gram_form is None:
                 correct_answers = [entry.lemma]
             else:
-                correct_answers = [entry.forms[gram_form]]
+                correct_answers = entry.forms[gram_form]
         elif self._config.format == TrainingFormat.WORD_TO_TRANS:
             correct_answers = entry.tr
         elif self._config.format == TrainingFormat.TRANS_TO_PHRASE:
