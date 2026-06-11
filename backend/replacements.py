@@ -39,6 +39,12 @@ class Replacer:
     def __init__(self, modifiers: Iterable[str] = default_modifiers):
         self._replacements: dict[str, dict[str, str]] = {modifier: {} for modifier in modifiers}
 
+    @classmethod
+    def from_json_dict(cls, data: SerializedData) -> 'Replacer':
+        replacer = cls()
+        replacer.load_from_json_dict(data)
+        return replacer
+
     @property
     def modifiers(self) -> set[str]:
         return set(self._replacements)
@@ -116,9 +122,3 @@ class Replacer:
 
         # Set attributes
         self._replacements = replacements
-
-    @classmethod
-    def from_json_dict(cls, data: SerializedData) -> 'Replacer':
-        replacer = cls()
-        replacer.load_from_json_dict(data)
-        return replacer
