@@ -234,7 +234,7 @@ class Trainer:
             if self._config.format == TrainingFormat.ARTICLES_GERMAN:
                 for entry_id in ids:
                     lemma = self.dct[entry_id].lemma
-                    if len(lemma) > 4 and lemma[0:4].lower() in ('der ', 'die ', 'das '):
+                    if has_article(lemma.lower(), ('der ', 'die ', 'das ')):
                         yield entry_id
             elif self._config.format in (
                     TrainingFormat.PHRASE_TO_TRANS, TrainingFormat.TRANS_TO_PHRASE
@@ -313,10 +313,13 @@ class Trainer:
                     for gram_form in self.dct[entry_id].forms.keys():
                         yield entry_id, gram_form
 
-        def selected_phrases(
+        def select_phrases(
                 items: Iterable[tuple[EntryID, GramForm | None]]
         ) -> Iterable[tuple[EntryID, GramForm | None, Phrase | None]]:
-            if self._config.format in (TrainingFormat.PHRASE_TO_TRANS, TrainingFormat.TRANS_TO_PHRASE):
+            if self._config.format in (
+                    TrainingFormat.PHRASE_TO_TRANS,
+                    TrainingFormat.TRANS_TO_PHRASE,
+            ):
                 for key, form in items:
                     for phrase in self.dct[key].phrases.keys():
                         yield key, form, phrase
@@ -329,7 +332,7 @@ class Trainer:
         pool = filter_by_forms(pool)
         pool = filter_by_entries(pool)
         pool = select_forms(pool)
-        pool = selected_phrases(pool)
+        pool = select_phrases(pool)
 
         if self._config.order == TrainingOrder.RANDOM:
             self._pool = list(pool)
@@ -375,11 +378,10 @@ class Trainer:
             homonyms = self.dct.search(translations=translations)
         elif self._config.format == TrainingFormat.ARTICLES_GERMAN:
             lemma = self.dct[entry_id].lemma
-            homonyms = set(
-                eid for eid in self.dct.iter_entry_ids()
-                if lemma == self.dct[eid].lemma and
-                has_article(self.dct[eid].lemma.lower(), ('der ', 'die ', 'das '))
-            )
+            homonyms = {
+                eid for eid in self.dct.search(lemma=lemma)
+                if has_article(self.dct[eid].lemma.lower(), ('der ', 'die ', 'das '))
+            }
         else:
             homonyms = set()
         homonyms -= {entry_id}
