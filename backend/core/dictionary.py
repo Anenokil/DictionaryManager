@@ -137,6 +137,9 @@ class Dictionary:
 
         return self._entries[key]
 
+    def __iter__(self) -> Generator[tuple[EntryID, Entry], None, None]:
+        yield from self._entries.items()
+
     @property
     def name(self) -> DctName:
         return self._name
