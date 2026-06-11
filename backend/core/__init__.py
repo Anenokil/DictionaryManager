@@ -17,7 +17,7 @@ from .errors import (
 from .entry import Entry, Translations, Forms, Phrases, Notes, Tags
 from .dictionary import Dictionary
 from .trainer import (
-    Trainer, TrainingMethod, TrainingOrder, EntrySelection,
+    Trainer, TrainingFormat, TrainingOrder, EntrySelection,
     FormSelection, TrainingConfig,
 )
 from .utils import (

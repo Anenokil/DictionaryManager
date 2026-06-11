@@ -21,7 +21,7 @@ from itertools import chain
 from backend import (
     Entry, Dictionary, Trainer, EntryID, GramForm,
     gram_form_to_str, create_training_config,
-    TrainingMethod, TrainingOrder, EntrySelection,
+    TrainingFormat, TrainingOrder, EntrySelection,
     FormSelection, TrainingConfig,
 )
 from constants import *
@@ -1912,12 +1912,12 @@ class ImageDialog(tk.Toplevel):
 
 # Окно выбора режима перед изучением слов
 class TrainSettingsW(tk.Toplevel):
-    txt_to_method = {
-        'Угадывать слово по переводу': TrainingMethod.TRANS_TO_WORD,
-        'Угадывать перевод по слову': TrainingMethod.WORD_TO_TRANS,
-        'Угадывать фразу по переводу': TrainingMethod.TRANS_TO_PHRASE,
-        'Угадывать перевод по фразе': TrainingMethod.PHRASE_TO_TRANS,
-        'Der-Die-Das (для немецкого)': TrainingMethod.ARTICLES_GERMAN,
+    txt_to_format = {
+        'Угадывать слово по переводу': TrainingFormat.TRANS_TO_WORD,
+        'Угадывать перевод по слову': TrainingFormat.WORD_TO_TRANS,
+        'Угадывать фразу по переводу': TrainingFormat.TRANS_TO_PHRASE,
+        'Угадывать перевод по фразе': TrainingFormat.PHRASE_TO_TRANS,
+        'Der-Die-Das (для немецкого)': TrainingFormat.ARTICLES_GERMAN,
     }
     txt_to_order = {
         'Случайный порядок': TrainingOrder.RANDOM,
@@ -1938,7 +1938,7 @@ class TrainSettingsW(tk.Toplevel):
         'Все словоформы': FormSelection.ALL,
     }
 
-    method_to_txt = {v: k for k, v in txt_to_method.items()}
+    format_to_txt = {v: k for k, v in txt_to_format.items()}
     order_to_txt = {v: k for k, v in txt_to_order.items()}
     entries_to_txt = {v: k for k, v in txt_to_entries.items()}
     forms_to_txt = {v: k for k, v in txt_to_forms.items()}
@@ -1959,8 +1959,8 @@ class TrainSettingsW(tk.Toplevel):
             value=self.train_config.is_case_sensitive
         )
         # Метод учёбы
-        self.var_method = tk.StringVar(
-            value=self.method_to_txt[self.train_config.method]
+        self.var_format = tk.StringVar(
+            value=self.format_to_txt[self.train_config.format]
         )
         # Группа слов
         self.var_tag = tk.StringVar(
@@ -2008,11 +2008,11 @@ class TrainSettingsW(tk.Toplevel):
         self.check_case_sensitive = create_checkbutton(
             self.frame_main, self.var_case_sensitive,
             row=0, column=1, padx=(0, 6), pady=(6, 3), sticky='W')
-        self.lbl_method = create_label(
+        self.lbl_format = create_label(
             self.frame_main, 'Метод:',
             row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
-        self.combo_method = create_combobox(
-            self.frame_main, self.var_method, LEARN_VALUES_METHOD, 30,
+        self.combo_format = create_combobox(
+            self.frame_main, self.var_format, LEARN_VALUES_FORMAT, 30,
             font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
             state='readonly', validate='focusin',
             row=1, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
@@ -2051,8 +2051,8 @@ class TrainSettingsW(tk.Toplevel):
 
     def _add_validation(self):
         # При выборе любого метода учёбы кроме первого нельзя добавить словоформы
-        def validate_method_and_forms(value: str):
-            if value == LEARN_VALUES_METHOD[0]:
+        def validate_format_and_forms(value: str):
+            if value == LEARN_VALUES_FORMAT[0]:
                 self.lbl_forms.grid(  row=4, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
                 self.combo_forms.grid(row=4, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
             else:
@@ -2060,17 +2060,17 @@ class TrainSettingsW(tk.Toplevel):
                 self.combo_forms.grid_remove()
             return True
 
-        self.vcmd_method = (self.register(validate_method_and_forms), '%P')
-        self.combo_method['validatecommand'] = self.vcmd_method
+        self.vcmd_format = (self.register(validate_format_and_forms), '%P')
+        self.combo_format['validatecommand'] = self.vcmd_format
 
-        validate_method_and_forms(self.var_method.get())
+        validate_format_and_forms(self.var_format.get())
 
     # Начать учить слова
     def on_start(self):
-        method = self.var_method.get()
+        format = self.var_format.get()
         tag = self.var_tag.get()
         words = self.var_words.get()
-        if method == LEARN_VALUES_METHOD[0]:
+        if format == LEARN_VALUES_FORMAT[0]:
             forms = self.var_forms.get()
         else:
             forms = LEARN_VALUES_FORMS[0]
@@ -2078,7 +2078,7 @@ class TrainSettingsW(tk.Toplevel):
 
         self.dct_bundle.train_config = TrainingConfig(
             self.var_case_sensitive.get(),
-            self.txt_to_method[method],
+            self.txt_to_format[format],
             self.txt_to_order[order],
             self.txt_to_entries[words],
             self.txt_to_forms[forms],
@@ -5066,14 +5066,14 @@ class TrainingW(tk.Toplevel):
 
         if self.current_entry_id:
             entry = self.trainer.dct[self.current_entry_id]
-            if entry.n_notes == 0 or train_config.method in (TrainingMethod.TRANS_TO_PHRASE,
-                                                             TrainingMethod.PHRASE_TO_TRANS):
+            if entry.n_notes == 0 or train_config.format in (TrainingFormat.TRANS_TO_PHRASE,
+                                                             TrainingFormat.PHRASE_TO_TRANS):
                 btn_disable(self.btn_show_notes)
-            if not self.homonyms or train_config.method in (TrainingMethod.TRANS_TO_PHRASE,
-                                                            TrainingMethod.PHRASE_TO_TRANS):
+            if not self.homonyms or train_config.format in (TrainingFormat.TRANS_TO_PHRASE,
+                                                            TrainingFormat.PHRASE_TO_TRANS):
                 btn_disable(self.btn_show_homonyms)
-            if train_config.method not in (TrainingMethod.TRANS_TO_PHRASE,
-                                           TrainingMethod.PHRASE_TO_TRANS):
+            if train_config.format not in (TrainingFormat.TRANS_TO_PHRASE,
+                                           TrainingFormat.PHRASE_TO_TRANS):
                 btn_disable(self.btn_show_word_and_tr)
 
     def _configure_window(self):
@@ -5126,8 +5126,8 @@ class TrainingW(tk.Toplevel):
         self.btn_show_homonyms = create_button(
             self.frame_main, self.show_homonyms, 'Омонимы', width=8)
 
-        if self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE,
-                                          TrainingMethod.PHRASE_TO_TRANS):
+        if self.trainer.config.format in (TrainingFormat.TRANS_TO_PHRASE,
+                                          TrainingFormat.PHRASE_TO_TRANS):
             self.btn_show_word_and_tr.grid(row=0, column=2, padx=0, pady=0, sticky='W')
         else:
             self.btn_show_notes.grid(row=0, column=2, padx=(0, 3), pady=0, sticky='W')
@@ -5150,13 +5150,13 @@ class TrainingW(tk.Toplevel):
             'Control-O',
             hover_delay=700)
 
-        if self.trainer.config.method == TrainingMethod.TRANS_TO_WORD:
+        if self.trainer.config.format == TrainingFormat.TRANS_TO_WORD:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите слово', hover_delay=1000)
-        elif self.trainer.config.method == TrainingMethod.WORD_TO_TRANS:
+        elif self.trainer.config.format == TrainingFormat.WORD_TO_TRANS:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
-        elif self.trainer.config.method == TrainingMethod.TRANS_TO_PHRASE:
+        elif self.trainer.config.format == TrainingFormat.TRANS_TO_PHRASE:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите фразу', hover_delay=1000)
-        elif self.trainer.config.method == TrainingMethod.PHRASE_TO_TRANS:
+        elif self.trainer.config.format == TrainingFormat.PHRASE_TO_TRANS:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите перевод', hover_delay=1000)
         else:
             self.tip_entry = ttip.Hovertip(self.entry_input, 'Введите артикль', hover_delay=1000)
@@ -5188,7 +5188,7 @@ class TrainingW(tk.Toplevel):
          self.homonyms) = self.trainer.get_task()
 
         # Вывод слова в журнал
-        if self.trainer.config.method == TrainingMethod.TRANS_TO_WORD:
+        if self.trainer.config.format == TrainingFormat.TRANS_TO_WORD:
             if self.trainer.config.forms and self.current_form:
                 self.print(tr_and_forms_and_stats_repr(
                     self.trainer.dct[self.current_entry_id],
@@ -5196,14 +5196,14 @@ class TrainingW(tk.Toplevel):
                 ))
             else:
                 self.print(tr_and_stats_repr(self.trainer.dct[self.current_entry_id]))
-        elif self.trainer.config.method == TrainingMethod.WORD_TO_TRANS:
+        elif self.trainer.config.format == TrainingFormat.WORD_TO_TRANS:
             self.print(lemma_and_stats_repr(self.trainer.dct[self.current_entry_id]))
-        elif self.trainer.config.method == TrainingMethod.TRANS_TO_PHRASE:
+        elif self.trainer.config.format == TrainingFormat.TRANS_TO_PHRASE:
             self.print(phrase_tr_and_stats_repr(
                 self.trainer.dct[self.current_entry_id],
                 self.current_phrase,
             ))
-        elif self.trainer.config.method == TrainingMethod.PHRASE_TO_TRANS:
+        elif self.trainer.config.format == TrainingFormat.PHRASE_TO_TRANS:
             self.print(phrase_and_stats_repr(
                 self.trainer.dct[self.current_entry_id],
                 self.current_phrase,
@@ -5226,19 +5226,19 @@ class TrainingW(tk.Toplevel):
         self.pick_next_word()
 
         # Обновление кнопки "Посмотреть слово и перевод"
-        if self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE,
-                                          TrainingMethod.PHRASE_TO_TRANS):
+        if self.trainer.config.format in (TrainingFormat.TRANS_TO_PHRASE,
+                                          TrainingFormat.PHRASE_TO_TRANS):
             btn_enable(self.btn_show_word_and_tr, self.show_word_and_tr)
         # Обновление кнопки "Посмотреть сноски"
         entry = self.trainer.dct[self.current_entry_id]
-        if entry.n_notes == 0 or self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE,
-                                                                TrainingMethod.PHRASE_TO_TRANS):
+        if entry.n_notes == 0 or self.trainer.config.format in (TrainingFormat.TRANS_TO_PHRASE,
+                                                                TrainingFormat.PHRASE_TO_TRANS):
             btn_disable(self.btn_show_notes)
         else:
             btn_enable(self.btn_show_notes, self.show_notes)
         # Обновление кнопки "Посмотреть омонимы"
-        if not self.homonyms or self.trainer.config.method in (TrainingMethod.TRANS_TO_PHRASE,
-                                                               TrainingMethod.PHRASE_TO_TRANS):
+        if not self.homonyms or self.trainer.config.format in (TrainingFormat.TRANS_TO_PHRASE,
+                                                               TrainingFormat.PHRASE_TO_TRANS):
             btn_disable(self.btn_show_homonyms)
         else:
             btn_enable(self.btn_show_homonyms, self.show_homonyms)

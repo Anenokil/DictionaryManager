@@ -21,7 +21,7 @@ from .utils import (
 Pool = list[tuple[EntryID, GramForm | None, Phrase | None]]
 
 
-class TrainingMethod(Enum):
+class TrainingFormat(Enum):
     WORD_TO_TRANS = 'word_to_translation'
     TRANS_TO_WORD = 'translation_to_word'
     PHRASE_TO_TRANS = 'phrase_to_translation'
@@ -62,7 +62,7 @@ class TrainingConfig:
     def __init__(
             self,
             is_case_sensitive: bool = False,
-            method: TrainingMethod = TrainingMethod.TRANS_TO_WORD,
+            format: TrainingFormat = TrainingFormat.TRANS_TO_WORD,
             order: TrainingOrder = TrainingOrder.DIFFICULT_FIRST,
             entries: EntrySelection = EntrySelection.MOSTLY_FAV,
             forms: FormSelection = FormSelection.RANDOM,
@@ -70,7 +70,7 @@ class TrainingConfig:
             #tags: list[Tag] | None = None,  # TODO
     ):
         self.is_case_sensitive = is_case_sensitive
-        self.method = method
+        self.format = format
         self.order = order
         self.entries = entries
         self.forms = forms
@@ -78,7 +78,7 @@ class TrainingConfig:
 
     def set_defaults(self):
         self.is_case_sensitive = True
-        self.method = TrainingMethod.TRANS_TO_WORD
+        self.format = TrainingFormat.TRANS_TO_WORD
         self.order = TrainingOrder.DIFFICULT_FIRST
         self.entries = EntrySelection.MOSTLY_FAV
         self.forms = FormSelection.RANDOM
@@ -88,7 +88,7 @@ class TrainingConfig:
         return {
             'version': self._schema_version,
             'is_case_sensitive': self.is_case_sensitive,
-            'method': self.method.value,
+            'format': self.format.value,
             'order': self.order.value,
             'entries': self.entries.value,
             'forms': self.forms.value,
@@ -99,7 +99,7 @@ class TrainingConfig:
         data = self._check_and_migrate(data)
 
         self.is_case_sensitive = data['is_case_sensitive']
-        self.method = TrainingMethod(data['method'])
+        self.format = TrainingFormat(data['format'])
         self.order = TrainingOrder(data['order'])
         self.entries = EntrySelection(data['entries'])
         self.forms = FormSelection(data['forms'])
@@ -124,7 +124,7 @@ class TrainingConfig:
 
     @staticmethod
     def _validate_data(data: SerializedData):
-        str_fields = ('method', 'order', 'entries', 'forms')
+        str_fields = ('format', 'order', 'entries', 'forms')
         required_fields = str_fields + ('is_case_sensitive', 'tag',)
         validate_required_fields(data, required_fields)
 
@@ -203,7 +203,7 @@ class Trainer:
         """
         Replace the trainer's configuration.
 
-        Use this to change training parameters (method, order, filters,
+        Use this to change training parameters (format, order, filters,
         etc.). After reconfiguring, `initialize` should be called to rebuild
         the internal pool according to the new settings.
 
@@ -231,8 +231,8 @@ class Trainer:
             else:
                 yield from self.dct.search(tags=self._config.tags)
 
-        def filter_by_method(ids: Iterable[EntryID]) -> Iterable[EntryID]:
-            if self._config.method == TrainingMethod.ARTICLES_GERMAN:
+        def filter_by_format(ids: Iterable[EntryID]) -> Iterable[EntryID]:
+            if self._config.format == TrainingFormat.ARTICLES_GERMAN:
                 for entry_id in ids:
                     lemma = self.dct[entry_id].lemma
                     if len(lemma) > 4 and lemma[0:4].lower() in ('der ', 'die ', 'das '):
@@ -311,7 +311,7 @@ class Trainer:
         def selected_phrases(
                 items: Iterable[tuple[EntryID, GramForm | None]]
         ) -> Iterable[tuple[EntryID, GramForm | None, Phrase | None]]:
-            if self._config.method in (TrainingMethod.PHRASE_TO_TRANS, TrainingMethod.TRANS_TO_PHRASE):
+            if self._config.format in (TrainingFormat.PHRASE_TO_TRANS, TrainingFormat.TRANS_TO_PHRASE):
                 for key, form in items:
                     for phrase in self.dct[key].phrases.keys():
                         yield key, form, phrase
@@ -320,7 +320,7 @@ class Trainer:
                     yield key, form, None
 
         pool = filter_by_tag()
-        pool = filter_by_method(pool)
+        pool = filter_by_format(pool)
         pool = filter_by_forms(pool)
         pool = filter_by_entries(pool)
         pool = select_forms(pool)
@@ -360,13 +360,13 @@ class Trainer:
 
         entry_id, gram_form, phrase = self._pool.pop(0)
 
-        if self._config.method == TrainingMethod.WORD_TO_TRANS:
+        if self._config.format == TrainingFormat.WORD_TO_TRANS:
             lemma = self.dct[entry_id].lemma
             homonyms = self.dct.search(lemma=lemma)
-        elif self._config.method == TrainingMethod.TRANS_TO_WORD:
+        elif self._config.format == TrainingFormat.TRANS_TO_WORD:
             translations = self.dct[entry_id].tr
             homonyms = self.dct.search(translations=translations)
-        elif self._config.method == TrainingMethod.ARTICLES_GERMAN:
+        elif self._config.format == TrainingFormat.ARTICLES_GERMAN:
             lemma = self.dct[entry_id].lemma
             homonyms = set(
                 eid for eid in self.dct.iter_entry_ids()
@@ -394,16 +394,16 @@ class Trainer:
         entry_id, gram_form, phrase, _ = self._current_task
         entry = self.dct[entry_id]
 
-        if self._config.method == TrainingMethod.TRANS_TO_WORD:
+        if self._config.format == TrainingFormat.TRANS_TO_WORD:
             if gram_form is None:
                 correct_answers = [entry.lemma]
             else:
                 correct_answers = [entry.forms[gram_form]]
-        elif self._config.method == TrainingMethod.WORD_TO_TRANS:
+        elif self._config.format == TrainingFormat.WORD_TO_TRANS:
             correct_answers = entry.tr
-        elif self._config.method == TrainingMethod.TRANS_TO_PHRASE:
+        elif self._config.format == TrainingFormat.TRANS_TO_PHRASE:
             correct_answers = [phrase]
-        elif self._config.method == TrainingMethod.PHRASE_TO_TRANS:
+        elif self._config.format == TrainingFormat.PHRASE_TO_TRANS:
             correct_answers = entry.phrases[phrase]
         else:
             correct_answers = [entry.lemma[:3]]
