@@ -236,6 +236,12 @@ class Trainer:
                     lemma = self.dct[entry_id].lemma
                     if len(lemma) > 4 and lemma[0:4].lower() in ('der ', 'die ', 'das '):
                         yield entry_id
+            elif self._config.format in (
+                    TrainingFormat.PHRASE_TO_TRANS, TrainingFormat.TRANS_TO_PHRASE
+            ):
+                for entry_id in ids:
+                    if self.dct[entry_id].n_phrases != 0:
+                        yield entry_id
             else:
                 yield from ids
 
