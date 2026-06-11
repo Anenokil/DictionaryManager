@@ -66,15 +66,14 @@ class TrainingConfig:
             order: TrainingOrder = TrainingOrder.DIFFICULT_FIRST,
             entries: EntrySelection = EntrySelection.MOSTLY_FAV,
             forms: FormSelection = FormSelection.RANDOM,
-            tag: Tag | None = None
-            #tags: list[Tag] | None = None,  # TODO
+            tags: list[Tag] | None = None,
     ):
         self.is_case_sensitive = is_case_sensitive
         self.format = format
         self.order = order
         self.entries = entries
         self.forms = forms
-        self.tag = tag
+        self.tags = tags
 
     def set_defaults(self):
         self.is_case_sensitive = True
@@ -82,7 +81,7 @@ class TrainingConfig:
         self.order = TrainingOrder.DIFFICULT_FIRST
         self.entries = EntrySelection.MOSTLY_FAV
         self.forms = FormSelection.RANDOM
-        self.tag = None
+        self.tags = None
 
     def to_dict(self) -> SerializedData:
         return {
@@ -92,7 +91,7 @@ class TrainingConfig:
             'order': self.order.value,
             'entries': self.entries.value,
             'forms': self.forms.value,
-            'tag': self.tag,
+            'tags': self.tags,
         }
 
     def load_from_dict(self, data: SerializedData):
@@ -103,7 +102,7 @@ class TrainingConfig:
         self.order = TrainingOrder(data['order'])
         self.entries = EntrySelection(data['entries'])
         self.forms = FormSelection(data['forms'])
-        self.tag = data['tag']
+        self.tags = data['tags']
 
     @classmethod
     def from_dict(cls, data: SerializedData):
@@ -125,13 +124,13 @@ class TrainingConfig:
     @staticmethod
     def _validate_data(data: SerializedData):
         str_fields = ('format', 'order', 'entries', 'forms')
-        required_fields = str_fields + ('is_case_sensitive', 'tag',)
+        required_fields = str_fields + ('is_case_sensitive', 'tags')
         validate_required_fields(data, required_fields)
 
         for field_name in str_fields:
             validate_field_type(field_name, data[field_name], str)
         validate_field_type('is_case_sensitive', data['is_case_sensitive'], bool)
-        validate_field_type('tag', data['tag'], (str, NoneType))
+        validate_field_type('tags', data['tags'], (list[str], NoneType))
 
 
 class Trainer:
@@ -225,7 +224,7 @@ class Trainer:
         via `get_task`.
         """
 
-        def filter_by_tag() -> Iterable[EntryID]:
+        def filter_by_tags() -> Iterable[EntryID]:
             if self._config.tags is None:
                 yield from self.dct.iter_entry_ids()
             else:
@@ -319,7 +318,7 @@ class Trainer:
                 for key, form in items:
                     yield key, form, None
 
-        pool = filter_by_tag()
+        pool = filter_by_tags()
         pool = filter_by_format(pool)
         pool = filter_by_forms(pool)
         pool = filter_by_entries(pool)

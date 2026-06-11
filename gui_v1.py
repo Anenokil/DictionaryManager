@@ -1964,7 +1964,7 @@ class TrainSettingsW(tk.Toplevel):
         )
         # Группа слов
         self.var_tag = tk.StringVar(
-            value=self.train_config.tag or ALL_TAGS
+            value=self.train_config.tags[0] if self.train_config.tags else ALL_TAGS
         )
         # Способ набора слов
         self.var_words = tk.StringVar(
@@ -2082,7 +2082,7 @@ class TrainSettingsW(tk.Toplevel):
             self.txt_to_order[order],
             self.txt_to_entries[words],
             self.txt_to_forms[forms],
-            None if tag == ALL_TAGS else tag,
+            None if tag == ALL_TAGS else [tag],
         )
 
         self.cancelled = True
@@ -3681,9 +3681,9 @@ class TagSettingsW(tk.Toplevel):
 
         self.dct.rename_tag(tag_old, tag_new)
 
-        train_tag = self.dct_bundle.train_config.tag
+        train_tag = self.dct_bundle.train_config.tags[0]
         if train_tag == tag_old:
-            self.dct_bundle.train_config.tag = tag_new
+            self.dct_bundle.train_config.tags = [tag_new]
 
         self.print_tags(False)
         self.has_changes = True
@@ -3707,9 +3707,9 @@ class TagSettingsW(tk.Toplevel):
             if not result:
                 return
 
-        train_tag = self.dct_bundle.train_config.tag
+        train_tag = self.dct_bundle.train_config.tags[0]
         if train_tag == tag:
-            self.dct_bundle.train_config.tag = ALL_TAGS
+            self.dct_bundle.train_config.tags = [ALL_TAGS]
 
         self.dct.delete_tag(tag)
 
