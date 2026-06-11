@@ -264,10 +264,11 @@ class Trainer:
                 n_fav = len(fav_ids)
                 n_unfav = len(unfav_ids)
 
-                unfav_ids = sorted(unfav_ids, key=lambda i: self.dct[i].latest_att_timestamp)
-                if n_fav > 4 * n_unfav:
-                    unfav_ids = unfav_ids[:min(n_unfav, n_fav // 2)]
-                    unfav_ids = random.sample(unfav_ids, n_fav // 4)
+                if n_unfav > n_fav:
+                    unfav_ids = sorted(unfav_ids, key=lambda i: self.dct[i].latest_att_timestamp)
+                    unfav_ids = unfav_ids[:n_fav]
+                if n_unfav > n_fav // 4:
+                    unfav_ids = random.sample(list(unfav_ids), n_fav // 4)
 
                 # Помимо всех избранных слов (пусть их количество N) добавим N // 4 остальных слов
                 # Выберем их из самых давно не отвечаемых слов
