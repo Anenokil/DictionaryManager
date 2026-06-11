@@ -378,7 +378,7 @@ class Trainer:
             homonyms = set(
                 eid for eid in self.dct.iter_entry_ids()
                 if lemma == self.dct[eid].lemma and
-                has_article(self.dct[eid].lemma, ('der ', 'die ', 'das '))
+                has_article(self.dct[eid].lemma.lower(), ('der ', 'die ', 'das '))
             )
         else:
             homonyms = set()
