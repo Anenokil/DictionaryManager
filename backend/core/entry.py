@@ -33,6 +33,9 @@ class Translations:
     def __iter__(self) -> Iterator[Translation]:
         return iter(self._data)
 
+    def __str__(self) -> str:
+        return str(self._data)
+
     def add(self, translation: Translation) -> tuple[bool, int]:
         """
         Add a new translation.
@@ -116,6 +119,9 @@ class Forms:
 
     def __iter__(self) -> Iterator[GramForm]:
         return iter(self._data)
+
+    def __str__(self) -> str:
+        return str(self._data)
 
     def keys(self):
         return self._data.keys()
@@ -310,6 +316,9 @@ class Phrases:
     def __iter__(self) -> Iterator[Phrase]:
         return iter(self._data)
 
+    def __str__(self) -> str:
+        return str(self._data)
+
     def keys(self):
         return self._data.keys()
 
@@ -428,6 +437,9 @@ class Notes:
     def __iter__(self) -> Iterator[Note]:
         return iter(self._data)
 
+    def __str__(self) -> str:
+        return str(self._data)
+
     def add(self, note: Note) -> tuple[bool, int]:
         """
         Add a new note.
@@ -498,6 +510,9 @@ class Tags:
 
     def __iter__(self) -> Iterator[Tag]:
         return iter(self._data)
+
+    def __str__(self) -> str:
+        return str(self._data)
 
     def add(self, tag: Tag) -> tuple[bool, int]:
         """
