@@ -31,7 +31,7 @@ class TrainingFormat(Enum):
 
 class TrainingOrder(Enum):
     RANDOM = 'random'
-    #EASY_FIRST = 'easy_first'
+    EASY_FIRST = 'easy_first'
     DIFFICULT_FIRST = 'difficult_first'
     OLDEST_FIRST = 'oldest_first'
 
@@ -328,6 +328,8 @@ class Trainer:
         if self._config.order == TrainingOrder.RANDOM:
             self._pool = list(pool)
             random.shuffle(self._pool)
+        elif self._config.order == TrainingOrder.EASY_FIRST:
+            self._pool = sorted(pool, key=lambda item: difficulty(self.dct[item[0]]))
         elif self._config.order == TrainingOrder.DIFFICULT_FIRST:
             self._pool = sorted(pool, key=lambda item: difficulty(self.dct[item[0]]), reverse=True)
         elif self._config.order == TrainingOrder.OLDEST_FIRST:
@@ -436,11 +438,16 @@ class Trainer:
         is_correct = user_answer in correct_answers
 
         if not is_correct:
-            if self._config.order == TrainingOrder.DIFFICULT_FIRST:
-                self._pool.append((entry_id, gram_form, phrase))
-                self._pool.sort(key=lambda item: difficulty(self.dct[item[0]]), reverse=True)
-            else:
+            if self._config.order == TrainingOrder.RANDOM:
                 rnd_index = random.randint(0, len(self._pool))
                 self._pool.insert(rnd_index, (entry_id, gram_form, phrase))
+            else:
+                self._pool.append((entry_id, gram_form, phrase))
+                if self._config.order == TrainingOrder.EASY_FIRST:
+                    self._pool.sort(key=lambda item: difficulty(self.dct[item[0]]))
+                elif self._config.order == TrainingOrder.DIFFICULT_FIRST:
+                    self._pool.sort(key=lambda item: difficulty(self.dct[item[0]]), reverse=True)
+                else:
+                    self._pool.sort(key=lambda item: self.dct[item[0]].latest_att_timestamp)
 
         return is_correct
