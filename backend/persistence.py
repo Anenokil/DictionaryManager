@@ -63,7 +63,7 @@ class GlobalSettings:
         validate_field_type('is_typo_btn_on', data['is_typo_btn_on'], bool)
 
 
-class GuiTKSettings:
+class UISettingsTK:
     schema_version = 1
 
     def __init__(self, data: SerializedData | None = None):
@@ -99,9 +99,9 @@ class GuiTKSettings:
 
         version: int = data['version']
         if version == 1:
-            GuiTKSettings._validate_data(data)
+            UISettingsTK._validate_data(data)
             return data
-        raise UnknownVersionError(GuiTKSettings.__name__, version)
+        raise UnknownVersionError(UISettingsTK.__name__, version)
 
     @staticmethod
     def _validate_data(data: SerializedData):
@@ -115,15 +115,15 @@ class GuiTKSettings:
 class AppData:
     schema_version = 1
 
-    def __init__(self, path: str, gui: Literal['tk', 'qt']):
-        assert gui in ('tk', 'qt')
+    def __init__(self, path: str, ui: Literal['tk', 'qt']):
+        assert ui in ('tk', 'qt')
 
         self.path = path
-        self.gui = gui
+        self.ui = ui
 
         self.manager = Manager()
         self.global_settings = GlobalSettings()
-        self.gui_settings = GuiTKSettings() if (gui == 'tk') else GuiQTSettings()
+        self.ui_settings = UISettingsTK() if (ui == 'tk') else UISettingsQT()
 
         if os.path.exists(path):
             self.load(True, True, True)
@@ -135,13 +135,13 @@ class AppData:
                 json.dump({}, f)
             self.save(True, True, True)
 
-    def set_defaults(self, glob: bool = True, gui: bool = True):
+    def set_defaults(self, glob: bool = True, ui: bool = True):
         if glob:
            self.global_settings.set_defaults()
-        if gui:
-           self.gui_settings.set_defaults()
+        if ui:
+           self.ui_settings.set_defaults()
 
-    def save(self, manager: bool = True, glob: bool = True, gui: bool = True):
+    def save(self, manager: bool = True, glob: bool = True, ui: bool = True):
         with open(self.path, 'r') as f:
             data = json.load(f)
 
@@ -152,13 +152,13 @@ class AppData:
             data['manager'] = self.manager.to_dict()
         if glob:
             data['global'] = self.global_settings.serialize()
-        if gui:
-            data[f'gui_{self.gui}'] = self.gui_settings.serialize()
+        if ui:
+            data[f'ui_{self.ui}'] = self.ui_settings.serialize()
 
         with open(self.path, 'w') as f:
             json.dump(data, f)
 
-    def load(self, manager: bool = True, glob: bool = True, gui: bool = True):
+    def load(self, manager: bool = True, glob: bool = True, ui: bool = True):
         with open(self.path, 'r') as f:
             data = json.load(f)
 
@@ -168,8 +168,8 @@ class AppData:
             self.manager.load_from_json_dict(data['manager'])
         if glob:
             self.global_settings.deserialize(data['global'])
-        if gui:
-            self.gui_settings.deserialize(data[f'gui_{self.gui}'])
+        if ui:
+            self.ui_settings.deserialize(data[f'ui_{self.ui}'])
 
     def _check_and_migrate(self, data: SerializedData) -> SerializedData:
         validate_required_fields(data, ('version',))
@@ -182,7 +182,7 @@ class AppData:
         raise UnknownVersionError(AppData.__name__, version)
 
     def _validate_data(self, data: SerializedData):
-        required_fields = ('manager', 'global', f'gui_{self.gui}')
+        required_fields = ('manager', 'global', f'ui_{self.ui}')
         validate_required_fields(data, required_fields)
 
         for field_name in required_fields:

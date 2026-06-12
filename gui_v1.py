@@ -1344,7 +1344,7 @@ def create_entry(
 ) -> ttk.Entry:
     params = locals()
     if isinstance(font, AppData):
-        params['font'] = ('StdFont', font.gui_settings.scale)
+        params['font'] = ('StdFont', font.ui_settings.scale)
     return _create_widget(ttk.Entry, **params)
 
 
@@ -1359,7 +1359,7 @@ def create_combobox(
 ) -> ttk.Combobox:
     params = locals()
     if isinstance(font, AppData):
-        params['font'] = ('StdFont', font.gui_settings.scale)
+        params['font'] = ('StdFont', font.ui_settings.scale)
     return _create_widget(ttk.Combobox, **params)
 
 
@@ -1431,7 +1431,7 @@ class ScrollFrame(tk.Frame):
             scrollbar_position: Literal['left', 'right'],
     ):
         self.canvas = tk.Canvas(
-            self, bg=STYLES['FLAT_BTN.BG.2'][1][self.app_data.gui_settings.theme],
+            self, bg=STYLES['FLAT_BTN.BG.2'][1][self.app_data.ui_settings.theme],
             bd=0, highlightthickness=0, height=height, width=width)
         self.canvas.pack(side=canvas_position, fill='both', expand=True)
         self.frame_canvas = create_frame(self.canvas)
@@ -1535,7 +1535,7 @@ class MessageDialog(tk.Toplevel):
 
     def _configure_window(self, title: str):
         self.title(title)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(
@@ -1623,7 +1623,7 @@ class TwoOptionsDialog(tk.Toplevel):
 
     def _configure_window(self, title: str):
         self.title(title)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, msg: str, left_btn_text: str, right_btn_text: str):
@@ -1717,7 +1717,7 @@ class InputDialog(tk.Toplevel):
 
     def _configure_window(self, title: str):
         self.title(title)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, msg: str, btn_text: str, entry_width: int):
@@ -1798,7 +1798,7 @@ class ChoiceDialog(tk.Toplevel):
 
     def _configure_window(self, title: str):
         self.title(title)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(
@@ -1814,7 +1814,7 @@ class ChoiceDialog(tk.Toplevel):
             row=0, padx=6, pady=(4, 1))
         self.combo = create_combobox(
             self, self.var_answer, values, combo_width, state='readonly',
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale),
             row=1, padx=6, pady=1)
         self.btn_ok = create_button(
             self, self.on_ok, btn_text, style='Yes.TButton',
@@ -1865,7 +1865,7 @@ class ImageDialog(tk.Toplevel):
     def _configure_window(self, title: str):
         self.title(title)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, img_name: str, msg: str, btn_text: str):
@@ -1986,7 +1986,7 @@ class TrainSettingsW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Выбор режима')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -2013,7 +2013,7 @@ class TrainSettingsW(tk.Toplevel):
             row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_format = create_combobox(
             self.frame_main, self.var_format, LEARN_VALUES_FORMAT, 30,
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale),
             state='readonly', validate='focusin',
             row=1, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_tag = create_label(
@@ -2021,7 +2021,7 @@ class TrainSettingsW(tk.Toplevel):
             row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_tag = create_combobox(
             self.frame_main, self.var_tag, self.tag_options, 30,
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale),
             state='readonly',
             row=2, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_words = create_label(
@@ -2029,7 +2029,7 @@ class TrainSettingsW(tk.Toplevel):
             row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_words = create_combobox(
             self.frame_main, self.var_words, LEARN_VALUES_WORDS, 30,
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale),
             state='readonly',
             row=3, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_forms = create_label(
@@ -2037,7 +2037,7 @@ class TrainSettingsW(tk.Toplevel):
             row=4, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.combo_forms = create_combobox(
             self.frame_main, self.var_forms, LEARN_VALUES_FORMS, 30,
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale),
             state='readonly',
             row=4, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_order = create_label(
@@ -2045,7 +2045,7 @@ class TrainSettingsW(tk.Toplevel):
             row=5, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
         self.combo_order = create_combobox(
             self.frame_main, self.var_order, LEARN_VALUES_ORDER, 30,
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale),
             state='readonly',
             row=5, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
 
@@ -2133,7 +2133,7 @@ class IncorrectAnswerW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Неверно')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -2238,7 +2238,7 @@ class SearchSettingsW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Параметры поиска')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -2303,7 +2303,7 @@ class SearchSettingsW(tk.Toplevel):
             self.frame_tag, self.var_search_tag,
             [ALL_TAGS] + self.dct_bundle.dct.tags, 26,
             state='readonly',
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale),
             row=0, column=1, padx=(0, 6), pady=6, sticky='W')
 
     # Установить фокус
@@ -2357,7 +2357,7 @@ class SelectEntryFromHomographsW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Найдено несколько схожих статей')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -2366,8 +2366,8 @@ class SelectEntryFromHomographsW(tk.Toplevel):
             row=0, column=0, padx=(6, 3), pady=(6, 3))
         self.scrolled_frame_wrd = ScrollFrame(
             self, self.app_data,
-            SCALE_DEFAULT_FRAME_HEIGHT[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_DEFAULT_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+            SCALE_DEFAULT_FRAME_HEIGHT[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_DEFAULT_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame_wrd.grid(
             row=1, column=0, padx=6, pady=(0, 6))
         self.scrolled_frame_wrd.canvas.yview_moveto(0.0)
@@ -2436,7 +2436,7 @@ class EnterPhraseW(tk.Toplevel):
     def _configure_window(self, title: str):
         self.title(f'{PROGRAM_NAME} - {title}')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -2547,11 +2547,11 @@ class EditEntryW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Изменение статьи')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self._create_main_frame()
         self.btn_back = create_button(
@@ -2568,7 +2568,7 @@ class EditEntryW(tk.Toplevel):
         self.tip_btn_help = ttip.Hovertip(self.btn_help, 'Справка', hover_delay=450)
 
     def _create_main_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_main = create_frame(self, row=0, columnspan=3, padx=6, pady=(6, 4))
 
@@ -2581,12 +2581,12 @@ class EditEntryW(tk.Toplevel):
         self.txt_wrd = tk.Text(
             self.frame_main, width=self.line_width,
             yscrollcommand=self.scrollbar_wrd.set, relief='solid',
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale + 1),
-            bg=STYLES['*.BG.ENTRY'][1][self.app_data.gui_settings.theme],
-            fg=STYLES['*.FG.*'][1][self.app_data.gui_settings.theme],
-            selectbackground=STYLES['*.BG.SEL'][1][self.app_data.gui_settings.theme],
-            selectforeground=STYLES['*.FG.SEL'][1][self.app_data.gui_settings.theme],
-            highlightbackground=STYLES['*.BORDER_CLR.*'][1][self.app_data.gui_settings.theme])
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale + 1),
+            bg=STYLES['*.BG.ENTRY'][1][self.app_data.ui_settings.theme],
+            fg=STYLES['*.FG.*'][1][self.app_data.ui_settings.theme],
+            selectbackground=STYLES['*.BG.SEL'][1][self.app_data.ui_settings.theme],
+            selectforeground=STYLES['*.FG.SEL'][1][self.app_data.ui_settings.theme],
+            highlightbackground=STYLES['*.BORDER_CLR.*'][1][self.app_data.ui_settings.theme])
         self.txt_wrd.grid(
             row=0, column=1, padx=(0, 1), pady=(6, 3), sticky='W')
         self.scrollbar_wrd.config(command=self.txt_wrd.yview)
@@ -2599,8 +2599,8 @@ class EditEntryW(tk.Toplevel):
             row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.scrolled_frame_tr = ScrollFrame(
             self.frame_main, self.app_data,
-            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame_tr.grid(
             row=1, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
         self.btn_tr_add = create_button(
@@ -2612,8 +2612,8 @@ class EditEntryW(tk.Toplevel):
             row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.scrolled_frame_frm = ScrollFrame(
             self.frame_main, self.app_data,
-            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame_frm.grid(
             row=2, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
         self.btn_frm_add = create_button(
@@ -2625,8 +2625,8 @@ class EditEntryW(tk.Toplevel):
             row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.scrolled_frame_phr = ScrollFrame(
             self.frame_main, self.app_data,
-            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame_phr.grid(
             row=3, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
         self.btn_phrase_add = create_button(
@@ -2638,8 +2638,8 @@ class EditEntryW(tk.Toplevel):
             row=4, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.scrolled_frame_nt = ScrollFrame(
             self.frame_main, self.app_data,
-            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame_nt.grid(
             row=4, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
         self.btn_note_add = create_button(
@@ -2651,8 +2651,8 @@ class EditEntryW(tk.Toplevel):
             row=5, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
         self.scrolled_frame_gr = ScrollFrame(
             self.frame_main, self.app_data,
-            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame_gr.grid(
             row=5, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
         self.btn_gr_add = create_button(
@@ -3141,35 +3141,35 @@ class EditEntryW(tk.Toplevel):
                 field_height(btn['text'], 35)
                 for btn in self.tr_buttons
             ]), self.max_height_t)) *
-            SCALE_FRAME_HEIGHT_ONE_LINE[self.app_data.gui_settings.scale - SCALE_MIN]
+            SCALE_FRAME_HEIGHT_ONE_LINE[self.app_data.ui_settings.scale - SCALE_MIN]
         )
         self.scrolled_frame_nt.resize(
             height=max(1, min(sum([
                 field_height(btn['text'], 35)
                 for btn in self.nt_buttons
             ]), self.max_height_n)) *
-            SCALE_FRAME_HEIGHT_ONE_LINE[self.app_data.gui_settings.scale - SCALE_MIN]
+            SCALE_FRAME_HEIGHT_ONE_LINE[self.app_data.ui_settings.scale - SCALE_MIN]
         )
         self.scrolled_frame_phr.resize(
             height=max(1, min(sum([
                 field_height(btn['text'], 35)
                 for btn in self.phr_buttons
             ]), self.max_height_p)) *
-            SCALE_FRAME_HEIGHT_ONE_LINE[self.app_data.gui_settings.scale - SCALE_MIN]
+            SCALE_FRAME_HEIGHT_ONE_LINE[self.app_data.ui_settings.scale - SCALE_MIN]
         )
         self.scrolled_frame_frm.resize(
             height=max(1, min(sum([
                 field_height(btn['text'], 35)
                 for btn in self.frm_buttons
             ]), self.max_height_f)) *
-            SCALE_FRAME_HEIGHT_ONE_LINE[self.app_data.gui_settings.scale - SCALE_MIN]
+            SCALE_FRAME_HEIGHT_ONE_LINE[self.app_data.ui_settings.scale - SCALE_MIN]
         )
         self.scrolled_frame_gr.resize(
             height=max(1, min(sum([
                 field_height(btn['text'], 35)
                 for btn in self.gr_buttons
             ]), self.max_height_g)) *
-            SCALE_FRAME_HEIGHT_ONE_LINE[self.app_data.gui_settings.scale - SCALE_MIN]
+            SCALE_FRAME_HEIGHT_ONE_LINE[self.app_data.ui_settings.scale - SCALE_MIN]
         )
 
         # Если требуется, прокручиваем вверх
@@ -3263,7 +3263,7 @@ class EnterFormW(tk.Toplevel):
     def _configure_window(self):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, combo_width: int):
@@ -3272,7 +3272,7 @@ class EnterFormW(tk.Toplevel):
             row=0, column=0, padx=(6, 1), pady=(6, 1), sticky='E')
         self.combo_ctg = create_combobox(
             self, self.var_ctg, self.categories, combo_width,
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale),
             state='readonly',
             row=0, column=1, padx=(0, 6), pady=(6, 1), sticky='W')
         self.lbl_choose_val = create_label(
@@ -3288,7 +3288,7 @@ class EnterFormW(tk.Toplevel):
             row=4, columnspan=2, padx=6, pady=6)
 
     def _create_val_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_val = create_frame(
             self, 'Invis.TFrame',
@@ -3297,7 +3297,7 @@ class EnterFormW(tk.Toplevel):
         self.combo_val = create_combobox(
             self.frame_val, self.var_val, self.ctg_values,
             combobox_width(self.ctg_values, 5, 100),
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale),
             state='readonly',
             row=0, column=0, padx=0, pady=0)
         self.btn_choose = create_button(
@@ -3459,11 +3459,11 @@ class CategoriesSettingsW(tk.Toplevel):
     def _configure_window(self):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.btn_help = create_button(
             self, self.show_help, width=2,
@@ -3474,8 +3474,8 @@ class CategoriesSettingsW(tk.Toplevel):
             row=0, column=1, padx=(0, 6), pady=(6, 0), sticky='W')
         self.scrolled_frame = ScrollFrame(
             self, self.app_data,
-            SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+            SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame.grid(
             row=1, column=0, columnspan=2, padx=6, pady=(0, 6))
         self.btn_add = create_button(
@@ -3618,11 +3618,11 @@ class TagSettingsW(tk.Toplevel):
     def _configure_window(self):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.btn_help = create_button(
             self, self.show_help, width=2,
@@ -3633,8 +3633,8 @@ class TagSettingsW(tk.Toplevel):
             row=0, column=1, padx=(0, 6), pady=(6, 0), sticky='W')
         self.scrolled_frame = ScrollFrame(
             self, self.app_data,
-            SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+            SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame.grid(
             row=1, column=0, columnspan=2, padx=6, pady=(0, 6))
         self.btn_add = create_button(
@@ -3851,11 +3851,11 @@ class CategoryValuesSettingsW(tk.Toplevel):
     def _configure_window(self):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.btn_help = create_button(
             self, self.show_help, width=2,
@@ -3870,8 +3870,8 @@ class CategoryValuesSettingsW(tk.Toplevel):
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
         self.scrolled_frame = ScrollFrame(
             self, self.app_data,
-            SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+            SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame.grid(
             row=1, column=0, columnspan=2, padx=6, pady=(0, 6))
         self.btn_add = create_button(
@@ -4011,11 +4011,11 @@ class InputReplacementsSettingsW(tk.Toplevel):
     def _configure_window(self):
         self.title(PROGRAM_NAME)
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.btn_help = create_button(
             self, self.show_help, width=2,
@@ -4026,8 +4026,8 @@ class InputReplacementsSettingsW(tk.Toplevel):
             row=0, column=1, padx=(0, 6), pady=(6, 0), sticky='W')
         self.scrolled_frame = ScrollFrame(
             self, self.app_data,
-            SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+            SCALE_SMALL_FRAME_HEIGHT_TALL[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame.grid(
             row=1, column=0, columnspan=2, padx=6, pady=(0, 6))
         self.btn_add = create_button(
@@ -4203,7 +4203,7 @@ class EnterInputReplacementW(tk.Toplevel):
 
     def _configure_window(self):
         self.title(PROGRAM_NAME)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -4220,7 +4220,7 @@ class EnterInputReplacementW(tk.Toplevel):
 
         self.combo_modifier = create_combobox(
             self.frame_main, self.var_modifier, tuple(self.replacer.modifiers), 3,
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale), state='normal',
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale), state='normal',
             validate='all', validatecommand=self.vcmd_modifier,
             row=0, column=0, padx=0, pady=0)
         self.entry_key = create_entry(
@@ -4295,7 +4295,7 @@ class CustomThemeSettingsW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Настройки пользовательской темы')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -4314,7 +4314,7 @@ class CustomThemeSettingsW(tk.Toplevel):
             row=0, column=0, padx=(0, 1), pady=(0, 6), sticky='E')
         self.combo_set_theme = create_combobox(
             self.frame_themes, self.var_theme, THEMES[1:],
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale),
             state='readonly',
             row=0, column=1, padx=(0, 3), pady=(0, 6))
         self.btn_set_theme = create_button(
@@ -4325,7 +4325,7 @@ class CustomThemeSettingsW(tk.Toplevel):
             row=1, column=0, padx=(0, 1), pady=0, sticky='E')
         self.combo_set_images = create_combobox(
             self.frame_themes, self.var_images, THEMES[1:],
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale),
             state='readonly',
             row=1, column=1, padx=(0, 3), pady=0)
         self.btn_set_images = create_button(
@@ -4335,8 +4335,8 @@ class CustomThemeSettingsW(tk.Toplevel):
     def _create_scrolled_frame(self):
         self.scrolled_frame = ScrollFrame(
             self, self.app_data,
-            SCALE_DEFAULT_FRAME_HEIGHT[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_CUSTOM_THEME_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+            SCALE_DEFAULT_FRAME_HEIGHT[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_CUSTOM_THEME_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame.grid(row=1, column=0, padx=6, pady=6)
 
         # Выбор цветов
@@ -4390,8 +4390,8 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.combo_relief_frame = create_combobox(
             self.scrolled_frame.frame_canvas, self.var_relief_frame,
             ('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
-            SCALE_CUSTOM_THEME_COMBO_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN],
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            SCALE_CUSTOM_THEME_COMBO_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN],
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale),
             validate='focus', validatecommand=self.vcmd_relief_frame, state='readonly',
             row=9, column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
         self.lbl_relief_text = create_label(
@@ -4400,8 +4400,8 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.combo_relief_text = create_combobox(
             self.scrolled_frame.frame_canvas, self.var_relief_text,
             ('raised', 'sunken', 'flat', 'ridge', 'solid', 'groove'),
-            SCALE_CUSTOM_THEME_COMBO_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN],
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            SCALE_CUSTOM_THEME_COMBO_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN],
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale),
             validate='focus', validatecommand=self.vcmd_relief_text, state='readonly',
             row=10, column=1, columnspan=2, padx=(0, 6), pady=(0, 3), sticky='W')
 
@@ -4416,7 +4416,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self._create_history_frame()
 
     def _create_history_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_history = create_frame(
             self.frame_buttons, 'Invis.TFrame',
@@ -4448,7 +4448,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.entry_demo = create_entry(
             self.frame_demonstration,
             width=20, style='DemoDefault.TEntry',
-            font=('StdFont', self.app_data.gui_settings.scale),
+            font=('StdFont', self.app_data.ui_settings.scale),
             row=2, column=1, columnspan=2, padx=(0, 6), pady=(0, 6), sticky='SW')
         self.btn_demo_def = create_button(
             self.frame_demonstration,
@@ -4468,7 +4468,7 @@ class CustomThemeSettingsW(tk.Toplevel):
             row=6, column=0, padx=6, pady=(0, 6), sticky='E')
         self.txt_demo = tk.Text(
             self.frame_demonstration,
-            font=('StdFont', self.app_data.gui_settings.scale),
+            font=('StdFont', self.app_data.ui_settings.scale),
             width=12, height=4, state='normal')
         self.txt_demo.grid(
             row=3, rowspan=4, column=1, padx=0, pady=(0, 6), sticky='SNWE')
@@ -4735,7 +4735,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_default.theme_use('alt')
         self.st_lbl_default.configure(
             'DemoDefault.TLabel',
-            font=('StdFont', self.app_data.gui_settings.scale),
+            font=('StdFont', self.app_data.ui_settings.scale),
             background=self.custom_styles['*.BG.*'],
             foreground=self.custom_styles['*.FG.*'],
         )
@@ -4745,7 +4745,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_header.theme_use('alt')
         self.st_lbl_header.configure(
             'DemoHeader.TLabel',
-            font=('StdFont', self.app_data.gui_settings.scale + 5),
+            font=('StdFont', self.app_data.ui_settings.scale + 5),
             background=self.custom_styles['*.BG.*'],
             foreground=self.custom_styles['*.FG.*'],
         )
@@ -4755,7 +4755,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_logo.theme_use('alt')
         self.st_lbl_logo.configure(
             'DemoLogo.TLabel',
-            font=('Times', self.app_data.gui_settings.scale + 11),
+            font=('Times', self.app_data.ui_settings.scale + 11),
             background=self.custom_styles['*.BG.*'],
             foreground=self.custom_styles['*.FG.LOGO'],
         )
@@ -4765,7 +4765,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_footer.theme_use('alt')
         self.st_lbl_footer.configure(
             'DemoFooter.TLabel',
-            font=('StdFont', self.app_data.gui_settings.scale - 2),
+            font=('StdFont', self.app_data.ui_settings.scale - 2),
             background=self.custom_styles['*.BG.*'],
             foreground=self.custom_styles['*.FG.FOOTER'],
         )
@@ -4775,7 +4775,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_lbl_warn.theme_use('alt')
         self.st_lbl_warn.configure(
             'DemoWarn.TLabel',
-            font=('StdFont', self.app_data.gui_settings.scale),
+            font=('StdFont', self.app_data.ui_settings.scale),
             background=self.custom_styles['*.BG.*'],
             foreground=self.custom_styles['*.FG.WARN'],
         )
@@ -4785,7 +4785,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_entry.theme_use('alt')
         self.st_entry.configure(
             'DemoDefault.TEntry',
-            font=('StdFont', self.app_data.gui_settings.scale),
+            font=('StdFont', self.app_data.ui_settings.scale),
         )
         self.st_entry.map(
             'DemoDefault.TEntry',
@@ -4812,7 +4812,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_default.theme_use('alt')
         self.st_btn_default.configure(
             'DemoDefault.TButton',
-            font=('StdFont', self.app_data.gui_settings.scale + 2),
+            font=('StdFont', self.app_data.ui_settings.scale + 2),
             borderwidth=1,
         )
         self.st_btn_default.map(
@@ -4839,7 +4839,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_disabled.theme_use('alt')
         self.st_btn_disabled.configure(
             'DemoDisabled.TButton',
-            font=('StdFont', self.app_data.gui_settings.scale + 2),
+            font=('StdFont', self.app_data.ui_settings.scale + 2),
             borderwidth=1,
         )
         self.st_btn_disabled.map(
@@ -4863,7 +4863,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_yes.theme_use('alt')
         self.st_btn_yes.configure(
             'DemoYes.TButton',
-            font=('StdFont', self.app_data.gui_settings.scale + 2),
+            font=('StdFont', self.app_data.ui_settings.scale + 2),
             borderwidth=1,
         )
         self.st_btn_yes.map(
@@ -4890,7 +4890,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_no.theme_use('alt')
         self.st_btn_no.configure(
             'DemoNo.TButton',
-            font=('StdFont', self.app_data.gui_settings.scale + 2),
+            font=('StdFont', self.app_data.ui_settings.scale + 2),
             borderwidth=1,
         )
         self.st_btn_no.map(
@@ -4917,7 +4917,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.st_btn_image.theme_use('alt')
         self.st_btn_image.configure(
             'DemoImage.TButton',
-            font=('StdFont', self.app_data.gui_settings.scale + 2),
+            font=('StdFont', self.app_data.ui_settings.scale + 2),
             borderwidth=0,
         )
         self.st_btn_image.map(
@@ -5079,7 +5079,7 @@ class TrainingW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Учёба')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -5095,13 +5095,13 @@ class TrainingW(tk.Toplevel):
         self.txt_dct = tk.Text(
             self, width=70, height=30, state='disabled',
             yscrollcommand=self.scrollbar.set,
-            font=('StdFont', self.app_data.gui_settings.scale),
-            bg=STYLES['*.BG.ENTRY'][1][self.app_data.gui_settings.theme],
-            fg=STYLES['*.FG.*'][1][self.app_data.gui_settings.theme],
-            selectbackground=STYLES['*.BG.SEL'][1][self.app_data.gui_settings.theme],
-            selectforeground=STYLES['*.FG.SEL'][1][self.app_data.gui_settings.theme],
-            relief=STYLES['TXT.RELIEF.*'][1][self.app_data.gui_settings.theme],
-            highlightbackground=STYLES['*.BORDER_CLR.*'][1][self.app_data.gui_settings.theme])
+            font=('StdFont', self.app_data.ui_settings.scale),
+            bg=STYLES['*.BG.ENTRY'][1][self.app_data.ui_settings.theme],
+            fg=STYLES['*.FG.*'][1][self.app_data.ui_settings.theme],
+            selectbackground=STYLES['*.BG.SEL'][1][self.app_data.ui_settings.theme],
+            selectforeground=STYLES['*.FG.SEL'][1][self.app_data.ui_settings.theme],
+            relief=STYLES['TXT.RELIEF.*'][1][self.app_data.ui_settings.theme],
+            highlightbackground=STYLES['*.BORDER_CLR.*'][1][self.app_data.ui_settings.theme])
         self.txt_dct.grid(row=2, column=0, padx=(6, 0), pady=6, sticky='NSWE')
         self.scrollbar.config(command=self.txt_dct.yview)
 
@@ -5409,7 +5409,7 @@ class DictionaryW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Словарь "{self.dct.name}"')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -5683,7 +5683,7 @@ class SearchTab(ttk.Frame):
         self._create_selection_actions_frame()
 
     def _create_query_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_query = create_frame(
             self.frame_header,
@@ -5703,7 +5703,7 @@ class SearchTab(ttk.Frame):
             row=0, column=2, padx=(0, 6), pady=6)
 
     def _create_bulk_selection_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_bulk_selection = create_frame(
             self.frame_header,
@@ -5731,7 +5731,7 @@ class SearchTab(ttk.Frame):
                   img_path(theme, 'unselect_all'), '[ ]')
 
     def _create_info_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_info = create_frame(
             self.frame_header, 'Invis.TFrame',
@@ -5746,7 +5746,7 @@ class SearchTab(ttk.Frame):
             row=0, column=1, padx=0, pady=0)
 
     def _create_selection_actions_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_selection_actions = create_frame(self.frame_header)
 
@@ -5790,14 +5790,14 @@ class SearchTab(ttk.Frame):
 
         self.scrolled_frame = ScrollFrame(
             self.frame_main, self.app_data,
-            SCALE_DEFAULT_FRAME_HEIGHT[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_DEFAULT_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+            SCALE_DEFAULT_FRAME_HEIGHT[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_DEFAULT_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame.grid(
             row=0, column=0, padx=0, pady=(0, 6))
         self._create_navigation_frame()
 
     def _create_navigation_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_navigation = create_frame(
             self.frame_main, 'Invis.TFrame',
@@ -6385,7 +6385,7 @@ class BrowseDctTab(ttk.Frame):
             row=2, column=1, padx=(6, 0), pady=0, sticky='W')
 
     def _create_header_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_header = create_frame(
             self.frame_menu, 'Invis.TFrame',
@@ -6420,7 +6420,7 @@ class BrowseDctTab(ttk.Frame):
         self.combo_tag = create_combobox(
             self.frame_parameters, self.var_tag,
             self.tag_options, 28,
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale),
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale),
             state='readonly',
             row=0, column=3, padx=(0, 6), pady=6, sticky='W')
         self.lbl_briefly = create_label(
@@ -6435,11 +6435,11 @@ class BrowseDctTab(ttk.Frame):
             row=1, column=2, padx=(0, 1), pady=(0, 6), sticky='E')
         self.combo_order = create_combobox(
             self.frame_parameters, self.var_order, PRINT_VALUES_ORDER, 28,
-            font=('DejaVu Sans Mono', self.app_data.gui_settings.scale), state='readonly',
+            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale), state='readonly',
             row=1, column=3, padx=(0, 6), pady=(0, 6), sticky='W')
 
     def _create_selection_actions_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_selection_actions = create_frame(self.frame_menu)
 
@@ -6477,7 +6477,7 @@ class BrowseDctTab(ttk.Frame):
         set_image(self.btn_delete, self.img_delete, img_path(theme, 'trashcan'), 'DEL')
 
     def _create_bulk_selection_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_bulk_selection = create_frame(
             self.frame_menu,
@@ -6511,14 +6511,14 @@ class BrowseDctTab(ttk.Frame):
 
         self.scrolled_frame = ScrollFrame(
             self.frame_main, self.app_data,
-            SCALE_DEFAULT_FRAME_HEIGHT[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_DEFAULT_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+            SCALE_DEFAULT_FRAME_HEIGHT[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_DEFAULT_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame.grid(
             row=0, column=0, padx=0, pady=(0, 6))
         self._create_navigation_frame()
 
     def _create_navigation_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_navigation = create_frame(
             self.frame_main, 'Invis.TFrame',
@@ -7155,7 +7155,7 @@ class AddEntryW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Добавление статьи')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -7288,7 +7288,7 @@ class SettingsW(tk.Toplevel):
         self.are_tags_modified = False
         self.is_replacements_modified = False
         self.backup_dct = copy.deepcopy(self.manager.active.dct)
-        self.backup_scale = self.app_data.gui_settings.scale
+        self.backup_scale = self.app_data.ui_settings.scale
 
         self.var_show_updates = tk.BooleanVar(
             value=self.app_data.global_settings.to_check_for_updates
@@ -7296,7 +7296,7 @@ class SettingsW(tk.Toplevel):
         self.var_show_typo_button = tk.BooleanVar(
             value=self.app_data.global_settings.is_typo_btn_on
         )
-        self.var_theme = tk.StringVar(value=self.app_data.gui_settings.theme)
+        self.var_theme = tk.StringVar(value=self.app_data.ui_settings.theme)
         self.var_themes_url = tk.StringVar(value=URL_RELEASES)
 
         self.img_help = tk.PhotoImage()
@@ -7317,7 +7317,7 @@ class SettingsW(tk.Toplevel):
     def _configure_window(self):
         self.title(f'{PROGRAM_NAME} - Настройки')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self):
@@ -7379,7 +7379,7 @@ class SettingsW(tk.Toplevel):
             row=0, column=1, padx=(0, 6), pady=6)
 
     def _create_typo_button_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_show_typo_button = create_frame(self.tab_global, row=1, padx=6, pady=6)
 
@@ -7395,7 +7395,7 @@ class SettingsW(tk.Toplevel):
             row=0, column=2, padx=(0, 6), pady=6)
 
     def _create_dictionaries_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_dcts = create_frame(self.tab_global, row=2, padx=6, pady=6)
 
@@ -7408,8 +7408,8 @@ class SettingsW(tk.Toplevel):
         set_image(self.btn_help_dcts, self.img_help, img_path(theme, 'about'), '?')
         self.scrolled_frame_dcts = ScrollFrame(
             self.frame_dcts, self.app_data,
-            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN])
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame_dcts.grid(
             row=1, rowspan=2, column=0, padx=(6, 0), pady=(0, 6))
         self._create_dictionary_buttons_frame()
@@ -7457,7 +7457,7 @@ class SettingsW(tk.Toplevel):
             row=1, column=2, padx=6, pady=(0, 6), sticky='WENS')
 
     def _create_scale_frame(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         self.frame_scale = create_frame(self.tab_global, row=4, padx=6, pady=6)
 
@@ -7467,7 +7467,7 @@ class SettingsW(tk.Toplevel):
             row=0, column=0, padx=(6, 3), pady=6)
         set_image(self.btn_zoom_out, self.img_minus, img_path(theme, 'delete'), '-')
         self.lbl_scale = create_label(
-            self.frame_scale, f'Масштаб ({self.app_data.gui_settings.scale}x)',
+            self.frame_scale, f'Масштаб ({self.app_data.ui_settings.scale}x)',
             row=0, column=1, padx=(3, 3), pady=6)
         self.btn_zoom_in = create_button(
             self.frame_scale, self.zoom_in,
@@ -7499,7 +7499,7 @@ class SettingsW(tk.Toplevel):
 
     # Справка о кнопке "Опечатка" (срабатывает при нажатии на кнопку)
     def help_typo(self):
-        theme = self.app_data.gui_settings.theme
+        theme = self.app_data.ui_settings.theme
 
         ImageDialog(
             self,
@@ -7535,7 +7535,7 @@ class SettingsW(tk.Toplevel):
 
         filepath = f'./resources/saves/{dct_name}/dct_data.json'  # TODO: choose filepath
         self.manager.open_dct(filepath)
-        self.app_data.save(glob=False, gui=False)
+        self.app_data.save(glob=False, ui=False)
 
         self.backup_dct = copy.deepcopy(self.manager.active.dct)
 
@@ -7568,7 +7568,7 @@ class SettingsW(tk.Toplevel):
         os.rename(os.path.join(SAVES_PATH, old_name), os.path.join(SAVES_PATH, new_name))
         if self.manager.active.dct.name == old_name:
             self.manager.active.dct.name = new_name
-            self.app_data.save(glob=False, gui=False)
+            self.app_data.save(glob=False, ui=False)
             # Обновляем надписи с названием открытого словаря
             self.refresh_open_dct_name(new_name)
         print(f'Словарь "{old_name}" успешно переименован в "{new_name}"')
@@ -7615,7 +7615,7 @@ class SettingsW(tk.Toplevel):
         filepath = f'./resources/saves/{savename}/dct_data.json'  # TODO: choose filepath
         self.manager.create_dct(filepath, savename)
         self.manager.save_dct(self.manager.active_dct_id, filepath)
-        self.app_data.save(glob=False, gui=False)
+        self.app_data.save(glob=False, ui=False)
 
         print(f'\nСловарь "{savename}" успешно создан и открыт')
 
@@ -7666,41 +7666,41 @@ class SettingsW(tk.Toplevel):
     def custom_theme_settings(self):
         CustomThemeSettingsW(self, self.app_data).open()
         upload_custom_theme(False)
-        if self.app_data.gui_settings.theme == CUSTOM_TH:
+        if self.app_data.ui_settings.theme == CUSTOM_TH:
             self.set_theme()
         self.refresh_scale_buttons()
 
     # Увеличить масштаб (срабатывает при нажатии на кнопку)
     def zoom_in(self):
-        self.app_data.gui_settings.scale += 1
+        self.app_data.ui_settings.scale += 1
 
         self.parent.setup_styles()  # Установка ttk-стилей
 
         # Установка некоторых стилей для окна настроек
-        self.lbl_scale.configure(text=f'Масштаб ({self.app_data.gui_settings.scale}x)')
+        self.lbl_scale.configure(text=f'Масштаб ({self.app_data.ui_settings.scale}x)')
         self.scrolled_frame_dcts.resize(
-            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN],
         )
-        self.combo_themes.configure(font=('DejaVu Sans Mono', self.app_data.gui_settings.scale))
-        self.entry_themes_version.configure(font=('StdFont', self.app_data.gui_settings.scale))
+        self.combo_themes.configure(font=('DejaVu Sans Mono', self.app_data.ui_settings.scale))
+        self.entry_themes_version.configure(font=('StdFont', self.app_data.ui_settings.scale))
 
         self.refresh_scale_buttons()
 
     # Уменьшить масштаб (срабатывает при нажатии на кнопку)
     def zoom_out(self):
-        self.app_data.gui_settings.scale -= 1
+        self.app_data.ui_settings.scale -= 1
 
         self.parent.setup_styles()  # Установка ttk-стилей
 
         # Установка некоторых стилей для окна настроек
-        self.lbl_scale.configure(text=f'Масштаб ({self.app_data.gui_settings.scale}x)')
+        self.lbl_scale.configure(text=f'Масштаб ({self.app_data.ui_settings.scale}x)')
         self.scrolled_frame_dcts.resize(
-            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.gui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.gui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN],
         )
-        self.combo_themes.configure(font=('DejaVu Sans Mono', self.app_data.gui_settings.scale))
-        self.entry_themes_version.configure(font=('StdFont', self.app_data.gui_settings.scale))
+        self.combo_themes.configure(font=('DejaVu Sans Mono', self.app_data.ui_settings.scale))
+        self.entry_themes_version.configure(font=('StdFont', self.app_data.ui_settings.scale))
 
         self.refresh_scale_buttons()
 
@@ -7717,7 +7717,7 @@ class SettingsW(tk.Toplevel):
 
         # Обновление бэкапов сохранения
         self.backup_dct = copy.deepcopy(self.manager.active.dct)
-        self.backup_scale = self.app_data.gui_settings.scale
+        self.backup_scale = self.app_data.ui_settings.scale
 
         # Сохранение настроек в файлы
         self.app_data.save()
@@ -7822,13 +7822,13 @@ class SettingsW(tk.Toplevel):
     # Обновить кнопки изменения масштаба
     def refresh_scale_buttons(self):
         # Если масштаб минимальный, то кнопка минуса становится неактивной
-        if self.app_data.gui_settings.scale == SCALE_MIN:
+        if self.app_data.ui_settings.scale == SCALE_MIN:
             btn_disable(self.btn_zoom_out)
         else:
             btn_enable(self.btn_zoom_out, self.zoom_out, style='Image')
 
         # Если масштаб максимальный, то кнопка плюса становится неактивной
-        if self.app_data.gui_settings.scale == SCALE_MAX:
+        if self.app_data.ui_settings.scale == SCALE_MAX:
             btn_disable(self.btn_zoom_in)
         else:
             btn_enable(self.btn_zoom_in, self.zoom_in, style='Image')
@@ -7839,8 +7839,8 @@ class SettingsW(tk.Toplevel):
 
     # Установить выбранную тему
     def set_theme(self):
-        self.app_data.gui_settings.theme = self.var_theme.get()
-        theme = self.app_data.gui_settings.theme
+        self.app_data.ui_settings.theme = self.var_theme.get()
+        theme = self.app_data.ui_settings.theme
 
         self.parent.setup_styles()  # Установка ttk-стилей
 
@@ -7851,13 +7851,13 @@ class SettingsW(tk.Toplevel):
         set_image(self.btn_zoom_out, self.img_minus, img_path(theme, 'delete'), '-')
 
         # Установка некоторых стилей для окна настроек
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         self.scrolled_frame_dcts.canvas.configure(
-            bg=STYLES['*.BG.ENTRY'][1][self.app_data.gui_settings.theme]
+            bg=STYLES['*.BG.ENTRY'][1][self.app_data.ui_settings.theme]
         )
 
         # Установка фона для главного окна
-        self.parent.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.parent.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
 
     # Были ли изменения локальных настроек
     def has_local_changes(self):
@@ -7873,8 +7873,8 @@ class SettingsW(tk.Toplevel):
             self.has_local_changes() or
             self.var_show_updates.get() != self.app_data.global_settings.to_check_for_updates or
             self.var_show_typo_button.get() != self.app_data.global_settings.is_typo_btn_on or
-            self.var_theme.get() != self.app_data.gui_settings.theme or
-            self.backup_scale != self.app_data.gui_settings.scale
+            self.var_theme.get() != self.app_data.ui_settings.theme or
+            self.backup_scale != self.app_data.ui_settings.scale
         )
 
     # Обновить надписи с названием открытого словаря
@@ -7941,7 +7941,7 @@ class NewVersionAvailableW(tk.Toplevel):
     def _configure_window(self):
         self.title('Доступна новая версия')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
         toplevel_geometry(self.parent, self)
 
     def _create_widgets(self, last_version: str):
@@ -8074,7 +8074,7 @@ class MainW(tk.Tk):
         self.title(PROGRAM_NAME)
         self.eval('tk::PlaceWindow . center')
         self.resizable(width=False, height=False)
-        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.gui_settings.theme])
+        self.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
 
     def _create_widgets(self):
         self._create_head_frame()
@@ -8223,8 +8223,8 @@ class MainW(tk.Tk):
 
     # Установить ttk-стили
     def setup_styles(self):
-        scale = self.app_data.gui_settings.scale
-        theme = self.app_data.gui_settings.theme
+        scale = self.app_data.ui_settings.scale
+        theme = self.app_data.ui_settings.theme
 
         # Стиль label "default"
         self.st_lbl_default = ttk.Style()
