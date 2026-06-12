@@ -201,11 +201,11 @@ def check_phr_edit(
     if new_phrase == '' or new_phrase_tr == '':
         warning(window_parent, app_data, 'Фраза должна содержать хотя бы один символ!')
         return False
-    if all((
-            new_phrase in phrases,
-            new_phrase_tr in phrases[new_phrase],
-            new_phrase_pair != old_phrase_pair,
-    )):
+    if (
+            (new_phrase in phrases) and
+            (new_phrase_tr in phrases[new_phrase]) and
+            (new_phrase_pair != old_phrase_pair)
+    ):
         warning(window_parent, app_data, f'Со словом "{lemma}" уже есть такая фраза!')
         return False
     return True
@@ -5498,10 +5498,10 @@ class DictionaryW(tk.Toplevel):
                 'Выделенные статьи не состоят ни в каких группах!',
             ).open()
             return
-        if any((
-                self.tab_browse.var_tag.get() == ALL_TAGS,
-                self.tabs.index(self.tabs.select()) == 1,
-        )):
+        if (
+                (self.tab_browse.var_tag.get() == ALL_TAGS) or
+                (self.tabs.index(self.tabs.select()) == 1)
+        ):
             default_value = values[0]
         else:
             default_value = self.tab_browse.var_tag.get()
@@ -6005,10 +6005,10 @@ class SearchTab(ttk.Frame):
                 (self.n_pages - 1) * self.max_entries_on_page
             )
         if self.current_page == self.n_pages:
-            if all((
-                    self.n_entries_total % self.max_entries_on_page == 0,
-                    self.n_entries_total != 0,
-            )):
+            if (
+                    (self.n_entries_total % self.max_entries_on_page == 0) and
+                    (self.n_entries_total != 0)
+            ):
                 self.n_entries_on_page = self.max_entries_on_page
             else:
                 self.n_entries_on_page = (
@@ -6812,10 +6812,10 @@ class BrowseDctTab(ttk.Frame):
             self.current_page = self.n_pages
             self.first_entry_idx = (self.n_pages - 1) * self.max_entries_on_page
         if self.current_page == self.n_pages:
-            if all((
-                    self.n_entries_total % self.max_entries_on_page == 0,
-                    self.n_entries_total != 0,
-            )):
+            if (
+                    (self.n_entries_total % self.max_entries_on_page == 0) and
+                    (self.n_entries_total != 0)
+            ):
                 self.n_entries_on_page = self.max_entries_on_page
             else:
                 self.n_entries_on_page = (
