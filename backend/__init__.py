@@ -9,8 +9,3 @@ from .manager import (
     Manager, SearchConfig, DctBundle,
 )
 from .replacements import Replacer, Replacements
-from .persistence import (
-    GlobalSettings, UISettingsTK, AppData,
-    partial_save, save_dct, save_dct_settings,
-    save_dct_cache,
-)

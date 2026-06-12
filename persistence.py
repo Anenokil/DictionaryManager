@@ -8,10 +8,10 @@ from typing import Literal
 import os
 import json
 
-from .core.types import SerializedData
-from .core.errors import UnknownVersionError
-from .core.utils import validate_required_fields, validate_field_type
-from .manager import Manager, DctBundle
+from backend.core.types import SerializedData
+from backend.core.errors import UnknownVersionError
+from backend.core.utils import validate_required_fields, validate_field_type
+from backend.manager import Manager, DctBundle
 
 
 class GlobalSettings:
