@@ -1083,14 +1083,21 @@ class Dictionary:
         """
 
         if tag in self._tags:
-            return
+            tag_id = self._tags.index(tag)
+            if is_default == (tag_id in self._default_tag_ids):
+                return
 
-        self._indexes['tags'][tag] = set()
-        self._tags.append(tag)
+            if is_default:
+                self._default_tag_ids.add(tag_id)
+            else:
+                self._default_tag_ids.discard(tag_id)
+        else:
+            self._indexes['tags'][tag] = set()
+            self._tags.append(tag)
 
-        if is_default:
-            tag_id = len(self._tags) - 1
-            self._default_tag_ids.add(tag_id)
+            if is_default:
+                tag_id = len(self._tags) - 1
+                self._default_tag_ids.add(tag_id)
 
         self._is_modified = True
 
