@@ -845,10 +845,11 @@ class Dictionary:
             KeyError: If no Entry exists with the given ID, or if the specified tag does not exist.
         """
 
-        if tag in self._tags:
-            entry_ids_to_update = set(entry_ids).difference(self._indexes['tags'][tag])
-        else:
-            entry_ids_to_update = entry_ids
+        entry_ids = set(entry_ids)
+        if not entry_ids.issubset(set(self._entries.keys())):
+            raise KeyError()
+
+        entry_ids_to_update = entry_ids.difference(self._indexes['tags'][tag])
 
         if not entry_ids_to_update:
             return
