@@ -337,7 +337,7 @@ class Manager:
             AssertionError: If the dictionary index is out of range.
         """
 
-        assert 0 <= dct_id <= len(self.opened_dct_bundles)
+        assert 0 <= dct_id < len(self.opened_dct_bundles)
 
         self.active_dct_id = dct_id
 
@@ -354,7 +354,7 @@ class Manager:
             AssertionError: If the dictionary index is out of range.
         """
 
-        assert 0 <= dct_id <= len(self.opened_dct_bundles)
+        assert 0 <= dct_id < len(self.opened_dct_bundles)
 
         if len(self.opened_dct_bundles) == 1:
             self.active_dct_id = None
@@ -378,7 +378,7 @@ class Manager:
                 has none.
         """
 
-        assert 0 <= dct_id <= len(self.opened_dct_bundles)
+        assert 0 <= dct_id < len(self.opened_dct_bundles)
 
         filepath = filepath or self.opened_dct_bundles[dct_id].filepath
 
