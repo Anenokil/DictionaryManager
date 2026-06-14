@@ -34,11 +34,7 @@ class BackendError(DMError):
     """Base exception for all backend-related operations."""
 
 
-class BackendCoreError(BackendError):
-    """Exception for core backend functionality errors."""
-
-
-class DeserializationError(BackendCoreError):
+class DeserializationError(BackendError):
     """Exception raised when data deserialization fails."""
 
 

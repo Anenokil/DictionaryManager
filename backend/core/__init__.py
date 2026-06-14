@@ -10,9 +10,8 @@ from .types import (
     SerializedData,
 )
 from .errors import (
-    DMError, BackendError, BackendCoreError,
-    DeserializationError, MissingFieldsError,
-    FieldTypeError, UnknownVersionError,
+    DMError, BackendError, DeserializationError,
+    MissingFieldsError, FieldTypeError, UnknownVersionError,
 )
 from .entry import Entry, Translations, Forms, Phrases, Notes, Tags
 from .dictionary import Dictionary
