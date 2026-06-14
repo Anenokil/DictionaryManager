@@ -146,7 +146,7 @@ class Dictionary:
             Entry associated with the given ID.
 
         Raises:
-            KeyError: If no Entry exists with the given ID.
+            InvalidEntryIDError: If no Entry exists with the given ID.
         """
 
         if key not in self._entries:
@@ -254,7 +254,7 @@ class Dictionary:
             - n_word_forms: Total number of word forms across all Entries with the tag.
 
         Raises:
-            KeyError: If the tag does not exist.
+            InvalidTagError: If the tag does not exist.
         """
 
         if tag not in self._indexes['tags']:
@@ -288,7 +288,7 @@ class Dictionary:
             - n_word_forms: Total number of word forms across favorite Entries.
 
         Raises:
-            KeyError: If the tag does not exist.
+            InvalidTagError: If the tag does not exist.
         """
 
         n_entries = 0
@@ -411,7 +411,8 @@ class Dictionary:
             New entry ID.
 
         Raises:
-            ValueError: If invalid tags or grammatical forms are specified.
+            InvalidGramFormError: If invalid grammatical forms are specified.
+            InvalidTagError: If invalid tags are specified.
         """
 
         if forms is not None:
@@ -466,7 +467,7 @@ class Dictionary:
             entry_id: ID of the Entry to delete.
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id.
+            InvalidEntryIDError: If no Entry exists with the given entry_id.
         """
 
         if entry_id not in self._entries:
@@ -502,7 +503,7 @@ class Dictionary:
             source_entry_id: ID of the Entry to merge into the target Entry (will be deleted).
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id.
+            InvalidEntryIDError: If no Entry exists with the given Entry ID.
         """
 
         if target_entry_id not in self._entries:
@@ -546,7 +547,7 @@ class Dictionary:
             new_lemma: New lemma word to assign to the Entry.
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id.
+            InvalidEntryIDError: If no Entry exists with the given entry_id.
         """
 
         if entry_id not in self._entries:
@@ -573,7 +574,7 @@ class Dictionary:
             tr: Translation to add.
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id.
+            InvalidEntryIDError: If no Entry exists with the given entry_id.
         """
 
         if entry_id not in self._entries:
@@ -598,8 +599,8 @@ class Dictionary:
             new_tr: New translation.
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id.
-            ValueError: If the Entry does not have the specified translation.
+            InvalidEntryIDError: If no Entry exists with the given entry_id.
+            InvalidTranslationError: If the Entry does not have the specified translation.
         """
 
         if entry_id not in self._entries:
@@ -627,8 +628,8 @@ class Dictionary:
             tr: Translation to delete.
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id.
-            ValueError: If the Entry does not have the specified translation.
+            InvalidEntryIDError: If no Entry exists with the given entry_id.
+            InvalidTranslationError: If the Entry does not have the specified translation.
         """
 
         if entry_id not in self._entries:
@@ -653,7 +654,7 @@ class Dictionary:
             word_form: Inflected form to add.
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id.
+            InvalidEntryIDError: If no Entry exists with the given entry_id.
         """
 
         if entry_id not in self._entries:
@@ -688,9 +689,9 @@ class Dictionary:
             new_word_form: Replacement inflected form.
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id, or if the specified gram_form is
-                      not found.
-            ValueError: If the specified word_form is not found.
+            InvalidEntryIDError: If no Entry exists with the given entry_id.
+            InvalidGramFormError: If the specified gram_form is not found.
+            InvalidWordFormError: If the specified word_form is not found.
         """
 
         if entry_id not in self._entries:
@@ -728,9 +729,9 @@ class Dictionary:
             word_form: Inflected form to remove.
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id, or if the specified gram_form is
-                      not found.
-            ValueError: If the specified word_form is not found.
+            InvalidEntryIDError: If no Entry exists with the given entry_id.
+            InvalidGramFormError: If the specified gram_form is not found.
+            InvalidWordFormError: If the specified word_form is not found.
         """
 
         if entry_id not in self._entries:
@@ -766,7 +767,7 @@ class Dictionary:
             phrase_tr: Phrase translation to add.
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id.
+            InvalidEntryIDError: If no Entry exists with the given entry_id.
         """
 
         if entry_id not in self._entries:
@@ -800,9 +801,9 @@ class Dictionary:
             new_phrase_tr: Replacement phrase translation.
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id, or if the specified phrase is not
-                      found.
-            ValueError: If the specified phrase_tr is not found.
+            InvalidEntryIDError: If no Entry exists with the given entry_id.
+            InvalidPhraseError: If the specified phrase is not found.
+            InvalidPhraseTrError: If the specified phrase_tr is not found.
         """
 
         if entry_id not in self._entries:
@@ -833,9 +834,9 @@ class Dictionary:
             phrase_tr: Phrase translation to remove.
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id, or if the specified phrase is not
-                      found.
-            ValueError: If the specified phrase_tr is not found.
+            InvalidEntryIDError: If no Entry exists with the given entry_id.
+            InvalidPhraseError: If the specified phrase is not found.
+            InvalidPhraseTrError: If the specified phrase_tr is not found.
         """
 
         if entry_id not in self._entries:
@@ -863,7 +864,7 @@ class Dictionary:
             note: Note text to add.
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id.
+            InvalidEntryIDError: If no Entry exists with the given entry_id.
         """
 
         if entry_id not in self._entries:
@@ -887,8 +888,8 @@ class Dictionary:
             new_note: Replacement note.
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id.
-            ValueError: If the specified note is not found.
+            InvalidEntryIDError: If no Entry exists with the given entry_id.
+            InvalidNoteError: If the specified note is not found.
         """
 
         if entry_id not in self._entries:
@@ -914,8 +915,8 @@ class Dictionary:
             note: Note text to remove.
 
         Raises:
-            KeyError: If no Entry exists with the given entry_id.
-            ValueError: If the specified note is not found.
+            InvalidEntryIDError: If no Entry exists with the given entry_id.
+            InvalidNoteError: If the specified note is not found.
         """
 
         if entry_id not in self._entries:
@@ -938,7 +939,8 @@ class Dictionary:
             entry_ids: Iterable of entry IDs to assign the tag to.
 
         Raises:
-            KeyError: If no Entry exists with the given ID, or if the specified tag does not exist.
+            InvalidTagError: If the specified tag does not exist.
+            InvalidEntryIDError: If no Entry exists with the given ID.
         """
 
         if tag not in self._tags:
@@ -971,7 +973,8 @@ class Dictionary:
             entry_ids: Iterable of entry IDs to remove the tag from.
 
         Raises:
-            KeyError: If no Entry exists with the given ID, or if the specified tag does not exist.
+            InvalidTagError: If the specified tag does not exist.
+            InvalidEntryIDError: If no Entry exists with the given ID.
         """
 
         if tag not in self._tags:
@@ -1003,7 +1006,7 @@ class Dictionary:
             entry_ids: Iterable of entry IDs to mark as favorites.
 
         Raises:
-            KeyError: If no Entry exists with the given ID.
+            InvalidEntryIDError: If no Entry exists with the given ID.
         """
 
         entry_ids = set(entry_ids)
@@ -1025,7 +1028,7 @@ class Dictionary:
             entry_ids: Iterable of entry IDs to remove from favorites.
 
         Raises:
-            KeyError: If no Entry exists with the given ID.
+            InvalidEntryIDError: If no Entry exists with the given ID.
         """
 
         entry_ids = set(entry_ids)
@@ -1051,7 +1054,7 @@ class Dictionary:
             ctg_values: List of possible values for this category.
 
         Raises:
-            ValueError: If the specified category is already in the Dictionary.
+            CategoryExistsError: If the specified category is already in the Dictionary.
         """
 
         if ctg_name in self._features.keys():
@@ -1072,8 +1075,8 @@ class Dictionary:
             ctg_name_new: New name for the category.
 
         Raises:
-            KeyError: If the specified category does not exist.
-            ValueError: If the specified new name already exists.
+            InvalidCategoryError: If the specified category does not exist.
+            CategoryExistsError: If the specified new name already exists.
         """
 
         if ctg_name_old not in self._features.keys():
@@ -1095,7 +1098,7 @@ class Dictionary:
             ctg_name: Name of the category to delete.
 
         Raises:
-            ValueError: If the specified category does not exist.
+            InvalidCategoryError: If the specified category does not exist.
         """
 
         if ctg_name not in self._features.keys():
@@ -1123,7 +1126,7 @@ class Dictionary:
             ctg_value: New value to add to the category.
 
         Raises:
-            KeyError: If the specified category does not exist.
+            InvalidCategoryError: If the specified category does not exist.
         """
 
         if ctg_name not in self._features:
@@ -1154,9 +1157,9 @@ class Dictionary:
             ctg_value_new: New value to replace the old one.
 
         Raises:
-            KeyError: If the specified category does not exist.
-            ValueError: If the specified old value does not exist, or if the new value already
-                        exists.
+            InvalidCategoryError: If the specified category does not exist.
+            InvalidCtgValueError: If the specified category value does not exist.
+            CtgValueExistsError: If the new value already exists.
         """
 
         if ctg_name not in self._features:
@@ -1187,7 +1190,8 @@ class Dictionary:
             ctg_value: Value to remove from the category.
 
         Raises:
-            ValueError: If the specified category or its value does not exist.
+            InvalidCategoryError: If the specified category does not exist.
+            InvalidCtgValueError: If the specified category value does not exist.
         """
 
         if ctg_name not in self._features:
@@ -1252,7 +1256,7 @@ class Dictionary:
             tag_new: New tag name.
 
         Raises:
-            ValueError: If the specified tag does not exist.
+            InvalidTagError: If the specified tag does not exist.
         """
 
         if tag_old not in self._tags:
@@ -1295,7 +1299,7 @@ class Dictionary:
             tag: Tag to delete.
 
         Raises:
-            ValueError: If the specified tag does not exist.
+            InvalidTagError: If the specified tag does not exist.
         """
 
         if tag not in self._tags:
@@ -1327,7 +1331,7 @@ class Dictionary:
             tag: Tag to mark as default.
 
         Raises:
-            ValueError: If the specified tag does not exist.
+            InvalidTagError: If the specified tag does not exist.
         """
 
         if tag not in self._tags:
@@ -1351,7 +1355,7 @@ class Dictionary:
             tag: Tag to unmark as default.
 
         Raises:
-            ValueError: If the specified tag does not exist.
+            InvalidTagError: If the specified tag does not exist.
         """
 
         if tag not in self._tags:
@@ -1366,6 +1370,19 @@ class Dictionary:
         self._is_modified = True
 
     def is_default_tag(self, tag: Tag) -> bool:
+        """
+        Check if the given tag is default.
+
+        Args:
+            tag: Tag to check.
+
+        Returns:
+            True if the specified tag is default.
+
+        Raises:
+            InvalidTagError: If the specified tag does not exist.
+        """
+
         if tag not in self._tags:
             raise InvalidTagError(tag)
 
