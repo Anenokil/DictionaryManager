@@ -78,7 +78,7 @@ class Dictionary:
         self._name = name
 
         # The main Dictionary data structure mapping entry IDs to Entry objects
-        self._entries: Entries = dict()
+        self._entries: Entries = {}
 
         # Search indexes for fast Entry lookup by content
         self._indexes: Indexes = {
@@ -100,7 +100,7 @@ class Dictionary:
         }
 
         # Collection of all grammatical categories and their values present in the Dictionary
-        self._features: FeatureRegistry = dict()
+        self._features: FeatureRegistry = {}
 
         # All tags which can be assigned to Dictionary Entries.
         # Used for organizing and grouping Dictionary content.
@@ -348,13 +348,16 @@ class Dictionary:
         if tags is not None:
             query['tags'] = tags
 
-        results = []
+        results = set()
         for index_name, search_terms in query.items():
             index = self._indexes[index_name]
             for search_term in search_terms:
                 if search_term in index:
-                    results.append(index[search_term])
-        return set.intersection(*results) if results else set()
+                    if results:
+                        results.intersection_update(index[search_term])
+                    else:
+                        results = set(index[search_term])
+        return results
 
     def mark_saved(self):
         self._is_modified = False
@@ -425,9 +428,9 @@ class Dictionary:
 
         if tags is not None:
             tags = set(tags)
-            unknown_tags = tags.difference(set(self._tags))
-            if unknown_tags:
-                raise InvalidTagError(*unknown_tags)
+            invalid_tags = tags.difference(set(self._tags))
+            if invalid_tags:
+                raise InvalidTagError(*invalid_tags)
             default_tags = {self._tags[i] for i in self._default_tag_ids}
             tags.update(default_tags)
 
@@ -1262,14 +1265,14 @@ class Dictionary:
         if tag_old not in self._tags:
             raise InvalidTagError(tag_old)
 
-        tag_id = self._tags.index(tag_old)
-
         if tag_old == tag_new:
             return
 
         for entry_id in self._indexes['tags'][tag_old]:
             entry = self._entries[entry_id]
             entry.tags.edit(tag_old, tag_new)
+
+        tag_id = self._tags.index(tag_old)
 
         if tag_new in self._tags:
             self._tags.remove(tag_old)
