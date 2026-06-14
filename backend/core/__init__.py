@@ -14,7 +14,14 @@ from .errors import (
     MissingFieldsError, FieldTypeError, UnknownVersionError,
 )
 from .entry import Entry, Translations, Forms, Phrases, Notes, Tags
-from .dictionary import Dictionary
+from .dictionary import (
+    Dictionary, InvalidEntryIDError, InvalidTranslationError,
+    InvalidGramFormError, InvalidWordFormError,
+    InvalidPhraseError, InvalidPhraseTrError,
+    InvalidNoteError, InvalidTagError,
+    InvalidCategoryError, CategoryExistsError,
+    InvalidCtgValueError, CtgValueExistsError,
+)
 from .trainer import (
     Trainer, TrainingFormat, TrainingOrder, EntrySelection,
     FormSelection, TrainingConfig,

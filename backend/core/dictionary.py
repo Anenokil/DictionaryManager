@@ -13,7 +13,7 @@ from .types import (
     Word, Translation, Category, CtgValue, GramForm, WordForm, Phrase,
     PhraseTr, Note, Tag, Timestamp, EntryID, DctName, SerializedData,
 )
-from .errors import FieldTypeError
+from .errors import BackendError, FieldTypeError
 from .entry import Entry
 from .utils import validate_required_fields, validate_field_type
 
@@ -25,6 +25,20 @@ FeatureRegistry = dict[Category, list[CtgValue]]
 TagRegistry = list[Tag]
 TagID = int
 TagIDs = set[TagID]
+
+
+class InvalidEntryIDError(BackendError, KeyError): ...
+class InvalidTranslationError(BackendError, KeyError): ...
+class InvalidGramFormError(BackendError, KeyError): ...
+class InvalidWordFormError(BackendError, KeyError): ...
+class InvalidPhraseError(BackendError, KeyError): ...
+class InvalidPhraseTrError(BackendError, KeyError): ...
+class InvalidNoteError(BackendError, KeyError): ...
+class InvalidTagError(BackendError, KeyError): ...
+class InvalidCategoryError(BackendError, KeyError): ...
+class CategoryExistsError(BackendError, ValueError): ...
+class InvalidCtgValueError(BackendError, KeyError): ...
+class CtgValueExistsError(BackendError, ValueError): ...
 
 
 class Dictionary:
@@ -135,6 +149,9 @@ class Dictionary:
             KeyError: If no Entry exists with the given ID.
         """
 
+        if key not in self._entries:
+            raise InvalidEntryIDError(key)
+
         return self._entries[key]
 
     def __iter__(self) -> Generator[tuple[EntryID, Entry], None, None]:
@@ -240,6 +257,9 @@ class Dictionary:
             KeyError: If the tag does not exist.
         """
 
+        if tag not in self._indexes['tags']:
+            raise InvalidTagError(tag)
+
         n_entries = 0
         n_translations = 0
         n_gram_forms = 0
@@ -283,6 +303,9 @@ class Dictionary:
                     n_gram_forms += entry.n_gram_forms
                     n_word_forms += entry.n_word_forms
         else:
+            if tag not in self._indexes['tags']:
+                raise InvalidTagError(tag)
+
             for entry_id in self._indexes['tags'][tag]:
                 entry = self._entries[entry_id]
                 if entry.is_fav:
@@ -394,16 +417,16 @@ class Dictionary:
         if forms is not None:
             for gram_form in forms.keys():
                 if len(gram_form) != len(self._features):
-                    raise ValueError('Invalid grammatical form')
+                    raise InvalidGramFormError(gram_form)
                 for ctg_val, ctg in zip(gram_form, self._features):
                     if ctg_val not in self._features[ctg]:
-                        raise ValueError(f'Unknown grammatical category value: {ctg_val}')
+                        raise InvalidGramFormError(ctg_val)
 
         if tags is not None:
             tags = set(tags)
             unknown_tags = tags.difference(set(self._tags))
             if unknown_tags:
-                raise ValueError(f'Unknown tags are specified: {unknown_tags}')
+                raise InvalidTagError(*unknown_tags)
             default_tags = {self._tags[i] for i in self._default_tag_ids}
             tags.update(default_tags)
 
@@ -446,6 +469,9 @@ class Dictionary:
             KeyError: If no Entry exists with the given entry_id.
         """
 
+        if entry_id not in self._entries:
+            raise InvalidEntryIDError(entry_id)
+
         entry = self._entries[entry_id]
 
         self._counters['lemmas']       -= 1
@@ -478,6 +504,11 @@ class Dictionary:
         Raises:
             KeyError: If no Entry exists with the given entry_id.
         """
+
+        if target_entry_id not in self._entries:
+            raise InvalidEntryIDError(target_entry_id)
+        if source_entry_id not in self._entries:
+            raise InvalidEntryIDError(source_entry_id)
 
         target_entry = self._entries[target_entry_id]
         source_entry = self._entries[source_entry_id]
@@ -518,6 +549,9 @@ class Dictionary:
             KeyError: If no Entry exists with the given entry_id.
         """
 
+        if entry_id not in self._entries:
+            raise InvalidEntryIDError(entry_id)
+
         old_lemma = self._entries[entry_id].lemma
 
         if old_lemma == new_lemma:
@@ -542,6 +576,9 @@ class Dictionary:
             KeyError: If no Entry exists with the given entry_id.
         """
 
+        if entry_id not in self._entries:
+            raise InvalidEntryIDError(entry_id)
+
         entry = self._entries[entry_id]
 
         is_modified, counter_delta = entry.tr.add(tr)
@@ -564,6 +601,11 @@ class Dictionary:
             KeyError: If no Entry exists with the given entry_id.
             ValueError: If the Entry does not have the specified translation.
         """
+
+        if entry_id not in self._entries:
+            raise InvalidEntryIDError(entry_id)
+        if tr not in self._entries[entry_id].tr:
+            raise InvalidTranslationError(tr)
 
         entry = self._entries[entry_id]
 
@@ -589,6 +631,11 @@ class Dictionary:
             ValueError: If the Entry does not have the specified translation.
         """
 
+        if entry_id not in self._entries:
+            raise InvalidEntryIDError(entry_id)
+        if tr not in self._entries[entry_id].tr:
+            raise InvalidTranslationError(tr)
+
         entry = self._entries[entry_id]
 
         entry.tr.delete(tr)
@@ -608,6 +655,9 @@ class Dictionary:
         Raises:
             KeyError: If no Entry exists with the given entry_id.
         """
+
+        if entry_id not in self._entries:
+            raise InvalidEntryIDError(entry_id)
 
         entry = self._entries[entry_id]
 
@@ -643,7 +693,15 @@ class Dictionary:
             ValueError: If the specified word_form is not found.
         """
 
+        if entry_id not in self._entries:
+            raise InvalidEntryIDError(entry_id)
+
         entry = self._entries[entry_id]
+
+        if gram_form not in entry.forms:
+            raise InvalidGramFormError(gram_form)
+        if word_form not in entry.forms[gram_form]:
+            raise InvalidWordFormError(word_form)
 
         # An Entry may contain homographs.
         # Therefore, we need to first remove all forms from the index, then add them back to the
@@ -675,7 +733,15 @@ class Dictionary:
             ValueError: If the specified word_form is not found.
         """
 
+        if entry_id not in self._entries:
+            raise InvalidEntryIDError(entry_id)
+
         entry = self._entries[entry_id]
+
+        if gram_form not in entry.forms:
+            raise InvalidGramFormError(gram_form)
+        if word_form not in entry.forms[gram_form]:
+            raise InvalidWordFormError(word_form)
 
         # An Entry may contain homographs.
         # Therefore, we need to first remove all forms from the index, then add them back to the
@@ -702,6 +768,9 @@ class Dictionary:
         Raises:
             KeyError: If no Entry exists with the given entry_id.
         """
+
+        if entry_id not in self._entries:
+            raise InvalidEntryIDError(entry_id)
 
         entry = self._entries[entry_id]
 
@@ -736,6 +805,13 @@ class Dictionary:
             ValueError: If the specified phrase_tr is not found.
         """
 
+        if entry_id not in self._entries:
+            raise InvalidEntryIDError(entry_id)
+        if phrase not in self._entries[entry_id].phrases:
+            raise InvalidPhraseError(phrase)
+        if phrase_tr not in self._entries[entry_id].phrases[phrase]:
+            raise InvalidPhraseTrError(phrase_tr)
+
         entry = self._entries[entry_id]
 
         is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases.edit(
@@ -762,6 +838,13 @@ class Dictionary:
             ValueError: If the specified phrase_tr is not found.
         """
 
+        if entry_id not in self._entries:
+            raise InvalidEntryIDError(entry_id)
+        if phrase not in self._entries[entry_id].phrases:
+            raise InvalidPhraseError(phrase)
+        if phrase_tr not in self._entries[entry_id].phrases[phrase]:
+            raise InvalidPhraseTrError(phrase_tr)
+
         entry = self._entries[entry_id]
 
         is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases.delete(phrase, phrase_tr)
@@ -782,6 +865,9 @@ class Dictionary:
         Raises:
             KeyError: If no Entry exists with the given entry_id.
         """
+
+        if entry_id not in self._entries:
+            raise InvalidEntryIDError(entry_id)
 
         entry = self._entries[entry_id]
 
@@ -805,6 +891,11 @@ class Dictionary:
             ValueError: If the specified note is not found.
         """
 
+        if entry_id not in self._entries:
+            raise InvalidEntryIDError(entry_id)
+        if note not in self._entries[entry_id].notes:
+            raise InvalidNoteError(note)
+
         entry = self._entries[entry_id]
 
         is_modified, counter_delta = entry.notes.edit(note, new_note)
@@ -827,6 +918,11 @@ class Dictionary:
             ValueError: If the specified note is not found.
         """
 
+        if entry_id not in self._entries:
+            raise InvalidEntryIDError(entry_id)
+        if note not in self._entries[entry_id].notes:
+            raise InvalidNoteError(note)
+
         entry = self._entries[entry_id]
 
         entry.notes.delete(note)
@@ -845,9 +941,14 @@ class Dictionary:
             KeyError: If no Entry exists with the given ID, or if the specified tag does not exist.
         """
 
+        if tag not in self._tags:
+            raise InvalidTagError(tag)
+
         entry_ids = set(entry_ids)
-        if not entry_ids.issubset(set(self._entries.keys())):
-            raise KeyError()
+
+        invalid_entry_ids = entry_ids.difference(set(self._entries.keys()))
+        if invalid_entry_ids:
+            raise InvalidEntryIDError(*invalid_entry_ids)
 
         entry_ids_to_update = entry_ids.difference(self._indexes['tags'][tag])
 
@@ -873,9 +974,14 @@ class Dictionary:
             KeyError: If no Entry exists with the given ID, or if the specified tag does not exist.
         """
 
+        if tag not in self._tags:
+            raise InvalidTagError(tag)
+
         entry_ids = set(entry_ids)
-        if not entry_ids.issubset(set(self._entries.keys())):
-            raise KeyError()
+
+        invalid_entry_ids = entry_ids.difference(set(self._entries.keys()))
+        if invalid_entry_ids:
+            raise InvalidEntryIDError(*invalid_entry_ids)
 
         entry_ids_to_update = entry_ids.intersection(self._indexes['tags'][tag])
 
@@ -900,6 +1006,12 @@ class Dictionary:
             KeyError: If no Entry exists with the given ID.
         """
 
+        entry_ids = set(entry_ids)
+
+        invalid_entry_ids = entry_ids.difference(set(self._entries.keys()))
+        if invalid_entry_ids:
+            raise InvalidEntryIDError(*invalid_entry_ids)
+
         for entry_id in entry_ids:
             if not self._entries[entry_id].is_fav:
                 self._entries[entry_id].is_fav = True
@@ -915,6 +1027,12 @@ class Dictionary:
         Raises:
             KeyError: If no Entry exists with the given ID.
         """
+
+        entry_ids = set(entry_ids)
+
+        invalid_entry_ids = entry_ids.difference(set(self._entries.keys()))
+        if invalid_entry_ids:
+            raise InvalidEntryIDError(*invalid_entry_ids)
 
         for entry_id in entry_ids:
             if self._entries[entry_id].is_fav:
@@ -937,7 +1055,7 @@ class Dictionary:
         """
 
         if ctg_name in self._features.keys():
-            raise ValueError(f'Category {ctg_name} already exists')
+            raise CategoryExistsError(ctg_name)
 
         for entry in self._entries.values():
             entry.forms.add_ctg()
@@ -958,8 +1076,10 @@ class Dictionary:
             ValueError: If the specified new name already exists.
         """
 
+        if ctg_name_old not in self._features.keys():
+            raise InvalidCategoryError(ctg_name_old)
         if ctg_name_new in self._features.keys():
-            raise ValueError(f'Category {ctg_name_new} already exists')
+            raise CategoryExistsError(ctg_name_new)
 
         self._features[ctg_name_new] = self._features.pop(ctg_name_old)
 
@@ -977,6 +1097,9 @@ class Dictionary:
         Raises:
             ValueError: If the specified category does not exist.
         """
+
+        if ctg_name not in self._features.keys():
+            raise InvalidCategoryError(ctg_name)
 
         index = tuple(self._features.keys()).index(ctg_name)
 
@@ -1002,6 +1125,9 @@ class Dictionary:
         Raises:
             KeyError: If the specified category does not exist.
         """
+
+        if ctg_name not in self._features:
+            raise InvalidCategoryError(ctg_name)
 
         if ctg_value in self._features[ctg_name]:
             return
@@ -1033,8 +1159,12 @@ class Dictionary:
                         exists.
         """
 
+        if ctg_name not in self._features:
+            raise InvalidCategoryError(ctg_name)
+        if ctg_value_old not in self._features[ctg_name]:
+            raise InvalidCtgValueError(ctg_value_old)
         if ctg_value_new in self._features[ctg_name]:
-            raise ValueError(f'Category value {ctg_value_new} already exists')
+            raise CtgValueExistsError(ctg_value_new)
 
         index_ctg = tuple(self._features.keys()).index(ctg_name)
         index_val = self._features[ctg_name].index(ctg_value_old)
@@ -1059,6 +1189,11 @@ class Dictionary:
         Raises:
             ValueError: If the specified category or its value does not exist.
         """
+
+        if ctg_name not in self._features:
+            raise InvalidCategoryError(ctg_name)
+        if ctg_value not in self._features[ctg_name]:
+            raise InvalidCtgValueError(ctg_value)
 
         if self._features[ctg_name] == [ctg_value]:
             self.delete_ctg(ctg_name)
@@ -1120,6 +1255,9 @@ class Dictionary:
             ValueError: If the specified tag does not exist.
         """
 
+        if tag_old not in self._tags:
+            raise InvalidTagError(tag_old)
+
         tag_id = self._tags.index(tag_old)
 
         if tag_old == tag_new:
@@ -1160,6 +1298,9 @@ class Dictionary:
             ValueError: If the specified tag does not exist.
         """
 
+        if tag not in self._tags:
+            raise InvalidTagError(tag)
+
         tag_id = self._tags.index(tag)
         self._default_tag_ids = set.union(
             {def_tag_id     for def_tag_id in self._default_tag_ids if def_tag_id < tag_id},
@@ -1189,6 +1330,9 @@ class Dictionary:
             ValueError: If the specified tag does not exist.
         """
 
+        if tag not in self._tags:
+            raise InvalidTagError(tag)
+
         tag_id = self._tags.index(tag)
 
         if tag_id in self._default_tag_ids:
@@ -1210,6 +1354,9 @@ class Dictionary:
             ValueError: If the specified tag does not exist.
         """
 
+        if tag not in self._tags:
+            raise InvalidTagError(tag)
+
         tag_id = self._tags.index(tag)
 
         if tag_id not in self._default_tag_ids:
@@ -1219,6 +1366,9 @@ class Dictionary:
         self._is_modified = True
 
     def is_default_tag(self, tag: Tag) -> bool:
+        if tag not in self._tags:
+            raise InvalidTagError(tag)
+
         tag_id = self._tags.index(tag)
         return tag_id in self._default_tag_ids
 

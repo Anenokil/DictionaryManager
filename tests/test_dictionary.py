@@ -10,7 +10,7 @@ import os
 import json
 import pytest
 
-from backend.core import Dictionary
+from backend.core import Dictionary, InvalidTagError
 
 T = TypeVar('T')
 
@@ -181,7 +181,7 @@ def test_rename_tag_bad(dct_small, target_tag, new_tag):
     state_before = deepcopy(dct.to_json_dict())
 
     # Operation should raise on invalid rename
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidTagError):
         dct.rename_tag(target_tag, new_tag)
 
     state_after = dct.to_json_dict()
@@ -212,7 +212,7 @@ def test_delete_tag_bad(dct_small, tag):
     state_before = deepcopy(dct.to_json_dict())
 
     # Operation should raise on invalid tag
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidTagError):
         dct.delete_tag(tag)
 
     state_after = dct.to_json_dict()
@@ -240,7 +240,7 @@ def test_mark_tag_as_default_bad(dct_small, tag):
     state_before = deepcopy(dct.to_json_dict())
 
     # Operation should raise on invalid tag
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidTagError):
         dct.mark_tag_as_default(tag)
 
     state_after = dct.to_json_dict()
@@ -268,7 +268,7 @@ def test_unmark_tag_as_default_bad(dct_small, tag):
     state_before = deepcopy(dct.to_json_dict())
 
     # Operation should raise on invalid tag
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidTagError):
         dct.unmark_tag_as_default(tag)
 
     state_after = dct.to_json_dict()
