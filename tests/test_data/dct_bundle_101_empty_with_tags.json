@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "data": {
+    "dct": {
+      "version": 1,
+      "data": {
+        "name": "test-dct_empty-with-tags",
+        "entries": {},
+        "indexes": {
+          "lemmas": {},
+          "translations": {},
+          "forms": {},
+          "tags": {
+            "difficult": [],
+            "noun": [],
+            "verb": [],
+            "adjective": [],
+            "haben-verb": [],
+            "sein-verb": [],
+            "plural -": [],
+            "plural -s": [],
+            "plural -e": [],
+            "plural -er": [],
+            "plural -en": [],
+            "plural other": [],
+            "new": []
+          }
+        },
+        "counters": {
+          "lemmas": 0,
+          "translations": 0,
+          "gram_forms": 0,
+          "word_forms": 0,
+          "phrases": 0,
+          "notes": 0
+        },
+        "features": {},
+        "tags": [
+          "difficult",
+          "noun",
+          "verb",
+          "adjective",
+          "haben-verb",
+          "sein-verb",
+          "plural -",
+          "plural -s",
+          "plural -e",
+          "plural -er",
+          "plural -en",
+          "plural other",
+          "new"
+        ],
+        "default_tag_ids": [],
+        "max_entry_id": 0,
+        "is_modified": false
+      }
+    },
+    "session_number": 1,
+    "search_config": {
+      "version": 1,
+      "to_search_only_fav": false,
+      "to_search_only_full": false,
+      "to_search_in_words": true,
+      "to_search_in_translations": true,
+      "to_search_in_forms": false,
+      "to_search_in_phrases": false,
+      "to_search_in_notes": false,
+      "search_tags": null
+    },
+    "train_config": {
+      "version": 1,
+      "is_case_sensitive": false,
+      "format": "translation_to_word",
+      "order": "difficult_first",
+      "entries": "mostly_fav",
+      "forms": "random_form",
+      "tags": null
+    },
+    "replacer": {
+      "version": 1,
+      "data": {
+        "replacements": {
+          "": {},
+          "\\": {},
+          "/": {},
+          "|": {},
+          "`": {},
+          "'": {},
+          "\"": {},
+          "^": {},
+          "<": {},
+          ">": {},
+          "_": {},
+          "~": {},
+          "+": {},
+          "*": {},
+          ":": {},
+          "#": {},
+          "%": {},
+          "@": {},
+          "&": {},
+          "$": {}
+        }
+      }
+    }
+  }
+}
