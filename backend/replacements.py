@@ -62,16 +62,24 @@ class Replacer:
         }
 
     def add_replacement(self, modifier: str, input_char: str, output_char: str):
-        assert modifier in self.modifiers
-        assert input_char not in self.modifiers
-        assert len(input_char) == 1
-        assert len(output_char) == 1
+        if modifier not in self.modifiers:
+            raise KeyError(f'Unknown modifier: "{modifier}"')
+        if input_char in self.modifiers:
+            raise ValueError(
+                f'"{input_char}" cannot be used as a character for replacement '
+                'because it is used as a modifier'
+            )
+        if len(input_char) != 1:
+            raise ValueError('input_char must be a single character')
+        if len(output_char) != 1:
+            raise ValueError('output_char must be a single character')
 
         self._replacements[modifier][modifier] = modifier
         self._replacements[modifier][input_char] = output_char
 
     def delete_replacement(self, modifier: str, input_char: str):
-        assert input_char != modifier
+        if input_char == modifier:
+            raise ValueError(f'You cannot remove the combination "{modifier}{input_char}"')
 
         del self._replacements[modifier][input_char]
         if len(self._replacements[modifier]) == 1:
