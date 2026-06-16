@@ -61,7 +61,7 @@ class Replacer:
             for input_char, output_char in char_pair.items()
         }
 
-    def add_replacement(self, modifier: str, input_char: str, output_char: str):
+    def set_replacement(self, modifier: str, input_char: str, output_char: str):
         if modifier not in self.modifiers:
             raise KeyError(f'Unknown modifier: "{modifier}"')
         if input_char in self.modifiers:

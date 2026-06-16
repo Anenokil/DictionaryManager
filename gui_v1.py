@@ -4048,7 +4048,7 @@ class InputReplacementsSettingsW(tk.Toplevel):
         if (modifier, key) in self.replacer.replacements.keys():
             warning(self, self.app_data, f'Комбинация {modifier}{key} уже существует!')
             return
-        self.replacer.add_replacement(modifier, key, val)
+        self.replacer.set_replacement(modifier, key, val)
         self.print_replacements(False)
         self.has_changes = True
 
@@ -4066,7 +4066,7 @@ class InputReplacementsSettingsW(tk.Toplevel):
 
         self.replacer.delete_replacement(old_modifier, old_key)
 
-        self.replacer.add_replacement(new_modifier, new_key, new_val)
+        self.replacer.set_replacement(new_modifier, new_key, new_val)
         self.print_replacements(False)
         self.has_changes = True
 
