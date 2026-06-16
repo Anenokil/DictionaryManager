@@ -6,8 +6,7 @@ Author: Anenokil
 
 from .types import (
     Word, Translation, Category, CtgValue, GramForm, WordForm,
-    Phrase, PhraseTr, Note, Tag, Timestamp, EntryID, DctName,
-    SerializedData,
+    Phrase, PhraseTr, Note, Tag, Timestamp, DctName, SerializedData,
 )
 from .errors import (
     DMError, BackendError, DeserializationError,
@@ -15,7 +14,7 @@ from .errors import (
 )
 from .entry import Entry, Translations, Forms, Phrases, Notes, Tags
 from .dictionary import (
-    Dictionary, InvalidEntryIDError, InvalidTranslationError,
+    Dictionary, InvalidTranslationError,
     InvalidGramFormError, InvalidWordFormError,
     InvalidPhraseError, InvalidPhraseTrError,
     InvalidNoteError, InvalidTagError,

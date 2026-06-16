@@ -19,6 +19,5 @@ PhraseTr = Text
 Note = Text
 Tag = str
 Timestamp = tuple[int, int, int]
-EntryID = int
 DctName = str | None
 SerializedData = dict[str, Any]  # Serialized entry/dictionary/manager

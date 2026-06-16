@@ -5,7 +5,7 @@
       "version": 1,
       "data": {
         "name": "test-dct_empty-with-tags",
-        "entries": {},
+        "entries": [],
         "indexes": {
           "lemmas": {},
           "translations": {},
@@ -51,7 +51,6 @@
           "new"
         ],
         "default_tag_ids": [],
-        "max_entry_id": 0,
         "is_modified": false
       }
     },

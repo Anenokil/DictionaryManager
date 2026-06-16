@@ -23,7 +23,7 @@ def to_type(iterable: Iterable[T], target_type: str) -> Iterable[T]:
     if target_type == 'set':
         return set(iterable)
     if target_type == 'generator':
-        return (eid for eid in iterable)
+        return (val for val in iterable)
     raise NotImplementedError(f'Unknown target type: {target_type}')
 
 
@@ -37,45 +37,40 @@ def dct_small(request):
 
 @pytest.mark.parametrize('tag', ['noun', 'difficult', 'new', 'plural other', 'invalid'])
 @pytest.mark.parametrize(
-    'entry_ids', [
+    'entry_indexes', [
         [],
-        [3],
-        [3, 3, 3],
-        [3, 80, 6],
-        [36, 44, 45],
-        [745],
-        [3156],
-        [6, 32, 43, 44, 70, 80, 408, 745, 3156],
-        [745, 32, 6, 43, 70, 3156, 80, 408, 44],
-        [44, 745, 32, 6, 43, 43, 70, 3156, 80, 408, 44, 6, 32],
+        [0],
+        [0, 16, 3],
+        [9, 11, 12],
+        [27],
+        [28],
+        [3, 7, 10, 11, 15, 16, 25, 27, 28],
+        [27, 7, 3, 10, 15, 28, 16, 25, 11],
         'all',
-        [9999],
-        [9997, 9999, 9998],
-        [3, 9999],
-        [745, 32, 6, 43, 70, 3156, 9999, 80, 408, 44],
-        [44, 745, 32, 6, 43, 43, 70, 9999, 3156, 80, 408, 44, 6, 32],
     ]
 )
-@pytest.mark.parametrize('tags_type', ['list', 'tuple', 'set', 'generator'])
-def test_add_tag_to_entries(dct_small, tag, entry_ids, tags_type):
+@pytest.mark.parametrize('iter_type', ['list', 'tuple', 'set', 'generator'])
+def test_add_tag_to_entries(dct_small, tag, entry_indexes, iter_type):
     dct = dct_small
 
-    if entry_ids == 'all':
-        entry_ids = list(dct.iter_entry_ids())
-    entry_ids_ = to_type(entry_ids, tags_type)
+    if entry_indexes == 'all':
+        entries = list(dct)
+    else:
+        entries = [dct[index] for index in entry_indexes]
+    entries_ = to_type(entries, iter_type)
 
-    if (tag in dct.tags) and set(entry_ids).issubset(set(dct.iter_entry_ids())):
-        tag_ids = dct.search(tags=[tag])
+    if tag in dct.tags:
+        tag_entries = dct.search(tags=[tag])
 
-        dct.add_tag_to_entries(tag, entry_ids_)
+        dct.add_tag_to_entries(tag, entries_)
 
-        assert dct.search(tags=[tag]) == tag_ids.union(entry_ids)
+        assert dct.search(tags=[tag]) == tag_entries.union(entries)
     else:
         state_before = deepcopy(dct.to_json_dict())
 
         # Operation should raise on invalid arguments
-        with pytest.raises(KeyError):
-            dct.add_tag_to_entries(tag, entry_ids_)
+        with pytest.raises(InvalidTagError):
+            dct.add_tag_to_entries(tag, entries_)
 
         state_after = dct.to_json_dict()
 
@@ -85,45 +80,40 @@ def test_add_tag_to_entries(dct_small, tag, entry_ids, tags_type):
 
 @pytest.mark.parametrize('tag', ['noun', 'difficult', 'new', 'plural other', 'invalid'])
 @pytest.mark.parametrize(
-    'entry_ids', [
+    'entry_indexes', [
         [],
-        [3],
-        [3, 3, 3],
-        [3, 80, 6],
-        [36, 44, 45],
-        [745],
-        [3156],
-        [6, 32, 43, 44, 70, 80, 408, 745, 3156],
-        [745, 32, 6, 43, 70, 3156, 80, 408, 44],
-        [44, 745, 32, 6, 43, 43, 70, 3156, 80, 408, 44, 6, 32],
+        [0],
+        [0, 16, 3],
+        [9, 11, 12],
+        [27],
+        [28],
+        [3, 7, 10, 11, 15, 16, 25, 27, 28],
+        [27, 7, 3, 10, 15, 28, 16, 25, 11],
         'all',
-        [9999],
-        [9997, 9999, 9998],
-        [3, 9999],
-        [745, 32, 6, 43, 70, 3156, 9999, 80, 408, 44],
-        [44, 745, 32, 6, 43, 43, 70, 9999, 3156, 80, 408, 44, 6, 32],
     ]
 )
-@pytest.mark.parametrize('tags_type', ['list', 'tuple', 'set', 'generator'])
-def test_remove_tag_from_entries(dct_small, tag, entry_ids, tags_type):
+@pytest.mark.parametrize('iter_type', ['list', 'tuple', 'set', 'generator'])
+def test_remove_tag_from_entries(dct_small, tag, entry_indexes, iter_type):
     dct = dct_small
 
-    if entry_ids == 'all':
-        entry_ids = list(dct.iter_entry_ids())
-    entry_ids_ = to_type(entry_ids, tags_type)
+    if entry_indexes == 'all':
+        entries = list(dct)
+    else:
+        entries = [dct[index] for index in entry_indexes]
+    entries_ = to_type(entries, iter_type)
 
-    if (tag in dct.tags) and set(entry_ids).issubset(set(dct.iter_entry_ids())):
-        tag_ids = dct.search(tags=[tag])
+    if tag in dct.tags:
+        tag_entries = dct.search(tags=[tag])
 
-        dct.remove_tag_from_entries(tag, entry_ids_)
+        dct.remove_tag_from_entries(tag, entries_)
 
-        assert dct.search(tags=[tag]) == tag_ids.difference(entry_ids)
+        assert dct.search(tags=[tag]) == tag_entries.difference(entries)
     else:
         state_before = deepcopy(dct.to_json_dict())
 
         # Operation should raise on invalid arguments
-        with pytest.raises(KeyError):
-            dct.remove_tag_from_entries(tag, entry_ids_)
+        with pytest.raises(InvalidTagError):
+            dct.remove_tag_from_entries(tag, entries_)
 
         state_after = dct.to_json_dict()
 
@@ -136,12 +126,12 @@ def test_remove_tag_from_entries(dct_small, tag, entry_ids, tags_type):
 def test_add_tag(dct_small, tag, is_default):
     dct = dct_small
 
-    tag_ids = dct.search(tags=[tag])
+    tag_entries = dct.search(tags=[tag])
 
     dct.add_tag(tag, is_default)
 
     assert tag in dct.tags
-    assert dct.search(tags=[tag]) == tag_ids
+    assert dct.search(tags=[tag]) == tag_entries
     if is_default:
         assert dct.is_default_tag(tag)
         assert tag in dct.default_tags
@@ -155,22 +145,22 @@ def test_add_tag(dct_small, tag, is_default):
 def test_rename_tag(dct_small, target_tag, new_tag):
     dct = dct_small
 
-    target_tag_ids = dct.search(tags=[target_tag])
-    new_tag_ids = dct.search(tags=[new_tag])
+    target_tag_entries = dct.search(tags=[target_tag])
+    new_tag_entries = dct.search(tags=[new_tag])
 
     dct.rename_tag(target_tag, new_tag)
 
     assert new_tag in dct.tags
-    assert dct.search(tags=[new_tag]) == target_tag_ids.union(new_tag_ids)
-    for eid in new_tag_ids:
-        assert new_tag in dct[eid].tags
+    assert dct.search(tags=[new_tag]) == target_tag_entries.union(new_tag_entries)
+    for entry in new_tag_entries:
+        assert new_tag in entry.tags
 
     if new_tag != target_tag:
         assert target_tag not in dct.tags
         assert target_tag not in dct.default_tags
         assert dct.search(tags=[target_tag]) == set()
-        for eid in new_tag_ids:
-            assert target_tag not in dct[eid].tags
+        for entry in new_tag_entries:
+            assert target_tag not in entry.tags
 
 
 @pytest.mark.parametrize('target_tag', ['', 'invalid'])
@@ -194,15 +184,15 @@ def test_rename_tag_bad(dct_small, target_tag, new_tag):
 def test_delete_tag(dct_small, tag):
     dct = dct_small
 
-    tag_ids = dct.search(tags=[tag])
+    tag_entries = dct.search(tags=[tag])
 
     dct.delete_tag(tag)
 
     assert tag not in dct.tags
     assert tag not in dct.default_tags
     assert dct.search(tags=[tag]) == set()
-    for eid in tag_ids:
-        assert tag not in dct[eid].tags
+    for entry in tag_entries:
+        assert tag not in entry.tags
 
 
 @pytest.mark.parametrize('tag', ['', 'invalid'])

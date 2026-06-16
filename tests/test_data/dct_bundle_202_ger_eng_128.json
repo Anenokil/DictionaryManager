@@ -5,8 +5,8 @@
       "version": 1,
       "data": {
         "name": "test-dct_deu-eng_128",
-        "entries": {
-          "1": {
+        "entries": [
+          {
             "lemma": "ich",
             "translations": [
               "I",
@@ -61,7 +61,7 @@
               ]
             }
           },
-          "2": {
+          {
             "lemma": "wir",
             "translations": [
               "we"
@@ -115,7 +115,7 @@
               ]
             }
           },
-          "3": {
+          {
             "lemma": "du",
             "translations": [
               "you"
@@ -172,7 +172,7 @@
               "Singular"
             ]
           },
-          "4": {
+          {
             "lemma": "ihr",
             "translations": [
               "you"
@@ -229,7 +229,7 @@
               "Plural"
             ]
           },
-          "5": {
+          {
             "lemma": "er",
             "translations": [
               "he"
@@ -283,7 +283,7 @@
               ]
             }
           },
-          "6": {
+          {
             "lemma": "es",
             "translations": [
               "it"
@@ -337,7 +337,7 @@
               ]
             }
           },
-          "7": {
+          {
             "lemma": "sie",
             "translations": [
               "she"
@@ -391,7 +391,7 @@
               ]
             }
           },
-          "8": {
+          {
             "lemma": "Sie",
             "translations": [
               "you"
@@ -448,7 +448,7 @@
               "Respectful"
             ]
           },
-          "31": {
+          {
             "lemma": "der Mann",
             "translations": [
               "man",
@@ -486,7 +486,7 @@
               "plural -er"
             ]
           },
-          "32": {
+          {
             "lemma": "die Frau",
             "translations": [
               "woman",
@@ -524,7 +524,7 @@
               "noun"
             ]
           },
-          "33": {
+          {
             "lemma": "der Mensch",
             "translations": [
               "man",
@@ -561,7 +561,7 @@
               "noun"
             ]
           },
-          "35": {
+          {
             "lemma": "der Kuli",
             "translations": [
               "pen"
@@ -600,7 +600,7 @@
               "plural -s"
             ]
           },
-          "36": {
+          {
             "lemma": "der Kugelschreiber",
             "translations": [
               "pen"
@@ -639,7 +639,7 @@
               "plural -"
             ]
           },
-          "37": {
+          {
             "lemma": "das Tier",
             "translations": [
               "animal",
@@ -677,7 +677,7 @@
               "noun"
             ]
           },
-          "38": {
+          {
             "lemma": "das Kind",
             "translations": [
               "kid",
@@ -715,7 +715,7 @@
               "plural -er"
             ]
           },
-          "42": {
+          {
             "lemma": "das Wasser",
             "translations": [
               "water"
@@ -733,7 +733,7 @@
               "noun"
             ]
           },
-          "43": {
+          {
             "lemma": "die Katze",
             "translations": [
               "cat"
@@ -769,7 +769,7 @@
               "noun"
             ]
           },
-          "44": {
+          {
             "lemma": "der Kater",
             "translations": [
               "cat"
@@ -808,7 +808,7 @@
               "plural -"
             ]
           },
-          "45": {
+          {
             "lemma": "der Freund",
             "translations": [
               "friend"
@@ -855,7 +855,7 @@
               "noun"
             ]
           },
-          "48": {
+          {
             "lemma": "hallo",
             "translations": [
               "hello"
@@ -870,7 +870,7 @@
               67
             ]
           },
-          "49": {
+          {
             "lemma": "tsch\u00fc\u00df",
             "translations": [
               "bye"
@@ -888,7 +888,7 @@
               "Also: \"tsch\u00fcss\", \"tsch\u00fcs\""
             ]
           },
-          "51": {
+          {
             "lemma": "sehen",
             "translations": [
               "to see"
@@ -957,7 +957,7 @@
               "verb"
             ]
           },
-          "52": {
+          {
             "lemma": "der Bruder",
             "translations": [
               "brother"
@@ -993,7 +993,7 @@
               "plural -"
             ]
           },
-          "53": {
+          {
             "lemma": "die Schwester",
             "translations": [
               "sister"
@@ -1029,7 +1029,7 @@
               "noun"
             ]
           },
-          "54": {
+          {
             "lemma": "der Vater",
             "translations": [
               "father",
@@ -1066,7 +1066,7 @@
               "plural -"
             ]
           },
-          "55": {
+          {
             "lemma": "die Mutter",
             "translations": [
               "mother",
@@ -1103,7 +1103,7 @@
               "plural -"
             ]
           },
-          "56": {
+          {
             "lemma": "der Sohn",
             "translations": [
               "son"
@@ -1139,7 +1139,7 @@
               "noun"
             ]
           },
-          "57": {
+          {
             "lemma": "die Tochter",
             "translations": [
               "daughter"
@@ -1175,7 +1175,7 @@
               "plural -"
             ]
           },
-          "59": {
+          {
             "lemma": "das Fleisch",
             "translations": [
               "meat",
@@ -1194,7 +1194,7 @@
               "noun"
             ]
           },
-          "60": {
+          {
             "lemma": "der Fisch",
             "translations": [
               "fish"
@@ -1230,7 +1230,7 @@
               "noun"
             ]
           },
-          "65": {
+          {
             "lemma": "gut",
             "translations": [
               "good"
@@ -1276,7 +1276,7 @@
               "adjective"
             ]
           },
-          "67": {
+          {
             "lemma": "sch\u00f6n",
             "translations": [
               "nice"
@@ -1297,7 +1297,7 @@
               "adjective"
             ]
           },
-          "70": {
+          {
             "lemma": "gro\u00df",
             "translations": [
               "big",
@@ -1316,7 +1316,7 @@
               "adjective"
             ]
           },
-          "79": {
+          {
             "lemma": "viel",
             "translations": [
               "much",
@@ -1361,7 +1361,7 @@
               ]
             }
           },
-          "80": {
+          {
             "lemma": "wenig",
             "translations": [
               "few",
@@ -1405,7 +1405,7 @@
               ]
             }
           },
-          "85": {
+          {
             "lemma": "leicht",
             "translations": [
               "light",
@@ -1425,7 +1425,7 @@
               "adjective"
             ]
           },
-          "86": {
+          {
             "lemma": "der Kaffee",
             "translations": [
               "coffee"
@@ -1443,7 +1443,7 @@
               "noun"
             ]
           },
-          "87": {
+          {
             "lemma": "der Tee",
             "translations": [
               "tea"
@@ -1461,7 +1461,7 @@
               "noun"
             ]
           },
-          "88": {
+          {
             "lemma": "schwer",
             "translations": [
               "difficult",
@@ -1481,7 +1481,7 @@
               "adjective"
             ]
           },
-          "89": {
+          {
             "lemma": "was",
             "translations": [
               "what"
@@ -1496,7 +1496,7 @@
               11
             ]
           },
-          "90": {
+          {
             "lemma": "wer",
             "translations": [
               "who"
@@ -1511,7 +1511,7 @@
               158
             ]
           },
-          "91": {
+          {
             "lemma": "wo",
             "translations": [
               "where"
@@ -1526,7 +1526,7 @@
               0
             ]
           },
-          "92": {
+          {
             "lemma": "woher",
             "translations": [
               "where from"
@@ -1541,7 +1541,7 @@
               0
             ]
           },
-          "93": {
+          {
             "lemma": "wohin",
             "translations": [
               "where"
@@ -1556,7 +1556,7 @@
               6
             ]
           },
-          "94": {
+          {
             "lemma": "wann",
             "translations": [
               "when"
@@ -1571,7 +1571,7 @@
               0
             ]
           },
-          "95": {
+          {
             "lemma": "warum",
             "translations": [
               "why"
@@ -1586,7 +1586,7 @@
               0
             ]
           },
-          "96": {
+          {
             "lemma": "wie",
             "translations": [
               "how"
@@ -1601,7 +1601,7 @@
               0
             ]
           },
-          "100": {
+          {
             "lemma": "das Handy",
             "translations": [
               "phone",
@@ -1621,7 +1621,7 @@
               "noun"
             ]
           },
-          "101": {
+          {
             "lemma": "danke",
             "translations": [
               "thanks"
@@ -1636,7 +1636,7 @@
               78
             ]
           },
-          "102": {
+          {
             "lemma": "bitte",
             "translations": [
               "please"
@@ -1651,7 +1651,7 @@
               7
             ]
           },
-          "103": {
+          {
             "lemma": "die Nacht",
             "translations": [
               "night"
@@ -1687,7 +1687,7 @@
               "noun"
             ]
           },
-          "104": {
+          {
             "lemma": "der Tag",
             "translations": [
               "day"
@@ -1723,7 +1723,7 @@
               "noun"
             ]
           },
-          "105": {
+          {
             "lemma": "der Abend",
             "translations": [
               "evening",
@@ -1742,7 +1742,7 @@
               "noun"
             ]
           },
-          "106": {
+          {
             "lemma": "der Morgen",
             "translations": [
               "morning"
@@ -1760,7 +1760,7 @@
               "noun"
             ]
           },
-          "107": {
+          {
             "lemma": "morgen",
             "translations": [
               "tomorrow"
@@ -1775,7 +1775,7 @@
               0
             ]
           },
-          "108": {
+          {
             "lemma": "alt",
             "translations": [
               "old"
@@ -1821,7 +1821,7 @@
               "adjective"
             ]
           },
-          "109": {
+          {
             "lemma": "neu",
             "translations": [
               "new"
@@ -1842,7 +1842,7 @@
               "adjective"
             ]
           },
-          "112": {
+          {
             "lemma": "essen",
             "translations": [
               "to eat"
@@ -1922,7 +1922,7 @@
               "verb"
             ]
           },
-          "113": {
+          {
             "lemma": "gehen",
             "translations": [
               "to go",
@@ -1970,7 +1970,7 @@
               "verb"
             ]
           },
-          "114": {
+          {
             "lemma": "kommen",
             "translations": [
               "to come",
@@ -2018,7 +2018,7 @@
               "verb"
             ]
           },
-          "115": {
+          {
             "lemma": "der Apfel",
             "translations": [
               "apple"
@@ -2054,7 +2054,7 @@
               "plural -"
             ]
           },
-          "131": {
+          {
             "lemma": "m\u00f6gen",
             "translations": [
               "to like"
@@ -2145,7 +2145,7 @@
               "verb"
             ]
           },
-          "132": {
+          {
             "lemma": "leben",
             "translations": [
               "to live"
@@ -2164,7 +2164,7 @@
               "verb"
             ]
           },
-          "133": {
+          {
             "lemma": "wohnen",
             "translations": [
               "to live",
@@ -2185,7 +2185,7 @@
               "verb"
             ]
           },
-          "134": {
+          {
             "lemma": "haben",
             "translations": [
               "to have"
@@ -2254,7 +2254,7 @@
               "verb"
             ]
           },
-          "138": {
+          {
             "lemma": "zu",
             "translations": [
               "too"
@@ -2269,7 +2269,7 @@
               0
             ]
           },
-          "139": {
+          {
             "lemma": "so",
             "translations": [
               "so"
@@ -2284,7 +2284,7 @@
               4
             ]
           },
-          "144": {
+          {
             "lemma": "das Buch",
             "translations": [
               "book"
@@ -2320,7 +2320,7 @@
               "plural -er"
             ]
           },
-          "145": {
+          {
             "lemma": "der Brief",
             "translations": [
               "letter"
@@ -2356,7 +2356,7 @@
               "noun"
             ]
           },
-          "147": {
+          {
             "lemma": "verstehen",
             "translations": [
               "to understand"
@@ -2403,7 +2403,7 @@
               "verb"
             ]
           },
-          "149": {
+          {
             "lemma": "schreiben",
             "translations": [
               "to write",
@@ -2451,7 +2451,7 @@
               "verb"
             ]
           },
-          "150": {
+          {
             "lemma": "sprechen",
             "translations": [
               "to speak",
@@ -2527,7 +2527,7 @@
               "verb"
             ]
           },
-          "154": {
+          {
             "lemma": "brauchen",
             "translations": [
               "to need",
@@ -2552,7 +2552,7 @@
               "verb"
             ]
           },
-          "157": {
+          {
             "lemma": "nur",
             "translations": [
               "only"
@@ -2567,7 +2567,7 @@
               0
             ]
           },
-          "164": {
+          {
             "lemma": "trinken",
             "translations": [
               "to drink"
@@ -2614,7 +2614,7 @@
               "verb"
             ]
           },
-          "168": {
+          {
             "lemma": "einige",
             "translations": [
               "some"
@@ -2629,7 +2629,7 @@
               248
             ]
           },
-          "169": {
+          {
             "lemma": "der Name",
             "translations": [
               "name"
@@ -2665,7 +2665,7 @@
               "noun"
             ]
           },
-          "171": {
+          {
             "lemma": "das Hobby",
             "translations": [
               "hobby"
@@ -2701,7 +2701,7 @@
               "plural -s"
             ]
           },
-          "175": {
+          {
             "lemma": "lesen",
             "translations": [
               "to read"
@@ -2781,7 +2781,7 @@
               "verb"
             ]
           },
-          "176": {
+          {
             "lemma": "das Spiel",
             "translations": [
               "game"
@@ -2817,7 +2817,7 @@
               "noun"
             ]
           },
-          "177": {
+          {
             "lemma": "spielen",
             "translations": [
               "to play"
@@ -2836,7 +2836,7 @@
               "verb"
             ]
           },
-          "178": {
+          {
             "lemma": "der Fu\u00dfball",
             "translations": [
               "football"
@@ -2854,7 +2854,7 @@
               "noun"
             ]
           },
-          "179": {
+          {
             "lemma": "fahren",
             "translations": [
               "to drive",
@@ -2929,7 +2929,7 @@
               "verb"
             ]
           },
-          "180": {
+          {
             "lemma": "das Rad",
             "translations": [
               "wheel",
@@ -2966,7 +2966,7 @@
               "plural -er"
             ]
           },
-          "181": {
+          {
             "lemma": "das Fahrrad",
             "translations": [
               "bicycle"
@@ -3002,7 +3002,7 @@
               "plural -er"
             ]
           },
-          "185": {
+          {
             "lemma": "das Foto",
             "translations": [
               "photo"
@@ -3038,7 +3038,7 @@
               "plural -s"
             ]
           },
-          "186": {
+          {
             "lemma": "m\u00f6glich",
             "translations": [
               "possible"
@@ -3056,7 +3056,7 @@
               "adjective"
             ]
           },
-          "190": {
+          {
             "lemma": "hei\u00dfen",
             "translations": [
               "to call",
@@ -3109,7 +3109,7 @@
               "verb"
             ]
           },
-          "194": {
+          {
             "lemma": "der K\u00e4se",
             "translations": [
               "cheese"
@@ -3127,7 +3127,7 @@
               "noun"
             ]
           },
-          "198": {
+          {
             "lemma": "laufen",
             "translations": [
               "to run"
@@ -3201,7 +3201,7 @@
               "verb"
             ]
           },
-          "202": {
+          {
             "lemma": "der Ball",
             "translations": [
               "ball"
@@ -3237,7 +3237,7 @@
               "noun"
             ]
           },
-          "207": {
+          {
             "lemma": "der Student",
             "translations": [
               "student"
@@ -3295,7 +3295,7 @@
               "noun"
             ]
           },
-          "215": {
+          {
             "lemma": "schwimmen",
             "translations": [
               "to swim"
@@ -3342,7 +3342,7 @@
               "verb"
             ]
           },
-          "216": {
+          {
             "lemma": "k\u00f6nnen",
             "translations": [
               "to can"
@@ -3433,7 +3433,7 @@
               "verb"
             ]
           },
-          "219": {
+          {
             "lemma": "singen",
             "translations": [
               "to sing"
@@ -3480,7 +3480,7 @@
               "verb"
             ]
           },
-          "221": {
+          {
             "lemma": "die Nummer",
             "translations": [
               "number"
@@ -3516,7 +3516,7 @@
               "noun"
             ]
           },
-          "222": {
+          {
             "lemma": "willkommen",
             "translations": [
               "welcome"
@@ -3531,7 +3531,7 @@
               0
             ]
           },
-          "226": {
+          {
             "lemma": "die Stunde",
             "translations": [
               "hour"
@@ -3570,7 +3570,7 @@
               "noun"
             ]
           },
-          "230": {
+          {
             "lemma": "heute",
             "translations": [
               "today"
@@ -3585,7 +3585,7 @@
               0
             ]
           },
-          "231": {
+          {
             "lemma": "gestern",
             "translations": [
               "yesterday"
@@ -3600,7 +3600,7 @@
               0
             ]
           },
-          "233": {
+          {
             "lemma": "oft",
             "translations": [
               "often"
@@ -3615,7 +3615,7 @@
               0
             ]
           },
-          "236": {
+          {
             "lemma": "immer",
             "translations": [
               "always"
@@ -3630,7 +3630,7 @@
               254
             ]
           },
-          "237": {
+          {
             "lemma": "jetzt",
             "translations": [
               "now"
@@ -3645,7 +3645,7 @@
               9
             ]
           },
-          "406": {
+          {
             "lemma": "denken",
             "translations": [
               "to think"
@@ -3700,7 +3700,7 @@
               "verb"
             ]
           },
-          "408": {
+          {
             "lemma": "wissen",
             "translations": [
               "to know"
@@ -3780,7 +3780,7 @@
               "verb"
             ]
           },
-          "410": {
+          {
             "lemma": "fragen",
             "translations": [
               "to ask"
@@ -3804,7 +3804,7 @@
               "verb"
             ]
           },
-          "412": {
+          {
             "lemma": "mit",
             "translations": [
               "with"
@@ -3819,7 +3819,7 @@
               37
             ]
           },
-          "441": {
+          {
             "lemma": "sagen",
             "translations": [
               "to say"
@@ -3838,7 +3838,7 @@
               "verb"
             ]
           },
-          "443": {
+          {
             "lemma": "wollen",
             "translations": [
               "to want"
@@ -3921,7 +3921,7 @@
               "verb"
             ]
           },
-          "446": {
+          {
             "lemma": "bleiben",
             "translations": [
               "to remain"
@@ -3968,7 +3968,7 @@
               "verb"
             ]
           },
-          "447": {
+          {
             "lemma": "nehmen",
             "translations": [
               "to take"
@@ -4037,7 +4037,7 @@
               "verb"
             ]
           },
-          "452": {
+          {
             "lemma": "zeigen",
             "translations": [
               "to show"
@@ -4057,7 +4057,7 @@
               "verb"
             ]
           },
-          "456": {
+          {
             "lemma": "kennen",
             "translations": [
               "to know"
@@ -4123,7 +4123,7 @@
               "verb"
             ]
           },
-          "496": {
+          {
             "lemma": "kaufen",
             "translations": [
               "to buy"
@@ -4170,7 +4170,7 @@
               "verb"
             ]
           },
-          "547": {
+          {
             "lemma": "der Arzt",
             "translations": [
               "doctor"
@@ -4228,7 +4228,7 @@
               "noun"
             ]
           },
-          "727": {
+          {
             "lemma": "sicher",
             "translations": [
               "secure",
@@ -4249,7 +4249,7 @@
               "adjective"
             ]
           },
-          "731": {
+          {
             "lemma": "das Geschenk",
             "translations": [
               "gift"
@@ -4286,7 +4286,7 @@
               "new"
             ]
           },
-          "734": {
+          {
             "lemma": "schalten",
             "translations": [
               "to switch"
@@ -4307,7 +4307,7 @@
               "verb"
             ]
           },
-          "735": {
+          {
             "lemma": "der Schalter",
             "translations": [
               "switch"
@@ -4347,7 +4347,7 @@
               "plural -er"
             ]
           },
-          "738": {
+          {
             "lemma": "das Bad",
             "translations": [
               "bath",
@@ -4385,7 +4385,7 @@
               "plural -er"
             ]
           },
-          "755": {
+          {
             "lemma": "das Schlafzimmer",
             "translations": [
               "bedroom"
@@ -4422,7 +4422,7 @@
               "plural -"
             ]
           },
-          "779": {
+          {
             "lemma": "das Fr\u00fchst\u00fcck",
             "translations": [
               "breakfast"
@@ -4441,7 +4441,7 @@
               "noun"
             ]
           },
-          "791": {
+          {
             "lemma": "bewegen",
             "translations": [
               "to move"
@@ -4489,7 +4489,7 @@
               "verb"
             ]
           },
-          "793": {
+          {
             "lemma": "fordern",
             "translations": [
               "to demand"
@@ -4509,7 +4509,7 @@
               "verb"
             ]
           },
-          "799": {
+          {
             "lemma": "schlie\u00dfen",
             "translations": [
               "to close"
@@ -4557,1508 +4557,1508 @@
               "verb"
             ]
           }
-        },
+        ],
         "indexes": {
           "lemmas": {
             "ich": [
-              1
+              0
             ],
             "wir": [
-              2
+              1
             ],
             "du": [
-              3
+              2
             ],
             "ihr": [
-              4
+              3
             ],
             "er": [
-              5
+              4
             ],
             "es": [
-              6
+              5
             ],
             "sie": [
-              7
+              6
             ],
             "Sie": [
-              8
+              7
             ],
             "der Mann": [
-              31
+              8
             ],
             "die Frau": [
-              32
+              9
             ],
             "der Mensch": [
-              33
+              10
             ],
             "der Kuli": [
-              35
+              11
             ],
             "der Kugelschreiber": [
-              36
+              12
             ],
             "das Tier": [
-              37
+              13
             ],
             "das Kind": [
-              38
+              14
             ],
             "das Wasser": [
-              42
+              15
             ],
             "die Katze": [
-              43
+              16
             ],
             "der Kater": [
-              44
+              17
             ],
             "der Freund": [
-              45
+              18
             ],
             "hallo": [
-              48
+              19
             ],
             "tsch\u00fc\u00df": [
-              49
+              20
             ],
             "sehen": [
-              51
+              21
             ],
             "der Bruder": [
-              52
+              22
             ],
             "die Schwester": [
-              53
+              23
             ],
             "der Vater": [
-              54
+              24
             ],
             "die Mutter": [
-              55
+              25
             ],
             "der Sohn": [
-              56
+              26
             ],
             "die Tochter": [
-              57
+              27
             ],
             "das Fleisch": [
-              59
+              28
             ],
             "der Fisch": [
-              60
+              29
             ],
             "gut": [
-              65
+              30
             ],
             "sch\u00f6n": [
-              67
+              31
             ],
             "gro\u00df": [
-              70
+              32
             ],
             "viel": [
-              79
+              33
             ],
             "wenig": [
-              80
+              34
             ],
             "leicht": [
-              85
+              35
             ],
             "der Kaffee": [
-              86
+              36
             ],
             "der Tee": [
-              87
+              37
             ],
             "schwer": [
-              88
+              38
             ],
             "was": [
-              89
+              39
             ],
             "wer": [
-              90
+              40
             ],
             "wo": [
-              91
+              41
             ],
             "woher": [
-              92
+              42
             ],
             "wohin": [
-              93
+              43
             ],
             "wann": [
-              94
+              44
             ],
             "warum": [
-              95
+              45
             ],
             "wie": [
-              96
+              46
             ],
             "das Handy": [
-              100
+              47
             ],
             "danke": [
-              101
+              48
             ],
             "bitte": [
-              102
+              49
             ],
             "die Nacht": [
-              103
+              50
             ],
             "der Tag": [
-              104
+              51
             ],
             "der Abend": [
-              105
+              52
             ],
             "der Morgen": [
-              106
+              53
             ],
             "morgen": [
-              107
+              54
             ],
             "alt": [
-              108
+              55
             ],
             "neu": [
-              109
+              56
             ],
             "essen": [
-              112
+              57
             ],
             "gehen": [
-              113
+              58
             ],
             "kommen": [
-              114
+              59
             ],
             "der Apfel": [
-              115
+              60
             ],
             "m\u00f6gen": [
-              131
+              61
             ],
             "leben": [
-              132
+              62
             ],
             "wohnen": [
-              133
+              63
             ],
             "haben": [
-              134
+              64
             ],
             "zu": [
-              138
+              65
             ],
             "so": [
-              139
+              66
             ],
             "das Buch": [
-              144
+              67
             ],
             "der Brief": [
-              145
+              68
             ],
             "verstehen": [
-              147
+              69
             ],
             "schreiben": [
-              149
+              70
             ],
             "sprechen": [
-              150
+              71
             ],
             "brauchen": [
-              154
+              72
             ],
             "nur": [
-              157
+              73
             ],
             "trinken": [
-              164
+              74
             ],
             "einige": [
-              168
+              75
             ],
             "der Name": [
-              169
+              76
             ],
             "das Hobby": [
-              171
+              77
             ],
             "lesen": [
-              175
+              78
             ],
             "das Spiel": [
-              176
+              79
             ],
             "spielen": [
-              177
+              80
             ],
             "der Fu\u00dfball": [
-              178
+              81
             ],
             "fahren": [
-              179
+              82
             ],
             "das Rad": [
-              180
+              83
             ],
             "das Fahrrad": [
-              181
+              84
             ],
             "das Foto": [
-              185
+              85
             ],
             "m\u00f6glich": [
-              186
+              86
             ],
             "hei\u00dfen": [
-              190
+              87
             ],
             "der K\u00e4se": [
-              194
+              88
             ],
             "laufen": [
-              198
+              89
             ],
             "der Ball": [
-              202
+              90
             ],
             "der Student": [
-              207
+              91
             ],
             "schwimmen": [
-              215
+              92
             ],
             "k\u00f6nnen": [
-              216
+              93
             ],
             "singen": [
-              219
+              94
             ],
             "die Nummer": [
-              221
+              95
             ],
             "willkommen": [
-              222
+              96
             ],
             "die Stunde": [
-              226
+              97
             ],
             "heute": [
-              230
+              98
             ],
             "gestern": [
-              231
+              99
             ],
             "oft": [
-              233
+              100
             ],
             "immer": [
-              236
+              101
             ],
             "jetzt": [
-              237
+              102
             ],
             "denken": [
-              406
+              103
             ],
             "wissen": [
-              408
+              104
             ],
             "fragen": [
-              410
+              105
             ],
             "mit": [
-              412
+              106
             ],
             "sagen": [
-              441
+              107
             ],
             "wollen": [
-              443
+              108
             ],
             "bleiben": [
-              446
+              109
             ],
             "nehmen": [
-              447
+              110
             ],
             "zeigen": [
-              452
+              111
             ],
             "kennen": [
-              456
+              112
             ],
             "kaufen": [
-              496
+              113
             ],
             "der Arzt": [
-              547
+              114
             ],
             "sicher": [
-              727
+              115
             ],
             "das Geschenk": [
-              731
+              116
             ],
             "schalten": [
-              734
+              117
             ],
             "der Schalter": [
-              735
+              118
             ],
             "das Bad": [
-              738
+              119
             ],
             "das Schlafzimmer": [
-              755
+              120
             ],
             "das Fr\u00fchst\u00fcck": [
-              779
+              121
             ],
             "bewegen": [
-              791
+              122
             ],
             "fordern": [
-              793
+              123
             ],
             "schlie\u00dfen": [
-              799
+              124
             ]
           },
           "translations": {
             "I": [
-              1
+              0
             ],
             "we": [
-              2
-            ],
-            "me": [
               1
             ],
+            "me": [
+              0
+            ],
             "you": [
-              8,
-              3,
-              4
+              7,
+              2,
+              3
             ],
             "he": [
-              5
+              4
             ],
             "it": [
-              6
+              5
             ],
             "she": [
-              7
+              6
             ],
             "man": [
-              33,
-              31
+              10,
+              8
             ],
             "male": [
-              31
+              8
             ],
             "husband": [
-              31
+              8
             ],
             "woman": [
-              32
+              9
             ],
             "female": [
-              32
+              9
             ],
             "wife": [
-              32
+              9
             ],
             "human": [
-              33
+              10
             ],
             "pen": [
-              35,
-              36
+              11,
+              12
             ],
             "animal": [
-              37
+              13
             ],
             "beast": [
-              37
+              13
             ],
             "pet": [
-              37
+              13
             ],
             "kid": [
-              38
+              14
             ],
             "child": [
-              38
+              14
             ],
             "baby": [
-              38
+              14
             ],
             "water": [
-              42
+              15
             ],
             "cat": [
-              43,
-              44
+              16,
+              17
             ],
             "friend": [
-              45
+              18
             ],
             "hello": [
-              48
+              19
             ],
             "bye": [
-              49
+              20
             ],
             "to see": [
-              51
+              21
             ],
             "brother": [
-              52
+              22
             ],
             "sister": [
-              53
+              23
             ],
             "father": [
-              54
+              24
             ],
             "dad": [
-              54
+              24
             ],
             "mother": [
-              55
+              25
             ],
             "mom": [
-              55
+              25
             ],
             "son": [
-              56
+              26
             ],
             "daughter": [
-              57
+              27
             ],
             "meat": [
-              59
+              28
             ],
             "flesh": [
-              59
+              28
             ],
             "fish": [
-              60
+              29
             ],
             "good": [
-              65
+              30
             ],
             "nice": [
-              67
+              31
             ],
             "big": [
-              70
+              32
             ],
             "large": [
-              70
+              32
             ],
             "much": [
-              79
+              33
             ],
             "many": [
-              79
+              33
             ],
             "a lot": [
-              79
+              33
             ],
             "few": [
-              80
+              34
             ],
             "a little": [
-              80
+              34
             ],
             "light": [
-              85
+              35
             ],
             "easy": [
-              85
+              35
             ],
             "simple": [
-              85
+              35
             ],
             "coffee": [
-              86
+              36
             ],
             "tea": [
-              87
+              37
             ],
             "difficult": [
-              88
+              38
             ],
             "hard": [
-              88
+              38
             ],
             "heavy": [
-              88
+              38
             ],
             "what": [
-              89
+              39
             ],
             "who": [
-              90
+              40
             ],
             "where": [
-              91,
-              93
+              41,
+              43
             ],
             "where from": [
-              92
+              42
             ],
             "when": [
-              94
+              44
             ],
             "why": [
-              95
+              45
             ],
             "how": [
-              96
+              46
             ],
             "phone": [
-              100
+              47
             ],
             "mobile": [
-              100
+              47
             ],
             "mobile phone": [
-              100
+              47
             ],
             "thanks": [
-              101
+              48
             ],
             "please": [
-              102
+              49
             ],
             "night": [
-              103
+              50
             ],
             "day": [
-              104
+              51
             ],
             "evening": [
-              105
+              52
             ],
             "eve": [
-              105
+              52
             ],
             "morning": [
-              106
+              53
             ],
             "tomorrow": [
-              107
+              54
             ],
             "old": [
-              108
+              55
             ],
             "new": [
-              109
+              56
             ],
             "to eat": [
-              112
+              57
             ],
             "to go": [
-              113
+              58
             ],
             "to walk": [
-              113
+              58
             ],
             "to come": [
-              114
+              59
             ],
             "to arrive": [
-              114
+              59
             ],
             "to like": [
-              131
+              61
             ],
             "to live": [
-              132,
-              133
+              62,
+              63
             ],
             "to dwell": [
-              133
+              63
             ],
             "to reside": [
-              133
+              63
             ],
             "to have": [
-              134
+              64
             ],
             "to understand": [
-              147
+              69
             ],
             "to write": [
-              149
+              70
             ],
             "to type": [
-              149
+              70
             ],
             "to speak": [
-              150
+              71
             ],
             "to talk": [
-              150
+              71
             ],
             "to say": [
-              441,
-              150
+              107,
+              71
             ],
             "to need": [
-              154
+              72
             ],
             "to require": [
-              154
+              72
             ],
             "to drink": [
-              164
+              74
             ],
             "to read": [
-              175
+              78
             ],
             "to play": [
-              177
+              80
             ],
             "to drive": [
-              179
+              82
             ],
             "to ride": [
-              179
+              82
             ],
             "apple": [
-              115
+              60
             ],
             "so": [
-              139
+              66
             ],
             "too": [
-              138
+              65
             ],
             "book": [
-              144
+              67
             ],
             "letter": [
-              145
+              68
             ],
             "welcome": [
-              222
+              96
             ],
             "number": [
-              221
+              95
             ],
             "to sing": [
-              219
+              94
             ],
             "to swim": [
-              215
+              92
             ],
             "to can": [
-              216
+              93
             ],
             "student": [
-              207
+              91
             ],
             "only": [
-              157
+              73
             ],
             "some": [
-              168
+              75
             ],
             "name": [
-              169
+              76
             ],
             "hobby": [
-              171
+              77
             ],
             "game": [
-              176
+              79
             ],
             "football": [
-              178
+              81
             ],
             "bicycle": [
-              180,
-              181
+              83,
+              84
             ],
             "wheel": [
-              180
+              83
             ],
             "photo": [
-              185
+              85
             ],
             "possible": [
-              186
+              86
             ],
             "to call": [
-              190
+              87
             ],
             "to be called": [
-              190
+              87
             ],
             "to run": [
-              198
+              89
             ],
             "to switch": [
-              734
+              117
             ],
             "switch": [
-              735
+              118
             ],
             "bath": [
-              738
+              119
             ],
             "bathroom": [
-              738
+              119
             ],
             "cheese": [
-              194
+              88
             ],
             "bedroom": [
-              755
+              120
             ],
             "to know": [
-              408,
-              456
+              104,
+              112
             ],
             "to want": [
-              443
+              108
             ],
             "to show": [
-              452
+              111
             ],
             "to think": [
-              406
+              103
             ],
             "to close": [
-              799
+              124
             ],
             "gift": [
-              731
+              116
             ],
             "ball": [
-              202
+              90
             ],
             "yesterday": [
-              231
+              99
             ],
             "today": [
-              230
+              98
             ],
             "often": [
-              233
+              100
             ],
             "always": [
-              236
+              101
             ],
             "now": [
-              237
+              102
             ],
             "with": [
-              412
+              106
             ],
             "to ask": [
-              410
+              105
             ],
             "doctor": [
-              547
+              114
             ],
             "to demand": [
-              793
+              123
             ],
             "to remain": [
-              446
+              109
             ],
             "breakfast": [
-              779
+              121
             ],
             "to take": [
-              447
+              110
             ],
             "secure": [
-              727
+              115
             ],
             "sure": [
-              727
+              115
             ],
             "to buy": [
-              496
+              113
             ],
             "hour": [
-              226
+              97
             ],
             "to move": [
-              791
+              122
             ]
           },
           "forms": {
             "meiner": [
-              1
+              0
             ],
             "mir": [
-              1
+              0
             ],
             "mich": [
-              1
+              0
             ],
             "unser": [
-              2
+              1
             ],
             "uns": [
-              2
+              1
             ],
             "deiner": [
-              3
+              2
             ],
             "dir": [
-              3
+              2
             ],
             "dich": [
-              3
+              2
             ],
             "euer": [
-              4
+              3
             ],
             "euch": [
-              4
+              3
             ],
             "seiner": [
-              5,
-              6
-            ],
-            "ihm": [
-              5,
-              6
-            ],
-            "ihn": [
+              4,
               5
             ],
+            "ihm": [
+              4,
+              5
+            ],
+            "ihn": [
+              4
+            ],
             "es": [
-              6
+              5
             ],
             "ihrer": [
-              7
+              6
             ],
             "ihr": [
-              7
+              6
             ],
             "sie": [
-              7
+              6
             ],
             "Ihrer": [
-              8
+              7
             ],
             "Ihnen": [
-              8
+              7
             ],
             "Sie": [
-              8
+              7
             ],
             "die M\u00e4nner": [
-              31
+              8
             ],
             "die Frauen": [
-              32
+              9
             ],
             "die Menschen": [
-              33
+              10
             ],
             "die Kulis": [
-              35
+              11
             ],
             "die Kugelschreiber": [
-              36
+              12
             ],
             "die Tiere": [
-              37
+              13
             ],
             "die Kinder": [
-              38
+              14
             ],
             "die Katzen": [
-              43
+              16
             ],
             "die Kater": [
-              44
+              17
             ],
             "die Freunde": [
-              45
+              18
             ],
             "die Freundin": [
-              45
+              18
             ],
             "siehst": [
-              51
+              21
             ],
             "sieht": [
-              51
+              21
             ],
             "gesehen haben": [
-              51
+              21
             ],
             "sah": [
-              51
+              21
             ],
             "die Br\u00fcder": [
-              52
+              22
             ],
             "die Schwestern": [
-              53
+              23
             ],
             "die V\u00e4ter": [
-              54
+              24
             ],
             "die M\u00fctter": [
-              55
+              25
             ],
             "die S\u00f6hne": [
-              56
+              26
             ],
             "die T\u00f6chter": [
-              57
+              27
             ],
             "die Fische": [
-              60
+              29
             ],
             "besser": [
-              65
+              30
             ],
             "am besten": [
-              65
+              30
             ],
             "mehr": [
-              79
+              33
             ],
             "am meisten": [
-              79
+              33
             ],
             "minder": [
-              80
+              34
             ],
             "am mindesten": [
-              80
+              34
             ],
             "die N\u00e4chte": [
-              103
+              50
             ],
             "die Tage": [
-              104
+              51
             ],
             "\u00e4lter": [
-              108
+              55
             ],
             "am \u00e4ltesten": [
-              108
+              55
             ],
             "isst": [
-              112
+              57
             ],
             "esst": [
-              112
+              57
             ],
             "a\u00df": [
-              112
+              57
             ],
             "gegessen haben": [
-              112
+              57
             ],
             "gegangen sein": [
-              113
+              58
             ],
             "ging": [
-              113
+              58
             ],
             "kam": [
-              114
+              59
             ],
             "gekommen sein": [
-              114
+              59
             ],
             "die \u00c4pfel": [
-              115
+              60
             ],
             "mag": [
-              131
+              61
             ],
             "magst": [
-              131
+              61
             ],
             "m\u00f6gt": [
-              131
+              61
             ],
             "gemocht haben": [
-              131
+              61
             ],
             "mochte": [
-              131
+              61
             ],
             "hast": [
-              134
+              64
             ],
             "hat": [
-              134
+              64
             ],
             "gehabt haben": [
-              134
+              64
             ],
             "hatte": [
-              134
+              64
             ],
             "die B\u00fccher": [
-              144
+              67
             ],
             "die Briefe": [
-              145
+              68
             ],
             "verstand": [
-              147
+              69
             ],
             "verstanden haben": [
-              147
+              69
             ],
             "schrieb": [
-              149
+              70
             ],
             "geschrieben haben": [
-              149
+              70
             ],
             "sprichst": [
-              150
+              71
             ],
             "spricht": [
-              150
+              71
             ],
             "sprach": [
-              150
+              71
             ],
             "gesprochen haben": [
-              150
+              71
             ],
             "getrunken haben": [
-              164
+              74
             ],
             "trank": [
-              164
+              74
             ],
             "die Namen": [
-              169
+              76
             ],
             "die Hobbys": [
-              171
+              77
             ],
             "liest": [
-              175
+              78
             ],
             "lest": [
-              175
+              78
             ],
             "las": [
-              175
+              78
             ],
             "gelesen haben": [
-              175
+              78
             ],
             "die Spiele": [
-              176
+              79
             ],
             "f\u00e4hrst": [
-              179
+              82
             ],
             "f\u00e4hrt": [
-              179
+              82
             ],
             "gefahren sein": [
-              179
+              82
             ],
             "fuhr": [
-              179
+              82
             ],
             "die R\u00e4der": [
-              180
+              83
             ],
             "die Fahrr\u00e4der": [
-              181
+              84
             ],
             "die Fotos": [
-              185
+              85
             ],
             "hie\u00df": [
-              190
+              87
             ],
             "gehei\u00dfen haben": [
-              190
+              87
             ],
             "l\u00e4ufst": [
-              198
+              89
             ],
             "l\u00e4uft": [
-              198
+              89
             ],
             "lief": [
-              198
+              89
             ],
             "gelaufen sein": [
-              198
+              89
             ],
             "die B\u00e4lle": [
-              202
+              90
             ],
             "die Studenten": [
-              207
+              91
             ],
             "die Studentin": [
-              207
+              91
             ],
             "die Studentinnen": [
-              207
+              91
             ],
             "schwamm": [
-              215
+              92
             ],
             "geschwommen sein": [
-              215
+              92
             ],
             "kann": [
-              216
+              93
             ],
             "kannst": [
-              216
+              93
             ],
             "k\u00f6nnt": [
-              216
+              93
             ],
             "gekonnt haben": [
-              216
+              93
             ],
             "konnte": [
-              216
+              93
             ],
             "sang": [
-              219
+              94
             ],
             "gesungen haben": [
-              219
+              94
             ],
             "die Nummern": [
-              221
+              95
             ],
             "die Stunden": [
-              226
+              97
             ],
             "gedacht haben": [
-              406
+              103
             ],
             "dachte": [
-              406
+              103
             ],
             "wei\u00df": [
-              408
+              104
             ],
             "wei\u00dft": [
-              408
+              104
             ],
             "wusste": [
-              408
+              104
             ],
             "gewusst haben": [
-              408
+              104
             ],
             "will": [
-              443
+              108
             ],
             "willst": [
-              443
+              108
             ],
             "wollt": [
-              443
+              108
             ],
             "wollte": [
-              443
+              108
             ],
             "blieb": [
-              446
+              109
             ],
             "geblieben sein": [
-              446
+              109
             ],
             "nimmt": [
-              447
+              110
             ],
             "nimmst": [
-              447
+              110
             ],
             "genommen haben": [
-              447
+              110
             ],
             "nahm": [
-              447
+              110
             ],
             "gekannt haben": [
-              456
+              112
             ],
             "kennte": [
-              456
+              112
             ],
             "kannte": [
-              456
+              112
             ],
             "kaufst": [
-              496
+              113
             ],
             "kauft": [
-              496
+              113
             ],
             "die \u00c4rztin": [
-              547
+              114
             ],
             "die \u00c4rzte": [
-              547
+              114
             ],
             "die \u00c4rztinnen": [
-              547
+              114
             ],
             "die Geschenke": [
-              731
+              116
             ],
             "die Schalter": [
-              735
+              118
             ],
             "die B\u00e4der": [
-              738
+              119
             ],
             "die Schlafzimmer": [
-              755
+              120
             ],
             "bewegte": [
-              791
+              122
             ],
             "bewegt haben": [
-              791
+              122
             ],
             "schloss": [
-              799
+              124
             ],
             "geschlossen haben": [
-              799
+              124
             ]
           },
           "tags": {
             "noun": [
-              779,
-              144,
-              145,
-              31,
-              32,
-              33,
-              35,
+              121,
+              67,
+              68,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              114,
+              76,
+              15,
+              16,
+              17,
+              18,
+              77,
+              79,
+              81,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              83,
+              28,
+              29,
+              84,
+              85,
+              88,
+              90,
+              91,
               36,
               37,
-              38,
-              547,
-              169,
-              42,
-              43,
-              44,
-              45,
-              171,
-              176,
-              178,
+              116,
+              95,
+              118,
+              97,
+              119,
+              47,
+              50,
+              51,
               52,
               53,
-              54,
-              55,
-              56,
-              57,
-              180,
-              59,
               60,
-              181,
-              185,
-              194,
-              202,
-              207,
-              86,
-              87,
-              731,
-              221,
-              735,
-              226,
-              738,
-              100,
-              103,
-              104,
-              105,
-              106,
-              115,
-              755
+              120
             ],
             "difficult phrase": [],
             "difficult form": [],
             "verb": [
-              131,
-              132,
-              133,
-              134,
-              147,
-              149,
-              150,
-              791,
-              408,
-              793,
-              154,
-              410,
-              406,
-              799,
-              164,
-              175,
-              177,
-              51,
-              179,
-              441,
-              443,
-              190,
-              446,
-              447,
-              452,
-              198,
-              456,
-              215,
-              216,
-              219,
-              734,
+              61,
+              62,
+              63,
+              64,
+              69,
+              70,
+              71,
+              122,
+              104,
+              123,
+              72,
+              105,
+              103,
+              124,
+              74,
+              78,
+              80,
+              21,
+              82,
+              107,
+              108,
+              87,
+              109,
+              110,
+              111,
+              89,
               112,
-              113,
-              114,
-              496
+              92,
+              93,
+              94,
+              117,
+              57,
+              58,
+              59,
+              113
             ],
             "new": [
-              738,
-              727,
-              779,
-              755,
-              799,
-              791,
-              793,
-              731,
-              734,
-              735
+              119,
+              115,
+              121,
+              120,
+              124,
+              122,
+              123,
+              116,
+              117,
+              118
             ],
             "plural -": [
-              36,
-              44,
-              115,
-              52,
-              755,
-              54,
-              55,
-              57
+              12,
+              17,
+              60,
+              22,
+              120,
+              24,
+              25,
+              27
             ],
             "plural -s": [
-              185,
-              35,
-              171
+              85,
+              11,
+              77
             ],
             "plural -e": [
-              547,
-              37,
-              103,
-              104,
-              202,
-              45,
-              176,
-              145,
-              56,
-              731,
-              60
+              114,
+              13,
+              50,
+              51,
+              90,
+              18,
+              79,
+              68,
+              26,
+              116,
+              29
             ],
             "plural -er": [
-              738,
-              38,
-              144,
-              735,
-              180,
-              181,
-              31
+              119,
+              14,
+              67,
+              118,
+              83,
+              84,
+              8
             ],
             "plural -en": [
-              32,
-              33,
-              226,
-              169,
-              43,
-              207,
-              53,
-              221
+              9,
+              10,
+              97,
+              76,
+              16,
+              91,
+              23,
+              95
             ],
             "plural other": [],
             "adjective": [
-              65,
-              67,
-              70,
-              108,
-              109,
-              85,
-              727,
-              88,
-              186
+              30,
+              31,
+              32,
+              55,
+              56,
+              35,
+              115,
+              38,
+              86
             ],
             "difficult": [
-              452,
-              734,
-              727
+              111,
+              117,
+              115
             ],
             "ru": [],
             "haben-verb": [
-              131,
-              132,
-              133,
-              134,
-              147,
-              149,
-              150,
-              791,
-              408,
-              793,
-              154,
-              410,
-              406,
-              799,
-              164,
-              175,
-              177,
-              51,
-              441,
-              443,
-              190,
-              447,
-              452,
-              456,
-              216,
-              219,
-              734,
+              61,
+              62,
+              63,
+              64,
+              69,
+              70,
+              71,
+              122,
+              104,
+              123,
+              72,
+              105,
+              103,
+              124,
+              74,
+              78,
+              80,
+              21,
+              107,
+              108,
+              87,
+              110,
+              111,
               112,
-              496
+              93,
+              94,
+              117,
+              57,
+              113
             ],
             "sein-verb": [
-              198,
-              113,
-              114,
-              179,
-              215,
-              446
+              89,
+              58,
+              59,
+              82,
+              92,
+              109
             ]
           }
         },
@@ -6125,7 +6125,6 @@
         "default_tag_ids": [
           12
         ],
-        "max_entry_id": 3155,
         "is_modified": false
       }
     },

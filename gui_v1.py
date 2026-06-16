@@ -19,7 +19,7 @@ import zipfile  # Для распаковки обновления
 from itertools import chain
 
 from backend import (
-    Entry, Dictionary, Trainer, EntryID, GramForm,
+    Entry, Dictionary, Trainer, GramForm,
     gram_form_to_str, create_training_config,
     TrainingFormat, TrainingOrder, EntrySelection,
     FormSelection, TrainingConfig,
@@ -690,9 +690,9 @@ def select_word_form(n: int, word_forms: tuple[str, str, str]) -> str:
 
 # Выбрать одну статью из нескольких с одинаковыми словами
 def select_entry(app_data: AppData, window_parent: tk.Misc, lemma: str):
-    homograph_ids = app_data.manager.active.dct.search(lemma=lemma)
-    if len(homograph_ids) == 1:  # Если статья только одна, то возвращает её ключ
-        return homograph_ids.pop()
+    homographs = app_data.manager.active.dct.search(lemma=lemma)
+    if len(homographs) == 1:  # Если статья только одна, то возвращает её ключ
+        return homographs.pop()
     result = SelectEntryFromHomographsW(window_parent, app_data, lemma).open()
     return result
 
@@ -701,9 +701,9 @@ def select_entry(app_data: AppData, window_parent: tk.Misc, lemma: str):
 def edit_lemma_to_homograph(
         app_data: AppData,
         window_parent: tk.Misc,
-        entry_id: EntryID,
+        entry: Entry,
         new_lemma: str,
-) -> tuple[EntryID | None, bool]:
+) -> tuple[Entry | None, bool]:
     dct = app_data.manager.active.dct
 
     if dct.search(lemma=new_lemma):  # Если в словаре уже есть статья с таким словом
@@ -718,23 +718,23 @@ def edit_lemma_to_homograph(
         )
         result = window.open()
         if result == 'l':  # Добавить к существующей статье
-            new_entry_id = select_entry(app_data, window_parent, new_lemma)
-            if not new_entry_id:
-                return entry_id, False
-            dct.merge_entries(new_entry_id, entry_id)
-            return new_entry_id, True
+            new_entry = select_entry(app_data, window_parent, new_lemma)
+            if not new_entry:
+                return entry, False
+            dct.merge_entries(new_entry, entry)
+            return new_entry, True
         elif result == 'r':  # Оставить отдельной статьёй
-            dct.edit_lemma(entry_id, new_lemma)
-            return entry_id, True
+            dct.edit_lemma(entry, new_lemma)
+            return entry, True
         else:
-            return entry_id, False
+            return entry, False
     else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
-        dct.edit_lemma(entry_id, new_lemma)
-        return entry_id, True
+        dct.edit_lemma(entry, new_lemma)
+        return entry, True
 
 
 # Добавить статью в словарь (для пользователя)
-def add_homograph(app_data: AppData, window_parent: tk.Misc, lemma: str, tr: str) -> EntryID | None:
+def add_homograph(app_data: AppData, window_parent: tk.Misc, lemma: str, tr: str) -> Entry | None:
     dct = app_data.manager.active.dct
 
     if dct.search(lemma=lemma):  # Если в словаре уже есть статья с таким словом
@@ -749,11 +749,11 @@ def add_homograph(app_data: AppData, window_parent: tk.Misc, lemma: str, tr: str
         )
         result = window.open()
         if result == 'l':  # Добавить к существующей статье
-            entry_id = select_entry(app_data, window_parent, lemma)
-            if not entry_id:
+            entry = select_entry(app_data, window_parent, lemma)
+            if not entry:
                 return None
-            dct.add_tr(entry_id, tr)
-            return entry_id
+            dct.add_tr(entry, tr)
+            return entry
         elif result == 'r':  # Создать новую статью
             return dct.add_entry(lemma, tr)
         else:
@@ -920,20 +920,18 @@ def word_in_line(line: str, word: str) -> bool:
 # Поиск статей в словаре
 def search_entries(
         dct: Dictionary,
-        entry_ids: Iterable[EntryID],
+        entries: Iterable[Entry],
         query: str,
         to_search_wrd: bool,
         to_search_tr: bool,
         to_search_frm: bool,
         to_search_phr: bool,
         to_search_nt: bool,
-) -> list[set]:
+) -> list[set[Entry]]:
     normalized_query_1 = query.lower()
     normalized_query_2 = simplify(query)[0].replace('ё', 'е')
     results = [set() for _ in range(9)]
-    for entry_id in entry_ids:
-        entry = dct[entry_id]
-
+    for entry in entries:
         # Все фразы и переводы фраз для данной статьи
         phrases = list(entry.phrases.keys())
         for phrase in entry.phrases.keys():
@@ -947,57 +945,57 @@ def search_entries(
            to_search_frm and query in chain(*entry.forms.values()) or\
            to_search_phr and query in phrases or\
            to_search_nt  and query in entry.notes:
-            results[0].add(entry_id)
+            results[0].add(entry)
         elif to_search_wrd and normalized_query_1 == entry.lemma.lower() or\
              to_search_tr  and normalized_query_1 in [ tr.lower() for tr  in entry.tr] or\
              to_search_frm and normalized_query_1 in [frm.lower() for frm in chain(*entry.forms.values())] or\
              to_search_phr and normalized_query_1 in [phr.lower() for phr in phrases] or\
              to_search_nt  and normalized_query_1 in [ nt.lower() for nt  in entry.notes]:
-            results[1].add(entry_id)
+            results[1].add(entry)
         elif to_search_wrd and normalized_query_2 == simplify(entry.lemma)[0].replace('ё', 'е') or\
              to_search_tr  and normalized_query_2 in [simplify( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
              to_search_frm and normalized_query_2 in [simplify(frm)[0].replace('ё', 'е') for frm in chain(*entry.forms.values())] or\
              to_search_phr and normalized_query_2 in [simplify(phr)[0].replace('ё', 'е') for phr in phrases] or\
              to_search_nt  and normalized_query_2 in [simplify( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
-            results[2].add(entry_id)
+            results[2].add(entry)
 
         elif to_search_wrd and word_in_line(entry.lemma, query) or\
              to_search_tr  and True in [word_in_line( tr, query) for tr  in entry.tr] or\
              to_search_frm and True in [word_in_line(frm, query) for frm in chain(*entry.forms.values())] or\
              to_search_phr and True in [word_in_line(phr, query) for phr in phrases] or\
              to_search_nt  and True in [word_in_line( nt, query) for nt  in entry.notes]:
-            results[3].add(entry_id)
+            results[3].add(entry)
         elif to_search_wrd and word_in_line(entry.lemma.lower(), normalized_query_1) or\
              to_search_tr  and True in [word_in_line( tr.lower(), normalized_query_1) for tr  in entry.tr] or\
              to_search_frm and True in [word_in_line(frm.lower(), normalized_query_1) for frm in chain(*entry.forms.values())] or\
              to_search_phr and True in [word_in_line(phr.lower(), normalized_query_1) for phr in phrases] or\
              to_search_nt  and True in [word_in_line( nt.lower(), normalized_query_1) for nt  in entry.notes]:
-            results[4].add(entry_id)
+            results[4].add(entry)
         elif to_search_wrd and word_in_line(simplify(entry.lemma)[0].replace('ё', 'е'), normalized_query_2) or\
              to_search_tr  and True in [word_in_line(simplify( tr)[0].replace('ё', 'е'), normalized_query_2) for tr  in entry.tr] or\
              to_search_frm and True in [word_in_line(simplify(frm)[0].replace('ё', 'е'), normalized_query_2) for frm in chain(*entry.forms.values())] or\
              to_search_phr and True in [word_in_line(simplify(phr)[0].replace('ё', 'е'), normalized_query_2) for phr in phrases] or\
              to_search_nt  and True in [word_in_line(simplify( nt)[0].replace('ё', 'е'), normalized_query_2) for nt  in entry.notes]:
-            results[5].add(entry_id)
+            results[5].add(entry)
 
         elif to_search_wrd and query in entry.lemma or\
              to_search_tr  and True in [query in tr  for tr  in entry.tr] or\
              to_search_frm and True in [query in frm for frm in chain(*entry.forms.values())] or\
              to_search_phr and True in [query in phr for phr in phrases] or\
              to_search_nt  and True in [query in nt  for nt  in entry.notes]:
-            results[6].add(entry_id)
+            results[6].add(entry)
         elif to_search_wrd and normalized_query_1 in entry.lemma.lower() or\
              to_search_tr  and True in [normalized_query_1 in  tr.lower() for tr  in entry.tr] or\
              to_search_frm and True in [normalized_query_1 in frm.lower() for frm in chain(*entry.forms.values())] or\
              to_search_phr and True in [normalized_query_1 in phr.lower() for phr in phrases] or\
              to_search_nt  and True in [normalized_query_1 in  nt.lower() for nt  in entry.notes]:
-            results[7].add(entry_id)
+            results[7].add(entry)
         elif to_search_wrd and normalized_query_2 in simplify(entry.lemma)[0].replace('ё', 'е') or\
              to_search_tr  and True in [normalized_query_2 in simplify( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
              to_search_frm and True in [normalized_query_2 in simplify(frm)[0].replace('ё', 'е') for frm in chain(*entry.forms.values())] or\
              to_search_phr and True in [normalized_query_2 in simplify(phr)[0].replace('ё', 'е') for phr in phrases] or\
              to_search_nt  and True in [normalized_query_2 in simplify( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
-            results[8].add(entry_id)
+            results[8].add(entry)
     return results
 
 
@@ -2372,20 +2370,20 @@ class SelectEntryFromHomographsW(tk.Toplevel):
             row=1, column=0, padx=6, pady=(0, 6))
         self.scrolled_frame_wrd.canvas.yview_moveto(0.0)
 
-        entry_ids = self.dct.search(lemma=self.to_search_wrd)
+        entries = self.dct.search(lemma=self.to_search_wrd)
         self.widgets_wrd = [
             create_button(
                 self.scrolled_frame_wrd.frame_canvas,
-                lambda entry_id=entry_id: self.select_entry(entry_id),
-                entry_repr_complete(self.dct[entry_id], 75, 13),
+                lambda entry=entry: self.select_entry(entry),
+                entry_repr_complete(entry, 75, 13),
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
                 row=i, column=0, padx=0, pady=0, sticky='WE',
-            ) for i, entry_id in enumerate(entry_ids)
+            ) for i, entry in enumerate(entries)
         ]
 
     # Выбрать статью из предложенных вариантов
-    def select_entry(self, entry_id: EntryID):
-        self.result = entry_id
+    def select_entry(self, entry: Entry):
+        self.result = entry
         self.destroy()
 
     # Установить фокус
@@ -2394,7 +2392,7 @@ class SelectEntryFromHomographsW(tk.Toplevel):
 
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self) -> EntryID | None:
+    def open(self) -> Entry | None:
         self.set_focus()
 
         self.grab_set()
@@ -2497,13 +2495,13 @@ class EnterPhraseW(tk.Toplevel):
 
 # Окно изменения статьи
 class EditEntryW(tk.Toplevel):
-    def __init__(self, parent: tk.Misc, app_data: AppData, entry_id: EntryID):
+    def __init__(self, parent: tk.Misc, app_data: AppData, entry: Entry):
         super().__init__(parent)
         self.parent = parent
 
         self.app_data = app_data
         self.dct = app_data.manager.active.dct
-        self.entry_id = entry_id
+        self.entry = entry
 
         self.line_width = 35
         self.max_height_w = 3
@@ -2513,7 +2511,7 @@ class EditEntryW(tk.Toplevel):
         self.max_height_n = 3
         self.max_height_g = 3
 
-        self.var_fav = tk.BooleanVar(value=self.dct[entry_id].is_fav)
+        self.var_fav = tk.BooleanVar(value=entry.is_fav)
 
         self.img_edit = tk.PhotoImage()
         self.img_add = tk.PhotoImage()
@@ -2690,7 +2688,7 @@ class EditEntryW(tk.Toplevel):
         window = InputDialog(
             self, self.app_data,
             'Введите новое слово',
-            default_value=self.dct[self.entry_id].lemma,
+            default_value=self.entry.lemma,
             check_answer_function=lambda wnd, val: check_not_void(
                 wnd, self.app_data, val, 'Слово должно содержать хотя бы один символ!'
             ),
@@ -2698,15 +2696,15 @@ class EditEntryW(tk.Toplevel):
         cancelled, new_wrd = window.open()
         if cancelled:
             return
-        if new_wrd == self.dct[self.entry_id].lemma:
+        if new_wrd == self.entry.lemma:
             return
 
-        new_entry_id, has_progres = edit_lemma_to_homograph(
-            self.app_data, self, self.entry_id, new_wrd
+        new_entry, has_progres = edit_lemma_to_homograph(
+            self.app_data, self, self.entry, new_wrd
         )
         if not has_progres:
             return
-        self.entry_id = new_entry_id
+        self.entry = new_entry
 
         self.refresh(False)
 
@@ -2716,15 +2714,15 @@ class EditEntryW(tk.Toplevel):
             self, self.app_data,
             'Введите новый перевод',
             check_answer_function=lambda wnd, val: check_tr(
-                wnd, self.app_data, self.dct[self.entry_id].tr,
-                val, self.dct[self.entry_id].lemma,
+                wnd, self.app_data, self.entry.tr,
+                val, self.entry.lemma,
             ),
         )
         cancelled, tr = window.open()
         if cancelled:
             return
 
-        self.dct.add_tr(self.entry_id, tr)
+        self.dct.add_tr(self.entry, tr)
 
         self.refresh(False)
 
@@ -2735,15 +2733,15 @@ class EditEntryW(tk.Toplevel):
             'Введите новый перевод',
             default_value=tr,
             check_answer_function=lambda wnd, val: check_tr_edit(
-                wnd, self.app_data, self.dct[self.entry_id].tr,
-                tr, val, self.dct[self.entry_id].lemma,
+                wnd, self.app_data, self.entry.tr,
+                tr, val, self.entry.lemma,
             ),
         )
         cancelled, new_tr = window.open()
         if cancelled:
             return
 
-        self.dct.edit_tr(self.entry_id, tr, new_tr)
+        self.dct.edit_tr(self.entry, tr, new_tr)
 
         self.refresh(False)
 
@@ -2753,7 +2751,7 @@ class EditEntryW(tk.Toplevel):
             warning(self, self.app_data, 'Вы не можете удалить единственный перевод!')
             return
 
-        self.dct.delete_tr(self.entry_id, tr)
+        self.dct.delete_tr(self.entry, tr)
 
         self.refresh(False)
 
@@ -2769,14 +2767,14 @@ class EditEntryW(tk.Toplevel):
             return
 
         window_form = EnterFormW(
-            self, self.app_data, self.entry_id, self.dct[self.entry_id].lemma,
+            self, self.app_data, self.entry, self.entry.lemma,
             combo_width=combobox_width(tuple(self.dct.features.keys()), 5, 100),
         )  # Создание словоформы
         gram_form, word_form = window_form.open()
         if not gram_form:
             return
 
-        self.dct.add_form(self.entry_id, gram_form, word_form)
+        self.dct.add_form(self.entry, gram_form, word_form)
 
         self.refresh(False)
 
@@ -2785,21 +2783,21 @@ class EditEntryW(tk.Toplevel):
         gram_form, word_form = form
 
         window_form = EnterFormW(
-            self, self.app_data, self.entry_id, word_form, list(gram_form),
+            self, self.app_data, self.entry, word_form, list(gram_form),
             combo_width=combobox_width(tuple(self.dct.features.keys()), 5, 100),
         )  # Создание словоформы
         new_gram_form, new_word_form = window_form.open()
         if not new_gram_form:
             return
 
-        self.dct.edit_form(self.entry_id, gram_form, word_form, new_gram_form, new_word_form)
+        self.dct.edit_form(self.entry, gram_form, word_form, new_gram_form, new_word_form)
 
         self.refresh(False)
 
     # Удалить словоформу
     def remove_form(self, form: tuple[GramForm, WordForm]):
         gram_form, word_form = form
-        self.dct.delete_form(self.entry_id, gram_form, word_form)
+        self.dct.delete_form(self.entry, gram_form, word_form)
 
         self.refresh(False)
 
@@ -2808,15 +2806,15 @@ class EditEntryW(tk.Toplevel):
         window = EnterPhraseW(
             self, 'Добавление фразы', self.app_data,
             check_answer_function=lambda wnd, val: check_phr(
-                wnd, self.app_data, self.dct[self.entry_id].phrases,
-                val, self.dct[self.entry_id].lemma,
+                wnd, self.app_data, self.entry.phrases,
+                val, self.entry.lemma,
             ),
         )
         cancelled, phrase, phrase_tr = window.open()
         if cancelled:
             return
 
-        self.dct.add_phrase(self.entry_id, phrase, phrase_tr)
+        self.dct.add_phrase(self.entry, phrase, phrase_tr)
 
         self.refresh(False)
 
@@ -2828,22 +2826,22 @@ class EditEntryW(tk.Toplevel):
             self, 'Изменение фразы', self.app_data,
             default_value=(phrase, phrase_tr),
             check_answer_function=lambda wnd, val: check_phr_edit(
-                wnd, self.app_data, self.dct[self.entry_id].phrases,
-                (phrase, phrase_tr), val, self.dct[self.entry_id].lemma,
+                wnd, self.app_data, self.entry.phrases,
+                (phrase, phrase_tr), val, self.entry.lemma,
             ),
         )
         cancelled, new_phrase, new_phrase_tr = window.open()
         if cancelled:
             return
 
-        self.dct.edit_phrase(self.entry_id, phrase, phrase_tr, new_phrase, new_phrase_tr)
+        self.dct.edit_phrase(self.entry, phrase, phrase_tr, new_phrase, new_phrase_tr)
 
         self.refresh(False)
 
     # Удалить фразу
     def remove_phrase(self, phrase_pair: tuple[str, str]):
         phrase, phrase_tr = phrase_pair
-        self.dct.delete_phrase(self.entry_id, phrase, phrase_tr)
+        self.dct.delete_phrase(self.entry, phrase, phrase_tr)
 
         self.refresh(False)
 
@@ -2853,15 +2851,15 @@ class EditEntryW(tk.Toplevel):
             self, self.app_data,
             'Введите сноску',
             check_answer_function=lambda wnd, val: check_note(
-                wnd, self.app_data, self.dct[self.entry_id].notes,
-                val, self.dct[self.entry_id].lemma,
+                wnd, self.app_data, self.entry.notes,
+                val, self.entry.lemma,
             ),
         )
         cancelled, note = window.open()
         if cancelled:
             return
 
-        self.dct.add_note(self.entry_id, note)
+        self.dct.add_note(self.entry, note)
 
         self.refresh(False)
 
@@ -2872,21 +2870,21 @@ class EditEntryW(tk.Toplevel):
             'Введите сноску',
             default_value=note,
             check_answer_function=lambda wnd, val: check_note_edit(
-                wnd, self.app_data, self.dct[self.entry_id].notes,
-                note, val, self.dct[self.entry_id].lemma,
+                wnd, self.app_data, self.entry.notes,
+                note, val, self.entry.lemma,
             ),
         )
         cancelled, new_note = window.open()
         if cancelled:
             return
 
-        self.dct.edit_note(self.entry_id, note, new_note)
+        self.dct.edit_note(self.entry, note, new_note)
 
         self.refresh(False)
 
     # Удалить сноску
     def remove_note(self, note: str):
-        self.dct.delete_note(self.entry_id, note)
+        self.dct.delete_note(self.entry, note)
 
         self.refresh(False)
 
@@ -2902,7 +2900,7 @@ class EditEntryW(tk.Toplevel):
             return
         values = [
             tag for tag in self.dct.tags
-            if tag not in self.dct[self.entry_id].tags
+            if tag not in self.entry.tags
         ]
         if not values:
             warning(self, self.app_data, 'Статья уже добавлена во все группы')
@@ -2917,19 +2915,19 @@ class EditEntryW(tk.Toplevel):
         if cancelled:
             return
 
-        self.dct.add_tag_to_entries(tag, [self.entry_id])
+        self.dct.add_tag_to_entries(tag, [self.entry])
 
         self.refresh(False)
 
     # Удалить группу
     def remove_tag(self, tag: str):
-        self.dct.remove_tag_from_entries(tag, [self.entry_id])
+        self.dct.remove_tag_from_entries(tag, [self.entry])
 
         self.refresh(False)
 
     # Добавить в избранное/убрать из избранного
     def set_fav(self):
-        self.dct[self.entry_id].is_fav = self.var_fav.get()
+        self.entry.is_fav = self.var_fav.get()
 
     # Удалить статью
     def delete_entry(self):
@@ -2940,7 +2938,7 @@ class EditEntryW(tk.Toplevel):
         )
         result = window.open()
         if result:
-            self.dct.delete_entry(self.entry_id)
+            self.dct.delete_entry(self.entry)
             self.destroy()
 
     # Закрыть окно
@@ -2952,12 +2950,12 @@ class EditEntryW(tk.Toplevel):
         # Обновляем поле со словом
         self.txt_wrd['state'] = 'normal'
         self.txt_wrd.delete(1.0, tk.END)
-        self.txt_wrd.insert(tk.END, self.dct[self.entry_id].lemma)
+        self.txt_wrd.insert(tk.END, self.entry.lemma)
         self.txt_wrd['state'] = 'disabled'
 
         height_w = max(
             min(
-                field_height(self.dct[self.entry_id].lemma, self.line_width),
+                field_height(self.entry.lemma, self.line_width),
                 self.max_height_w
             ), 1
         )
@@ -2986,17 +2984,17 @@ class EditEntryW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем содержимое
-        self.translations = [tr for tr in self.dct[self.entry_id].tr]
-        self.notes = [note for note in self.dct[self.entry_id].notes]
+        self.translations = [tr for tr in self.entry.tr]
+        self.notes = [note for note in self.entry.notes]
         self.phrases = []
-        for phrase in self.dct[self.entry_id].phrases.keys():
-            for pt in self.dct[self.entry_id].phrases[phrase]:
+        for phrase in self.entry.phrases.keys():
+            for pt in self.entry.phrases[phrase]:
                 self.phrases.append((phrase, pt))
         self.forms = []
-        for gram_form, word_forms in self.dct[self.entry_id].forms.items():
+        for gram_form, word_forms in self.entry.forms.items():
             for word_form in word_forms:
                 self.forms.append((gram_form, word_form))
-        self.tags = list(self.dct[self.entry_id].tags)
+        self.tags = list(self.entry.tags)
         tr_count = len(self.translations)
         nt_count = len(self.notes)
         phr_count = len(self.phrases)
@@ -3214,7 +3212,7 @@ class EnterFormW(tk.Toplevel):
             self,
             parent: tk.Misc,
             app_data: AppData,
-            entry_id: EntryID,
+            entry: Entry,
             initial_value: str = '',
             gram_form: list[str] | None = None,
             combo_width: int = 20,
@@ -3227,7 +3225,7 @@ class EnterFormW(tk.Toplevel):
         self.dct = self.dct_bundle.dct
         self.replacer = self.dct_bundle.replacer
 
-        self.entry_id = entry_id
+        self.entry = entry
 
         self.cancelled = True  # Закрыто ли окно крестиком
         self.categories = list(self.dct.features.keys())  # Список категорий
@@ -3380,14 +3378,14 @@ class EnterFormW(tk.Toplevel):
 
     # Сохранить словоформу
     def save(self):
-        forms = self.dct[self.entry_id].forms
+        forms = self.entry.forms
         gram_form = tuple(self.gram_form)
         word_form = self.replacer.apply_replacements(self.var_form.get())
 
         if gram_form in forms and word_form == forms[gram_form]:
             warning(
                 self, self.app_data,
-                f'У слова "{self.dct[self.entry_id].lemma}" уже есть такая форма!',
+                f'У слова "{self.entry.lemma}" уже есть такая форма!',
             )
             return
         if word_form == '':
@@ -3425,7 +3423,7 @@ class EnterFormW(tk.Toplevel):
             return None, None
         if self.gram_form == self.initial_gram_form:
             return None, None
-        forms = self.dct[self.entry_id].forms
+        forms = self.entry.forms
         gram_form = tuple(self.gram_form)
         word_form = self.replacer.apply_replacements(self.var_form.get())
         if gram_form in forms and word_form == forms[gram_form]:
@@ -5049,7 +5047,7 @@ class TrainingW(tk.Toplevel):
         self.trainer = Trainer(self.dct_bundle.dct, train_config)
         self.trainer.initialize()
         self.initial_pool_size = len(self.trainer.pool)
-        self.current_entry_id = None  # Текущее слово
+        self.current_entry = None  # Текущее слово
         self.current_form = None  # Текущая форма (если начальная, то None)
         self.current_phrase = None  # Текущая фраза
         self.homonyms = []  # Омонимы к текущему слову
@@ -5064,8 +5062,8 @@ class TrainingW(tk.Toplevel):
 
         self.pick_next_word()
 
-        if self.current_entry_id:
-            entry = self.trainer.dct[self.current_entry_id]
+        if self.current_entry:
+            entry = self.current_entry
             if entry.n_notes == 0 or train_config.format in (TrainingFormat.TRANS_TO_PHRASE,
                                                              TrainingFormat.PHRASE_TO_TRANS):
                 btn_disable(self.btn_show_notes)
@@ -5184,32 +5182,29 @@ class TrainingW(tk.Toplevel):
             self.dct_bundle.dct.mark_modified()
 
         # Выбор слова
-        (self.current_entry_id, self.current_form, self.current_phrase,
+        (self.current_entry, self.current_form, self.current_phrase,
          self.homonyms) = self.trainer.get_task()
 
         # Вывод слова в журнал
         if self.trainer.config.format == TrainingFormat.TRANS_TO_WORD:
             if self.trainer.config.forms and self.current_form:
                 self.print(tr_and_forms_and_stats_repr(
-                    self.trainer.dct[self.current_entry_id],
-                    self.current_form,
+                    self.current_entry, self.current_form,
                 ))
             else:
-                self.print(tr_and_stats_repr(self.trainer.dct[self.current_entry_id]))
+                self.print(tr_and_stats_repr(self.current_entry))
         elif self.trainer.config.format == TrainingFormat.WORD_TO_TRANS:
-            self.print(lemma_and_stats_repr(self.trainer.dct[self.current_entry_id]))
+            self.print(lemma_and_stats_repr(self.current_entry))
         elif self.trainer.config.format == TrainingFormat.TRANS_TO_PHRASE:
             self.print(phrase_tr_and_stats_repr(
-                self.trainer.dct[self.current_entry_id],
-                self.current_phrase,
+                self.current_entry, self.current_phrase,
             ))
         elif self.trainer.config.format == TrainingFormat.PHRASE_TO_TRANS:
             self.print(phrase_and_stats_repr(
-                self.trainer.dct[self.current_entry_id],
-                self.current_phrase,
+                self.current_entry, self.current_phrase,
             ))
         else:
-            self.print(lemma_and_stats_repr(self.trainer.dct[self.current_entry_id])[4:])
+            self.print(lemma_and_stats_repr(self.current_entry)[4:])
 
     # Нажатие на кнопку "Ввод"
     # Ввод ответа и переход к следующему слову
@@ -5230,7 +5225,7 @@ class TrainingW(tk.Toplevel):
                                           TrainingFormat.PHRASE_TO_TRANS):
             btn_enable(self.btn_show_word_and_tr, self.show_word_and_tr)
         # Обновление кнопки "Посмотреть сноски"
-        entry = self.trainer.dct[self.current_entry_id]
+        entry = self.current_entry
         if entry.n_notes == 0 or self.trainer.config.format in (TrainingFormat.TRANS_TO_PHRASE,
                                                                 TrainingFormat.PHRASE_TO_TRANS):
             btn_disable(self.btn_show_notes)
@@ -5251,7 +5246,7 @@ class TrainingW(tk.Toplevel):
     # Нажатие на кнопку "Посмотреть слово и перевод"
     # Просмотр слова с переводом
     def show_word_and_tr(self):
-        entry = self.trainer.dct[self.current_entry_id]
+        entry = self.current_entry
         self.print(f'Слово: {entry.lemma}\n'
                    f'Перевод: {tr_repr(entry)}')
         btn_disable(self.btn_show_word_and_tr)
@@ -5260,7 +5255,7 @@ class TrainingW(tk.Toplevel):
     # Просмотр сносок
     def show_notes(self):
         self.print('Сноски:')
-        entry = self.trainer.dct[self.current_entry_id]
+        entry = self.current_entry
         self.print(notes_repr(entry))
         btn_disable(self.btn_show_notes)
 
@@ -5268,10 +5263,10 @@ class TrainingW(tk.Toplevel):
     # Просмотр омонимов
     def show_homonyms(self):
         self.print('Омонимы:')
-        for entry_id in self.homonyms:
+        for entry in self.homonyms:
             self.print(
-                '> ' + self.trainer.dct[entry_id].lemma +
-                ': ' + tr_repr(self.trainer.dct[entry_id])
+                '> ' + entry.lemma +
+                ': ' + tr_repr(entry)
             )
         btn_disable(self.btn_show_homonyms)
 
@@ -5293,7 +5288,7 @@ class TrainingW(tk.Toplevel):
         correct_answers = self.trainer.get_correct_answers()
         correct_answers_repr = ', '.join(correct_answers)
 
-        entry = self.trainer.dct[self.current_entry_id]
+        entry = self.current_entry
         if is_correct:
             entry.register_correct_answer((
                 self.dct_bundle.session_number,
@@ -5426,34 +5421,34 @@ class DictionaryW(tk.Toplevel):
         self.tabs.add(self.tab_add_entry, text='Добавить запись в словарь')
 
     # Добавить выделенные статьи в избранное
-    def fav_selected(self, entry_ids: list[EntryID]):
-        if not entry_ids:
+    def fav_selected(self, entries: list[Entry]):
+        if not entries:
             return
 
-        self.dct.add_to_fav(entry_ids)
+        self.dct.add_to_fav(entries)
 
         self.tab_browse.refresh_all_entries()
         self.tab_search.refresh_all_entries()
 
     # Убрать выделенные статьи из избранного
-    def unfav_selected(self, entry_ids: list[EntryID]):
-        if not entry_ids:
+    def unfav_selected(self, entries: list[Entry]):
+        if not entries:
             return
 
-        self.dct.remove_from_fav(entry_ids)
+        self.dct.remove_from_fav(entries)
 
         self.tab_browse.refresh_all_entries()
         self.tab_search.refresh_all_entries()
 
     # Добавить выделенные статьи в группу
-    def add_tag_to_selected(self, entry_ids: list[EntryID]):
-        if not entry_ids:
+    def add_tag_to_selected(self, entries: list[Entry]):
+        if not entries:
             return
         if not self.dct.tags:
             MessageDialog(self, self.app_data, 'Не найдено ни одной группы!').open()
             return
 
-        sets = [self.dct[entry_id].tags for entry_id in entry_ids]
+        sets = [entry.tags for entry in entries]
         values_intersec = set.intersection(*sets)
         values = [tag for tag in self.dct.tags if tag not in values_intersec]
         if not values:
@@ -5471,7 +5466,7 @@ class DictionaryW(tk.Toplevel):
         cancelled, tag = window_tags.open()
         if cancelled:
             return
-        self.dct.add_tag_to_entries(tag, entry_ids)
+        self.dct.add_tag_to_entries(tag, entries)
 
         if tag == self.tab_browse.var_tag.get():
             self.tab_browse.display_entries(True)
@@ -5480,16 +5475,16 @@ class DictionaryW(tk.Toplevel):
         self.tab_search.refresh_all_entries()
 
     # Убрать выделенные статьи из группы
-    def remove_tag_from_selected(self, entry_ids: list[EntryID]):
-        if not entry_ids:
+    def remove_tag_from_selected(self, entries: list[Entry]):
+        if not entries:
             return
         if not self.dct.tags:
             MessageDialog(self, self.app_data, 'Не найдено ни одной группы!').open()
             return
 
         values = []
-        for entry_id in entry_ids:
-            for tag in self.dct[entry_id].tags:
+        for entry in entries:
+            for tag in entry.tags:
                 if tag not in values:
                     values.append(tag)
         if not values:
@@ -5514,7 +5509,7 @@ class DictionaryW(tk.Toplevel):
         cancelled, tag = window_tags.open()
         if cancelled:
             return
-        self.dct.remove_tag_from_entries(tag, entry_ids)
+        self.dct.remove_tag_from_entries(tag, entries)
 
         if tag == self.tab_browse.var_tag.get():
             self.tab_browse.display_entries(True)
@@ -5523,11 +5518,11 @@ class DictionaryW(tk.Toplevel):
         self.tab_search.refresh_all_entries()
 
     # Удалить выделенные статьи
-    def delete_selected(self, entry_ids: list[EntryID]):
-        if not entry_ids:
+    def delete_selected(self, entries: list[Entry]):
+        if not entries:
             return
 
-        count_selected = len(entry_ids)
+        count_selected = len(entries)
         tmp = select_word_form(count_selected, ('статью', 'статьи', 'статей'))
         window = TwoOptionsDialog(
             self, self.app_data,
@@ -5538,25 +5533,25 @@ class DictionaryW(tk.Toplevel):
         if not result:
             return
 
-        for entry_id in entry_ids:
-            self.dct.delete_entry(entry_id)
+        for entry in entries:
+            self.dct.delete_entry(entry)
 
         self.tab_browse.display_entries(True)
         self.tab_search.display_entries(True)
 
     # Изменить статью
-    def edit_entry(self, entry_id: EntryID):
-        EditEntryW(self, self.app_data, entry_id).open()
+    def edit_entry(self, entry: Entry):
+        EditEntryW(self, self.app_data, entry).open()
 
         self.tab_search.display_entries(False)
         self.tab_browse.display_entries(False)
 
     # Нажатие на кнопку "Добавить запись в словарь"
     def add_entry(self):
-        entry_id = AddEntryW(self, self.app_data).open()
-        if not entry_id:
+        entry = AddEntryW(self, self.app_data).open()
+        if not entry:
             return
-        EditEntryW(self, self.app_data, entry_id).open()
+        EditEntryW(self, self.app_data, entry).open()
 
         self.tab_search.display_entries(False)
         self.tab_browse.display_entries(False)
@@ -5645,8 +5640,8 @@ class SearchTab(ttk.Frame):
         self.img_settings = tk.PhotoImage()
 
         # Вспомогательные массивы для ScrollFrame
-        self.entry_ids = []
-        self.selected_entry_ids = []
+        self.entries = []
+        self.selected_entries = []
         self.entry_frames = []
         self.entry_buttons = []
 
@@ -5752,33 +5747,33 @@ class SearchTab(ttk.Frame):
 
         self.btn_fav = create_button(
             self.frame_selection_actions,
-            lambda: self.master.fav_selected(self.selected_entry_ids),
+            lambda: self.master.fav_selected(self.selected_entries),
             width=3,
             row=0, column=0)
         set_image(self.btn_fav, self.img_fav, img_path(theme, 'fav'), '*+')
         self.btn_unfav = create_button(
             self.frame_selection_actions,
-            lambda: self.master.unfav_selected(self.selected_entry_ids),
+            lambda: self.master.unfav_selected(self.selected_entries),
             width=3,
             row=0, column=1)
         set_image(self.btn_unfav, self.img_unfav, img_path(theme, 'unfav'), '*-')
         self.btn_add_tag = create_button(
             self.frame_selection_actions,
-            lambda: self.master.add_tag_to_selected(self.selected_entry_ids),
+            lambda: self.master.add_tag_to_selected(self.selected_entries),
             width=3,
             row=0, column=2)
         set_image(self.btn_add_tag, self.img_add_tag,
                   img_path(theme, 'add_to_group'), 'G+')
         self.btn_remove_tag = create_button(
             self.frame_selection_actions,
-            lambda: self.master.remove_tag_from_selected(self.selected_entry_ids),
+            lambda: self.master.remove_tag_from_selected(self.selected_entries),
             width=3,
             row=0, column=3)
         set_image(self.btn_remove_tag, self.img_remove_tag,
                   img_path(theme, 'remove_from_group'), 'G-')
         self.btn_delete = create_button(
             self.frame_selection_actions,
-            lambda: self.master.delete_selected(self.selected_entry_ids),
+            lambda: self.master.delete_selected(self.selected_entries),
             width=3,
             row=0, column=4)
         set_image(self.btn_delete, self.img_delete, img_path(theme, 'trashcan'), 'DEL')
@@ -5932,7 +5927,7 @@ class SearchTab(ttk.Frame):
         info = f'{tmp_1} {self.n_entries_total} {tmp_2}'
         self.var_info.set(info)
 
-        count_selected = len(self.selected_entry_ids)
+        count_selected = len(self.selected_entries)
         if count_selected == 0:
             info_selected = ''
         else:
@@ -5956,43 +5951,43 @@ class SearchTab(ttk.Frame):
         # Выбираем нужные статьи
         # Если нужно, оставляем только избранные
         if self.to_search_only_fav:
-            entry_ids = [
-                entry_id for entry_id in self.dct.iter_entry_ids()
-                if self.dct[entry_id].is_fav
+            entries = [
+                entry for entry in self.dct
+                if entry.is_fav
             ]
         else:
-            entry_ids = list(self.dct.iter_entry_ids())
+            entries = list(self.dct)
         # Если нужно, оставляем только одну группу
         if self.search_tag != ALL_TAGS:
-            entry_ids = [
-                entry_id for entry_id in entry_ids
-                if self.search_tag in self.dct[entry_id].tags
+            entries = [
+                entry for entry in entries
+                if self.search_tag in entry.tags
             ]
         # Среди оставшихся ищем статьи, содержащие искомый текст
         results = search_entries(
-            self.dct, entry_ids,
+            self.dct, entries,
             self.replacer.apply_replacements(self.var_query.get()),
             self.to_search_wrd, self.to_search_tr, self.to_search_frm,
             self.to_search_phr, self.to_search_nt,
         )
         # Объединяем результаты в один список
-        self.entry_ids = []
+        self.entries = []
         for i in range(6 if self.to_search_only_full else 9):
-            self.entry_ids += sorted(
+            self.entries += sorted(
                 list(results[i]),
-                key=lambda k: (self.dct[k].lemma.lower(), self.dct[k].lemma),
+                key=lambda e: (e.lemma.lower(), e.lemma),
             )
         # Из выделенных статей оставляем, только удовлетворяющие поисковому запросу
-        self.selected_entry_ids = [
-            entry_id for entry_id in self.selected_entry_ids
-            if entry_id in self.entry_ids
+        self.selected_entries = [
+            entry for entry in self.selected_entries
+            if entry in self.entries
         ]
         # Если выделенных статей нет, убираем связанные с ними кнопки
-        if not self.selected_entry_ids:
+        if not self.selected_entries:
             self.frame_selection_actions.grid_remove()
 
         # Вычисляем значения некоторых количественных переменных
-        self.n_entries_total = len(self.entry_ids)
+        self.n_entries_total = len(self.entries)
         if self.n_entries_total == 0:
             self.n_pages = 1
         else:
@@ -6035,15 +6030,15 @@ class SearchTab(ttk.Frame):
             create_button(
                 self.entry_frames[i],
                 lambda i=i: self.master.edit_entry(
-                    self.entry_ids[self.first_entry_idx + i]
+                    self.entries[self.first_entry_idx + i]
                 ),
                 entry_repr_complete(
-                    self.dct[self.entry_ids[self.first_entry_idx + i]], 75, 13
+                    self.entries[self.first_entry_idx + i], 75, 13
                 ),
                 style=(
                     ('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
-                    if self.entry_ids[self.first_entry_idx + i]
-                       in self.selected_entry_ids
+                    if self.entries[self.first_entry_idx + i]
+                       in self.selected_entries
                     else ('FlatD.TButton' if i % 2 else 'FlatL.TButton')
                 ),
                 row=0, column=0, padx=0, pady=0, sticky='WE',
@@ -6066,10 +6061,10 @@ class SearchTab(ttk.Frame):
             self.scrolled_frame.canvas.yview_moveto(0.0)
 
     # Обновить одну из кнопок журнала
-    def refresh_entry(self, index: int, entry_id: EntryID):
+    def refresh_entry(self, index: int, entry: Entry):
         # Выводим текст на кнопку
         self.entry_buttons[index].configure(
-            text=entry_repr_complete(self.dct[entry_id], 75, 13)
+            text=entry_repr_complete(entry, 75, 13)
         )
 
         # Выводим информацию о количестве статей
@@ -6079,9 +6074,9 @@ class SearchTab(ttk.Frame):
     def refresh_all_entries(self):
         # Выводим текст на кнопки
         for i in range(self.n_entries_on_page):
-            entry_id = self.entry_ids[self.first_entry_idx + i]
+            entry = self.entries[self.first_entry_idx + i]
             self.entry_buttons[i].configure(
-                text=entry_repr_complete(self.dct[entry_id], 75, 13)
+                text=entry_repr_complete(entry, 75, 13)
             )
 
         # Выводим информацию о количестве статей
@@ -6104,10 +6099,10 @@ class SearchTab(ttk.Frame):
             self.go_to_page(self.current_page + 1)
 
     # Перейти на первую страницу
-    def go_to_first_page(self, to_reset_selected_entry_ids: bool = False):
-        if self.current_page != 1 or to_reset_selected_entry_ids:
-            if to_reset_selected_entry_ids:
-                self.selected_entry_ids = []
+    def go_to_first_page(self, to_reset_selected_entries: bool = False):
+        if self.current_page != 1 or to_reset_selected_entries:
+            if to_reset_selected_entries:
+                self.selected_entries = []
                 self.frame_selection_actions.grid_remove()
             self.go_to_page(1)
 
@@ -6118,16 +6113,16 @@ class SearchTab(ttk.Frame):
 
     # Выделить одну статью (или убрать выделение)
     def toggle_entry_selection(self, index: int):
-        entry_id = self.entry_ids[self.first_entry_idx + index]
-        if entry_id in self.selected_entry_ids:
-            self.selected_entry_ids.remove(entry_id)
+        entry = self.entries[self.first_entry_idx + index]
+        if entry in self.selected_entries:
+            self.selected_entries.remove(entry)
             self.entry_buttons[index].configure(
                 style='FlatD.TButton' if index % 2 else 'FlatL.TButton'
             )
-            if not self.selected_entry_ids:
+            if not self.selected_entries:
                 self.frame_selection_actions.grid_remove()
         else:
-            self.selected_entry_ids.append(entry_id)
+            self.selected_entries.append(entry)
             self.entry_buttons[index].configure(
                 style='FlatSelectedD.TButton' if index % 2 else 'FlatSelectedL.TButton')
             self.frame_selection_actions.grid(
@@ -6138,9 +6133,9 @@ class SearchTab(ttk.Frame):
     # Выделить все статьи на странице
     def select_page(self):
         for i in range(self.n_entries_on_page):
-            entry_id = self.entry_ids[self.first_entry_idx + i]
-            if entry_id not in self.selected_entry_ids:
-                self.selected_entry_ids.append(entry_id)
+            entry = self.entries[self.first_entry_idx + i]
+            if entry not in self.selected_entries:
+                self.selected_entries.append(entry)
             btn = self.entry_buttons[i]
             btn.configure(style='FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
         self.frame_selection_actions.grid(
@@ -6151,19 +6146,19 @@ class SearchTab(ttk.Frame):
     # Снять выделение со всех статей на странице
     def unselect_page(self):
         for i in range(self.n_entries_on_page):
-            entry_id = self.entry_ids[self.first_entry_idx + i]
-            if entry_id in self.selected_entry_ids:
-                self.selected_entry_ids.remove(entry_id)
+            entry = self.entries[self.first_entry_idx + i]
+            if entry in self.selected_entries:
+                self.selected_entries.remove(entry)
         for i in range(len(self.entry_buttons)):
             btn = self.entry_buttons[i]
             btn.configure(style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
-        if not self.selected_entry_ids:
+        if not self.selected_entries:
             self.frame_selection_actions.grid_remove()
         self.display_stats()
 
     # Выделить все статьи
     def select_all(self):
-        self.selected_entry_ids = list(self.entry_ids)
+        self.selected_entries = list(self.entries)
         for i in range(len(self.entry_buttons)):
             btn = self.entry_buttons[i]
             btn.configure(style='FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
@@ -6174,7 +6169,7 @@ class SearchTab(ttk.Frame):
 
     # Снять выделение со всех статей
     def unselect_all(self):
-        self.selected_entry_ids = []
+        self.selected_entries = []
         for i in range(len(self.entry_buttons)):
             btn = self.entry_buttons[i]
             btn.configure(style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
@@ -6256,37 +6251,37 @@ class SearchTab(ttk.Frame):
             lambda event: self.unselect_all())
         self.master.bind(
             '<Control-f>',
-            lambda event: self.master.fav_selected(self.selected_entry_ids))
+            lambda event: self.master.fav_selected(self.selected_entries))
         self.master.bind(
             '<Control-F>',
-            lambda event: self.master.fav_selected(self.selected_entry_ids))
+            lambda event: self.master.fav_selected(self.selected_entries))
         self.master.bind(
             '<Control-Shift-f>',
-            lambda event: self.master.unfav_selected(self.selected_entry_ids))
+            lambda event: self.master.unfav_selected(self.selected_entries))
         self.master.bind(
             '<Control-Shift-F>',
-            lambda event: self.master.unfav_selected(self.selected_entry_ids))
+            lambda event: self.master.unfav_selected(self.selected_entries))
         self.master.bind(
             '<Control-g>',
-            lambda event: self.master.add_tag_to_selected(self.selected_entry_ids))
+            lambda event: self.master.add_tag_to_selected(self.selected_entries))
         self.master.bind(
             '<Control-G>',
-            lambda event: self.master.add_tag_to_selected(self.selected_entry_ids))
+            lambda event: self.master.add_tag_to_selected(self.selected_entries))
         self.master.bind(
             '<Control-Shift-g>',
-            lambda event: self.master.remove_tag_from_selected(self.selected_entry_ids))
+            lambda event: self.master.remove_tag_from_selected(self.selected_entries))
         self.master.bind(
             '<Control-Shift-G>',
-            lambda event: self.master.remove_tag_from_selected(self.selected_entry_ids))
+            lambda event: self.master.remove_tag_from_selected(self.selected_entries))
         self.master.bind(
             '<Alt-d>',
-            lambda event: self.master.delete_selected(self.selected_entry_ids))
+            lambda event: self.master.delete_selected(self.selected_entries))
         self.master.bind(
             '<Alt-D>',
-            lambda event: self.master.delete_selected(self.selected_entry_ids))
+            lambda event: self.master.delete_selected(self.selected_entries))
         self.master.bind(
             '<Delete>',
-            lambda event: self.master.delete_selected(self.selected_entry_ids))
+            lambda event: self.master.delete_selected(self.selected_entries))
 
     # Справка об окне
     def show_help(self):
@@ -6341,8 +6336,8 @@ class BrowseDctTab(ttk.Frame):
         self.img_delete = tk.PhotoImage()
 
         # Вспомогательные массивы для ScrollFrame
-        self.entry_ids = []
-        self.selected_entry_ids = []
+        self.entries = []
+        self.selected_entries = []
         self.entry_frames = []
         self.entry_buttons = []
         self.entry_tips = []
@@ -6445,33 +6440,33 @@ class BrowseDctTab(ttk.Frame):
 
         self.btn_fav = create_button(
             self.frame_selection_actions,
-            lambda: self.master.fav_selected(self.selected_entry_ids),
+            lambda: self.master.fav_selected(self.selected_entries),
             width=3,
             row=0, column=0)
         set_image(self.btn_fav, self.img_fav, img_path(theme, 'fav'), '*+')
         self.btn_unfav = create_button(
             self.frame_selection_actions,
-            lambda: self.master.unfav_selected(self.selected_entry_ids),
+            lambda: self.master.unfav_selected(self.selected_entries),
             width=3,
             row=0, column=1)
         set_image(self.btn_unfav, self.img_unfav, img_path(theme, 'unfav'), '*-')
         self.btn_add_tag = create_button(
             self.frame_selection_actions,
-            lambda: self.master.add_tag_to_selected(self.selected_entry_ids),
+            lambda: self.master.add_tag_to_selected(self.selected_entries),
             width=3,
             row=0, column=2)
         set_image(self.btn_add_tag, self.img_add_tag,
                   img_path(theme, 'add_to_group'), 'G+')
         self.btn_remove_tag = create_button(
             self.frame_selection_actions,
-            lambda: self.master.remove_tag_from_selected(self.selected_entry_ids),
+            lambda: self.master.remove_tag_from_selected(self.selected_entries),
             width=3,
             row=0, column=3)
         set_image(self.btn_remove_tag, self.img_remove_tag,
                   img_path(theme, 'remove_from_group'), 'G-')
         self.btn_delete = create_button(
             self.frame_selection_actions,
-            lambda: self.master.delete_selected(self.selected_entry_ids),
+            lambda: self.master.delete_selected(self.selected_entries),
             width=3,
             row=0, column=4)
         set_image(self.btn_delete, self.img_delete, img_path(theme, 'trashcan'), 'DEL')
@@ -6675,7 +6670,7 @@ class BrowseDctTab(ttk.Frame):
                 info = dct_stats_repr(w, t, wf)
         self.var_info.set(info)
 
-        count_selected = len(self.selected_entry_ids)
+        count_selected = len(self.selected_entries)
         if count_selected == 0:
             info_selected = ''
         else:
@@ -6703,105 +6698,94 @@ class BrowseDctTab(ttk.Frame):
         tag = self.var_tag.get()
         if self.var_fav_only.get():
             if tag == ALL_TAGS:
-                self.entry_ids = [
-                    entry_id for entry_id in self.dct.iter_entry_ids()
-                    if self.dct[entry_id].is_fav
+                self.entries = [
+                    entry for entry in self.dct
+                    if entry.is_fav
                 ]
             else:
-                self.entry_ids = [
-                    entry_id for entry_id in self.dct.iter_entry_ids()
-                    if self.dct[entry_id].is_fav and tag in self.dct[entry_id].tags
+                self.entries = [
+                    entry for entry in self.dct
+                    if entry.is_fav and tag in entry.tags
                 ]
         else:
             if tag == ALL_TAGS:
-                self.entry_ids = list(self.dct.iter_entry_ids())
+                self.entries = list(self.dct)
             else:
-                self.entry_ids = [
-                    entry_id for entry_id in self.dct.iter_entry_ids()
-                    if tag in self.dct[entry_id].tags
+                self.entries = [
+                    entry for entry in self.dct
+                    if tag in entry.tags
                 ]
-        self.selected_entry_ids = [
-            entry_id for entry_id in self.selected_entry_ids
-            if entry_id in self.entry_ids
+        self.selected_entries = [
+            entry for entry in self.selected_entries
+            if entry in self.entries
         ]
-        if not self.selected_entry_ids:
+        if not self.selected_entries:
             self.frame_selection_actions.grid_remove()
         # Сортируем статьи
         if self.var_order.get() == PRINT_VALUES_ORDER[1]:
-            self.entry_ids.reverse()
+            self.entries.reverse()
         elif self.var_order.get() == PRINT_VALUES_ORDER[2]:
             """
-            self.entry_ids.sort(key=lambda k: (
-                self.dct[k].accuracy,
-                self.dct[k].win_streak,
-            ))
+            self.entries.sort(key=lambda e: (e.accuracy, e.win_streak))
             """
-            self.entry_ids.sort(key=lambda k: (
-                self.dct[k].accuracy,
-                self.dct[k].win_streak / (1 + len(self.dct[k].forms.keys()) +
-                                          len(self.dct[k].phrases.keys())),
-                self.dct[k].lemma.lower(),
-                self.dct[k].lemma,
+            self.entries.sort(key=lambda e: (
+                e.accuracy,
+                e.win_streak / (1 + len(e.forms.keys()) + len(e.phrases.keys())),
+                e.lemma.lower(),
+                e.lemma,
             ))
         elif self.var_order.get() == PRINT_VALUES_ORDER[3]:
             """
-            self.entry_ids.sort(
-                key=lambda k: (
-                    self.dct[k].accuracy,
-                    self.dct[k].win_streak,
-                ),
+            self.entries.sort(
+                key=lambda e: (e.accuracy, e.win_streak),
                 reverse=True,
             )
             """
-            self.entry_ids.sort(key=lambda k: (
-                -self.dct[k].accuracy,
-                -self.dct[k].win_streak / (1 + len(self.dct[k].forms.keys()) +
-                                           len(self.dct[k].phrases.keys())),
-                self.dct[k].lemma.lower(),
-                self.dct[k].lemma,
+            self.entries.sort(key=lambda e: (
+                -e.accuracy,
+                -e.win_streak / (1 + len(e.forms.keys()) + len(e.phrases.keys())),
+                e.lemma.lower(),
+                e.lemma,
             ))
         elif self.var_order.get() == PRINT_VALUES_ORDER[4]:
-            self.entry_ids.sort(key=lambda k: (
-                self.dct[k].latest_att_timestamp,
-                self.dct[k].lemma.lower(),
-                self.dct[k].lemma,
+            self.entries.sort(key=lambda e: (
+                e.latest_att_timestamp,
+                e.lemma.lower(),
+                e.lemma,
             ))
         elif self.var_order.get() == PRINT_VALUES_ORDER[5]:
-            self.entry_ids.sort(key=lambda k: (
-                [-val for val in self.dct[k].latest_att_timestamp],
-                self.dct[k].lemma.lower(),
-                self.dct[k].lemma,
+            self.entries.sort(key=lambda e: (
+                [-val for val in e.latest_att_timestamp],
+                e.lemma.lower(),
+                e.lemma,
             ))
         elif self.var_order.get() == PRINT_VALUES_ORDER[6]:
-            self.entry_ids.sort(key=lambda k: (
-                self.dct[k].lemma.lower(),
-                self.dct[k].lemma,
+            self.entries.sort(key=lambda e: (
+                e.lemma.lower(),
+                e.lemma,
             ))
         elif self.var_order.get() == PRINT_VALUES_ORDER[7]:
-            self.entry_ids.sort(
-                key=lambda k: (
-                    self.dct[k].lemma.lower(),
-                    self.dct[k].lemma
-                ),
+            self.entries.sort(
+                key=lambda e: (e.lemma.lower(), e.lemma),
                 reverse=True,
             )
         elif self.var_order.get() == PRINT_VALUES_ORDER[8]:
-            self.entry_ids.sort(key=lambda k: (
-                len(self.dct[k].lemma),
-                self.dct[k].lemma.lower(),
-                self.dct[k].lemma,
+            self.entries.sort(key=lambda e: (
+                len(e.lemma),
+                e.lemma.lower(),
+                e.lemma,
             ))
         elif self.var_order.get() == PRINT_VALUES_ORDER[9]:
-            self.entry_ids.sort(key=lambda k: (
-                -len(self.dct[k].lemma),
-                self.dct[k].lemma.lower(),
-                self.dct[k].lemma,
+            self.entries.sort(key=lambda e: (
+                -len(e.lemma),
+                e.lemma.lower(),
+                e.lemma,
             ))
         # Выводим информацию о количестве статей
         self.display_stats()
 
         # Вычисляем значения некоторых количественных переменных
-        self.n_entries_total = len(self.entry_ids)
+        self.n_entries_total = len(self.entries)
         if self.n_entries_total == 0:
             self.n_pages = 1
         else:
@@ -6839,11 +6823,11 @@ class BrowseDctTab(ttk.Frame):
         self.entry_buttons = [
             create_button(
                 self.entry_frames[i],
-                lambda i=i: self.master.edit_entry(self.entry_ids[self.first_entry_idx + i]),
+                lambda i=i: self.master.edit_entry(self.entries[self.first_entry_idx + i]),
                 style=(
                     ('FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
-                    if self.entry_ids[self.first_entry_idx + i]
-                       in self.selected_entry_ids
+                    if self.entries[self.first_entry_idx + i]
+                       in self.selected_entries
                     else ('FlatD.TButton' if i % 2 else 'FlatL.TButton')
                 ),
                 row=0, column=0, padx=0, pady=0, sticky='WE',
@@ -6854,10 +6838,10 @@ class BrowseDctTab(ttk.Frame):
             ttip.Hovertip(
                 self.entry_buttons[i],
                 f'Верных ответов подряд: {win_streak_repr(
-                    self.dct[self.entry_ids[self.first_entry_idx + i]]
+                    self.entries[self.first_entry_idx + i]
                 )}\n'
                 f'Доля верных ответов: {accuracy_repr(
-                    self.dct[self.entry_ids[self.first_entry_idx + i]]
+                    self.entries[self.first_entry_idx + i]
                 )}',
                 hover_delay=666,
             ) for i in range(self.n_entries_on_page)
@@ -6865,15 +6849,15 @@ class BrowseDctTab(ttk.Frame):
         # Выводим текст на кнопки
         if self.var_briefly.get():
             for i in range(self.n_entries_on_page):
-                entry_id = self.entry_ids[self.first_entry_idx + i]
+                entry = self.entries[self.first_entry_idx + i]
                 self.entry_buttons[i].configure(
-                    text=entry_repr_brief(self.dct[entry_id], 75)
+                    text=entry_repr_brief(entry, 75)
                 )
         else:
             for i in range(self.n_entries_on_page):
-                entry_id = self.entry_ids[self.first_entry_idx + i]
+                entry = self.entries[self.first_entry_idx + i]
                 self.entry_buttons[i].configure(
-                    text=entry_repr_details(self.dct[entry_id], 75)
+                    text=entry_repr_details(entry, 75)
                 )
 
         for i in range(self.n_entries_on_page):
@@ -6893,14 +6877,14 @@ class BrowseDctTab(ttk.Frame):
     def refresh_entry(self, index: int):
         # Выводим текст на кнопку
         if self.var_briefly.get():
-            entry_id = self.entry_ids[self.first_entry_idx + index]
+            entry = self.entries[self.first_entry_idx + index]
             self.entry_buttons[index].configure(
-                text=entry_repr_brief(self.dct[entry_id], 75)
+                text=entry_repr_brief(entry, 75)
             )
         else:
-            entry_id = self.entry_ids[self.first_entry_idx + index]
+            entry = self.entries[self.first_entry_idx + index]
             self.entry_buttons[index].configure(
-                text=entry_repr_details(self.dct[entry_id], 75)
+                text=entry_repr_details(entry, 75)
             )
 
         # Выводим информацию о количестве статей
@@ -6911,15 +6895,15 @@ class BrowseDctTab(ttk.Frame):
         # Выводим текст на кнопки
         if self.var_briefly.get():
             for i in range(self.n_entries_on_page):
-                entry_id = self.entry_ids[self.first_entry_idx + i]
+                entry = self.entries[self.first_entry_idx + i]
                 self.entry_buttons[i].configure(
-                    text=entry_repr_brief(self.dct[entry_id], 75)
+                    text=entry_repr_brief(entry, 75)
                 )
         else:
             for i in range(self.n_entries_on_page):
-                entry_id = self.entry_ids[self.first_entry_idx + i]
+                entry = self.entries[self.first_entry_idx + i]
                 self.entry_buttons[i].configure(
-                    text=entry_repr_details(self.dct[entry_id], 75)
+                    text=entry_repr_details(entry, 75)
                 )
 
     # Перейти на страницу с заданным номером
@@ -6939,10 +6923,10 @@ class BrowseDctTab(ttk.Frame):
             self.go_to_page(self.current_page + 1)
 
     # Перейти на первую страницу
-    def go_to_first_page(self, to_reset_selected_entry_ids: bool = False):
-        if self.current_page != 1 or to_reset_selected_entry_ids:
-            if to_reset_selected_entry_ids:
-                self.selected_entry_ids = []
+    def go_to_first_page(self, to_reset_selected_entries: bool = False):
+        if self.current_page != 1 or to_reset_selected_entries:
+            if to_reset_selected_entries:
+                self.selected_entries = []
                 self.frame_selection_actions.grid_remove()
             self.go_to_page(1)
 
@@ -6953,16 +6937,16 @@ class BrowseDctTab(ttk.Frame):
 
     # Выделить одну статью (или убрать выделение)
     def toggle_entry_selection(self, index: int):
-        entry_id = self.entry_ids[self.first_entry_idx + index]
-        if entry_id in self.selected_entry_ids:
-            self.selected_entry_ids.remove(entry_id)
+        entry = self.entries[self.first_entry_idx + index]
+        if entry in self.selected_entries:
+            self.selected_entries.remove(entry)
             self.entry_buttons[index].configure(
                 style='FlatD.TButton' if index % 2 else 'FlatL.TButton'
             )
-            if not self.selected_entry_ids:
+            if not self.selected_entries:
                 self.frame_selection_actions.grid_remove()
         else:
-            self.selected_entry_ids.append(entry_id)
+            self.selected_entries.append(entry)
             self.entry_buttons[index].configure(
                 style='FlatSelectedD.TButton' if index % 2 else 'FlatSelectedL.TButton'
             )
@@ -6974,9 +6958,9 @@ class BrowseDctTab(ttk.Frame):
     # Выделить все статьи на странице
     def select_page(self):
         for i in range(self.n_entries_on_page):
-            entry_id = self.entry_ids[self.first_entry_idx + i]
-            if entry_id not in self.selected_entry_ids:
-                self.selected_entry_ids.append(entry_id)
+            entry = self.entries[self.first_entry_idx + i]
+            if entry not in self.selected_entries:
+                self.selected_entries.append(entry)
             btn = self.entry_buttons[i]
             btn.configure(style='FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
         self.frame_selection_actions.grid(
@@ -6987,19 +6971,19 @@ class BrowseDctTab(ttk.Frame):
     # Снять выделение со всех статей на странице
     def unselect_page(self):
         for i in range(self.n_entries_on_page):
-            entry_id = self.entry_ids[self.first_entry_idx + i]
-            if entry_id in self.selected_entry_ids:
-                self.selected_entry_ids.remove(entry_id)
+            entry = self.entries[self.first_entry_idx + i]
+            if entry in self.selected_entries:
+                self.selected_entries.remove(entry)
         for i in range(len(self.entry_buttons)):
             btn = self.entry_buttons[i]
             btn.configure(style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
-        if not self.selected_entry_ids:
+        if not self.selected_entries:
             self.frame_selection_actions.grid_remove()
         self.display_stats()
 
     # Выделить все статьи
     def select_all(self):
-        self.selected_entry_ids = list(self.entry_ids)
+        self.selected_entries = list(self.entries)
         for i in range(len(self.entry_buttons)):
             btn = self.entry_buttons[i]
             btn.configure(style='FlatSelectedD.TButton' if i % 2 else 'FlatSelectedL.TButton')
@@ -7010,7 +6994,7 @@ class BrowseDctTab(ttk.Frame):
 
     # Снять выделение со всех статей
     def unselect_all(self):
-        self.selected_entry_ids = []
+        self.selected_entries = []
         for i in range(len(self.entry_buttons)):
             btn = self.entry_buttons[i]
             btn.configure(style='FlatD.TButton' if i % 2 else 'FlatL.TButton')
@@ -7084,37 +7068,37 @@ class BrowseDctTab(ttk.Frame):
             lambda event: self.unselect_all())
         self.master.bind(
             '<Control-f>',
-            lambda event: self.master.fav_selected(self.selected_entry_ids))
+            lambda event: self.master.fav_selected(self.selected_entries))
         self.master.bind(
             '<Control-F>',
-            lambda event: self.master.fav_selected(self.selected_entry_ids))
+            lambda event: self.master.fav_selected(self.selected_entries))
         self.master.bind(
             '<Control-Shift-f>',
-            lambda event: self.master.unfav_selected(self.selected_entry_ids))
+            lambda event: self.master.unfav_selected(self.selected_entries))
         self.master.bind(
             '<Control-Shift-F>',
-            lambda event: self.master.unfav_selected(self.selected_entry_ids))
+            lambda event: self.master.unfav_selected(self.selected_entries))
         self.master.bind(
             '<Control-g>',
-            lambda event: self.master.add_tag_to_selected(self.selected_entry_ids))
+            lambda event: self.master.add_tag_to_selected(self.selected_entries))
         self.master.bind(
             '<Control-G>',
-            lambda event: self.master.add_tag_to_selected(self.selected_entry_ids))
+            lambda event: self.master.add_tag_to_selected(self.selected_entries))
         self.master.bind(
             '<Control-Shift-g>',
-            lambda event: self.master.remove_tag_from_selected(self.selected_entry_ids))
+            lambda event: self.master.remove_tag_from_selected(self.selected_entries))
         self.master.bind(
             '<Control-Shift-G>',
-            lambda event: self.master.remove_tag_from_selected(self.selected_entry_ids))
+            lambda event: self.master.remove_tag_from_selected(self.selected_entries))
         self.master.bind(
             '<Alt-d>',
-            lambda event: self.master.delete_selected(self.selected_entry_ids))
+            lambda event: self.master.delete_selected(self.selected_entries))
         self.master.bind(
             '<Alt-D>',
-            lambda event: self.master.delete_selected(self.selected_entry_ids))
+            lambda event: self.master.delete_selected(self.selected_entries))
         self.master.bind(
             '<Delete>',
-            lambda event: self.master.delete_selected(self.selected_entry_ids))
+            lambda event: self.master.delete_selected(self.selected_entries))
 
     # Справка об окне
     def show_help(self):
@@ -7138,7 +7122,7 @@ class AddEntryW(tk.Toplevel):
         self.dct = self.dct_bundle.dct
         self.replacer = self.dct_bundle.replacer
 
-        self.entry_id = None
+        self.entry = None
 
         self.var_word = tk.StringVar()
         self.var_tr = tk.StringVar()
@@ -7202,22 +7186,22 @@ class AddEntryW(tk.Toplevel):
             else:
                 btn_enable(self.btn_add, self.on_add_clicked)
 
-            words = (entry.lemma for entry in self.dct.iter_entries())
+            words = (entry.lemma for entry in self.dct)
 
             if value_word in words:
-                entry_ids_with_this_word = (
-                    entry_id for entry_id in self.dct.iter_entry_ids()
-                    if self.dct[entry_id].lemma == value_word
+                entries_with_this_word = (
+                    entry for entry in self.dct
+                    if entry.lemma == value_word
                 )
                 translations = set(chain(*(
-                    self.dct[entry_id].tr for entry_id in entry_ids_with_this_word
+                    entry.tr for entry in entries_with_this_word
                 )))
                 if value_tr in translations:
                     self.lbl_msg.configure(text='Такая статья уже есть в словаре')
                 else:
                     self.lbl_msg.configure(text='Такое слово уже есть в словаре')
             else:
-                translations = set(chain(*(entry.tr for entry in self.dct.iter_entries())))
+                translations = set(chain(*(entry.tr for entry in self.dct)))
                 if value_tr in translations:
                     self.lbl_msg.configure(text='Слово с таким переводом уже есть в словаре')
                 else:
@@ -7240,16 +7224,16 @@ class AddEntryW(tk.Toplevel):
 
     # Добавление статьи
     def on_add_clicked(self):
-        self.entry_id = add_homograph(
+        self.entry = add_homograph(
             self.app_data, self,
             self.replacer.apply_replacements(self.var_word.get()),
             self.replacer.apply_replacements(self.var_tr.get()),
         )
-        if not self.entry_id:
+        if not self.entry:
             return
-        self.dct[self.entry_id].is_fav = self.var_fav.get()
+        self.entry.is_fav = self.var_fav.get()
         for tag in self.dct.default_tags:
-            self.dct[self.entry_id].add_tag(tag)
+            self.entry.tags.add_tag(tag)
 
         self.destroy()
 
@@ -7263,7 +7247,7 @@ class AddEntryW(tk.Toplevel):
         self.bind('<Return>', lambda event: self.btn_add.invoke())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self) -> EntryID | None:
+    def open(self) -> Entry | None:
         self.set_focus()
 
         self.update()
@@ -7271,7 +7255,7 @@ class AddEntryW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        return self.entry_id
+        return self.entry
 
 
 # Окно настроек
@@ -8166,9 +8150,9 @@ class MainW(tk.Tk):
     def add_entry(self):
         self.disable_all_buttons()
 
-        entry_id = AddEntryW(self, self.app_data).open()
-        if entry_id:
-            EditEntryW(self, self.app_data, entry_id).open()
+        entry = AddEntryW(self, self.app_data).open()
+        if entry is not None:
+            EditEntryW(self, self.app_data, entry).open()
 
         self.enable_all_buttons()
 

@@ -66,52 +66,52 @@ def test_initialize(dct_fxt, frmt, order, entries, forms, tags):
     assert len(pool) == len(set(pool))
 
     if entries in (ES.ALL, ES.MOSTLY_FAV, ES.RANDOM_10):
-        allowed_ids = set(dct.iter_entry_ids())
+        allowed_entries = set(dct)
     elif entries in (ES.FAV, ES.RANDOM_10_FAV):
-        allowed_ids = {eid for eid, entry in dct if entry.is_fav}
+        allowed_entries = {entry for entry in dct if entry.is_fav}
     elif entries == ES.UNANSWERED:
-        allowed_ids = {eid for eid, entry in dct if entry.total_att == 0}
+        allowed_entries = {entry for entry in dct if entry.total_att == 0}
 
     if tags is not None:
-        allowed_ids = {eid for eid in allowed_ids if set(tags).issubset(dct[eid].tags)}
+        allowed_entries = {entry for entry in allowed_entries if set(tags).issubset(entry.tags)}
 
     if frmt in (TF.WORD_TO_TRANS, TF.TRANS_TO_WORD):
         if forms == FS.LEMMAS:
-            allowed_tuples = {(eid, None, None) for eid in allowed_ids}
+            allowed_tuples = {(entry, None, None) for entry in allowed_entries}
         elif forms == FS.INFLECTED:
-            allowed_ids = {
-                eid for eid in allowed_ids
-                if dct[eid].n_gram_forms != 0
+            allowed_entries = {
+                entry for entry in allowed_entries
+                if entry.n_gram_forms != 0
             }
             allowed_tuples = {
-                (eid, gram_form, None)
-                for eid in allowed_ids
-                for gram_form in dct[eid].forms
+                (entry, gram_form, None)
+                for entry in allowed_entries
+                for gram_form in entry.forms
             }
         elif forms in (FS.ALL, FS.RANDOM):
             allowed_tuples = {
-                (eid, gram_form, None)
-                for eid in allowed_ids
-                for gram_form in set(dct[eid].forms).union({None})
+                (entry, gram_form, None)
+                for entry in allowed_entries
+                for gram_form in set(entry.forms).union({None})
             }
     elif frmt in (TF.PHRASE_TO_TRANS, TF.TRANS_TO_PHRASE):
-        allowed_ids = {
-            eid for eid in allowed_ids
-            if dct[eid].n_phrases != 0
+        allowed_entries = {
+            entry for entry in allowed_entries
+            if entry.n_phrases != 0
         }
         allowed_tuples = {
-            (eid, None, phrase)
-            for eid in allowed_ids
-            for phrase in dct[eid].phrases
+            (entry, None, phrase)
+            for entry in allowed_entries
+            for phrase in entry.phrases
         }
     elif frmt == TF.ARTICLES_GERMAN:
-        allowed_ids = {
-            eid for eid in allowed_ids
-            if has_article(dct[eid].lemma.lower(), ('der ', 'die ', 'das '))
+        allowed_entries = {
+            entry for entry in allowed_entries
+            if has_article(entry.lemma.lower(), ('der ', 'die ', 'das '))
         }
         allowed_tuples = {
-            (eid, None, None)
-            for eid in allowed_ids
+            (entry, None, None)
+            for entry in allowed_entries
         }
 
     has_random_content = (
@@ -126,11 +126,11 @@ def test_initialize(dct_fxt, frmt, order, entries, forms, tags):
         gotten_ids = {t[0] for t in pool}
 
         if entries == ES.MOSTLY_FAV:
-            required_ids = {eid for eid in allowed_ids if dct[eid].is_fav}
+            required_ids = {entry for entry in allowed_entries if entry.is_fav}
             assert required_ids.issubset(gotten_ids)
-            assert len(gotten_ids) == min(int(1.25 * len(required_ids)), len(allowed_ids))
+            assert len(gotten_ids) == min(int(1.25 * len(required_ids)), len(allowed_entries))
         elif entries in (ES.RANDOM_10, ES.RANDOM_10_FAV):
-            assert len(gotten_ids) == min(10, len(allowed_ids))
+            assert len(gotten_ids) == min(10, len(allowed_entries))
 
         if forms == FS.RANDOM:
             assert len(gotten_ids) == len(pool)
@@ -140,8 +140,8 @@ def test_initialize(dct_fxt, frmt, order, entries, forms, tags):
     # 3. Check order
     gotten_ids = [t[0] for t in pool]
     if order == TO.EASY_FIRST:
-        assert gotten_ids == sorted(gotten_ids, key=lambda eid: difficulty(dct[eid]))
+        assert gotten_ids == sorted(gotten_ids, key=lambda entry: difficulty(entry))
     elif order == TO.DIFFICULT_FIRST:
-        assert gotten_ids == sorted(gotten_ids, key=lambda eid: difficulty(dct[eid]), reverse=True)
+        assert gotten_ids == sorted(gotten_ids, key=lambda entry: difficulty(entry), reverse=True)
     elif order == TO.OLDEST_FIRST:
-        assert gotten_ids == sorted(gotten_ids, key=lambda eid: dct[eid].latest_att_timestamp)
+        assert gotten_ids == sorted(gotten_ids, key=lambda entry: entry.latest_att_timestamp)

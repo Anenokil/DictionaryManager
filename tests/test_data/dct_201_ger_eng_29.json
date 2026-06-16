@@ -2,8 +2,8 @@
   "version": 1,
   "data": {
     "name": "test-dct_deu-eng_29",
-    "entries": {
-      "3": {
+    "entries": [
+      {
         "lemma": "du",
         "translations": [
           "you"
@@ -60,7 +60,7 @@
           "Singular"
         ]
       },
-      "4": {
+      {
         "lemma": "ihr",
         "translations": [
           "you"
@@ -117,7 +117,7 @@
           "Plural"
         ]
       },
-      "5": {
+      {
         "lemma": "er",
         "translations": [
           "he"
@@ -171,7 +171,7 @@
           ]
         }
       },
-      "6": {
+      {
         "lemma": "es",
         "translations": [
           "it"
@@ -225,7 +225,7 @@
           ]
         }
       },
-      "7": {
+      {
         "lemma": "sie",
         "translations": [
           "she"
@@ -279,7 +279,7 @@
           ]
         }
       },
-      "8": {
+      {
         "lemma": "Sie",
         "translations": [
           "you"
@@ -336,7 +336,7 @@
           "Respectful"
         ]
       },
-      "31": {
+      {
         "lemma": "der Mann",
         "translations": [
           "man",
@@ -374,7 +374,7 @@
           "plural -er"
         ]
       },
-      "32": {
+      {
         "lemma": "die Frau",
         "translations": [
           "woman",
@@ -412,7 +412,7 @@
           "plural -en"
         ]
       },
-      "35": {
+      {
         "lemma": "der Kuli",
         "translations": [
           "pen"
@@ -451,7 +451,7 @@
           "plural -s"
         ]
       },
-      "36": {
+      {
         "lemma": "der Kugelschreiber",
         "translations": [
           "pen"
@@ -490,7 +490,7 @@
           "noun"
         ]
       },
-      "43": {
+      {
         "lemma": "die Katze",
         "translations": [
           "cat"
@@ -526,7 +526,7 @@
           "plural -en"
         ]
       },
-      "44": {
+      {
         "lemma": "der Kater",
         "translations": [
           "cat"
@@ -565,7 +565,7 @@
           "noun"
         ]
       },
-      "45": {
+      {
         "lemma": "der Freund",
         "translations": [
           "friend"
@@ -612,7 +612,7 @@
           "noun"
         ]
       },
-      "49": {
+      {
         "lemma": "tsch\u00fc\u00df",
         "translations": [
           "bye"
@@ -630,7 +630,7 @@
           "Also: \"tsch\u00fcss\", \"tsch\u00fcs\""
         ]
       },
-      "67": {
+      {
         "lemma": "sch\u00f6n",
         "translations": [
           "nice"
@@ -651,7 +651,7 @@
           "adjective"
         ]
       },
-      "70": {
+      {
         "lemma": "gro\u00df",
         "translations": [
           "big",
@@ -670,7 +670,7 @@
           "adjective"
         ]
       },
-      "80": {
+      {
         "lemma": "wenig",
         "translations": [
           "few",
@@ -714,7 +714,7 @@
           ]
         }
       },
-      "108": {
+      {
         "lemma": "alt",
         "translations": [
           "old"
@@ -760,7 +760,7 @@
           "adjective"
         ]
       },
-      "113": {
+      {
         "lemma": "gehen",
         "translations": [
           "to go",
@@ -808,7 +808,7 @@
           "sein-verb"
         ]
       },
-      "131": {
+      {
         "lemma": "m\u00f6gen",
         "translations": [
           "to like"
@@ -899,7 +899,7 @@
           "haben-verb"
         ]
       },
-      "132": {
+      {
         "lemma": "leben",
         "translations": [
           "to live"
@@ -918,7 +918,7 @@
           "haben-verb"
         ]
       },
-      "133": {
+      {
         "lemma": "wohnen",
         "translations": [
           "to live",
@@ -939,7 +939,7 @@
           "haben-verb"
         ]
       },
-      "139": {
+      {
         "lemma": "so",
         "translations": [
           "so"
@@ -954,7 +954,7 @@
           4
         ]
       },
-      "179": {
+      {
         "lemma": "fahren",
         "translations": [
           "to drive",
@@ -1029,7 +1029,7 @@
           "sein-verb"
         ]
       },
-      "406": {
+      {
         "lemma": "denken",
         "translations": [
           "to think"
@@ -1084,7 +1084,7 @@
           "haben-verb"
         ]
       },
-      "408": {
+      {
         "lemma": "wissen",
         "translations": [
           "to know"
@@ -1164,7 +1164,7 @@
           "haben-verb"
         ]
       },
-      "456": {
+      {
         "lemma": "kennen",
         "translations": [
           "to know"
@@ -1230,7 +1230,7 @@
           "haben-verb"
         ]
       },
-      "745": {
+      {
         "lemma": "fr\u00f6hlich",
         "translations": [
           "happy",
@@ -1251,7 +1251,7 @@
           "adjective"
         ]
       },
-      "3156": {
+      {
         "lemma": "sie",
         "translations": [
           "they"
@@ -1305,416 +1305,416 @@
           ]
         }
       }
-    },
+    ],
     "indexes": {
       "lemmas": {
         "du": [
-          3
+          0
         ],
         "ihr": [
-          4
+          1
         ],
         "er": [
-          5
+          2
         ],
         "es": [
-          6
+          3
         ],
         "sie": [
-          3156,
-          7
+          28,
+          4
         ],
         "Sie": [
-          8
+          5
         ],
         "der Mann": [
-          31
+          6
         ],
         "die Frau": [
-          32
+          7
         ],
         "der Kuli": [
-          35
+          8
         ],
         "der Kugelschreiber": [
-          36
+          9
         ],
         "die Katze": [
-          43
+          10
         ],
         "der Kater": [
-          44
+          11
         ],
         "der Freund": [
-          45
+          12
         ],
         "tsch\u00fc\u00df": [
-          49
+          13
         ],
         "sch\u00f6n": [
-          67
+          14
         ],
         "gro\u00df": [
-          70
+          15
         ],
         "wenig": [
-          80
+          16
         ],
         "alt": [
-          108
+          17
         ],
         "gehen": [
-          113
+          18
         ],
         "m\u00f6gen": [
-          131
+          19
         ],
         "leben": [
-          132
+          20
         ],
         "wohnen": [
-          133
+          21
         ],
         "so": [
-          139
+          22
         ],
         "fahren": [
-          179
+          23
         ],
         "denken": [
-          406
+          24
         ],
         "wissen": [
-          408
+          25
         ],
         "kennen": [
-          456
+          26
         ],
         "fr\u00f6hlich": [
-          745
+          27
         ]
       },
       "translations": {
         "you": [
-          8,
-          3,
-          4
+          5,
+          0,
+          1
         ],
         "he": [
-          5
+          2
         ],
         "it": [
-          6
+          3
         ],
         "she": [
-          7
+          4
         ],
         "man": [
-          31
+          6
         ],
         "male": [
-          31
+          6
         ],
         "husband": [
-          31
+          6
         ],
         "woman": [
-          32
+          7
         ],
         "female": [
-          32
+          7
         ],
         "wife": [
-          32
+          7
         ],
         "pen": [
-          35,
-          36
+          8,
+          9
         ],
         "cat": [
-          43,
-          44
+          10,
+          11
         ],
         "friend": [
-          45
+          12
         ],
         "bye": [
-          49
+          13
         ],
         "nice": [
-          67
+          14
         ],
         "big": [
-          70
+          15
         ],
         "large": [
-          70
+          15
         ],
         "few": [
-          80
+          16
         ],
         "a little": [
-          80
+          16
         ],
         "old": [
-          108
+          17
         ],
         "to go": [
-          113
+          18
         ],
         "to walk": [
-          113
+          18
         ],
         "to like": [
-          131
+          19
         ],
         "to live": [
-          132,
-          133
+          20,
+          21
         ],
         "to dwell": [
-          133
+          21
         ],
         "to reside": [
-          133
+          21
         ],
         "to drive": [
-          179
+          23
         ],
         "to ride": [
-          179
+          23
         ],
         "so": [
-          139
+          22
         ],
         "happy": [
-          745
+          27
         ],
         "cheerful": [
-          745
+          27
         ],
         "to know": [
-          408,
-          456
+          25,
+          26
         ],
         "to think": [
-          406
+          24
         ],
         "they": [
-          3156
+          28
         ]
       },
       "forms": {
         "deiner": [
-          3
+          0
         ],
         "dir": [
-          3
+          0
         ],
         "dich": [
-          3
+          0
         ],
         "euer": [
-          4
+          1
         ],
         "euch": [
-          4
+          1
         ],
         "seiner": [
-          5,
-          6
+          2,
+          3
         ],
         "ihm": [
-          5,
-          6
+          2,
+          3
         ],
         "ihn": [
-          5
+          2
         ],
         "es": [
-          6
+          3
         ],
         "ihrer": [
-          3156,
-          7
+          28,
+          4
         ],
         "ihr": [
-          7
+          4
         ],
         "sie": [
-          3156,
-          7
+          28,
+          4
         ],
         "Ihrer": [
-          8
+          5
         ],
         "Ihnen": [
-          8
+          5
         ],
         "Sie": [
-          8
+          5
         ],
         "die M\u00e4nner": [
-          31
+          6
         ],
         "die Frauen": [
-          32
+          7
         ],
         "die Kulis": [
-          35
+          8
         ],
         "die Kugelschreiber": [
-          36
+          9
         ],
         "die Katzen": [
-          43
+          10
         ],
         "die Kater": [
-          44
+          11
         ],
         "die Freunde": [
-          45
+          12
         ],
         "die Freundin": [
-          45
+          12
         ],
         "minder": [
-          80
+          16
         ],
         "am mindesten": [
-          80
+          16
         ],
         "\u00e4lter": [
-          108
+          17
         ],
         "am \u00e4ltesten": [
-          108
+          17
         ],
         "gegangen sein": [
-          113
+          18
         ],
         "ging": [
-          113
+          18
         ],
         "mag": [
-          131
+          19
         ],
         "magst": [
-          131
+          19
         ],
         "m\u00f6gt": [
-          131
+          19
         ],
         "gemocht haben": [
-          131
+          19
         ],
         "mochte": [
-          131
+          19
         ],
         "f\u00e4hrst": [
-          179
+          23
         ],
         "f\u00e4hrt": [
-          179
+          23
         ],
         "gefahren sein": [
-          179
+          23
         ],
         "fuhr": [
-          179
+          23
         ],
         "gedacht haben": [
-          406
+          24
         ],
         "dachte": [
-          406
+          24
         ],
         "wei\u00df": [
-          408
+          25
         ],
         "wei\u00dft": [
-          408
+          25
         ],
         "wusste": [
-          408
+          25
         ],
         "gewusst haben": [
-          408
+          25
         ],
         "gekannt haben": [
-          456
+          26
         ],
         "kennte": [
-          456
+          26
         ],
         "kannte": [
-          456
+          26
         ]
       },
       "tags": {
         "noun": [
-          32,
-          35,
-          36,
-          43,
-          44,
-          45,
-          31
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          6
         ],
         "difficult phrase": [],
         "difficult form": [],
         "verb": [
-          131,
-          132,
-          133,
-          456,
-          113,
-          179,
-          406,
-          408
+          19,
+          20,
+          21,
+          26,
+          18,
+          23,
+          24,
+          25
         ],
         "new": [
-          745
+          27
         ],
         "plural -": [
-          36,
-          44
+          9,
+          11
         ],
         "plural -s": [
-          35
+          8
         ],
         "plural -e": [
-          45
+          12
         ],
         "plural -er": [
-          31
+          6
         ],
         "plural -en": [
-          32,
-          43
+          7,
+          10
         ],
         "plural other": [],
         "adjective": [
-          745,
-          67,
-          108,
-          70
+          27,
+          14,
+          17,
+          15
         ],
         "difficult": [
-          745
+          27
         ],
         "ru": [],
         "haben-verb": [
-          131,
-          132,
-          133,
-          456,
-          406,
-          408
+          19,
+          20,
+          21,
+          26,
+          24,
+          25
         ],
         "sein-verb": [
-          113,
-          179
+          18,
+          23
         ]
       }
     },
@@ -1781,7 +1781,6 @@
     "default_tag_ids": [
       12
     ],
-    "max_entry_id": 3156,
     "is_modified": false
   }
 }
