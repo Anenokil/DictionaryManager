@@ -75,6 +75,12 @@ class TrainingConfig:
         self.forms = forms
         self.tags = tags
 
+    @classmethod
+    def from_dict(cls, data: SerializedData):
+        config = cls()
+        config.load_from_dict(data)
+        return config
+
     def set_defaults(self):
         self.is_case_sensitive = True
         self.format = TrainingFormat.TRANS_TO_WORD
@@ -103,12 +109,6 @@ class TrainingConfig:
         self.entries = EntrySelection(data['entries'])
         self.forms = FormSelection(data['forms'])
         self.tags = data['tags']
-
-    @classmethod
-    def from_dict(cls, data: SerializedData):
-        config = cls()
-        config.load_from_dict(data)
-        return config
 
     @staticmethod
     def _check_and_migrate(data: SerializedData) -> SerializedData:
