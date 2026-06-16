@@ -53,6 +53,12 @@ class SearchConfig:
         self.to_search_in_notes = to_search_in_notes
         self.search_tags = search_tags
 
+    @classmethod
+    def from_dict(cls, data: SerializedData):
+        search_settings = cls()
+        search_settings.load_from_dict(data)
+        return search_settings
+
     def set_defaults(self):
         self.to_search_only_fav = False
         self.to_search_only_full = False
@@ -87,12 +93,6 @@ class SearchConfig:
         self.to_search_in_phrases = data['to_search_in_phrases']
         self.to_search_in_notes = data['to_search_in_notes']
         self.search_tags = data['search_tags']
-
-    @classmethod
-    def from_dict(cls, data: SerializedData):
-        search_settings = cls()
-        search_settings.load_from_dict(data)
-        return search_settings
 
     @staticmethod
     def _check_and_migrate(data: SerializedData) -> SerializedData:
@@ -153,6 +153,12 @@ class DctBundle:
         self.replacer = Replacer() if replacer is None else replacer
         self.trainer = Trainer(self.dct, self.train_config)
 
+    @classmethod
+    def from_dict(cls, filepath: str, data: SerializedData):
+        dct_bundle = cls(filepath)
+        dct_bundle.load_from_dict(data)
+        return dct_bundle
+
     def set_defaults(self):
         self.dct = Dictionary()
         self.session_number = 1
@@ -185,12 +191,6 @@ class DctBundle:
         self.trainer = Trainer(self.dct, self.train_config)
 
         self.session_number += 1
-
-    @classmethod
-    def from_dict(cls, filepath: str, data: SerializedData):
-        dct_bundle = cls(filepath)
-        dct_bundle.load_from_dict(data)
-        return dct_bundle
 
     @staticmethod
     def _check_and_migrate(data: SerializedData) -> SerializedData:
@@ -242,6 +242,22 @@ class Manager:
 
         self.opened_dct_bundles: list[DctBundle] = []
         self.active_dct_id: int | None = None
+
+    @classmethod
+    def from_json_dict(cls, data: SerializedData) -> 'Manager':
+        """
+        Deserialize Manager state from a JSON format.
+
+        Args:
+            data: Dictionary containing Manager data.
+
+        Returns:
+            Manager object.
+        """
+
+        manager = cls()
+        manager.load_from_json_dict(data)
+        return manager
 
     @property
     def n_opened(self) -> int:
@@ -460,12 +476,6 @@ class Manager:
             }
         }
 
-    @staticmethod
-    def _load_dct(filepath: str) -> DctBundle:
-        with open(filepath, 'r') as file:
-            data = json.load(file)
-        return DctBundle.from_dict(filepath, data)
-
     def load_from_json_dict(self, data: SerializedData):
         """
         Deserialize Manager state from a JSON format.
@@ -497,18 +507,8 @@ class Manager:
         self.opened_dct_bundles = opened_dct_bundles
         self.active_dct_id = active_dct_id
 
-    @classmethod
-    def from_json_dict(cls, data: SerializedData) -> 'Manager':
-        """
-        Deserialize Manager state from a JSON format.
-
-        Args:
-            data: Dictionary containing Manager data.
-
-        Returns:
-            Manager object.
-        """
-
-        manager = cls()
-        manager.load_from_json_dict(data)
-        return manager
+    @staticmethod
+    def _load_dct(filepath: str) -> DctBundle:
+        with open(filepath, 'r') as file:
+            data = json.load(file)
+        return DctBundle.from_dict(filepath, data)
