@@ -468,22 +468,13 @@ def entry_repr_complete(entry: Entry, str_len: int, tab: int = 0) -> str:
                    f'{', '.join(entry.forms[gram_forms[i]])}\n'
 
     res += '      Фразы: '
-    if entry.n_phrases == 0:
-        res += '-'
-    else:
-        res += phrases_repr(entry, tab=13)
+    res += '-' if entry.n_phrases == 0 else phrases_repr(entry, tab=13)
 
     res += '\n     Сноски: '
-    if entry.n_notes == 0:
-        res += '-'
-    else:
-        res += notes_repr(entry, tab=13)
+    res += '-' if entry.n_notes == 0 else notes_repr(entry, tab=13)
 
     res += '\n  Избранное: '
-    if entry.is_fav:
-        res += '+'
-    else:
-        res += '-'
+    res += '+' if entry.is_fav else '-'
 
     res += f'\n     Группы: {tags_repr(entry)}\n'
 
@@ -547,12 +538,12 @@ def dct_fav_stats_repr(
     )
 
 
-""" Вспомогательные функции """
-
-
 # Преобразовать специальную комбинацию в читаемый вид (для отображения в настройках)
 def replacement_repr(input_pair: tuple[str, str], output: str) -> str:
     return f'{input_pair[0]}{input_pair[1]} -> {output}'
+
+
+""" Вспомогательные функции """
 
 
 # Заменить буквы в тексте соответствующими английскими
@@ -689,7 +680,7 @@ def select_word_form(n: int, word_forms: tuple[str, str, str]) -> str:
 
 
 # Выбрать одну статью из нескольких с одинаковыми словами
-def select_entry(app_data: AppData, window_parent: tk.Misc, lemma: str):
+def select_entry(app_data: AppData, window_parent: tk.Misc, lemma: str) -> Entry | None:
     homographs = app_data.manager.active.dct.search(lemma=lemma)
     if len(homographs) == 1:  # Если статья только одна, то возвращает её ключ
         return homographs.pop()
@@ -919,7 +910,6 @@ def word_in_line(line: str, word: str) -> bool:
 
 # Поиск статей в словаре
 def search_entries(
-        dct: Dictionary,
         entries: Iterable[Entry],
         query: str,
         to_search_wrd: bool,
@@ -1105,7 +1095,7 @@ def upload_themes(themes: list[str]):
             print(f'Ошибка: {exc}')
         else:
             if ret == RET_TH_OK:
-                print(f'Тема успешно загружена')
+                print('Тема успешно загружена')
                 if theme_name not in themes:  # Добавляем название новой темы
                     themes.append(theme_name)
             elif ret == RET_TH_OLD:
@@ -1119,16 +1109,16 @@ def upload_custom_theme(to_print: bool = True):
         create_default_custom_theme()
         return
 
-    print(f'Загрузка пользовательской темы. ', end='')
+    print('Загрузка пользовательской темы. ', end='')
     try:
         ret = upload_one_theme(CUSTOM_THEME_PATH, CUSTOM_TH)
     except Exception as exc:
         print(f'Ошибка: {exc}')
     else:
         if ret == RET_TH_OK and to_print:
-            print(f'Тема успешно загружена')
+            print('Тема успешно загружена')
         elif ret == RET_TH_OLD:
-            print(f'Не удалось загрузить тему, т. к. её версия не соответствует требуемой!')
+            print('Не удалось загрузить тему, т. к. её версия не соответствует требуемой!')
 
 
 def img_path(theme: str, img_name: str) -> str:
@@ -1950,7 +1940,7 @@ class TrainSettingsW(tk.Toplevel):
         self.dct = app_data.manager.active.dct
         self.train_config = app_data.manager.active.train_config
 
-        self.cancelled = False
+        self.cancelled = True
         self.tag_options = [ALL_TAGS] + self.dct.tags
 
         self.var_case_sensitive = tk.BooleanVar(
@@ -2083,7 +2073,7 @@ class TrainSettingsW(tk.Toplevel):
             None if tag == ALL_TAGS else [tag],
         )
 
-        self.cancelled = True
+        self.cancelled = False
 
         save_dct_cache(self.dct_bundle)
 
@@ -5264,10 +5254,7 @@ class TrainingW(tk.Toplevel):
     def show_homonyms(self):
         self.print('Омонимы:')
         for entry in self.homonyms:
-            self.print(
-                '> ' + entry.lemma +
-                ': ' + tr_repr(entry)
-            )
+            self.print(f'> {entry.lemma}: {tr_repr(entry)}')
         btn_disable(self.btn_show_homonyms)
 
     # Нажатие на кнопку "Закончить"
@@ -5965,7 +5952,7 @@ class SearchTab(ttk.Frame):
             ]
         # Среди оставшихся ищем статьи, содержащие искомый текст
         results = search_entries(
-            self.dct, entries,
+            entries,
             self.replacer.apply_replacements(self.var_query.get()),
             self.to_search_wrd, self.to_search_tr, self.to_search_frm,
             self.to_search_phr, self.to_search_nt,
@@ -5996,9 +5983,7 @@ class SearchTab(ttk.Frame):
             )
         if self.current_page > self.n_pages:
             self.current_page = self.n_pages
-            self.first_entry_idx = (
-                (self.n_pages - 1) * self.max_entries_on_page
-            )
+            self.first_entry_idx = (self.n_pages - 1) * self.max_entries_on_page
         if self.current_page == self.n_pages:
             if (
                     (self.n_entries_total % self.max_entries_on_page == 0) and
@@ -6006,9 +5991,7 @@ class SearchTab(ttk.Frame):
             ):
                 self.n_entries_on_page = self.max_entries_on_page
             else:
-                self.n_entries_on_page = (
-                    self.n_entries_total % self.max_entries_on_page
-                )
+                self.n_entries_on_page = self.n_entries_total % self.max_entries_on_page
         else:
             self.n_entries_on_page = self.max_entries_on_page
         # Выводим информацию о количестве статей
@@ -6730,7 +6713,7 @@ class BrowseDctTab(ttk.Frame):
             """
             self.entries.sort(key=lambda e: (
                 e.accuracy,
-                e.win_streak / (1 + len(e.forms.keys()) + len(e.phrases.keys())),
+                e.win_streak / (1 + e.n_gram_forms + e.n_phrases),
                 e.lemma.lower(),
                 e.lemma,
             ))
@@ -6743,7 +6726,7 @@ class BrowseDctTab(ttk.Frame):
             """
             self.entries.sort(key=lambda e: (
                 -e.accuracy,
-                -e.win_streak / (1 + len(e.forms.keys()) + len(e.phrases.keys())),
+                -e.win_streak / (1 + e.n_gram_forms + e.n_phrases),
                 e.lemma.lower(),
                 e.lemma,
             ))
@@ -6802,9 +6785,7 @@ class BrowseDctTab(ttk.Frame):
             ):
                 self.n_entries_on_page = self.max_entries_on_page
             else:
-                self.n_entries_on_page = (
-                    self.n_entries_total % self.max_entries_on_page
-                )
+                self.n_entries_on_page = self.n_entries_total % self.max_entries_on_page
         else:
             self.n_entries_on_page = self.max_entries_on_page
         # Выводим номер страницы
@@ -7186,22 +7167,19 @@ class AddEntryW(tk.Toplevel):
             else:
                 btn_enable(self.btn_add, self.on_add_clicked)
 
-            words = (entry.lemma for entry in self.dct)
+            words = {entry.lemma for entry in self.dct}
 
             if value_word in words:
-                entries_with_this_word = (
-                    entry for entry in self.dct
-                    if entry.lemma == value_word
-                )
-                translations = set(chain(*(
+                entries_with_this_word = self.dct.search(lemma=value_word)
+                translations = set().union(*(
                     entry.tr for entry in entries_with_this_word
-                )))
+                ))
                 if value_tr in translations:
                     self.lbl_msg.configure(text='Такая статья уже есть в словаре')
                 else:
                     self.lbl_msg.configure(text='Такое слово уже есть в словаре')
             else:
-                translations = set(chain(*(entry.tr for entry in self.dct)))
+                translations = set().union(*(entry.tr for entry in self.dct))
                 if value_tr in translations:
                     self.lbl_msg.configure(text='Слово с таким переводом уже есть в словаре')
                 else:
@@ -7486,8 +7464,7 @@ class SettingsW(tk.Toplevel):
         theme = self.app_data.ui_settings.theme
 
         ImageDialog(
-            self,
-            self.app_data,
+            self, self.app_data,
             img_path(theme, 'about_typo'),
             'Если функция включена, то\n'
             'когда вы неверно отвечаете при учёбе,\n'
@@ -7513,7 +7490,7 @@ class SettingsW(tk.Toplevel):
             return
 
         # Если есть прогресс, то предлагается его сохранить
-        if self.has_local_changes():
+        if self.has_local_changes:
             save_settings_if_has_changes(self, self.app_data)
         save_dct_if_has_progress(self, self.app_data)
 
@@ -7592,7 +7569,7 @@ class SettingsW(tk.Toplevel):
         if cancelled:
             return
 
-        if self.has_local_changes():
+        if self.has_local_changes:
             save_settings_if_has_changes(self, self.app_data)
         save_dct_if_has_progress(self, self.app_data)
 
@@ -7709,7 +7686,7 @@ class SettingsW(tk.Toplevel):
         save_dct_cache(self.manager.active)
 
         # Сохранение словаря, если были изменения локальных настроек
-        if self.has_local_changes():
+        if self.has_local_changes:
             save_dct(self.manager.active)
 
         # Обнуление переменных, показывающих наличие изменений
@@ -7723,7 +7700,7 @@ class SettingsW(tk.Toplevel):
 
     # Закрыть настройки без сохранения (срабатывает при нажатии на кнопку)
     def close(self):
-        if self.has_changes():
+        if self.has_changes:
             window = TwoOptionsDialog(
                 self, self.app_data,
                 'У вас есть несохранённые изменения?\n'
@@ -7844,6 +7821,7 @@ class SettingsW(tk.Toplevel):
         self.parent.configure(bg=STYLES['*.BG.*'][1][self.app_data.ui_settings.theme])
 
     # Были ли изменения локальных настроек
+    @property
     def has_local_changes(self):
         return (
             self.is_ctg_modified or
@@ -7852,9 +7830,10 @@ class SettingsW(tk.Toplevel):
         )
 
     # Были ли изменения настроек
+    @property
     def has_changes(self):
         return (
-            self.has_local_changes() or
+            self.has_local_changes or
             self.var_show_updates.get() != self.app_data.global_settings.to_check_for_updates or
             self.var_show_typo_button.get() != self.app_data.global_settings.is_typo_btn_on or
             self.var_theme.get() != self.app_data.ui_settings.theme or
@@ -8087,13 +8066,11 @@ class MainW(tk.Tk):
         self.frame_dct_name = create_frame(self, row=1, padx=6, pady=(0, 12))
 
         self.lbl_dct_name = create_label(
-            self.frame_dct_name,
-            f'Открыт словарь\n'
-            f'"{split_text(
-                self.app_data.manager.active.dct.name, 20, to_add_right_spaces=False
-            )}"',
+            self.frame_dct_name, '',
             justify='center',
             padx=1, pady=1)
+
+        self.refresh_dct_name()
 
     def _create_buttons_frame(self):
         self.frame_buttons = create_frame(self, 'Invis.TFrame', row=2, padx=6, pady=(0, 6))
@@ -8122,6 +8099,14 @@ class MainW(tk.Tk):
         self.btn_close = create_button(
             self.frame_buttons, self.close, 'Закрыть программу', style='No.TButton',
             row=7, padx=0, pady=(3, 0))
+
+    def refresh_dct_name(self):
+        self.lbl_dct_name.config(text=(
+            f'Открыт словарь\n'
+            f'"{split_text(
+                self.app_data.manager.active.dct.name, 20, to_add_right_spaces=False
+            )}"'
+        ))
 
     # Нажатие на кнопку "Учить слова"
     def practice(self):
