@@ -547,7 +547,7 @@ def replacement_repr(input_pair: tuple[str, str], output: str) -> str:
 
 
 # Заменить буквы в тексте соответствующими английскими
-def simplify(text: str) -> tuple[str, list[str]]:
+def normalize(text: str) -> tuple[str, list[str]]:
     converted_text = ''
     transformations = []
 
@@ -919,7 +919,7 @@ def search_entries(
         to_search_nt: bool,
 ) -> list[set[Entry]]:
     normalized_query_1 = query.lower()
-    normalized_query_2 = simplify(query)[0].replace('ё', 'е')
+    normalized_query_2 = normalize(query)[0].replace('ё', 'е')
     results = [set() for _ in range(9)]
     for entry in entries:
         # Все фразы и переводы фраз для данной статьи
@@ -942,11 +942,11 @@ def search_entries(
              to_search_phr and normalized_query_1 in [phr.lower() for phr in phrases] or\
              to_search_nt  and normalized_query_1 in [ nt.lower() for nt  in entry.notes]:
             results[1].add(entry)
-        elif to_search_wrd and normalized_query_2 == simplify(entry.lemma)[0].replace('ё', 'е') or\
-             to_search_tr  and normalized_query_2 in [simplify( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
-             to_search_frm and normalized_query_2 in [simplify(frm)[0].replace('ё', 'е') for frm in chain(*entry.forms.values())] or\
-             to_search_phr and normalized_query_2 in [simplify(phr)[0].replace('ё', 'е') for phr in phrases] or\
-             to_search_nt  and normalized_query_2 in [simplify( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
+        elif to_search_wrd and normalized_query_2 == normalize(entry.lemma)[0].replace('ё', 'е') or\
+             to_search_tr  and normalized_query_2 in [normalize( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
+             to_search_frm and normalized_query_2 in [normalize(frm)[0].replace('ё', 'е') for frm in chain(*entry.forms.values())] or\
+             to_search_phr and normalized_query_2 in [normalize(phr)[0].replace('ё', 'е') for phr in phrases] or\
+             to_search_nt  and normalized_query_2 in [normalize( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
             results[2].add(entry)
 
         elif to_search_wrd and word_in_line(entry.lemma, query) or\
@@ -961,11 +961,11 @@ def search_entries(
              to_search_phr and True in [word_in_line(phr.lower(), normalized_query_1) for phr in phrases] or\
              to_search_nt  and True in [word_in_line( nt.lower(), normalized_query_1) for nt  in entry.notes]:
             results[4].add(entry)
-        elif to_search_wrd and word_in_line(simplify(entry.lemma)[0].replace('ё', 'е'), normalized_query_2) or\
-             to_search_tr  and True in [word_in_line(simplify( tr)[0].replace('ё', 'е'), normalized_query_2) for tr  in entry.tr] or\
-             to_search_frm and True in [word_in_line(simplify(frm)[0].replace('ё', 'е'), normalized_query_2) for frm in chain(*entry.forms.values())] or\
-             to_search_phr and True in [word_in_line(simplify(phr)[0].replace('ё', 'е'), normalized_query_2) for phr in phrases] or\
-             to_search_nt  and True in [word_in_line(simplify( nt)[0].replace('ё', 'е'), normalized_query_2) for nt  in entry.notes]:
+        elif to_search_wrd and word_in_line(normalize(entry.lemma)[0].replace('ё', 'е'), normalized_query_2) or\
+             to_search_tr  and True in [word_in_line(normalize( tr)[0].replace('ё', 'е'), normalized_query_2) for tr  in entry.tr] or\
+             to_search_frm and True in [word_in_line(normalize(frm)[0].replace('ё', 'е'), normalized_query_2) for frm in chain(*entry.forms.values())] or\
+             to_search_phr and True in [word_in_line(normalize(phr)[0].replace('ё', 'е'), normalized_query_2) for phr in phrases] or\
+             to_search_nt  and True in [word_in_line(normalize( nt)[0].replace('ё', 'е'), normalized_query_2) for nt  in entry.notes]:
             results[5].add(entry)
 
         elif to_search_wrd and query in entry.lemma or\
@@ -980,11 +980,11 @@ def search_entries(
              to_search_phr and True in [normalized_query_1 in phr.lower() for phr in phrases] or\
              to_search_nt  and True in [normalized_query_1 in  nt.lower() for nt  in entry.notes]:
             results[7].add(entry)
-        elif to_search_wrd and normalized_query_2 in simplify(entry.lemma)[0].replace('ё', 'е') or\
-             to_search_tr  and True in [normalized_query_2 in simplify( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
-             to_search_frm and True in [normalized_query_2 in simplify(frm)[0].replace('ё', 'е') for frm in chain(*entry.forms.values())] or\
-             to_search_phr and True in [normalized_query_2 in simplify(phr)[0].replace('ё', 'е') for phr in phrases] or\
-             to_search_nt  and True in [normalized_query_2 in simplify( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
+        elif to_search_wrd and normalized_query_2 in normalize(entry.lemma)[0].replace('ё', 'е') or\
+             to_search_tr  and True in [normalized_query_2 in normalize( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
+             to_search_frm and True in [normalized_query_2 in normalize(frm)[0].replace('ё', 'е') for frm in chain(*entry.forms.values())] or\
+             to_search_phr and True in [normalized_query_2 in normalize(phr)[0].replace('ё', 'е') for phr in phrases] or\
+             to_search_nt  and True in [normalized_query_2 in normalize( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
             results[8].add(entry)
     return results
 
@@ -7246,9 +7246,9 @@ class SettingsW(tk.Toplevel):
         self.manager = app_data.manager
 
         self.active_tab = 0  # Текущая вкладка (0 или 1)
-        self.is_ctg_modified = False
+        self.are_features_modified = False
         self.are_tags_modified = False
-        self.is_replacements_modified = False
+        self.are_replacements_modified = False
         self.backup_dct = copy.deepcopy(self.manager.active.dct)
         self.backup_scale = self.app_data.ui_settings.scale
 
@@ -7306,13 +7306,13 @@ class SettingsW(tk.Toplevel):
         self.tabs.add(self.tab_local, text='Настройки открытого словаря')
 
         self.btn_forms = create_button(
-            self.tab_local, self.categories_settings, 'Грамматические категории',
+            self.tab_local, self.open_features_settings, 'Грамматические категории',
             row=1, padx=6, pady=6)
         self.btn_tags = create_button(
-            self.tab_local, self.tags_settings, 'Группы',
+            self.tab_local, self.open_tags_settings, 'Группы',
             row=2, padx=6, pady=6)
         self.btn_replacements = create_button(
-            self.tab_local, self.replacements_settings, 'Специальные комбинации',
+            self.tab_local, self.open_replacements_settings, 'Специальные комбинации',
             row=3, padx=6, pady=6)
         self.lbl_save_warn = create_label(
             self.tab_local,
@@ -7346,7 +7346,7 @@ class SettingsW(tk.Toplevel):
         self.frame_show_typo_button = create_frame(self.tab_global, row=1, padx=6, pady=6)
 
         self.btn_help_typo = create_button(
-            self.frame_show_typo_button, self.help_typo, width=2,
+            self.frame_show_typo_button, self.open_help_typo, width=2,
             row=0, column=0, padx=(6, 0), pady=6)
         set_image(self.btn_help_typo, self.img_help, img_path(theme, 'about'), '?')
         self.lbl_show_typo_button = create_label(
@@ -7365,7 +7365,7 @@ class SettingsW(tk.Toplevel):
             self.frame_dcts, 'Существующие словари:',
             row=0, column=0, padx=6, pady=(6, 0))
         self.btn_help_dcts = create_button(
-            self.frame_dcts, self.help_dcts, width=2,
+            self.frame_dcts, self.open_help_dcts, width=2,
             row=0, column=1, padx=6, pady=(6, 0))
         set_image(self.btn_help_dcts, self.img_help, img_path(theme, 'about'), '?')
         self.scrolled_frame_dcts = ScrollFrame(
@@ -7411,7 +7411,7 @@ class SettingsW(tk.Toplevel):
             justify='left',
             row=0, column=2, padx=6, pady=(6, 0), sticky='WS')
         self.btn_custom_theme_settings = create_button(
-            self.frame_themes, self.custom_theme_settings, 'Собственная тема',
+            self.frame_themes, self.open_custom_theme_settings, 'Собственная тема',
             row=1, column=0, columnspan=2, padx=0, pady=(0, 6), sticky='E')
         self.entry_themes_version = create_entry(
             self.frame_themes, self.var_themes_url, 47, font=self.app_data,
@@ -7442,25 +7442,25 @@ class SettingsW(tk.Toplevel):
         self.tip_btn_help_dcts = ttip.Hovertip(self.btn_help_dcts, 'Справка', hover_delay=450)
 
     # Настройки грамматических категорий (срабатывает при нажатии на кнопку)
-    def categories_settings(self):
-        self.is_ctg_modified = CategoriesSettingsW(
+    def open_features_settings(self):
+        self.are_features_modified = CategoriesSettingsW(
             self, self.app_data
-        ).open() or self.is_ctg_modified
+        ).open() or self.are_features_modified
 
     # Настройки групп (срабатывает при нажатии на кнопку)
-    def tags_settings(self):
+    def open_tags_settings(self):
         self.are_tags_modified = TagSettingsW(
             self, self.app_data
         ).open() or self.are_tags_modified
 
     # Настройки специальных комбинаций (срабатывает при нажатии на кнопку)
-    def replacements_settings(self):
-        self.is_replacements_modified = InputReplacementsSettingsW(
+    def open_replacements_settings(self):
+        self.are_replacements_modified = InputReplacementsSettingsW(
             self, self.app_data
-        ).open() or self.is_replacements_modified
+        ).open() or self.are_replacements_modified
 
     # Справка о кнопке "Опечатка" (срабатывает при нажатии на кнопку)
-    def help_typo(self):
+    def open_help_typo(self):
         theme = self.app_data.ui_settings.theme
 
         ImageDialog(
@@ -7474,7 +7474,7 @@ class SettingsW(tk.Toplevel):
         ).open()
 
     # Справка о словарях (срабатывает при нажатии на кнопку)
-    def help_dcts(self):
+    def open_help_dcts(self):
         MessageDialog(
             self, self.app_data,
             '* Чтобы открыть словарь, наведите на него мышку и нажмите ЛКМ\n'
@@ -7501,11 +7501,11 @@ class SettingsW(tk.Toplevel):
         self.backup_dct = copy.deepcopy(self.manager.active.dct)
 
         # Обновляем надписи с названием открытого словаря
-        self.refresh_open_dct_name(self.manager.active.dct.name)
+        self.refresh_dct_name(self.manager.active.dct.name)
 
-        self.is_ctg_modified = False
+        self.are_features_modified = False
         self.are_tags_modified = False
-        self.is_replacements_modified = False
+        self.are_replacements_modified = False
         self.manager.active.dct.mark_saved()
 
         self.refresh()
@@ -7531,7 +7531,7 @@ class SettingsW(tk.Toplevel):
             self.manager.active.dct.name = new_name
             self.app_data.save(glob=False, ui=False)
             # Обновляем надписи с названием открытого словаря
-            self.refresh_open_dct_name(new_name)
+            self.refresh_dct_name(new_name)
         print(f'Словарь "{old_name}" успешно переименован в "{new_name}"')
 
         self.print_dct_list(False)
@@ -7583,11 +7583,11 @@ class SettingsW(tk.Toplevel):
         self.backup_dct = copy.deepcopy(self.manager.active.dct)
 
         # Обновляем надписи с названием открытого словаря
-        self.refresh_open_dct_name(savename)
+        self.refresh_dct_name(savename)
 
-        self.is_ctg_modified = False
+        self.are_features_modified = False
         self.are_tags_modified = False
-        self.is_replacements_modified = False
+        self.are_replacements_modified = False
         self.manager.active.dct.mark_saved()
 
         self.refresh()
@@ -7624,7 +7624,7 @@ class SettingsW(tk.Toplevel):
         self.refresh()
 
     # Задать пользовательскую тему (срабатывает при нажатии на кнопку)
-    def custom_theme_settings(self):
+    def open_custom_theme_settings(self):
         CustomThemeSettingsW(self, self.app_data).open()
         upload_custom_theme(False)
         if self.app_data.ui_settings.theme == CUSTOM_TH:
@@ -7690,9 +7690,9 @@ class SettingsW(tk.Toplevel):
             save_dct(self.manager.active)
 
         # Обнуление переменных, показывающих наличие изменений
-        self.is_ctg_modified = False
+        self.are_features_modified = False
         self.are_tags_modified = False
-        self.is_replacements_modified = False
+        self.are_replacements_modified = False
         self.manager.active.dct.mark_saved()
 
         # Обновить кнопки изменения масштаба
@@ -7824,9 +7824,9 @@ class SettingsW(tk.Toplevel):
     @property
     def has_local_changes(self):
         return (
-            self.is_ctg_modified or
+            self.are_features_modified or
             self.are_tags_modified or
-            self.is_replacements_modified
+            self.are_replacements_modified
         )
 
     # Были ли изменения настроек
@@ -7841,7 +7841,7 @@ class SettingsW(tk.Toplevel):
         )
 
     # Обновить надписи с названием открытого словаря
-    def refresh_open_dct_name(self, savename: str):
+    def refresh_dct_name(self, savename: str):
         self.lbl_dct_name.config(text=split_text(
             f'Открыт словарь "{savename}"', 30, to_add_right_spaces=False
         ))
@@ -8076,19 +8076,19 @@ class MainW(tk.Tk):
         self.frame_buttons = create_frame(self, 'Invis.TFrame', row=2, padx=6, pady=(0, 6))
 
         self.btn_practice = create_button(
-            self.frame_buttons, self.practice, 'Учить слова',
+            self.frame_buttons, self.open_trainer, 'Учить слова',
             row=0, padx=0, pady=(0, 3))
         self.btn_browse_dct = create_button(
-            self.frame_buttons, self.browse_dct, 'Просмотреть словарь',
+            self.frame_buttons, self.open_entry_list, 'Просмотреть словарь',
             row=1, padx=0, pady=(3, 3))
         self.btn_search = create_button(
-            self.frame_buttons, self.search, 'Поиск',
+            self.frame_buttons, self.open_search, 'Поиск',
             row=2, padx=0, pady=(3, 3))
         self.btn_add_entry = create_button(
-            self.frame_buttons, self.add_entry, 'Добавить запись в словарь',
+            self.frame_buttons, self.open_add_entry_dialog, 'Добавить запись в словарь',
             row=3, padx=0, pady=(3, 3))
         self.btn_settings = create_button(
-            self.frame_buttons, self.settings, 'Настройки',
+            self.frame_buttons, self.open_settings, 'Настройки',
             row=4, padx=0, pady=(3, 3))
         self.btn_check_updates = create_button(
             self.frame_buttons, self.check_updates, 'Проверить обновления',
@@ -8109,30 +8109,30 @@ class MainW(tk.Tk):
         ))
 
     # Нажатие на кнопку "Учить слова"
-    def practice(self):
+    def open_trainer(self):
         self.disable_all_buttons()
 
-        result = TrainSettingsW(self, self.app_data).open()
-        if result:
+        cancelled = TrainSettingsW(self, self.app_data).open()
+        if not cancelled:
             train_config = self.app_data.manager.active.train_config
             TrainingW(self, self.app_data, train_config).open()
 
         self.enable_all_buttons()
 
     # Нажатие на кнопку "Просмотреть словарь"
-    def browse_dct(self):
+    def open_entry_list(self):
         self.disable_all_buttons()
         DictionaryW(self, self.app_data).open()
         self.enable_all_buttons()
 
     # Нажатие на кнопку "Поиск"
-    def search(self):
+    def open_search(self):
         self.disable_all_buttons()
         DictionaryW(self, self.app_data).open(tab='search')
         self.enable_all_buttons()
 
     # Нажатие на кнопку "Добавить запись в словарь"
-    def add_entry(self):
+    def open_add_entry_dialog(self):
         self.disable_all_buttons()
 
         entry = AddEntryW(self, self.app_data).open()
@@ -8142,7 +8142,7 @@ class MainW(tk.Tk):
         self.enable_all_buttons()
 
     # Нажатие на кнопку "Настройки"
-    def settings(self):
+    def open_settings(self):
         self.disable_all_buttons()
         SettingsW(self, self.app_data).open()
         self.enable_all_buttons()
@@ -8181,11 +8181,11 @@ class MainW(tk.Tk):
 
     # Включить все кнопки на главном окне
     def enable_all_buttons(self):
-        btn_enable(self.btn_practice, self.practice)
-        btn_enable(self.btn_browse_dct, self.browse_dct)
-        btn_enable(self.btn_search, self.search)
-        btn_enable(self.btn_add_entry, self.add_entry)
-        btn_enable(self.btn_settings, self.settings)
+        btn_enable(self.btn_practice, self.open_trainer)
+        btn_enable(self.btn_browse_dct, self.open_entry_list)
+        btn_enable(self.btn_search, self.open_search)
+        btn_enable(self.btn_add_entry, self.open_add_entry_dialog)
+        btn_enable(self.btn_settings, self.open_settings)
         btn_enable(self.btn_check_updates, self.check_updates)
         btn_enable(self.btn_save, self.save, 'Yes')
         btn_enable(self.btn_close, self.close, 'No')
