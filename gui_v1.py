@@ -3669,9 +3669,10 @@ class TagSettingsW(tk.Toplevel):
 
         self.dct.rename_tag(tag_old, tag_new)
 
-        train_tag = self.dct_bundle.train_config.tags[0]
-        if train_tag == tag_old:
-            self.dct_bundle.train_config.tags = [tag_new]
+        if self.dct_bundle.train_config.tags is not None:
+            train_tag = self.dct_bundle.train_config.tags[0]
+            if train_tag == tag_old:
+                self.dct_bundle.train_config.tags = [tag_new]
 
         self.print_tags(False)
         self.has_changes = True
@@ -5435,7 +5436,7 @@ class DictionaryW(tk.Toplevel):
             MessageDialog(self, self.app_data, 'Не найдено ни одной группы!').open()
             return
 
-        sets = [entry.tags for entry in entries]
+        sets = [set(entry.tags) for entry in entries]
         values_intersec = set.intersection(*sets)
         values = [tag for tag in self.dct.tags if tag not in values_intersec]
         if not values:
@@ -7211,7 +7212,7 @@ class AddEntryW(tk.Toplevel):
             return
         self.entry.is_fav = self.var_fav.get()
         for tag in self.dct.default_tags:
-            self.entry.tags.add_tag(tag)
+            self.dct.add_tag_to_entries(tag, [self.entry])
 
         self.destroy()
 
