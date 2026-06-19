@@ -519,7 +519,7 @@ class Dictionary:
             tr: Translation to add.
         """
 
-        is_modified, counter_delta = entry.tr.add(tr)
+        is_modified, counter_delta = entry.tr._add(tr)
 
         self._counters['translations'] += counter_delta
         self._update_index('translations', tr, entry, 'add')
@@ -542,7 +542,7 @@ class Dictionary:
         if tr not in entry.tr:
             raise InvalidTranslationError(tr)
 
-        is_modified, counter_delta = entry.tr.edit(tr, new_tr)
+        is_modified, counter_delta = entry.tr._edit(tr, new_tr)
 
         self._counters['translations'] += counter_delta
         self._update_index('translations', tr, entry, 'remove')
@@ -566,7 +566,7 @@ class Dictionary:
         if tr not in entry.tr:
             raise InvalidTranslationError(tr)
 
-        entry.tr.delete(tr)
+        entry.tr._delete(tr)
 
         self._counters['translations'] -= 1
         self._update_index('translations', tr, entry, 'remove')
@@ -581,7 +581,7 @@ class Dictionary:
             word_form: Inflected form to add.
         """
 
-        is_modified, cnt_delta_gram, cnt_delta_word = entry.forms.add(gram_form, word_form)
+        is_modified, cnt_delta_gram, cnt_delta_word = entry.forms._add(gram_form, word_form)
 
         self._counters['gram_forms'] += cnt_delta_gram
         self._counters['word_forms'] += cnt_delta_word
@@ -621,7 +621,7 @@ class Dictionary:
         # Therefore, we need to first remove all forms from the index, then add them back to the
         # index.
         to_rm_from_index = set(chain(*entry.forms.values()))
-        is_modified, cnt_delta_gram, cnt_delta_word = entry.forms.edit(
+        is_modified, cnt_delta_gram, cnt_delta_word = entry.forms._edit(
             gram_form, word_form, new_gram_form, new_word_form
         )
         to_rm_from_index.difference_update(*entry.forms.values())
@@ -655,7 +655,7 @@ class Dictionary:
         # Therefore, we need to first remove all forms from the index, then add them back to the
         # index.
         to_rm_from_index = set(chain(*entry.forms.values()))
-        is_modified, cnt_delta_gram, cnt_delta_word = entry.forms.delete(gram_form, word_form)
+        is_modified, cnt_delta_gram, cnt_delta_word = entry.forms._delete(gram_form, word_form)
         to_rm_from_index.difference_update(*entry.forms.values())
 
         self._counters['gram_forms'] += cnt_delta_gram
@@ -674,7 +674,7 @@ class Dictionary:
             phrase_tr: Phrase translation to add.
         """
 
-        is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases.add(phrase, phrase_tr)
+        is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases._add(phrase, phrase_tr)
 
         self._counters['phrases']    += cnt_delta_ph
         self._counters['phrase_trs'] += cnt_delta_tr
@@ -709,7 +709,7 @@ class Dictionary:
         if phrase_tr not in entry.phrases[phrase]:
             raise InvalidPhraseTrError(phrase_tr)
 
-        is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases.edit(
+        is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases._edit(
             phrase, phrase_tr, new_phrase, new_phrase_tr
         )
 
@@ -737,7 +737,7 @@ class Dictionary:
         if phrase_tr not in entry.phrases[phrase]:
             raise InvalidPhraseTrError(phrase_tr)
 
-        is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases.delete(phrase, phrase_tr)
+        is_modified, cnt_delta_ph, cnt_delta_tr = entry.phrases._delete(phrase, phrase_tr)
 
         self._counters['phrases']    += cnt_delta_ph
         self._counters['phrase_trs'] += cnt_delta_tr
@@ -753,7 +753,7 @@ class Dictionary:
             note: Note text to add.
         """
 
-        is_modified, counter_delta = entry.notes.add(note)
+        is_modified, counter_delta = entry.notes._add(note)
 
         self._counters['notes'] += counter_delta
 
@@ -775,7 +775,7 @@ class Dictionary:
         if note not in entry.notes:
             raise InvalidNoteError(note)
 
-        is_modified, counter_delta = entry.notes.edit(note, new_note)
+        is_modified, counter_delta = entry.notes._edit(note, new_note)
 
         self._counters['notes'] += counter_delta
 
@@ -797,7 +797,7 @@ class Dictionary:
         if note not in entry.notes:
             raise InvalidNoteError(note)
 
-        entry.notes.delete(note)
+        entry.notes._delete(note)
 
         self._counters['notes'] -= 1
 
@@ -822,7 +822,7 @@ class Dictionary:
             return
 
         for entry in entries_to_update:
-            entry.tags.add(tag)
+            entry.tags._add(tag)
 
         self._update_index('tags', tag, entries_to_update, 'add')
 
@@ -849,7 +849,7 @@ class Dictionary:
             return
 
         for entry in entries_to_update:
-            entry.tags.delete(tag)
+            entry.tags._delete(tag)
 
         self._update_index('tags', tag, entries_to_update, 'remove')
 
@@ -900,7 +900,7 @@ class Dictionary:
             raise CategoryExistsError(ctg_name)
 
         for entry in self._entries:
-            entry.forms.add_ctg()
+            entry.forms._add_ctg()
 
         self._features[ctg_name] = ctg_values
 
@@ -951,7 +951,7 @@ class Dictionary:
             self._update_index('forms', chain(*entry.forms.values()), entry, 'remove')
             self._counters['gram_forms'] -= entry.n_gram_forms
             self._counters['word_forms'] -= entry.n_word_forms
-            entry.forms.delete_ctg(index)
+            entry.forms._delete_ctg(index)
             self._counters['gram_forms'] += entry.n_gram_forms
             self._counters['word_forms'] += entry.n_word_forms
             self._update_index('forms', chain(*entry.forms.values()), entry, 'add')
@@ -1014,7 +1014,7 @@ class Dictionary:
         self._features[ctg_name][index_val] = ctg_value_new
 
         for entry in self._entries:
-            entry.forms.rename_ctg_value(index_ctg, ctg_value_old, ctg_value_new)
+            entry.forms._rename_ctg_value(index_ctg, ctg_value_old, ctg_value_new)
 
     @_mark_modified
     def delete_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
@@ -1049,7 +1049,7 @@ class Dictionary:
                 self._update_index('forms', chain(*entry.forms.values()), entry, 'remove')
                 self._counters['gram_forms'] -= entry.n_gram_forms
                 self._counters['word_forms'] -= entry.n_word_forms
-                entry.forms.delete_ctg_value(index, ctg_value)
+                entry.forms._delete_ctg_value(index, ctg_value)
                 self._counters['gram_forms'] += entry.n_gram_forms
                 self._counters['word_forms'] += entry.n_word_forms
                 self._update_index('forms', chain(*entry.forms.values()), entry, 'add')
@@ -1105,7 +1105,7 @@ class Dictionary:
             return
 
         for entry in self._indexes['tags'][tag_old]:
-            entry.tags.edit(tag_old, tag_new)
+            entry.tags._edit(tag_old, tag_new)
 
         tag_id = self._tags.index(tag_old)
 
@@ -1152,7 +1152,7 @@ class Dictionary:
         entries = self._indexes['tags'][tag]
 
         for entry in entries:
-            entry.tags.delete(tag)
+            entry.tags._delete(tag)
 
         self._update_index('tags', tag, entries, 'remove')
 

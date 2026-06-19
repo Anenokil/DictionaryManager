@@ -36,7 +36,7 @@ class Translations:
     def __str__(self) -> str:
         return str(self._data)
 
-    def add(self, translation: Translation) -> tuple[bool, int]:
+    def _add(self, translation: Translation) -> tuple[bool, int]:
         """
         Add a new translation.
 
@@ -55,7 +55,7 @@ class Translations:
             self._data.append(translation)
             return True, 1
 
-    def edit(self, translation: Translation, new_translation: Translation) -> tuple[bool, int]:
+    def _edit(self, translation: Translation, new_translation: Translation) -> tuple[bool, int]:
         """
         Replace an existing translation with a new translation.
 
@@ -80,7 +80,7 @@ class Translations:
             self._data[index] = new_translation
             return True, 0
 
-    def delete(self, translation: Translation):
+    def _delete(self, translation: Translation):
         """
         Delete a translation.
 
@@ -132,7 +132,7 @@ class Forms:
     def items(self):
         return self._data.items()
 
-    def add(self, gram_form: GramForm, word_form: WordForm) -> tuple[bool, int, int]:
+    def _add(self, gram_form: GramForm, word_form: WordForm) -> tuple[bool, int, int]:
         """
         Add a new inflected form.
 
@@ -157,7 +157,7 @@ class Forms:
             self._data[gram_form] = [word_form]
             return True, 1, 1
 
-    def edit(
+    def _edit(
             self,
             gram_form: GramForm,
             word_form: WordForm,
@@ -193,11 +193,11 @@ class Forms:
                 word_forms[index] = new_word_form
                 return True, 0, 0
         else:
-            m1, g1, w1 = self.delete(gram_form, word_form)
-            m2, g2, w2 = self.add(new_gram_form, new_word_form)
+            m1, g1, w1 = self._delete(gram_form, word_form)
+            m2, g2, w2 = self._add(new_gram_form, new_word_form)
             return m1 or m2, g1 + g2, w1 + w2
 
-    def delete(self, gram_form: GramForm, word_form: WordForm) -> tuple[bool, int, int]:
+    def _delete(self, gram_form: GramForm, word_form: WordForm) -> tuple[bool, int, int]:
         """
         Remove an inflected form.
 
@@ -219,7 +219,7 @@ class Forms:
             self._data.pop(gram_form)
             return True, -1, -1
 
-    def add_ctg(self):
+    def _add_ctg(self):
         """Add a new empty category to all grammatical form tuples."""
 
         def update_gram_form(gram_form: GramForm) -> GramForm:
@@ -230,7 +230,7 @@ class Forms:
             for gram_form, word_forms in self._data.items()
         }
 
-    def delete_ctg(self, pos: int):
+    def _delete_ctg(self, pos: int):
         """
         Delete the category at the specified position from all grammatical form tuples.
 
@@ -250,7 +250,7 @@ class Forms:
             if gram_form[pos] == ''
         }
 
-    def rename_ctg_value(self, pos: int, old_ctg_val: CtgValue, new_ctg_val: CtgValue):
+    def _rename_ctg_value(self, pos: int, old_ctg_val: CtgValue, new_ctg_val: CtgValue):
         """
         Rename the specified category value in all grammatical form tuples.
 
@@ -270,7 +270,7 @@ class Forms:
             for gram_form, word_forms in self._data.items()
         }
 
-    def delete_ctg_value(self, pos: int, ctg_val: CtgValue):
+    def _delete_ctg_value(self, pos: int, ctg_val: CtgValue):
         """
         Delete the specified category value from all grammatical form tuples.
 
@@ -328,7 +328,7 @@ class Phrases:
     def items(self):
         return self._data.items()
 
-    def add(self, phrase: Phrase, phrase_tr: PhraseTr) -> tuple[bool, int, int]:
+    def _add(self, phrase: Phrase, phrase_tr: PhraseTr) -> tuple[bool, int, int]:
         """
         Add a new phrase/usage example with its translation.
 
@@ -353,7 +353,7 @@ class Phrases:
             self._data[phrase] = [phrase_tr]
             return True, 1, 1
 
-    def edit(
+    def _edit(
             self,
             phrase: Phrase,
             phrase_tr: PhraseTr,
@@ -389,11 +389,11 @@ class Phrases:
                 phrase_trs[index] = new_phrase_tr
                 return True, 0, 0
         else:
-            m1, p1, t1 = self.delete(phrase, phrase_tr)
-            m2, p2, t2 = self.add(new_phrase, new_phrase_tr)
+            m1, p1, t1 = self._delete(phrase, phrase_tr)
+            m2, p2, t2 = self._add(new_phrase, new_phrase_tr)
             return m1 or m2, p1 + p2, t1 + t2
 
-    def delete(self, phrase: Phrase, phrase_tr: PhraseTr) -> tuple[bool, int, int]:
+    def _delete(self, phrase: Phrase, phrase_tr: PhraseTr) -> tuple[bool, int, int]:
         """
         Remove a phrase and its translation.
 
@@ -440,7 +440,7 @@ class Notes:
     def __str__(self) -> str:
         return str(self._data)
 
-    def add(self, note: Note) -> tuple[bool, int]:
+    def _add(self, note: Note) -> tuple[bool, int]:
         """
         Add a new note.
 
@@ -459,7 +459,7 @@ class Notes:
             self._data.append(note)
             return True, 1
 
-    def edit(self, note: Note, new_note: Note) -> tuple[bool, int]:
+    def _edit(self, note: Note, new_note: Note) -> tuple[bool, int]:
         """
         Replace an existing note with a new note.
 
@@ -484,7 +484,7 @@ class Notes:
             self._data[index] = new_note
             return True, 0
 
-    def delete(self, note: Note):
+    def _delete(self, note: Note):
         """
         Remove a note.
 
@@ -514,7 +514,7 @@ class Tags:
     def __str__(self) -> str:
         return str(self._data)
 
-    def add(self, tag: Tag) -> tuple[bool, int]:
+    def _add(self, tag: Tag) -> tuple[bool, int]:
         """
         Add a new tag.
 
@@ -533,7 +533,7 @@ class Tags:
             self._data.add(tag)
             return True, 1
 
-    def edit(self, tag: Tag, new_tag: Tag) -> tuple[bool, int]:
+    def _edit(self, tag: Tag, new_tag: Tag) -> tuple[bool, int]:
         """
         Rename an existing tag.
 
@@ -558,7 +558,7 @@ class Tags:
             self._data.add(new_tag)
             return True, 0
 
-    def delete(self, tag: Tag):
+    def _delete(self, tag: Tag):
         """
         Remove a tag.
 
@@ -826,17 +826,17 @@ class Entry:
 
     def merge(self, other: 'Entry'):
         for tr in other.tr:
-            self.tr.add(tr)
+            self.tr._add(tr)
         for gram_form, word_forms in other.forms.items():
             for word_form in word_forms:
-                self.forms.add(gram_form, word_form)
+                self.forms._add(gram_form, word_form)
         for phrase in other.phrases.keys():
             for phrase_tr in other.phrases[phrase]:
-                self.phrases.add(phrase, phrase_tr)
+                self.phrases._add(phrase, phrase_tr)
         for note in other.notes:
-            self.notes.add(note)
+            self.notes._add(note)
         for tag in other.tags:
-            self.tags.add(tag)
+            self.tags._add(tag)
         if other.is_fav:
             self.is_fav = True
         self._total_att += other._total_att
