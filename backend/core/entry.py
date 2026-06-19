@@ -824,6 +824,13 @@ class Entry:
             self._win_streak -= 1
         self._latest_att_timestamp = timestamp
 
+    def reset_stats(self):
+        """Reset learning statistics."""
+
+        self._total_att = 0
+        self._correct_att = 0
+        self._win_streak = 0
+
     def merge(self, other: 'Entry'):
         for tr in other.tr:
             self.tr._add(tr)
