@@ -373,22 +373,21 @@ class Trainer:
         entry, gram_form, phrase = self._pool.pop(0)
 
         if self._config.format == TrainingFormat.WORD_TO_TRANS:
-            lemma = entry.lemma
-            homonyms = self.dct.search(lemma=lemma)
+            related = self.dct.search(lemma=entry.lemma)
         elif self._config.format == TrainingFormat.TRANS_TO_WORD:
-            translations = entry.tr
-            homonyms = self.dct.search(translations=translations)
+            related = set().union(*(
+                self.dct.search(translations=[tr]) for tr in entry.tr
+            ))
         elif self._config.format == TrainingFormat.ARTICLES_GERMAN:
-            lemma = entry.lemma
-            homonyms = {
-                e for e in self.dct.search(lemma=lemma)
-                if has_article(entry.lemma.lower(), ('der ', 'die ', 'das '))
+            related = {
+                e for e in self.dct.search(lemma=entry.lemma)
+                if has_article(e.lemma.lower(), ('der ', 'die ', 'das '))
             }
         else:
-            homonyms = set()
-        homonyms -= {entry}
+            related = set()
+        related -= {entry}
 
-        self._current_task = entry, gram_form, phrase, homonyms
+        self._current_task = entry, gram_form, phrase, related
         return self._current_task
 
     def get_correct_answers(self) -> list[str]:
