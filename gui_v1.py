@@ -546,23 +546,26 @@ def replacement_repr(input_pair: tuple[str, str], output: str) -> str:
 """ Вспомогательные функции """
 
 
+# Есть ли слово в строке
+def word_in_line(word: str, line: str) -> bool:
+    words = re.split(r'[.,;:!? \n()\[\]{}]', line)
+    words = {w for w in words if w != ''}
+    return word in words
+
+
 # Заменить буквы в тексте соответствующими английскими
-def normalize(text: str) -> tuple[str, list[str]]:
-    converted_text = ''
-    transformations = []
+def normalize(text: str) -> str:
+    special_map = {
+        'ß': 'ss', 'ẞ': 'SS',
+        'æ': 'ae', 'Æ': 'AE',
+        'œ': 'oe', 'Œ': 'OE',
+        'ø': 'o',  'Ø': 'O',
+    }
 
-    for char in text:
-        if char in ('ä', 'Ä', 'ë', 'Ë', 'ö', 'Ö', 'ü', 'Ü', 'ß', 'ẞ'):
-            idx = ('ä', 'Ä', 'ë', 'Ë', 'ö', 'Ö', 'ü', 'Ü', 'ß', 'ẞ').index(char)
-            converted_text += ('a', 'A', 'e', 'E', 'o', 'O', 'u', 'U', 'ss', 'SS')[idx]
-            transformations += (
-                ['ä'], ['Ä'], ['ë'], ['Ë'], ['ö'], ['Ö'], ['ü'], ['Ü'], ['ß', ''], ['ẞ', '']
-            )[idx]
-        else:
-            converted_text += char
-            transformations.append(char)
-
-    return converted_text.lower(), transformations
+    text = ''.join(special_map.get(ch, ch) for ch in text)
+    text = unicodedata.normalize('NFKD', text)
+    text = ''.join(ch for ch in text if not unicodedata.combining(ch))
+    return text.lower()
 
 
 # Разделить строку на слова
@@ -901,90 +904,56 @@ def delete_ctg_value(
     return True
 
 
-# Есть ли слово в строке
-def word_in_line(line: str, word: str) -> bool:
-    words = re.split(r'[.,;:!? \n()\[\]{}]', line)
-    words = {w for w in words if w != ''}
-    return word in words
-
-
 # Поиск статей в словаре
 def search_entries(
         entries: Iterable[Entry],
         query: str,
-        to_search_wrd: bool,
+        to_search_lemma: bool,
         to_search_tr: bool,
         to_search_frm: bool,
         to_search_phr: bool,
         to_search_nt: bool,
 ) -> list[set[Entry]]:
-    normalized_query_1 = query.lower()
-    normalized_query_2 = normalize(query)[0].replace('ё', 'е')
+    query_lower = query.lower()
+    query_norm = normalize(query)
+
     results = [set() for _ in range(9)]
     for entry in entries:
-        # Все фразы и переводы фраз для данной статьи
-        phrases = list(entry.phrases.keys())
-        for phrase in entry.phrases.keys():
-            for phrase_tr in entry.phrases[phrase]:
-                phrases.append(phrase_tr)
+        targets = set()
+        if to_search_lemma:
+            targets.add(entry.lemma)
+        if to_search_tr:
+            targets.update(entry.tr)
+        if to_search_frm:
+            targets.update(*entry.forms.values())
+        if to_search_phr:
+            targets.update(entry.phrases.keys())
+            targets.update(*entry.phrases.values())
+        if to_search_nt:
+            targets.update(entry.notes)
 
-        # TODO: code style
+        targets_lower = {val.lower() for val in targets}
+        targets_norm = {normalize(val) for val in targets}
 
-        if to_search_wrd and query == entry.lemma or\
-           to_search_tr  and query in entry.tr or\
-           to_search_frm and query in chain(*entry.forms.values()) or\
-           to_search_phr and query in phrases or\
-           to_search_nt  and query in entry.notes:
+        if query in targets:
             results[0].add(entry)
-        elif to_search_wrd and normalized_query_1 == entry.lemma.lower() or\
-             to_search_tr  and normalized_query_1 in [ tr.lower() for tr  in entry.tr] or\
-             to_search_frm and normalized_query_1 in [frm.lower() for frm in chain(*entry.forms.values())] or\
-             to_search_phr and normalized_query_1 in [phr.lower() for phr in phrases] or\
-             to_search_nt  and normalized_query_1 in [ nt.lower() for nt  in entry.notes]:
+        elif query_lower in targets_lower:
             results[1].add(entry)
-        elif to_search_wrd and normalized_query_2 == normalize(entry.lemma)[0].replace('ё', 'е') or\
-             to_search_tr  and normalized_query_2 in [normalize( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
-             to_search_frm and normalized_query_2 in [normalize(frm)[0].replace('ё', 'е') for frm in chain(*entry.forms.values())] or\
-             to_search_phr and normalized_query_2 in [normalize(phr)[0].replace('ё', 'е') for phr in phrases] or\
-             to_search_nt  and normalized_query_2 in [normalize( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
+        elif query_norm in targets_norm:
             results[2].add(entry)
 
-        elif to_search_wrd and word_in_line(entry.lemma, query) or\
-             to_search_tr  and True in [word_in_line( tr, query) for tr  in entry.tr] or\
-             to_search_frm and True in [word_in_line(frm, query) for frm in chain(*entry.forms.values())] or\
-             to_search_phr and True in [word_in_line(phr, query) for phr in phrases] or\
-             to_search_nt  and True in [word_in_line( nt, query) for nt  in entry.notes]:
+        elif any(word_in_line(query, val) for val in targets):
             results[3].add(entry)
-        elif to_search_wrd and word_in_line(entry.lemma.lower(), normalized_query_1) or\
-             to_search_tr  and True in [word_in_line( tr.lower(), normalized_query_1) for tr  in entry.tr] or\
-             to_search_frm and True in [word_in_line(frm.lower(), normalized_query_1) for frm in chain(*entry.forms.values())] or\
-             to_search_phr and True in [word_in_line(phr.lower(), normalized_query_1) for phr in phrases] or\
-             to_search_nt  and True in [word_in_line( nt.lower(), normalized_query_1) for nt  in entry.notes]:
+        elif any(word_in_line(query_lower, val.lower()) for val in targets_lower):
             results[4].add(entry)
-        elif to_search_wrd and word_in_line(normalize(entry.lemma)[0].replace('ё', 'е'), normalized_query_2) or\
-             to_search_tr  and True in [word_in_line(normalize( tr)[0].replace('ё', 'е'), normalized_query_2) for tr  in entry.tr] or\
-             to_search_frm and True in [word_in_line(normalize(frm)[0].replace('ё', 'е'), normalized_query_2) for frm in chain(*entry.forms.values())] or\
-             to_search_phr and True in [word_in_line(normalize(phr)[0].replace('ё', 'е'), normalized_query_2) for phr in phrases] or\
-             to_search_nt  and True in [word_in_line(normalize( nt)[0].replace('ё', 'е'), normalized_query_2) for nt  in entry.notes]:
+        elif any(word_in_line(query_norm, normalize(val)) for val in targets_norm):
             results[5].add(entry)
 
-        elif to_search_wrd and query in entry.lemma or\
-             to_search_tr  and True in [query in tr  for tr  in entry.tr] or\
-             to_search_frm and True in [query in frm for frm in chain(*entry.forms.values())] or\
-             to_search_phr and True in [query in phr for phr in phrases] or\
-             to_search_nt  and True in [query in nt  for nt  in entry.notes]:
+        elif any(query in val for val in targets):
             results[6].add(entry)
-        elif to_search_wrd and normalized_query_1 in entry.lemma.lower() or\
-             to_search_tr  and True in [normalized_query_1 in  tr.lower() for tr  in entry.tr] or\
-             to_search_frm and True in [normalized_query_1 in frm.lower() for frm in chain(*entry.forms.values())] or\
-             to_search_phr and True in [normalized_query_1 in phr.lower() for phr in phrases] or\
-             to_search_nt  and True in [normalized_query_1 in  nt.lower() for nt  in entry.notes]:
+        elif any(query_lower in val.lower() for val in targets_lower):
             results[7].add(entry)
-        elif to_search_wrd and normalized_query_2 in normalize(entry.lemma)[0].replace('ё', 'е') or\
-             to_search_tr  and True in [normalized_query_2 in normalize( tr)[0].replace('ё', 'е') for tr  in entry.tr] or\
-             to_search_frm and True in [normalized_query_2 in normalize(frm)[0].replace('ё', 'е') for frm in chain(*entry.forms.values())] or\
-             to_search_phr and True in [normalized_query_2 in normalize(phr)[0].replace('ё', 'е') for phr in phrases] or\
-             to_search_nt  and True in [normalized_query_2 in normalize( nt)[0].replace('ё', 'е') for nt  in entry.notes]:
+        elif any(query_norm in normalize(val) for val in targets_norm):
             results[8].add(entry)
     return results
 
