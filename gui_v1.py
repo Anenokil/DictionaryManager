@@ -133,6 +133,41 @@ def check_dct_name_edit(
     return True
 
 
+# Проверить корректность варианта написания
+def check_variant(
+        window_parent: tk.Misc,
+        app_data: AppData,
+        variants: list[str] | tuple[str, ...],
+        new_variant: str,
+        lemma: str,
+) -> bool:
+    if new_variant == '':
+        warning(window_parent, app_data, 'Вариант написания должен содержать хотя бы один символ!')
+        return False
+    if new_variant in variants:
+        warning(window_parent, app_data, f'У слова "{lemma}" уже есть такой вариант написания!')
+        return False
+    return True
+
+
+# Проверить корректность варианта написания при изменении
+def check_variant_edit(
+        window_parent: tk.Misc,
+        app_data: AppData,
+        variants: list[str] | tuple[str, ...],
+        old_variant: str,
+        new_variant: str,
+        lemma: str,
+) -> bool:
+    if new_variant == '':
+        warning(window_parent, app_data, 'Вариант написания должен содержать хотя бы один символ!')
+        return False
+    if new_variant in variants and new_variant != old_variant:
+        warning(window_parent, app_data, f'У слова "{lemma}" уже есть вариант написания!')
+        return False
+    return True
+
+
 # Проверить корректность перевода
 def check_tr(
         window_parent: tk.Misc,
@@ -362,6 +397,13 @@ def is_splittable(line: str) -> bool:
 """ Функции вывода """
 
 
+def variants_repr(entry: Entry) -> str:
+    res = str(entry.lemma)
+    if entry.n_variants > 1:
+        res += f' ({', '.join(entry.variants[1:])})'
+    return res
+
+
 # Вывести переводы
 def tr_repr(entry: Entry) -> str:
     return ', '.join(entry.tr)
@@ -430,7 +472,7 @@ def entry_stats_repr(entry: Entry) -> str:
 # Служебная функция для entry_repr_brief и entry_repr_details
 def _entry_repr_brief(entry: Entry) -> str:
     fav = '(*)' if entry.is_fav else '   '
-    return f'{fav} {entry_stats_repr(entry)} {entry.lemma}: {tr_repr(entry)}'
+    return f'{fav} {entry_stats_repr(entry)} {variants_repr(entry)}: {tr_repr(entry)}'
 
 
 # Вывести статью - кратко
@@ -454,7 +496,7 @@ def entry_repr_details(entry: Entry, str_len: int) -> str:
 
 # Вывести статью - со всей информацией
 def entry_repr_complete(entry: Entry, str_len: int, tab: int = 0) -> str:
-    res  = f'      Слово: {entry.lemma}\n'
+    res  = f'      Слово: {variants_repr(entry)}\n'
     res += f'    Перевод: {tr_repr(entry)}\n'
 
     res += f'Формы слова: '
@@ -491,7 +533,7 @@ def entry_repr_complete(entry: Entry, str_len: int, tab: int = 0) -> str:
 
 # Вывести слово со статистикой
 def lemma_and_stats_repr(entry: Entry) -> str:
-    return f'{entry.lemma} {entry_stats_repr(entry)}'
+    return f'{variants_repr(entry)} {entry_stats_repr(entry)}'
 
 
 # Вывести перевод со статистикой
@@ -692,15 +734,16 @@ def select_entry(app_data: AppData, window_parent: tk.Misc, lemma: str) -> Entry
 
 
 # Изменить слово в статье
-def edit_lemma_to_homograph(
+def edit_variant_or_merge(
         app_data: AppData,
         window_parent: tk.Misc,
         entry: Entry,
-        new_lemma: str,
+        old_variant: str,
+        new_variant: str,
 ) -> tuple[Entry | None, bool]:
     dct = app_data.manager.active.dct
 
-    if dct.search(lemma=new_lemma):  # Если в словаре уже есть статья с таким словом
+    if dct.search(lemma=new_variant):  # Если в словаре уже есть статья с таким словом
         window = TwoOptionsDialog(
             window_parent, app_data,
             'Статья с таким словом уже есть в словаре\n'
@@ -712,18 +755,18 @@ def edit_lemma_to_homograph(
         )
         result = window.open()
         if result == 'l':  # Добавить к существующей статье
-            new_entry = select_entry(app_data, window_parent, new_lemma)
+            new_entry = select_entry(app_data, window_parent, new_variant)
             if not new_entry:
                 return entry, False
             dct.merge_entries(new_entry, entry)
             return new_entry, True
         elif result == 'r':  # Оставить отдельной статьёй
-            dct.edit_lemma(entry, new_lemma)
+            dct.edit_variant(entry, old_variant, new_variant)
             return entry, True
         else:
             return entry, False
-    else:  # Если в словаре ещё нет статьи с таким словом, то она создаётся
-        dct.edit_lemma(entry, new_lemma)
+    else:  # Если в словаре ещё нет статьи с таким словом
+        dct.edit_variant(entry, old_variant, new_variant)
         return entry, True
 
 
@@ -921,7 +964,7 @@ def search_entries(
     for entry in entries:
         targets = set()
         if to_search_lemma:
-            targets.add(entry.lemma)
+            targets.update(entry.variants)
         if to_search_tr:
             targets.update(entry.tr)
         if to_search_frm:
@@ -2476,6 +2519,10 @@ class EditEntryW(tk.Toplevel):
         self.img_add = tk.PhotoImage()
         self.img_help = tk.PhotoImage()
 
+        self.variants = []
+        self.var_frames = []
+        self.var_buttons = []
+        #
         self.translations = []
         self.tr_frames = []
         self.tr_buttons = []
@@ -2529,28 +2576,20 @@ class EditEntryW(tk.Toplevel):
 
         self.frame_main = create_frame(self, row=0, columnspan=3, padx=6, pady=(6, 4))
 
-        self.lbl_wrd = create_label(
+        self.lbl_variants = create_label(
             self.frame_main, 'Слово:',
             row=0, column=0, padx=(6, 1), pady=(6, 3), sticky='E')
-        self.scrollbar_wrd = ttk.Scrollbar(self.frame_main, style='Vertical.TScrollbar')
-        self.scrollbar_wrd.grid(
-            row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
-        self.txt_wrd = tk.Text(
-            self.frame_main, width=self.line_width,
-            yscrollcommand=self.scrollbar_wrd.set, relief='solid',
-            font=('DejaVu Sans Mono', self.app_data.ui_settings.scale + 1),
-            bg=STYLES['*.BG.ENTRY'][1][self.app_data.ui_settings.theme],
-            fg=STYLES['*.FG.*'][1][self.app_data.ui_settings.theme],
-            selectbackground=STYLES['*.BG.SEL'][1][self.app_data.ui_settings.theme],
-            selectforeground=STYLES['*.FG.SEL'][1][self.app_data.ui_settings.theme],
-            highlightbackground=STYLES['*.BORDER_CLR.*'][1][self.app_data.ui_settings.theme])
-        self.txt_wrd.grid(
-            row=0, column=1, padx=(0, 1), pady=(6, 3), sticky='W')
-        self.scrollbar_wrd.config(command=self.txt_wrd.yview)
-        self.btn_wrd_edt = create_button(
-            self.frame_main, self.edit_lemma, width=4,
-            row=0, column=3, padx=(3, 6), pady=(6, 3), sticky='W')
-        set_image(self.btn_wrd_edt, self.img_edit, img_path(theme, 'edit'), 'изм.')
+        self.scrolled_frame_variants = ScrollFrame(
+            self.frame_main, self.app_data,
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
+        self.scrolled_frame_variants.grid(
+            row=0, column=1, padx=(0, 1), pady=(6, 3), sticky='WE')
+        self.btn_variant_add = create_button(
+            self.frame_main, self.add_variant, width=2,
+            row=0, column=2, padx=(3, 6), pady=(6, 3), sticky='W')
+        set_image(self.btn_variant_add, self.img_add, img_path(theme, 'add'), '+')
+
         self.lbl_tr = create_label(
             self.frame_main, text='Перевод:',
             row=1, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
@@ -2559,11 +2598,12 @@ class EditEntryW(tk.Toplevel):
             SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
             SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame_tr.grid(
-            row=1, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+            row=1, column=1, padx=(0, 1), pady=(0, 3), sticky='WE')
         self.btn_tr_add = create_button(
             self.frame_main, self.add_translation, width=2,
-            row=1, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
+            row=1, column=2, padx=(3, 6), pady=(0, 3), sticky='W')
         set_image(self.btn_tr_add, self.img_add, img_path(theme, 'add'), '+')
+
         self.lbl_frm = create_label(
             self.frame_main, text='Формы слова:',
             row=2, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
@@ -2572,11 +2612,12 @@ class EditEntryW(tk.Toplevel):
             SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
             SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame_frm.grid(
-            row=2, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+            row=2, column=1, padx=(0, 1), pady=(0, 3), sticky='WE')
         self.btn_frm_add = create_button(
             self.frame_main, self.add_form, width=2,
-            row=2, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
+            row=2, column=2, padx=(3, 6), pady=(0, 3), sticky='W')
         set_image(self.btn_frm_add, self.img_add, img_path(theme, 'add'), '+')
+
         self.lbl_phrases = create_label(
             self.frame_main, 'Фразы:',
             row=3, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
@@ -2585,11 +2626,12 @@ class EditEntryW(tk.Toplevel):
             SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
             SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame_phr.grid(
-            row=3, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+            row=3, column=1, padx=(0, 1), pady=(0, 3), sticky='WE')
         self.btn_phrase_add = create_button(
             self.frame_main, self.add_phrase, width=2,
-            row=3, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
+            row=3, column=2, padx=(3, 6), pady=(0, 3), sticky='W')
         set_image(self.btn_phrase_add, self.img_add, img_path(theme, 'add'), '+')
+
         self.lbl_notes = create_label(
             self.frame_main, 'Сноски:',
             row=4, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
@@ -2598,11 +2640,12 @@ class EditEntryW(tk.Toplevel):
             SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
             SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame_nt.grid(
-            row=4, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+            row=4, column=1, padx=(0, 1), pady=(0, 3), sticky='WE')
         self.btn_note_add = create_button(
             self.frame_main, self.add_note, width=2,
-            row=4, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
+            row=4, column=2, padx=(3, 6), pady=(0, 3), sticky='W')
         set_image(self.btn_note_add, self.img_add, img_path(theme, 'add'), '+')
+
         self.lbl_gr = create_label(
             self.frame_main, 'Группы:',
             row=5, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
@@ -2611,11 +2654,12 @@ class EditEntryW(tk.Toplevel):
             SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
             SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
         self.scrolled_frame_gr.grid(
-            row=5, column=1, columnspan=2, padx=(0, 1), pady=(0, 3), sticky='WE')
+            row=5, column=1, padx=(0, 1), pady=(0, 3), sticky='WE')
         self.btn_gr_add = create_button(
             self.frame_main, self.add_tag, width=2,
-            row=5, column=3, padx=(3, 6), pady=(0, 3), sticky='W')
+            row=5, column=2, padx=(3, 6), pady=(0, 3), sticky='W')
         set_image(self.btn_gr_add, self.img_add, img_path(theme, 'add'), '+')
+
         self.lbl_fav = create_label(
             self.frame_main, 'Избранное:',
             row=6, column=0, padx=(6, 1), pady=(0, 6), sticky='E')
@@ -2623,9 +2667,9 @@ class EditEntryW(tk.Toplevel):
             self.frame_main, self.var_fav, command=self.set_fav,
             row=6, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
 
-        if self.btn_wrd_edt['style'] == 'Image.TButton':
-            self.tip_btn_wrd_edt = ttip.Hovertip(
-                self.btn_wrd_edt, 'Изменить слово', hover_delay=500)
+        if self.btn_variant_add['style'] == 'Image.TButton':
+            self.tip_btn_wrd_add = ttip.Hovertip(
+                self.btn_variant_add, 'Добавить вариант написания', hover_delay=500)
         if self.btn_tr_add['style'] == 'Image.TButton':
             self.tip_btn_tr_add = ttip.Hovertip(
                 self.btn_tr_add, 'Добавить перевод', hover_delay=500)
@@ -2642,28 +2686,55 @@ class EditEntryW(tk.Toplevel):
             self.tip_btn_gr_add = ttip.Hovertip(
                 self.btn_gr_add, 'Добавить группу', hover_delay=500)
 
-    # Изменить слово
-    def edit_lemma(self):
+    # Добавить вариант написания
+    def add_variant(self):
+        window = InputDialog(
+            self, self.app_data,
+            'Введите новый вариант написания',
+            check_answer_function=lambda wnd, val: check_variant(
+                wnd, self.app_data, tuple(self.entry.variants),
+                val, self.entry.lemma,
+            ),
+        )
+        cancelled, variant = window.open()
+        if cancelled:
+            return
+
+        self.dct.add_variant(self.entry, variant)
+
+        self.refresh(False)
+
+    # Изменить вариант написания
+    def edit_variant(self, variant: str):
         window = InputDialog(
             self, self.app_data,
             'Введите новое слово',
-            default_value=self.entry.lemma,
-            check_answer_function=lambda wnd, val: check_not_void(
-                wnd, self.app_data, val, 'Слово должно содержать хотя бы один символ!'
+            default_value=variant,
+            check_answer_function=lambda wnd, val: check_variant_edit(
+                wnd, self.app_data, tuple(self.entry.variants),
+                variant, val, self.entry.lemma,
             ),
         )
-        cancelled, new_wrd = window.open()
+        cancelled, new_variant = window.open()
         if cancelled:
             return
-        if new_wrd == self.entry.lemma:
-            return
 
-        new_entry, has_progres = edit_lemma_to_homograph(
-            self.app_data, self, self.entry, new_wrd
+        new_entry, has_progres = edit_variant_or_merge(
+            self.app_data, self, self.entry, variant, new_variant
         )
         if not has_progres:
             return
         self.entry = new_entry
+
+        self.refresh(False)
+
+    # Удалить вариант написания
+    def remove_variant(self, variant: str):
+        if len(self.variants) == 1:
+            warning(self, self.app_data, 'Вы не можете удалить единственный вариант написания!')
+            return
+
+        self.dct.delete_variant(self.entry, variant)
 
         self.refresh(False)
 
@@ -2906,35 +2977,16 @@ class EditEntryW(tk.Toplevel):
 
     # Обновить поля
     def refresh(self, move_scroll: bool):
-        # Обновляем поле со словом
-        self.txt_wrd['state'] = 'normal'
-        self.txt_wrd.delete(1.0, tk.END)
-        self.txt_wrd.insert(tk.END, self.entry.lemma)
-        self.txt_wrd['state'] = 'disabled'
-
-        height_w = max(
-            min(
-                field_height(self.entry.lemma, self.line_width),
-                self.max_height_w
-            ), 1
-        )
-        self.txt_wrd['height'] = height_w
-
-        if height_w < self.max_height_w:
-            self.scrollbar_wrd.grid_remove()
-        else:
-            self.scrollbar_wrd.grid(row=0, column=2, padx=(0, 1), pady=(6, 3), sticky='NSW')
-
         # Удаляем старые кнопки
         for btn in (
-                self.tr_buttons + self.nt_buttons + self.phr_buttons +
-                self.frm_buttons + self.gr_buttons
+                self.var_buttons + self.tr_buttons + self.nt_buttons +
+                self.phr_buttons + self.frm_buttons + self.gr_buttons
         ):
             btn.destroy()
         # Удаляем старые фреймы
         for fr in (
-                self.tr_frames + self.nt_frames + self.phr_frames +
-                self.frm_frames + self.gr_frames
+                self.var_frames + self.tr_frames + self.nt_frames +
+                self.phr_frames + self.frm_frames + self.gr_frames
         ):
             fr.unbind('<Enter>')
             fr.unbind('<Control-D>')
@@ -2943,6 +2995,7 @@ class EditEntryW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем содержимое
+        self.variants = [var for var in self.entry.variants]
         self.translations = [tr for tr in self.entry.tr]
         self.notes = [note for note in self.entry.notes]
         self.phrases = []
@@ -2954,6 +3007,8 @@ class EditEntryW(tk.Toplevel):
             for word_form in word_forms:
                 self.forms.append((gram_form, word_form))
         self.tags = list(self.entry.tags)
+
+        var_count = len(self.variants)
         tr_count = len(self.translations)
         nt_count = len(self.notes)
         phr_count = len(self.phrases)
@@ -2961,6 +3016,12 @@ class EditEntryW(tk.Toplevel):
         gr_count = len(self.tags)
 
         # Создаём новые фреймы
+        self.var_frames = tuple(
+            create_frame(
+                self.scrolled_frame_variants.frame_canvas, 'Invis.TFrame',
+                row=i, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(var_count)
+        )
         self.tr_frames = tuple(
             create_frame(
                 self.scrolled_frame_tr.frame_canvas, 'Invis.TFrame',
@@ -2993,6 +3054,18 @@ class EditEntryW(tk.Toplevel):
         )
 
         # Создаём новые кнопки
+        self.var_buttons = [
+            create_button(
+                self.var_frames[i],
+                lambda i=i: self.edit_variant(self.variants[i]),
+                style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
+                row=0, column=0, padx=0, pady=0, sticky='WE',
+            ) for i in range(var_count)
+        ]
+        for i in range(var_count):
+            variant = self.variants[i]
+            self.var_buttons[i].configure(text=split_text(variant, 35))
+
         self.tr_buttons = [
             create_button(
                 self.tr_frames[i],
@@ -3056,6 +3129,13 @@ class EditEntryW(tk.Toplevel):
             self.gr_buttons[i].configure(text=split_text(tag, 35))
 
         # Привязываем события
+        for i in range(var_count):
+            self.var_frames[i].bind('<Enter>', lambda event, i=i: self.var_frames[i].focus_set())
+            self.var_frames[i].bind('<Leave>', lambda event: self.focus_set())
+            self.var_frames[i].bind(
+                '<Control-d>', lambda event, i=i: self.remove_variant(self.variants[i]))
+            self.var_frames[i].bind(
+                '<Control-D>', lambda event, i=i: self.remove_variant(self.variants[i]))
         for i in range(tr_count):
             self.tr_frames[i].bind('<Enter>', lambda event, i=i: self.tr_frames[i].focus_set())
             self.tr_frames[i].bind('<Leave>', lambda event: self.focus_set())
@@ -3093,6 +3173,13 @@ class EditEntryW(tk.Toplevel):
                 '<Control-D>', lambda event, i=i: self.remove_tag(self.tags[i]))
 
         # Изменяем высоту полей
+        self.scrolled_frame_variants.resize(
+            height=max(1, min(sum([
+                field_height(btn['text'], 35)
+                for btn in self.var_buttons
+            ]), self.max_height_t)) *
+            SCALE_FRAME_HEIGHT_ONE_LINE[self.app_data.ui_settings.scale - SCALE_MIN]
+        )
         self.scrolled_frame_tr.resize(
             height=max(1, min(sum([
                 field_height(btn['text'], 35)
@@ -3131,6 +3218,7 @@ class EditEntryW(tk.Toplevel):
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
+            self.scrolled_frame_variants.canvas.yview_moveto(0.0)
             self.scrolled_frame_tr.canvas.yview_moveto(0.0)
             self.scrolled_frame_nt.canvas.yview_moveto(0.0)
             self.scrolled_frame_phr.canvas.yview_moveto(0.0)
@@ -5207,7 +5295,7 @@ class TrainingW(tk.Toplevel):
     # Просмотр слова с переводом
     def show_word_and_tr(self):
         entry = self.current_entry
-        self.print(f'Слово: {entry.lemma}\n'
+        self.print(f'Слово: {variants_repr(entry)}\n'
                    f'Перевод: {tr_repr(entry)}')
         btn_disable(self.btn_show_word_and_tr)
 
@@ -5224,7 +5312,7 @@ class TrainingW(tk.Toplevel):
     def show_homonyms(self):
         self.print('Омонимы:')
         for entry in self.homonyms:
-            self.print(f'> {entry.lemma}: {tr_repr(entry)}')
+            self.print(f'> {variants_repr(entry)}: {tr_repr(entry)}')
         btn_disable(self.btn_show_homonyms)
 
     # Нажатие на кнопку "Закончить"
@@ -7137,7 +7225,11 @@ class AddEntryW(tk.Toplevel):
             else:
                 btn_enable(self.btn_add, self.on_add_clicked)
 
-            words = {entry.lemma for entry in self.dct}
+            words = {
+                variant
+                for entry in self.dct
+                for variant in entry.variants
+            }
 
             if value_word in words:
                 entries_with_this_word = self.dct.search(lemma=value_word)

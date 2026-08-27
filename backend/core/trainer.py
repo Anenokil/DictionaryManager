@@ -405,7 +405,7 @@ class Trainer:
 
         if self._config.format == TrainingFormat.TRANS_TO_WORD:
             if gram_form is None:
-                correct_answers = [entry.lemma]
+                correct_answers = entry.variants
             else:
                 correct_answers = entry.forms[gram_form]
         elif self._config.format == TrainingFormat.WORD_TO_TRANS:

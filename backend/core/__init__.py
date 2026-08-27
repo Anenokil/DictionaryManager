@@ -12,7 +12,7 @@ from .errors import (
     DMError, BackendError, DeserializationError,
     MissingFieldsError, FieldTypeError, UnknownVersionError,
 )
-from .entry import Entry, Translations, Forms, Phrases, Notes, Tags
+from .entry import Entry, Variants, Translations, Forms, Phrases, Notes, Tags
 from .dictionary import (
     Dictionary, InvalidTranslationError,
     InvalidGramFormError, InvalidWordFormError,

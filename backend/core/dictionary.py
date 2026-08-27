@@ -27,6 +27,7 @@ TagID = int
 TagIDs = set[TagID]
 
 
+class InvalidVariantError(BackendError, KeyError): ...
 class InvalidTranslationError(BackendError, KeyError): ...
 class InvalidGramFormError(BackendError, KeyError): ...
 class InvalidWordFormError(BackendError, KeyError): ...
@@ -352,7 +353,7 @@ class Dictionary:
     @_mark_modified
     def add_entry(
             self,
-            lemma: Word,
+            lemma: Word | Iterable[Word],
             tr: Translation | Iterable[Translation],
             forms: Mapping[GramForm, Iterable[WordForm]] | None = None,
             phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
@@ -410,7 +411,7 @@ class Dictionary:
         )
         self._entries.append(new_entry)
 
-        self._update_index('lemmas', new_entry.lemma, new_entry, 'add')
+        self._update_index('lemmas', new_entry.variants, new_entry, 'add')
         self._update_index('translations', new_entry.tr, new_entry, 'add')
         self._update_index('forms', chain(*new_entry.forms.values()), new_entry, 'add')
         self._update_index('tags', new_entry.tags, new_entry, 'add')
@@ -445,7 +446,7 @@ class Dictionary:
         self._counters['phrase_trs']   -= entry.n_phrase_translations
         self._counters['notes']        -= entry.n_notes
 
-        self._update_index('lemmas', entry.lemma, entry, 'remove')
+        self._update_index('lemmas', entry.variants, entry, 'remove')
         self._update_index('translations', entry.tr, entry, 'remove')
         self._update_index('forms', chain(*entry.forms.values()), entry, 'remove')
         self._update_index('tags', entry.tags, entry, 'remove')
@@ -465,7 +466,7 @@ class Dictionary:
             source_entry: Entry to merge into the target Entry (will be deleted).
         """
 
-        self._update_index('lemmas', source_entry.lemma, target_entry, 'add')
+        self._update_index('lemmas', source_entry.variants, target_entry, 'add')
         self._update_index('translations', source_entry.tr, target_entry, 'add')
         self._update_index('forms', chain(*source_entry.forms.values()), target_entry, 'add')
         self._update_index('tags', source_entry.tags, target_entry, 'add')
@@ -487,28 +488,63 @@ class Dictionary:
         self._counters['phrase_trs']   += target_entry.n_phrase_translations
         self._counters['notes']        += target_entry.n_notes
 
-    def edit_lemma(self, entry: Entry, new_lemma: Word):
+    def add_variant(self, entry: Entry, variant: Word):
         """
-        Update the lemma of an existing Entry.
+        Add a spelling variant of the lemma to an Entry.
 
-        Adjusts indexes to maintain search consistency.
+        Args:
+            entry: Entry to add spelling variant to.
+            variant: Spelling variant to add.
+        """
+
+        is_modified, counter_delta = entry.variants._add(variant)
+
+        self._update_index('lemmas', variant, entry, 'add')
+
+        self._is_modified |= is_modified
+
+    def edit_variant(self, entry: Entry, variant: Word, new_variant: Word):
+        """
+        Replace an existing spelling variant of the lemma with a new one.
 
         Args:
             entry: Entry to modify.
-            new_lemma: New lemma word to assign to the Entry.
+            variant: Spelling variant to replace.
+            new_variant: New spelling variant.
+
+        Raises:
+            InvalidVariantError: If the Entry does not have the specified spelling variant.
         """
 
-        old_lemma = entry.lemma
+        if variant not in entry.variants:
+            raise InvalidVariantError(variant)
 
-        if old_lemma == new_lemma:
-            return
+        is_modified, counter_delta = entry.variants._edit(variant, new_variant)
 
-        entry.lemma = new_lemma
+        self._update_index('lemmas', variant, entry, 'remove')
+        self._update_index('lemmas', new_variant, entry, 'add')
 
-        self._update_index('lemmas', old_lemma, entry, 'remove')
-        self._update_index('lemmas', new_lemma, entry, 'add')
+        self._is_modified |= is_modified
 
-        self._is_modified = True
+    @_mark_modified
+    def delete_variant(self, entry: Entry, variant: Word):
+        """
+        Delete a spelling variant of the lemma from an Entry.
+
+        Args:
+            entry: Entry to delete spelling variant from.
+            variant: Spelling variant to delete.
+
+        Raises:
+            InvalidVariantError: If the Entry does not have the specified spelling variant.
+        """
+
+        if variant not in entry.variants:
+            raise InvalidVariantError(variant)
+
+        self._update_index('lemmas', variant, entry, 'remove')
+
+        entry.variants._delete(variant)
 
     def add_tr(self, entry: Entry, tr: Translation):
         """

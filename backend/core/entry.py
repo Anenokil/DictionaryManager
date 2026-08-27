@@ -5,7 +5,7 @@ Author: Anenokil
 """
 
 from types import NoneType
-from typing import Iterable, Iterator, Mapping
+from typing import Iterable, Iterator, Mapping, Any
 
 from .types import (
     Word, Translation, CtgValue, GramForm, WordForm,
@@ -18,67 +18,127 @@ from .utils import (
 )
 
 
-class Translations:
-    def __init__(self, translations: Translation | Iterable[Translation]):
-        if isinstance(translations, Translation):
-            self._data = [translations]
+class UniqueList:
+    def __init__(self, values: Word | Iterable[Word] | None):
+        if values is None:
+            self._data: list[Word] = []
+        elif isinstance(values, Word):
+            self._data = [values]
         else:
-            self._data = remove_dup(list(translations))
-            if not self._data:
-                raise ValueError('Entry must have at least one translation')
+            self._data = remove_dup(list(values))
+
+    def __bool__(self) -> bool:
+        return bool(self._data)
 
     def __len__(self) -> int:
         return len(self._data)
 
-    def __iter__(self) -> Iterator[Translation]:
+    def __iter__(self) -> Iterator[Word]:
         return iter(self._data)
+
+    def __getitem__(self, key: Any) -> Word:
+        return self._data[key]
 
     def __str__(self) -> str:
         return str(self._data)
 
-    def _add(self, translation: Translation) -> tuple[bool, int]:
+    def _add(self, value: Word) -> tuple[bool, int]:
         """
-        Add a new translation.
+        Add a new value.
 
         Args:
-            translation: The translation to add.
+            value: The word to add.
 
         Returns:
             Pair (is_modified, delta).
             - is_modified: True if the object was modified.
-            - delta: Change in the number of translations.
+            - delta: Change in the number of values.
         """
 
-        if translation in self._data:
+        if value in self._data:
             return False, 0
         else:
-            self._data.append(translation)
+            self._data.append(value)
             return True, 1
 
-    def _edit(self, translation: Translation, new_translation: Translation) -> tuple[bool, int]:
+    def _edit(self, value: Word, new_value: Word) -> tuple[bool, int]:
         """
-        Replace an existing translation with a new translation.
+        Replace an existing value with a new one.
 
         Args:
-            translation: The translation to edit.
-            new_translation: The new translation.
+            value: The word to edit.
+            new_value: The new word.
 
         Returns:
             Pair (is_modified, delta).
             - is_modified: True if the object was modified.
-            - delta: Change in the number of translations.
+            - delta: Change in the number of values.
+
+        Raises:
+            ValueError: If the specified value is not found.
         """
 
-        if new_translation in self._data:
-            if new_translation == translation:
+        if new_value in self._data:
+            if new_value == value:
                 return False, 0
             else:
-                self._data.remove(translation)
+                self._data.remove(value)
                 return True, -1
         else:
-            index = self._data.index(translation)
-            self._data[index] = new_translation
+            index = self._data.index(value)
+            self._data[index] = new_value
             return True, 0
+
+    def _delete(self, value: Word):
+        """
+        Remove a value.
+
+        Args:
+            value: The word to remove.
+
+        Raises:
+            ValueError: If the specified value is not found.
+        """
+
+        self._data.remove(value)
+
+    def _serialize(self) -> list[Word]:
+        return self._data
+
+
+Notes = UniqueList
+
+
+class Variants(UniqueList):
+    def __init__(self, variants: Word | Iterable[Word]):
+        super().__init__(variants)
+
+        if not self._data:
+            raise ValueError('Entry must have at least one spelling variant of the lemma')
+
+    def _delete(self, variant: Word):
+        """
+        Delete a spelling variant.
+
+        Args:
+            variant: Spelling variant to delete.
+
+        Raises:
+            ValueError: If the specified spelling variant is not found,
+                        or if it is the only spelling variant.
+        """
+
+        if len(self._data) == 1:
+            raise ValueError('Entry must have at least one spelling variant of the lemma')
+        self._data.remove(variant)
+
+
+class Translations(UniqueList):
+    def __init__(self, translations: Translation | Iterable[Translation]):
+        super().__init__(translations)
+
+        if not self._data:
+            raise ValueError('Entry must have at least one translation')
 
     def _delete(self, translation: Translation):
         """
@@ -86,24 +146,24 @@ class Translations:
 
         Args:
             translation: The translation to delete.
+
+        Raises:
+            ValueError: If the specified translation is not found, or if it is the only translation.
         """
 
         if len(self._data) == 1:
             raise ValueError('Entry must have at least one translation')
         self._data.remove(translation)
 
-    def _serialize(self) -> list[Translation]:
-        return self._data
 
+class ListDict:
+    def __init__(self, values: Mapping[Any, Iterable[Word]] | None):
+        self._data: dict[Any, list[Word]] = {
+            k: remove_dup(list(v))
+            for k, v in values.items()
+        } if values else dict()
 
-class Forms:
-    def __init__(self, forms: Mapping[GramForm, Iterable[WordForm]] | None):
-        self._data: dict[GramForm, list[WordForm]] = {
-            gram_form: remove_dup(list(word_forms))
-            for gram_form, word_forms in forms.items()
-        } if forms else dict()
-
-        # Drop invalid forms
+        # Drop empty lists
         self._data = {
             k: v for k, v in self._data.items() if v
         }
@@ -111,13 +171,13 @@ class Forms:
     def __bool__(self) -> bool:
         return bool(self._data)
 
-    def __getitem__(self, key: GramForm) -> list[WordForm]:
+    def __getitem__(self, key: Any) -> list[Word]:
         return self._data[key]
 
     def __len__(self) -> int:
         return len(self._data)
 
-    def __iter__(self) -> Iterator[GramForm]:
+    def __iter__(self) -> Iterator[Word]:
         return iter(self._data)
 
     def __str__(self) -> str:
@@ -132,92 +192,116 @@ class Forms:
     def items(self):
         return self._data.items()
 
-    def _add(self, gram_form: GramForm, word_form: WordForm) -> tuple[bool, int, int]:
+    def _add(self, key: Any, value: Word) -> tuple[bool, int, int]:
         """
-        Add a new inflected form.
+        Add a new key-value pair.
 
         Args:
-            gram_form: Grammatical form for the inflection.
-            word_form: The actual inflected form to add.
+            key: The key to add.
+            value: The value to add.
 
         Returns:
-            Tuple (is_modified, delta_gram, delta_word).
+            Tuple (is_modified, delta_k, delta_v).
             - is_modified: True if the object was modified.
-            - delta_gram: Change in the number of grammatical forms.
-            - delta_word: Change in the number of word forms.
+            - delta_k: Change in the number of keys.
+            - delta_v: Change in the number of values.
         """
 
-        if gram_form in self._data.keys():
-            if word_form in self._data[gram_form]:
+        if key in self._data.keys():
+            if value in self._data[key]:
                 return False, 0, 0
             else:
-                self._data[gram_form].append(word_form)
+                self._data[key].append(value)
                 return True, 0, 1
         else:
-            self._data[gram_form] = [word_form]
+            self._data[key] = [value]
             return True, 1, 1
 
     def _edit(
             self,
-            gram_form: GramForm,
-            word_form: WordForm,
-            new_gram_form: GramForm,
-            new_word_form: WordForm,
+            key: Any,
+            value: Word,
+            new_key: Any,
+            new_value: Word,
     ) -> tuple[bool, int, int]:
         """
-        Replace an existing form with a new form.
+        Replace an existing key-value pair with a new one.
 
         Args:
-            gram_form: Grammatical form identifying the inflection to replace.
-            word_form: The actual inflected form to replace.
-            new_gram_form: The new grammatical form.
-            new_word_form: The new inflected form.
+            key: The key to edit.
+            value: The value to edit.
+            new_key: The new key.
+            new_value: The new value.
 
         Returns:
-            Tuple (is_modified, delta_gram, delta_word).
+            Tuple (is_modified, delta_k, delta_v).
             - is_modified: True if the object was modified.
-            - delta_gram: Change in the number of grammatical forms.
-            - delta_word: Change in the number of word forms.
+            - delta_k: Change in the number of keys.
+            - delta_v: Change in the number of values.
+
+        Raises:
+            KeyError: If the specified key is not found.
+            ValueError: If the specified value is not found.
         """
 
-        if new_gram_form == gram_form:
-            word_forms = self._data[gram_form]
-            if new_word_form in word_forms:
-                if new_word_form == word_form:
+        if new_key == key:
+            values = self._data[key]
+            if new_value in values:
+                if new_value == value:
                     return False, 0, 0
                 else:
-                    word_forms.remove(word_form)
+                    values.remove(value)
                     return True, 0, -1
             else:
-                index = word_forms.index(word_form)
-                word_forms[index] = new_word_form
+                index = values.index(value)
+                values[index] = new_value
                 return True, 0, 0
         else:
-            m1, g1, w1 = self._delete(gram_form, word_form)
-            m2, g2, w2 = self._add(new_gram_form, new_word_form)
-            return m1 or m2, g1 + g2, w1 + w2
+            m1, p1, t1 = self._delete(key, value)
+            m2, p2, t2 = self._add(new_key, new_value)
+            return m1 or m2, p1 + p2, t1 + t2
 
-    def _delete(self, gram_form: GramForm, word_form: WordForm) -> tuple[bool, int, int]:
+    def _delete(self, key: Any, value: Word) -> tuple[bool, int, int]:
         """
-        Remove an inflected form.
+        Remove a key-value pair.
 
         Args:
-            gram_form: Grammatical form identifying the inflection to remove.
-            word_form: The actual inflected form to remove.
+            key: The key to remove.
+            value: The value to remove.
 
         Returns:
-            Tuple (is_modified, delta_gram, delta_word).
+            Tuple (is_modified, delta_k, delta_v).
             - is_modified: True if the object was modified.
-            - delta_gram: Change in the number of grammatical forms.
-            - delta_word: Change in the number of word forms.
+            - delta_k: Change in the number of keys.
+            - delta_v: Change in the number of values.
+
+        Raises:
+            KeyError: If the specified key is not found.
+            ValueError: If the specified value is not found.
         """
 
-        self._data[gram_form].remove(word_form)
-        if self._data[gram_form]:
+        self._data[key].remove(value)
+        if self._data[key]:
             return True, 0, -1
         else:
-            self._data.pop(gram_form)
+            self._data.pop(key)
             return True, -1, -1
+
+    def _serialize(self) -> SerializedData:
+        return self._data
+
+
+class Phrases(ListDict):
+    def __init__(self, phrases: Mapping[Phrase, Iterable[PhraseTr]] | None):
+        super().__init__(phrases)
+
+    def _serialize(self) -> SerializedData:
+        return self._data
+
+
+class Forms(ListDict):
+    def __init__(self, forms: Mapping[GramForm, Iterable[WordForm]] | None):
+        super().__init__(forms)
 
     def _add_ctg(self):
         """Add a new empty category to all grammatical form tuples."""
@@ -290,212 +374,6 @@ class Forms:
             'keys': [list(gram_form) for gram_form in self.keys()],
             'values': list(self.values()),
         }
-
-
-class Phrases:
-    def __init__(self, phrases: Mapping[Phrase, Iterable[PhraseTr]] | None):
-        self._data: dict[Phrase, list[PhraseTr]] = {
-            phrase: remove_dup(list(phrase_tr))
-            for phrase, phrase_tr in phrases.items()
-        } if phrases else dict()
-
-        # Drop invalid phrases
-        self._data = {
-            k: v for k, v in self._data.items() if v
-        }
-
-    def __bool__(self) -> bool:
-        return bool(self._data)
-
-    def __getitem__(self, key: Phrase) -> list[PhraseTr]:
-        return self._data[key]
-
-    def __len__(self) -> int:
-        return len(self._data)
-
-    def __iter__(self) -> Iterator[Phrase]:
-        return iter(self._data)
-
-    def __str__(self) -> str:
-        return str(self._data)
-
-    def keys(self):
-        return self._data.keys()
-
-    def values(self):
-        return self._data.values()
-
-    def items(self):
-        return self._data.items()
-
-    def _add(self, phrase: Phrase, phrase_tr: PhraseTr) -> tuple[bool, int, int]:
-        """
-        Add a new phrase/usage example with its translation.
-
-        Args:
-            phrase: The phrase or usage example containing the word.
-            phrase_tr: The translation of the phrase.
-
-        Returns:
-            Tuple (is_modified, delta_ph, delta_tr).
-            - is_modified: True if the object was modified.
-            - delta_ph: Change in the number of phrases.
-            - delta_tr: Change in the number of phrase translations.
-        """
-
-        if phrase in self._data.keys():
-            if phrase_tr in self._data[phrase]:
-                return False, 0, 0
-            else:
-                self._data[phrase].append(phrase_tr)
-                return True, 0, 1
-        else:
-            self._data[phrase] = [phrase_tr]
-            return True, 1, 1
-
-    def _edit(
-            self,
-            phrase: Phrase,
-            phrase_tr: PhraseTr,
-            new_phrase: Phrase,
-            new_phrase_tr: PhraseTr,
-    ) -> tuple[bool, int, int]:
-        """
-        Replace an existing phrase with a new phrase.
-
-        Args:
-            phrase: The phrase to replace.
-            phrase_tr: The translation of the phrase to replace.
-            new_phrase: The new phrase.
-            new_phrase_tr: The new phrase translation.
-
-        Returns:
-            Tuple (is_modified, delta_ph, delta_tr).
-            - is_modified: True if the object was modified.
-            - delta_ph: Change in the number of phrases.
-            - delta_tr: Change in the number of phrase translations.
-        """
-
-        if new_phrase == phrase:
-            phrase_trs = self._data[phrase]
-            if new_phrase_tr in phrase_trs:
-                if new_phrase_tr == phrase_tr:
-                    return False, 0, 0
-                else:
-                    phrase_trs.remove(phrase_tr)
-                    return True, 0, -1
-            else:
-                index = phrase_trs.index(phrase_tr)
-                phrase_trs[index] = new_phrase_tr
-                return True, 0, 0
-        else:
-            m1, p1, t1 = self._delete(phrase, phrase_tr)
-            m2, p2, t2 = self._add(new_phrase, new_phrase_tr)
-            return m1 or m2, p1 + p2, t1 + t2
-
-    def _delete(self, phrase: Phrase, phrase_tr: PhraseTr) -> tuple[bool, int, int]:
-        """
-        Remove a phrase and its translation.
-
-        Args:
-            phrase: The phrase to remove.
-            phrase_tr: The translation of the phrase to remove.
-
-        Returns:
-            Tuple (is_modified, delta_ph, delta_tr).
-            - is_modified: True if the object was modified.
-            - delta_ph: Change in the number of phrases.
-            - delta_tr: Change in the number of phrase translations.
-        """
-
-        self._data[phrase].remove(phrase_tr)
-        if self._data[phrase]:
-            return True, 0, -1
-        else:
-            self._data.pop(phrase)
-            return True, -1, -1
-
-    def _serialize(self) -> SerializedData:
-        return self._data
-
-
-class Notes:
-    def __init__(self, notes: Note | Iterable[Note] | None):
-        if not notes:
-            self._data: list[Note] = []
-        elif isinstance(notes, Note):
-            self._data = [notes]
-        else:
-            self._data = remove_dup(list(notes))
-
-    def __bool__(self) -> bool:
-        return bool(self._data)
-
-    def __len__(self) -> int:
-        return len(self._data)
-
-    def __iter__(self) -> Iterator[Note]:
-        return iter(self._data)
-
-    def __str__(self) -> str:
-        return str(self._data)
-
-    def _add(self, note: Note) -> tuple[bool, int]:
-        """
-        Add a new note.
-
-        Args:
-            note: The note text to add.
-
-        Returns:
-            Pair (is_modified, delta).
-            - is_modified: True if the object was modified.
-            - delta: Change in the number of notes.
-        """
-
-        if note in self._data:
-            return False, 0
-        else:
-            self._data.append(note)
-            return True, 1
-
-    def _edit(self, note: Note, new_note: Note) -> tuple[bool, int]:
-        """
-        Replace an existing note with a new note.
-
-        Args:
-            note: The note to edit.
-            new_note: The new note.
-
-        Returns:
-            Pair (is_modified, delta).
-            - is_modified: True if the object was modified.
-            - delta: Change in the number of notes.
-        """
-
-        if new_note in self._data:
-            if new_note == note:
-                return False, 0
-            else:
-                self._data.remove(note)
-                return True, -1
-        else:
-            index = self._data.index(note)
-            self._data[index] = new_note
-            return True, 0
-
-    def _delete(self, note: Note):
-        """
-        Remove a note.
-
-        Args:
-            note: The note text to remove.
-        """
-
-        self._data.remove(note)
-
-    def _serialize(self) -> list[Note]:
-        return self._data
 
 
 class Tags:
@@ -603,7 +481,7 @@ class Entry:
 
     def __init__(
             self,
-            lemma: Word,
+            lemma: Word | Iterable[Word],
             tr: Translation | Iterable[Translation],
             forms: Mapping[GramForm, Iterable[WordForm]] | None = None,
             phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
@@ -632,7 +510,7 @@ class Entry:
             latest_att_timestamp: Timestamp of the most recent answer.
         """
 
-        self.lemma = lemma
+        self.variants = Variants(lemma)
         self.tr = Translations(tr)
         self.forms = Forms(forms)
         self.phrases = Phrases(phrases)
@@ -658,13 +536,13 @@ class Entry:
 
         # Validate required fields
         required_fields = (
-            'lemma', 'translations', 'total_att', 'correct_att',
+            'variants', 'translations', 'total_att', 'correct_att',
             'win_streak', 'latest_att_timestamp',
         )
         validate_required_fields(data, required_fields)
 
         # Read required fields
-        lemma = data['lemma']
+        variants = data['variants']
         translations = data['translations']
         total_att = data['total_att']
         correct_att = data['correct_att']
@@ -679,7 +557,7 @@ class Entry:
         is_fav = data.get('is_fav', False)
 
         # Validate types
-        validate_field_type('lemma', lemma, str)
+        validate_field_type('variants', variants, list[str])
         validate_field_type('translations', translations, list[str])
         validate_field_type('forms', forms, dict)
 
@@ -709,7 +587,7 @@ class Entry:
         latest_att_timestamp = tuple(latest_att_timestamp)
 
         return cls(
-            lemma, translations, forms, phrases, notes, tags, is_fav,
+            variants, translations, forms, phrases, notes, tags, is_fav,
             total_att, correct_att, win_streak, latest_att_timestamp,
         )
 
@@ -725,7 +603,10 @@ class Entry:
         tokens = []
         if self.is_fav:
             tokens.append('* (fav)\n')
-        tokens.append(f'| {self.lemma} - ')
+        tokens.append(f'| {self.lemma}')
+        if self.n_variants > 1:
+            tokens.append(f' (alternative: {', '.join(self.variants[1:])})')
+        tokens.append(' - ')
         tokens.append(', '.join(self.tr))
         tokens.append('\n')
         for gram_form, word_forms in self.forms.items():
@@ -738,6 +619,14 @@ class Entry:
             tokens.append(f'| > {note}\n')
 
         return ''.join(tokens)
+
+    @property
+    def lemma(self) -> Word:
+        return self.variants[0]
+
+    @property
+    def n_variants(self) -> int:
+        return len(self.variants)
 
     @property
     def n_translations(self) -> int:
@@ -832,6 +721,8 @@ class Entry:
         self._win_streak = 0
 
     def merge(self, other: 'Entry'):
+        for variant in other.variants:
+            self.variants._add(variant)
         for tr in other.tr:
             self.tr._add(tr)
         for gram_form, word_forms in other.forms.items():
@@ -860,7 +751,7 @@ class Entry:
         """
 
         data: SerializedData = {
-            'lemma': self.lemma,
+            'variants': self.variants._serialize(),
             'translations': self.tr._serialize(),
             'is_fav': self.is_fav,
             'total_att': self._total_att,
