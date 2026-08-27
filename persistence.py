@@ -76,8 +76,8 @@ class UISettingsTK:
             self.deserialize(data)
 
     def set_defaults(self):
-       self.theme = 'light'
-       self.scale = 10
+        self.theme = 'light'
+        self.scale = 10
 
     def deserialize(self, data: SerializedData):
         data = self._check_and_migrate(data)
@@ -112,6 +112,27 @@ class UISettingsTK:
         validate_field_type('scale', data['scale'], int)
 
 
+class UISettingsQT:
+    schema_version = 1
+
+    def __init__(self, data: SerializedData | None = None):
+        if data is None:
+            self.set_defaults()
+        else:
+            self.deserialize(data)
+
+    def set_defaults(self):
+        pass
+
+    def deserialize(self, data: SerializedData):
+        pass
+
+    def serialize(self) -> SerializedData:
+        return {
+            'version': self.schema_version,
+        }
+
+
 class AppData:
     schema_version = 1
 
@@ -137,9 +158,9 @@ class AppData:
 
     def set_defaults(self, glob: bool = True, ui: bool = True):
         if glob:
-           self.global_settings.set_defaults()
+            self.global_settings.set_defaults()
         if ui:
-           self.ui_settings.set_defaults()
+            self.ui_settings.set_defaults()
 
     def save(self, manager: bool = True, glob: bool = True, ui: bool = True):
         with open(self.path, 'r') as f:
@@ -216,6 +237,7 @@ def partial_save(
 
     with open(filepath, 'w') as f:
         json.dump(data, f)
+
 
 def save_dct(dct_bundle: DctBundle):
     partial_save(dct_bundle, dct=True)
