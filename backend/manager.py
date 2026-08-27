@@ -409,13 +409,12 @@ class Manager:
             parent_dir = os.path.split(filepath)[0]
             os.makedirs(parent_dir, exist_ok=True)
 
+        bundle.filepath = filepath
+        bundle.dct.mark_saved()
+
         data = bundle.to_dict()
         with open(filepath, 'w') as file:
             json.dump(data, file)
-
-        self.opened_dct_bundles[dct_id].filepath = filepath
-
-        self.active.dct.mark_saved()
 
     def rename_dct(self, dct_id: int, new_name: str):
         """
