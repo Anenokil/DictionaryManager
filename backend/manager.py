@@ -138,14 +138,14 @@ class DctBundle:
 
     def __init__(
             self,
-            filepath: str,
+            filepath: str | None = None,
             dct: Dictionary | None = None,
             session_number: int = 1,
             search_config: SearchConfig | None = None,
             train_config: TrainingConfig | None = None,
             replacer: Replacer | None = None,
     ):
-        self.filepath = os.path.abspath(filepath)
+        self.filepath = None if filepath is None else os.path.abspath(filepath)
         self.dct = Dictionary() if dct is None else dct
         self.session_number = session_number
         self.search_config = SearchConfig() if search_config is None else search_config
@@ -298,7 +298,12 @@ class Manager:
         if to_activate or self.n_opened == 1:
             self.active_dct_id = len(self.opened_dct_bundles) - 1
 
-    def create_dct(self, filepath: str, name: DctName = None, to_activate: bool = True):
+    def create_dct(
+            self,
+            filepath: str | None = None,
+            name: DctName = None,
+            to_activate: bool = True,
+    ):
         """
         Create a new empty Dictionary and add it to the Manager.
 
