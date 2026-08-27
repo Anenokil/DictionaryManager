@@ -399,7 +399,8 @@ class Manager:
         if not (0 <= dct_id < len(self.opened_dct_bundles)):
             raise KeyError('Index out of range')
 
-        filepath = filepath or self.opened_dct_bundles[dct_id].filepath
+        bundle = self.opened_dct_bundles[dct_id]
+        filepath = filepath or bundle.filepath
 
         if filepath is None:
             raise ValueError('No filepath was specified')
@@ -408,7 +409,7 @@ class Manager:
             parent_dir = os.path.split(filepath)[0]
             os.makedirs(parent_dir, exist_ok=True)
 
-        data = self.active.to_dict()
+        data = bundle.to_dict()
         with open(filepath, 'w') as file:
             json.dump(data, file)
 
