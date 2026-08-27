@@ -292,6 +292,41 @@ class EntryDetailsDialog(QDialog):
         pass
 
 
+class DctTabWidget(QTabWidget):
+    def __init__(self, manager: Manager):
+        super().__init__()
+
+        self.manager = manager
+
+        self.tabBar().setContextMenuPolicy(Qt.CustomContextMenu)
+        self.tabBar().customContextMenuRequested.connect(self.show_tab_context_menu)
+
+    def show_tab_context_menu(self, pos):
+        index = self.tabBar().tabAt(pos)
+        if index == -1:
+            return
+
+        menu = QMenu(self)
+        save_action = menu.addAction('Save')
+        save_as_action = menu.addAction('Save as...')
+
+        action = menu.exec(self.tabBar().mapToGlobal(pos))
+
+        if action == save_action:
+            self.save_dict(index)
+        elif action == save_as_action:
+            self.save_dict_as(index)
+
+    def save_dict(self, index: int):
+        self.manager.save_dct(index)
+
+    def save_dict_as(self, index: int):
+        file_path, ok = select_dct_file_to_save(self)
+        if not ok:
+            return
+        self.manager.save_dct(index, file_path)
+
+
 class DctWorkspaceWidget(QWidget):
     """
     Widget representing a dictionary workspace in a tab.
@@ -564,7 +599,7 @@ class MainWindow(QMainWindow):
 
     def _create_tab_widget(self):
         # Create tab widget
-        self.tab_widget = QTabWidget()
+        self.tab_widget = DctTabWidget(self.manager)
         self.tab_widget.setTabsClosable(True)
         self.tab_widget.tabCloseRequested.connect(self.close_tab)
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
