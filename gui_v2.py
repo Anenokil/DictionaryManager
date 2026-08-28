@@ -1,4 +1,4 @@
-from typing import Generator, Collection
+from typing import Generator, Collection, Callable
 import sys
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QScrollArea,
@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QAbstractItemView, QSizePolicy,
 )
 from PySide6.QtGui import QAction, QCloseEvent, QIcon
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, QTimer
 
 from backend import (
     Translations, Variants, Forms, GramForm, Phrases,
@@ -104,7 +104,10 @@ def create_img_button(
     return button
 
 
-def make_table_growable_up_to_content(table: QTableWidget):
+def make_table_growable_up_to_content(
+        table: QTableWidget,
+        on_change: Callable[[], None] | None = None,
+):
     """
     The table grows only up to the height at which all rows are
     visible (no internal scrollbar). Beyond that, any extra space
@@ -113,14 +116,27 @@ def make_table_growable_up_to_content(table: QTableWidget):
 
     table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-    row_heights = sum(table.rowHeight(row) for row in range(table.rowCount()))
-    header = table.horizontalHeader()
-    header_height = header.height() if header.isVisible() else 0
-    frame = table.frameWidth() * 2
-    full_content_height = row_heights + header_height + frame
-    full_content_height = max(full_content_height, table.minimumHeight())
+    def update_max_height():
+        row_heights = sum(table.rowHeight(row) for row in range(table.rowCount()))
+        header = table.horizontalHeader()
+        header_height = header.height() if header.isVisible() else 0
+        frame = table.frameWidth() * 2
+        full_content_height = row_heights + header_height + frame
+        full_content_height = max(full_content_height, table.minimumHeight())
+        table.setMaximumHeight(full_content_height)
+        if on_change is not None:
+            on_change()
 
-    table.setMaximumHeight(full_content_height)
+    def schedule_update():
+        # Deferred: if a row is inserted and then populated with items
+        # right after (insertRow + setItem), rowsInserted fires before
+        # the items are set. Deferring to the next event loop iteration
+        # ensures rowHeight() reflects the final content.
+        QTimer.singleShot(0, update_max_height)
+
+    update_max_height()
+    table.model().rowsInserted.connect(lambda *_: schedule_update())
+    table.model().rowsRemoved.connect(lambda *_: schedule_update())
 
 
 class InputTagDialog(QDialog):
@@ -262,8 +278,15 @@ class OptionsDialog(QDialog):
 
 
 class CheckableList(QScrollArea):
-    def __init__(self, items: list[str], checked_items: set[str]):
+    def __init__(
+            self,
+            items: list[str],
+            checked_items: set[str],
+            on_change: Callable[[], None] | None = None,
+    ):
         super().__init__()
+
+        self._on_change = on_change
 
         self.container = QWidget()
         layout = QVBoxLayout(self.container)
@@ -280,18 +303,25 @@ class CheckableList(QScrollArea):
 
         self.setWidget(self.container)
 
+        self._update_max_height()
+
     def add_item(self, text: str, is_checked: bool = False):
         checkbox = QCheckBox(text)
         checkbox.setChecked(is_checked)
         self.container.layout().addWidget(checkbox)
         self.checkboxes[text] = checkbox
+        QTimer.singleShot(0, self._update_max_height)
 
     def get_checked_items(self) -> list[str]:
         return [text for text, cb in self.checkboxes.items() if cb.isChecked()]
 
-    def set_checked(self, text: str, is_checked: bool = True):
-        if text in self.checkboxes:
-            self.checkboxes[text].setChecked(is_checked)
+    def _update_max_height(self):
+        content_height = self.container.sizeHint().height()
+        frame = self.frameWidth() * 2
+        full_height = content_height + frame
+        self.setMaximumHeight(max(full_height, self.minimumHeight()))
+        if self._on_change is not None:
+            self._on_change()
 
 
 class EqualGrowFormLayout(QGridLayout):
@@ -302,12 +332,13 @@ class EqualGrowFormLayout(QGridLayout):
     space goes entirely to the remaining growing rows.
     """
 
+    _GROWABLE_STRETCH = 1
+
     def __init__(self, label_alignment: Qt.AlignmentFlag):
         super().__init__()
 
         self._label_alignment = label_alignment
         self._row = 0
-        self._growable_widgets: list[tuple[int, QWidget]] = []
 
     def add_row(self, label_widget, field_widget, growable_widget=None):
         row = self._row
@@ -319,25 +350,8 @@ class EqualGrowFormLayout(QGridLayout):
         vertical_policy = widget_to_track.sizePolicy().verticalPolicy()
         is_expanding = vertical_policy in (QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
 
-        if is_expanding:
-            self.setRowStretch(row, 1)
-            self._growable_widgets.append((row, widget_to_track))
-        else:
-            self.setRowStretch(row, 0)
-
+        self.setRowStretch(row, self._GROWABLE_STRETCH if is_expanding else 0)
         self._row += 1
-
-    def update_row_stretches(self):
-        changed = False
-        for row, widget in self._growable_widgets:
-            has_room_to_grow = widget.height() < widget.maximumHeight()
-            new_stretch = 1 if has_room_to_grow else 0
-            if self.rowStretch(row) != new_stretch:
-                self.setRowStretch(row, new_stretch)
-                changed = True
-
-        if changed:
-            self.activate()
 
 
 class EntryDetailsDialog(QDialog):
@@ -359,6 +373,7 @@ class EntryDetailsDialog(QDialog):
 
     def _create_widgets(self):
         self.main_layout = QVBoxLayout(self)
+        self.main_layout.setSizeConstraint(QLayout.SetMinAndMaxSize)
 
         self._create_fields()
         self._create_buttons()
@@ -381,7 +396,7 @@ class EntryDetailsDialog(QDialog):
         # Lemma variants table
         lemma_variants_label = QLabel('Lemma\nvariants:', alignment=Qt.AlignRight)
         self.lemma_variants_table = self.create_single_column_table(self.entry.variants)
-        make_table_growable_up_to_content(self.lemma_variants_table)
+        make_table_growable_up_to_content(self.lemma_variants_table, self.main_layout.activate)
         self.add_lemma_variant_button = create_img_button('resources/images/add.png')
         self.add_lemma_variant_button.clicked.connect(self.add_lemma_variant)
         lemma_field_container = self._create_field_container(
@@ -394,7 +409,7 @@ class EntryDetailsDialog(QDialog):
         # Translations table
         translations_label = QLabel('Translations:')
         self.translations_table = self.create_single_column_table(self.entry.tr)
-        make_table_growable_up_to_content(self.translations_table)
+        make_table_growable_up_to_content(self.translations_table, self.main_layout.activate)
         self.add_translation_button = create_img_button('resources/images/add.png')
         self.add_translation_button.clicked.connect(self.add_translation)
         translations_field_container = self._create_field_container(
@@ -412,7 +427,7 @@ class EntryDetailsDialog(QDialog):
             is_1_col_active=False,
         )
         self.forms_table.cellDoubleClicked.connect(self.on_gram_form_double_clicked)
-        make_table_growable_up_to_content(self.forms_table)
+        make_table_growable_up_to_content(self.forms_table, self.main_layout.activate)
         self.add_form_button = create_img_button('resources/images/add.png')
         self.add_form_button.clicked.connect(self.add_form)
         forms_field_container = self._create_field_container(
@@ -425,7 +440,7 @@ class EntryDetailsDialog(QDialog):
         self.phrases_table = self.create_two_column_table(
             list(phrases_to_pairs(self.entry.phrases))
         )
-        make_table_growable_up_to_content(self.phrases_table)
+        make_table_growable_up_to_content(self.phrases_table, self.main_layout.activate)
         self.add_phrase_button = create_img_button('resources/images/add.png')
         self.add_phrase_button.clicked.connect(self.add_phrase)
         phrases_field_container = self._create_field_container(
@@ -436,7 +451,7 @@ class EntryDetailsDialog(QDialog):
         # Notes table
         notes_label = QLabel('Notes:')
         self.notes_table = self.create_single_column_table(self.entry.notes)
-        make_table_growable_up_to_content(self.notes_table)
+        make_table_growable_up_to_content(self.notes_table, self.main_layout.activate)
         self.add_note_button = create_img_button('resources/images/add.png')
         self.add_note_button.clicked.connect(self.add_note)
         notes_field_container = self._create_field_container(
@@ -446,9 +461,14 @@ class EntryDetailsDialog(QDialog):
 
         # Tags table
         tags_label = QLabel('Tags:')
-        self.tags_list = CheckableList(sorted(self.dct.tags), set(self.entry.tags))
+        self.tags_list = CheckableList(
+            sorted(self.dct.tags), set(self.entry.tags),
+            on_change=self.main_layout.activate,
+        )
         self.tags_list.setWidgetResizable(True)
         self.tags_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.tags_list.setMinimumHeight(50)
+        self.tags_list.setMinimumWidth(120)
         self.add_tag_button = create_img_button('resources/images/add.png')
         self.add_tag_button.clicked.connect(self.add_tag)
         tags_field_container = self._create_field_container(
@@ -461,8 +481,6 @@ class EntryDetailsDialog(QDialog):
         self.fav_checkbox = QCheckBox()
         self.fav_checkbox.setChecked(self.entry.is_fav)
         self.form_layout.add_row(fav_label, self.fav_checkbox)
-
-        self.form_layout.update_row_stretches()
 
     def _create_buttons(self):
         # Dialog buttons
@@ -478,10 +496,6 @@ class EntryDetailsDialog(QDialog):
         self.close_button.clicked.connect(self.reject)
 
         self.main_layout.addWidget(buttons)
-
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        self.form_layout.update_row_stretches()
 
     @staticmethod
     def create_single_column_table(
