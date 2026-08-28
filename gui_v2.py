@@ -1,15 +1,16 @@
 from typing import Generator, Collection
 import sys
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout,
-    QToolBar, QTabWidget, QLabel, QMenu, QScrollArea,
-    QTableWidget, QTableWidgetItem, QDialog,
-    QDialogButtonBox, QMessageBox, QComboBox, QFormLayout, QGridLayout,
-    QHeaderView, QAbstractItemView, QFileDialog,
-    QInputDialog, QTabBar, QPushButton, QCheckBox, QSizePolicy,
+    QApplication, QMainWindow, QWidget, QScrollArea,
+    QTabWidget, QTabBar, QToolBar, QMenu, QTableWidget,
+    QTableWidgetItem, QDialog, QInputDialog, QFileDialog,
+    QDialogButtonBox, QPushButton, QMessageBox, QComboBox,
+    QCheckBox, QLineEdit, QLabel, QLayout, QVBoxLayout,
+    QHBoxLayout, QFormLayout, QGridLayout, QHeaderView,
+    QAbstractItemView, QSizePolicy,
 )
-from PySide6.QtGui import QAction, QCloseEvent
-from PySide6.QtCore import Qt
+from PySide6.QtGui import QAction, QCloseEvent, QIcon
+from PySide6.QtCore import Qt, QSize
 
 from backend import (
     Translations, Variants, Forms, GramForm, Phrases,
@@ -90,6 +91,19 @@ def get_column_data(table: QTableWidget, column: int) -> list[str]:
     return data
 
 
+def create_img_button(
+        img_path: str,
+        icon_size: tuple[int, int] = (24, 24),
+        button_size: tuple[int, int] = (28, 28),
+) -> QPushButton:
+    button = QPushButton()
+    button.setIcon(QIcon(img_path))
+    button.setIconSize(QSize(*icon_size))
+    button.setFixedSize(*button_size)
+    button.setFlat(True)
+    return button
+
+
 def make_table_growable_up_to_content(table: QTableWidget):
     """
     The table grows only up to the height at which all rows are
@@ -107,6 +121,85 @@ def make_table_growable_up_to_content(table: QTableWidget):
     full_content_height = max(full_content_height, table.minimumHeight())
 
     table.setMaximumHeight(full_content_height)
+
+
+class InputTagDialog(QDialog):
+    def __init__(
+            self,
+            dct: Dictionary,
+            initial: tuple[str, bool] | None = None,
+            parent: QWidget | None = None,
+    ):
+        super().__init__(parent)
+
+        if initial is None:
+            title = 'New tag'
+            tag = ''
+            is_default = False
+            self.other_tags = set(dct.tags)
+        else:
+            title = 'Edit tag'
+            tag, is_default = initial
+            self.other_tags = set(dct.tags).difference({tag})
+
+        self.setWindowTitle(title)
+
+        self._line_edit = QLineEdit(tag)
+        self._is_default = QCheckBox()
+        self._is_default.setChecked(is_default)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+
+        label1 = QLabel('Tag:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        label2 = QLabel(
+            'Automatically apply\n'
+            'this tag to new entries:',
+            alignment=Qt.AlignRight | Qt.AlignVCenter,
+        )
+        self.label_error = QLabel('', alignment=Qt.AlignHCenter)
+
+        self.layout = QGridLayout(self)
+        self.layout.addWidget(label1, 0, 0)
+        self.layout.addWidget(self._line_edit, 0, 1)
+        self.layout.addWidget(label2, 1, 0)
+        self.layout.addWidget(self._is_default, 1, 1, alignment=Qt.AlignBottom)
+        self.layout.addWidget(buttons, 2, 0, 1, 2)
+
+    def _validate(self) -> tuple[bool, str]:
+        tag = self._line_edit.text()
+        if tag == '':
+            return False, 'Tag must not be empty'
+        if tag in self.other_tags:
+            return False, 'Tag already exists'
+        return True, ''
+
+    def accept(self):
+        is_ok, error_msg = self._validate()
+
+        if is_ok:
+            super().accept()
+        else:
+            self.label_error.setText(f'Invalid value: {error_msg}')
+            self.label_error.setStyleSheet('color: #d32f2f;')
+            self.layout.addWidget(self.label_error, 3, 0, 1, 2)
+
+    def get_text(self) -> tuple[str, bool]:
+        return self._line_edit.text(), self._is_default.isChecked()
+
+    @staticmethod
+    def get_input(
+            dct: Dictionary,
+            current: tuple[str, bool] | None = None,
+            parent: QWidget | None = None,
+    ) -> tuple[str, bool, bool]:
+        dialog = InputTagDialog(dct, current, parent)
+        ok = dialog.exec() == QDialog.Accepted
+        tag, is_default = dialog.get_text() if ok else ('', False)
+        return tag, is_default, ok
 
 
 class OptionsDialog(QDialog):
@@ -172,8 +265,8 @@ class CheckableList(QScrollArea):
     def __init__(self, items: list[str], checked_items: set[str]):
         super().__init__()
 
-        container = QWidget()
-        layout = QVBoxLayout(container)
+        self.container = QWidget()
+        layout = QVBoxLayout(self.container)
         layout.setAlignment(Qt.AlignTop)
 
         self.checkboxes: dict[str, QCheckBox] = {}
@@ -185,7 +278,13 @@ class CheckableList(QScrollArea):
             layout.addWidget(checkbox)
             self.checkboxes[text] = checkbox
 
-        self.setWidget(container)
+        self.setWidget(self.container)
+
+    def add_item(self, text: str, is_checked: bool = False):
+        checkbox = QCheckBox(text)
+        checkbox.setChecked(is_checked)
+        self.container.layout().addWidget(checkbox)
+        self.checkboxes[text] = checkbox
 
     def get_checked_items(self) -> list[str]:
         return [text for text, cb in self.checkboxes.items() if cb.isChecked()]
@@ -264,6 +363,16 @@ class EntryDetailsDialog(QDialog):
         self._create_fields()
         self._create_buttons()
 
+    @staticmethod
+    def _create_field_container(table, button) -> QWidget:
+        field_container = QWidget()
+        field_layout = QHBoxLayout(field_container)
+        field_layout.setContentsMargins(0, 0, 0, 0)
+        field_layout.setSizeConstraint(QLayout.SetMaximumSize)
+        field_layout.addWidget(table)
+        field_layout.addWidget(button)
+        return field_container
+
     def _create_fields(self):
         # Form for displaying entry data
         self.form_layout = EqualGrowFormLayout(label_alignment=Qt.AlignRight | Qt.AlignVCenter)
@@ -273,13 +382,27 @@ class EntryDetailsDialog(QDialog):
         lemma_variants_label = QLabel('Lemma\nvariants:', alignment=Qt.AlignRight)
         self.lemma_variants_table = self.create_single_column_table(self.entry.variants)
         make_table_growable_up_to_content(self.lemma_variants_table)
-        self.form_layout.add_row(lemma_variants_label, self.lemma_variants_table)
+        self.add_lemma_variant_button = create_img_button('resources/images/add.png')
+        self.add_lemma_variant_button.clicked.connect(self.add_lemma_variant)
+        lemma_field_container = self._create_field_container(
+            self.lemma_variants_table, self.add_lemma_variant_button,
+        )
+        self.form_layout.add_row(
+            lemma_variants_label, lemma_field_container, self.lemma_variants_table
+        )
 
         # Translations table
         translations_label = QLabel('Translations:')
         self.translations_table = self.create_single_column_table(self.entry.tr)
         make_table_growable_up_to_content(self.translations_table)
-        self.form_layout.add_row(translations_label, self.translations_table)
+        self.add_translation_button = create_img_button('resources/images/add.png')
+        self.add_translation_button.clicked.connect(self.add_translation)
+        translations_field_container = self._create_field_container(
+            self.translations_table, self.add_translation_button,
+        )
+        self.form_layout.add_row(
+            translations_label, translations_field_container, self.translations_table
+        )
 
         # Forms table
         forms_label = QLabel('Forms:')
@@ -290,7 +413,12 @@ class EntryDetailsDialog(QDialog):
         )
         self.forms_table.cellDoubleClicked.connect(self.on_gram_form_double_clicked)
         make_table_growable_up_to_content(self.forms_table)
-        self.form_layout.add_row(forms_label, self.forms_table)
+        self.add_form_button = create_img_button('resources/images/add.png')
+        self.add_form_button.clicked.connect(self.add_form)
+        forms_field_container = self._create_field_container(
+            self.forms_table, self.add_form_button,
+        )
+        self.form_layout.add_row(forms_label, forms_field_container, self.forms_table)
 
         # Phrases table
         phrases_label = QLabel('Phrases:')
@@ -298,20 +426,35 @@ class EntryDetailsDialog(QDialog):
             list(phrases_to_pairs(self.entry.phrases))
         )
         make_table_growable_up_to_content(self.phrases_table)
-        self.form_layout.add_row(phrases_label, self.phrases_table)
+        self.add_phrase_button = create_img_button('resources/images/add.png')
+        self.add_phrase_button.clicked.connect(self.add_phrase)
+        phrases_field_container = self._create_field_container(
+            self.phrases_table, self.add_phrase_button,
+        )
+        self.form_layout.add_row(phrases_label, phrases_field_container, self.phrases_table)
 
         # Notes table
         notes_label = QLabel('Notes:')
         self.notes_table = self.create_single_column_table(self.entry.notes)
         make_table_growable_up_to_content(self.notes_table)
-        self.form_layout.add_row(notes_label, self.notes_table)
+        self.add_note_button = create_img_button('resources/images/add.png')
+        self.add_note_button.clicked.connect(self.add_note)
+        notes_field_container = self._create_field_container(
+            self.notes_table, self.add_note_button,
+        )
+        self.form_layout.add_row(notes_label, notes_field_container, self.notes_table)
 
         # Tags table
         tags_label = QLabel('Tags:')
         self.tags_list = CheckableList(sorted(self.dct.tags), set(self.entry.tags))
         self.tags_list.setWidgetResizable(True)
         self.tags_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.form_layout.add_row(tags_label, self.tags_list)
+        self.add_tag_button = create_img_button('resources/images/add.png')
+        self.add_tag_button.clicked.connect(self.add_tag)
+        tags_field_container = self._create_field_container(
+            self.tags_list, self.add_tag_button,
+        )
+        self.form_layout.add_row(tags_label, tags_field_container, self.tags_list)
 
         # Fav checkbox
         fav_label = QLabel('Favorite:')
@@ -436,6 +579,39 @@ class EntryDetailsDialog(QDialog):
         return table
 
     @staticmethod
+    def add_row_to_single_column_table(table: QTableWidget):
+        n_rows = table.rowCount()
+        table.setRowCount(n_rows + 1)
+        table.setItem(n_rows, 0, QTableWidgetItem(''))
+
+        # Set focus on the new cell
+        table.setCurrentCell(n_rows, 0)
+        table.editItem(table.item(n_rows, 0))
+
+    @staticmethod
+    def add_row_to_two_column_table(table: QTableWidget, is_1_col_active: bool = True, data=None):
+        n_rows = table.rowCount()
+        table.setRowCount(n_rows + 1)
+
+        table_item1 = QTableWidgetItem('')
+        if data is not None:
+            table_item1.setData(Qt.UserRole, data)
+        if is_1_col_active:
+            table_item1.setFlags(table_item1.flags() | Qt.ItemIsEditable)
+        else:
+            table_item1.setFlags(table_item1.flags() & ~Qt.ItemIsEditable)
+
+        table_item2 = QTableWidgetItem('')
+
+        table.setItem(n_rows, 0, table_item1)
+        table.setItem(n_rows, 1, table_item2)
+
+        # Set focus on the new cell
+        focused_column = 0 if is_1_col_active else 1
+        table.setCurrentCell(n_rows, focused_column)
+        table.editItem(table.item(n_rows, focused_column))
+
+    @staticmethod
     def get_phrases_data(table: QTableWidget) -> dict[str, list[str]]:
         data = {}
         for row in range(table.rowCount()):
@@ -470,6 +646,37 @@ class EntryDetailsDialog(QDialog):
 
         self.forms_table.item(row, column).setData(Qt.UserRole, new_gram_form)
         self.forms_table.item(row, column).setText(gram_form_to_str(new_gram_form))
+
+    def add_lemma_variant(self):
+        self.add_row_to_single_column_table(self.lemma_variants_table)
+
+    def add_translation(self):
+        self.add_row_to_single_column_table(self.translations_table)
+
+    def add_form(self):
+        specs = {k: [''] + v for k, v in self.dct.features.items()}
+        empty_gram_form = tuple('' for _ in range(len(self.dct.features)))
+
+        res, ok = OptionsDialog.get_settings(specs, empty_gram_form, 'Set grammatical form')
+        if not ok:
+            return
+        new_gram_form = tuple(res.values())
+
+        self.add_row_to_two_column_table(self.forms_table, False, new_gram_form)
+        n_rows = self.forms_table.rowCount()
+        self.forms_table.item(n_rows - 1, 0).setText(gram_form_to_str(new_gram_form))
+
+    def add_phrase(self):
+        self.add_row_to_two_column_table(self.phrases_table)
+
+    def add_note(self):
+        self.add_row_to_single_column_table(self.notes_table)
+
+    def add_tag(self):
+        new_tag, is_default, ok = InputTagDialog.get_input(self.dct, parent=self)
+        if ok and new_tag:
+            self.dct.add_tag(new_tag, is_default)
+            self.tags_list.add_item(new_tag, True)
 
     def save_and_close(self):
         lemma_variants = get_column_data(self.lemma_variants_table, 0)
