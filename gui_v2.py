@@ -4,9 +4,9 @@ from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
     QToolBar, QTabWidget, QLabel, QMenu, QScrollArea,
     QTableWidget, QTableWidgetItem, QDialog,
-    QDialogButtonBox, QMessageBox, QComboBox, QFormLayout,
+    QDialogButtonBox, QMessageBox, QComboBox, QFormLayout, QGridLayout,
     QHeaderView, QAbstractItemView, QFileDialog,
-    QInputDialog, QTabBar, QPushButton, QCheckBox,
+    QInputDialog, QTabBar, QPushButton, QCheckBox, QSizePolicy,
 )
 from PySide6.QtGui import QAction, QCloseEvent
 from PySide6.QtCore import Qt
@@ -90,6 +90,25 @@ def get_column_data(table: QTableWidget, column: int) -> list[str]:
     return data
 
 
+def make_table_growable_up_to_content(table: QTableWidget):
+    """
+    The table grows only up to the height at which all rows are
+    visible (no internal scrollbar). Beyond that, any extra space
+    from resizing the window goes to other expanding widgets.
+    """
+
+    table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+    row_heights = sum(table.rowHeight(row) for row in range(table.rowCount()))
+    header = table.horizontalHeader()
+    header_height = header.height() if header.isVisible() else 0
+    frame = table.frameWidth() * 2
+    full_content_height = row_heights + header_height + frame
+    full_content_height = max(full_content_height, table.minimumHeight())
+
+    table.setMaximumHeight(full_content_height)
+
+
 class OptionsDialog(QDialog):
     def __init__(self, specs: dict[str, list[str]], defaults: tuple[str, ...], title: str):
         super().__init__()
@@ -153,8 +172,6 @@ class CheckableList(QScrollArea):
     def __init__(self, items: list[str], checked_items: set[str]):
         super().__init__()
 
-        self.setWidgetResizable(True)
-
         container = QWidget()
         layout = QVBoxLayout(container)
         layout.setAlignment(Qt.AlignTop)
@@ -176,6 +193,52 @@ class CheckableList(QScrollArea):
     def set_checked(self, text: str, is_checked: bool = True):
         if text in self.checkboxes:
             self.checkboxes[text].setChecked(is_checked)
+
+
+class EqualGrowFormLayout(QGridLayout):
+    """
+    A 'label + field' layout where widgets in each row grow evenly,
+    without empty gaps: as soon as a row's growable widget reaches
+    its maximumHeight, the row's stretch is removed, and the freed-up
+    space goes entirely to the remaining growing rows.
+    """
+
+    def __init__(self, label_alignment: Qt.AlignmentFlag):
+        super().__init__()
+
+        self._label_alignment = label_alignment
+        self._row = 0
+        self._growable_widgets: list[tuple[int, QWidget]] = []
+
+    def add_row(self, label_widget, field_widget, growable_widget=None):
+        row = self._row
+
+        self.addWidget(label_widget, row, 0, self._label_alignment)
+        self.addWidget(field_widget, row, 1)
+
+        widget_to_track = growable_widget or field_widget
+        vertical_policy = widget_to_track.sizePolicy().verticalPolicy()
+        is_expanding = vertical_policy in (QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
+
+        if is_expanding:
+            self.setRowStretch(row, 1)
+            self._growable_widgets.append((row, widget_to_track))
+        else:
+            self.setRowStretch(row, 0)
+
+        self._row += 1
+
+    def update_row_stretches(self):
+        changed = False
+        for row, widget in self._growable_widgets:
+            has_room_to_grow = widget.height() < widget.maximumHeight()
+            new_stretch = 1 if has_room_to_grow else 0
+            if self.rowStretch(row) != new_stretch:
+                self.setRowStretch(row, new_stretch)
+                changed = True
+
+        if changed:
+            self.activate()
 
 
 class EntryDetailsDialog(QDialog):
@@ -203,18 +266,20 @@ class EntryDetailsDialog(QDialog):
 
     def _create_fields(self):
         # Form for displaying entry data
-        self.form_layout = QFormLayout(labelAlignment=Qt.AlignRight | Qt.AlignVCenter)
+        self.form_layout = EqualGrowFormLayout(label_alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.main_layout.addLayout(self.form_layout)
 
         # Lemma variants table
         lemma_variants_label = QLabel('Lemma\nvariants:', alignment=Qt.AlignRight)
         self.lemma_variants_table = self.create_single_column_table(self.entry.variants)
-        self.form_layout.addRow(lemma_variants_label, self.lemma_variants_table)
+        make_table_growable_up_to_content(self.lemma_variants_table)
+        self.form_layout.add_row(lemma_variants_label, self.lemma_variants_table)
 
         # Translations table
         translations_label = QLabel('Translations:')
         self.translations_table = self.create_single_column_table(self.entry.tr)
-        self.form_layout.addRow(translations_label, self.translations_table)
+        make_table_growable_up_to_content(self.translations_table)
+        self.form_layout.add_row(translations_label, self.translations_table)
 
         # Forms table
         forms_label = QLabel('Forms:')
@@ -224,30 +289,37 @@ class EntryDetailsDialog(QDialog):
             is_1_col_active=False,
         )
         self.forms_table.cellDoubleClicked.connect(self.on_gram_form_double_clicked)
-        self.form_layout.addRow(forms_label, self.forms_table)
+        make_table_growable_up_to_content(self.forms_table)
+        self.form_layout.add_row(forms_label, self.forms_table)
 
         # Phrases table
         phrases_label = QLabel('Phrases:')
         self.phrases_table = self.create_two_column_table(
             list(phrases_to_pairs(self.entry.phrases))
         )
-        self.form_layout.addRow(phrases_label, self.phrases_table)
+        make_table_growable_up_to_content(self.phrases_table)
+        self.form_layout.add_row(phrases_label, self.phrases_table)
 
         # Notes table
         notes_label = QLabel('Notes:')
         self.notes_table = self.create_single_column_table(self.entry.notes)
-        self.form_layout.addRow(notes_label, self.notes_table)
+        make_table_growable_up_to_content(self.notes_table)
+        self.form_layout.add_row(notes_label, self.notes_table)
 
         # Tags table
         tags_label = QLabel('Tags:')
         self.tags_list = CheckableList(sorted(self.dct.tags), set(self.entry.tags))
-        self.form_layout.addRow(tags_label, self.tags_list)
+        self.tags_list.setWidgetResizable(True)
+        self.tags_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.form_layout.add_row(tags_label, self.tags_list)
 
         # Fav checkbox
         fav_label = QLabel('Favorite:')
         self.fav_checkbox = QCheckBox()
         self.fav_checkbox.setChecked(self.entry.is_fav)
-        self.form_layout.addRow(fav_label, self.fav_checkbox)
+        self.form_layout.add_row(fav_label, self.fav_checkbox)
+
+        self.form_layout.update_row_stretches()
 
     def _create_buttons(self):
         # Dialog buttons
@@ -263,6 +335,10 @@ class EntryDetailsDialog(QDialog):
         self.close_button.clicked.connect(self.reject)
 
         self.main_layout.addWidget(buttons)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.form_layout.update_row_stretches()
 
     @staticmethod
     def create_single_column_table(
