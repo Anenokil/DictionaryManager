@@ -318,7 +318,20 @@ class EntryDetailsDialog(QDialog):
         return data
 
     def save_and_close(self):
-        pass
+        lemma_variants = get_column_data(self.lemma_variants_table, 0)
+        translations = get_column_data(self.translations_table, 0)
+        forms = self.get_forms_data(self.forms_table)
+        phrases = self.get_phrases_data(self.phrases_table)
+        notes = get_column_data(self.notes_table, 0)
+        tags = self.tags_list.get_checked_items()
+        is_fav = self.fav_checkbox.isChecked()
+
+        self.entry = self.dct.rewrite_entry(
+            self.entry,
+            lemma_variants, translations, forms, phrases, notes, tags, is_fav,
+        )
+
+        self.accept()
 
 
 class DctTabWidget(QTabWidget):
