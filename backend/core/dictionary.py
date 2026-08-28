@@ -427,6 +427,87 @@ class Dictionary:
         return new_entry
 
     @_mark_modified
+    def rewrite_entry(
+            self,
+            entry: Entry,
+            lemma: Word | Iterable[Word],
+            tr: Translation | Iterable[Translation],
+            forms: Mapping[GramForm, Iterable[WordForm]] | None = None,
+            phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
+            notes: Note | Iterable[Note] | None = None,
+            tags: Iterable[Tag] | None = None,
+            is_fav: bool = False,
+    ) -> Entry:
+        """
+        Edit all fields of an Entry.
+
+        Args:
+            entry: Entry to edit.
+            lemma: Lemma (canonical/dictionary form of the word); one or more spelling variants.
+            tr: One or more translations.
+            forms: Inflected forms of the word (except the lemma).
+            phrases: Phrases containing the word; usage examples.
+            notes: Notes field.
+            tags: Tags assigned to the Entry.
+            is_fav: Whether the Entry is favorite.
+
+        Returns:
+            New Entry object.
+
+        Raises:
+            InvalidGramFormError: If invalid grammatical forms are specified.
+            InvalidTagError: If invalid tags are specified.
+        """
+
+        if forms is not None:
+            for gram_form in forms.keys():
+                if len(gram_form) != len(self._features):
+                    raise InvalidGramFormError(gram_form)
+                for ctg_val, ctg in zip(gram_form, self._features):
+                    if ctg_val != '' and ctg_val not in self._features[ctg]:
+                        raise InvalidGramFormError(ctg_val)
+
+        if tags is not None:
+            tags = set(tags)
+            invalid_tags = tags.difference(set(self._tags))
+            if invalid_tags:
+                raise InvalidTagError(*invalid_tags)
+
+        self._update_index('lemmas', entry.variants, entry, 'remove')
+        self._update_index('translations', entry.tr, entry, 'remove')
+        self._update_index('forms', chain(*entry.forms.values()), entry, 'remove')
+        self._update_index('tags', entry.tags, entry, 'remove')
+
+        self._counters['translations'] -= entry.n_translations
+        self._counters['gram_forms']   -= entry.n_gram_forms
+        self._counters['word_forms']   -= entry.n_word_forms
+        self._counters['phrases']      -= entry.n_phrases
+        self._counters['phrase_trs']   -= entry.n_phrase_translations
+        self._counters['notes']        -= entry.n_notes
+
+        new_entry = Entry(
+            lemma, tr, forms, phrases, notes, tags, is_fav,
+            entry.total_att, entry.correct_att, entry.win_streak,
+            entry.latest_att_timestamp,
+        )
+        i = self._entries.index(entry)
+        self._entries[i] = new_entry
+
+        self._update_index('lemmas', new_entry.variants, new_entry, 'add')
+        self._update_index('translations', new_entry.tr, new_entry, 'add')
+        self._update_index('forms', chain(*new_entry.forms.values()), new_entry, 'add')
+        self._update_index('tags', new_entry.tags, new_entry, 'add')
+
+        self._counters['translations'] += new_entry.n_translations
+        self._counters['gram_forms']   += new_entry.n_gram_forms
+        self._counters['word_forms']   += new_entry.n_word_forms
+        self._counters['phrases']      += new_entry.n_phrases
+        self._counters['phrase_trs']   += new_entry.n_phrase_translations
+        self._counters['notes']        += new_entry.n_notes
+
+        return new_entry
+
+    @_mark_modified
     def delete_entry(self, entry: Entry):
         """
         Delete an Entry.
