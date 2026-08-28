@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
     QToolBar, QTabWidget, QLabel, QMenu, QScrollArea,
     QTableWidget, QTableWidgetItem, QDialog,
-    QDialogButtonBox, QMessageBox, QFormLayout,
+    QDialogButtonBox, QMessageBox, QComboBox, QFormLayout,
     QHeaderView, QAbstractItemView, QFileDialog,
     QInputDialog, QTabBar, QPushButton, QCheckBox,
 )
@@ -90,6 +90,65 @@ def get_column_data(table: QTableWidget, column: int) -> list[str]:
     return data
 
 
+class OptionsDialog(QDialog):
+    def __init__(self, specs: dict[str, list[str]], defaults: tuple[str, ...], title: str):
+        super().__init__()
+
+        self.specs = specs
+
+        self.setWindowTitle(title)
+
+        self.combo_boxes: dict[str, QComboBox] = {}
+
+        scroll = QScrollArea(self)
+        scroll.setWidgetResizable(True)
+
+        form_container = QWidget()
+        form_layout = QFormLayout(form_container)
+
+        for spec, default in zip(specs.items(), defaults):
+            name, options = spec
+
+            combo = QComboBox()
+            for option in options:
+                combo.addItem(option)
+
+            # Set default option
+            default_index = combo.findText(default)
+            if default_index != -1:
+                combo.setCurrentIndex(default_index)
+
+            form_layout.addRow(QLabel(name), combo)
+            self.combo_boxes[name] = combo
+
+        scroll.setWidget(form_container)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(scroll)
+        layout.addWidget(buttons)
+
+    def get_values(self) -> dict[str, str]:
+        return {
+            name: combo.currentText()
+            for name, combo in self.combo_boxes.items()
+        }
+
+    @staticmethod
+    def get_settings(
+            specs: dict[str, list[str]], defaults: tuple[str, ...], title: str,
+    ) -> tuple[dict[str, str] | None, bool]:
+        dialog = OptionsDialog(specs, defaults, title)
+        ok = dialog.exec() == QDialog.Accepted
+        values = dialog.get_values() if ok else None
+        return values, ok
+
+
 class CheckableList(QScrollArea):
     def __init__(self, items: list[str], checked_items: set[str]):
         super().__init__()
@@ -164,6 +223,7 @@ class EntryDetailsDialog(QDialog):
             gram_forms=list(self.entry.forms.keys()),
             is_1_col_active=False,
         )
+        self.forms_table.cellDoubleClicked.connect(self.on_gram_form_double_clicked)
         self.form_layout.addRow(forms_label, self.forms_table)
 
         # Phrases table
@@ -316,6 +376,24 @@ class EntryDetailsDialog(QDialog):
             word_form = table.item(row, 1).text()
             data.setdefault(gram_form, []).append(word_form)
         return data
+
+    def on_gram_form_double_clicked(self, row: int, column: int):
+        if column != 0:
+            return
+
+        item = self.forms_table.item(row, column)
+        if item is None:
+            return
+
+        specs = {k: [''] + v for k, v in self.dct.features.items()}
+        gram_form = item.data(Qt.UserRole)
+        res, ok = OptionsDialog.get_settings(specs, gram_form, 'Grammatical form settings')
+        if not ok:
+            return
+        new_gram_form = tuple(res.values())
+
+        self.forms_table.item(row, column).setData(Qt.UserRole, new_gram_form)
+        self.forms_table.item(row, column).setText(gram_form_to_str(new_gram_form))
 
     def save_and_close(self):
         lemma_variants = get_column_data(self.lemma_variants_table, 0)
