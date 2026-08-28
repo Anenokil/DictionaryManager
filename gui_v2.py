@@ -2,7 +2,7 @@ from typing import Generator, Collection
 import sys
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
-    QToolBar, QTabWidget, QLabel, QMenu,
+    QToolBar, QTabWidget, QLabel, QMenu, QScrollArea,
     QTableWidget, QTableWidgetItem, QDialog,
     QDialogButtonBox, QMessageBox, QFormLayout,
     QHeaderView, QAbstractItemView, QFileDialog,
@@ -90,6 +90,35 @@ def get_column_data(table: QTableWidget, column: int) -> list[str]:
     return data
 
 
+class CheckableList(QScrollArea):
+    def __init__(self, items: list[str], checked_items: set[str]):
+        super().__init__()
+
+        self.setWidgetResizable(True)
+
+        container = QWidget()
+        layout = QVBoxLayout(container)
+        layout.setAlignment(Qt.AlignTop)
+
+        self.checkboxes: dict[str, QCheckBox] = {}
+
+        for text in items:
+            checkbox = QCheckBox(text)
+            is_checked = text in checked_items
+            checkbox.setChecked(is_checked)
+            layout.addWidget(checkbox)
+            self.checkboxes[text] = checkbox
+
+        self.setWidget(container)
+
+    def get_checked_items(self) -> list[str]:
+        return [text for text, cb in self.checkboxes.items() if cb.isChecked()]
+
+    def set_checked(self, text: str, is_checked: bool = True):
+        if text in self.checkboxes:
+            self.checkboxes[text].setChecked(is_checked)
+
+
 class EntryDetailsDialog(QDialog):
     """Dialog for displaying entry information."""
 
@@ -151,8 +180,8 @@ class EntryDetailsDialog(QDialog):
 
         # Tags table
         tags_label = QLabel('Tags:')
-        self.tags_table = self.create_single_column_table(self.entry.tags, is_active=False)
-        self.form_layout.addRow(tags_label, self.tags_table)
+        self.tags_list = CheckableList(sorted(self.dct.tags), set(self.entry.tags))
+        self.form_layout.addRow(tags_label, self.tags_list)
 
         # Fav checkbox
         fav_label = QLabel('Favorite:')
