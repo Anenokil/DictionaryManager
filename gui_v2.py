@@ -429,6 +429,7 @@ class EntryDetailsDialog(QDialog):
         self.dct = dct
         self.entry = entry
         self.statuses = {}
+        self.exit_code = None
 
         self._create_widgets()
         self._configure_window()
@@ -578,12 +579,15 @@ class EntryDetailsDialog(QDialog):
 
         self.save_button = QPushButton('Save')
         self.close_button = QPushButton('Close')
+        self.delete_button = QPushButton('Delete')
 
         buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
         buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
+        buttons.addButton(self.delete_button, QDialogButtonBox.DestructiveRole)
 
         self.save_button.clicked.connect(self.save_and_close)
         self.close_button.clicked.connect(self.reject)
+        self.delete_button.clicked.connect(self.delete_entry)
 
         self.main_layout.addWidget(buttons)
 
@@ -893,6 +897,13 @@ class EntryDetailsDialog(QDialog):
             lemma_variants, translations, forms, phrases, notes, tags, is_fav,
         )
 
+        self.exit_code = 'save'
+        self.accept()
+
+    def delete_entry(self):
+        self.dct.delete_entry(self.entry)
+
+        self.exit_code = 'delete'
         self.accept()
 
 
@@ -1063,9 +1074,11 @@ class DctWorkspaceWidget(QWidget):
         # Create and show details dialog
         dialog = EntryDetailsDialog(self.dct, entry, self)
         dialog.exec()
-        edited_entry = dialog.entry
-
-        self.fill_table_row(index.row(), edited_entry)
+        if dialog.exit_code == 'save':
+            edited_entry = dialog.entry
+            self.fill_table_row(index.row(), edited_entry)
+        elif dialog.exit_code == 'delete':
+            self.table_widget.removeRow(item.row())
 
     def on_selection_changed(self):
         """
