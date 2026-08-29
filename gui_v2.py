@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QCheckBox, QLineEdit, QLabel, QLayout, QVBoxLayout,
     QHBoxLayout, QFormLayout, QGridLayout, QHeaderView,
     QAbstractItemView, QSizePolicy,
+    QStyle, QStyledItemDelegate,
 )
 from PySide6.QtGui import QAction, QCloseEvent, QIcon, QColor, QBrush
 from PySide6.QtCore import Qt, QSize, QTimer
@@ -143,6 +144,38 @@ def valid_gram_form(gram_form: dict[str, str]) -> tuple[bool, str]:
     if all(val == '' for val in gram_form.values()):
         return False, 'Grammatical form must not be empty'
     return True, ''
+
+
+class ColoredCellDelegate(QStyledItemDelegate):
+    """
+    Custom item background stays visible even when the cell is selected.
+    """
+
+    OVERLAY_ALPHA = 160  # 0-255
+
+    def paint(self, painter, option, index):
+        background = index.data(Qt.BackgroundRole)
+
+        if background is None:
+            super().paint(painter, option, index)
+            return
+
+        color = QColor(background.color())
+        is_selected = bool(option.state & QStyle.State_Selected)
+
+        if is_selected:
+            super().paint(painter, option, index)
+            color.setAlpha(self.OVERLAY_ALPHA)
+            painter.fillRect(option.rect, color)
+        else:
+            painter.fillRect(option.rect, color)
+            super().paint(painter, option, index)
+
+    def createEditor(self, parent, option, index):
+        editor = super().createEditor(parent, option, index)
+        if isinstance(editor, QLineEdit):
+            QTimer.singleShot(0, editor.selectAll)
+        return editor
 
 
 class InputTagDialog(QDialog):
@@ -432,6 +465,7 @@ class EntryDetailsDialog(QDialog):
 
         self.lemma_variants_table = self.create_single_column_table(self.entry.variants)
         self.lemma_variants_table.itemChanged.connect(self.on_item_changed)
+        self.lemma_variants_table.setItemDelegate(ColoredCellDelegate(self.lemma_variants_table))
         make_table_growable_up_to_content(self.lemma_variants_table, self.main_layout.activate)
 
         self.add_lemma_variant_button = create_img_button('resources/images/add.png')
@@ -449,6 +483,7 @@ class EntryDetailsDialog(QDialog):
 
         self.translations_table = self.create_single_column_table(self.entry.tr)
         self.translations_table.itemChanged.connect(self.on_item_changed)
+        self.translations_table.setItemDelegate(ColoredCellDelegate(self.translations_table))
         make_table_growable_up_to_content(self.translations_table, self.main_layout.activate)
 
         self.add_translation_button = create_img_button('resources/images/add.png')
@@ -471,6 +506,7 @@ class EntryDetailsDialog(QDialog):
         )
         self.forms_table.cellDoubleClicked.connect(self.on_gram_form_double_clicked)
         self.forms_table.itemChanged.connect(self.on_item_changed)
+        self.forms_table.setItemDelegate(ColoredCellDelegate(self.forms_table))
         make_table_growable_up_to_content(self.forms_table, self.main_layout.activate)
 
         self.add_form_button = create_img_button('resources/images/add.png')
@@ -486,6 +522,7 @@ class EntryDetailsDialog(QDialog):
             list(phrases_to_pairs(self.entry.phrases))
         )
         self.phrases_table.itemChanged.connect(self.on_item_changed)
+        self.phrases_table.setItemDelegate(ColoredCellDelegate(self.phrases_table))
         make_table_growable_up_to_content(self.phrases_table, self.main_layout.activate)
 
         self.add_phrase_button = create_img_button('resources/images/add.png')
@@ -501,6 +538,7 @@ class EntryDetailsDialog(QDialog):
 
         self.notes_table = self.create_single_column_table(self.entry.notes)
         self.notes_table.itemChanged.connect(self.on_item_changed)
+        self.notes_table.setItemDelegate(ColoredCellDelegate(self.notes_table))
         make_table_growable_up_to_content(self.notes_table, self.main_layout.activate)
 
         self.add_note_button = create_img_button('resources/images/add.png')
