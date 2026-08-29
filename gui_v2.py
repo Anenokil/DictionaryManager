@@ -428,10 +428,13 @@ class EntryDetailsDialog(QDialog):
 
         # Lemma variants table
         lemma_variants_label = QLabel('Lemma\nvariants:', alignment=Qt.AlignRight)
+
         self.lemma_variants_table = self.create_single_column_table(self.entry.variants)
         make_table_growable_up_to_content(self.lemma_variants_table, self.main_layout.activate)
+
         self.add_lemma_variant_button = create_img_button('resources/images/add.png')
         self.add_lemma_variant_button.clicked.connect(self.add_lemma_variant)
+
         lemma_field_container = self._create_field_container(
             self.lemma_variants_table, self.add_lemma_variant_button,
         )
@@ -441,10 +444,13 @@ class EntryDetailsDialog(QDialog):
 
         # Translations table
         translations_label = QLabel('Translations:')
+
         self.translations_table = self.create_single_column_table(self.entry.tr)
         make_table_growable_up_to_content(self.translations_table, self.main_layout.activate)
+
         self.add_translation_button = create_img_button('resources/images/add.png')
         self.add_translation_button.clicked.connect(self.add_translation)
+
         translations_field_container = self._create_field_container(
             self.translations_table, self.add_translation_button,
         )
@@ -454,6 +460,7 @@ class EntryDetailsDialog(QDialog):
 
         # Forms table
         forms_label = QLabel('Forms:')
+
         self.forms_table = self.create_two_column_table(
             list(forms_to_pairs(self.entry.forms)),
             gram_forms=list(self.entry.forms.keys()),
@@ -461,21 +468,24 @@ class EntryDetailsDialog(QDialog):
         )
         self.forms_table.cellDoubleClicked.connect(self.on_gram_form_double_clicked)
         make_table_growable_up_to_content(self.forms_table, self.main_layout.activate)
+
         self.add_form_button = create_img_button('resources/images/add.png')
         self.add_form_button.clicked.connect(self.add_form)
-        forms_field_container = self._create_field_container(
-            self.forms_table, self.add_form_button,
-        )
+
+        forms_field_container = self._create_field_container(self.forms_table, self.add_form_button)
         self.form_layout.add_row(forms_label, forms_field_container, self.forms_table)
 
         # Phrases table
         phrases_label = QLabel('Phrases:')
+
         self.phrases_table = self.create_two_column_table(
             list(phrases_to_pairs(self.entry.phrases))
         )
         make_table_growable_up_to_content(self.phrases_table, self.main_layout.activate)
+
         self.add_phrase_button = create_img_button('resources/images/add.png')
         self.add_phrase_button.clicked.connect(self.add_phrase)
+
         phrases_field_container = self._create_field_container(
             self.phrases_table, self.add_phrase_button,
         )
@@ -483,17 +493,19 @@ class EntryDetailsDialog(QDialog):
 
         # Notes table
         notes_label = QLabel('Notes:')
+
         self.notes_table = self.create_single_column_table(self.entry.notes)
         make_table_growable_up_to_content(self.notes_table, self.main_layout.activate)
+
         self.add_note_button = create_img_button('resources/images/add.png')
         self.add_note_button.clicked.connect(self.add_note)
-        notes_field_container = self._create_field_container(
-            self.notes_table, self.add_note_button,
-        )
+
+        notes_field_container = self._create_field_container(self.notes_table, self.add_note_button)
         self.form_layout.add_row(notes_label, notes_field_container, self.notes_table)
 
-        # Tags table
+        # Tags list
         tags_label = QLabel('Tags:')
+
         self.tags_list = CheckableList(
             sorted(self.dct.tags), set(self.entry.tags),
             on_change=self.main_layout.activate,
@@ -502,21 +514,22 @@ class EntryDetailsDialog(QDialog):
         self.tags_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.tags_list.setMinimumHeight(50)
         self.tags_list.setMinimumWidth(120)
+
         self.add_tag_button = create_img_button('resources/images/add.png')
         self.add_tag_button.clicked.connect(self.add_tag)
-        tags_field_container = self._create_field_container(
-            self.tags_list, self.add_tag_button,
-        )
+
+        tags_field_container = self._create_field_container(self.tags_list, self.add_tag_button)
         self.form_layout.add_row(tags_label, tags_field_container, self.tags_list)
 
         # Fav checkbox
         fav_label = QLabel('Favorite:')
+
         self.fav_checkbox = QCheckBox()
         self.fav_checkbox.setChecked(self.entry.is_fav)
+
         self.form_layout.add_row(fav_label, self.fav_checkbox)
 
     def _create_buttons(self):
-        # Dialog buttons
         buttons = QDialogButtonBox()
 
         self.save_button = QPushButton('Save')
@@ -1025,31 +1038,28 @@ class MainWindow(QMainWindow):
         self.toolbar.setMovable(False)
         self.main_layout.addWidget(self.toolbar)
 
-        # Create Settings button
+        self.file_action = QAction('File', self)
+        self.file_action.triggered.connect(self.show_file_menu)
+        self.toolbar.addAction(self.file_action)
+        self._create_file_menu()
+
         self.settings_action = QAction('Settings', self)
         self.settings_action.triggered.connect(self.show_settings_menu)
         self.toolbar.addAction(self.settings_action)
 
-        self._create_dictionaries_menu()
-
-        # Create Dictionaries button with manual menu handling
-        self.dictionaries_action = QAction('Dictionaries', self)
-        self.dictionaries_action.triggered.connect(self.show_dictionaries_menu)
-        self.toolbar.addAction(self.dictionaries_action)
-
-    def _create_dictionaries_menu(self):
-        # Create Dictionaries menu
-        self.dictionaries_menu = QMenu(self)
-
-        # Create button to open a dictionary
-        self.open_action = QAction('Open', self)
-        self.open_action.triggered.connect(self.open_dict)
-        self.dictionaries_menu.addAction(self.open_action)
+    def _create_file_menu(self):
+        # Create File menu
+        self.file_menu = QMenu(self)
 
         # Create button to create new dictionary
         self.new_action = QAction('New', self)
         self.new_action.triggered.connect(self.new_dict)
-        self.dictionaries_menu.addAction(self.new_action)
+        self.file_menu.addAction(self.new_action)
+
+        # Create button to open a dictionary
+        self.open_action = QAction('Open', self)
+        self.open_action.triggered.connect(self.open_dict)
+        self.file_menu.addAction(self.open_action)
 
     def _create_tab_widget(self):
         # Create tab widget
@@ -1075,19 +1085,19 @@ class MainWindow(QMainWindow):
         self.placeholder.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(self.placeholder)
 
-    def show_settings_menu(self):
-        pass
+    def show_file_menu(self):
+        """Show the File dropdown menu below the File button."""
 
-    def show_dictionaries_menu(self):
-        """Show the Dictionaries dropdown menu below the Dictionaries button."""
-
-        # Get the widget for the Dictionaries button
-        button_widget = self.toolbar.widgetForAction(self.dictionaries_action)
+        # Get the widget for the File button
+        button_widget = self.toolbar.widgetForAction(self.file_action)
         if button_widget:
             # Calculate position for the menu - below the button
             pos = button_widget.mapToGlobal(button_widget.rect().bottomLeft())
             # Show the menu at this position
-            self.dictionaries_menu.exec(pos)
+            self.file_menu.exec(pos)
+
+    def show_settings_menu(self):
+        pass
 
     def on_tab_changed(self, index):
         """
