@@ -10,7 +10,10 @@ from PySide6.QtWidgets import (
     QAbstractItemView, QSizePolicy,
     QStyle, QStyledItemDelegate,
 )
-from PySide6.QtGui import QAction, QCloseEvent, QIcon, QColor, QBrush
+from PySide6.QtGui import (
+    QAction, QCloseEvent, QIcon, QColor, QBrush,
+    QShortcut, QKeySequence,
+)
 from PySide6.QtCore import Qt, QSize, QTimer
 
 from backend import (
@@ -432,6 +435,7 @@ class EntryDetailsDialog(QDialog):
         self.exit_code = None
 
         self._create_widgets()
+        self._set_shortcuts()
         self._configure_window()
 
     def _configure_window(self):
@@ -577,6 +581,33 @@ class EntryDetailsDialog(QDialog):
         self.delete_button.clicked.connect(self.delete_entry)
 
         self.main_layout.addWidget(buttons)
+
+    def _set_shortcuts(self):
+        add_lemma_variant_shortcut = QShortcut(QKeySequence('Ctrl+N'), self.lemma_variants_table)
+        add_lemma_variant_shortcut.setContext(Qt.WidgetShortcut)
+        add_lemma_variant_shortcut.activated.connect(self.add_lemma_variant)
+
+        add_translation_shortcut = QShortcut(QKeySequence('Ctrl+N'), self.translations_table)
+        add_translation_shortcut.setContext(Qt.WidgetShortcut)
+        add_translation_shortcut.activated.connect(self.add_translation)
+
+        add_form_shortcut = QShortcut(QKeySequence('Ctrl+N'), self.forms_table)
+        add_form_shortcut.setContext(Qt.WidgetShortcut)
+        add_form_shortcut.activated.connect(self.add_form)
+
+        add_phrase_shortcut = QShortcut(QKeySequence('Ctrl+N'), self.phrases_table)
+        add_phrase_shortcut.setContext(Qt.WidgetShortcut)
+        add_phrase_shortcut.activated.connect(self.add_phrase)
+
+        add_note_shortcut = QShortcut(QKeySequence('Ctrl+N'), self.notes_table)
+        add_note_shortcut.setContext(Qt.WidgetShortcut)
+        add_note_shortcut.activated.connect(self.add_note)
+
+        save_shortcut = QShortcut(QKeySequence('Ctrl+S'), self)
+        save_shortcut.activated.connect(self.save_and_close)
+
+        close_shortcut = QShortcut(QKeySequence('Ctrl+Q'), self)
+        close_shortcut.activated.connect(self.reject)
 
     @staticmethod
     def create_single_column_table(
