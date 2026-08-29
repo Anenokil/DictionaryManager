@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout, QFormLayout, QGridLayout, QHeaderView,
     QAbstractItemView, QSizePolicy,
 )
-from PySide6.QtGui import QAction, QCloseEvent, QIcon
+from PySide6.QtGui import QAction, QCloseEvent, QIcon, QColor, QBrush
 from PySide6.QtCore import Qt, QSize, QTimer
 
 from backend import (
@@ -395,6 +395,7 @@ class EntryDetailsDialog(QDialog):
 
         self.dct = dct
         self.entry = entry
+        self.statuses = {}
 
         self._create_widgets()
         self._configure_window()
@@ -430,6 +431,7 @@ class EntryDetailsDialog(QDialog):
         lemma_variants_label = QLabel('Lemma\nvariants:', alignment=Qt.AlignRight)
 
         self.lemma_variants_table = self.create_single_column_table(self.entry.variants)
+        self.lemma_variants_table.itemChanged.connect(self.on_item_changed)
         make_table_growable_up_to_content(self.lemma_variants_table, self.main_layout.activate)
 
         self.add_lemma_variant_button = create_img_button('resources/images/add.png')
@@ -446,6 +448,7 @@ class EntryDetailsDialog(QDialog):
         translations_label = QLabel('Translations:')
 
         self.translations_table = self.create_single_column_table(self.entry.tr)
+        self.translations_table.itemChanged.connect(self.on_item_changed)
         make_table_growable_up_to_content(self.translations_table, self.main_layout.activate)
 
         self.add_translation_button = create_img_button('resources/images/add.png')
@@ -467,6 +470,7 @@ class EntryDetailsDialog(QDialog):
             is_1_col_active=False,
         )
         self.forms_table.cellDoubleClicked.connect(self.on_gram_form_double_clicked)
+        self.forms_table.itemChanged.connect(self.on_item_changed)
         make_table_growable_up_to_content(self.forms_table, self.main_layout.activate)
 
         self.add_form_button = create_img_button('resources/images/add.png')
@@ -481,6 +485,7 @@ class EntryDetailsDialog(QDialog):
         self.phrases_table = self.create_two_column_table(
             list(phrases_to_pairs(self.entry.phrases))
         )
+        self.phrases_table.itemChanged.connect(self.on_item_changed)
         make_table_growable_up_to_content(self.phrases_table, self.main_layout.activate)
 
         self.add_phrase_button = create_img_button('resources/images/add.png')
@@ -495,6 +500,7 @@ class EntryDetailsDialog(QDialog):
         notes_label = QLabel('Notes:')
 
         self.notes_table = self.create_single_column_table(self.entry.notes)
+        self.notes_table.itemChanged.connect(self.on_item_changed)
         make_table_growable_up_to_content(self.notes_table, self.main_layout.activate)
 
         self.add_note_button = create_img_button('resources/images/add.png')
@@ -689,6 +695,90 @@ class EntryDetailsDialog(QDialog):
             data.setdefault(gram_form, []).append(word_form)
         return data
 
+    def validate_lemma_variant(self, variant: str) -> tuple[bool, str]:
+        if variant == '':
+            return False, 'Lemma variant must not be empty'
+        variants = get_column_data(self.lemma_variants_table, 0)
+        if variants.count(variant) > 1:
+            return False, f'Variant {variant} is a duplicate'
+        return True, ''
+
+    def validate_translation(self, translation: str) -> tuple[bool, str]:
+        if translation == '':
+            return False, 'Translation must not be empty'
+        translations = get_column_data(self.translations_table, 0)
+        if translations.count(translation) > 1:
+            return False, f'Translation {translation} is a duplicate'
+        return True, ''
+
+    def validate_word_form(self, gram_form: GramForm, word_form: str) -> tuple[bool, str]:
+        if word_form == '':
+            return False, 'Word form must not be empty'
+        gram_forms = [
+            self.forms_table.item(row, 0).data(Qt.UserRole)
+            for row in range(self.forms_table.rowCount())
+        ]
+        word_forms = get_column_data(self.forms_table, 1)
+        adj_word_forms = [wf for gf, wf in zip(gram_forms, word_forms) if gf == gram_form]
+        if adj_word_forms.count(word_form) > 1:
+            return False, f'Word form {word_form} is a duplicate'
+        return True, ''
+
+    def validate_phrase(self, phrase: str) -> tuple[bool, str]:
+        if phrase == '':
+            return False, 'Phrase must not be empty'
+        return True, ''
+
+    def validate_phrase_translation(self, phrase: str, phrase_tr: str) -> tuple[bool, str]:
+        if phrase_tr == '':
+            return False, 'Phrase translation must not be empty'
+        phrases = get_column_data(self.phrases_table, 0)
+        phrase_trs = get_column_data(self.phrases_table, 1)
+        adj_phrase_trs = [pt for ph, pt in zip(phrases, phrase_trs) if ph == phrase]
+        if adj_phrase_trs.count(phrase_tr) > 1:
+            return False, f'Phrase translation {phrase_tr} is a duplicate'
+        return True, ''
+
+    def validate_note(self, note: str) -> tuple[bool, str]:
+        if note == '':
+            return False, 'Note must not be empty'
+        notes = get_column_data(self.notes_table, 0)
+        if notes.count(note) > 1:
+            return False, f'Note {note} is a duplicate'
+        return True, ''
+
+    def on_item_changed(self, item: QTableWidgetItem):
+        # Validation
+        match item.tableWidget():
+            case self.lemma_variants_table:
+                ok, error_msg = self.validate_lemma_variant(item.text())
+            case self.translations_table:
+                ok, error_msg = self.validate_translation(item.text())
+            case self.forms_table:
+                if item.column() != 1:
+                    return
+                gram_form = self.forms_table.item(item.row(), item.column() - 1).data(Qt.UserRole)
+                ok, error_msg = self.validate_word_form(gram_form, item.text())
+            case self.phrases_table:
+                if item.column() == 0:
+                    ok, error_msg = self.validate_phrase(item.text())
+                else:
+                    phrase = self.phrases_table.item(item.row(), item.column() - 1).text()
+                    ok, error_msg = self.validate_phrase_translation(phrase, item.text())
+            case self.notes_table:
+                ok, error_msg = self.validate_note(item.text())
+
+        # Update UI
+        if ok:
+            item.setBackground(QBrush())
+            item.setToolTip('')
+        else:
+            item.setBackground(QBrush(QColor('#ffcccc')))
+            item.setToolTip(error_msg)
+
+        # Set cell status
+        self.statuses[item.tableWidget(), item.row(), item.column()] = error_msg
+
     def on_gram_form_double_clicked(self, row: int, column: int):
         if column != 0:
             return
@@ -743,6 +833,15 @@ class EntryDetailsDialog(QDialog):
             self.tags_list.add_item(new_tag, True)
 
     def save_and_close(self):
+        is_ok = all(status == '' for status in self.statuses.values())
+        if not is_ok:
+            QMessageBox.critical(
+                self,
+                'Error',
+                'Cannot apply your changes while there are invalid values (highlighted in red).',
+            )
+            return
+
         lemma_variants = get_column_data(self.lemma_variants_table, 0)
         translations = get_column_data(self.translations_table, 0)
         forms = self.get_forms_data(self.forms_table)
