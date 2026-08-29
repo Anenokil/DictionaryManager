@@ -457,100 +457,33 @@ class EntryDetailsDialog(QDialog):
         return field_container
 
     def _create_fields(self):
-        # Form for displaying entry data
+        # Layout for displaying entry data
         self.form_layout = EqualGrowFormLayout(label_alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.main_layout.addLayout(self.form_layout)
 
-        # Lemma variants table
+        # Create labels
         lemma_variants_label = QLabel('Lemma\nvariants:', alignment=Qt.AlignRight)
-
-        self.lemma_variants_table = self.create_single_column_table(self.entry.variants)
-        self.lemma_variants_table.itemChanged.connect(self.on_item_changed)
-        self.lemma_variants_table.setItemDelegate(ColoredCellDelegate(self.lemma_variants_table))
-        make_table_growable_up_to_content(self.lemma_variants_table, self.main_layout.activate)
-
-        self.add_lemma_variant_button = create_img_button('resources/images/add.png')
-        self.add_lemma_variant_button.clicked.connect(self.add_lemma_variant)
-
-        lemma_field_container = self._create_field_container(
-            self.lemma_variants_table, self.add_lemma_variant_button,
-        )
-        self.form_layout.add_row(
-            lemma_variants_label, lemma_field_container, self.lemma_variants_table
-        )
-
-        # Translations table
         translations_label = QLabel('Translations:')
-
-        self.translations_table = self.create_single_column_table(self.entry.tr)
-        self.translations_table.itemChanged.connect(self.on_item_changed)
-        self.translations_table.setItemDelegate(ColoredCellDelegate(self.translations_table))
-        make_table_growable_up_to_content(self.translations_table, self.main_layout.activate)
-
-        self.add_translation_button = create_img_button('resources/images/add.png')
-        self.add_translation_button.clicked.connect(self.add_translation)
-
-        translations_field_container = self._create_field_container(
-            self.translations_table, self.add_translation_button,
-        )
-        self.form_layout.add_row(
-            translations_label, translations_field_container, self.translations_table
-        )
-
-        # Forms table
         forms_label = QLabel('Forms:')
+        phrases_label = QLabel('Phrases:')
+        notes_label = QLabel('Notes:')
+        tags_label = QLabel('Tags:')
+        fav_label = QLabel('Favorite:')
 
+        # Create tables
+        self.lemma_variants_table = self.create_single_column_table(self.entry.variants)
+        self.translations_table = self.create_single_column_table(self.entry.tr)
         self.forms_table = self.create_two_column_table(
             list(forms_to_pairs(self.entry.forms)),
             gram_forms=list(self.entry.forms.keys()),
             is_1_col_active=False,
         )
-        self.forms_table.cellDoubleClicked.connect(self.on_gram_form_double_clicked)
-        self.forms_table.itemChanged.connect(self.on_item_changed)
-        self.forms_table.setItemDelegate(ColoredCellDelegate(self.forms_table))
-        make_table_growable_up_to_content(self.forms_table, self.main_layout.activate)
-
-        self.add_form_button = create_img_button('resources/images/add.png')
-        self.add_form_button.clicked.connect(self.add_form)
-
-        forms_field_container = self._create_field_container(self.forms_table, self.add_form_button)
-        self.form_layout.add_row(forms_label, forms_field_container, self.forms_table)
-
-        # Phrases table
-        phrases_label = QLabel('Phrases:')
-
         self.phrases_table = self.create_two_column_table(
             list(phrases_to_pairs(self.entry.phrases))
         )
-        self.phrases_table.itemChanged.connect(self.on_item_changed)
-        self.phrases_table.setItemDelegate(ColoredCellDelegate(self.phrases_table))
-        make_table_growable_up_to_content(self.phrases_table, self.main_layout.activate)
-
-        self.add_phrase_button = create_img_button('resources/images/add.png')
-        self.add_phrase_button.clicked.connect(self.add_phrase)
-
-        phrases_field_container = self._create_field_container(
-            self.phrases_table, self.add_phrase_button,
-        )
-        self.form_layout.add_row(phrases_label, phrases_field_container, self.phrases_table)
-
-        # Notes table
-        notes_label = QLabel('Notes:')
-
         self.notes_table = self.create_single_column_table(self.entry.notes)
-        self.notes_table.itemChanged.connect(self.on_item_changed)
-        self.notes_table.setItemDelegate(ColoredCellDelegate(self.notes_table))
-        make_table_growable_up_to_content(self.notes_table, self.main_layout.activate)
 
-        self.add_note_button = create_img_button('resources/images/add.png')
-        self.add_note_button.clicked.connect(self.add_note)
-
-        notes_field_container = self._create_field_container(self.notes_table, self.add_note_button)
-        self.form_layout.add_row(notes_label, notes_field_container, self.notes_table)
-
-        # Tags list
-        tags_label = QLabel('Tags:')
-
+        # Create other widgets
         self.tags_list = CheckableList(
             sorted(self.dct.tags), set(self.entry.tags),
             on_change=self.main_layout.activate,
@@ -560,19 +493,73 @@ class EntryDetailsDialog(QDialog):
         self.tags_list.setMinimumHeight(50)
         self.tags_list.setMinimumWidth(120)
 
-        self.add_tag_button = create_img_button('resources/images/add.png')
-        self.add_tag_button.clicked.connect(self.add_tag)
-
-        tags_field_container = self._create_field_container(self.tags_list, self.add_tag_button)
-        self.form_layout.add_row(tags_label, tags_field_container, self.tags_list)
-
-        # Fav checkbox
-        fav_label = QLabel('Favorite:')
-
         self.fav_checkbox = QCheckBox()
         self.fav_checkbox.setChecked(self.entry.is_fav)
 
+        # Create image buttons
+        self.add_lemma_variant_button = create_img_button('resources/images/add.png')
+        self.add_translation_button = create_img_button('resources/images/add.png')
+        self.add_form_button = create_img_button('resources/images/add.png')
+        self.add_phrase_button = create_img_button('resources/images/add.png')
+        self.add_note_button = create_img_button('resources/images/add.png')
+        self.add_tag_button = create_img_button('resources/images/add.png')
+
+        # Signal handling
+        self.forms_table.cellDoubleClicked.connect(self.on_gram_form_double_clicked)
+
+        self.add_lemma_variant_button.clicked.connect(self.add_lemma_variant)
+        self.add_translation_button.clicked.connect(self.add_translation)
+        self.add_form_button.clicked.connect(self.add_form)
+        self.add_phrase_button.clicked.connect(self.add_phrase)
+        self.add_note_button.clicked.connect(self.add_note)
+        self.add_tag_button.clicked.connect(self.add_tag)
+
+        # Validation for tables
+        self.lemma_variants_table.itemChanged.connect(self.on_item_changed)
+        self.translations_table.itemChanged.connect(self.on_item_changed)
+        self.forms_table.itemChanged.connect(self.on_item_changed)
+        self.phrases_table.itemChanged.connect(self.on_item_changed)
+        self.notes_table.itemChanged.connect(self.on_item_changed)
+
+        # Custom cell coloring delegate
+        self.lemma_variants_table.setItemDelegate(ColoredCellDelegate(self.lemma_variants_table))
+        self.translations_table.setItemDelegate(ColoredCellDelegate(self.translations_table))
+        self.forms_table.setItemDelegate(ColoredCellDelegate(self.forms_table))
+        self.phrases_table.setItemDelegate(ColoredCellDelegate(self.phrases_table))
+        self.notes_table.setItemDelegate(ColoredCellDelegate(self.notes_table))
+
+        # Place widgets in the layout
+        lemma_field_container = self._create_field_container(
+            self.lemma_variants_table, self.add_lemma_variant_button,
+        )
+        translations_field_container = self._create_field_container(
+            self.translations_table, self.add_translation_button,
+        )
+        forms_field_container = self._create_field_container(self.forms_table, self.add_form_button)
+        phrases_field_container = self._create_field_container(
+            self.phrases_table, self.add_phrase_button,
+        )
+        notes_field_container = self._create_field_container(self.notes_table, self.add_note_button)
+        tags_field_container = self._create_field_container(self.tags_list, self.add_tag_button)
+
+        self.form_layout.add_row(
+            lemma_variants_label, lemma_field_container, self.lemma_variants_table
+        )
+        self.form_layout.add_row(
+            translations_label, translations_field_container, self.translations_table
+        )
+        self.form_layout.add_row(forms_label, forms_field_container, self.forms_table)
+        self.form_layout.add_row(phrases_label, phrases_field_container, self.phrases_table)
+        self.form_layout.add_row(notes_label, notes_field_container, self.notes_table)
+        self.form_layout.add_row(tags_label, tags_field_container, self.tags_list)
         self.form_layout.add_row(fav_label, self.fav_checkbox)
+
+        # Configure table growth behavior
+        make_table_growable_up_to_content(self.lemma_variants_table, self.main_layout.activate)
+        make_table_growable_up_to_content(self.translations_table, self.main_layout.activate)
+        make_table_growable_up_to_content(self.forms_table, self.main_layout.activate)
+        make_table_growable_up_to_content(self.phrases_table, self.main_layout.activate)
+        make_table_growable_up_to_content(self.notes_table, self.main_layout.activate)
 
     def _create_buttons(self):
         buttons = QDialogButtonBox()
