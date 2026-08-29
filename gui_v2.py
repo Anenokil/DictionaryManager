@@ -139,6 +139,12 @@ def make_table_growable_up_to_content(
     table.model().rowsRemoved.connect(lambda *_: schedule_update())
 
 
+def valid_gram_form(gram_form: dict[str, str]) -> tuple[bool, str]:
+    if all(val == '' for val in gram_form.values()):
+        return False, 'Grammatical form must not be empty'
+    return True, ''
+
+
 class InputTagDialog(QDialog):
     def __init__(
             self,
@@ -219,10 +225,17 @@ class InputTagDialog(QDialog):
 
 
 class OptionsDialog(QDialog):
-    def __init__(self, specs: dict[str, list[str]], defaults: tuple[str, ...], title: str):
+    def __init__(
+            self,
+            specs: dict[str, list[str]],
+            defaults: tuple[str, ...],
+            title: str,
+            validator: Callable[[dict[str, str]], tuple[bool, str]] | None = None,
+    ):
         super().__init__()
 
         self.specs = specs
+        self.validator = validator
 
         self.setWindowTitle(title)
 
@@ -257,9 +270,26 @@ class OptionsDialog(QDialog):
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
 
-        layout = QVBoxLayout(self)
-        layout.addWidget(scroll)
-        layout.addWidget(buttons)
+        self.label_error = QLabel()
+
+        self.layout = QVBoxLayout(self)
+        self.layout.addWidget(scroll)
+        self.layout.addWidget(buttons)
+
+    def _validate(self) -> tuple[bool, str]:
+        if self.validator is None:
+            return True, ''
+        return self.validator(self.get_values())
+
+    def accept(self):
+        is_ok, error_msg = self._validate()
+
+        if is_ok:
+            super().accept()
+        else:
+            self.label_error.setText(f'Invalid value: {error_msg}')
+            self.label_error.setStyleSheet('color: #d32f2f;')
+            self.layout.addWidget(self.label_error)
 
     def get_values(self) -> dict[str, str]:
         return {
@@ -269,9 +299,12 @@ class OptionsDialog(QDialog):
 
     @staticmethod
     def get_settings(
-            specs: dict[str, list[str]], defaults: tuple[str, ...], title: str,
+            specs: dict[str, list[str]],
+            defaults: tuple[str, ...],
+            title: str,
+            validator: Callable[[dict[str, str]], tuple[bool, str]] | None = None,
     ) -> tuple[dict[str, str] | None, bool]:
-        dialog = OptionsDialog(specs, defaults, title)
+        dialog = OptionsDialog(specs, defaults, title, validator)
         ok = dialog.exec() == QDialog.Accepted
         values = dialog.get_values() if ok else None
         return values, ok
@@ -653,7 +686,9 @@ class EntryDetailsDialog(QDialog):
 
         specs = {k: [''] + v for k, v in self.dct.features.items()}
         gram_form = item.data(Qt.UserRole)
-        res, ok = OptionsDialog.get_settings(specs, gram_form, 'Grammatical form settings')
+        res, ok = OptionsDialog.get_settings(
+            specs, gram_form, 'Grammatical form settings', validator=valid_gram_form
+        )
         if not ok:
             return
         new_gram_form = tuple(res.values())
@@ -671,7 +706,9 @@ class EntryDetailsDialog(QDialog):
         specs = {k: [''] + v for k, v in self.dct.features.items()}
         empty_gram_form = tuple('' for _ in range(len(self.dct.features)))
 
-        res, ok = OptionsDialog.get_settings(specs, empty_gram_form, 'Set grammatical form')
+        res, ok = OptionsDialog.get_settings(
+            specs, empty_gram_form, 'Set grammatical form', validator=valid_gram_form
+        )
         if not ok:
             return
         new_gram_form = tuple(res.values())
