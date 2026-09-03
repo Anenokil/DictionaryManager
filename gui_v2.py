@@ -1,4 +1,4 @@
-from typing import Generator, Collection, Callable
+from typing import Generator, Collection, Callable, Any
 import sys
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QScrollArea,
@@ -143,10 +143,86 @@ def make_table_growable_up_to_content(
     table.model().rowsRemoved.connect(lambda *_: schedule_update())
 
 
+def link_exclusive_selection(tables: list[QTableWidget]):
+    """
+    Selecting cells in one of the given tables clears the selection
+    in all the other tables in the group.
+    """
+
+    is_updating = [False]
+
+    def make_handler(current_table: QTableWidget):
+        def on_selection_changed():
+            if is_updating[0]:
+                return
+            is_updating[0] = True
+            for table in tables:
+                if table is not current_table:
+                    table.clearSelection()
+            is_updating[0] = False
+        return on_selection_changed
+
+    for table in tables:
+        table.itemSelectionChanged.connect(make_handler(table))
+
+
 def valid_gram_form(gram_form: dict[str, str]) -> tuple[bool, str]:
     if all(val == '' for val in gram_form.values()):
         return False, 'Grammatical form must not be empty'
     return True, ''
+
+
+def setup_table_context_menu(
+        table: QTableWidget,
+        actions_config: list[None | tuple[str | Callable[[], str],
+                                          Callable[[int, int], Any] | None]],
+):
+    """
+    Configure a context menu for the given table.
+
+    Args:
+        table: Table widget to attach the context menu to.
+        actions_config: List describing menu items. Each element can be:
+                        - None - inserts a separator.
+                        - (text, callback) - creates a menu action, where:
+                          text: static string or a zero-argument callable that returns
+                                the action text (useful for dynamic labels).
+                          callback: function(row, column) called when the action is
+                                    triggered, or None for a non-clickable label.
+    """
+
+    table.setContextMenuPolicy(Qt.CustomContextMenu)
+
+    def show_menu(pos):
+        item = table.itemAt(pos)
+        if item is None:
+            return
+        row, column = item.row(), item.column()
+
+        menu = QMenu(table)
+        action_callbacks = {}
+
+        for entry in actions_config:
+            # Separator
+            if entry is None:
+                menu.addSeparator()
+                continue
+
+            text, callback = entry
+            if isinstance(text, Callable):
+                text = text()
+            action = menu.addAction(text)
+
+            if callback is None:
+                action.setEnabled(False)
+            else:
+                action_callbacks[action] = callback
+
+        chosen = menu.exec(table.viewport().mapToGlobal(pos))
+        if chosen in action_callbacks:
+            action_callbacks[chosen](row, column)
+
+    table.customContextMenuRequested.connect(show_menu)
 
 
 class ColoredCellDelegate(QStyledItemDelegate):
@@ -486,6 +562,36 @@ class EntryDetailsDialog(QDialog):
             list(phrases_to_pairs(self.entry.phrases))
         )
         self.notes_table = self.create_single_column_table(self.entry.notes)
+
+        link_exclusive_selection([
+            self.lemma_variants_table,
+            self.translations_table,
+            self.forms_table,
+            self.phrases_table,
+            self.notes_table,
+        ])
+
+        def delete_msg(table: QTableWidget, singular: str) -> str:
+            n = len({i.row() for i in table.selectedIndexes()})
+            if n == 1:
+                return f'Delete 1 {singular}'
+            return f'Delete {n} {singular}s'
+
+        setup_table_context_menu(self.lemma_variants_table, [
+            (lambda: delete_msg(self.lemma_variants_table, 'variant'), self.delete_lemma_variants),
+        ])
+        setup_table_context_menu(self.translations_table, [
+            (lambda: delete_msg(self.translations_table, 'translation'), self.delete_translations),
+        ])
+        setup_table_context_menu(self.forms_table, [
+            (lambda: delete_msg(self.forms_table, 'form'), self.delete_forms),
+        ])
+        setup_table_context_menu(self.phrases_table, [
+            (lambda: delete_msg(self.phrases_table, 'phrase'), self.delete_phrases),
+        ])
+        setup_table_context_menu(self.notes_table, [
+            (lambda: delete_msg(self.notes_table, 'note'), self.delete_notes),
+        ])
 
         # Create other widgets
         self.tags_list = CheckableList(
@@ -891,6 +997,43 @@ class EntryDetailsDialog(QDialog):
         if ok and new_tag:
             self.dct.add_tag(new_tag, is_default)
             self.tags_list.add_item(new_tag, True)
+
+    @staticmethod
+    def _delete_selected_table_rows(table: QTableWidget):
+        rows_to_delete = {i.row() for i in table.selectedItems()}
+        for row in sorted(rows_to_delete, reverse=True):
+            table.removeRow(row)
+
+    def delete_lemma_variants(self, _row, _column):
+        table = self.lemma_variants_table
+        if len(table.selectedIndexes()) >= table.rowCount():
+            QMessageBox.critical(
+                self,
+                'Error',
+                'Cannot delete all lemma variants.',
+            )
+            return
+        self._delete_selected_table_rows(table)
+
+    def delete_translations(self, _row, _column):
+        table = self.translations_table
+        if len(table.selectedIndexes()) >= table.rowCount():
+            QMessageBox.critical(
+                self,
+                'Error',
+                'Cannot delete all entry translations.',
+            )
+            return
+        self._delete_selected_table_rows(table)
+
+    def delete_forms(self, _row, _column):
+        self._delete_selected_table_rows(self.forms_table)
+
+    def delete_phrases(self, _row, _column):
+        self._delete_selected_table_rows(self.phrases_table)
+
+    def delete_notes(self, _row, _column):
+        self._delete_selected_table_rows(self.notes_table)
 
     def save_and_close(self):
         is_ok = all(status == '' for status in self.statuses.values())
