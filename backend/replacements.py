@@ -85,7 +85,7 @@ class Replacer:
         if len(self._replacements[modifier]) == 1:
             self._replacements[modifier] = {}
 
-    def apply_replacements(self, text: str) -> str:
+    def replace(self, text: str) -> str:
         if not self.active_modifiers:
             return text
 

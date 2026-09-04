@@ -1707,7 +1707,7 @@ class InputDialog(tk.Toplevel):
 
         if validate_function:
             if to_replace:
-                replace_and_validate = lambda x: validate_function(self.replacer.apply_replacements(x))
+                replace_and_validate = lambda x: validate_function(self.replacer.replace(x))
                 self.vcmd = (self.register(replace_and_validate), '%P')
             else:
                 self.vcmd = (self.register(validate_function), '%P')
@@ -1737,7 +1737,7 @@ class InputDialog(tk.Toplevel):
         if self.check_answer_function:
             text = self.var_text.get()
             if self.to_replace:
-                text = self.replacer.apply_replacements(text)
+                text = self.replacer.replace(text)
             is_correct = self.check_answer_function(self, text)
             if is_correct:
                 if self.if_correct_function:
@@ -1766,7 +1766,7 @@ class InputDialog(tk.Toplevel):
 
         text = self.var_text.get()
         if self.to_replace:
-            text = self.replacer.apply_replacements(text)
+            text = self.replacer.replace(text)
 
         return self.cancelled, text
 
@@ -2465,8 +2465,8 @@ class EnterPhraseW(tk.Toplevel):
     # Добавление фразы
     def on_ok(self):
         if self.check_answer_function:
-            phr = self.replacer.apply_replacements(self.var_phr.get())
-            phr_tr = self.replacer.apply_replacements(self.var_tr.get())
+            phr = self.replacer.replace(self.var_phr.get())
+            phr_tr = self.replacer.replace(self.var_tr.get())
             is_correct = self.check_answer_function(self, (phr, phr_tr))
             if not is_correct:
                 return
@@ -2490,8 +2490,8 @@ class EnterPhraseW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        phr = self.replacer.apply_replacements(self.var_phr.get())
-        phr_tr = self.replacer.apply_replacements(self.var_tr.get())
+        phr = self.replacer.replace(self.var_phr.get())
+        phr_tr = self.replacer.replace(self.var_tr.get())
         return self.cancelled, phr, phr_tr
 
 
@@ -3427,7 +3427,7 @@ class EnterFormW(tk.Toplevel):
     def save(self):
         forms = self.entry.forms
         gram_form = tuple(self.gram_form)
-        word_form = self.replacer.apply_replacements(self.var_form.get())
+        word_form = self.replacer.replace(self.var_form.get())
 
         if gram_form in forms and word_form == forms[gram_form]:
             warning(
@@ -3472,7 +3472,7 @@ class EnterFormW(tk.Toplevel):
             return None, None
         forms = self.entry.forms
         gram_form = tuple(self.gram_form)
-        word_form = self.replacer.apply_replacements(self.var_form.get())
+        word_form = self.replacer.replace(self.var_form.get())
         if gram_form in forms and word_form == forms[gram_form]:
             return None, None
         return gram_form, word_form
@@ -5258,7 +5258,7 @@ class TrainingW(tk.Toplevel):
     # Ввод ответа и переход к следующему слову
     def on_input(self):
         # Вывод в журнал пользовательского ответа
-        user_answer = self.replacer.apply_replacements(self.entry_input.get())
+        user_answer = self.replacer.replace(self.entry_input.get())
         if user_answer != '':
             self.print(user_answer)
 
@@ -5362,7 +5362,7 @@ class TrainingW(tk.Toplevel):
                     window = TwoOptionsDialog(
                         self, self.app_data,
                         f'Неверно.\n'
-                        f'Ваш ответ: {self.replacer.apply_replacements(
+                        f'Ваш ответ: {self.replacer.replace(
                             self.entry_input.get()
                         )}\n'
                         f'Правильный ответ: {correct_answers_repr}',
@@ -5394,7 +5394,7 @@ class TrainingW(tk.Toplevel):
             else:
                 window = IncorrectAnswerW(
                     self, self.app_data,
-                    self.replacer.apply_replacements(self.entry_input.get()),
+                    self.replacer.replace(self.entry_input.get()),
                     correct_answers_repr,
                     self.app_data.global_settings.is_typo_btn_on,
                 )
@@ -6011,7 +6011,7 @@ class SearchTab(ttk.Frame):
         # Среди оставшихся ищем статьи, содержащие искомый текст
         results = search_entries(
             entries,
-            self.replacer.apply_replacements(self.var_query.get()),
+            self.replacer.replace(self.var_query.get()),
             self.to_search_wrd, self.to_search_tr, self.to_search_frm,
             self.to_search_phr, self.to_search_nt,
         )
@@ -7217,8 +7217,8 @@ class AddEntryW(tk.Toplevel):
     def _add_validation(self):
         # При незаполненных полях нельзя нажать кнопку
         def validate_entries(value_word: str, value_tr: str):
-            value_word = self.replacer.apply_replacements(value_word)
-            value_tr = self.replacer.apply_replacements(value_tr)
+            value_word = self.replacer.replace(value_word)
+            value_tr = self.replacer.replace(value_tr)
 
             if value_word == '' or value_tr == '':
                 btn_disable(self.btn_add)
@@ -7266,8 +7266,8 @@ class AddEntryW(tk.Toplevel):
     def on_add_clicked(self):
         self.entry = add_homograph(
             self.app_data, self,
-            self.replacer.apply_replacements(self.var_word.get()),
-            self.replacer.apply_replacements(self.var_tr.get()),
+            self.replacer.replace(self.var_word.get()),
+            self.replacer.replace(self.var_tr.get()),
         )
         if not self.entry:
             return
