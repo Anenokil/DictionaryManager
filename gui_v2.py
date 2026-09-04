@@ -1211,6 +1211,8 @@ class DctWorkspaceWidget(QWidget):
             None,
             ('Star', self.star_entries),
             ('Unstar', self.unstar_entries),
+            None,
+            ('Delete', self.delete_entries),
         ])
 
         # Create status bar at the bottom
@@ -1401,6 +1403,12 @@ class DctWorkspaceWidget(QWidget):
         self.dct.remove_from_fav(entries)
         for row, entry in selected:
             self.fill_table_row(row, entry)
+
+    def delete_entries(self, _row, _column):
+        selected = sorted(self.get_selected(), reverse=True)
+        for row, entry in selected:
+            self.dct.delete_entry(entry)
+            self.table_widget.removeRow(row)
 
 
 class MainWindow(QMainWindow):
