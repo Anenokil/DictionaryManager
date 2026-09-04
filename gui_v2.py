@@ -17,7 +17,7 @@ from PySide6.QtGui import (
 from PySide6.QtCore import Qt, QSize, QTimer
 
 from backend import (
-    Translations, Variants, Forms, GramForm, Phrases,
+    Translations, Variants, Forms, GramForm, Phrases, Notes, Tags,
     Entry, Dictionary, DctBundle, Manager, gram_form_to_str,
 )
 from persistence import AppData
@@ -56,6 +56,20 @@ def phrases_to_str(phrases: Phrases) -> str:
         f'"{phrase}": ' + ', '.join(add_quotes(phrase_tr))
         for phrase, phrase_tr in phrases.items()
     )
+
+
+def notes_to_str(notes: Notes) -> str:
+    return ', '.join(notes)
+
+
+def tags_to_str(tags: Tags) -> str:
+    return ', '.join(tags)
+
+
+def accuracy_to_str(entry: Entry) -> str:
+    if entry.total_att == 0:
+        return '-'
+    return '{:.0%}'.format(entry.accuracy)
 
 
 def select_dct_file_to_load(parent: QWidget) -> tuple[str, bool]:
@@ -1153,17 +1167,14 @@ class DctWorkspaceWidget(QWidget):
 
         # Create table
         self.table_widget = QTableWidget()
-        self.table_widget.setColumnCount(4)
-        self.table_widget.setHorizontalHeaderLabels(['Word', 'Translation', 'Forms', 'Phrases'])
+        self.table_widget.setColumnCount(11)
+        self.table_widget.setHorizontalHeaderLabels([
+            '', 'Word', 'Translation', 'Forms', 'Phrases', 'Notes', 'Tags',
+            'Total attempts', 'Correct attempts', 'Win streak', 'Accuracy',
+        ])
 
         # Storage for selected table rows
         self.selected_rows = set()
-
-        # Set minimum column widths
-        self.table_widget.setColumnWidth(0, 150)
-        self.table_widget.setColumnWidth(1, 200)
-        self.table_widget.setColumnWidth(2, 200)
-        self.table_widget.setColumnWidth(3, 200)
 
         # Configure row selection
         self.table_widget.setSelectionBehavior(QTableWidget.SelectRows)
@@ -1171,10 +1182,9 @@ class DctWorkspaceWidget(QWidget):
 
         # Configure column resizing
         header = self.table_widget.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Interactive)
-        header.setSectionResizeMode(1, QHeaderView.Interactive)
-        header.setSectionResizeMode(2, QHeaderView.Interactive)
-        header.setSectionResizeMode(3, QHeaderView.Interactive)
+        header.setMinimumSectionSize(20)
+        header.setSectionResizeMode(QHeaderView.Interactive)
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         header.setSectionsMovable(False)
 
         # Enable horizontal scrollbar
@@ -1218,25 +1228,62 @@ class DctWorkspaceWidget(QWidget):
         self.update_status_bar()
 
     def fill_table_row(self, row: int, entry: Entry):
-        # Column 0: Lemma
+        # Column 0: Star
+        star_item = QTableWidgetItem()
+        if entry.is_fav:
+            star_item.setIcon(QIcon('resources/images/fav.png'))
+        star_item.setData(Qt.UserRole, entry)
+        self.table_widget.setItem(row, 0, star_item)
+
+        # Column 1: Lemma
         lemma_item = QTableWidgetItem(lemma_to_str(entry.variants))
         lemma_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 0, lemma_item)
+        self.table_widget.setItem(row, 1, lemma_item)
 
-        # Column 1: Translations
+        # Column 2: Translations
         translations_item = QTableWidgetItem(translations_to_str(entry.tr))
         translations_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 1, translations_item)
+        self.table_widget.setItem(row, 2, translations_item)
 
-        # Column 2: Forms
+        # Column 3: Forms
         forms_item = QTableWidgetItem(forms_to_str(entry.forms))
         forms_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 2, forms_item)
+        self.table_widget.setItem(row, 3, forms_item)
 
-        # Column 3: Phrases
+        # Column 4: Phrases
         phrases_item = QTableWidgetItem(phrases_to_str(entry.phrases))
         phrases_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 3, phrases_item)
+        self.table_widget.setItem(row, 4, phrases_item)
+
+        # Column 5: Notes
+        notes_item = QTableWidgetItem(notes_to_str(entry.notes))
+        notes_item.setData(Qt.UserRole, entry)
+        self.table_widget.setItem(row, 5, notes_item)
+
+        # Column 6: Tags
+        tags_item = QTableWidgetItem(tags_to_str(entry.tags))
+        tags_item.setData(Qt.UserRole, entry)
+        self.table_widget.setItem(row, 6, tags_item)
+
+        # Column 7: Total attempts
+        total_att_item = QTableWidgetItem(str(entry.total_att))
+        total_att_item.setData(Qt.UserRole, entry)
+        self.table_widget.setItem(row, 7, total_att_item)
+
+        # Column 8: Correct attempts
+        correct_att_item = QTableWidgetItem(str(entry.correct_att))
+        correct_att_item.setData(Qt.UserRole, entry)
+        self.table_widget.setItem(row, 8, correct_att_item)
+
+        # Column 9: Win streak
+        win_streak_item = QTableWidgetItem(str(entry.win_streak))
+        win_streak_item.setData(Qt.UserRole, entry)
+        self.table_widget.setItem(row, 9, win_streak_item)
+
+        # Column 10: Accuracy
+        accuracy_item = QTableWidgetItem(accuracy_to_str(entry))
+        accuracy_item.setData(Qt.UserRole, entry)
+        self.table_widget.setItem(row, 10, accuracy_item)
 
     def print_entries(self):
         """
