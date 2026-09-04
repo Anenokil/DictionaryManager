@@ -1173,9 +1173,6 @@ class DctWorkspaceWidget(QWidget):
             'Total attempts', 'Correct attempts', 'Win streak', 'Accuracy',
         ])
 
-        # Storage for selected table rows
-        self.selected_rows = set()
-
         # Configure row selection
         self.table_widget.setSelectionBehavior(QTableWidget.SelectRows)
         self.table_widget.setSelectionMode(QTableWidget.ExtendedSelection)  # Multiple selection
@@ -1204,7 +1201,7 @@ class DctWorkspaceWidget(QWidget):
         layout.addWidget(self.table_widget)
 
         def n_selected_msg() -> str:
-            n = len({i.row() for i in self.table_widget.selectedIndexes()})
+            n = len(self.get_selected_entries())
             if n == 1:
                 return '1 entry selected'
             return f'{n} entries selected'
@@ -1300,6 +1297,9 @@ class DctWorkspaceWidget(QWidget):
         for row, entry in enumerate(self.dct):
             self.fill_table_row(row, entry)
 
+    def get_selected_entries(self) -> set[Entry]:
+        return {item.data(Qt.UserRole) for item in self.table_widget.selectedIndexes()}
+
     def get_selected(self) -> set[tuple[int, Entry]]:
         return {
             (item.row(), item.data(Qt.UserRole))
@@ -1340,9 +1340,6 @@ class DctWorkspaceWidget(QWidget):
         to reflect the current selection.
         """
 
-        # Update selected rows storage
-        self.selected_rows = set(item.row() for item in self.table_widget.selectedItems())
-
         # Update status bar with selection info
         self.update_status_bar()
 
@@ -1368,11 +1365,11 @@ class DctWorkspaceWidget(QWidget):
             f'{n_word_forms} word forms'
         )
 
-        if self.selected_rows:
-            n_sel_entries = len(self.selected_rows)
+        selected_rows = self.get_selected_entries()
+        if selected_rows:
+            n_sel_entries = len(selected_rows)
             n_sel_translations, n_sel_gram_forms, n_sel_word_forms = 0, 0, 0
-            for row in self.selected_rows:
-                entry = self.table_widget.item(row, 0).data(Qt.UserRole)
+            for entry in selected_rows:
                 n_sel_translations += entry.n_translations
                 n_sel_gram_forms += entry.n_gram_forms
                 n_sel_word_forms += entry.n_word_forms
