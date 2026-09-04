@@ -18,7 +18,7 @@ from PySide6.QtCore import Qt, QSize, QTimer
 
 from backend import (
     Translations, Variants, Forms, GramForm, Phrases,
-    Entry, Dictionary, Manager, gram_form_to_str,
+    Entry, Dictionary, DctBundle, Manager, gram_form_to_str,
 )
 from persistence import AppData
 
@@ -502,10 +502,11 @@ class EqualGrowFormLayout(QGridLayout):
 class EntryDetailsDialog(QDialog):
     """Dialog for displaying entry information."""
 
-    def __init__(self, dct: Dictionary, entry: Entry, parent: QWidget | None = None):
+    def __init__(self, dct_bundle: DctBundle, entry: Entry, parent: QWidget | None = None):
         super().__init__(parent)
 
-        self.dct = dct
+        self.dct = dct_bundle.dct
+        self.replacer = dct_bundle.replacer
         self.entry = entry
         self.statuses = {}
         self.exit_code = None
@@ -551,17 +552,25 @@ class EntryDetailsDialog(QDialog):
         fav_label = QLabel('Favorite:')
 
         # Create tables
-        self.lemma_variants_table = self.create_single_column_table(self.entry.variants)
-        self.translations_table = self.create_single_column_table(self.entry.tr)
+        self.lemma_variants_table = self.create_single_column_table(
+            [self.replacer.escape(s) for s in self.entry.variants]
+        )
+        self.translations_table = self.create_single_column_table(
+            [self.replacer.escape(s) for s in self.entry.tr]
+        )
         self.forms_table = self.create_two_column_table(
-            list(forms_to_pairs(self.entry.forms)),
+            [(gf, self.replacer.escape(wf))
+             for gf, wf in forms_to_pairs(self.entry.forms)],
             gram_forms=list(self.entry.forms.keys()),
             is_1_col_active=False,
         )
         self.phrases_table = self.create_two_column_table(
-            list(phrases_to_pairs(self.entry.phrases))
+            [(self.replacer.escape(ph), self.replacer.escape(pt))
+             for ph, pt in phrases_to_pairs(self.entry.phrases)]
         )
-        self.notes_table = self.create_single_column_table(self.entry.notes)
+        self.notes_table = self.create_single_column_table(
+            [self.replacer.escape(s) for s in self.entry.notes]
+        )
 
         link_exclusive_selection([
             self.lemma_variants_table,
@@ -1045,11 +1054,26 @@ class EntryDetailsDialog(QDialog):
             )
             return
 
-        lemma_variants = get_column_data(self.lemma_variants_table, 0)
-        translations = get_column_data(self.translations_table, 0)
-        forms = self.get_forms_data(self.forms_table)
-        phrases = self.get_phrases_data(self.phrases_table)
-        notes = get_column_data(self.notes_table, 0)
+        lemma_variants = [
+            self.replacer.replace(s)
+            for s in get_column_data(self.lemma_variants_table, 0)
+        ]
+        translations = [
+            self.replacer.replace(s)
+            for s in get_column_data(self.translations_table, 0)
+        ]
+        forms = {
+            gf: [self.replacer.replace(wf) for wf in wfs]
+            for gf, wfs in self.get_forms_data(self.forms_table).items()
+        }
+        phrases = {
+            self.replacer.replace(ph): [self.replacer.replace(pt) for pt in pts]
+            for ph, pts in self.get_phrases_data(self.phrases_table).items()
+        }
+        notes = [
+            self.replacer.replace(s)
+            for s in get_column_data(self.notes_table, 0)
+        ]
         tags = self.tags_list.get_checked_items()
         is_fav = self.fav_checkbox.isChecked()
 
@@ -1111,7 +1135,7 @@ class DctWorkspaceWidget(QWidget):
     functionality and status bar with dictionary statistics.
     """
 
-    def __init__(self, dct: Dictionary):
+    def __init__(self, dct_bundle: DctBundle):
         """
         Initialize the workspace widget.
 
@@ -1122,7 +1146,8 @@ class DctWorkspaceWidget(QWidget):
         super().__init__()
 
         # Dictionary instance for this tab
-        self.dct = dct
+        self.dct_bundle = dct_bundle
+        self.dct = dct_bundle.dct
 
         layout = QVBoxLayout(self)
 
@@ -1233,7 +1258,7 @@ class DctWorkspaceWidget(QWidget):
         entry = item.data(Qt.UserRole)
 
         # Create and show details dialog
-        dialog = EntryDetailsDialog(self.dct, entry, self)
+        dialog = EntryDetailsDialog(self.dct_bundle, entry, self)
         dialog.exec()
         if dialog.exit_code == 'save':
             edited_entry = dialog.entry
@@ -1448,22 +1473,27 @@ class MainWindow(QMainWindow):
                 self.tab_widget.setTabText(index, new_name)
                 self.manager.rename_dct(index, new_name)
 
-    def create_new_tab(self, title: str, dct: Dictionary | None = None, set_active: bool = True):
+    def create_new_tab(
+            self,
+            title: str,
+            dct_bundle: DctBundle | None = None,
+            set_active: bool = True,
+    ):
         """
         Create a new tab with a dictionary workspace.
 
         Args:
             title: Tab title.
-            dct: Dictionary to use. If None, uses the manager's current dictionary.
+            dct_bundle: Dictionary to use. If None, uses the manager's current dictionary.
             set_active: Whether to set the new tab as active. Default True.
         """
 
         # Use provided dictionary or current one from manager
-        if dct is None:
-            dct = self.manager.active.dct
+        if dct_bundle is None:
+            dct_bundle = self.manager.active
 
         # Create new workspace
-        workspace = DctWorkspaceWidget(dct)
+        workspace = DctWorkspaceWidget(dct_bundle)
 
         # Add tab
         self.tab_widget.addTab(workspace, title)
@@ -1523,7 +1553,7 @@ class MainWindow(QMainWindow):
 
                 for dct_bundle in self.manager.opened_dct_bundles:
                     dct = dct_bundle.dct
-                    self.create_new_tab(dct.name, dct, set_active=False)
+                    self.create_new_tab(dct.name, dct_bundle, set_active=False)
 
                 # Restore active tab
                 if self.manager.active_dct_id is not None:
