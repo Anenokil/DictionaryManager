@@ -1211,6 +1211,7 @@ class DctWorkspaceWidget(QWidget):
             None,
             ('Star', self.star_entries),
             ('Unstar', self.unstar_entries),
+            ('Merge', self.merge_entries),
             None,
             ('Delete', self.delete_entries),
         ])
@@ -1403,6 +1404,21 @@ class DctWorkspaceWidget(QWidget):
         self.dct.remove_from_fav(entries)
         for row, entry in selected:
             self.fill_table_row(row, entry)
+
+    def merge_entries(self, _row, _column):
+        selected = sorted(self.get_selected())
+        if len(selected) <= 1:
+            return
+
+        target_row, target_entry = selected[0]
+        other_rows, other_entries = zip(*selected[1:])
+
+        for entry in other_entries:
+            self.dct.merge_entries(target_entry, entry)
+
+        for row in other_rows[::-1]:
+            self.table_widget.removeRow(row)
+        self.fill_table_row(target_row, target_entry)
 
     def delete_entries(self, _row, _column):
         selected = sorted(self.get_selected(), reverse=True)
