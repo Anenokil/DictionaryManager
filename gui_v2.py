@@ -1193,6 +1193,19 @@ class DctWorkspaceWidget(QWidget):
 
         layout.addWidget(self.table_widget)
 
+        def n_selected_msg() -> str:
+            n = len({i.row() for i in self.table_widget.selectedIndexes()})
+            if n == 1:
+                return '1 entry selected'
+            return f'{n} entries selected'
+
+        setup_table_context_menu(self.table_widget, [
+            (n_selected_msg, None),
+            None,
+            ('Star', self.star_entries),
+            ('Unstar', self.unstar_entries),
+        ])
+
         # Create status bar at the bottom
         self.status_bar = QLabel()
         self.status_bar.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -1239,6 +1252,12 @@ class DctWorkspaceWidget(QWidget):
         # Add entries to table
         for row, entry in enumerate(self.dct):
             self.fill_table_row(row, entry)
+
+    def get_selected(self) -> set[tuple[int, Entry]]:
+        return {
+            (item.row(), item.data(Qt.UserRole))
+            for item in self.table_widget.selectedIndexes()
+        }
 
     def on_item_double_clicked(self, index):
         """
@@ -1324,6 +1343,20 @@ class DctWorkspaceWidget(QWidget):
 
         self.status_bar.setText(status_text)
         self.status_bar.setToolTip(tooltip_text)
+
+    def star_entries(self, _row, _column):
+        selected = self.get_selected()
+        entries = {entry for row, entry in selected}
+        self.dct.add_to_fav(entries)
+        for row, entry in selected:
+            self.fill_table_row(row, entry)
+
+    def unstar_entries(self, _row, _column):
+        selected = self.get_selected()
+        entries = {entry for row, entry in selected}
+        self.dct.remove_from_fav(entries)
+        for row, entry in selected:
+            self.fill_table_row(row, entry)
 
 
 class MainWindow(QMainWindow):
