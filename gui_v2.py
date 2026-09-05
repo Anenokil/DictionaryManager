@@ -189,8 +189,13 @@ def valid_gram_form(gram_form: dict[str, str]) -> tuple[bool, str]:
 
 def setup_table_context_menu(
         table: QTableWidget,
-        actions_config: list[None | tuple[str | Callable[[], str],
-                                          Callable[[int, int], Any] | None]],
+        actions_config: list[
+            None | tuple[
+                Callable[[], str] | str,
+                Callable[[int, int], Any] | None,
+                Callable[[], bool] | bool
+            ]
+        ],
 ):
     """
     Configure a context menu for the given table.
@@ -223,12 +228,14 @@ def setup_table_context_menu(
                 menu.addSeparator()
                 continue
 
-            text, callback = entry
+            text, callback, is_active = entry
             if isinstance(text, Callable):
                 text = text()
+            if isinstance(is_active, Callable):
+                is_active = is_active()
             action = menu.addAction(text)
 
-            if callback is None:
+            if (callback is None) or (not is_active):
                 action.setEnabled(False)
             else:
                 action_callbacks[action] = callback
@@ -678,20 +685,24 @@ class EntryDetailsDialog(QDialog):
                 return f'Delete 1 {singular}'
             return f'Delete {n} {singular}s'
 
-        setup_table_context_menu(self.lemma_variants_table, [
-            (lambda: delete_msg(self.lemma_variants_table, 'variant'), self.delete_lemma_variants),
-        ])
-        setup_table_context_menu(self.translations_table, [
-            (lambda: delete_msg(self.translations_table, 'translation'), self.delete_translations),
-        ])
+        setup_table_context_menu(self.lemma_variants_table, [(
+            lambda: delete_msg(self.lemma_variants_table, 'variant'),
+            self.delete_lemma_variants,
+            lambda: len(self.lemma_variants_table.selectedIndexes()) < self.lemma_variants_table.rowCount(),
+        )])
+        setup_table_context_menu(self.translations_table, [(
+            lambda: delete_msg(self.translations_table, 'translation'),
+            self.delete_translations,
+            lambda: len(self.translations_table.selectedIndexes()) < self.translations_table.rowCount(),
+        )])
         setup_table_context_menu(self.forms_table, [
-            (lambda: delete_msg(self.forms_table, 'form'), self.delete_forms),
+            (lambda: delete_msg(self.forms_table, 'form'), self.delete_forms, True),
         ])
         setup_table_context_menu(self.phrases_table, [
-            (lambda: delete_msg(self.phrases_table, 'phrase'), self.delete_phrases),
+            (lambda: delete_msg(self.phrases_table, 'phrase'), self.delete_phrases, True),
         ])
         setup_table_context_menu(self.notes_table, [
-            (lambda: delete_msg(self.notes_table, 'note'), self.delete_notes),
+            (lambda: delete_msg(self.notes_table, 'note'), self.delete_notes, True),
         ])
 
         # Create other widgets
@@ -1120,24 +1131,10 @@ class EntryDetailsDialog(QDialog):
 
     def delete_lemma_variants(self, _row, _column):
         table = self.lemma_variants_table
-        if len(table.selectedIndexes()) >= table.rowCount():
-            QMessageBox.critical(
-                self,
-                'Error',
-                'Cannot delete all lemma variants.',
-            )
-            return
         self._delete_selected_table_rows(table)
 
     def delete_translations(self, _row, _column):
         table = self.translations_table
-        if len(table.selectedIndexes()) >= table.rowCount():
-            QMessageBox.critical(
-                self,
-                'Error',
-                'Cannot delete all entry translations.',
-            )
-            return
         self._delete_selected_table_rows(table)
 
     def delete_forms(self, _row, _column):
@@ -1298,14 +1295,14 @@ class DctWorkspaceWidget(QWidget):
             return f'{n} entries selected'
 
         setup_table_context_menu(self.table_widget, [
-            (n_selected_msg, None),
+            (n_selected_msg, None, False),
             None,
-            ('Manage tags...', self.manage_entries_tags),
-            ('Star', self.star_entries),
-            ('Unstar', self.unstar_entries),
-            ('Merge', self.merge_entries),
+            ('Manage tags...', self.manage_entries_tags, True),
+            ('Star', self.star_entries, True),
+            ('Unstar', self.unstar_entries, True),
+            ('Merge', self.merge_entries, lambda: len(self.get_selected_entries()) > 1),
             None,
-            ('Delete', self.delete_entries),
+            ('Delete', self.delete_entries, True),
         ])
 
         # Create status bar at the bottom
