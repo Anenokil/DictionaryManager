@@ -82,12 +82,12 @@ def select_dct_file_to_load(parent: QWidget) -> tuple[str, bool]:
     return file_path, bool(file_path)
 
 
-def select_dct_file_to_save(parent: QWidget, dct_name: str) -> tuple[str, bool]:
-    file_filter = '(*.json)'
+def select_dct_file_to_save(parent: QWidget, dct_name: str, ext: str = 'json') -> tuple[str, bool]:
+    file_filter = f'(*.{ext})'
     file_path, _ = QFileDialog.getSaveFileName(
         parent,
         caption='Open Dictionary File',
-        dir=f'{dct_name}.json',
+        dir=f'{dct_name}.{ext}',
         filter=file_filter,
     )
     return file_path, bool(file_path)
@@ -1210,6 +1210,8 @@ class DctTabWidget(QTabWidget):
         save_action = menu.addAction('Save')
         save_as_action = menu.addAction('Save as...')
         save_all_action = menu.addAction('Save all')
+        menu.addSeparator()
+        export_as_action = menu.addAction('Export as...')
 
         action = menu.exec(self.tabBar().mapToGlobal(pos))
 
@@ -1219,6 +1221,8 @@ class DctTabWidget(QTabWidget):
             self.save_dict_as(index)
         elif action == save_all_action:
             self.save_all_dicts()
+        elif action == export_as_action:
+            self.export_dict_as(index)
 
     def save_dict(self, index: int):
         file_path = self.manager.opened_dct_bundles[index].filepath
@@ -1237,6 +1241,13 @@ class DctTabWidget(QTabWidget):
     def save_all_dicts(self):
         for index in range(len(self.manager.opened_dct_bundles)):
             self.save_dict(index)
+
+    def export_dict_as(self, index: int):
+        dct_name = self.manager.opened_dct_bundles[index].dct.name
+        file_path, ok = select_dct_file_to_save(self, dct_name, ext='txt')
+        if not ok:
+            return
+        self.manager.opened_dct_bundles[index].dct.to_txt(file_path)
 
 
 class DctWorkspaceWidget(QWidget):
