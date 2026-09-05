@@ -82,11 +82,12 @@ def select_dct_file_to_load(parent: QWidget) -> tuple[str, bool]:
     return file_path, bool(file_path)
 
 
-def select_dct_file_to_save(parent: QWidget) -> tuple[str, bool]:
+def select_dct_file_to_save(parent: QWidget, dct_name: str) -> tuple[str, bool]:
     file_filter = '(*.json)'
     file_path, _ = QFileDialog.getSaveFileName(
         parent,
         caption='Open Dictionary File',
+        dir=f'{dct_name}.json',
         filter=file_filter,
     )
     return file_path, bool(file_path)
@@ -1224,7 +1225,8 @@ class DctTabWidget(QTabWidget):
         self.manager.save_dct(index)
 
     def save_dict_as(self, index: int):
-        file_path, ok = select_dct_file_to_save(self)
+        dct_name = self.manager.opened_dct_bundles[index].dct.name
+        file_path, ok = select_dct_file_to_save(self, dct_name)
         if not ok:
             return
         self.manager.save_dct(index, file_path)
@@ -1798,7 +1800,7 @@ class MainWindow(QMainWindow):
                 if to_save:
                     file_path = dct_bundle.filepath
                     if not file_path:
-                        file_path, ok = select_dct_file_to_save(self)
+                        file_path, ok = select_dct_file_to_save(self, dct.name)
                         if not ok:
                             continue
                     self.manager.save_dct(index, file_path)
