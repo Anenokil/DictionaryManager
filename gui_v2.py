@@ -436,27 +436,43 @@ class OptionsDialog(QDialog):
         return values, ok
 
 
+class TristateCheckBox(QCheckBox):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setTristate(True)
+        self._user_changed = False
+
+    def nextCheckState(self):
+        if not self._user_changed:
+            if self.checkState() == Qt.PartiallyChecked:
+                self.setCheckState(Qt.Unchecked)
+            self._user_changed = True
+            self.setTristate(False)
+        super().nextCheckState()
+
+
 class CheckableList(QScrollArea):
     def __init__(
             self,
-            items: list[str],
-            checked_items: set[str],
+            items: dict[str, Qt.CheckState],
             on_change: Callable[[], None] | None = None,
+            is_tristate: bool = False,
     ):
         super().__init__()
 
         self._on_change = on_change
 
+        CheckboxClass = TristateCheckBox if is_tristate else QCheckBox
+
         self.container = QWidget()
         layout = QVBoxLayout(self.container)
         layout.setAlignment(Qt.AlignTop)
 
-        self.checkboxes: dict[str, QCheckBox] = {}
+        self.checkboxes: dict[str, CheckboxClass] = {}
 
-        for text in items:
-            checkbox = QCheckBox(text)
-            is_checked = text in checked_items
-            checkbox.setChecked(is_checked)
+        for text, state in items.items():
+            checkbox = CheckboxClass(text)
+            checkbox.setCheckState(state)
             layout.addWidget(checkbox)
             self.checkboxes[text] = checkbox
 
@@ -474,6 +490,9 @@ class CheckableList(QScrollArea):
     def get_checked_items(self) -> list[str]:
         return [text for text, cb in self.checkboxes.items() if cb.isChecked()]
 
+    def get_states(self) -> dict[str, Qt.CheckState]:
+        return {text: cb.checkState() for text, cb in self.checkboxes.items()}
+
     def _update_max_height(self):
         content_height = self.container.sizeHint().height()
         frame = self.frameWidth() * 2
@@ -481,6 +500,60 @@ class CheckableList(QScrollArea):
         self.setMaximumHeight(max(full_height, self.minimumHeight()))
         if self._on_change is not None:
             self._on_change()
+
+
+class TaggingDialog(QDialog):
+    def __init__(
+            self,
+            dct: Dictionary,
+            specs: dict[str, Qt.CheckState],
+            title: str,
+    ):
+        super().__init__()
+
+        self.dct = dct
+
+        self.setWindowTitle(title)
+
+        self.tags_list = CheckableList(
+            {tag: specs[tag] for tag in sorted(self.dct.tags)},
+            is_tristate=True,
+        )
+        self.tags_list.setWidgetResizable(True)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+
+        add_tag_button = create_img_button('resources/images/add.png')
+        add_tag_button.clicked.connect(self.add_tag)
+        buttons.addButton(add_tag_button, QDialogButtonBox.ActionRole)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.tags_list)
+        layout.addWidget(buttons)
+
+    def add_tag(self):
+        new_tag, is_default, ok = InputTagDialog.get_input(self.dct, parent=self)
+        if ok and new_tag:
+            self.dct.add_tag(new_tag, is_default)
+            self.tags_list.add_item(new_tag, True)
+
+    def get_values(self) -> dict[str, Qt.CheckState]:
+        return self.tags_list.get_states()
+
+    @staticmethod
+    def get_settings(
+            dct: Dictionary,
+            specs: dict[str, Qt.CheckState],
+            title: str,
+    ) -> tuple[dict[str, Qt.CheckState] | None, bool]:
+        dialog = TaggingDialog(dct, specs, title)
+        ok = dialog.exec() == QDialog.Accepted
+        values = dialog.get_values() if ok else None
+        return values, ok
 
 
 class EqualGrowFormLayout(QGridLayout):
@@ -618,7 +691,10 @@ class EntryDetailsDialog(QDialog):
 
         # Create other widgets
         self.tags_list = CheckableList(
-            sorted(self.dct.tags), set(self.entry.tags),
+            {
+                tag: Qt.Checked if (tag in self.entry.tags) else Qt.Unchecked
+                for tag in sorted(self.dct.tags)
+            },
             on_change=self.main_layout.activate,
         )
         self.tags_list.setWidgetResizable(True)
@@ -1209,6 +1285,7 @@ class DctWorkspaceWidget(QWidget):
         setup_table_context_menu(self.table_widget, [
             (n_selected_msg, None),
             None,
+            ('Manage tags...', self.manage_entries_tags),
             ('Star', self.star_entries),
             ('Unstar', self.unstar_entries),
             ('Merge', self.merge_entries),
@@ -1390,6 +1467,32 @@ class DctWorkspaceWidget(QWidget):
 
         self.status_bar.setText(status_text)
         self.status_bar.setToolTip(tooltip_text)
+
+    def manage_entries_tags(self, _row, _column):
+        selected = self.get_selected()
+        entries = {entry for row, entry in selected}
+
+        specs = {}
+        for tag in self.dct.tags:
+            if all([tag in entry.tags for entry in entries]):
+                specs[tag] = Qt.Checked
+            elif all([tag not in entry.tags for entry in entries]):
+                specs[tag] = Qt.Unchecked
+            else:
+                specs[tag] = Qt.PartiallyChecked
+        res, ok = TaggingDialog.get_settings(self.dct, specs, 'Manage tags')
+        if not ok:
+            return
+
+        for tag, state in res.items():
+            if (tag not in specs) or (state != specs[tag]):
+                if state == Qt.Checked:
+                    self.dct.add_tag_to_entries(tag, entries)
+                else:
+                    self.dct.remove_tag_from_entries(tag, entries)
+
+        for row, entry in selected:
+            self.fill_table_row(row, entry)
 
     def star_entries(self, _row, _column):
         selected = self.get_selected()
