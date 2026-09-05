@@ -1218,7 +1218,11 @@ class DctTabWidget(QTabWidget):
             self.save_dict_as(index)
 
     def save_dict(self, index: int):
-        self.manager.save_dct(index)
+        file_path = self.manager.opened_dct_bundles[index].filepath
+        if file_path:
+            self.manager.save_dct(index)
+        else:
+            self.save_dict_as(index)
 
     def save_dict_as(self, index: int):
         dct_name = self.manager.opened_dct_bundles[index].dct.name
