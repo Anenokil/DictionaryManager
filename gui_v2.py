@@ -645,7 +645,7 @@ class EntryDetailsDialog(QDialog):
         phrases_label = QLabel('Phrases:')
         notes_label = QLabel('Notes:')
         tags_label = QLabel('Tags:')
-        fav_label = QLabel('Favorite:')
+        fav_label = QLabel('Starred:')
 
         # Create tables
         self.lemma_variants_table = self.create_single_column_table(
@@ -789,7 +789,7 @@ class EntryDetailsDialog(QDialog):
         buttons = QDialogButtonBox()
 
         self.save_button = QPushButton('Save')
-        self.close_button = QPushButton('Close')
+        self.close_button = QPushButton('Discard')
         self.delete_button = QPushButton('Delete')
 
         buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
@@ -1215,10 +1215,10 @@ class DctTabWidget(QTabWidget):
 
         menu = QMenu(self)
         save_action = menu.addAction('Save')
-        save_as_action = menu.addAction('Save as...')
-        save_all_action = menu.addAction('Save all')
+        save_as_action = menu.addAction('Save As...')
+        save_all_action = menu.addAction('Save All')
         menu.addSeparator()
-        export_as_action = menu.addAction('Export as...')
+        export_as_action = menu.addAction('Export As...')
 
         action = menu.exec(self.tabBar().mapToGlobal(pos))
 
@@ -1327,7 +1327,7 @@ class DctWorkspaceWidget(QWidget):
         setup_table_context_menu(self.table_widget, [
             (n_selected_msg, None, False),
             None,
-            ('Manage tags...', self.manage_entries_tags, True),
+            ('Manage Tags...', self.manage_entries_tags, True),
             ('Star', self.star_entries, True),
             ('Unstar', self.unstar_entries, True),
             ('Merge', self.merge_entries, lambda: len(self.get_selected_entries()) > 1),
@@ -1659,8 +1659,8 @@ class MainWindow(QMainWindow):
 
         # Create buttons to save a dictionary
         self.save_action = QAction('Save', self)
-        self.save_as_action = QAction('Save as...', self)
-        self.save_all_action = QAction('Save all', self)
+        self.save_as_action = QAction('Save As...', self)
+        self.save_all_action = QAction('Save All', self)
 
         self.save_action.triggered.connect(self.save_dict)
         self.save_as_action.triggered.connect(self.save_dict_as)
@@ -1673,7 +1673,7 @@ class MainWindow(QMainWindow):
         self.file_menu.addSeparator()
 
         # Create button to export a dictionary
-        self.export_as_action = QAction('Export as...', self)
+        self.export_as_action = QAction('Export As...', self)
         self.export_as_action.triggered.connect(self.export_dict_as)
         self.file_menu.addAction(self.export_as_action)
 
