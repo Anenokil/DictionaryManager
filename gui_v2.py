@@ -1766,7 +1766,16 @@ class MainWindow(QMainWindow):
             self.tab_widget.setVisible(True)
             self.placeholder.setVisible(False)
 
-    def close_tab(self, index):
+    def _close_tab(self, index: int):
+        self.manager.close_dct(index)
+        self.tab_widget.removeTab(index)
+
+        # Hide tab widget if no tabs are open
+        if self.tab_widget.count() == 0:
+            self.tab_widget.setVisible(False)
+            self.placeholder.setVisible(True)
+
+    def close_tab(self, index: int):
         """
         Handle tab closing event.
 
@@ -1777,13 +1786,20 @@ class MainWindow(QMainWindow):
             index: Index of the tab to close.
         """
 
-        self.manager.close_dct(index)
-        self.tab_widget.removeTab(index)
+        dct_bundle = self.manager.opened_dct_bundles[index]
+        dct = dct_bundle.dct
+        if dct.is_modified:
+            to_save = ask_yes_no(self, 'Unsaved changes', f'Save dictionary {dct.name}?')
+            if to_save:
+                file_path = dct_bundle.filepath
+                if file_path:
+                    self.manager.save_dct(index, file_path)
+                else:
+                    file_path, ok = select_dct_file_to_save(self, dct.name)
+                    if ok:
+                        self.manager.save_dct(index, file_path)
 
-        # Hide tab widget if no tabs are open
-        if self.tab_widget.count() == 0:
-            self.tab_widget.setVisible(False)
-            self.placeholder.setVisible(True)
+        self._close_tab(index)
 
     def save_state(self):
         """
@@ -1845,7 +1861,7 @@ class MainWindow(QMainWindow):
                             continue
                     self.manager.save_dct(index, file_path)
                 elif dct_bundle.filepath is None:
-                    self.close_tab(index)
+                    self._close_tab(index)
 
         self.save_state()
         event.accept()
