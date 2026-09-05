@@ -192,7 +192,7 @@ def setup_table_context_menu(
         actions_config: list[
             None | tuple[
                 Callable[[], str] | str,
-                Callable[[int, int], Any] | None,
+                Callable[[], Any] | None,
                 Callable[[], bool] | bool
             ]
         ],
@@ -217,7 +217,6 @@ def setup_table_context_menu(
         item = table.itemAt(pos)
         if item is None:
             return
-        row, column = item.row(), item.column()
 
         menu = QMenu(table)
         action_callbacks = {}
@@ -242,7 +241,7 @@ def setup_table_context_menu(
 
         chosen = menu.exec(table.viewport().mapToGlobal(pos))
         if chosen in action_callbacks:
-            action_callbacks[chosen](row, column)
+            action_callbacks[chosen]()
 
     table.customContextMenuRequested.connect(show_menu)
 
@@ -1129,21 +1128,21 @@ class EntryDetailsDialog(QDialog):
         for row in sorted(rows_to_delete, reverse=True):
             table.removeRow(row)
 
-    def delete_lemma_variants(self, _row, _column):
+    def delete_lemma_variants(self):
         table = self.lemma_variants_table
         self._delete_selected_table_rows(table)
 
-    def delete_translations(self, _row, _column):
+    def delete_translations(self):
         table = self.translations_table
         self._delete_selected_table_rows(table)
 
-    def delete_forms(self, _row, _column):
+    def delete_forms(self):
         self._delete_selected_table_rows(self.forms_table)
 
-    def delete_phrases(self, _row, _column):
+    def delete_phrases(self):
         self._delete_selected_table_rows(self.phrases_table)
 
-    def delete_notes(self, _row, _column):
+    def delete_notes(self):
         self._delete_selected_table_rows(self.notes_table)
 
     def save_and_close(self):
@@ -1480,7 +1479,7 @@ class DctWorkspaceWidget(QWidget):
         self.status_bar.setText(status_text)
         self.status_bar.setToolTip(tooltip_text)
 
-    def manage_entries_tags(self, _row, _column):
+    def manage_entries_tags(self):
         selected = self.get_selected()
         entries = {entry for row, entry in selected}
 
@@ -1506,21 +1505,21 @@ class DctWorkspaceWidget(QWidget):
         for row, entry in selected:
             self.fill_table_row(row, entry)
 
-    def star_entries(self, _row, _column):
+    def star_entries(self):
         selected = self.get_selected()
         entries = {entry for row, entry in selected}
         self.dct.add_to_fav(entries)
         for row, entry in selected:
             self.fill_table_row(row, entry)
 
-    def unstar_entries(self, _row, _column):
+    def unstar_entries(self):
         selected = self.get_selected()
         entries = {entry for row, entry in selected}
         self.dct.remove_from_fav(entries)
         for row, entry in selected:
             self.fill_table_row(row, entry)
 
-    def merge_entries(self, _row, _column):
+    def merge_entries(self):
         selected = sorted(self.get_selected())
         if len(selected) <= 1:
             return
@@ -1535,7 +1534,7 @@ class DctWorkspaceWidget(QWidget):
             self.table_widget.removeRow(row)
         self.fill_table_row(target_row, target_entry)
 
-    def delete_entries(self, _row, _column):
+    def delete_entries(self):
         selected = sorted(self.get_selected(), reverse=True)
         for row, entry in selected:
             self.dct.delete_entry(entry)
