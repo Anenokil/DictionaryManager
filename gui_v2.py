@@ -598,7 +598,6 @@ class EntryDetailsDialog(QDialog):
         self.dct = dct_bundle.dct
         self.replacer = dct_bundle.replacer
         self.entry = entry
-        self.statuses = {}
         self.exit_code = None
 
         self._create_widgets()
@@ -662,13 +661,15 @@ class EntryDetailsDialog(QDialog):
             [self.replacer.escape(s) for s in self.entry.notes]
         )
 
-        link_exclusive_selection([
+        self.tables = [
             self.lemma_variants_table,
             self.translations_table,
             self.forms_table,
             self.phrases_table,
             self.notes_table,
-        ])
+        ]
+
+        link_exclusive_selection(self.tables)
 
         def delete_msg(table: QTableWidget, singular: str) -> str:
             n = len({i.row() for i in table.selectedIndexes()})
@@ -1045,7 +1046,7 @@ class EntryDetailsDialog(QDialog):
             item.setToolTip(error_msg)
 
         # Set cell status
-        self.statuses[item.tableWidget(), item.row(), item.column()] = error_msg
+        item.setData(Qt.UserRole, error_msg)
 
     def on_gram_form_double_clicked(self, row: int, column: int):
         if column != 0:
@@ -1066,6 +1067,16 @@ class EntryDetailsDialog(QDialog):
 
         self.forms_table.item(row, column).setData(Qt.UserRole, new_gram_form)
         self.forms_table.item(row, column).setText(gram_form_to_str(new_gram_form))
+
+    def is_ok(self) -> bool:
+        for table in self.tables:
+            for column in range(table.columnCount()):
+                for row in range(table.rowCount()):
+                    cell = table.item(row, column)
+                    error_msg = cell.data(Qt.UserRole)
+                    if error_msg:
+                        return False
+        return True
 
     def add_lemma_variant(self):
         self.add_row_to_single_column_table(self.lemma_variants_table)
@@ -1138,8 +1149,7 @@ class EntryDetailsDialog(QDialog):
         self._delete_selected_table_rows(self.notes_table)
 
     def save_and_close(self):
-        is_ok = all(status == '' for status in self.statuses.values())
-        if not is_ok:
+        if not self.is_ok():
             QMessageBox.critical(
                 self,
                 'Error',
