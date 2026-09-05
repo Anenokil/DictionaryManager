@@ -1634,6 +1634,28 @@ class MainWindow(QMainWindow):
         self.open_action.triggered.connect(self.open_dict)
         self.file_menu.addAction(self.open_action)
 
+        self.file_menu.addSeparator()
+
+        # Create buttons to save a dictionary
+        self.save_action = QAction('Save', self)
+        self.save_as_action = QAction('Save as...', self)
+        self.save_all_action = QAction('Save all', self)
+
+        self.save_action.triggered.connect(self.save_dict)
+        self.save_as_action.triggered.connect(self.save_dict_as)
+        self.save_all_action.triggered.connect(self.save_all_dicts)
+
+        self.file_menu.addAction(self.save_action)
+        self.file_menu.addAction(self.save_as_action)
+        self.file_menu.addAction(self.save_all_action)
+
+        self.file_menu.addSeparator()
+
+        # Create button to export a dictionary
+        self.export_as_action = QAction('Export as...', self)
+        self.export_as_action.triggered.connect(self.export_dict_as)
+        self.file_menu.addAction(self.export_as_action)
+
     def _create_tab_widget(self):
         # Create tab widget
         self.tab_widget = DctTabWidget(self.manager)
@@ -1854,6 +1876,21 @@ class MainWindow(QMainWindow):
         new_dict_name = 'Untitled'
         self.manager.create_dct(name=new_dict_name)
         self.create_new_tab(new_dict_name)
+
+    def save_dict(self):
+        dct_index = self.manager.active_dct_id
+        self.tab_widget.save_dict(dct_index)
+
+    def save_dict_as(self):
+        dct_index = self.manager.active_dct_id
+        self.tab_widget.save_dict_as(dct_index)
+
+    def save_all_dicts(self):
+        self.tab_widget.save_all_dicts()
+
+    def export_dict_as(self):
+        dct_index = self.manager.active_dct_id
+        self.tab_widget.export_dict_as(dct_index)
 
 
 if __name__ == '__main__':
