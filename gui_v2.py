@@ -1201,6 +1201,13 @@ class DctTabWidget(QTabWidget):
         self.tabBar().setContextMenuPolicy(Qt.CustomContextMenu)
         self.tabBar().customContextMenuRequested.connect(self.show_tab_context_menu)
 
+    def update_tab_title(self, index: int):
+        dct = self.manager.opened_dct_bundles[index].dct
+        if dct.is_modified:
+            self.setTabText(index, f'{dct.name} *')
+        else:
+            self.setTabText(index, dct.name)
+
     def show_tab_context_menu(self, pos):
         index = self.tabBar().tabAt(pos)
         if index == -1:
@@ -1228,6 +1235,7 @@ class DctTabWidget(QTabWidget):
         file_path = self.manager.opened_dct_bundles[index].filepath
         if file_path:
             self.manager.save_dct(index)
+            self.update_tab_title(index)
         else:
             self.save_dict_as(index)
 
@@ -1237,6 +1245,7 @@ class DctTabWidget(QTabWidget):
         if not ok:
             return
         self.manager.save_dct(index, file_path)
+        self.update_tab_title(index)
 
     def save_all_dicts(self):
         for index in range(len(self.manager.opened_dct_bundles)):
@@ -1258,7 +1267,7 @@ class DctWorkspaceWidget(QWidget):
     functionality and status bar with dictionary statistics.
     """
 
-    def __init__(self, dct_bundle: DctBundle):
+    def __init__(self, tab_widget: DctTabWidget, dct_bundle: DctBundle):
         """
         Initialize the workspace widget.
 
@@ -1268,7 +1277,7 @@ class DctWorkspaceWidget(QWidget):
 
         super().__init__()
 
-        # Dictionary instance for this tab
+        self.tab_widget = tab_widget
         self.dct_bundle = dct_bundle
         self.dct = dct_bundle.dct
 
@@ -1419,6 +1428,9 @@ class DctWorkspaceWidget(QWidget):
             for item in self.table_widget.selectedIndexes()
         }
 
+    def update_tab_title(self):
+        self.tab_widget.update_tab_title(self.tab_widget.indexOf(self))
+
     def on_item_double_clicked(self, index):
         """
         Handle double-click event on table item.
@@ -1444,6 +1456,8 @@ class DctWorkspaceWidget(QWidget):
             self.fill_table_row(index.row(), edited_entry)
         elif dialog.exit_code == 'delete':
             self.table_widget.removeRow(item.row())
+
+        self.update_tab_title()
 
     def on_selection_changed(self):
         """
@@ -1527,12 +1541,15 @@ class DctWorkspaceWidget(QWidget):
         for row, entry in selected:
             self.fill_table_row(row, entry)
 
+        self.update_tab_title()
+
     def star_entries(self):
         selected = self.get_selected()
         entries = {entry for row, entry in selected}
         self.dct.add_to_fav(entries)
         for row, entry in selected:
             self.fill_table_row(row, entry)
+        self.update_tab_title()
 
     def unstar_entries(self):
         selected = self.get_selected()
@@ -1540,6 +1557,7 @@ class DctWorkspaceWidget(QWidget):
         self.dct.remove_from_fav(entries)
         for row, entry in selected:
             self.fill_table_row(row, entry)
+        self.update_tab_title()
 
     def merge_entries(self):
         selected = sorted(self.get_selected())
@@ -1556,11 +1574,14 @@ class DctWorkspaceWidget(QWidget):
             self.table_widget.removeRow(row)
         self.fill_table_row(target_row, target_entry)
 
+        self.update_tab_title()
+
     def delete_entries(self):
         selected = sorted(self.get_selected(), reverse=True)
         for row, entry in selected:
             self.dct.delete_entry(entry)
             self.table_widget.removeRow(row)
+        self.update_tab_title()
 
 
 class MainWindow(QMainWindow):
@@ -1729,8 +1750,8 @@ class MainWindow(QMainWindow):
                 text=current_name,
             )
             if ok and new_name:
-                self.tab_widget.setTabText(index, new_name)
                 self.manager.rename_dct(index, new_name)
+                self.tab_widget.update_tab_title(index)
 
     def create_new_tab(
             self,
@@ -1752,7 +1773,7 @@ class MainWindow(QMainWindow):
             dct_bundle = self.manager.active
 
         # Create new workspace
-        workspace = DctWorkspaceWidget(dct_bundle)
+        workspace = DctWorkspaceWidget(self.tab_widget, dct_bundle)
 
         # Add tab
         self.tab_widget.addTab(workspace, title)
@@ -1892,6 +1913,7 @@ class MainWindow(QMainWindow):
         new_dict_name = 'Untitled'
         self.manager.create_dct(name=new_dict_name)
         self.create_new_tab(new_dict_name)
+        self.tab_widget.update_tab_title(self.tab_widget.count() - 1)
 
     def save_dict(self):
         dct_index = self.manager.active_dct_id
