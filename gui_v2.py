@@ -17,8 +17,8 @@ from PySide6.QtGui import (
 from PySide6.QtCore import Qt, QSize, QTimer
 
 from backend import (
-    Translations, Variants, Forms, GramForm, Phrases, Notes, Tags,
-    Entry, Dictionary, DctBundle, Manager, gram_form_to_str,
+    Translations, Variants, Forms, GramForm, Phrases, Notes,
+    Tags, Entry, DctBundle, Manager, gram_form_to_str,
 )
 from persistence import AppData
 
@@ -274,21 +274,22 @@ class ColoredCellDelegate(QStyledItemDelegate):
 class InputTagDialog(QDialog):
     def __init__(
             self,
-            dct: Dictionary,
+            dct_bundle: DctBundle,
             initial: tuple[str, bool] | None = None,
             parent: QWidget | None = None,
     ):
         super().__init__(parent)
 
+        self.replacer = dct_bundle.replacer
         if initial is None:
             title = 'New tag'
             tag = ''
             is_default = False
-            self.other_tags = set(dct.tags)
+            self.other_tags = set(dct_bundle.dct.tags)
         else:
             title = 'Edit tag'
             tag, is_default = initial
-            self.other_tags = set(dct.tags).difference({tag})
+            self.other_tags = set(dct_bundle.dct.tags).difference({tag})
 
         self.setWindowTitle(title)
 
@@ -318,7 +319,7 @@ class InputTagDialog(QDialog):
         self.layout.addWidget(buttons, 2, 0, 1, 2)
 
     def _validate(self) -> tuple[bool, str]:
-        tag = self._line_edit.text()
+        tag, _ = self.get_text()
         if tag == '':
             return False, 'Tag must not be empty'
         if tag in self.other_tags:
@@ -336,15 +337,15 @@ class InputTagDialog(QDialog):
             self.layout.addWidget(self.label_error, 3, 0, 1, 2)
 
     def get_text(self) -> tuple[str, bool]:
-        return self._line_edit.text(), self._is_default.isChecked()
+        return self.replacer.replace(self._line_edit.text()), self._is_default.isChecked()
 
     @staticmethod
     def get_input(
-            dct: Dictionary,
+            dct_bundle: DctBundle,
             current: tuple[str, bool] | None = None,
             parent: QWidget | None = None,
     ) -> tuple[str, bool, bool]:
-        dialog = InputTagDialog(dct, current, parent)
+        dialog = InputTagDialog(dct_bundle, current, parent)
         ok = dialog.exec() == QDialog.Accepted
         tag, is_default = dialog.get_text() if ok else ('', False)
         return tag, is_default, ok
@@ -505,13 +506,14 @@ class CheckableList(QScrollArea):
 class TaggingDialog(QDialog):
     def __init__(
             self,
-            dct: Dictionary,
+            dct_bundle: DctBundle,
             specs: dict[str, Qt.CheckState],
             title: str,
     ):
         super().__init__()
 
-        self.dct = dct
+        self.dct_bundle = dct_bundle
+        self.dct = dct_bundle.dct
 
         self.setWindowTitle(title)
 
@@ -536,7 +538,7 @@ class TaggingDialog(QDialog):
         layout.addWidget(buttons)
 
     def add_tag(self):
-        new_tag, is_default, ok = InputTagDialog.get_input(self.dct, parent=self)
+        new_tag, is_default, ok = InputTagDialog.get_input(self.dct_bundle, parent=self)
         if ok and new_tag:
             self.dct.add_tag(new_tag, is_default)
             self.tags_list.add_item(new_tag, True)
@@ -546,11 +548,11 @@ class TaggingDialog(QDialog):
 
     @staticmethod
     def get_settings(
-            dct: Dictionary,
+            dct_bundle: DctBundle,
             specs: dict[str, Qt.CheckState],
             title: str,
     ) -> tuple[dict[str, Qt.CheckState] | None, bool]:
-        dialog = TaggingDialog(dct, specs, title)
+        dialog = TaggingDialog(dct_bundle, specs, title)
         ok = dialog.exec() == QDialog.Accepted
         values = dialog.get_values() if ok else None
         return values, ok
@@ -592,6 +594,7 @@ class EntryDetailsDialog(QDialog):
     def __init__(self, dct_bundle: DctBundle, entry: Entry, parent: QWidget | None = None):
         super().__init__(parent)
 
+        self.dct_bundle = dct_bundle
         self.dct = dct_bundle.dct
         self.replacer = dct_bundle.replacer
         self.entry = entry
@@ -1092,7 +1095,7 @@ class EntryDetailsDialog(QDialog):
         self.add_row_to_single_column_table(self.notes_table)
 
     def add_tag(self):
-        new_tag, is_default, ok = InputTagDialog.get_input(self.dct, parent=self)
+        new_tag, is_default, ok = InputTagDialog.get_input(self.dct_bundle, parent=self)
         if ok and new_tag:
             self.dct.add_tag(new_tag, is_default)
             self.tags_list.add_item(new_tag, True)
@@ -1480,7 +1483,7 @@ class DctWorkspaceWidget(QWidget):
                 specs[tag] = Qt.Unchecked
             else:
                 specs[tag] = Qt.PartiallyChecked
-        res, ok = TaggingDialog.get_settings(self.dct, specs, 'Manage tags')
+        res, ok = TaggingDialog.get_settings(self.dct_bundle, specs, 'Manage tags')
         if not ok:
             return
 
