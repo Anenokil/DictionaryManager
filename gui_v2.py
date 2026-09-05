@@ -1209,6 +1209,7 @@ class DctTabWidget(QTabWidget):
         menu = QMenu(self)
         save_action = menu.addAction('Save')
         save_as_action = menu.addAction('Save as...')
+        save_all_action = menu.addAction('Save all')
 
         action = menu.exec(self.tabBar().mapToGlobal(pos))
 
@@ -1216,6 +1217,8 @@ class DctTabWidget(QTabWidget):
             self.save_dict(index)
         elif action == save_as_action:
             self.save_dict_as(index)
+        elif action == save_all_action:
+            self.save_all_dicts()
 
     def save_dict(self, index: int):
         file_path = self.manager.opened_dct_bundles[index].filepath
@@ -1230,6 +1233,10 @@ class DctTabWidget(QTabWidget):
         if not ok:
             return
         self.manager.save_dct(index, file_path)
+
+    def save_all_dicts(self):
+        for index in range(len(self.manager.opened_dct_bundles)):
+            self.save_dict(index)
 
 
 class DctWorkspaceWidget(QWidget):
