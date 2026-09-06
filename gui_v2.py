@@ -1326,15 +1326,24 @@ class DctWorkspaceWidget(QWidget):
         self.dct_bundle = dct_bundle
         self.dct = dct_bundle.dct
 
-        layout = QGridLayout(self)
+        self._create_widgets()
 
-        # Create table
+    def _create_widgets(self):
+        self.layout = QGridLayout(self)
+
+        self._create_entries_table()
+        self._create_dct_buttons()
+        self._create_status_bar()
+
+    def _create_entries_table(self):
+        # Create table widget
         self.table_widget = QTableWidget()
         self.table_widget.setColumnCount(11)
         self.table_widget.setHorizontalHeaderLabels([
             '', 'Word', 'Translation', 'Forms', 'Phrases', 'Notes', 'Tags',
             'Total attempts', 'Correct attempts', 'Win streak', 'Accuracy',
         ])
+        self.layout.addWidget(self.table_widget, 1, 0, 1, 2)
 
         # Configure row selection
         self.table_widget.setSelectionBehavior(QTableWidget.SelectRows)
@@ -1356,13 +1365,11 @@ class DctWorkspaceWidget(QWidget):
         # Disable table editing
         self.table_widget.setEditTriggers(QTableWidget.NoEditTriggers)
 
-        # Connect double-click handler
+        # Connect signal handlers
         self.table_widget.doubleClicked.connect(self.on_item_double_clicked)
-        # Connect selection handler
         self.table_widget.itemSelectionChanged.connect(self.on_selection_changed)
 
-        layout.addWidget(self.table_widget, 1, 0, 1, 2)
-
+        # Setup context menu
         def n_selected_msg() -> str:
             n = len(self.get_selected_entries())
             if n == 1:
@@ -1380,20 +1387,19 @@ class DctWorkspaceWidget(QWidget):
             ('Delete', self.delete_entries, True),
         ])
 
-        # Create button for adding new entry
-        self.add_entry_btn = create_img_button('resources/qt/images/add.png')
-        self.add_entry_btn.clicked.connect(self.add_entry)
-        layout.addWidget(self.add_entry_btn, 2, 0)
-
-        # Create status bar at the bottom
-        self.status_bar = QLabel()
-        self.status_bar.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        layout.addWidget(self.status_bar, 2, 1)
-
         # Fill the table
         self.print_entries()
 
-        # Update status bar
+    def _create_dct_buttons(self):
+        self.add_entry_btn = create_img_button('resources/qt/images/add.png')
+        self.add_entry_btn.clicked.connect(self.add_entry)
+        self.layout.addWidget(self.add_entry_btn, 2, 0)
+
+    def _create_status_bar(self):
+        self.status_bar = QLabel()
+        self.status_bar.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.layout.addWidget(self.status_bar, 2, 1)
+
         self.update_status_bar()
 
     def fill_table_row(self, row: int, entry: Entry):
