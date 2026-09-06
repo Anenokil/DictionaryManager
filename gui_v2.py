@@ -611,21 +611,32 @@ class EqualGrowFormLayout(QGridLayout):
 class EntryDetailsDialog(QDialog):
     """Dialog for displaying entry information."""
 
-    def __init__(self, dct_bundle: DctBundle, entry: Entry, parent: QWidget | None = None):
+    def __init__(
+            self,
+            dct_bundle: DctBundle,
+            entry: Entry | None = None,
+            parent: QWidget | None = None,
+    ):
         super().__init__(parent)
 
         self.dct_bundle = dct_bundle
         self.dct = dct_bundle.dct
         self.replacer = dct_bundle.replacer
         self.entry = entry
+        self.is_new = entry is None
         self.exit_code = None
 
         self._create_widgets()
         self._set_shortcuts()
         self._configure_window()
 
+        if self.is_new:
+            self.validate_and_update_table(self.lemma_variants_table)
+            self.validate_and_update_table(self.translations_table)
+
     def _configure_window(self):
-        self.setWindowTitle(f'Entry "{lemma_to_str(self.entry.variants)}"')
+        title = 'New entry' if self.is_new else f'Entry "{lemma_to_str(self.entry.variants)}"'
+        self.setWindowTitle(title)
         self.setModal(True)
         self.resize(500, 500)
 
@@ -662,23 +673,27 @@ class EntryDetailsDialog(QDialog):
 
         # Create tables
         self.lemma_variants_table = self.create_single_column_table(
-            [self.replacer.escape(s) for s in self.entry.variants]
+            [''] if self.is_new else [self.replacer.escape(s) for s in self.entry.variants]
         )
         self.translations_table = self.create_single_column_table(
-            [self.replacer.escape(s) for s in self.entry.tr]
+            [''] if self.is_new else [self.replacer.escape(s) for s in self.entry.tr]
         )
         self.forms_table = self.create_two_column_table(
-            [(gf, self.replacer.escape(wf))
-             for gf, wf in forms_to_pairs(self.entry.forms)],
-            gram_forms=list(self.entry.forms.keys()),
+            [] if self.is_new else [
+                (gf, self.replacer.escape(wf))
+                for gf, wf in forms_to_pairs(self.entry.forms)
+            ],
+            gram_forms=[] if self.is_new else list(self.entry.forms.keys()),
             is_1_col_active=False,
         )
         self.phrases_table = self.create_two_column_table(
-            [(self.replacer.escape(ph), self.replacer.escape(pt))
-             for ph, pt in phrases_to_pairs(self.entry.phrases)]
+            [] if self.is_new else [
+                (self.replacer.escape(ph), self.replacer.escape(pt))
+                for ph, pt in phrases_to_pairs(self.entry.phrases)
+            ]
         )
         self.notes_table = self.create_single_column_table(
-            [self.replacer.escape(s) for s in self.entry.notes]
+            [] if self.is_new else [self.replacer.escape(s) for s in self.entry.notes]
         )
 
         self.tables = [
@@ -720,7 +735,7 @@ class EntryDetailsDialog(QDialog):
         # Create other widgets
         self.tags_list = CheckableList(
             {
-                tag: Qt.Checked if (tag in self.entry.tags) else Qt.Unchecked
+                tag: Qt.Checked if (not self.is_new) and (tag in self.entry.tags) else Qt.Unchecked
                 for tag in sorted(self.dct.tags)
             },
             on_change=self.main_layout.activate,
@@ -731,7 +746,7 @@ class EntryDetailsDialog(QDialog):
         self.tags_list.setMinimumWidth(120)
 
         self.fav_checkbox = QCheckBox()
-        self.fav_checkbox.setChecked(self.entry.is_fav)
+        self.fav_checkbox.setChecked(not self.is_new and self.entry.is_fav)
 
         # Create image buttons
         self.add_lemma_variant_button = create_img_button('resources/qt/images/add.png')
@@ -812,6 +827,9 @@ class EntryDetailsDialog(QDialog):
         self.save_button.clicked.connect(self.save_and_close)
         self.close_button.clicked.connect(self.reject)
         self.delete_button.clicked.connect(self.delete_entry)
+
+        if self.is_new:
+            self.delete_button.setEnabled(False)
 
         self.main_layout.addWidget(buttons)
 
@@ -1092,15 +1110,24 @@ class EntryDetailsDialog(QDialog):
         self.forms_table.item(row, column).setData(Qt.UserRole, new_gram_form)
         self.forms_table.item(row, column).setText(gram_form_to_str(new_gram_form))
 
-    def is_ok(self) -> bool:
+    def validate_all(self) -> tuple[bool, str]:
+        if self.is_new:
+            if self.lemma_variants_table.rowCount() == 0:
+                return False, 'Entry must have at least one lemma variant'
+            if self.translations_table.rowCount() == 0:
+                return False, 'Entry must have at least one translation'
         for table in self.tables:
             for column in range(table.columnCount()):
                 for row in range(table.rowCount()):
                     cell = table.item(row, column)
                     error_msg = cell.data(Qt.UserRole)
                     if error_msg:
-                        return False
-        return True
+                        return (
+                            False,
+                            'Cannot apply your changes while there are '
+                            'invalid values (highlighted in red).'
+                        )
+        return True, ''
 
     def add_lemma_variant(self):
         self.add_row_to_single_column_table(self.lemma_variants_table)
@@ -1159,12 +1186,9 @@ class EntryDetailsDialog(QDialog):
         self._delete_selected_table_rows(self.notes_table)
 
     def save_and_close(self):
-        if not self.is_ok():
-            QMessageBox.critical(
-                self,
-                'Error',
-                'Cannot apply your changes while there are invalid values (highlighted in red).',
-            )
+        is_ok, error_msg = self.validate_all()
+        if not is_ok:
+            QMessageBox.critical(self, 'Error', error_msg)
             return
 
         lemma_variants = [
@@ -1190,16 +1214,24 @@ class EntryDetailsDialog(QDialog):
         tags = self.tags_list.get_checked_items()
         is_fav = self.fav_checkbox.isChecked()
 
-        self.entry = self.dct.rewrite_entry(
-            self.entry,
-            lemma_variants, translations, forms, phrases, notes, tags, is_fav,
-        )
+        if self.is_new:
+            self.entry = self.dct.add_entry(
+                lemma_variants, translations, forms, phrases, notes, tags, is_fav,
+            )
+            self.is_new = False
+            self.delete_button.setEnabled(True)
+        else:
+            self.entry = self.dct.rewrite_entry(
+                self.entry,
+                lemma_variants, translations, forms, phrases, notes, tags, is_fav,
+            )
 
         self.exit_code = 'save'
         self.accept()
 
     def delete_entry(self):
-        self.dct.delete_entry(self.entry)
+        if not self.is_new:
+            self.dct.delete_entry(self.entry)
 
         self.exit_code = 'delete'
         self.accept()
@@ -1294,7 +1326,7 @@ class DctWorkspaceWidget(QWidget):
         self.dct_bundle = dct_bundle
         self.dct = dct_bundle.dct
 
-        layout = QVBoxLayout(self)
+        layout = QGridLayout(self)
 
         # Create table
         self.table_widget = QTableWidget()
@@ -1329,7 +1361,7 @@ class DctWorkspaceWidget(QWidget):
         # Connect selection handler
         self.table_widget.itemSelectionChanged.connect(self.on_selection_changed)
 
-        layout.addWidget(self.table_widget)
+        layout.addWidget(self.table_widget, 1, 0, 1, 2)
 
         def n_selected_msg() -> str:
             n = len(self.get_selected_entries())
@@ -1348,10 +1380,15 @@ class DctWorkspaceWidget(QWidget):
             ('Delete', self.delete_entries, True),
         ])
 
+        # Create button for adding new entry
+        self.add_entry_btn = create_img_button('resources/qt/images/add.png')
+        self.add_entry_btn.clicked.connect(self.add_entry)
+        layout.addWidget(self.add_entry_btn, 2, 0)
+
         # Create status bar at the bottom
         self.status_bar = QLabel()
         self.status_bar.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        layout.addWidget(self.status_bar)
+        layout.addWidget(self.status_bar, 2, 1)
 
         # Fill the table
         self.print_entries()
@@ -1443,6 +1480,18 @@ class DctWorkspaceWidget(QWidget):
 
     def update_tab_title(self):
         self.tab_widget.update_tab_title(self.tab_widget.indexOf(self))
+
+    def add_entry(self):
+        # Create and show details dialog
+        dialog = EntryDetailsDialog(self.dct_bundle, None, self)
+        dialog.exec()
+        if dialog.exit_code == 'save':
+            n_rows = self.table_widget.rowCount()
+            new_entry = dialog.entry
+            self.table_widget.setRowCount(n_rows + 1)
+            self.fill_table_row(n_rows, new_entry)
+
+        self.update_tab_title()
 
     def on_item_double_clicked(self, index):
         """
