@@ -314,7 +314,7 @@ class InputTagDialog(QDialog):
         self.setWindowTitle(title)
 
         self._line_edit = QLineEdit(tag)
-        self._is_default = QCheckBox()
+        self._is_default = QCheckBox('Automatically apply this tag to new entries')
         self._is_default.setChecked(is_default)
 
         buttons = QDialogButtonBox(
@@ -324,18 +324,12 @@ class InputTagDialog(QDialog):
         buttons.rejected.connect(self.reject)
 
         label1 = QLabel('Tag:', alignment=Qt.AlignRight | Qt.AlignVCenter)
-        label2 = QLabel(
-            'Automatically apply\n'
-            'this tag to new entries:',
-            alignment=Qt.AlignRight | Qt.AlignVCenter,
-        )
         self.label_error = QLabel('', alignment=Qt.AlignHCenter)
 
         self.layout = QGridLayout(self)
         self.layout.addWidget(label1, 0, 0)
         self.layout.addWidget(self._line_edit, 0, 1)
-        self.layout.addWidget(label2, 1, 0)
-        self.layout.addWidget(self._is_default, 1, 1, alignment=Qt.AlignBottom)
+        self.layout.addWidget(self._is_default, 1, 0, 1, 2, alignment=Qt.AlignBottom)
         self.layout.addWidget(buttons, 2, 0, 1, 2)
 
     def _validate(self) -> tuple[bool, str]:
