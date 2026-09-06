@@ -622,6 +622,7 @@ class EntryDetailsDialog(QDialog):
         self.entry = entry
         self.is_new = entry is None
         self.exit_code = None
+        self._ignore_item_changed = False
 
         self._create_widgets()
         self._set_shortcuts()
@@ -764,11 +765,17 @@ class EntryDetailsDialog(QDialog):
         self.add_tag_button.clicked.connect(self.add_tag)
 
         # Validation for tables
-        self.lemma_variants_table.itemChanged.connect(self.on_item_changed)
-        self.translations_table.itemChanged.connect(self.on_item_changed)
-        self.forms_table.itemChanged.connect(self.on_item_changed)
-        self.phrases_table.itemChanged.connect(self.on_item_changed)
-        self.notes_table.itemChanged.connect(self.on_item_changed)
+        def connect_table_handlers(table: QTableWidget):
+            table.itemChanged.connect(self.on_item_changed)
+            table.model().rowsRemoved.connect(
+                lambda *args: self.on_rows_removed(table, *args)
+            )
+
+        connect_table_handlers(self.lemma_variants_table)
+        connect_table_handlers(self.translations_table)
+        connect_table_handlers(self.forms_table)
+        connect_table_handlers(self.phrases_table)
+        connect_table_handlers(self.notes_table)
 
         # Custom cell coloring delegate
         self.lemma_variants_table.setItemDelegate(ColoredCellDelegate(self.lemma_variants_table))
@@ -962,8 +969,12 @@ class EntryDetailsDialog(QDialog):
         table.setCurrentCell(n_rows, 0)
         table.editItem(table.item(n_rows, 0))
 
-    @staticmethod
-    def add_row_to_two_column_table(table: QTableWidget, is_1_col_active: bool = True, data=None):
+    def add_row_to_two_column_table(
+            self,
+            table: QTableWidget,
+            is_1_col_active: bool = True,
+            data=None,
+    ):
         n_rows = table.rowCount()
         table.setRowCount(n_rows + 1)
 
@@ -977,13 +988,17 @@ class EntryDetailsDialog(QDialog):
 
         table_item2 = QTableWidgetItem('')
 
+        self._ignore_item_changed = True
         table.setItem(n_rows, 0, table_item1)
         table.setItem(n_rows, 1, table_item2)
+        self._ignore_item_changed = False
 
         # Set focus on the new cell
         focused_column = 0 if is_1_col_active else 1
         table.setCurrentCell(n_rows, focused_column)
         table.editItem(table.item(n_rows, focused_column))
+
+        self.validate_and_update_table(table)
 
     @staticmethod
     def get_phrases_data(table: QTableWidget) -> dict[str, list[str]]:
@@ -1055,37 +1070,57 @@ class EntryDetailsDialog(QDialog):
             return False, f'Note {note} is a duplicate'
         return True, ''
 
-    def on_item_changed(self, item: QTableWidgetItem):
-        # Validation
+    def validate_cell(self, item: QTableWidgetItem) -> tuple[bool, str]:
         match item.tableWidget():
             case self.lemma_variants_table:
-                ok, error_msg = self.validate_lemma_variant(item.text())
+                return self.validate_lemma_variant(item.text())
             case self.translations_table:
-                ok, error_msg = self.validate_translation(item.text())
+                return self.validate_translation(item.text())
             case self.forms_table:
-                if item.column() != 1:
-                    return
+                if item.column() == 0:
+                    return True, ''
                 gram_form = self.forms_table.item(item.row(), item.column() - 1).data(Qt.UserRole)
-                ok, error_msg = self.validate_word_form(gram_form, item.text())
+                return self.validate_word_form(gram_form, item.text())
             case self.phrases_table:
                 if item.column() == 0:
-                    ok, error_msg = self.validate_phrase(item.text())
-                else:
-                    phrase = self.phrases_table.item(item.row(), item.column() - 1).text()
-                    ok, error_msg = self.validate_phrase_translation(phrase, item.text())
+                    return self.validate_phrase(item.text())
+                phrase = self.phrases_table.item(item.row(), item.column() - 1).text()
+                return self.validate_phrase_translation(phrase, item.text())
             case self.notes_table:
-                ok, error_msg = self.validate_note(item.text())
+                return self.validate_note(item.text())
+        return False, 'Unknown table'
 
-        # Update UI
-        if ok:
-            item.setBackground(QBrush())
-            item.setToolTip('')
-        else:
-            item.setBackground(QBrush(QColor('#ffcccc')))
-            item.setToolTip(error_msg)
+    def validate_and_update_table(self, table: QTableWidget):
+        # Validate all cells in the table
+        for row in range(table.rowCount()):
+            for column in range(table.columnCount()):
+                item = table.item(row, column)
 
-        # Set cell status
-        item.setData(Qt.UserRole, error_msg)
+                ok, error_msg = self.validate_cell(item)
+
+                self._ignore_item_changed = True
+
+                # Update UI
+                if ok:
+                    item.setBackground(QBrush())
+                    item.setToolTip('')
+                else:
+                    item.setBackground(QBrush(QColor('#ffcccc')))
+                    item.setToolTip(error_msg)
+
+                # Set cell status
+                item.setData(Qt.UserRole, error_msg)
+
+                self._ignore_item_changed = False
+
+    def on_item_changed(self, item: QTableWidgetItem):
+        if self._ignore_item_changed:
+            return
+        table = item.tableWidget()
+        self.validate_and_update_table(table)
+
+    def on_rows_removed(self, table: QTableWidget, parent, first: int, last: int):
+        self.validate_and_update_table(table)
 
     def on_gram_form_double_clicked(self, row: int, column: int):
         if column != 0:
