@@ -120,6 +120,19 @@ def create_img_button(
     button.setIconSize(QSize(*icon_size))
     button.setFixedSize(*button_size)
     button.setFlat(True)
+    button.setStyleSheet('''
+        QPushButton {
+            border: none;
+            border-radius: 4px;
+            background-color: transparent;
+        }
+        QPushButton:hover {
+            background-color: rgba(127, 127, 127, 0.12);
+        }
+        QPushButton:pressed {
+            background-color: rgba(127, 127, 127, 0.20);
+        }
+    ''')
     return button
 
 
