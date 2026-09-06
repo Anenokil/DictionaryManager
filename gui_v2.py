@@ -536,7 +536,7 @@ class TaggingDialog(QDialog):
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
 
-        add_tag_button = create_img_button('resources/images/add.png')
+        add_tag_button = create_img_button('resources/qt/images/add.png')
         add_tag_button.clicked.connect(self.add_tag)
         buttons.addButton(add_tag_button, QDialogButtonBox.ActionRole)
 
@@ -721,12 +721,12 @@ class EntryDetailsDialog(QDialog):
         self.fav_checkbox.setChecked(self.entry.is_fav)
 
         # Create image buttons
-        self.add_lemma_variant_button = create_img_button('resources/images/add.png')
-        self.add_translation_button = create_img_button('resources/images/add.png')
-        self.add_form_button = create_img_button('resources/images/add.png')
-        self.add_phrase_button = create_img_button('resources/images/add.png')
-        self.add_note_button = create_img_button('resources/images/add.png')
-        self.add_tag_button = create_img_button('resources/images/add.png')
+        self.add_lemma_variant_button = create_img_button('resources/qt/images/add.png')
+        self.add_translation_button = create_img_button('resources/qt/images/add.png')
+        self.add_form_button = create_img_button('resources/qt/images/add.png')
+        self.add_phrase_button = create_img_button('resources/qt/images/add.png')
+        self.add_note_button = create_img_button('resources/qt/images/add.png')
+        self.add_tag_button = create_img_button('resources/qt/images/add.png')
 
         # Signal handling
         self.forms_table.cellDoubleClicked.connect(self.on_gram_form_double_clicked)
@@ -1350,7 +1350,7 @@ class DctWorkspaceWidget(QWidget):
         # Column 0: Star
         star_item = QTableWidgetItem()
         if entry.is_fav:
-            star_item.setIcon(QIcon('resources/images/fav.png'))
+            star_item.setIcon(QIcon('resources/qt/images/star.png'))
         star_item.setData(Qt.UserRole, entry)
         self.table_widget.setItem(row, 0, star_item)
 
