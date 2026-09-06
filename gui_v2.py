@@ -532,7 +532,10 @@ class TaggingDialog(QDialog):
         self.setWindowTitle(title)
 
         self.tags_list = CheckableList(
-            {tag: specs[tag] for tag in sorted(self.dct.tags)},
+            {
+                tag: specs[tag]
+                for tag in sorted(self.dct.tags, key=lambda s: (s.lower(), s))
+            },
             is_tristate=True,
         )
         self.tags_list.setWidgetResizable(True)
