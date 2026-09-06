@@ -733,7 +733,7 @@ class EntryDetailsDialog(QDialog):
         self.tags_list = CheckableList(
             {
                 tag: Qt.Checked if (not self.is_new) and (tag in self.entry.tags) else Qt.Unchecked
-                for tag in sorted(self.dct.tags)
+                for tag in sorted(self.dct.tags, key=lambda s: (s.lower(), s))
             },
             on_change=self.main_layout.activate,
         )
