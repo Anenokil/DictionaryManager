@@ -259,6 +259,12 @@ def setup_table_context_menu(
     table.customContextMenuRequested.connect(show_menu)
 
 
+def set_widget_shortcut(key_sequence: str, widget: QWidget, action: Callable):
+    shortcut = QShortcut(QKeySequence(key_sequence), widget)
+    shortcut.setContext(Qt.WidgetShortcut)
+    shortcut.activated.connect(action)
+
+
 class ColoredCellDelegate(QStyledItemDelegate):
     """
     Custom item background stays visible even when the cell is selected.
@@ -841,25 +847,11 @@ class EntryDetailsDialog(QDialog):
         self.main_layout.addWidget(buttons)
 
     def _set_shortcuts(self):
-        add_lemma_variant_shortcut = QShortcut(QKeySequence('Ctrl+N'), self.lemma_variants_table)
-        add_lemma_variant_shortcut.setContext(Qt.WidgetShortcut)
-        add_lemma_variant_shortcut.activated.connect(self.add_lemma_variant)
-
-        add_translation_shortcut = QShortcut(QKeySequence('Ctrl+N'), self.translations_table)
-        add_translation_shortcut.setContext(Qt.WidgetShortcut)
-        add_translation_shortcut.activated.connect(self.add_translation)
-
-        add_form_shortcut = QShortcut(QKeySequence('Ctrl+N'), self.forms_table)
-        add_form_shortcut.setContext(Qt.WidgetShortcut)
-        add_form_shortcut.activated.connect(self.add_form)
-
-        add_phrase_shortcut = QShortcut(QKeySequence('Ctrl+N'), self.phrases_table)
-        add_phrase_shortcut.setContext(Qt.WidgetShortcut)
-        add_phrase_shortcut.activated.connect(self.add_phrase)
-
-        add_note_shortcut = QShortcut(QKeySequence('Ctrl+N'), self.notes_table)
-        add_note_shortcut.setContext(Qt.WidgetShortcut)
-        add_note_shortcut.activated.connect(self.add_note)
+        set_widget_shortcut('Ctrl+N', self.lemma_variants_table, self.add_lemma_variant)
+        set_widget_shortcut('Ctrl+N', self.translations_table, self.add_translation)
+        set_widget_shortcut('Ctrl+N', self.forms_table, self.add_form)
+        set_widget_shortcut('Ctrl+N', self.phrases_table, self.add_phrase)
+        set_widget_shortcut('Ctrl+N', self.notes_table, self.add_note)
 
         QShortcut(QKeySequence('Ctrl+S'), self, self.save_and_close)
         QShortcut(QKeySequence('Ctrl+Q'), self, self.reject)
