@@ -608,6 +608,9 @@ class EqualGrowFormLayout(QGridLayout):
 class EntryDetailsDialog(QDialog):
     """Dialog for displaying entry information."""
 
+    _role_gram_form = Qt.UserRole
+    _role_valid = Qt.UserRole + 1
+
     def __init__(
             self,
             dct_bundle: DctBundle,
@@ -942,7 +945,7 @@ class EntryDetailsDialog(QDialog):
             table_item1 = QTableWidgetItem(item1)
             if gram_forms is not None:
                 data1 = gram_forms[row]
-                table_item1.setData(Qt.UserRole, data1)
+                table_item1.setData(EntryDetailsDialog._role_gram_form, data1)
             if is_1_col_active:
                 table_item1.setFlags(table_item1.flags() | Qt.ItemIsEditable)
             else:
@@ -980,7 +983,7 @@ class EntryDetailsDialog(QDialog):
 
         table_item1 = QTableWidgetItem('')
         if data is not None:
-            table_item1.setData(Qt.UserRole, data)
+            table_item1.setData(self._role_gram_form, data)
         if is_1_col_active:
             table_item1.setFlags(table_item1.flags() | Qt.ItemIsEditable)
         else:
@@ -1013,7 +1016,7 @@ class EntryDetailsDialog(QDialog):
     def get_forms_data(table: QTableWidget) -> dict[GramForm, list[str]]:
         data = {}
         for row in range(table.rowCount()):
-            gram_form = table.item(row, 0).data(Qt.UserRole)
+            gram_form = table.item(row, 0).data(EntryDetailsDialog._role_gram_form)
             word_form = table.item(row, 1).text()
             data.setdefault(gram_form, []).append(word_form)
         return data
@@ -1038,7 +1041,7 @@ class EntryDetailsDialog(QDialog):
         if word_form == '':
             return False, 'Word form must not be empty'
         gram_forms = [
-            self.forms_table.item(row, 0).data(Qt.UserRole)
+            self.forms_table.item(row, 0).data(self._role_gram_form)
             for row in range(self.forms_table.rowCount())
         ]
         word_forms = get_column_data(self.forms_table, 1)
@@ -1079,7 +1082,9 @@ class EntryDetailsDialog(QDialog):
             case self.forms_table:
                 if item.column() == 0:
                     return True, ''
-                gram_form = self.forms_table.item(item.row(), item.column() - 1).data(Qt.UserRole)
+                gram_form = self.forms_table.item(
+                    item.row(), item.column() - 1
+                ).data(self._role_gram_form)
                 return self.validate_word_form(gram_form, item.text())
             case self.phrases_table:
                 if item.column() == 0:
@@ -1109,7 +1114,7 @@ class EntryDetailsDialog(QDialog):
                     item.setToolTip(error_msg)
 
                 # Set cell status
-                item.setData(Qt.UserRole, error_msg)
+                item.setData(self._role_valid, error_msg)
 
                 self._ignore_item_changed = False
 
@@ -1131,7 +1136,7 @@ class EntryDetailsDialog(QDialog):
             return
 
         specs = {k: [''] + v for k, v in self.dct.features.items()}
-        gram_form = item.data(Qt.UserRole)
+        gram_form = item.data(self._role_gram_form)
         res, ok = OptionsDialog.get_settings(
             specs, gram_form, 'Grammatical form settings', validator=valid_gram_form
         )
@@ -1139,7 +1144,7 @@ class EntryDetailsDialog(QDialog):
             return
         new_gram_form = tuple(res.values())
 
-        self.forms_table.item(row, column).setData(Qt.UserRole, new_gram_form)
+        self.forms_table.item(row, column).setData(self._role_gram_form, new_gram_form)
         self.forms_table.item(row, column).setText(gram_form_to_str(new_gram_form))
 
     def validate_all(self) -> tuple[bool, str]:
@@ -1152,7 +1157,7 @@ class EntryDetailsDialog(QDialog):
             for column in range(table.columnCount()):
                 for row in range(table.rowCount()):
                     cell = table.item(row, column)
-                    error_msg = cell.data(Qt.UserRole)
+                    error_msg = cell.data(self._role_valid)
                     if error_msg:
                         return (
                             False,
