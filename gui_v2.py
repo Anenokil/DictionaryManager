@@ -861,40 +861,29 @@ class EntryDetailsDialog(QDialog):
         add_note_shortcut.setContext(Qt.WidgetShortcut)
         add_note_shortcut.activated.connect(self.add_note)
 
-        save_shortcut = QShortcut(QKeySequence('Ctrl+S'), self)
-        save_shortcut.activated.connect(self.save_and_close)
-
-        close_shortcut = QShortcut(QKeySequence('Ctrl+Q'), self)
-        close_shortcut.activated.connect(self.reject)
+        QShortcut(QKeySequence('Ctrl+S'), self, self.save_and_close)
+        QShortcut(QKeySequence('Ctrl+Q'), self, self.reject)
 
     @staticmethod
     def create_single_column_table(content: Collection[str]) -> QTableWidget:
         """Create a single-column table with the given data."""
 
         table = QTableWidget()
-
-        # Set up the table with one column
         table.setColumnCount(1)
-
-        # Hide the horizontal header
-        table.horizontalHeader().setVisible(False)
-
         table.setEditTriggers(QTableWidget.DoubleClicked | QTableWidget.EditKeyPressed)
-
-        # Allow selecting multiple rows
         table.setSelectionMode(QTableWidget.ExtendedSelection)
+        table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
 
-        # Set column resize mode
         header = table.horizontalHeader()
+        header.setVisible(False)
         header.setSectionResizeMode(0, QHeaderView.Stretch)
 
-        # Set row count and populate data
+        # Populate data
         table.setRowCount(len(content))
         for row, item in enumerate(content):
             table_item = QTableWidgetItem(item)
             table.setItem(row, 0, table_item)
 
-        # Set reasonable size for the table
         table.setMinimumHeight(30)
         table.setMinimumWidth(100)
 
@@ -909,30 +898,19 @@ class EntryDetailsDialog(QDialog):
         """Create a two-column table with the given data."""
 
         table = QTableWidget()
-
-        # Set up the table with two columns
         table.setColumnCount(2)
-
-        # Hide the horizontal header
-        table.horizontalHeader().setVisible(False)
-
-        # Enable editing
         table.setEditTriggers(QTableWidget.DoubleClicked | QTableWidget.EditKeyPressed)
-
-        # Allow selecting multiple rows
         table.setSelectionBehavior(QTableWidget.SelectRows)
         table.setSelectionMode(QTableWidget.ExtendedSelection)
-
-        # Enable smooth scrolling
         table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
 
-        # Set column resize modes
         header = table.horizontalHeader()
+        table.horizontalHeader().setVisible(False)
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
 
-        # Set row count and populate data
+        # Populate data
         table.setRowCount(len(content))
         for row, (item1, item2) in enumerate(content):
             table_item1 = QTableWidgetItem(item1)
@@ -949,7 +927,6 @@ class EntryDetailsDialog(QDialog):
             table_item2.setFlags(table_item2.flags() | Qt.ItemIsEditable)
             table.setItem(row, 1, table_item2)
 
-        # Set reasonable size for the table
         table.setMinimumHeight(30)
         table.setMinimumWidth(120)
 
