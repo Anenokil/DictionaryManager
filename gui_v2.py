@@ -19,6 +19,7 @@ from PySide6.QtCore import Qt, QSize, QTimer
 from backend import (
     Translations, Variants, Forms, GramForm, Phrases, Notes,
     Tags, Entry, DctBundle, Manager, gram_form_to_str,
+    Replacer,
 )
 from persistence import AppData
 
@@ -198,6 +199,15 @@ def valid_gram_form(gram_form: dict[str, str]) -> tuple[bool, str]:
     if all(val == '' for val in gram_form.values()):
         return False, 'Grammatical form must not be empty'
     return True, ''
+
+
+def n_selected_msg(n: int, singular: str, plural: str | None = None) -> str:
+    if n == 1:
+        return f'1 {singular} selected'
+
+    if plural is None:
+        plural = f'{singular}s'
+    return f'{n} {plural} selected'
 
 
 def setup_table_context_menu(
@@ -523,6 +533,136 @@ class CheckableList(QScrollArea):
             self._on_change()
 
 
+class EditableTagList(QTableWidget):
+    def __init__(self, replacer: Replacer, items: dict[str, bool], parent=None):
+        super().__init__(0, 2, parent)
+
+        self.replacer = replacer
+        self.init_tags = set(items)
+
+        self.setHorizontalHeaderLabels(['Tag', 'Default'])
+        self.verticalHeader().setVisible(False)
+        self.setEditTriggers(QTableWidget.DoubleClicked | QTableWidget.EditKeyPressed)
+        self.setSelectionMode(QTableWidget.ExtendedSelection)
+        self.setSelectionBehavior(QTableWidget.SelectRows)
+
+        header = self.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+
+        self.itemChanged.connect(self.on_item_changed)
+        self.model().rowsRemoved.connect(self.on_rows_removed)
+
+        for tag, is_default in items.items():
+            self.add_tag(tag, is_default)
+
+        setup_table_context_menu(self, [
+            (lambda: n_selected_msg(self.n_selected_tags(), 'tag'), None, False),
+            None,
+            ('Delete', self.delete_tags, True),
+        ])
+
+    def n_selected_tags(self) -> int:
+        return len(self.selectedIndexes()) // self.columnCount()
+
+    def add_tag(self, tag: str, is_default: bool = False, is_new: bool = False):
+        row = self.rowCount()
+        self.insertRow(row)
+
+        tag_item = QTableWidgetItem(tag)
+        tag_item.setData(Qt.UserRole, None if is_new else tag)  # Store initial value
+        tag_item.setFlags(tag_item.flags() | Qt.ItemIsEditable)
+        self.setItem(row, 0, tag_item)
+
+        checkbox = QCheckBox()
+        checkbox.setChecked(is_default)
+
+        checkbox_container = QWidget()
+        checkbox_container.checkbox = checkbox
+        layout = QHBoxLayout(checkbox_container)
+        layout.addWidget(checkbox)
+        layout.setAlignment(Qt.AlignCenter)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setCellWidget(row, 1, checkbox_container)
+
+        checkbox_item = QTableWidgetItem()
+        checkbox_item.setData(Qt.UserRole, None if is_new else is_default)
+        self.setItem(row, 1, checkbox_item)
+
+        if is_new:
+            # Set focus on the new cell
+            self.setCurrentCell(row, 0)
+            self.editItem(self.item(row, 0))
+
+    def delete_tags(self):
+        selected_rows = {item.row() for item in self.selectedIndexes()}
+        for row in selected_rows:
+            self.removeRow(row)
+
+    def validate_and_update(self) -> bool:
+        all_ok = True
+        tags = get_column_data(self, 0)
+
+        for row in range(self.rowCount()):
+            item = self.item(row, 0)
+            tag = self.replacer.replace(item.text())
+
+            # Validate
+            if tag == '':
+                error_msg = 'Tag name must not be empty'
+                ok = False
+            elif tags.count(tag) > 1:
+                error_msg = f'Tag "{tag}" is a duplicate'
+                ok = False
+            else:
+                error_msg = ''
+                ok = True
+
+            all_ok &= ok
+
+            # Update UI
+            if ok:
+                item.setBackground(QBrush())
+                item.setToolTip('')
+            else:
+                item.setBackground(QBrush(QColor('#ffcccc')))
+                item.setToolTip(error_msg)
+
+        return all_ok
+
+    def on_item_changed(self):
+        self.validate_and_update()
+
+    def on_rows_removed(self, parent, first: int, last: int):
+        self.validate_and_update()
+
+    def get_changes(self) -> tuple[dict[str, bool], dict[str, str], dict[str, bool], set[str]]:
+        new_tags = {}
+        renamed_tags = {}
+        checked_tags = {}
+        deleted_tags = self.init_tags.copy()
+
+        for row in range(self.rowCount()):
+            tag_item = self.item(row, 0)
+            checked_item = self.item(row, 1)
+
+            old_tag = tag_item.data(Qt.UserRole)
+            new_tag = self.replacer.replace(tag_item.text())
+            was_checked = checked_item.data(Qt.UserRole)
+            is_checked = self.cellWidget(row, 1).checkbox.isChecked()
+
+            if old_tag is None:
+                new_tags[new_tag] = is_checked
+            else:
+                deleted_tags.remove(old_tag)
+                if new_tag != old_tag:
+                    renamed_tags[old_tag] = new_tag
+                if is_checked != was_checked:
+                    checked_tags[new_tag] = is_checked
+
+        return new_tags, renamed_tags, checked_tags, deleted_tags
+
+
 class TaggingDialog(QDialog):
     def __init__(
             self,
@@ -579,6 +719,67 @@ class TaggingDialog(QDialog):
         ok = dialog.exec() == QDialog.Accepted
         values = dialog.get_values() if ok else None
         return values, ok
+
+
+class ManageTagsDialog(QDialog):
+    def __init__(self, dct_bundle: DctBundle):
+        super().__init__()
+
+        self.dct = dct_bundle.dct
+
+        self.setWindowTitle('Tags')
+
+        self.tags_list = EditableTagList(dct_bundle.replacer, {
+            tag: self.dct.is_default_tag(tag)
+            for tag in sorted(self.dct.tags, key=lambda s: (s.lower(), s))
+        })
+        self.tags_list.setItemDelegate(ColoredCellDelegate(self.tags_list))
+
+        buttons = QDialogButtonBox()
+
+        add_tag_button = create_img_button('resources/qt/images/add.png')
+        add_tag_button.clicked.connect(self.add_tag)
+        buttons.addButton(add_tag_button, QDialogButtonBox.ActionRole)
+
+        self.close_button = QPushButton('Discard')
+        buttons.rejected.connect(self.reject)
+        buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
+
+        self.save_button = QPushButton('Save')
+        buttons.accepted.connect(self.save_and_close)
+        buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.tags_list)
+        layout.addWidget(buttons)
+
+    def add_tag(self):
+        self.tags_list.add_tag('', False, is_new=True)
+
+    def save_and_close(self):
+        ok = self.tags_list.validate_and_update()
+        if not ok:
+            QMessageBox.critical(
+                self,
+                'Error',
+                'Cannot apply your changes while there are invalid values (highlighted in red).'
+            )
+            return
+
+        new_tags, renamed_tags, checked_tags, deleted_tags = self.tags_list.get_changes()
+
+        for tag in deleted_tags:
+            self.dct.delete_tag(tag)
+        self.dct.rename_tags(renamed_tags)
+        for tag, is_default in checked_tags.items():
+            if is_default:
+                self.dct.mark_tag_as_default(tag)
+            else:
+                self.dct.unmark_tag_as_default(tag)
+        for tag, is_default in new_tags.items():
+            self.dct.add_tag(tag, is_default)
+
+        self.accept()
 
 
 class EqualGrowFormLayout(QGridLayout):
@@ -1366,14 +1567,9 @@ class DctWorkspaceWidget(QWidget):
         self.table_widget.itemSelectionChanged.connect(self.on_selection_changed)
 
         # Setup context menu
-        def n_selected_msg() -> str:
-            n = len(self.get_selected_entries())
-            if n == 1:
-                return '1 entry selected'
-            return f'{n} entries selected'
-
+        n_selected = lambda: n_selected_msg(len(self.get_selected_entries()), 'entry', 'entries')
         setup_table_context_menu(self.table_widget, [
-            (n_selected_msg, None, False),
+            (n_selected, None, False),
             None,
             ('Manage Tags...', self.manage_entries_tags, True),
             ('Star', self.star_entries, True),
@@ -1387,9 +1583,19 @@ class DctWorkspaceWidget(QWidget):
         self.print_entries()
 
     def _create_dct_buttons(self):
+        # Create button for adding new entry
+        self.buttons_layout = QHBoxLayout()
+
         self.add_entry_btn = create_img_button('resources/qt/images/add.png')
+        self.manage_tags_btn = create_img_button('resources/qt/images/tag.png')
+
         self.add_entry_btn.clicked.connect(self.add_entry)
-        self.layout.addWidget(self.add_entry_btn, 2, 0)
+        self.manage_tags_btn.clicked.connect(self.manage_tags)
+
+        self.buttons_layout.addWidget(self.add_entry_btn)
+        self.buttons_layout.addWidget(self.manage_tags_btn)
+
+        self.layout.addLayout(self.buttons_layout, 2, 0)
 
     def _create_status_bar(self):
         self.status_bar = QLabel()
@@ -1520,6 +1726,14 @@ class DctWorkspaceWidget(QWidget):
             self.fill_table_row(index.row(), edited_entry)
         elif dialog.exit_code == 'delete':
             self.table_widget.removeRow(item.row())
+
+        self.update_tab_title()
+
+    def manage_tags(self):
+        dialog = ManageTagsDialog(self.dct_bundle)
+        ok = dialog.exec() == QDialog.Accepted
+        if ok:
+            self.print_entries()
 
         self.update_tab_title()
 
