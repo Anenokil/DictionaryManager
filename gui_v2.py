@@ -868,10 +868,7 @@ class EntryDetailsDialog(QDialog):
         close_shortcut.activated.connect(self.reject)
 
     @staticmethod
-    def create_single_column_table(
-            content: Collection[str],
-            is_active: bool = True,
-    ) -> QTableWidget:
+    def create_single_column_table(content: Collection[str]) -> QTableWidget:
         """Create a single-column table with the given data."""
 
         table = QTableWidget()
@@ -882,11 +879,7 @@ class EntryDetailsDialog(QDialog):
         # Hide the horizontal header
         table.horizontalHeader().setVisible(False)
 
-        # Enable editing if requested
-        if is_active:
-            table.setEditTriggers(QTableWidget.DoubleClicked | QTableWidget.EditKeyPressed)
-        else:
-            table.setEditTriggers(QTableWidget.NoEditTriggers)
+        table.setEditTriggers(QTableWidget.DoubleClicked | QTableWidget.EditKeyPressed)
 
         # Allow selecting multiple rows
         table.setSelectionMode(QTableWidget.ExtendedSelection)
