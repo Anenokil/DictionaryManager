@@ -654,16 +654,6 @@ class EntryDetailsDialog(QDialog):
         self._create_fields()
         self._create_buttons()
 
-    @staticmethod
-    def _create_field_container(table, button) -> QWidget:
-        field_container = QWidget()
-        field_layout = QHBoxLayout(field_container)
-        field_layout.setContentsMargins(0, 0, 0, 0)
-        field_layout.setSizeConstraint(QLayout.SetMaximumSize)
-        field_layout.addWidget(table)
-        field_layout.addWidget(button)
-        return field_container
-
     def _create_fields(self):
         # Layout for displaying entry data
         self.form_layout = EqualGrowFormLayout(label_alignment=Qt.AlignRight | Qt.AlignVCenter)
@@ -794,18 +784,25 @@ class EntryDetailsDialog(QDialog):
         self.notes_table.setItemDelegate(ColoredCellDelegate(self.notes_table))
 
         # Place widgets in the layout
-        lemma_field_container = self._create_field_container(
+        def create_field_container(table, button) -> QWidget:
+            field_container = QWidget()
+            field_layout = QHBoxLayout(field_container)
+            field_layout.setContentsMargins(0, 0, 0, 0)
+            field_layout.setSizeConstraint(QLayout.SetMaximumSize)
+            field_layout.addWidget(table)
+            field_layout.addWidget(button)
+            return field_container
+
+        lemma_field_container = create_field_container(
             self.lemma_variants_table, self.add_lemma_variant_button,
         )
-        translations_field_container = self._create_field_container(
+        translations_field_container = create_field_container(
             self.translations_table, self.add_translation_button,
         )
-        forms_field_container = self._create_field_container(self.forms_table, self.add_form_button)
-        phrases_field_container = self._create_field_container(
-            self.phrases_table, self.add_phrase_button,
-        )
-        notes_field_container = self._create_field_container(self.notes_table, self.add_note_button)
-        tags_field_container = self._create_field_container(self.tags_list, self.add_tag_button)
+        forms_field_container = create_field_container(self.forms_table, self.add_form_button)
+        phrases_field_container = create_field_container(self.phrases_table, self.add_phrase_button)
+        notes_field_container = create_field_container(self.notes_table, self.add_note_button)
+        tags_field_container = create_field_container(self.tags_list, self.add_tag_button)
 
         self.form_layout.add_row(
             lemma_variants_label, lemma_field_container, self.lemma_variants_table
