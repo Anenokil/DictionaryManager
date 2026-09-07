@@ -64,6 +64,7 @@ def notes_to_str(notes: Notes) -> str:
 
 
 def tags_to_str(tags: Tags) -> str:
+    tags = sorted(tags, key=lambda s: (s.lower(), s))
     return ', '.join(tags)
 
 
