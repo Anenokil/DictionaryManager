@@ -8,6 +8,7 @@ from types import NoneType
 from typing import Iterable, Generator, Mapping, Callable, Literal
 from itertools import chain
 from functools import wraps
+import uuid
 
 from .types import (
     Word, Translation, Category, CtgValue, GramForm, WordForm, Phrase,
@@ -1242,6 +1243,17 @@ class Dictionary:
             del self._indexes['tags'][tag_old]
 
         self._is_modified = True
+
+    def rename_tags(self, renames: Mapping[Tag, Tag]):
+        temp_names = {}
+
+        for old in renames:
+            temp_name = f'__tmp_{uuid.uuid4().hex}__'
+            temp_names[old] = temp_name
+            self.rename_tag(old, temp_name)
+
+        for old, new in renames.items():
+            self.rename_tag(temp_names[old], new)
 
     @_mark_modified
     def delete_tag(self, tag: Tag):
