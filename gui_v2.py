@@ -1457,6 +1457,8 @@ class DctTabWidget(QTabWidget):
             return
 
         menu = QMenu(self)
+        rename_action = menu.addAction('Rename...')
+        menu.addSeparator()
         save_action = menu.addAction('Save')
         save_as_action = menu.addAction('Save As...')
         save_all_action = menu.addAction('Save All')
@@ -1465,7 +1467,9 @@ class DctTabWidget(QTabWidget):
 
         action = menu.exec(self.tabBar().mapToGlobal(pos))
 
-        if action == save_action:
+        if action == rename_action:
+            self.rename_dict(index)
+        elif action == save_action:
             self.save_dict(index)
         elif action == save_as_action:
             self.save_dict_as(index)
@@ -1473,6 +1477,26 @@ class DctTabWidget(QTabWidget):
             self.save_all_dicts()
         elif action == export_as_action:
             self.export_dict_as(index)
+
+    def rename_dict(self, index):
+        """
+        Rename tab.
+
+        Args:
+            index: Index of the tab, or -1 if no tab is selected.
+        """
+
+        if index >= 0:
+            current_name = self.manager.opened_dct_bundles[index].dct.name
+            new_name, ok = QInputDialog.getText(
+                self,
+                'Rename Dictionary',
+                'Enter new dictionary name:',
+                text=current_name,
+            )
+            if ok and new_name:
+                self.manager.rename_dct(index, new_name)
+                self.update_tab_title(index)
 
     def save_dict(self, index: int):
         file_path = self.manager.opened_dct_bundles[index].filepath
@@ -2020,17 +2044,7 @@ class MainWindow(QMainWindow):
             index: Index of the tab, or -1 if no tab is selected.
         """
 
-        if index >= 0:
-            current_name = self.tab_widget.tabText(index)
-            new_name, ok = QInputDialog.getText(
-                self,
-                'Rename Dictionary',
-                'Enter new dictionary name:',
-                text=current_name,
-            )
-            if ok and new_name:
-                self.manager.rename_dct(index, new_name)
-                self.tab_widget.update_tab_title(index)
+        self.tab_widget.rename_dict(index)
 
     def create_new_tab(
             self,
