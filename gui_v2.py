@@ -15,7 +15,7 @@ from PySide6.QtGui import (
     QAction, QCloseEvent, QIcon, QColor, QBrush,
     QShortcut, QKeySequence,
 )
-from PySide6.QtCore import Qt, QSize, QTimer
+from PySide6.QtCore import Qt, QSize, QTimer, QPoint
 
 from backend import (
     Translations, Variants, Forms, GramForm, Phrases, Notes,
@@ -212,6 +212,60 @@ def n_selected_msg(n: int, singular: str, plural: str | None = None) -> str:
     return f'{n} {plural} selected'
 
 
+def show_context_menu(
+        widget: QWidget,
+        pos: QPoint,
+        actions_config: list[
+            None | tuple[
+                Callable[[], str] | str,
+                Callable[[], Any] | None,
+                Callable[[], bool] | bool
+            ]
+        ],
+):
+    """
+    Configure and show a context menu.
+
+    Args:
+        widget: Widget to attach the context menu to.
+        pos: Position at which to show the menu.
+        actions_config: List describing menu items. Each element can be:
+                        - None — inserts a separator.
+                        - (text, callback, is_active) — creates a menu action, where:
+                          - text: string or zero-argument function that returns the
+                                  action text (useful for dynamic labels).
+                          - callback: zero-argument function called when the action is
+                                      triggered, or None for a non-clickable label.
+                          - is_active: bool or zero-argument function returning whether
+                                       the action is currently clickable.
+    """
+
+    menu = QMenu(widget)
+    action_callbacks = {}
+
+    for entry in actions_config:
+        # Separator
+        if entry is None:
+            menu.addSeparator()
+            continue
+
+        text, callback, is_active = entry
+        if isinstance(text, Callable):
+            text = text()
+        if isinstance(is_active, Callable):
+            is_active = is_active()
+        action = menu.addAction(text)
+
+        if (callback is None) or (not is_active):
+            action.setEnabled(False)
+        else:
+            action_callbacks[action] = callback
+
+    chosen = menu.exec(pos)
+    if chosen in action_callbacks:
+        action_callbacks[chosen]()
+
+
 def setup_table_context_menu(
         table: QTableWidget,
         actions_config: list[
@@ -242,31 +296,7 @@ def setup_table_context_menu(
         item = table.itemAt(pos)
         if item is None:
             return
-
-        menu = QMenu(table)
-        action_callbacks = {}
-
-        for entry in actions_config:
-            # Separator
-            if entry is None:
-                menu.addSeparator()
-                continue
-
-            text, callback, is_active = entry
-            if isinstance(text, Callable):
-                text = text()
-            if isinstance(is_active, Callable):
-                is_active = is_active()
-            action = menu.addAction(text)
-
-            if (callback is None) or (not is_active):
-                action.setEnabled(False)
-            else:
-                action_callbacks[action] = callback
-
-        chosen = menu.exec(table.viewport().mapToGlobal(pos))
-        if chosen in action_callbacks:
-            action_callbacks[chosen]()
+        show_context_menu(table, table.viewport().mapToGlobal(pos), actions_config)
 
     table.customContextMenuRequested.connect(show_menu)
 
@@ -2223,47 +2253,10 @@ class MainWindow(QMainWindow):
         self.file_action = QAction('File', self)
         self.file_action.triggered.connect(self.show_file_menu)
         self.toolbar.addAction(self.file_action)
-        self._create_file_menu()
 
         self.settings_action = QAction('Settings', self)
         self.settings_action.triggered.connect(self.show_settings_menu)
         self.toolbar.addAction(self.settings_action)
-
-    def _create_file_menu(self):
-        # Create File menu
-        self.file_menu = QMenu(self)
-
-        # Create button to create new dictionary
-        self.new_action = QAction('New', self)
-        self.new_action.triggered.connect(self.new_dict)
-        self.file_menu.addAction(self.new_action)
-
-        # Create button to open a dictionary
-        self.open_action = QAction('Open', self)
-        self.open_action.triggered.connect(self.open_dict)
-        self.file_menu.addAction(self.open_action)
-
-        self.file_menu.addSeparator()
-
-        # Create buttons to save a dictionary
-        self.save_action = QAction('Save', self)
-        self.save_as_action = QAction('Save As...', self)
-        self.save_all_action = QAction('Save All', self)
-
-        self.save_action.triggered.connect(self.save_dict)
-        self.save_as_action.triggered.connect(self.save_dict_as)
-        self.save_all_action.triggered.connect(self.save_all_dicts)
-
-        self.file_menu.addAction(self.save_action)
-        self.file_menu.addAction(self.save_as_action)
-        self.file_menu.addAction(self.save_all_action)
-
-        self.file_menu.addSeparator()
-
-        # Create button to export a dictionary
-        self.export_as_action = QAction('Export As...', self)
-        self.export_as_action.triggered.connect(self.export_dict_as)
-        self.file_menu.addAction(self.export_as_action)
 
     def _create_tab_widget(self):
         # Create tab widget
@@ -2292,13 +2285,19 @@ class MainWindow(QMainWindow):
     def show_file_menu(self):
         """Show the File dropdown menu below the File button."""
 
-        # Get the widget for the File button
         button_widget = self.toolbar.widgetForAction(self.file_action)
         if button_widget:
-            # Calculate position for the menu - below the button
             pos = button_widget.mapToGlobal(button_widget.rect().bottomLeft())
-            # Show the menu at this position
-            self.file_menu.exec(pos)
+            show_context_menu(self, pos, [
+                ('New', self.new_dict, True),
+                ('Open', self.open_dict, True),
+                None,
+                ('Save', self.save_dict, lambda: self.tab_widget.count() != 0),
+                ('Save As...', self.save_dict_as, lambda: self.tab_widget.count() != 0),
+                ('Save All', self.save_all_dicts, lambda: self.tab_widget.count() != 0),
+                None,
+                ('Export As...', self.export_dict_as, lambda: self.tab_widget.count() != 0),
+            ])
 
     def show_settings_menu(self):
         pass
