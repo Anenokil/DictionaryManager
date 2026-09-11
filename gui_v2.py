@@ -1,14 +1,15 @@
 from typing import Generator, Collection, Callable, Any
+from copy import deepcopy
 import sys
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QScrollArea,
     QTabWidget, QTabBar, QToolBar, QMenu, QTableWidget,
-    QTableWidgetItem, QDialog, QInputDialog, QFileDialog,
-    QDialogButtonBox, QPushButton, QMessageBox, QComboBox,
-    QCheckBox, QLineEdit, QLabel, QLayout, QVBoxLayout,
-    QHBoxLayout, QFormLayout, QGridLayout, QHeaderView,
-    QAbstractItemView, QSizePolicy,
-    QStyle, QStyledItemDelegate,
+    QTableWidgetItem, QTreeWidget, QTreeWidgetItem, QDialog,
+    QInputDialog, QFileDialog, QDialogButtonBox, QPushButton,
+    QMessageBox, QComboBox, QCheckBox, QLineEdit, QLabel,
+    QLayout, QVBoxLayout, QHBoxLayout, QFormLayout, QGridLayout,
+    QHeaderView, QAbstractItemView, QSizePolicy, QStyle,
+    QStyledItemDelegate,
 )
 from PySide6.QtGui import (
     QAction, QCloseEvent, QIcon, QColor, QBrush,
@@ -779,6 +780,279 @@ class ManageTagsDialog(QDialog):
                 self.dct.unmark_tag_as_default(tag)
         for tag, is_default in new_tags.items():
             self.dct.add_tag(tag, is_default)
+
+        self.accept()
+
+
+class GramFeaturesTree(QTreeWidget):
+    def __init__(
+            self,
+            replacer: Replacer,
+            features: dict[str, list[str]],
+            parent: QWidget | None = None,
+    ):
+        super().__init__(parent)
+
+        self.replacer = replacer
+        self.init_categories = set(features.keys())
+        self.init_values = {ctg: set(values) for ctg, values in features.items()}
+
+        self.setHeaderHidden(True)
+        self.setEditTriggers(QTreeWidget.DoubleClicked | QTreeWidget.EditKeyPressed)
+        self.setSelectionMode(QTreeWidget.SingleSelection)
+
+        self.itemChanged.connect(self.on_item_changed)
+        self.model().rowsRemoved.connect(self.on_rows_removed)
+        self.model().rowsInserted.connect(self.on_rows_inserted)
+
+        for category, values in features.items():
+            self.add_category(category, values)
+
+        self.expandAll()
+
+    def add_category(self, name: str = '', values: list[str] | None = None):
+        item = QTreeWidgetItem([name])
+        item.setData(0, Qt.UserRole, name or None)  # Store initial value
+        item.setFlags(item.flags() | Qt.ItemIsEditable)
+        self.addTopLevelItem(item)
+        for value in values or []:
+            self.add_value(item, value)
+
+    def add_value(self, category_item: QTreeWidgetItem, value: str = ''):
+        child = QTreeWidgetItem([value])
+        child.setData(0, Qt.UserRole, value or None)  # Store initial value
+        child.setFlags(child.flags() | Qt.ItemIsEditable)
+        category_item.addChild(child)
+
+    def is_category(self, item: QTreeWidgetItem) -> bool:
+        return item.parent() is None
+
+    def delete_item(self, item: QTreeWidgetItem):
+        if self.is_category(item):
+            index = self.indexOfTopLevelItem(item)
+            self.takeTopLevelItem(index)
+        else:
+            item.parent().removeChild(item)
+
+    def validate_and_update(self) -> bool:
+        def update_ui(item: QTreeWidgetItem, is_ok: bool):
+            if is_ok:
+                item.setBackground(0, QBrush())
+                item.setToolTip(0, '')
+            else:
+                item.setBackground(0, QBrush(QColor('#ffcccc')))
+                item.setToolTip(0, error_msg)
+
+        all_ok = True
+
+        categories = [
+            self.replacer.replace(self.topLevelItem(i).text(0))
+            for i in range(self.topLevelItemCount())
+        ]
+        for i in range(self.topLevelItemCount()):
+            category_item = self.topLevelItem(i)
+            category = self.replacer.replace(category_item.text(0))
+
+            # Validate category name
+            if category == '':
+                error_msg = 'Category name must not be empty'
+                ok = False
+            elif categories.count(category) > 1:
+                error_msg = f'Category "{category}" is a duplicate'
+                ok = False
+            else:
+                error_msg = ''
+                ok = True
+
+            all_ok &= ok
+            update_ui(category_item, ok)
+
+            values = [
+                self.replacer.replace(category_item.child(j).text(0))
+                for j in range(category_item.childCount())
+            ]
+            for j in range(category_item.childCount()):
+                value_item = category_item.child(j)
+                value = self.replacer.replace(value_item.text(0))
+
+                # Validate category value
+                if value == '':
+                    error_msg = 'Category value must not be empty'
+                    ok = False
+                elif values.count(value) > 1:
+                    error_msg = f'Category value "{value}" is a duplicate'
+                    ok = False
+                else:
+                    error_msg = ''
+                    ok = True
+
+                all_ok &= ok
+                update_ui(value_item, ok)
+
+        return all_ok
+
+    def on_item_changed(self):
+        self.validate_and_update()
+
+    def on_rows_inserted(self, parent, first: int, last: int):
+        self.validate_and_update()
+
+        index = self.model().index(first, 0, parent)
+        item = self.itemFromIndex(index)
+        self.setCurrentItem(item)
+        self.editItem(item, 0)
+
+    def on_rows_removed(self, parent, first: int, last: int):
+        self.validate_and_update()
+
+    def get_changes(self) -> tuple[
+        list[str],
+        list[tuple[str, str]],
+        dict[str, str],
+        dict[tuple[str, str], str],
+        set[str],
+        dict[str, set[str]],
+    ]:
+        new_ctgs = []
+        new_values = []
+        renamed_ctgs = {}
+        renamed_values = {}
+        deleted_ctgs = self.init_categories.copy()
+        deleted_values = deepcopy(self.init_values)
+
+        for i in range(self.topLevelItemCount()):
+            category_item = self.topLevelItem(i)
+            category = self.replacer.replace(category_item.text(0))
+            if not category:
+                continue
+            category_init = category_item.data(0, Qt.UserRole)
+
+            if category_init is None:
+                new_ctgs.append(category)
+            else:
+                deleted_ctgs.remove(category_init)
+                if category != category_init:
+                    renamed_ctgs[category_init] = category
+
+            for j in range(category_item.childCount()):
+                value_item = category_item.child(j)
+                value = self.replacer.replace(value_item.text(0))
+                if not value:
+                    continue
+                value_init = value_item.data(0, Qt.UserRole)
+
+                if value_init is None:
+                    new_values.append((category, value))
+                else:
+                    deleted_values[category_init].remove(value_init)
+                    if value != value_init:
+                        renamed_values[(category, value_init)] = value
+
+        for category_init in deleted_ctgs:
+            del deleted_values[category_init]
+
+        return new_ctgs, new_values, renamed_ctgs, renamed_values, deleted_ctgs, deleted_values
+
+
+def setup_tree_context_menu(tree: GramFeaturesTree):
+    tree.setContextMenuPolicy(Qt.CustomContextMenu)
+
+    def show_menu(pos):
+        item = tree.itemAt(pos)
+        if item is None:
+            return
+
+        tree.setCurrentItem(item)
+
+        menu = QMenu(tree)
+        if tree.is_category(item):
+            action_text = f'Delete category "{item.text(0)}" and its values'
+        else:
+            action_text = f'Delete value "{item.text(0)}"'
+        delete_action = menu.addAction(action_text)
+
+        chosen = menu.exec(tree.viewport().mapToGlobal(pos))
+        if chosen == delete_action:
+            tree.delete_item(item)
+
+    tree.customContextMenuRequested.connect(show_menu)
+
+
+class ManageGramFeaturesDialog(QDialog):
+    def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
+        super().__init__(parent)
+
+        self.dct = dct_bundle.dct
+
+        self.setWindowTitle('Grammatical Features')
+
+        self.tree = GramFeaturesTree(dct_bundle.replacer, self.dct.features)
+        self.tree.currentItemChanged.connect(self._update_add_value_button)
+        self.tree.setItemDelegate(ColoredCellDelegate(self.tree))
+        setup_tree_context_menu(self.tree)
+
+        buttons = QDialogButtonBox()
+
+        self.add_category_button = create_img_button('resources/qt/images/add_category.png')
+        self.add_category_button.setToolTip('Add category')
+        self.add_category_button.clicked.connect(self._on_add_category)
+        buttons.addButton(self.add_category_button, QDialogButtonBox.ActionRole)
+
+        self.add_value_button = create_img_button('resources/qt/images/add_value.png')
+        self.add_value_button.setToolTip('Add value')
+        self.add_value_button.setEnabled(self.tree.topLevelItemCount() != 0)
+        self.add_value_button.clicked.connect(self._on_add_value)
+        buttons.addButton(self.add_value_button, QDialogButtonBox.ActionRole)
+
+        self.close_button = QPushButton('Discard')
+        buttons.rejected.connect(self.reject)
+        buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
+
+        self.save_button = QPushButton('Save')
+        buttons.accepted.connect(self.save_and_close)
+        buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.tree)
+        layout.addWidget(buttons)
+
+    def _on_add_category(self):
+        self.tree.add_category()
+
+    def _on_add_value(self):
+        current = self.tree.currentItem()
+        if current is None:
+            return
+        category_item = current if self.tree.is_category(current) else current.parent()
+        self.tree.add_value(category_item)
+        category_item.setExpanded(True)
+
+    def _update_add_value_button(self, current: QTreeWidgetItem | None, _previous=None):
+        self.add_value_button.setEnabled(current is not None)
+
+    def save_and_close(self):
+        ok = self.tree.validate_and_update()
+        if not ok:
+            QMessageBox.critical(
+                self,
+                'Error',
+                'Cannot apply your changes while there are invalid values (highlighted in red).'
+            )
+            return
+
+        new_ctgs, new_vals, renamed_ctgs, renamed_vals, del_ctgs, del_vals = self.tree.get_changes()
+
+        for ctg in del_ctgs:
+            self.dct.delete_ctg(ctg)
+        for ctg, vals in del_vals.items():
+            for val in vals:
+                self.dct.delete_ctg_value(ctg, val)
+        self.dct.rename_ctgs(renamed_ctgs)
+        self.dct.rename_ctg_values(renamed_vals)
+        for ctg in new_ctgs:
+            self.dct.add_ctg(ctg, [])
+        for ctg, val in new_vals:
+            self.dct.add_ctg_value(ctg, val)
 
         self.accept()
 
@@ -1613,12 +1887,15 @@ class DctWorkspaceWidget(QWidget):
 
         self.add_entry_btn = create_img_button('resources/qt/images/add.png')
         self.manage_tags_btn = create_img_button('resources/qt/images/tag.png')
+        self.manage_features_btn = create_img_button('resources/qt/images/features.png')
 
         self.add_entry_btn.clicked.connect(self.add_entry)
         self.manage_tags_btn.clicked.connect(self.manage_tags)
+        self.manage_features_btn.clicked.connect(self.manage_features)
 
         self.buttons_layout.addWidget(self.add_entry_btn)
         self.buttons_layout.addWidget(self.manage_tags_btn)
+        self.buttons_layout.addWidget(self.manage_features_btn)
 
         self.layout.addLayout(self.buttons_layout, 2, 0)
 
@@ -1756,6 +2033,14 @@ class DctWorkspaceWidget(QWidget):
 
     def manage_tags(self):
         dialog = ManageTagsDialog(self.dct_bundle)
+        ok = dialog.exec() == QDialog.Accepted
+        if ok:
+            self.print_entries()
+
+        self.update_tab_title()
+
+    def manage_features(self):
+        dialog = ManageGramFeaturesDialog(self.dct_bundle, self)
         ok = dialog.exec() == QDialog.Accepted
         if ok:
             self.print_entries()
