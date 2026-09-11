@@ -1043,6 +1043,17 @@ class Dictionary:
 
         self._features[ctg_name_new] = self._features.pop(ctg_name_old)
 
+    def rename_ctgs(self, renames: Mapping[Category, Category]):
+        temp_names = {}
+
+        for old in renames:
+            temp_name = f'__tmp_{uuid.uuid4().hex}__'
+            temp_names[old] = temp_name
+            self.rename_ctg(old, temp_name)
+
+        for old, new in renames.items():
+            self.rename_ctg(temp_names[old], new)
+
     @_mark_modified
     def delete_ctg(self, ctg_name: Category):
         """
@@ -1133,6 +1144,17 @@ class Dictionary:
 
         for entry in self._entries:
             entry.forms._rename_ctg_value(index_ctg, ctg_value_old, ctg_value_new)
+
+    def rename_ctg_values(self, renames: Mapping[tuple[Category, CtgValue], CtgValue]):
+        temp_names = {}
+
+        for ctg, old in renames:
+            temp_name = f'__tmp_{uuid.uuid4().hex}__'
+            temp_names[ctg, old] = temp_name
+            self.rename_ctg_value(ctg, old, temp_name)
+
+        for (ctg, old), new in renames.items():
+            self.rename_ctg_value(ctg, temp_names[ctg, old], new)
 
     @_mark_modified
     def delete_ctg_value(self, ctg_name: Category, ctg_value: CtgValue):
