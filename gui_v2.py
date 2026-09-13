@@ -2,24 +2,26 @@ from typing import Generator, Collection, Callable, Any
 from copy import deepcopy
 import sys
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QScrollArea,
-    QTabWidget, QTabBar, QToolBar, QMenu, QTableWidget,
-    QTableWidgetItem, QTreeWidget, QTreeWidgetItem, QDialog,
-    QInputDialog, QFileDialog, QDialogButtonBox, QPushButton,
-    QMessageBox, QComboBox, QCheckBox, QLineEdit, QLabel,
-    QLayout, QVBoxLayout, QHBoxLayout, QFormLayout, QGridLayout,
-    QHeaderView, QAbstractItemView, QSizePolicy, QStyle,
-    QStyledItemDelegate,
+    QApplication, QMainWindow, QScrollArea, QWidget,
+    QStackedWidget, QTabWidget, QTabBar, QToolBar, QMenu,
+    QTableWidget, QTableWidgetItem, QTreeWidget,
+    QTreeWidgetItem, QDialog, QInputDialog, QFileDialog,
+    QDialogButtonBox, QPushButton, QMessageBox, QComboBox,
+    QCheckBox, QLineEdit, QTextEdit, QPlainTextEdit, QLabel,
+    QLayout, QVBoxLayout, QHBoxLayout, QFormLayout,
+    QGridLayout, QHeaderView, QAbstractItemView, QSizePolicy,
+    QStyle, QStyledItemDelegate,
 )
 from PySide6.QtGui import (
     QAction, QCloseEvent, QIcon, QColor, QBrush,
     QShortcut, QKeySequence,
 )
-from PySide6.QtCore import Qt, QSize, QTimer, QPoint
+from PySide6.QtCore import Qt, QSize, QTimer, Signal, QPoint
 
 from backend import (
     Translations, Variants, Forms, GramForm, Phrases, Notes,
-    Tags, Entry, DctBundle, Manager, gram_form_to_str,
+    Tags, Entry, Dictionary, DctBundle, Manager, gram_form_to_str,
+    TrainingFormat, TrainingOrder, EntrySelection, FormSelection,
     Replacer,
 )
 from persistence import AppData
@@ -1830,32 +1832,21 @@ class DctTabWidget(QTabWidget):
         self.manager.opened_dct_bundles[index].dct.to_txt(file_path)
 
 
-class DctWorkspaceWidget(QWidget):
-    """
-    Widget representing a dictionary workspace in a tab.
+class BrowsingPage(QWidget):
+    on_practice_button_clicked = Signal()
+    on_dct_edited = Signal()
 
-    Displays dictionary entries in a table format. Provides selection
-    functionality and status bar with dictionary statistics.
-    """
+    def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
+        super().__init__(parent)
 
-    def __init__(self, tab_widget: DctTabWidget, dct_bundle: DctBundle):
-        """
-        Initialize the workspace widget.
-
-        Args:
-            dct: Dictionary instance to display.
-        """
-
-        super().__init__()
-
-        self.tab_widget = tab_widget
         self.dct_bundle = dct_bundle
         self.dct = dct_bundle.dct
 
         self._create_widgets()
 
     def _create_widgets(self):
-        self.layout = QGridLayout(self)
+        self.main_layout = QGridLayout(self)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
 
         self._create_entries_table()
         self._create_dct_buttons()
@@ -1869,7 +1860,7 @@ class DctWorkspaceWidget(QWidget):
             '', 'Word', 'Translation', 'Forms', 'Phrases', 'Notes', 'Tags',
             'Total attempts', 'Correct attempts', 'Win streak', 'Accuracy',
         ])
-        self.layout.addWidget(self.table_widget, 1, 0, 1, 2)
+        self.main_layout.addWidget(self.table_widget, 1, 0, 1, 2)
 
         # Configure row selection
         self.table_widget.setSelectionBehavior(QTableWidget.SelectRows)
@@ -1918,21 +1909,24 @@ class DctWorkspaceWidget(QWidget):
         self.add_entry_btn = create_img_button('resources/qt/images/add.png')
         self.manage_tags_btn = create_img_button('resources/qt/images/tag.png')
         self.manage_features_btn = create_img_button('resources/qt/images/features.png')
+        self.practice_btn = create_img_button('resources/qt/images/practice.png')
 
         self.add_entry_btn.clicked.connect(self.add_entry)
         self.manage_tags_btn.clicked.connect(self.manage_tags)
         self.manage_features_btn.clicked.connect(self.manage_features)
+        self.practice_btn.clicked.connect(self.on_practice_button_clicked.emit)
 
         self.buttons_layout.addWidget(self.add_entry_btn)
         self.buttons_layout.addWidget(self.manage_tags_btn)
         self.buttons_layout.addWidget(self.manage_features_btn)
+        self.buttons_layout.addWidget(self.practice_btn)
 
-        self.layout.addLayout(self.buttons_layout, 2, 0)
+        self.main_layout.addLayout(self.buttons_layout, 2, 0)
 
     def _create_status_bar(self):
         self.status_bar = QLabel()
         self.status_bar.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.layout.addWidget(self.status_bar, 2, 1)
+        self.main_layout.addWidget(self.status_bar, 2, 1)
 
         self.update_status_bar()
 
@@ -2019,7 +2013,7 @@ class DctWorkspaceWidget(QWidget):
         }
 
     def update_tab_title(self):
-        self.tab_widget.update_tab_title(self.tab_widget.indexOf(self))
+        self.on_dct_edited.emit()
 
     def add_entry(self):
         # Create and show details dialog
@@ -2200,6 +2194,228 @@ class DctWorkspaceWidget(QWidget):
             self.dct.delete_entry(entry)
             self.table_widget.removeRow(row)
         self.update_tab_title()
+
+
+class PracticeConfigPage(QWidget):
+    on_practice_button_clicked = Signal()
+    on_close_button_clicked = Signal()
+
+    def __init__(self, dct: Dictionary, parent: QWidget | None = None):
+        super().__init__(parent)
+
+        self.dct = dct
+
+        self._create_widgets()
+
+    def _create_widgets(self):
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+
+        self._create_settings_widgets()
+        self.main_layout.addStretch()
+        self._create_buttons()
+
+    def _create_settings_widgets(self):
+        exercise_options = {
+            'Words: to target language': TrainingFormat.TRANS_TO_WORD,
+            'Words: to native language': TrainingFormat.WORD_TO_TRANS,
+            'Phrases: to target language': TrainingFormat.TRANS_TO_PHRASE,
+            'Phrases: to native language': TrainingFormat.PHRASE_TO_TRANS,
+            'Der-Die-Das (German)': TrainingFormat.ARTICLES_GERMAN,
+        }
+        order_options = {
+            'Random': TrainingOrder.RANDOM,
+            'Difficult first': TrainingOrder.DIFFICULT_FIRST,
+        }
+        entries_options = {
+            'All': EntrySelection.ALL,
+            'Mostly starred': EntrySelection.MOSTLY_FAV,
+            'Starred only': EntrySelection.FAV,
+            'Unanswered only': EntrySelection.UNANSWERED,
+            '10 random': EntrySelection.RANDOM_10,
+            '10 random from starred': EntrySelection.RANDOM_10_FAV,
+        }
+        forms_options = {
+            'Lemma only': FormSelection.LEMMAS,
+            'One random form': FormSelection.RANDOM,
+            'Inflected only': FormSelection.INFLECTED,
+            'All': FormSelection.ALL,
+        }
+
+        label = QLabel('Configure practice')
+        self.main_layout.addWidget(label, alignment=Qt.AlignHCenter)
+
+        self.settings_layout = QGridLayout()
+
+        self.label_exercise = QLabel('Exercise:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        self.settings_layout.addWidget(self.label_exercise, 0, 0)
+        self.combo_exercise = QComboBox()
+        self.combo_exercise.addItems(exercise_options)
+        self.settings_layout.addWidget(self.combo_exercise, 0, 1)
+
+        self.label_entries = QLabel('Entries:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        self.settings_layout.addWidget(self.label_entries, 1, 0)
+        self.combo_entries = QComboBox()
+        self.combo_entries.addItems(entries_options)
+        self.settings_layout.addWidget(self.combo_entries, 1, 1)
+
+        self.label_tags = QLabel('Required tags:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        self.settings_layout.addWidget(self.label_tags, 2, 0)
+        self.list_tags = CheckableList({tag: Qt.Unchecked for tag in self.dct.tags})
+        self.settings_layout.addWidget(self.list_tags, 2, 1)
+
+        self.label_forms = QLabel('Word forms:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        self.settings_layout.addWidget(self.label_forms, 3, 0)
+        self.combo_forms = QComboBox()
+        self.combo_forms.addItems(forms_options)
+        self.settings_layout.addWidget(self.combo_forms, 3, 1)
+
+        self.label_order = QLabel('Order:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        self.settings_layout.addWidget(self.label_order, 4, 0)
+        self.combo_order = QComboBox()
+        self.combo_order.addItems(order_options)
+        self.settings_layout.addWidget(self.combo_order, 4, 1)
+
+        self.label_case = QLabel('Case sensitive:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        self.settings_layout.addWidget(self.label_case, 5, 0)
+        self.checkbox_case = QCheckBox()
+        self.settings_layout.addWidget(self.checkbox_case, 5, 1)
+
+        self.main_layout.addLayout(self.settings_layout)
+
+    def _create_buttons(self):
+        self.buttons_layout = QHBoxLayout()
+
+        self.practice_btn = create_img_button('resources/qt/images/practice.png')
+        self.close_btn = create_img_button('resources/qt/images/exit.png')
+
+        self.practice_btn.clicked.connect(self.on_practice_button_clicked.emit)
+        self.close_btn.clicked.connect(self.on_close_button_clicked.emit)
+
+        self.buttons_layout.addWidget(self.practice_btn)
+        self.buttons_layout.addWidget(self.close_btn)
+
+        self.main_layout.addLayout(self.buttons_layout)
+
+
+class PracticePage(QWidget):
+    on_close_button_clicked = Signal()
+
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+
+        self._create_widgets()
+
+    def _create_widgets(self):
+        self.main_layout = QGridLayout(self)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.task_edit = QPlainTextEdit()
+        self.task_edit.setReadOnly(True)
+        self.main_layout.addWidget(self.task_edit, 0, 0, 1, 4)
+
+        self.user_input_edit = QLineEdit()
+        self.user_input_edit.setPlaceholderText('Enter your answer here')
+        self.main_layout.addWidget(self.user_input_edit, 1, 0)
+
+        self.enter_btn = create_img_button('resources/qt/images/enter.png')
+        self.hint_btn = create_img_button('resources/qt/images/hint.png')
+        self.stop_btn = create_img_button('resources/qt/images/stop.png')
+
+        self.enter_btn.clicked.connect(lambda: ...)  # TODO
+        self.hint_btn.clicked.connect(lambda: ...)  # TODO
+        self.stop_btn.clicked.connect(self.on_close_button_clicked.emit)
+
+        self.main_layout.addWidget(self.enter_btn, 1, 1)
+        self.main_layout.addWidget(self.hint_btn, 1, 2)
+        self.main_layout.addWidget(self.stop_btn, 1, 3)
+
+
+class PracticeResultsPage(QWidget):
+    on_close_button_clicked = Signal()
+
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+
+        self._create_widgets()
+
+    def _create_widgets(self):
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.results_edit = QTextEdit()
+        self.results_edit.setReadOnly(True)
+        self.main_layout.addWidget(self.results_edit)
+
+        self.close_btn = create_img_button('resources/qt/images/exit.png')
+        self.close_btn.clicked.connect(self.on_close_button_clicked.emit)
+        self.main_layout.addWidget(self.close_btn, alignment=Qt.AlignRight)
+
+
+class DctWorkspaceWidget(QWidget):
+    """
+    Widget representing a dictionary workspace in a tab.
+
+    Displays dictionary entries in a table format. Provides selection
+    functionality and status bar with dictionary statistics.
+    """
+
+    def __init__(self, tab_widget: DctTabWidget, dct_bundle: DctBundle):
+        """
+        Initialize the workspace widget.
+
+        Args:
+            dct: Dictionary instance to display.
+        """
+
+        super().__init__()
+
+        self.dct_bundle = dct_bundle
+        self.dct = dct_bundle.dct
+
+        self.tab_widget = tab_widget
+
+        self._create_widgets()
+
+    def _create_widgets(self):
+        self.pages = QStackedWidget()
+
+        self.browsing_page = BrowsingPage(self.dct_bundle)
+        self.browsing_page.on_practice_button_clicked.connect(self.open_practice_config_page)
+        self.browsing_page.on_dct_edited.connect(self.update_tab_title)
+
+        self.practice_config_page = PracticeConfigPage(self.dct)
+        self.practice_config_page.on_practice_button_clicked.connect(self.open_practice_page)
+        self.practice_config_page.on_close_button_clicked.connect(self.open_browsing_page)
+
+        self.practice_page = PracticePage()
+        self.practice_page.on_close_button_clicked.connect(self.open_practice_results_page)
+
+        self.practice_results_page = PracticeResultsPage()
+        self.practice_results_page.on_close_button_clicked.connect(self.open_browsing_page)
+
+        self.pages.addWidget(self.browsing_page)
+        self.pages.addWidget(self.practice_config_page)
+        self.pages.addWidget(self.practice_page)
+        self.pages.addWidget(self.practice_results_page)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.pages)
+
+    def open_browsing_page(self):
+        self.pages.setCurrentIndex(0)
+
+    def open_practice_config_page(self):
+        self.pages.setCurrentIndex(1)
+
+    def open_practice_page(self):
+        self.pages.setCurrentIndex(2)
+
+    def open_practice_results_page(self):
+        self.pages.setCurrentIndex(3)
+
+    def update_tab_title(self):
+        self.tab_widget.update_tab_title(self.tab_widget.indexOf(self))
 
 
 class MainWindow(QMainWindow):
