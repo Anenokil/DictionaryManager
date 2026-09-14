@@ -2,11 +2,11 @@ from typing import Generator, Collection, Callable, Any
 from copy import deepcopy
 import sys
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QScrollArea, QWidget,
+    QApplication, QMainWindow, QScrollArea, QFrame, QWidget,
     QStackedWidget, QTabWidget, QTabBar, QToolBar, QMenu,
     QTableWidget, QTableWidgetItem, QTreeWidget,
     QTreeWidgetItem, QDialog, QInputDialog, QFileDialog,
-    QDialogButtonBox, QPushButton, QMessageBox, QComboBox,
+    QDialogButtonBox, QPushButton, QGroupBox, QMessageBox, QComboBox,
     QCheckBox, QLineEdit, QTextEdit, QPlainTextEdit, QLabel,
     QLayout, QVBoxLayout, QHBoxLayout, QFormLayout,
     QGridLayout, QHeaderView, QAbstractItemView, QSizePolicy,
@@ -136,6 +136,15 @@ def create_img_button(
         }
         QPushButton:pressed {
             background-color: rgba(127, 127, 127, 0.20);
+        }
+        QPushButton:checked {
+            background-color: rgba(210, 225, 255, 0.70);
+        }
+        QPushButton:checked:hover {
+            background-color: rgba(190, 210, 255, 0.90);
+        }
+        QPushButton:checked:pressed {
+            background-color: rgba(255, 225, 210, 0.70);
         }
     ''')
     return button
@@ -1832,6 +1841,123 @@ class DctTabWidget(QTabWidget):
         self.manager.opened_dct_bundles[index].dct.to_txt(file_path)
 
 
+class SearchBar(QFrame):
+    def __init__(self, dct: Dictionary, parent: QWidget | None = None):
+        super().__init__(parent)
+
+        self.dct = dct
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(3)
+
+        self.line_edit = QLineEdit()
+        self.line_edit.setPlaceholderText('Search')
+        self.line_edit.setMaximumWidth(700)
+        layout.addWidget(self.line_edit)
+
+        self.close_btn = create_img_button('resources/qt/images/close.png', button_size=(24, 24))
+        layout.addWidget(self.close_btn)
+
+        self.match_case_btn = create_img_button('resources/qt/images/match_case.png')
+        self.match_case_btn.setCheckable(True)
+        layout.addWidget(self.match_case_btn)
+
+        self.match_whole_word_btn = create_img_button('resources/qt/images/match_whole_word.png')
+        self.match_whole_word_btn.setCheckable(True)
+        layout.addWidget(self.match_whole_word_btn)
+
+        self.settings_btn = create_img_button('resources/qt/images/settings.png')
+        self.settings_btn.clicked.connect(self.open_settings)
+        layout.addWidget(self.settings_btn)
+
+        layout.addStretch()
+
+        self.close_btn.clicked.connect(self.hide)
+        self.setVisible(False)
+
+    def open_settings(self):
+        dialog = SearchSettingsDialog(self.dct, self)
+        ok = dialog.exec() == QDialog.Accepted
+        if ok:
+            pass
+
+
+class SearchSettingsDialog(QDialog):
+    def __init__(
+            self,
+            dct: Dictionary,
+            parent: QWidget | None = None,
+    ):
+        super().__init__(parent)
+
+        self.dct = dct
+
+        self.setWindowTitle('Search Settings')
+
+        self._create_widgets()
+
+    def _create_widgets(self):
+        self.main_layout = QVBoxLayout(self)
+
+        self._create_layout_settings()
+        self._create_buttons()
+
+    def _create_layout_settings(self):
+        self.group_settings = QGroupBox(title='Search in:')
+        self.layout_settings = QVBoxLayout(self.group_settings)
+
+        self.combobox_starred = QComboBox()
+        self.combobox_starred.addItems(
+            ['All entries', 'Starred entries only', 'Unstarred entries only']
+        )
+        self.layout_settings.addWidget(self.combobox_starred)
+
+        self._create_fields_settings_widgets()
+
+        self.layout_settings.addWidget(QLabel('Target tags'))
+
+        self.tags_list = CheckableList({tag: Qt.Unchecked for tag in self.dct.tags})
+        self.layout_settings.addWidget(self.tags_list)
+
+        self.main_layout.addWidget(self.group_settings)
+
+    def _create_fields_settings_widgets(self):
+        self.group_fields = QGroupBox(title='Target fields')
+        self.layout_fields = QVBoxLayout(self.group_fields)
+
+        self.checkbox_lemmas = QCheckBox('Lemmas')
+        self.checkbox_translations = QCheckBox('Translations')
+        self.checkbox_forms = QCheckBox('Forms')
+        self.checkbox_phrases = QCheckBox('Phrases')
+        self.checkbox_notes = QCheckBox('Notes')
+
+        self.layout_fields.addWidget(self.checkbox_lemmas)
+        self.layout_fields.addWidget(self.checkbox_translations)
+        self.layout_fields.addWidget(self.checkbox_forms)
+        self.layout_fields.addWidget(self.checkbox_phrases)
+        self.layout_fields.addWidget(self.checkbox_notes)
+
+        self.layout_settings.addWidget(self.group_fields)
+
+    def _create_buttons(self):
+        buttons = QDialogButtonBox()
+
+        self.save_button = QPushButton('Save')
+        self.close_button = QPushButton('Discard')
+
+        buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
+        buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
+
+        self.save_button.clicked.connect(self.save_and_close)
+        self.close_button.clicked.connect(self.reject)
+
+        self.main_layout.addWidget(buttons)
+
+    def save_and_close(self):
+        pass  # TODO
+
+
 class BrowsingPage(QWidget):
     on_practice_button_clicked = Signal()
     on_dct_edited = Signal()
@@ -1844,13 +1970,21 @@ class BrowsingPage(QWidget):
 
         self._create_widgets()
 
+        QShortcut(QKeySequence('Ctrl+F'), self, self.show_search_bar)
+        QShortcut(QKeySequence('Esc'), self, self.hide_search_bar)
+
     def _create_widgets(self):
         self.main_layout = QGridLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
 
+        self._create_search_bar()
         self._create_entries_table()
         self._create_dct_buttons()
         self._create_status_bar()
+
+    def _create_search_bar(self):
+        self.search_bar = SearchBar(self.dct, self)
+        self.main_layout.addWidget(self.search_bar, 0, 0, 1, 2)
 
     def _create_entries_table(self):
         # Create table widget
@@ -1906,16 +2040,19 @@ class BrowsingPage(QWidget):
         # Create button for adding new entry
         self.buttons_layout = QHBoxLayout()
 
+        self.search_btn = create_img_button('resources/qt/images/search.png')
         self.add_entry_btn = create_img_button('resources/qt/images/add.png')
         self.manage_tags_btn = create_img_button('resources/qt/images/tag.png')
         self.manage_features_btn = create_img_button('resources/qt/images/features.png')
         self.practice_btn = create_img_button('resources/qt/images/practice.png')
 
+        self.search_btn.clicked.connect(self.toggle_search)
         self.add_entry_btn.clicked.connect(self.add_entry)
         self.manage_tags_btn.clicked.connect(self.manage_tags)
         self.manage_features_btn.clicked.connect(self.manage_features)
         self.practice_btn.clicked.connect(self.on_practice_button_clicked.emit)
 
+        self.buttons_layout.addWidget(self.search_btn)
         self.buttons_layout.addWidget(self.add_entry_btn)
         self.buttons_layout.addWidget(self.manage_tags_btn)
         self.buttons_layout.addWidget(self.manage_features_btn)
@@ -1929,6 +2066,20 @@ class BrowsingPage(QWidget):
         self.main_layout.addWidget(self.status_bar, 2, 1)
 
         self.update_status_bar()
+
+    def show_search_bar(self):
+        self.search_bar.setVisible(True)
+        self.search_bar.line_edit.setFocus()
+        self.search_bar.line_edit.selectAll()
+
+    def hide_search_bar(self):
+        self.search_bar.hide()
+
+    def toggle_search(self):
+        if self.search_bar.isVisible():
+            self.hide_search_bar()
+        else:
+            self.show_search_bar()
 
     def fill_table_row(self, row: int, entry: Entry):
         # Column 0: Star
