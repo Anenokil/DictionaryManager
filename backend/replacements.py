@@ -77,6 +77,12 @@ class Replacer:
         self._replacements[modifier][modifier] = modifier
         self._replacements[modifier][input_char] = output_char
 
+    def set_replacements(self, replacements: Iterable[tuple[str, str, str]]):
+        modifiers = self._replacements.keys()
+        self._replacements: dict[str, dict[str, str]] = {modifier: {} for modifier in modifiers}
+        for modifier, input_char, output_char in replacements:
+            self.set_replacement(modifier, input_char, output_char)
+
     def delete_replacement(self, modifier: str, input_char: str):
         if input_char == modifier:
             raise ValueError(f'You cannot remove the combination "{modifier}{input_char}"')
