@@ -13,8 +13,8 @@ from PySide6.QtWidgets import (
     QStyle, QStyledItemDelegate,
 )
 from PySide6.QtGui import (
-    QAction, QCloseEvent, QIcon, QColor, QBrush,
-    QShortcut, QKeySequence,
+    QAction, QCloseEvent, QIcon, QPixmap, QColor, QBrush,
+    QShortcut, QKeySequence, QValidator,
 )
 from PySide6.QtCore import Qt, QSize, QTimer, Signal, QPoint
 
@@ -1098,6 +1098,223 @@ class ManageGramFeaturesDialog(QDialog):
         self.accept()
 
 
+class ReplacementModifierValidator(QValidator):
+    def __init__(self, options: list[str], parent: QWidget | None = None):
+        super().__init__(parent)
+
+        self.options = options
+
+    def validate(self, text: str, pos: int):
+        if text in self.options:
+            return QValidator.Acceptable, text, pos
+        if text == '':
+            return QValidator.Intermediate, text, pos
+        return QValidator.Invalid, text, pos
+
+
+class ReplacementCharValidator(QValidator):
+    def __init__(self, options: list[str], parent: QWidget | None = None):
+        super().__init__(parent)
+
+        self.options = options
+
+    def validate(self, text: str, pos: int):
+        if text not in self.options:
+            return QValidator.Acceptable, text, pos
+        if text == '':
+            return QValidator.Intermediate, text, pos
+        return QValidator.Invalid, text, pos
+
+
+class ManageEscapeSequencesDialog(QDialog):
+    def __init__(self, replacer: Replacer, parent: QWidget | None = None):
+        super().__init__(parent)
+
+        self.setWindowTitle('Escape Sequences')
+
+        self.replacer = replacer
+        self.combo_options = sorted(replacer.modifiers)
+        self.rows: list[tuple[QComboBox, QLineEdit, QLineEdit, QWidget]] = []
+
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+
+        self.container = QWidget()
+        self.rows_layout = QVBoxLayout(self.container)
+        self.rows_layout.setAlignment(Qt.AlignTop)
+        self.scroll_area.setWidget(self.container)
+
+        for (modifier_char, input_char), output_char in replacer.replacements.items():
+            is_deletable = modifier_char != input_char
+            self.add_row(modifier_char, input_char, output_char, is_deletable)
+
+        self.add_button = create_img_button('resources/qt/images/add.png')
+        self.discard_button = QPushButton('Discard')
+        self.save_button = QPushButton('Save')
+
+        self.add_button.clicked.connect(
+            lambda: self.add_row(sorted(replacer.modifiers)[0], '', '', True)
+        )
+        self.discard_button.clicked.connect(self.reject)
+        self.save_button.clicked.connect(self.save_and_close)
+
+        buttons_layout = QHBoxLayout()
+        buttons_layout.addWidget(self.add_button)
+        buttons_layout.addWidget(self.discard_button)
+        buttons_layout.addWidget(self.save_button)
+
+        main_layout = QVBoxLayout(self)
+        main_layout.addWidget(self.scroll_area)
+        main_layout.addLayout(buttons_layout)
+
+    def validate_and_update(self) -> bool:
+        def update_ui(item: QComboBox | QLineEdit, error_msg: str, ok: bool):
+            if ok:
+                item.setStyleSheet('')
+                item.setToolTip('')
+            else:
+                item.setStyleSheet('background-color: #ffcccc;')
+                item.setToolTip(error_msg)
+
+        input_pairs = [
+            (combo.currentText(), line_edit1.text())
+            for combo, line_edit1, _, _ in self.rows
+        ]
+
+        all_ok = True
+
+        for combo, line_edit1, line_edit2, _ in self.rows:
+            modifier = combo.currentText()
+            input_char = line_edit1.text()
+            output_char = line_edit2.text()
+
+            if modifier not in self.combo_options:
+                modifier_error_msg = 'Invalid modifier'
+                modifier_ok = False
+            else:
+                modifier_error_msg = ''
+                modifier_ok = True
+
+            if input_char == '':
+                input_error_msg = 'Input char must not be empty'
+                input_ok = False
+            else:
+                input_error_msg = ''
+                input_ok = True
+
+            if output_char == '':
+                output_error_msg = 'Output char must not be empty'
+                output_ok = False
+            else:
+                output_error_msg = ''
+                output_ok = True
+
+            if input_pairs.count((modifier, input_char)) > 1:
+                if modifier_ok and input_ok:
+                    modifier_error_msg = input_error_msg = f'Sequence "{modifier}{input_char}" is a duplicate'
+                    modifier_ok = input_ok = False
+
+            update_ui(combo, modifier_error_msg, modifier_ok)
+            update_ui(line_edit1, input_error_msg, input_ok)
+            update_ui(line_edit2, output_error_msg, output_ok)
+
+            all_ok &= modifier_ok & input_ok & output_ok
+
+        return all_ok
+
+    def on_item_changed(self):
+        self.validate_and_update()
+
+    def add_row(self, char_mod: str, char_in: str, char_out: str, is_editable: bool):
+        row_container = QWidget()
+        row_layout = QHBoxLayout(row_container)
+        row_layout.setContentsMargins(0, 0, 0, 0)
+
+        combo = QComboBox()
+        combo.setEditable(True)
+        combo.setEnabled(is_editable)
+        combo.addItems(self.combo_options)
+        combo.setCurrentText(char_mod)
+        combo.lineEdit().setMaxLength(1)
+        combo.lineEdit().setValidator(ReplacementModifierValidator(self.combo_options, combo))
+        combo.setMaximumWidth(50)
+        combo.editTextChanged.connect(self.on_item_changed)
+
+        line_edit1 = QLineEdit(char_in)
+        line_edit1.setEnabled(is_editable)
+        line_edit1.setMaxLength(1)
+        line_edit1.setValidator(ReplacementCharValidator(self.combo_options, combo))
+        line_edit1.setMaximumWidth(30)
+        line_edit1.textChanged.connect(self.on_item_changed)
+
+        arrow_label = QLabel()
+        arrow_label.setPixmap(QPixmap('resources/qt/images/arrow.png'))
+
+        line_edit2 = QLineEdit(char_out)
+        line_edit2.setEnabled(is_editable)
+        line_edit2.setMaxLength(1)
+        line_edit2.setValidator(ReplacementCharValidator(self.combo_options, combo))
+        line_edit2.setMaximumWidth(30)
+        line_edit2.textChanged.connect(self.on_item_changed)
+
+        row_layout.addWidget(combo)
+        row_layout.addWidget(line_edit1)
+        row_layout.addWidget(arrow_label)
+        row_layout.addWidget(line_edit2)
+
+        row_data = (combo, line_edit1, line_edit2, row_container)
+
+        if is_editable:
+            delete_button = create_img_button('resources/qt/images/close.png')
+            delete_button.clicked.connect(lambda: self.delete_sequence(row_data))
+            row_layout.addWidget(delete_button)
+
+        row_layout.addStretch()
+
+        self.rows_layout.addWidget(row_container)
+        self.rows.append(row_data)
+
+        self.validate_and_update()
+
+    def delete_row(self, row_data: tuple[QComboBox, QLineEdit, QLineEdit, QWidget]):
+        self.rows.remove(row_data)
+        row_container = row_data[3]
+        self.rows_layout.removeWidget(row_container)
+        row_container.deleteLater()
+
+        self.validate_and_update()
+
+    def delete_sequence(self, row_data: tuple[QComboBox, QLineEdit, QLineEdit, QWidget]):
+        modifier = row_data[0].currentText()
+        self.delete_row(row_data)
+
+        same_modifier = [
+            row for row in self.rows
+            if row[0].currentText() == modifier
+        ]
+        if len(same_modifier) == 1:
+            self.delete_row(same_modifier[0])
+
+    def save_and_close(self):
+        ok = self.validate_and_update()
+        if not ok:
+            QMessageBox.critical(
+                self,
+                'Error',
+                'Cannot apply your changes while there are invalid values (highlighted in red).'
+            )
+            return
+
+        sequences = [
+            (combo.currentText(), line_edit1.text(), line_edit2.text())
+            for combo, line_edit1, line_edit2, _ in self.rows
+        ]
+        sequences = [(m, i, o) for m, i, o in sequences if m != i]
+        self.replacer.set_replacements(sequences)
+
+        self.accept()
+
+
 class EqualGrowFormLayout(QGridLayout):
     """
     A 'label + field' layout where widgets in each row grow evenly,
@@ -2044,18 +2261,21 @@ class BrowsingPage(QWidget):
         self.add_entry_btn = create_img_button('resources/qt/images/add.png')
         self.manage_tags_btn = create_img_button('resources/qt/images/tag.png')
         self.manage_features_btn = create_img_button('resources/qt/images/features.png')
+        self.manage_escape_sequences_btn = create_img_button('resources/qt/images/escape_seq.png')
         self.practice_btn = create_img_button('resources/qt/images/practice.png')
 
         self.search_btn.clicked.connect(self.toggle_search)
         self.add_entry_btn.clicked.connect(self.add_entry)
         self.manage_tags_btn.clicked.connect(self.manage_tags)
         self.manage_features_btn.clicked.connect(self.manage_features)
+        self.manage_escape_sequences_btn.clicked.connect(self.manage_escape_sequences)
         self.practice_btn.clicked.connect(self.on_practice_button_clicked.emit)
 
         self.buttons_layout.addWidget(self.search_btn)
         self.buttons_layout.addWidget(self.add_entry_btn)
         self.buttons_layout.addWidget(self.manage_tags_btn)
         self.buttons_layout.addWidget(self.manage_features_btn)
+        self.buttons_layout.addWidget(self.manage_escape_sequences_btn)
         self.buttons_layout.addWidget(self.practice_btn)
 
         self.main_layout.addLayout(self.buttons_layout, 2, 0)
@@ -2219,6 +2439,12 @@ class BrowsingPage(QWidget):
         ok = dialog.exec() == QDialog.Accepted
         if ok:
             self.print_entries()
+
+        self.update_tab_title()
+
+    def manage_escape_sequences(self):
+        dialog = ManageEscapeSequencesDialog(self.dct_bundle.replacer, self)
+        dialog.exec()
 
         self.update_tab_title()
 
