@@ -4,8 +4,9 @@ Implements the Manager class which stores Dictionaries and tracks the active one
 Author: Anenokil
 """
 
-import os
 from types import NoneType
+from typing import Literal
+import os
 import json
 
 from .core.types import Tag, DctName, SerializedData
@@ -35,8 +36,9 @@ class SearchConfig:
 
     def __init__(
             self,
-            to_search_only_fav: bool = False,
-            to_search_only_full: bool = False,
+            fav_filter: Literal['all', 'fav', 'unfav'] = 'all',
+            to_match_whole_word: bool = False,
+            to_match_case: bool = False,
             to_search_in_words: bool = True,
             to_search_in_translations: bool = True,
             to_search_in_forms: bool = False,
@@ -44,8 +46,9 @@ class SearchConfig:
             to_search_in_notes: bool = False,
             search_tags: list[Tag] | None = None,
     ):
-        self.to_search_only_fav = to_search_only_fav
-        self.to_search_only_full = to_search_only_full
+        self.fav_filter = fav_filter
+        self.to_match_whole_word = to_match_whole_word
+        self.to_match_case = to_match_case
         self.to_search_in_words = to_search_in_words
         self.to_search_in_translations = to_search_in_translations
         self.to_search_in_forms = to_search_in_forms
@@ -60,8 +63,9 @@ class SearchConfig:
         return search_settings
 
     def set_defaults(self):
-        self.to_search_only_fav = False
-        self.to_search_only_full = False
+        self.fav_filter = 'all'
+        self.to_match_whole_word = False
+        self.to_match_case = False
         self.to_search_in_words = True
         self.to_search_in_translations = True
         self.to_search_in_forms = False
@@ -72,8 +76,9 @@ class SearchConfig:
     def to_dict(self) -> SerializedData:
         return {
             'version': self._schema_version,
-            'to_search_only_fav': self.to_search_only_fav,
-            'to_search_only_full': self.to_search_only_full,
+            'fav_filter': self.fav_filter,
+            'to_match_whole_word': self.to_match_whole_word,
+            'to_match_case': self.to_match_case,
             'to_search_in_words': self.to_search_in_words,
             'to_search_in_translations': self.to_search_in_translations,
             'to_search_in_forms': self.to_search_in_forms,
@@ -85,8 +90,9 @@ class SearchConfig:
     def load_from_dict(self, data: SerializedData):
         data = self._check_and_migrate(data)
 
-        self.to_search_only_fav = data['to_search_only_fav']
-        self.to_search_only_full = data['to_search_only_full']
+        self.fav_filter = data['fav_filter']
+        self.to_match_whole_word = data['to_match_whole_word']
+        self.to_match_case = data['to_match_case']
         self.to_search_in_words = data['to_search_in_words']
         self.to_search_in_translations = data['to_search_in_translations']
         self.to_search_in_forms = data['to_search_in_forms']
@@ -108,15 +114,16 @@ class SearchConfig:
     @staticmethod
     def _validate_data(data: SerializedData):
         bool_fields = (
-            'to_search_only_fav', 'to_search_only_full', 'to_search_in_words',
+            'to_match_whole_word', 'to_match_case', 'to_search_in_words',
             'to_search_in_translations', 'to_search_in_forms',
             'to_search_in_phrases', 'to_search_in_notes',
         )
-        required_fields = bool_fields + ('search_tags',)
+        required_fields = bool_fields + ('fav_filter', 'search_tags')
         validate_required_fields(data, required_fields)
 
         for field_name in bool_fields:
             validate_field_type(field_name, data[field_name], bool)
+        validate_field_type('fav_filter', data['fav_filter'], str)
         validate_field_type('search_tags', data['search_tags'], (list[str], NoneType))
 
 

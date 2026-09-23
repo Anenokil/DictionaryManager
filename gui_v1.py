@@ -2320,8 +2320,9 @@ class SearchSettingsW(tk.Toplevel):
         self.wait_window()
 
         self.dct_bundle.search_config = SearchConfig(
-            self.var_search_only_fav.get(),
+            'fav' if self.var_search_only_fav.get() else 'all',
             self.var_search_only_full.get(),
+            self.dct_bundle.search_config.to_match_case,
             self.var_search_wrd.get(),
             self.var_search_tr.get(),
             self.var_search_frm.get(),
@@ -5650,7 +5651,7 @@ class SearchTab(ttk.Frame):
 
         # Параметры поиска
         search_config = self.dct_bundle.search_config
-        self.to_search_only_fav = search_config.to_search_only_fav
+        self.to_search_only_fav = search_config.fav_filter == 'fav'
         self.to_search_only_full = search_config.to_search_only_full
         self.to_search_wrd = search_config.to_search_in_words
         self.to_search_tr = search_config.to_search_in_translations
