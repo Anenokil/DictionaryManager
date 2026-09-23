@@ -528,7 +528,7 @@ class TristateCheckBox(QCheckBox):
 class CheckableList(QScrollArea):
     def __init__(
             self,
-            items: dict[str, Qt.CheckState],
+            items: dict[str, Qt.CheckState | bool],
             on_change: Callable[[], None] | None = None,
             is_tristate: bool = False,
     ):
@@ -546,7 +546,10 @@ class CheckableList(QScrollArea):
 
         for text, state in items.items():
             checkbox = CheckboxClass(text)
-            checkbox.setCheckState(state)
+            if isinstance(state, bool):
+                checkbox.setChecked(state)
+            else:
+                checkbox.setCheckState(state)
             layout.addWidget(checkbox)
             self.checkboxes[text] = checkbox
 
@@ -1466,7 +1469,7 @@ class EntryDetailsDialog(QDialog):
         # Create other widgets
         self.tags_list = CheckableList(
             {
-                tag: Qt.Checked if (not self.is_new) and (tag in self.entry.tags) else Qt.Unchecked
+                tag: (not self.is_new) and (tag in self.entry.tags)
                 for tag in sorted(self.dct.tags, key=lambda s: (s.lower(), s))
             },
             on_change=self.main_layout.activate,
