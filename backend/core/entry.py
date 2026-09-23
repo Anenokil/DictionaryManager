@@ -676,6 +676,43 @@ class Entry:
     def latest_att_timestamp(self) -> Timestamp:
         return self._latest_att_timestamp
 
+    def _edit(
+            self,
+            lemma: Word | Iterable[Word] | None = None,
+            tr: Translation | Iterable[Translation] | None = None,
+            forms: Mapping[GramForm, Iterable[WordForm]] | None = None,
+            phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
+            notes: Note | Iterable[Note] | None = None,
+            tags: Iterable[Tag] | None = None,
+            is_fav: bool | None = None,
+            total_att: int | None = None,
+            correct_att: int | None = None,
+            win_streak: int | None = None,
+            latest_att_timestamp: Timestamp | None = None,
+    ):
+        if lemma is not None:
+            self.variants = Variants(lemma)
+        if tr is not None:
+            self.tr = Translations(tr)
+        if forms is not None:
+            self.forms = Forms(forms)
+        if phrases is not None:
+            self.phrases = Phrases(phrases)
+        if notes is not None:
+            self.notes = Notes(notes)
+        if tags is not None:
+            self.tags = Tags(tags)
+        if is_fav is not None:
+            self.is_fav = is_fav
+        if total_att is not None:
+            self._total_att = total_att
+        if correct_att is not None:
+            self._correct_att = correct_att
+        if win_streak is not None:
+            self._win_streak = win_streak
+        if latest_att_timestamp is not None:
+            self._latest_att_timestamp = latest_att_timestamp
+
     def register_correct_answer(self, timestamp: Timestamp):
         """
         Update learning statistics when a correct attempt is made.

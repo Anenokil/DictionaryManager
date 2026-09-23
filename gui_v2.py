@@ -1951,7 +1951,7 @@ class EntryDetailsDialog(QDialog):
             self.is_new = False
             self.delete_button.setEnabled(True)
         else:
-            self.entry = self.dct.rewrite_entry(
+            self.dct.rewrite_entry(
                 self.entry,
                 lemma_variants, translations, forms, phrases, notes, tags, is_fav,
             )

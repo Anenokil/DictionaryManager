@@ -438,7 +438,7 @@ class Dictionary:
             notes: Note | Iterable[Note] | None = None,
             tags: Iterable[Tag] | None = None,
             is_fav: bool = False,
-    ) -> Entry:
+    ):
         """
         Edit all fields of an Entry.
 
@@ -486,27 +486,19 @@ class Dictionary:
         self._counters['phrase_trs']   -= entry.n_phrase_translations
         self._counters['notes']        -= entry.n_notes
 
-        new_entry = Entry(
-            lemma, tr, forms, phrases, notes, tags, is_fav,
-            entry.total_att, entry.correct_att, entry.win_streak,
-            entry.latest_att_timestamp,
-        )
-        i = self._entries.index(entry)
-        self._entries[i] = new_entry
+        entry._edit(lemma, tr, forms, phrases, notes, tags, is_fav)
 
-        self._update_index('lemmas', new_entry.variants, new_entry, 'add')
-        self._update_index('translations', new_entry.tr, new_entry, 'add')
-        self._update_index('forms', chain(*new_entry.forms.values()), new_entry, 'add')
-        self._update_index('tags', new_entry.tags, new_entry, 'add')
+        self._update_index('lemmas', entry.variants, entry, 'add')
+        self._update_index('translations', entry.tr, entry, 'add')
+        self._update_index('forms', chain(*entry.forms.values()), entry, 'add')
+        self._update_index('tags', entry.tags, entry, 'add')
 
-        self._counters['translations'] += new_entry.n_translations
-        self._counters['gram_forms']   += new_entry.n_gram_forms
-        self._counters['word_forms']   += new_entry.n_word_forms
-        self._counters['phrases']      += new_entry.n_phrases
-        self._counters['phrase_trs']   += new_entry.n_phrase_translations
-        self._counters['notes']        += new_entry.n_notes
-
-        return new_entry
+        self._counters['translations'] += entry.n_translations
+        self._counters['gram_forms']   += entry.n_gram_forms
+        self._counters['word_forms']   += entry.n_word_forms
+        self._counters['phrases']      += entry.n_phrases
+        self._counters['phrase_trs']   += entry.n_phrase_translations
+        self._counters['notes']        += entry.n_notes
 
     @_mark_modified
     def delete_entry(self, entry: Entry):
