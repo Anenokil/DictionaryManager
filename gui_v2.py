@@ -2473,37 +2473,46 @@ class BrowsingPage(QWidget):
         and tooltip with full descriptions.
         """
 
-        n_entries = self.dct.count('lemmas')
+        n_entries = len(self.dct)
+        n_lemmas = self.dct.count('lemmas')
         n_translations = self.dct.count('translations')
         n_gram_forms = self.dct.count('gram_forms')
         n_word_forms = self.dct.count('word_forms')
+        n_phrases = self.dct.count('phrases')
 
-        status_text = f'{n_entries} E, {n_translations} T, {n_gram_forms} GF, {n_word_forms} WF'
-        tooltip_text = (
-            f'{n_entries} entries, '
-            f'{n_translations} translations, '
-            f'{n_gram_forms} grammatical forms, '
-            f'{n_word_forms} word forms'
-        )
-
-        selected_rows = self.get_selected_entries()
-        if selected_rows:
-            n_sel_entries = len(selected_rows)
-            n_sel_translations, n_sel_gram_forms, n_sel_word_forms = 0, 0, 0
-            for entry in selected_rows:
+        selected_entries = self.get_selected_entries()
+        if selected_entries:
+            n_sel_entries = len(selected_entries)
+            n_sel_lemmas, n_sel_translations, n_sel_gram_forms, n_sel_word_forms, n_sel_phrases = 0, 0, 0, 0, 0
+            for entry in selected_entries:
+                n_sel_lemmas += entry.n_variants
                 n_sel_translations += entry.n_translations
                 n_sel_gram_forms += entry.n_gram_forms
                 n_sel_word_forms += entry.n_word_forms
+                n_sel_phrases += entry.n_phrases
             status_text = (
-                f'Selected: {n_sel_entries} E, {n_sel_translations} T, '
-                f'{n_sel_gram_forms} GF, {n_sel_word_forms} WF | {status_text}'
+                f'Selected: '
+                f'{n_sel_entries} E, {n_sel_lemmas} W, {n_sel_translations} T | '
+                f'{n_entries} E, {n_lemmas} W, {n_translations} T'
             )
-            tooltip_text += (
-                f'\nSelected: '
-                f'{n_sel_entries} entries, '
-                f'{n_sel_translations} translations, '
-                f'{n_sel_gram_forms} grammatical forms, '
-                f'{n_sel_word_forms} word forms'
+            tooltip_text = (
+                f'Selected:\n'
+                f'{n_sel_entries}/{n_entries} entries\n'
+                f'{n_sel_lemmas}/{n_lemmas} words\n'
+                f'{n_sel_translations}/{n_translations} translations\n'
+                f'{n_sel_gram_forms}/{n_gram_forms} grammatical forms\n'
+                f'{n_sel_word_forms}/{n_word_forms} word forms\n'
+                f'{n_sel_phrases}/{n_phrases} phrases'
+            )
+        else:
+            status_text = f'{n_entries} E, {n_lemmas} W, {n_translations} T'
+            tooltip_text = (
+                f'{n_entries} entries\n'
+                f'{n_lemmas} words\n'
+                f'{n_translations} translations\n'
+                f'{n_gram_forms} grammatical forms\n'
+                f'{n_word_forms} word forms\n'
+                f'{n_phrases} phrases'
             )
 
         self.status_bar.setText(status_text)
