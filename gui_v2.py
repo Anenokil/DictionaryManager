@@ -2263,6 +2263,7 @@ class SearchFilterProxyModel(QSortFilterProxyModel):
 class BrowsingPage(QWidget):
     on_practice_button_clicked = Signal()
     on_dct_edited = Signal()
+    new_tab_requested = Signal(str, list)
 
     def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
         super().__init__(parent)
@@ -2332,6 +2333,7 @@ class BrowsingPage(QWidget):
             ('Star', self.star_entries, True),
             ('Unstar', self.unstar_entries, True),
             ('Merge', self.merge_entries, lambda: len(self.get_selected_entries()) > 1),
+            ('Create Dictionary...', self.cherry_pick_entries, True),
             None,
             ('Delete', self.delete_entries, True),
         ])
@@ -2552,6 +2554,18 @@ class BrowsingPage(QWidget):
             self.source_model.removeRow(row)
 
         self.update_tab_title()
+
+    def cherry_pick_entries(self):
+        dct_name, ok = QInputDialog.getText(
+            self,
+            'Create Dictionary',
+            'Enter dictionary name:',
+            text=f'{self.dct.name} - selected',
+        )
+        if ok and dct_name:
+            selected = sorted(self.get_selected())
+            selected_entries = [entry for row, entry in selected]
+            self.new_tab_requested.emit(dct_name, selected_entries)
 
     def delete_entries(self):
         selected = sorted(self.get_selected(), reverse=True)
@@ -2911,6 +2925,24 @@ class MainWindow(QMainWindow):
 
         self.tab_widget.rename_dict(index)
 
+    def on_new_tab_requested(self, dct_name: str, entries: list[Entry]):
+        self.manager.create_dct(name=dct_name, to_activate=False)
+        old_dct = self.manager.active.dct
+        new_dct_bundle = self.manager.opened_dct_bundles[self.manager.n_opened - 1]
+        new_dct = new_dct_bundle.dct
+        for ctg, ctg_vals in old_dct.features.items():
+            new_dct.add_ctg(ctg, ctg_vals)
+        for tag in old_dct.tags:
+            new_dct.add_tag(tag)
+        for entry in entries:
+            new_dct.add_entry(
+                entry.variants, entry.tr, entry.forms, entry.phrases, entry.notes,
+                entry.tags, entry.is_fav, entry.total_att, entry.correct_att,
+                entry.win_streak, entry.latest_att_timestamp,
+            )
+        self.create_new_tab(dct_name, new_dct_bundle, set_active=False)
+        self.tab_widget.update_tab_title(self.tab_widget.count() - 1)
+
     def create_new_tab(
             self,
             title: str,
@@ -2932,6 +2964,7 @@ class MainWindow(QMainWindow):
 
         # Create new workspace
         workspace = DctWorkspaceWidget(self.tab_widget, dct_bundle)
+        workspace.browsing_page.new_tab_requested.connect(self.on_new_tab_requested)
 
         # Add tab
         self.tab_widget.addTab(workspace, title)
