@@ -1,10 +1,10 @@
-from typing import Generator, Collection, Callable, Any
+from typing import Generator, Iterable, Collection, Callable, Any
 from copy import deepcopy
 import sys
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QScrollArea, QFrame, QWidget,
     QStackedWidget, QTabWidget, QTabBar, QToolBar, QMenu,
-    QTableWidget, QTableWidgetItem, QTreeWidget,
+    QTableWidget, QTableWidgetItem, QTableView, QTreeWidget,
     QTreeWidgetItem, QDialog, QInputDialog, QFileDialog,
     QDialogButtonBox, QPushButton, QGroupBox, QMessageBox, QComboBox,
     QCheckBox, QLineEdit, QTextEdit, QPlainTextEdit, QLabel,
@@ -16,7 +16,10 @@ from PySide6.QtGui import (
     QAction, QCloseEvent, QIcon, QPixmap, QColor, QBrush,
     QShortcut, QKeySequence, QValidator,
 )
-from PySide6.QtCore import Qt, QSize, QTimer, Signal, QPoint
+from PySide6.QtCore import (
+    Qt, QSize, QTimer, Signal, QPoint, QAbstractTableModel,
+    QModelIndex, QSortFilterProxyModel,
+)
 
 from backend import (
     Translations, Variants, Forms, GramForm, Phrases, Notes,
@@ -278,7 +281,7 @@ def show_context_menu(
 
 
 def setup_table_context_menu(
-        table: QTableWidget,
+        table: QTableWidget | QTableView,
         actions_config: list[
             None | tuple[
                 Callable[[], str] | str,
@@ -304,9 +307,6 @@ def setup_table_context_menu(
     table.setContextMenuPolicy(Qt.CustomContextMenu)
 
     def show_menu(pos):
-        item = table.itemAt(pos)
-        if item is None:
-            return
         show_context_menu(table, table.viewport().mapToGlobal(pos), actions_config)
 
     table.customContextMenuRequested.connect(show_menu)
@@ -2175,6 +2175,91 @@ class SearchSettingsDialog(QDialog):
         pass  # TODO
 
 
+class EntriesTableModel(QAbstractTableModel):
+    HEADERS = [
+        '', 'Word', 'Translation', 'Forms', 'Phrases', 'Notes', 'Tags',
+        'Total attempts', 'Correct attempts', 'Win streak', 'Accuracy',
+    ]
+    ENTRY_ROLE = Qt.UserRole
+
+    def __init__(self, entries: Iterable[Entry] | Dictionary, parent=None):
+        super().__init__(parent)
+
+        self._entries: list[Entry] = list(entries) or []
+
+    def rowCount(self, parent=QModelIndex()):
+        return 0 if parent.isValid() else len(self._entries)
+
+    def columnCount(self, parent=QModelIndex()):
+        return 0 if parent.isValid() else len(self.HEADERS)
+
+    def data(self, index: QModelIndex, role=Qt.DisplayRole):
+        if not index.isValid():
+            return None
+        entry = self._entries[index.row()]
+        col = index.column()
+
+        if role == self.ENTRY_ROLE:
+            return entry
+
+        if col == 0:
+            if role == Qt.DecorationRole:
+                return QIcon('resources/qt/images/star.png') if entry.is_fav else None
+            return None
+
+        if role in (Qt.DisplayRole, Qt.EditRole):
+            if col == 1:
+                return lemma_to_str(entry.variants)
+            if col == 2:
+                return translations_to_str(entry.tr)
+            if col == 3:
+                return forms_to_str(entry.forms)
+            if col == 4:
+                return phrases_to_str(entry.phrases)
+            if col == 5:
+                return notes_to_str(entry.notes)
+            if col == 6:
+                return tags_to_str(entry.tags)
+            if col == 7:
+                return str(entry.total_att)
+            if col == 8:
+                return str(entry.correct_att)
+            if col == 9:
+                return str(entry.win_streak)
+            if col == 10:
+                return accuracy_to_str(entry)
+
+        return None
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        if role != Qt.DisplayRole:
+            return None
+        if orientation == Qt.Horizontal:
+            return self.HEADERS[section]
+        return section + 1
+
+    def add_row(self, row: int, entry: Entry, parent=QModelIndex()) -> bool:
+        if parent.isValid():
+            return False
+        self.beginInsertRows(QModelIndex(), row, row)
+        self._entries.insert(row, entry)
+        self.endInsertRows()
+        return True
+
+    def removeRow(self, row: int, parent=QModelIndex()) -> bool:
+        if parent.isValid():
+            return False
+        self.beginRemoveRows(QModelIndex(), row, row)
+        del self._entries[row]
+        self.endRemoveRows()
+        return True
+
+
+class SearchFilterProxyModel(QSortFilterProxyModel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+
 class BrowsingPage(QWidget):
     on_practice_button_clicked = Signal()
     on_dct_edited = Signal()
@@ -2204,18 +2289,19 @@ class BrowsingPage(QWidget):
         self.main_layout.addWidget(self.search_bar, 0, 0, 1, 2)
 
     def _create_entries_table(self):
+        # Create table model
+        self.source_model = EntriesTableModel(self.dct)
+        self.proxy_model = SearchFilterProxyModel()
+        self.proxy_model.setSourceModel(self.source_model)
+
         # Create table widget
-        self.table_widget = QTableWidget()
-        self.table_widget.setColumnCount(11)
-        self.table_widget.setHorizontalHeaderLabels([
-            '', 'Word', 'Translation', 'Forms', 'Phrases', 'Notes', 'Tags',
-            'Total attempts', 'Correct attempts', 'Win streak', 'Accuracy',
-        ])
+        self.table_widget = QTableView()
+        self.table_widget.setModel(self.proxy_model)
         self.main_layout.addWidget(self.table_widget, 1, 0, 1, 2)
 
         # Configure row selection
-        self.table_widget.setSelectionBehavior(QTableWidget.SelectRows)
-        self.table_widget.setSelectionMode(QTableWidget.ExtendedSelection)  # Multiple selection
+        self.table_widget.setSelectionBehavior(QTableView.SelectRows)
+        self.table_widget.setSelectionMode(QTableView.ExtendedSelection)  # Multiple selection
 
         # Configure column resizing
         header = self.table_widget.horizontalHeader()
@@ -2231,11 +2317,11 @@ class BrowsingPage(QWidget):
         self.table_widget.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
 
         # Disable table editing
-        self.table_widget.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table_widget.setEditTriggers(QTableView.NoEditTriggers)
 
         # Connect signal handlers
         self.table_widget.doubleClicked.connect(self.on_item_double_clicked)
-        self.table_widget.itemSelectionChanged.connect(self.on_selection_changed)
+        self.table_widget.selectionModel().selectionChanged.connect(self.on_selection_changed)
 
         # Setup context menu
         n_selected = lambda: n_selected_msg(len(self.get_selected_entries()), 'entry', 'entries')
@@ -2249,9 +2335,6 @@ class BrowsingPage(QWidget):
             None,
             ('Delete', self.delete_entries, True),
         ])
-
-        # Fill the table
-        self.print_entries()
 
     def _create_dct_buttons(self):
         # Create button for adding new entry
@@ -2301,85 +2384,15 @@ class BrowsingPage(QWidget):
         else:
             self.show_search_bar()
 
-    def fill_table_row(self, row: int, entry: Entry):
-        # Column 0: Star
-        star_item = QTableWidgetItem()
-        if entry.is_fav:
-            star_item.setIcon(QIcon('resources/qt/images/star.png'))
-        star_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 0, star_item)
-
-        # Column 1: Lemma
-        lemma_item = QTableWidgetItem(lemma_to_str(entry.variants))
-        lemma_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 1, lemma_item)
-
-        # Column 2: Translations
-        translations_item = QTableWidgetItem(translations_to_str(entry.tr))
-        translations_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 2, translations_item)
-
-        # Column 3: Forms
-        forms_item = QTableWidgetItem(forms_to_str(entry.forms))
-        forms_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 3, forms_item)
-
-        # Column 4: Phrases
-        phrases_item = QTableWidgetItem(phrases_to_str(entry.phrases))
-        phrases_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 4, phrases_item)
-
-        # Column 5: Notes
-        notes_item = QTableWidgetItem(notes_to_str(entry.notes))
-        notes_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 5, notes_item)
-
-        # Column 6: Tags
-        tags_item = QTableWidgetItem(tags_to_str(entry.tags))
-        tags_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 6, tags_item)
-
-        # Column 7: Total attempts
-        total_att_item = QTableWidgetItem(str(entry.total_att))
-        total_att_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 7, total_att_item)
-
-        # Column 8: Correct attempts
-        correct_att_item = QTableWidgetItem(str(entry.correct_att))
-        correct_att_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 8, correct_att_item)
-
-        # Column 9: Win streak
-        win_streak_item = QTableWidgetItem(str(entry.win_streak))
-        win_streak_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 9, win_streak_item)
-
-        # Column 10: Accuracy
-        accuracy_item = QTableWidgetItem(accuracy_to_str(entry))
-        accuracy_item.setData(Qt.UserRole, entry)
-        self.table_widget.setItem(row, 10, accuracy_item)
-
-    def print_entries(self):
-        """
-        Populate the table with dictionary entries.
-
-        Fills the table widget with all entries from the dictionary.
-        """
-
-        # Set row count
-        n_entries = self.dct.count('lemmas')
-        self.table_widget.setRowCount(n_entries)
-
-        # Add entries to table
-        for row, entry in enumerate(self.dct):
-            self.fill_table_row(row, entry)
-
     def get_selected_entries(self) -> set[Entry]:
-        return {item.data(Qt.UserRole) for item in self.table_widget.selectedIndexes()}
+        return {
+            item.data(EntriesTableModel.ENTRY_ROLE)
+            for item in self.table_widget.selectedIndexes()
+        }
 
     def get_selected(self) -> set[tuple[int, Entry]]:
         return {
-            (item.row(), item.data(Qt.UserRole))
+            (item.row(), item.data(EntriesTableModel.ENTRY_ROLE))
             for item in self.table_widget.selectedIndexes()
         }
 
@@ -2391,10 +2404,9 @@ class BrowsingPage(QWidget):
         dialog = EntryDetailsDialog(self.dct_bundle, None, self)
         dialog.exec()
         if dialog.exit_code == 'save':
-            n_rows = self.table_widget.rowCount()
+            n_rows = self.proxy_model.rowCount()
             new_entry = dialog.entry
-            self.table_widget.setRowCount(n_rows + 1)
-            self.fill_table_row(n_rows, new_entry)
+            self.source_model.add_row(n_rows, new_entry)
 
         self.update_tab_title()
 
@@ -2409,37 +2421,25 @@ class BrowsingPage(QWidget):
         """
 
         # Get object from cell data
-        item = self.table_widget.item(index.row(), index.column())
-        if item is None:
-            return
-
-        entry = item.data(Qt.UserRole)
+        item = self.proxy_model.index(index.row(), index.column())
+        entry = item.data(EntriesTableModel.ENTRY_ROLE)
 
         # Create and show details dialog
         dialog = EntryDetailsDialog(self.dct_bundle, entry, self)
         dialog.exec()
-        if dialog.exit_code == 'save':
-            edited_entry = dialog.entry
-            self.fill_table_row(index.row(), edited_entry)
-        elif dialog.exit_code == 'delete':
-            self.table_widget.removeRow(item.row())
+        if dialog.exit_code == 'delete':
+            self.source_model.removeRow(item.row())
 
         self.update_tab_title()
 
     def manage_tags(self):
         dialog = ManageTagsDialog(self.dct_bundle)
-        ok = dialog.exec() == QDialog.Accepted
-        if ok:
-            self.print_entries()
-
+        dialog.exec()
         self.update_tab_title()
 
     def manage_features(self):
         dialog = ManageGramFeaturesDialog(self.dct_bundle, self)
-        ok = dialog.exec() == QDialog.Accepted
-        if ok:
-            self.print_entries()
-
+        dialog.exec()
         self.update_tab_title()
 
     def manage_escape_sequences(self):
@@ -2456,7 +2456,6 @@ class BrowsingPage(QWidget):
         to reflect the current selection.
         """
 
-        # Update status bar with selection info
         self.update_status_bar()
 
     def update_status_bar(self):
@@ -2505,14 +2504,13 @@ class BrowsingPage(QWidget):
         self.status_bar.setToolTip(tooltip_text)
 
     def manage_entries_tags(self):
-        selected = self.get_selected()
-        entries = {entry for row, entry in selected}
+        selected = set(self.get_selected_entries())
 
         specs = {}
         for tag in self.dct.tags:
-            if all([tag in entry.tags for entry in entries]):
+            if all([tag in entry.tags for entry in selected]):
                 specs[tag] = Qt.Checked
-            elif all([tag not in entry.tags for entry in entries]):
+            elif all([tag not in entry.tags for entry in selected]):
                 specs[tag] = Qt.Unchecked
             else:
                 specs[tag] = Qt.PartiallyChecked
@@ -2523,29 +2521,20 @@ class BrowsingPage(QWidget):
         for tag, state in res.items():
             if (tag not in specs) or (state != specs[tag]):
                 if state == Qt.Checked:
-                    self.dct.add_tag_to_entries(tag, entries)
+                    self.dct.add_tag_to_entries(tag, selected)
                 else:
-                    self.dct.remove_tag_from_entries(tag, entries)
-
-        for row, entry in selected:
-            self.fill_table_row(row, entry)
+                    self.dct.remove_tag_from_entries(tag, selected)
 
         self.update_tab_title()
 
     def star_entries(self):
-        selected = self.get_selected()
-        entries = {entry for row, entry in selected}
-        self.dct.add_to_fav(entries)
-        for row, entry in selected:
-            self.fill_table_row(row, entry)
+        selected = set(self.get_selected_entries())
+        self.dct.add_to_fav(selected)
         self.update_tab_title()
 
     def unstar_entries(self):
-        selected = self.get_selected()
-        entries = {entry for row, entry in selected}
-        self.dct.remove_from_fav(entries)
-        for row, entry in selected:
-            self.fill_table_row(row, entry)
+        selected = set(self.get_selected_entries())
+        self.dct.remove_from_fav(selected)
         self.update_tab_title()
 
     def merge_entries(self):
@@ -2560,8 +2549,7 @@ class BrowsingPage(QWidget):
             self.dct.merge_entries(target_entry, entry)
 
         for row in other_rows[::-1]:
-            self.table_widget.removeRow(row)
-        self.fill_table_row(target_row, target_entry)
+            self.source_model.removeRow(row)
 
         self.update_tab_title()
 
@@ -2569,7 +2557,7 @@ class BrowsingPage(QWidget):
         selected = sorted(self.get_selected(), reverse=True)
         for row, entry in selected:
             self.dct.delete_entry(entry)
-            self.table_widget.removeRow(row)
+            self.source_model.removeRow(row)
         self.update_tab_title()
 
 
