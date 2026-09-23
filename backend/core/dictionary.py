@@ -151,6 +151,9 @@ class Dictionary:
     def __iter__(self) -> Iterator[Entry]:
         return iter(self._entries)
 
+    def __len__(self) -> int:
+        return len(self._entries)
+
     @property
     def name(self) -> DctName:
         return self._name
