@@ -5,7 +5,7 @@ Author: Anenokil
 """
 
 from types import NoneType
-from typing import Iterable, Generator, Mapping, Callable, Literal
+from typing import Iterable, Iterator, Mapping, Callable, Literal
 from itertools import chain
 from functools import wraps
 import uuid
@@ -148,8 +148,8 @@ class Dictionary:
 
         return self._entries[index]
 
-    def __iter__(self) -> Generator[Entry, None, None]:
-        yield from self._entries
+    def __iter__(self) -> Iterator[Entry]:
+        return iter(self._entries)
 
     @property
     def name(self) -> DctName:
@@ -1506,11 +1506,8 @@ class Dictionary:
 
         if action == 'add':
             for term in search_terms:
-                if term in index:
-                    index[term].update(entries)
-                else:
-                    index[term] = entries
-        else:
+                index.setdefault(term, set()).update(entries)
+        elif action == 'remove':
             for term in search_terms:
                 index[term].difference_update(entries)
                 if index_name != 'tags' and not index[term]:
