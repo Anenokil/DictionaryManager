@@ -71,15 +71,15 @@ LOCAL_AUTO_SETTINGS_FN = 'local_settings_auto.txt'  # Файл с автомат
 # }
 GLOBAL_SETTINGS_FN = 'global_settings.txt'  # Файл с глобальными настройками (настройки программы)
 GLOBAL_SETTINGS_PATH = os.path.join(RESOURCES_PATH, GLOBAL_SETTINGS_FN)
-ADDITIONAL_THEMES_DIR = 'themes'  # Папка с дополнительными темами
+ADDITIONAL_THEMES_DIR = 'tk/themes'  # Папка с дополнительными темами
 ADDITIONAL_THEMES_PATH = os.path.join(RESOURCES_PATH, ADDITIONAL_THEMES_DIR)
-CUSTOM_THEME_DIR = 'custom_theme'  # Папка с пользовательской темой
+CUSTOM_THEME_DIR = 'tk/custom_theme'  # Папка с пользовательской темой
 CUSTOM_THEME_PATH = os.path.join(RESOURCES_PATH, CUSTOM_THEME_DIR)
-IMAGES_DIR = 'images'  # Папка с изображениями
+IMAGES_DIR = 'tk/images'  # Папка с изображениями
 IMAGES_PATH = os.path.join(RESOURCES_PATH, IMAGES_DIR)
 TMP_FN = 'tmp.txt'  # Временный файл (для обновления словарей)
 TMP_PATH = os.path.join(RESOURCES_PATH, TMP_FN)
-ICON_FN = 'icon.png'  # Файл с изображением иконки
+ICON_FN = 'tk/icon.png'  # Файл с изображением иконки
 ICON_PATH = os.path.join(RESOURCES_PATH, ICON_FN)
 STYLES_FN = 'styles.txt'  # Файл стилей темы
 
