@@ -1,6 +1,7 @@
 from typing import Generator, Iterable, Collection, Callable, Any
 from copy import deepcopy
 import sys
+import re
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QScrollArea, QFrame, QWidget,
     QStackedWidget, QTabWidget, QTabBar, QToolBar, QMenu,
@@ -25,9 +26,9 @@ from backend import (
     Translations, Variants, Forms, GramForm, Phrases, Notes,
     Tags, Entry, Dictionary, DctBundle, Manager, gram_form_to_str,
     TrainingFormat, TrainingOrder, EntrySelection, FormSelection,
-    Replacer,
+    Replacer, SearchConfig,
 )
-from persistence import AppData
+from persistence import AppData, partial_save
 
 
 def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:
@@ -2062,10 +2063,18 @@ class DctTabWidget(QTabWidget):
 
 
 class SearchBar(QFrame):
-    def __init__(self, dct: Dictionary, parent: QWidget | None = None):
+    def __init__(
+            self,
+            dct_bundle: DctBundle,
+            table_proxy_model: 'SearchFilterProxyModel',
+            parent: QWidget | None = None,
+    ):
         super().__init__(parent)
 
-        self.dct = dct
+        self.dct_bundle = dct_bundle
+        self.dct = dct_bundle.dct
+        self.config = dct_bundle.search_config
+        self.table_proxy_model = table_proxy_model
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -2074,44 +2083,72 @@ class SearchBar(QFrame):
         self.line_edit = QLineEdit()
         self.line_edit.setPlaceholderText('Search')
         self.line_edit.setMaximumWidth(700)
+        self.line_edit.textChanged.connect(self._apply_search)
         layout.addWidget(self.line_edit)
-
-        self.close_btn = create_img_button('resources/qt/images/close.png', button_size=(24, 24))
-        layout.addWidget(self.close_btn)
 
         self.match_case_btn = create_img_button('resources/qt/images/match_case.png')
         self.match_case_btn.setCheckable(True)
+        self.match_case_btn.setChecked(self.config.to_match_case)
+        self.match_case_btn.clicked.connect(self.toggle_match_case)
         layout.addWidget(self.match_case_btn)
 
         self.match_whole_word_btn = create_img_button('resources/qt/images/match_whole_word.png')
         self.match_whole_word_btn.setCheckable(True)
+        self.match_whole_word_btn.setChecked(self.config.to_match_whole_word)
+        self.match_whole_word_btn.clicked.connect(self.toggle_match_whole_word)
         layout.addWidget(self.match_whole_word_btn)
 
         self.settings_btn = create_img_button('resources/qt/images/settings.png')
         self.settings_btn.clicked.connect(self.open_settings)
         layout.addWidget(self.settings_btn)
 
+        self.close_btn = create_img_button('resources/qt/images/close.png', button_size=(24, 24))
+        self.close_btn.clicked.connect(self.on_close)
+        layout.addWidget(self.close_btn)
+
         layout.addStretch()
 
-        self.close_btn.clicked.connect(self.hide)
         self.setVisible(False)
 
+    def _apply_search(self):
+        self.table_proxy_model.set_search_text(self.line_edit.text())
+
+    def toggle_match_case(self, enabled: bool):
+        self.config.to_match_case = enabled
+        self.table_proxy_model.update_filter()
+        partial_save(self.dct_bundle, search_config=True)
+
+    def toggle_match_whole_word(self, enabled: bool):
+        self.config.to_match_whole_word = enabled
+        self.table_proxy_model.update_filter()
+        partial_save(self.dct_bundle, search_config=True)
+
     def open_settings(self):
-        dialog = SearchSettingsDialog(self.dct, self)
+        dialog = SearchSettingsDialog(self.dct, self.config, self)
         ok = dialog.exec() == QDialog.Accepted
         if ok:
-            pass
+            self._apply_search()
+            partial_save(self.dct_bundle, search_config=True)
+
+    def on_open(self):
+        self.table_proxy_model.toggle_search_mode(True)
+
+    def on_close(self):
+        self.table_proxy_model.toggle_search_mode(False)
+        self.hide()
 
 
 class SearchSettingsDialog(QDialog):
     def __init__(
             self,
             dct: Dictionary,
+            config: SearchConfig,
             parent: QWidget | None = None,
     ):
         super().__init__(parent)
 
         self.dct = dct
+        self.config = config
 
         self.setWindowTitle('Search Settings')
 
@@ -2131,34 +2168,32 @@ class SearchSettingsDialog(QDialog):
         self.combobox_starred.addItems(
             ['All entries', 'Starred entries only', 'Unstarred entries only']
         )
+        self.combobox_starred.setCurrentIndex(['all', 'fav', 'unfav'].index(self.config.fav_filter))
         self.layout_settings.addWidget(self.combobox_starred)
 
-        self._create_fields_settings_widgets()
+        self.layout_settings.addWidget(QLabel('Target fields'))
 
-        self.layout_settings.addWidget(QLabel('Target tags'))
+        fields = {
+            'Lemmas': self.config.to_search_in_words,
+            'Translations': self.config.to_search_in_translations,
+            'Forms': self.config.to_search_in_forms,
+            'Phrases': self.config.to_search_in_phrases,
+            'Notes': self.config.to_search_in_notes,
+        }
+        self.fields_list = CheckableList(fields)
+        self.layout_settings.addWidget(self.fields_list)
 
-        self.tags_list = CheckableList({tag: Qt.Unchecked for tag in self.dct.tags})
+        self.layout_settings.addWidget(QLabel('Required tags'))
+
+        required_tags = self.config.search_tags or []
+        tags = {
+            tag: tag in required_tags
+            for tag in self.dct.tags
+        }
+        self.tags_list = CheckableList(tags)
         self.layout_settings.addWidget(self.tags_list)
 
         self.main_layout.addWidget(self.group_settings)
-
-    def _create_fields_settings_widgets(self):
-        self.group_fields = QGroupBox(title='Target fields')
-        self.layout_fields = QVBoxLayout(self.group_fields)
-
-        self.checkbox_lemmas = QCheckBox('Lemmas')
-        self.checkbox_translations = QCheckBox('Translations')
-        self.checkbox_forms = QCheckBox('Forms')
-        self.checkbox_phrases = QCheckBox('Phrases')
-        self.checkbox_notes = QCheckBox('Notes')
-
-        self.layout_fields.addWidget(self.checkbox_lemmas)
-        self.layout_fields.addWidget(self.checkbox_translations)
-        self.layout_fields.addWidget(self.checkbox_forms)
-        self.layout_fields.addWidget(self.checkbox_phrases)
-        self.layout_fields.addWidget(self.checkbox_notes)
-
-        self.layout_settings.addWidget(self.group_fields)
 
     def _create_buttons(self):
         buttons = QDialogButtonBox()
@@ -2175,7 +2210,17 @@ class SearchSettingsDialog(QDialog):
         self.main_layout.addWidget(buttons)
 
     def save_and_close(self):
-        pass  # TODO
+        w, t, f, p, n = [(state == Qt.Checked) for state in self.fields_list.get_states().values()]
+        self.config.to_search_in_words = w
+        self.config.to_search_in_translations = t
+        self.config.to_search_in_forms = f
+        self.config.to_search_in_phrases = p
+        self.config.to_search_in_notes = n
+
+        self.config.fav_filter = ['all', 'fav', 'unfav'][self.combobox_starred.currentIndex()]
+        self.config.search_tags = self.tags_list.get_checked_items()
+
+        self.accept()
 
 
 class EntriesTableModel(QAbstractTableModel):
@@ -2259,8 +2304,89 @@ class EntriesTableModel(QAbstractTableModel):
 
 
 class SearchFilterProxyModel(QSortFilterProxyModel):
-    def __init__(self, parent=None):
+    searchResultsChanged = Signal()
+
+    def __init__(self, search_config: SearchConfig, parent=None):
         super().__init__(parent)
+
+        self.config = search_config
+        self._pattern = ''
+        self._search_mode_on = False
+
+        self.setDynamicSortFilter(True)
+
+    @property
+    def search_mode_on(self) -> bool:
+        return self._search_mode_on
+
+    def set_search_text(self, text: str):
+        self.beginFilterChange()
+        self._pattern = text
+        self.endFilterChange()
+        self.searchResultsChanged.emit()
+
+    def toggle_search_mode(self, enabled: bool):
+        self.beginFilterChange()
+        self._search_mode_on = enabled
+        self.endFilterChange()
+        self.searchResultsChanged.emit()
+
+    def update_filter(self):
+        self.beginFilterChange()
+        self.endFilterChange()
+        self.searchResultsChanged.emit()
+
+    def filterAcceptsRow(self, source_row: int, source_parent) -> bool:
+        if not self._search_mode_on:
+            return True
+
+        model = self.sourceModel()
+        entry = model.data(model.index(source_row, 0, source_parent), EntriesTableModel.ENTRY_ROLE)
+
+        if self.config.fav_filter == 'fav' and not entry.is_fav:
+            return False
+        if self.config.fav_filter == 'unfav' and entry.is_fav:
+            return False
+
+        if self.config.search_tags is not None:
+            required_tags = set(self.config.search_tags)
+            if not set(required_tags).issubset(entry.tags):
+                return False
+
+        if not self._pattern:
+            return True
+
+        for target in self._get_search_targets(entry):
+            if self._matches(target):
+                return True
+
+        return False
+
+    def _get_search_targets(self, entry: Entry) -> Generator[str, None, None]:
+        if self.config.to_search_in_words:
+            yield from entry.variants
+        if self.config.to_search_in_translations:
+            yield from entry.tr
+        if self.config.to_search_in_forms:
+            for forms in entry.forms.values:
+                yield from forms
+        if self.config.to_search_in_phrases:
+            yield from entry.phrases.keys()
+            for phrase_tr in entry.phrases.values():
+                yield from phrase_tr
+        if self.config.to_search_in_notes:
+            yield from entry.notes
+
+    def _matches(self, text: str) -> bool:
+        if self.config.to_match_whole_word:
+            flags = 0 if self.config.to_match_case else re.IGNORECASE
+            escaped = re.escape(self._pattern)
+            pattern = rf'\b{escaped}\b'
+            return re.search(pattern, text, flags) is not None
+        else:
+            if self.config.to_match_case:
+                return self._pattern in text
+            return self._pattern.lower() in text.lower()
 
 
 class BrowsingPage(QWidget):
@@ -2283,20 +2409,21 @@ class BrowsingPage(QWidget):
         self.main_layout = QGridLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
 
-        self._create_search_bar()
         self._create_entries_table()
+        self._create_search_bar()
         self._create_dct_buttons()
         self._create_status_bar()
 
     def _create_search_bar(self):
-        self.search_bar = SearchBar(self.dct, self)
+        self.search_bar = SearchBar(self.dct_bundle, self.proxy_model, self)
         self.main_layout.addWidget(self.search_bar, 0, 0, 1, 2)
 
     def _create_entries_table(self):
         # Create table model
         self.source_model = EntriesTableModel(self.dct)
-        self.proxy_model = SearchFilterProxyModel()
+        self.proxy_model = SearchFilterProxyModel(self.dct_bundle.search_config)
         self.proxy_model.setSourceModel(self.source_model)
+        self.proxy_model.searchResultsChanged.connect(self.update_status_bar)
 
         # Create table widget
         self.table_widget = QTableView()
@@ -2376,11 +2503,13 @@ class BrowsingPage(QWidget):
         self.update_status_bar()
 
     def show_search_bar(self):
+        self.search_bar.on_open()
         self.search_bar.setVisible(True)
         self.search_bar.line_edit.setFocus()
         self.search_bar.line_edit.selectAll()
 
     def hide_search_bar(self):
+        self.search_bar.on_close()
         self.search_bar.hide()
 
     def toggle_search(self):
@@ -2473,12 +2602,23 @@ class BrowsingPage(QWidget):
         and tooltip with full descriptions.
         """
 
-        n_entries = len(self.dct)
-        n_lemmas = self.dct.count('lemmas')
-        n_translations = self.dct.count('translations')
-        n_gram_forms = self.dct.count('gram_forms')
-        n_word_forms = self.dct.count('word_forms')
-        n_phrases = self.dct.count('phrases')
+        if self.proxy_model.search_mode_on:
+            n_entries, n_lemmas, n_translations, n_gram_forms, n_word_forms, n_phrases = 0, 0, 0, 0, 0, 0
+            for row in range(self.proxy_model.rowCount()):
+                entry = self.proxy_model.index(row, 0).data(EntriesTableModel.ENTRY_ROLE)
+                n_entries += 1
+                n_lemmas += entry.n_variants
+                n_translations += entry.n_translations
+                n_gram_forms += entry.n_gram_forms
+                n_word_forms += entry.n_word_forms
+                n_phrases += entry.n_phrases
+        else:
+            n_entries = len(self.dct)
+            n_lemmas = self.dct.count('lemmas')
+            n_translations = self.dct.count('translations')
+            n_gram_forms = self.dct.count('gram_forms')
+            n_word_forms = self.dct.count('word_forms')
+            n_phrases = self.dct.count('phrases')
 
         selected_entries = self.get_selected_entries()
         if selected_entries:
