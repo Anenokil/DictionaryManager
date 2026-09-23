@@ -2411,6 +2411,7 @@ class BrowsingPage(QWidget):
             self.source_model.add_row(n_rows, new_entry)
 
         self.update_tab_title()
+        self.update_status_bar()
 
     def on_item_double_clicked(self, index):
         """
