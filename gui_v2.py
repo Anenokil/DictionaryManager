@@ -30,6 +30,26 @@ from backend import (
 )
 from persistence import AppData, partial_save
 
+IMAGES_DIR = 'resources/qt/images'
+IMG_ADD_PATH = f'{IMAGES_DIR}/add.png'
+IMG_ADD_CTG_PATH = f'{IMAGES_DIR}/add_category.png'
+IMG_ADD_VALUE_PATH = f'{IMAGES_DIR}/add_value.png'
+IMG_ARROW_PATH = f'{IMAGES_DIR}/arrow.png'
+IMG_CLOSE_PATH = f'{IMAGES_DIR}/close.png'
+IMG_ENTER_PATH = f'{IMAGES_DIR}/enter.png'
+IMG_ESCAPE_SEQ_PATH = f'{IMAGES_DIR}/escape_seq.png'
+IMG_EXIT_PATH = f'{IMAGES_DIR}/exit.png'
+IMG_FEATURES_PATH = f'{IMAGES_DIR}/features.png'
+IMG_HINT_PATH = f'{IMAGES_DIR}/hint.png'
+IMG_MATCH_CASE_PATH = f'{IMAGES_DIR}/match_case.png'
+IMG_MATCH_WHOLE_WORD_PATH = f'{IMAGES_DIR}/match_whole_word.png'
+IMG_PRACTICE_PATH = f'{IMAGES_DIR}/practice.png'
+IMG_SETTINGS_PATH = f'{IMAGES_DIR}/settings.png'
+IMG_STOP_PATH = f'{IMAGES_DIR}/stop.png'
+IMG_STAR_PATH = f'{IMAGES_DIR}/star.png'
+IMG_SEARCH_PATH = f'{IMAGES_DIR}/search.png'
+IMG_TAG_PATH = f'{IMAGES_DIR}/tag.png'
+
 
 def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:
     for gram_form, word_forms in forms.items():
@@ -739,7 +759,7 @@ class TaggingDialog(QDialog):
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
 
-        add_tag_button = create_img_button('resources/qt/images/add.png')
+        add_tag_button = create_img_button(IMG_ADD_PATH)
         add_tag_button.clicked.connect(self.add_tag)
         buttons.addButton(add_tag_button, QDialogButtonBox.ActionRole)
 
@@ -784,7 +804,7 @@ class ManageTagsDialog(QDialog):
 
         buttons = QDialogButtonBox()
 
-        add_tag_button = create_img_button('resources/qt/images/add.png')
+        add_tag_button = create_img_button(IMG_ADD_PATH)
         add_tag_button.clicked.connect(self.add_tag)
         buttons.addButton(add_tag_button, QDialogButtonBox.ActionRole)
 
@@ -1038,12 +1058,12 @@ class ManageGramFeaturesDialog(QDialog):
 
         buttons = QDialogButtonBox()
 
-        self.add_category_button = create_img_button('resources/qt/images/add_category.png')
+        self.add_category_button = create_img_button(IMG_ADD_CTG_PATH)
         self.add_category_button.setToolTip('Add category')
         self.add_category_button.clicked.connect(self._on_add_category)
         buttons.addButton(self.add_category_button, QDialogButtonBox.ActionRole)
 
-        self.add_value_button = create_img_button('resources/qt/images/add_value.png')
+        self.add_value_button = create_img_button(IMG_ADD_VALUE_PATH)
         self.add_value_button.setToolTip('Add value')
         self.add_value_button.setEnabled(self.tree.topLevelItemCount() != 0)
         self.add_value_button.clicked.connect(self._on_add_value)
@@ -1152,7 +1172,7 @@ class ManageEscapeSequencesDialog(QDialog):
             is_deletable = modifier_char != input_char
             self.add_row(modifier_char, input_char, output_char, is_deletable)
 
-        self.add_button = create_img_button('resources/qt/images/add.png')
+        self.add_button = create_img_button(IMG_ADD_PATH)
         self.discard_button = QPushButton('Discard')
         self.save_button = QPushButton('Save')
 
@@ -1252,7 +1272,7 @@ class ManageEscapeSequencesDialog(QDialog):
         line_edit1.textChanged.connect(self.on_item_changed)
 
         arrow_label = QLabel()
-        arrow_label.setPixmap(QPixmap('resources/qt/images/arrow.png'))
+        arrow_label.setPixmap(QPixmap(IMG_ARROW_PATH))
 
         line_edit2 = QLineEdit(char_out)
         line_edit2.setEnabled(is_editable)
@@ -1269,7 +1289,7 @@ class ManageEscapeSequencesDialog(QDialog):
         row_data = (combo, line_edit1, line_edit2, row_container)
 
         if is_editable:
-            delete_button = create_img_button('resources/qt/images/close.png')
+            delete_button = create_img_button(IMG_CLOSE_PATH)
             delete_button.clicked.connect(lambda: self.delete_sequence(row_data))
             row_layout.addWidget(delete_button)
 
@@ -1484,12 +1504,12 @@ class EntryDetailsDialog(QDialog):
         self.fav_checkbox.setChecked(not self.is_new and self.entry.is_fav)
 
         # Create image buttons
-        self.add_lemma_variant_button = create_img_button('resources/qt/images/add.png')
-        self.add_translation_button = create_img_button('resources/qt/images/add.png')
-        self.add_form_button = create_img_button('resources/qt/images/add.png')
-        self.add_phrase_button = create_img_button('resources/qt/images/add.png')
-        self.add_note_button = create_img_button('resources/qt/images/add.png')
-        self.add_tag_button = create_img_button('resources/qt/images/add.png')
+        self.add_lemma_variant_button = create_img_button(IMG_ADD_PATH)
+        self.add_translation_button = create_img_button(IMG_ADD_PATH)
+        self.add_form_button = create_img_button(IMG_ADD_PATH)
+        self.add_phrase_button = create_img_button(IMG_ADD_PATH)
+        self.add_note_button = create_img_button(IMG_ADD_PATH)
+        self.add_tag_button = create_img_button(IMG_ADD_PATH)
 
         # Signal handling
         self.forms_table.cellDoubleClicked.connect(self.on_gram_form_double_clicked)
@@ -2086,23 +2106,23 @@ class SearchBar(QFrame):
         self.line_edit.textChanged.connect(self._apply_search)
         layout.addWidget(self.line_edit)
 
-        self.match_case_btn = create_img_button('resources/qt/images/match_case.png')
+        self.match_case_btn = create_img_button(IMG_MATCH_CASE_PATH)
         self.match_case_btn.setCheckable(True)
         self.match_case_btn.setChecked(self.config.to_match_case)
         self.match_case_btn.clicked.connect(self.toggle_match_case)
         layout.addWidget(self.match_case_btn)
 
-        self.match_whole_word_btn = create_img_button('resources/qt/images/match_whole_word.png')
+        self.match_whole_word_btn = create_img_button(IMG_MATCH_WHOLE_WORD_PATH)
         self.match_whole_word_btn.setCheckable(True)
         self.match_whole_word_btn.setChecked(self.config.to_match_whole_word)
         self.match_whole_word_btn.clicked.connect(self.toggle_match_whole_word)
         layout.addWidget(self.match_whole_word_btn)
 
-        self.settings_btn = create_img_button('resources/qt/images/settings.png')
+        self.settings_btn = create_img_button(IMG_SETTINGS_PATH)
         self.settings_btn.clicked.connect(self.open_settings)
         layout.addWidget(self.settings_btn)
 
-        self.close_btn = create_img_button('resources/qt/images/close.png', button_size=(24, 24))
+        self.close_btn = create_img_button(IMG_CLOSE_PATH, button_size=(24, 24))
         self.close_btn.clicked.connect(self.on_close)
         layout.addWidget(self.close_btn)
 
@@ -2252,7 +2272,7 @@ class EntriesTableModel(QAbstractTableModel):
 
         if col == 0:
             if role == Qt.DecorationRole:
-                return QIcon('resources/qt/images/star.png') if entry.is_fav else None
+                return QIcon(IMG_STAR_PATH) if entry.is_fav else None
             return None
 
         if role in (Qt.DisplayRole, Qt.EditRole):
@@ -2472,12 +2492,12 @@ class BrowsingPage(QWidget):
         # Create button for adding new entry
         self.buttons_layout = QHBoxLayout()
 
-        self.search_btn = create_img_button('resources/qt/images/search.png')
-        self.add_entry_btn = create_img_button('resources/qt/images/add.png')
-        self.manage_tags_btn = create_img_button('resources/qt/images/tag.png')
-        self.manage_features_btn = create_img_button('resources/qt/images/features.png')
-        self.manage_escape_sequences_btn = create_img_button('resources/qt/images/escape_seq.png')
-        self.practice_btn = create_img_button('resources/qt/images/practice.png')
+        self.search_btn = create_img_button(IMG_SEARCH_PATH)
+        self.add_entry_btn = create_img_button(IMG_ADD_PATH)
+        self.manage_tags_btn = create_img_button(IMG_TAG_PATH)
+        self.manage_features_btn = create_img_button(IMG_FEATURES_PATH)
+        self.manage_escape_sequences_btn = create_img_button(IMG_ESCAPE_SEQ_PATH)
+        self.practice_btn = create_img_button(IMG_PRACTICE_PATH)
 
         self.search_btn.clicked.connect(self.toggle_search)
         self.add_entry_btn.clicked.connect(self.add_entry)
@@ -2818,8 +2838,8 @@ class PracticeConfigPage(QWidget):
     def _create_buttons(self):
         self.buttons_layout = QHBoxLayout()
 
-        self.practice_btn = create_img_button('resources/qt/images/practice.png')
-        self.close_btn = create_img_button('resources/qt/images/exit.png')
+        self.practice_btn = create_img_button(IMG_PRACTICE_PATH)
+        self.close_btn = create_img_button(IMG_EXIT_PATH)
 
         self.practice_btn.clicked.connect(self.on_practice_button_clicked.emit)
         self.close_btn.clicked.connect(self.on_close_button_clicked.emit)
@@ -2850,9 +2870,9 @@ class PracticePage(QWidget):
         self.user_input_edit.setPlaceholderText('Enter your answer here')
         self.main_layout.addWidget(self.user_input_edit, 1, 0)
 
-        self.enter_btn = create_img_button('resources/qt/images/enter.png')
-        self.hint_btn = create_img_button('resources/qt/images/hint.png')
-        self.stop_btn = create_img_button('resources/qt/images/stop.png')
+        self.enter_btn = create_img_button(IMG_ENTER_PATH)
+        self.hint_btn = create_img_button(IMG_HINT_PATH)
+        self.stop_btn = create_img_button(IMG_STOP_PATH)
 
         self.enter_btn.clicked.connect(lambda: ...)  # TODO
         self.hint_btn.clicked.connect(lambda: ...)  # TODO
@@ -2879,7 +2899,7 @@ class PracticeResultsPage(QWidget):
         self.results_edit.setReadOnly(True)
         self.main_layout.addWidget(self.results_edit)
 
-        self.close_btn = create_img_button('resources/qt/images/exit.png')
+        self.close_btn = create_img_button(IMG_EXIT_PATH)
         self.close_btn.clicked.connect(self.on_close_button_clicked.emit)
         self.main_layout.addWidget(self.close_btn, alignment=Qt.AlignRight)
 
