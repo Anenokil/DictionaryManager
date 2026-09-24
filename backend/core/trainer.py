@@ -226,7 +226,7 @@ class Trainer:
         """
 
         def filter_by_tags() -> Iterable[Entry]:
-            if self._config.tags is None:
+            if not self._config.tags:
                 yield from self.dct
             else:
                 yield from self.dct.search(tags=self._config.tags)
