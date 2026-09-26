@@ -1448,7 +1448,11 @@ class EntryDetailsDialog(QDialog):
                 (gf, self.replacer.escape(wf))
                 for gf, wf in forms_to_pairs(self.entry.forms)
             ],
-            gram_forms=[] if self.is_new else list(self.entry.forms.keys()),
+            gram_forms=[] if self.is_new else [
+                gram_form
+                for gram_form, word_forms in self.entry.forms.items()
+                for _ in word_forms
+            ],
             is_1_col_active=False,
         )
         self.phrases_table = self.create_two_column_table(
