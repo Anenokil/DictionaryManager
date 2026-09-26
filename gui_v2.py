@@ -487,8 +487,7 @@ class OptionsDialog(QDialog):
             name, options = spec
 
             combo = QComboBox()
-            for option in options:
-                combo.addItem(option)
+            combo.addItems(options)
 
             # Set default option
             default_index = combo.findText(default)
@@ -2031,27 +2030,15 @@ class DctTabWidget(QTabWidget):
         if index == -1:
             return
 
-        menu = QMenu(self)
-        rename_action = menu.addAction('Rename...')
-        menu.addSeparator()
-        save_action = menu.addAction('Save')
-        save_as_action = menu.addAction('Save As...')
-        save_all_action = menu.addAction('Save All')
-        menu.addSeparator()
-        export_as_action = menu.addAction('Export As...')
-
-        action = menu.exec(self.tabBar().mapToGlobal(pos))
-
-        if action == rename_action:
-            self.rename_dict(index)
-        elif action == save_action:
-            self.save_dict(index)
-        elif action == save_as_action:
-            self.save_dict_as(index)
-        elif action == save_all_action:
-            self.save_all_dicts()
-        elif action == export_as_action:
-            self.export_dict_as(index)
+        show_context_menu(self, self.tabBar().mapToGlobal(pos), [
+            ActionConfig('Rename...', lambda: self.rename_dict(index)),
+            None,
+            ActionConfig('Save', lambda: self.save_dict(index)),
+            ActionConfig('Save As...', lambda: self.save_dict_as(index)),
+            ActionConfig('Save All', self.save_all_dicts),
+            None,
+            ActionConfig('Export As...', lambda: self.export_dict_as(index)),
+        ])
 
     def rename_dict(self, index):
         """
