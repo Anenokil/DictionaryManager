@@ -258,11 +258,13 @@ class ActionConfig:
                   triggered, or None for a non-clickable label.
         is_active: Bool or zero-argument function returning whether the
                    action is currently clickable.
+        shortcut: Shortcut text or None.
     """
 
     text:      Callable[[], str] | str
     callback:  Callable[[], Any] | None
     is_active: Callable[[], bool] | bool = True
+    shortcut:  str | None = None
 
 
 def show_context_menu(
@@ -299,6 +301,7 @@ def show_context_menu(
         text = entry.text
         callback = entry.callback
         is_active = entry.is_active
+        shortcut = entry.shortcut
 
         if isinstance(text, Callable):
             text = text()
@@ -306,6 +309,8 @@ def show_context_menu(
             is_active = is_active()
 
         action = menu.addAction(text)
+        if shortcut is not None:
+            action.setShortcut(QKeySequence(shortcut))
 
         if (callback is None) or (not is_active):
             action.setEnabled(False)
