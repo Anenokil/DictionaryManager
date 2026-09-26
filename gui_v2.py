@@ -2600,7 +2600,7 @@ class BrowsingPage(QWidget):
 
     def get_selected(self) -> set[tuple[int, Entry]]:
         return {
-            (item.row(), item.data(EntriesTableModel.ENTRY_ROLE))
+            (self.proxy_model.mapToSource(item).row(), item.data(EntriesTableModel.ENTRY_ROLE))
             for item in self.table_widget.selectedIndexes()
         }
 
@@ -2612,7 +2612,7 @@ class BrowsingPage(QWidget):
         dialog = EntryDetailsDialog(self.dct_bundle, None, self)
         dialog.exec()
         if dialog.exit_code == 'save':
-            n_rows = self.proxy_model.rowCount()
+            n_rows = self.source_model.rowCount()
             new_entry = dialog.entry
             self.source_model.add_row(n_rows, new_entry)
 
@@ -2637,7 +2637,7 @@ class BrowsingPage(QWidget):
         dialog = EntryDetailsDialog(self.dct_bundle, entry, self)
         dialog.exec()
         if dialog.exit_code == 'delete':
-            self.source_model.removeRow(item.row())
+            self.source_model.removeRow(self.proxy_model.mapToSource(index).row())
 
         self.update_tab_title()
 
@@ -2758,9 +2758,9 @@ class BrowsingPage(QWidget):
 
     def _update_selected_rows(self):
         selected_rows = {item.row() for item in self.table_widget.selectedIndexes()}
-        top_left = self.source_model.index(min(selected_rows), 0)
-        bottom_right = self.source_model.index(max(selected_rows), self.source_model.columnCount() - 1)
-        self.source_model.dataChanged.emit(top_left, bottom_right)
+        top_left = self.proxy_model.index(min(selected_rows), 0)
+        bottom_right = self.proxy_model.index(max(selected_rows), self.proxy_model.columnCount() - 1)
+        self.proxy_model.dataChanged.emit(top_left, bottom_right)
 
     def star_entries(self):
         selected = set(self.get_selected_entries())
