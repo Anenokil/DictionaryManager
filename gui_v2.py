@@ -2440,9 +2440,8 @@ class BrowsingPage(QWidget):
         self.dct = dct_bundle.dct
 
         self._create_widgets()
-
-        QShortcut(QKeySequence('Ctrl+F'), self, self.show_search_bar)
-        QShortcut(QKeySequence('Esc'), self, self.hide_search_bar)
+        self._set_shortcuts()
+        self._set_tooltips()
 
     def _create_widgets(self):
         self.main_layout = QGridLayout(self)
@@ -2498,13 +2497,17 @@ class BrowsingPage(QWidget):
         setup_table_context_menu(self.table_widget, [
             ActionConfig(n_selected, None, False),
             None,
-            ActionConfig('Manage Tags...', self.manage_entries_tags),
-            ActionConfig('Star', self.star_entries),
-            ActionConfig('Unstar', self.unstar_entries),
-            ActionConfig('Merge', self.merge_entries, lambda: len(self.get_selected_entries()) > 1),
-            ActionConfig('Create Dictionary...', self.cherry_pick_entries),
+            ActionConfig('Manage Tags...', self.manage_entries_tags, shortcut='Ctrl+Shift+T'),
+            ActionConfig('Star', self.star_entries, shortcut='Ctrl+Shift+R'),
+            ActionConfig('Unstar', self.unstar_entries, shortcut='Ctrl+Shift+U'),
+            ActionConfig(
+                'Merge', self.merge_entries,
+                lambda: len(self.get_selected_entries()) > 1,
+                shortcut='Ctrl+Shift+M'
+            ),
+            ActionConfig('Create Dictionary...', self.cherry_pick_entries, shortcut='Ctrl+Shift+C'),
             None,
-            ActionConfig('Delete', self.delete_entries),
+            ActionConfig('Delete', self.delete_entries, shortcut='Ctrl+Shift+D'),
         ])
 
     def _create_dct_buttons(self):
@@ -2540,6 +2543,51 @@ class BrowsingPage(QWidget):
         self.main_layout.addWidget(self.status_bar, 2, 1)
 
         self.update_status_bar()
+
+    def _set_shortcuts(self):
+        QShortcut(QKeySequence('Ctrl+F'), self, self.show_search_bar)
+        QShortcut(QKeySequence('Esc'), self, self.hide_search_bar)
+        QShortcut(QKeySequence('Ctrl+N'), self, self.add_entry)
+        QShortcut(QKeySequence('Ctrl+T'), self, self.manage_tags)
+        QShortcut(QKeySequence('Ctrl+G'), self, self.manage_features)
+        QShortcut(QKeySequence('Ctrl+E'), self, self.manage_escape_sequences)
+        QShortcut(QKeySequence('Ctrl+P'), self, self.on_practice_button_clicked.emit)
+
+        set_widget_shortcut('Ctrl+Shift+T', self.table_widget, self.manage_entries_tags)
+        set_widget_shortcut('Ctrl+Shift+R', self.table_widget, self.star_entries)
+        set_widget_shortcut('Ctrl+Shift+U', self.table_widget, self.unstar_entries)
+        set_widget_shortcut('Ctrl+Shift+M', self.table_widget, self.merge_entries)
+        set_widget_shortcut('Ctrl+Shift+C', self.table_widget, self.cherry_pick_entries)
+        set_widget_shortcut('Ctrl+Shift+D', self.table_widget, self.delete_entries)
+
+        def toggle_match_case():
+            if self.search_bar.isVisible():
+                self.search_bar.match_case_btn.click()
+
+        def toggle_match_whole_word():
+            if self.search_bar.isVisible():
+                self.search_bar.match_whole_word_btn.click()
+
+        def open_settings():
+            if self.search_bar.isVisible():
+                self.search_bar.open_settings()
+
+        QShortcut(QKeySequence('Alt+C'), self, toggle_match_case)
+        QShortcut(QKeySequence('Alt+W'), self, toggle_match_whole_word)
+        QShortcut(QKeySequence('Alt+S'), self, open_settings)
+
+    def _set_tooltips(self):
+        self.search_btn.setToolTip('Find Entries (Ctrl+F)')
+        self.add_entry_btn.setToolTip('New Entry (Ctrl+N)')
+        self.manage_tags_btn.setToolTip('Tags (Ctrl+T)')
+        self.manage_features_btn.setToolTip('Grammatical Features (Ctrl+G)')
+        self.manage_escape_sequences_btn.setToolTip('Escape Sequences (Ctrl+E)')
+        self.practice_btn.setToolTip('Practice (Ctrl+P)')
+
+        self.search_bar.match_case_btn.setToolTip('Match Case (Alt+C)')
+        self.search_bar.match_whole_word_btn.setToolTip('Match Whole Word (Alt+W)')
+        self.search_bar.settings_btn.setToolTip('Match Case (Alt+S)')
+        self.search_bar.close_btn.setToolTip('Close')
 
     def show_search_bar(self):
         self.search_bar.on_open()
@@ -2721,15 +2769,23 @@ class BrowsingPage(QWidget):
 
         self.update_tab_title()
 
+    def _update_selected_rows(self):
+        selected_rows = {item.row() for item in self.table_widget.selectedIndexes()}
+        top_left = self.source_model.index(min(selected_rows), 0)
+        bottom_right = self.source_model.index(max(selected_rows), self.source_model.columnCount() - 1)
+        self.source_model.dataChanged.emit(top_left, bottom_right)
+
     def star_entries(self):
         selected = set(self.get_selected_entries())
         self.dct.add_to_fav(selected)
         self.update_tab_title()
+        self._update_selected_rows()
 
     def unstar_entries(self):
         selected = set(self.get_selected_entries())
         self.dct.remove_from_fav(selected)
         self.update_tab_title()
+        self._update_selected_rows()
 
     def merge_entries(self):
         selected = sorted(self.get_selected())
