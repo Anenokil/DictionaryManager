@@ -3493,6 +3493,7 @@ class MainWindow(QMainWindow):
 
         self._configure_window()
         self._create_widgets()
+        self._set_shortcuts()
 
         self.load_state()
 
@@ -3550,6 +3551,12 @@ class MainWindow(QMainWindow):
         self.placeholder.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(self.placeholder)
 
+    def _set_shortcuts(self):
+        QShortcut(QKeySequence('Ctrl+Insert'), self, self.new_dict)
+        QShortcut(QKeySequence('Ctrl+S'), self, self.save_dict)
+        QShortcut(QKeySequence('Ctrl+Shift+S'), self, self.save_dict_as)
+        QShortcut(QKeySequence('Ctrl+Shift+E'), self, self.export_dict_as)
+
     def show_file_menu(self):
         """Show the File dropdown menu below the File button."""
 
@@ -3557,14 +3564,14 @@ class MainWindow(QMainWindow):
         if button_widget:
             pos = button_widget.mapToGlobal(button_widget.rect().bottomLeft())
             show_context_menu(self, pos, [
-                ActionConfig('New', self.new_dict),
+                ActionConfig('New', self.new_dict, shortcut='Ctrl+Insert'),
                 ActionConfig('Open', self.open_dict),
                 None,
-                ActionConfig('Save', self.save_dict, lambda: self.tab_widget.count() != 0),
-                ActionConfig('Save As...', self.save_dict_as, lambda: self.tab_widget.count() != 0),
+                ActionConfig('Save', self.save_dict, lambda: self.tab_widget.count() != 0, 'Ctrl+S'),
+                ActionConfig('Save As...', self.save_dict_as, lambda: self.tab_widget.count() != 0, 'Ctrl+Shift+S'),
                 ActionConfig('Save All', self.save_all_dicts, lambda: self.tab_widget.count() != 0),
                 None,
-                ActionConfig('Export As...', self.export_dict_as, lambda: self.tab_widget.count() != 0),
+                ActionConfig('Export As...', self.export_dict_as, lambda: self.tab_widget.count() != 0, 'Ctrl+Shift+E'),
             ])
 
     def show_settings_menu(self):
