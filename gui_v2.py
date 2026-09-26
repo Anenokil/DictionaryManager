@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QTableView, QTreeWidget,
     QTreeWidgetItem, QDialog, QInputDialog, QFileDialog,
     QDialogButtonBox, QPushButton, QGroupBox, QMessageBox, QComboBox,
-    QCheckBox, QLineEdit, QTextEdit, QPlainTextEdit, QLabel,
+    QCheckBox, QLineEdit, QTextEdit, QLabel,
     QLayout, QVBoxLayout, QHBoxLayout, QFormLayout,
     QGridLayout, QHeaderView, QAbstractItemView, QSizePolicy,
     QStyle, QStyledItemDelegate,
@@ -2752,12 +2752,48 @@ class PracticeConfigPage(QWidget):
     on_practice_button_clicked = Signal()
     on_close_button_clicked = Signal()
 
-    def __init__(self, dct: Dictionary, parent: QWidget | None = None):
+    exercise_options = {
+        'Words: to target language': TrainingFormat.TRANS_TO_WORD,
+        'Words: to native language': TrainingFormat.WORD_TO_TRANS,
+        'Phrases: to target language': TrainingFormat.TRANS_TO_PHRASE,
+        'Phrases: to native language': TrainingFormat.PHRASE_TO_TRANS,
+        'Der-Die-Das (German)': TrainingFormat.ARTICLES_GERMAN,
+    }
+    order_options = {
+        'Random': TrainingOrder.RANDOM,
+        'Difficult first': TrainingOrder.DIFFICULT_FIRST,
+    }
+    entries_options = {
+        'All': EntrySelection.ALL,
+        'Mostly starred': EntrySelection.MOSTLY_FAV,
+        'Starred only': EntrySelection.FAV,
+        'Unanswered only': EntrySelection.UNANSWERED,
+        '10 random': EntrySelection.RANDOM_10,
+        '10 random from starred': EntrySelection.RANDOM_10_FAV,
+    }
+    forms_options = {
+        'Lemma only': FormSelection.LEMMAS,
+        'One random form': FormSelection.RANDOM,
+        'Inflected only': FormSelection.INFLECTED,
+        'All': FormSelection.ALL,
+    }
+
+    exercise_texts = {v: k for k, v in exercise_options.items()}
+    order_texts = {v: k for k, v in order_options.items()}
+    entries_texts = {v: k for k, v in entries_options.items()}
+    forms_texts = {v: k for k, v in forms_options.items()}
+
+    def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
         super().__init__(parent)
 
-        self.dct = dct
+        self.dct_bundle = dct_bundle
+        self.dct = dct_bundle.dct
+        self.config = dct_bundle.train_config
 
         self._create_widgets()
+        self._set_shortcuts()
+        self._set_tooltips()
+        self.on_exercise_changed()
 
     def _create_widgets(self):
         self.main_layout = QVBoxLayout(self)
@@ -2768,32 +2804,6 @@ class PracticeConfigPage(QWidget):
         self._create_buttons()
 
     def _create_settings_widgets(self):
-        exercise_options = {
-            'Words: to target language': TrainingFormat.TRANS_TO_WORD,
-            'Words: to native language': TrainingFormat.WORD_TO_TRANS,
-            'Phrases: to target language': TrainingFormat.TRANS_TO_PHRASE,
-            'Phrases: to native language': TrainingFormat.PHRASE_TO_TRANS,
-            'Der-Die-Das (German)': TrainingFormat.ARTICLES_GERMAN,
-        }
-        order_options = {
-            'Random': TrainingOrder.RANDOM,
-            'Difficult first': TrainingOrder.DIFFICULT_FIRST,
-        }
-        entries_options = {
-            'All': EntrySelection.ALL,
-            'Mostly starred': EntrySelection.MOSTLY_FAV,
-            'Starred only': EntrySelection.FAV,
-            'Unanswered only': EntrySelection.UNANSWERED,
-            '10 random': EntrySelection.RANDOM_10,
-            '10 random from starred': EntrySelection.RANDOM_10_FAV,
-        }
-        forms_options = {
-            'Lemma only': FormSelection.LEMMAS,
-            'One random form': FormSelection.RANDOM,
-            'Inflected only': FormSelection.INFLECTED,
-            'All': FormSelection.ALL,
-        }
-
         label = QLabel('Configure practice')
         self.main_layout.addWidget(label, alignment=Qt.AlignHCenter)
 
@@ -2802,35 +2812,44 @@ class PracticeConfigPage(QWidget):
         self.label_exercise = QLabel('Exercise:', alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.settings_layout.addWidget(self.label_exercise, 0, 0)
         self.combo_exercise = QComboBox()
-        self.combo_exercise.addItems(exercise_options)
+        self.combo_exercise.addItems(self.exercise_options)
+        self.combo_exercise.setCurrentText(self.exercise_texts[self.config.format])
+        self.combo_exercise.currentIndexChanged.connect(self.on_exercise_changed)
         self.settings_layout.addWidget(self.combo_exercise, 0, 1)
 
         self.label_entries = QLabel('Entries:', alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.settings_layout.addWidget(self.label_entries, 1, 0)
         self.combo_entries = QComboBox()
-        self.combo_entries.addItems(entries_options)
+        self.combo_entries.addItems(self.entries_options)
+        self.combo_entries.setCurrentText(self.entries_texts[self.config.entries])
         self.settings_layout.addWidget(self.combo_entries, 1, 1)
 
         self.label_tags = QLabel('Required tags:', alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.settings_layout.addWidget(self.label_tags, 2, 0)
-        self.list_tags = CheckableList({tag: Qt.Unchecked for tag in self.dct.tags})
+        self.list_tags = CheckableList({
+            tag: (self.config.tags is not None) and (tag in self.config.tags)
+            for tag in self.dct.tags
+        })
         self.settings_layout.addWidget(self.list_tags, 2, 1)
 
         self.label_forms = QLabel('Word forms:', alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.settings_layout.addWidget(self.label_forms, 3, 0)
         self.combo_forms = QComboBox()
-        self.combo_forms.addItems(forms_options)
+        self.combo_forms.addItems(self.forms_options)
+        self.combo_forms.setCurrentText(self.forms_texts[self.config.forms])
         self.settings_layout.addWidget(self.combo_forms, 3, 1)
 
         self.label_order = QLabel('Order:', alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.settings_layout.addWidget(self.label_order, 4, 0)
         self.combo_order = QComboBox()
-        self.combo_order.addItems(order_options)
+        self.combo_order.addItems(self.order_options)
+        self.combo_order.setCurrentText(self.order_texts[self.config.order])
         self.settings_layout.addWidget(self.combo_order, 4, 1)
 
         self.label_case = QLabel('Case sensitive:', alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.settings_layout.addWidget(self.label_case, 5, 0)
         self.checkbox_case = QCheckBox()
+        self.checkbox_case.setChecked(self.config.is_case_sensitive)
         self.settings_layout.addWidget(self.checkbox_case, 5, 1)
 
         self.main_layout.addLayout(self.settings_layout)
@@ -2841,7 +2860,7 @@ class PracticeConfigPage(QWidget):
         self.practice_btn = create_img_button(IMG_PRACTICE_PATH)
         self.close_btn = create_img_button(IMG_EXIT_PATH)
 
-        self.practice_btn.clicked.connect(self.on_practice_button_clicked.emit)
+        self.practice_btn.clicked.connect(self.start)
         self.close_btn.clicked.connect(self.on_close_button_clicked.emit)
 
         self.buttons_layout.addWidget(self.practice_btn)
@@ -2849,59 +2868,470 @@ class PracticeConfigPage(QWidget):
 
         self.main_layout.addLayout(self.buttons_layout)
 
+    def _set_shortcuts(self):
+        QShortcut(QKeySequence('Return'), self, self.start)
+        QShortcut(QKeySequence('Esc'), self, self.on_close_button_clicked.emit)
 
-class PracticePage(QWidget):
-    on_close_button_clicked = Signal()
+    def _set_tooltips(self):
+        self.practice_btn.setToolTip('Start')
+        self.close_btn.setToolTip('Close')
 
+    def on_exercise_changed(self):
+        if self.combo_exercise.currentIndex() == 0:
+            self.label_forms.show()
+            self.combo_forms.show()
+        else:
+            self.label_forms.hide()
+            self.combo_forms.hide()
+
+    def start(self):
+        self.config.is_case_sensitive = self.checkbox_case.isChecked()
+        self.config.format = self.exercise_options[self.combo_exercise.currentText()]
+        self.config.order = self.order_options[self.combo_order.currentText()]
+        self.config.entries = self.entries_options[self.combo_entries.currentText()]
+        if self.config.format == TrainingFormat.TRANS_TO_WORD:
+            forms = self.forms_options[self.combo_forms.currentText()]
+        else:
+            forms = FormSelection.LEMMAS
+        self.config.forms = forms
+        self.config.tags = self.list_tags.get_checked_items()
+
+        partial_save(self.dct_bundle, train_config=True)
+
+        self.on_practice_button_clicked.emit()
+
+
+def entry_practice_stats_repr(entry: Entry) -> tuple[str, int]:
+    return accuracy_to_str(entry), entry.win_streak
+
+
+def lemma_and_stats_repr(entry: Entry) -> tuple[str, str, str, int]:
+    return (
+        'Translate to your native language:',
+        lemma_to_str(entry.variants),
+        *entry_practice_stats_repr(entry)
+    )
+
+
+def lemma_with_no_article_and_stats_repr(entry: Entry) -> tuple[str, str, str, int]:
+    return (
+        'Enter the correct article for the following word:',
+        lemma_to_str(entry.variants)[4:],
+        *entry_practice_stats_repr(entry)
+    )
+
+
+def tr_and_stats_repr(entry: Entry) -> tuple[str, str, str, int]:
+    return (
+        'Translate to the target language:',
+        translations_to_str(entry.tr),
+        *entry_practice_stats_repr(entry)
+    )
+
+
+def tr_and_forms_and_stats_repr(entry: Entry, gram_form: Iterable[str]) -> tuple[str, str, str, int]:
+    return (
+        'Translate to the target language:',
+        f'{translations_to_str(entry.tr)} (at {gram_form_to_str(gram_form)})',
+        *entry_practice_stats_repr(entry)
+    )
+
+
+def phrase_and_stats_repr(entry: Entry, phrase: str) -> tuple[str, str, str, int]:
+    return (
+        'Translate to your native language:',
+        phrase,
+        *entry_practice_stats_repr(entry)
+    )
+
+
+def phrase_tr_and_stats_repr(entry: Entry, phrase: str) -> tuple[str, str, str, int]:
+    return (
+        'Translate to the target language:',
+        translations_to_str(entry.phrases[phrase]),
+        *entry_practice_stats_repr(entry)
+    )
+
+
+def percent_repr(numerator: int, denominator: int) -> str:
+    if denominator == 0:
+        return '---'
+
+    percent = 100 * numerator / denominator
+    return f'{numerator} / {denominator} = {percent:.1f}%'
+
+
+class CorrectAnswerDialog(QDialog):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
+        self.setWindowTitle('Correct Answer')
+
+        layout = QVBoxLayout(self)
+
+        label = QLabel('Correct!')
+        label.setStyleSheet('color: #2e7d32;')
+        layout.addWidget(label)
+
+        btn = QPushButton('OK')
+        btn.clicked.connect(self.accept)
+        layout.addWidget(btn)
+
+
+class WrongAnswerDialog(QDialog):
+    def __init__(self, user_answer: str, correct_answer: str, parent: QWidget | None = None):
+        super().__init__(parent)
+
+        self.setWindowTitle('Wrong Answer')
+
+        layout = QVBoxLayout(self)
+
+        for line in ['Wrong!', f'Your answer: {user_answer}', f'Correct answer: {correct_answer}']:
+            label = QLabel(line)
+            label.setStyleSheet('color: #c62828;')
+            layout.addWidget(label)
+
+        btn = QPushButton('OK')
+        btn.clicked.connect(self.accept)
+        layout.addWidget(btn)
+
+
+class PracticePage(QWidget):
+    on_close_button_clicked = Signal()
+    on_dct_edited = Signal()
+
+    def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
+        super().__init__(parent)
+
+        self.dct_bundle = dct_bundle
+        self.trainer = dct_bundle.trainer
+        self.replacer = dct_bundle.replacer
+
+        self._practice_session_num = 0
+
         self._create_widgets()
+        self._set_shortcuts()
+        self._set_tooltips()
 
     def _create_widgets(self):
         self.main_layout = QGridLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.task_edit = QPlainTextEdit()
+        self.task_edit = QTextEdit()
         self.task_edit.setReadOnly(True)
         self.main_layout.addWidget(self.task_edit, 0, 0, 1, 4)
 
         self.user_input_edit = QLineEdit()
-        self.user_input_edit.setPlaceholderText('Enter your answer here')
+        self.user_input_edit.setPlaceholderText('Your answer')
         self.main_layout.addWidget(self.user_input_edit, 1, 0)
 
         self.enter_btn = create_img_button(IMG_ENTER_PATH)
         self.hint_btn = create_img_button(IMG_HINT_PATH)
         self.stop_btn = create_img_button(IMG_STOP_PATH)
+        self.close_btn = create_img_button(IMG_EXIT_PATH)
 
-        self.enter_btn.clicked.connect(lambda: ...)  # TODO
-        self.hint_btn.clicked.connect(lambda: ...)  # TODO
-        self.stop_btn.clicked.connect(self.on_close_button_clicked.emit)
+        self.enter_btn.clicked.connect(self.enter)
+        self.hint_btn.clicked.connect(self.get_hint)
+        self.stop_btn.clicked.connect(self.stop)
+        self.close_btn.clicked.connect(self.on_close_button_clicked.emit)
 
         self.main_layout.addWidget(self.enter_btn, 1, 1)
         self.main_layout.addWidget(self.hint_btn, 1, 2)
         self.main_layout.addWidget(self.stop_btn, 1, 3)
+        self.main_layout.addWidget(self.close_btn, 1, 3)
 
+    def _set_shortcuts(self):
+        self.shortcut_enter = QShortcut(QKeySequence('Return'), self, self.enter)
+        self.shortcut_hint = QShortcut(QKeySequence('Ctrl+H'), self, self.get_hint)
+        self.shortcut_stop = QShortcut(QKeySequence('Ctrl+S'), self, self.stop)
+        self.shortcut_close = QShortcut(QKeySequence('Return'), self, self.on_close_button_clicked.emit)
 
-class PracticeResultsPage(QWidget):
-    on_close_button_clicked = Signal()
+    def _set_tooltips(self):
+        self.enter_btn.setToolTip('Enter')
+        self.hint_btn.setToolTip('Hints (Ctrl+H)')
+        self.stop_btn.setToolTip('End (Ctrl+S)')
+        self.close_btn.setToolTip('Close')
 
-    def __init__(self, parent: QWidget | None = None):
-        super().__init__(parent)
+    def _render_topbar(self) -> str:
+        return f'''
+            <div style="
+                padding-bottom: 6px;
+                margin-bottom: 14px;
+                border-bottom: 1px solid #dddddd;
+            ">
+                <table align="center" style="border-collapse: collapse;">
+                    <tr>
+                        <td style="text-align: right; padding-right: 4px; color: #888888; font-size: 13px;">
+                            Total dictionary score:
+                        </td>
+                        <td style="text-align: left; color: #888888; font-size: 13px;">
+                            {self.total_score_repr()}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right; padding-right: 4px; color: #888888; font-size: 13px;">
+                            Session score:
+                        </td>
+                        <td style="text-align: left; color: #888888; font-size: 13px;">
+                            {self.session_score_repr()}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right; padding-right: 4px; color: #888888; font-size: 13px;">
+                            Answered:
+                        </td>
+                        <td style="text-align: left; color: #888888; font-size: 13px;">
+                            {self.answered_repr()}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        '''
 
-        self._create_widgets()
+    def _update_hint_btn(self):
+        self.hint_btn.setEnabled(False)
 
-    def _create_widgets(self):
-        self.main_layout = QVBoxLayout(self)
-        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        if self.current_entry.n_notes != 0 and self.trainer.config.format not in (
+                TrainingFormat.TRANS_TO_PHRASE, TrainingFormat.PHRASE_TO_TRANS
+        ):
+            self.hint_btn.setEnabled(True)
 
-        self.results_edit = QTextEdit()
-        self.results_edit.setReadOnly(True)
-        self.main_layout.addWidget(self.results_edit)
+        if len(self.homonyms) != 0 and self.trainer.config.format not in (
+                TrainingFormat.TRANS_TO_PHRASE, TrainingFormat.PHRASE_TO_TRANS
+        ):
+            self.hint_btn.setEnabled(True)
 
-        self.close_btn = create_img_button(IMG_EXIT_PATH)
-        self.close_btn.clicked.connect(self.on_close_button_clicked.emit)
-        self.main_layout.addWidget(self.close_btn, alignment=Qt.AlignRight)
+    def _render_hint(self) -> str:
+        if not self._to_display_hint:
+            return ''
+
+        hint = ''
+
+        if self.current_entry.n_notes != 0 and self.trainer.config.format not in (
+                TrainingFormat.TRANS_TO_PHRASE, TrainingFormat.PHRASE_TO_TRANS
+        ):
+            notes_repr = '<br>'.join(self.current_entry.notes)
+            hint += f'''
+                <hr>
+                <div style="color: #333333; font-size: 17px;">
+                    Notes:
+                </div>
+                <div style="color: #999999; font-size: 14px; margin-bottom: 8px;">
+                    {notes_repr}
+                </div>
+            '''
+
+        if len(self.homonyms) != 0 and self.trainer.config.format not in (
+                TrainingFormat.TRANS_TO_PHRASE, TrainingFormat.PHRASE_TO_TRANS
+        ):
+            homonyms_repr = '<br>'.join(
+                f'{lemma_to_str(entry.variants)}: {translations_to_str(entry.tr)}'
+                for entry in self.homonyms
+            )
+            hint += f'''
+                <hr>
+                <div style="color: #333333; font-size: 17px;">
+                    Homonyms:
+                </div>
+                <div style="color: #999999; font-size: 14px; margin-bottom: 8px;">
+                    {homonyms_repr}
+                </div>
+            '''
+
+        return hint
+
+    def _render_task_html(self) -> str:
+        return f'''
+            <div style="text-align: center; font-family: sans-serif;">
+
+                {self._render_topbar()}
+
+                <hr>
+
+                <div style="margin-bottom: 18px; margin-top: 32px;">
+                    <div style="color: #666666; font-size: 20px; margin-bottom: 8px;">
+                        {self._task_repr[0]}
+                    </div>
+                    <div style="font-size: 32px; font-weight: bold; color: #1a1a1a;">
+                        {self._task_repr[1]}
+                    </div>
+                </div>
+
+                <div style="
+                    color: #999999;
+                    font-size: 13px;
+                    border-top: 1px solid #eeeeee;
+                    padding-top: 8px;
+                    margin-top: 10px;
+                    margin-bottom: 32px;
+                ">
+                    Your statistics on the word:<br>
+                    Accuracy: {self._task_repr[2]} &nbsp;&middot;&nbsp; Win streak: {self._task_repr[3]}
+                </div>
+
+                {self._render_hint()}
+
+            </div>
+        '''
+
+    def _render_results_html(self) -> str:
+        history = ''
+        for task in self.history[:-1]:
+            color = '#2e7d32' if task['is_correct'] else '#c62828'
+            history += f'''
+                <hr>
+                <div style="color: {color}; font-size: 14px; margin-bottom: 8px;">
+                    {task["task"]}<br>
+                    Your answer: {task["user_answer"]}<br>
+                    The correct answer: {task["correct_answer"]}
+                </div>
+            '''
+
+        return f'''
+            <div style="text-align: center; font-family: sans-serif;">
+                {self._render_topbar()}
+
+                {history}
+            </div>
+        '''
+
+    def fill_task_edit(self):
+        html = self._render_task_html()
+        self.task_edit.setHtml(html)
+
+    def on_page_opened(self):
+        self.trainer.initialize()
+        self.initial_pool_size = len(self.trainer.pool)
+        self.current_entry = None
+        self.current_form = None  # None for lemma
+        self.current_phrase = None
+        self.homonyms = []
+        self.count_all = 0
+        self.count_correct = 0
+        self._practice_session_num += 1
+        self._task_repr = ('', '', '', '')
+        self._to_display_hint = False
+        self.history = []
+
+        self.user_input_edit.show()
+        self.enter_btn.show()
+        self.hint_btn.show()
+        self.stop_btn.show()
+        self.close_btn.hide()
+        self.user_input_edit.setFocus()
+
+        self.shortcut_enter.setEnabled(True)
+        self.shortcut_hint.setEnabled(True)
+        self.shortcut_stop.setEnabled(True)
+        self.shortcut_close.setEnabled(False)
+
+        self.get_task()
+
+        self.fill_task_edit()
+        self._update_hint_btn()
+
+    def total_score_repr(self):
+        correct, total = self.trainer.dct.total_score
+        return percent_repr(correct, total)
+
+    def session_score_repr(self):
+        return percent_repr(self.count_correct, self.count_all)
+
+    def answered_repr(self):
+        return percent_repr(self.count_correct, self.initial_pool_size)
+
+    def get_task(self):
+        if self.trainer.is_finished():
+            self.stop()
+            return
+
+        self.current_entry, self.current_form, self.current_phrase, self.homonyms = self.trainer.get_task()
+
+        if self.trainer.config.format == TrainingFormat.TRANS_TO_WORD:
+            if self.trainer.config.forms and self.current_form:
+                self._task_repr = tr_and_forms_and_stats_repr(
+                    self.current_entry, self.current_form,
+                )
+            else:
+                self._task_repr = tr_and_stats_repr(self.current_entry)
+        elif self.trainer.config.format == TrainingFormat.WORD_TO_TRANS:
+            self._task_repr = lemma_and_stats_repr(self.current_entry)
+        elif self.trainer.config.format == TrainingFormat.TRANS_TO_PHRASE:
+            self._task_repr = phrase_tr_and_stats_repr(
+                self.current_entry, self.current_phrase,
+            )
+        elif self.trainer.config.format == TrainingFormat.PHRASE_TO_TRANS:
+            self._task_repr = phrase_and_stats_repr(
+                self.current_entry, self.current_phrase,
+            )
+        else:
+            self._task_repr = lemma_with_no_article_and_stats_repr(self.current_entry)
+
+        self._to_display_hint = False
+
+        self.history.append({'task': self._task_repr[1]})
+
+    def get_hint(self):
+        self._to_display_hint = True
+        self.fill_task_edit()
+
+        self.hint_btn.setEnabled(False)
+
+    def enter(self):
+        self.trainer.dct.mark_modified()
+        self.on_dct_edited.emit()
+
+        user_answer = self.replacer.replace(self.user_input_edit.text())
+        self.check_answer(user_answer)
+
+        self.get_task()
+
+        self.task_edit.clear()
+        self.fill_task_edit()
+        self.user_input_edit.clear()
+        self._update_hint_btn()
+        self.user_input_edit.setFocus()
+
+    def check_answer(self, user_answer: str):
+        is_correct = self.trainer.is_answer_correct(user_answer)
+        correct_answers = self.trainer.get_correct_answers()
+        correct_answers_repr = ', '.join(correct_answers)
+        timestamp = (
+            self.dct_bundle.session_number,
+            self._practice_session_num,
+            self.count_all,
+        )
+
+        self.count_all += 1
+
+        if is_correct:
+            self.count_correct += 1
+            self.current_entry.register_correct_answer(timestamp)
+            dialog = CorrectAnswerDialog(parent=self)
+        else:
+            self.current_entry.register_incorrect_answer(timestamp)
+            dialog = WrongAnswerDialog(user_answer, correct_answers_repr, parent=self)
+
+        dialog.exec()
+
+        self.history[-1]['is_correct'] = is_correct
+        self.history[-1]['correct_answer'] = correct_answers_repr
+        self.history[-1]['user_answer'] = user_answer
+
+    def stop(self):
+        html = self._render_results_html()
+        self.task_edit.setText(html)
+
+        self.user_input_edit.hide()
+        self.enter_btn.hide()
+        self.hint_btn.hide()
+        self.stop_btn.hide()
+        self.close_btn.show()
+
+        self.shortcut_enter.setEnabled(False)
+        self.shortcut_hint.setEnabled(False)
+        self.shortcut_stop.setEnabled(False)
+        self.shortcut_close.setEnabled(True)
 
 
 class DctWorkspaceWidget(QWidget):
@@ -2936,20 +3366,17 @@ class DctWorkspaceWidget(QWidget):
         self.browsing_page.on_practice_button_clicked.connect(self.open_practice_config_page)
         self.browsing_page.on_dct_edited.connect(self.update_tab_title)
 
-        self.practice_config_page = PracticeConfigPage(self.dct)
+        self.practice_config_page = PracticeConfigPage(self.dct_bundle)
         self.practice_config_page.on_practice_button_clicked.connect(self.open_practice_page)
         self.practice_config_page.on_close_button_clicked.connect(self.open_browsing_page)
 
-        self.practice_page = PracticePage()
-        self.practice_page.on_close_button_clicked.connect(self.open_practice_results_page)
-
-        self.practice_results_page = PracticeResultsPage()
-        self.practice_results_page.on_close_button_clicked.connect(self.open_browsing_page)
+        self.practice_page = PracticePage(self.dct_bundle)
+        self.practice_page.on_close_button_clicked.connect(self.open_browsing_page)
+        self.practice_page.on_dct_edited.connect(self.update_tab_title)
 
         self.pages.addWidget(self.browsing_page)
         self.pages.addWidget(self.practice_config_page)
         self.pages.addWidget(self.practice_page)
-        self.pages.addWidget(self.practice_results_page)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.pages)
@@ -2962,9 +3389,7 @@ class DctWorkspaceWidget(QWidget):
 
     def open_practice_page(self):
         self.pages.setCurrentIndex(2)
-
-    def open_practice_results_page(self):
-        self.pages.setCurrentIndex(3)
+        self.practice_page.on_page_opened()
 
     def update_tab_title(self):
         self.tab_widget.update_tab_title(self.tab_widget.indexOf(self))
