@@ -3728,7 +3728,7 @@ class MainWindow(QMainWindow):
             event: Close event from Qt.
         """
 
-        for index, dct_bundle in enumerate(self.manager.opened_dct_bundles):
+        for index, dct_bundle in list(enumerate(self.manager.opened_dct_bundles))[::-1]:
             dct = dct_bundle.dct
             if dct.is_modified:
                 to_save = ask_yes_no(self, 'Unsaved changes', f'Save dictionary {dct.name}?')
