@@ -2,6 +2,7 @@ from typing import Generator, Iterable, Collection, Callable, Any
 from copy import deepcopy
 import sys
 import re
+from dataclasses import dataclass
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QScrollArea, QFrame, QWidget,
     QStackedWidget, QTabWidget, QTabBar, QToolBar, QMenu,
@@ -247,16 +248,27 @@ def n_selected_msg(n: int, singular: str, plural: str | None = None) -> str:
     return f'{n} {plural} selected'
 
 
+@dataclass
+class ActionConfig:
+    """
+    Attributes:
+        text: String or zero-argument function that returns the action text
+              (useful for dynamic labels).
+        callback: Zero-argument function called when the action is
+                  triggered, or None for a non-clickable label.
+        is_active: Bool or zero-argument function returning whether the
+                   action is currently clickable.
+    """
+
+    text:      Callable[[], str] | str
+    callback:  Callable[[], Any] | None
+    is_active: Callable[[], bool] | bool = True
+
+
 def show_context_menu(
         widget: QWidget,
         pos: QPoint,
-        actions_config: list[
-            None | tuple[
-                Callable[[], str] | str,
-                Callable[[], Any] | None,
-                Callable[[], bool] | bool
-            ]
-        ],
+        actions_config: list[None | ActionConfig],
 ):
     """
     Configure and show a context menu.
@@ -284,11 +296,15 @@ def show_context_menu(
             menu.addSeparator()
             continue
 
-        text, callback, is_active = entry
+        text = entry.text
+        callback = entry.callback
+        is_active = entry.is_active
+
         if isinstance(text, Callable):
             text = text()
         if isinstance(is_active, Callable):
             is_active = is_active()
+
         action = menu.addAction(text)
 
         if (callback is None) or (not is_active):
@@ -303,13 +319,7 @@ def show_context_menu(
 
 def setup_table_context_menu(
         table: QTableWidget | QTableView,
-        actions_config: list[
-            None | tuple[
-                Callable[[], str] | str,
-                Callable[[], Any] | None,
-                Callable[[], bool] | bool
-            ]
-        ],
+        actions_config: list[None | ActionConfig],
 ):
     """
     Configure a context menu for the given table.
@@ -624,9 +634,9 @@ class EditableTagList(QTableWidget):
             self.add_tag(tag, is_default)
 
         setup_table_context_menu(self, [
-            (lambda: n_selected_msg(self.n_selected_tags(), 'tag'), None, False),
+            ActionConfig(lambda: n_selected_msg(self.n_selected_tags(), 'tag'), None, False),
             None,
-            ('Delete', self.delete_tags, True),
+            ActionConfig('Delete', self.delete_tags),
         ])
 
     def n_selected_tags(self) -> int:
@@ -1467,24 +1477,24 @@ class EntryDetailsDialog(QDialog):
                 return f'Delete 1 {singular}'
             return f'Delete {n} {singular}s'
 
-        setup_table_context_menu(self.lemma_variants_table, [(
+        setup_table_context_menu(self.lemma_variants_table, [ActionConfig(
             lambda: delete_msg(self.lemma_variants_table, 'variant'),
             self.delete_lemma_variants,
             lambda: len(self.lemma_variants_table.selectedIndexes()) < self.lemma_variants_table.rowCount(),
         )])
-        setup_table_context_menu(self.translations_table, [(
+        setup_table_context_menu(self.translations_table, [ActionConfig(
             lambda: delete_msg(self.translations_table, 'translation'),
             self.delete_translations,
             lambda: len(self.translations_table.selectedIndexes()) < self.translations_table.rowCount(),
         )])
         setup_table_context_menu(self.forms_table, [
-            (lambda: delete_msg(self.forms_table, 'form'), self.delete_forms, True),
+            ActionConfig(lambda: delete_msg(self.forms_table, 'form'), self.delete_forms),
         ])
         setup_table_context_menu(self.phrases_table, [
-            (lambda: delete_msg(self.phrases_table, 'phrase'), self.delete_phrases, True),
+            ActionConfig(lambda: delete_msg(self.phrases_table, 'phrase'), self.delete_phrases),
         ])
         setup_table_context_menu(self.notes_table, [
-            (lambda: delete_msg(self.notes_table, 'note'), self.delete_notes, True),
+            ActionConfig(lambda: delete_msg(self.notes_table, 'note'), self.delete_notes),
         ])
 
         # Create other widgets
@@ -2477,15 +2487,15 @@ class BrowsingPage(QWidget):
         # Setup context menu
         n_selected = lambda: n_selected_msg(len(self.get_selected_entries()), 'entry', 'entries')
         setup_table_context_menu(self.table_widget, [
-            (n_selected, None, False),
+            ActionConfig(n_selected, None, False),
             None,
-            ('Manage Tags...', self.manage_entries_tags, True),
-            ('Star', self.star_entries, True),
-            ('Unstar', self.unstar_entries, True),
-            ('Merge', self.merge_entries, lambda: len(self.get_selected_entries()) > 1),
-            ('Create Dictionary...', self.cherry_pick_entries, True),
+            ActionConfig('Manage Tags...', self.manage_entries_tags),
+            ActionConfig('Star', self.star_entries),
+            ActionConfig('Unstar', self.unstar_entries),
+            ActionConfig('Merge', self.merge_entries, lambda: len(self.get_selected_entries()) > 1),
+            ActionConfig('Create Dictionary...', self.cherry_pick_entries),
             None,
-            ('Delete', self.delete_entries, True),
+            ActionConfig('Delete', self.delete_entries),
         ])
 
     def _create_dct_buttons(self):
@@ -3482,14 +3492,14 @@ class MainWindow(QMainWindow):
         if button_widget:
             pos = button_widget.mapToGlobal(button_widget.rect().bottomLeft())
             show_context_menu(self, pos, [
-                ('New', self.new_dict, True),
-                ('Open', self.open_dict, True),
+                ActionConfig('New', self.new_dict),
+                ActionConfig('Open', self.open_dict),
                 None,
-                ('Save', self.save_dict, lambda: self.tab_widget.count() != 0),
-                ('Save As...', self.save_dict_as, lambda: self.tab_widget.count() != 0),
-                ('Save All', self.save_all_dicts, lambda: self.tab_widget.count() != 0),
+                ActionConfig('Save', self.save_dict, lambda: self.tab_widget.count() != 0),
+                ActionConfig('Save As...', self.save_dict_as, lambda: self.tab_widget.count() != 0),
+                ActionConfig('Save All', self.save_all_dicts, lambda: self.tab_widget.count() != 0),
                 None,
-                ('Export As...', self.export_dict_as, lambda: self.tab_widget.count() != 0),
+                ActionConfig('Export As...', self.export_dict_as, lambda: self.tab_widget.count() != 0),
             ])
 
     def show_settings_menu(self):
