@@ -590,6 +590,15 @@ class CheckableList(QScrollArea):
 
         self.setWidget(self.container)
 
+        def show_menu(pos):
+            show_context_menu(self, self.viewport().mapToGlobal(pos), [
+                ActionConfig('Check All', self.check_all, lambda: bool(self.checkboxes)),
+                ActionConfig('Uncheck All', self.uncheck_all, lambda: bool(self.checkboxes)),
+            ])
+
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(show_menu)
+
         self._update_max_height()
 
     def add_item(self, text: str, is_checked: bool = False):
@@ -598,6 +607,14 @@ class CheckableList(QScrollArea):
         self.container.layout().addWidget(checkbox)
         self.checkboxes[text] = checkbox
         QTimer.singleShot(0, self._update_max_height)
+
+    def check_all(self):
+        for cb in self.checkboxes.values():
+            cb.setChecked(True)
+
+    def uncheck_all(self):
+        for cb in self.checkboxes.values():
+            cb.setChecked(False)
 
     def get_checked_items(self) -> list[str]:
         return [text for text, cb in self.checkboxes.items() if cb.isChecked()]
