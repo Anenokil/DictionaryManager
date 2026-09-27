@@ -1689,7 +1689,7 @@ class EntryDetailsDialog(QDialog):
 
         header = table.horizontalHeader()
         table.horizontalHeader().setVisible(False)
-        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(0, QHeaderView.Interactive)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
 
         # Populate data
@@ -1711,6 +1711,14 @@ class EntryDetailsDialog(QDialog):
 
         table.setMinimumHeight(30)
         table.setMinimumWidth(120)
+
+        max_first_column_fraction = 0.5
+
+        def update_column0_cap():
+            table.setColumnWidth(0, int(table.viewport().width() * max_first_column_fraction))
+
+        table.resizeEvent = lambda event, orig=table.resizeEvent: (orig(event), update_column0_cap())
+        update_column0_cap()
 
         return table
 
