@@ -397,12 +397,12 @@ class InputTagDialog(QDialog):
 
         self.replacer = dct_bundle.replacer
         if initial is None:
-            title = 'New tag'
+            title = 'New Tag'
             tag = ''
             is_default = False
             self.other_tags = set(dct_bundle.dct.tags)
         else:
-            title = 'Edit tag'
+            title = 'Edit Tag'
             tag, is_default = initial
             self.other_tags = set(dct_bundle.dct.tags).difference({tag})
 
@@ -1431,7 +1431,7 @@ class EntryDetailsDialog(QDialog):
             self.validate_and_update_table(self.translations_table)
 
     def _configure_window(self):
-        title = 'New entry' if self.is_new else f'Entry "{lemma_to_str(self.entry.variants)}"'
+        title = 'New Entry' if self.is_new else f'Entry "{lemma_to_str(self.entry.variants)}"'
         self.setWindowTitle(title)
         self.setModal(True)
         self.resize(500, 500)
@@ -1786,7 +1786,7 @@ class EntryDetailsDialog(QDialog):
             return False, 'Lemma variant must not be empty'
         variants = get_column_data(self.lemma_variants_table, 0)
         if variants.count(variant) > 1:
-            return False, f'Variant {variant} is a duplicate'
+            return False, f'Variant "{variant}" is a duplicate'
         return True, ''
 
     def validate_translation(self, translation: str) -> tuple[bool, str]:
@@ -1794,7 +1794,7 @@ class EntryDetailsDialog(QDialog):
             return False, 'Translation must not be empty'
         translations = get_column_data(self.translations_table, 0)
         if translations.count(translation) > 1:
-            return False, f'Translation {translation} is a duplicate'
+            return False, f'Translation "{translation}" is a duplicate'
         return True, ''
 
     def validate_word_form(self, gram_form: GramForm, word_form: str) -> tuple[bool, str]:
@@ -1807,7 +1807,7 @@ class EntryDetailsDialog(QDialog):
         word_forms = get_column_data(self.forms_table, 1)
         adj_word_forms = [wf for gf, wf in zip(gram_forms, word_forms) if gf == gram_form]
         if adj_word_forms.count(word_form) > 1:
-            return False, f'Word form {word_form} is a duplicate'
+            return False, f'Word form "{word_form}" is a duplicate'
         return True, ''
 
     def validate_phrase(self, phrase: str) -> tuple[bool, str]:
@@ -1822,7 +1822,7 @@ class EntryDetailsDialog(QDialog):
         phrase_trs = get_column_data(self.phrases_table, 1)
         adj_phrase_trs = [pt for ph, pt in zip(phrases, phrase_trs) if ph == phrase]
         if adj_phrase_trs.count(phrase_tr) > 1:
-            return False, f'Phrase translation {phrase_tr} is a duplicate'
+            return False, f'Phrase translation "{phrase_tr}" is a duplicate'
         return True, ''
 
     def validate_note(self, note: str) -> tuple[bool, str]:
@@ -1830,7 +1830,7 @@ class EntryDetailsDialog(QDialog):
             return False, 'Note must not be empty'
         notes = get_column_data(self.notes_table, 0)
         if notes.count(note) > 1:
-            return False, f'Note {note} is a duplicate'
+            return False, f'Note "{note}" is a duplicate'
         return True, ''
 
     def validate_cell(self, item: QTableWidgetItem) -> tuple[bool, str]:
@@ -1898,7 +1898,7 @@ class EntryDetailsDialog(QDialog):
         specs = {k: [''] + v for k, v in self.dct.features.items()}
         gram_form = item.data(self._role_gram_form)
         res, ok = OptionsDialog.get_settings(
-            specs, gram_form, 'Grammatical form settings', validator=valid_gram_form
+            specs, gram_form, 'Grammatical Form Settings', validator=valid_gram_form
         )
         if not ok:
             return
@@ -1937,7 +1937,7 @@ class EntryDetailsDialog(QDialog):
         empty_gram_form = tuple('' for _ in range(len(self.dct.features)))
 
         res, ok = OptionsDialog.get_settings(
-            specs, empty_gram_form, 'Set grammatical form', validator=valid_gram_form
+            specs, empty_gram_form, 'Set Grammatical Form', validator=valid_gram_form
         )
         if not ok:
             return
@@ -2800,7 +2800,7 @@ class BrowsingPage(QWidget):
                 specs[tag] = Qt.Unchecked
             else:
                 specs[tag] = Qt.PartiallyChecked
-        res, ok = TaggingDialog.get_settings(self.dct_bundle, specs, 'Manage tags')
+        res, ok = TaggingDialog.get_settings(self.dct_bundle, specs, 'Manage Tags')
         if not ok:
             return
 
