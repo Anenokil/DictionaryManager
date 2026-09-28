@@ -2623,9 +2623,9 @@ class BrowsingPage(QWidget):
             for item in self.table_widget.selectedIndexes()
         }
 
-    def get_selected(self) -> set[tuple[int, Entry]]:
+    def get_selected(self) -> dict[int, Entry]:
         return {
-            (self.proxy_model.mapToSource(item).row(), item.data(EntriesTableModel.ENTRY_ROLE))
+            self.proxy_model.mapToSource(item).row(): item.data(EntriesTableModel.ENTRY_ROLE)
             for item in self.table_widget.selectedIndexes()
         }
 
@@ -2800,7 +2800,7 @@ class BrowsingPage(QWidget):
         self._update_selected_rows()
 
     def merge_entries(self):
-        selected = sorted(self.get_selected())
+        selected = sorted(self.get_selected().items())
         if len(selected) <= 1:
             return
 
@@ -2823,12 +2823,12 @@ class BrowsingPage(QWidget):
             text=f'{self.dct.name} - selected',
         )
         if ok and dct_name:
-            selected = sorted(self.get_selected())
+            selected = sorted(self.get_selected().items())
             selected_entries = [entry for row, entry in selected]
             self.new_tab_requested.emit(dct_name, selected_entries)
 
     def delete_entries(self):
-        selected = sorted(self.get_selected(), reverse=True)
+        selected = sorted(self.get_selected().items(), reverse=True)
         for row, entry in selected:
             self.dct.delete_entry(entry)
             self.source_model.removeRow(row)
