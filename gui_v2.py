@@ -2353,6 +2353,38 @@ class EntriesTableModel(QAbstractTableModel):
         self.endRemoveRows()
         return True
 
+    @staticmethod
+    def _get_contiguous_ranges(rows: list[int]) -> list[tuple[int, int]]:
+        ranges = []
+        start = end = rows[0]
+        for row in rows[1:]:
+            if row == end - 1:
+                end = row
+            else:
+                ranges.append((end, start))
+                start = end = row
+        ranges.append((end, start))
+        return ranges
+
+    def remove_rows(self, rows: Iterable[int]):
+        rows = sorted(rows, reverse=True)
+
+        ranges = self._get_contiguous_ranges(rows)
+
+        if len(ranges) <= 20:
+            for first, last in ranges:
+                self.beginRemoveRows(QModelIndex(), first, last)
+                del self._entries[first:last+1]
+                self.endRemoveRows()
+        else:
+            self.beginResetModel()
+            rows_set = set(rows)
+            self._entries = [
+                rec for i, rec in enumerate(self._entries)
+                if i not in rows_set
+            ]
+            self.endResetModel()
+
 
 class SearchFilterProxyModel(QSortFilterProxyModel):
     searchResultsChanged = Signal()
@@ -2810,8 +2842,7 @@ class BrowsingPage(QWidget):
         for entry in other_entries:
             self.dct.merge_entries(target_entry, entry)
 
-        for row in other_rows[::-1]:
-            self.source_model.removeRow(row)
+        self.source_model.remove_rows(other_rows[::-1])
 
         self.update_tab_title()
 
@@ -2828,10 +2859,13 @@ class BrowsingPage(QWidget):
             self.new_tab_requested.emit(dct_name, selected_entries)
 
     def delete_entries(self):
-        selected = sorted(self.get_selected().items(), reverse=True)
-        for row, entry in selected:
+        selected = self.get_selected()
+
+        for entry in selected.values():
             self.dct.delete_entry(entry)
-            self.source_model.removeRow(row)
+
+        self.source_model.remove_rows(selected.keys())
+
         self.update_tab_title()
 
 
