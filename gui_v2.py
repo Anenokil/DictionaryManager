@@ -1496,30 +1496,41 @@ class EntryDetailsDialog(QDialog):
 
         link_exclusive_selection(self.tables)
 
-        def delete_msg(table: QTableWidget, singular: str) -> str:
-            n = len({i.row() for i in table.selectedIndexes()})
-            if n == 1:
-                return f'Delete 1 {singular}'
-            return f'Delete {n} {singular}s'
+        def cnt(table: QTableWidget) -> int:
+            return len({i.row() for i in table.selectedIndexes()})
 
-        setup_table_context_menu(self.lemma_variants_table, [ActionConfig(
-            lambda: delete_msg(self.lemma_variants_table, 'variant'),
-            self.delete_lemma_variants,
-            lambda: len(self.lemma_variants_table.selectedIndexes()) < self.lemma_variants_table.rowCount(),
-        )])
-        setup_table_context_menu(self.translations_table, [ActionConfig(
-            lambda: delete_msg(self.translations_table, 'translation'),
-            self.delete_translations,
-            lambda: len(self.translations_table.selectedIndexes()) < self.translations_table.rowCount(),
-        )])
+        setup_table_context_menu(self.lemma_variants_table, [
+            ActionConfig(lambda: n_selected_msg(cnt(self.lemma_variants_table), 'variant'), None),
+            None,
+            ActionConfig(
+                'Delete',
+                self.delete_lemma_variants,
+                lambda: cnt(self.lemma_variants_table) < self.lemma_variants_table.rowCount(),
+            )
+        ])
+        setup_table_context_menu(self.translations_table, [
+            ActionConfig(lambda: n_selected_msg(cnt(self.translations_table), 'translation'), None),
+            None,
+            ActionConfig(
+                'Delete',
+                self.delete_translations,
+                lambda: len(self.translations_table.selectedIndexes()) < self.translations_table.rowCount(),
+            )
+        ])
         setup_table_context_menu(self.forms_table, [
-            ActionConfig(lambda: delete_msg(self.forms_table, 'form'), self.delete_forms),
+            ActionConfig(lambda: n_selected_msg(cnt(self.forms_table), 'form'), None),
+            None,
+            ActionConfig('Delete', self.delete_forms),
         ])
         setup_table_context_menu(self.phrases_table, [
-            ActionConfig(lambda: delete_msg(self.phrases_table, 'phrase'), self.delete_phrases),
+            ActionConfig(lambda: n_selected_msg(cnt(self.phrases_table), 'phrase'), None),
+            None,
+            ActionConfig('Delete', self.delete_phrases),
         ])
         setup_table_context_menu(self.notes_table, [
-            ActionConfig(lambda: delete_msg(self.notes_table, 'note'), self.delete_notes),
+            ActionConfig(lambda: n_selected_msg(cnt(self.notes_table), 'note'), None),
+            None,
+            ActionConfig('Delete', self.delete_notes),
         ])
 
         # Create other widgets
