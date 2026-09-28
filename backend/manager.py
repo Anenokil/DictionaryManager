@@ -514,13 +514,17 @@ class Manager:
 
         # Read opened Dictionaries
         opened_dct_bundles = [self._load_dct(filepath) for filepath in data['opened_dct_bundles']]
+        opened_dct_bundles = [bundle for bundle in opened_dct_bundles if bundle is not None]
 
         # Set attributes
         self.opened_dct_bundles = opened_dct_bundles
         self.active_dct_id = active_dct_id
 
     @staticmethod
-    def _load_dct(filepath: str) -> DctBundle:
+    def _load_dct(filepath: str) -> DctBundle | None:
+        if not os.path.exists(filepath):
+            return None
+
         with open(filepath, 'r') as file:
             data = json.load(file)
         return DctBundle.from_dict(filepath, data)
