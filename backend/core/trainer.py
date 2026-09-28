@@ -373,14 +373,14 @@ class Trainer:
         entry, gram_form, phrase = self._pool.pop(0)
 
         if self._config.format == TrainingFormat.WORD_TO_TRANS:
-            related = self.dct.search(lemma=entry.lemma)
+            related = self.dct.search(variants=[entry.lemma])
         elif self._config.format == TrainingFormat.TRANS_TO_WORD:
             related = set().union(*(
                 self.dct.search(translations=[tr]) for tr in entry.tr
             ))
         elif self._config.format == TrainingFormat.ARTICLES_GERMAN:
             related = {
-                e for e in self.dct.search(lemma=entry.lemma)
+                e for e in self.dct.search(variants=[entry.lemma])
                 if has_article(e.lemma.lower(), ('der ', 'die ', 'das '))
             }
         else:

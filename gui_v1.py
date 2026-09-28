@@ -726,7 +726,7 @@ def select_word_form(n: int, word_forms: tuple[str, str, str]) -> str:
 
 # Выбрать одну статью из нескольких с одинаковыми словами
 def select_entry(app_data: AppData, window_parent: tk.Misc, lemma: str) -> Entry | None:
-    homographs = app_data.manager.active.dct.search(lemma=lemma)
+    homographs = app_data.manager.active.dct.search(variants=[lemma])
     if len(homographs) == 1:  # Если статья только одна, то возвращает её ключ
         return homographs.pop()
     result = SelectEntryFromHomographsW(window_parent, app_data, lemma).open()
@@ -743,7 +743,7 @@ def edit_variant_or_merge(
 ) -> tuple[Entry | None, bool]:
     dct = app_data.manager.active.dct
 
-    if dct.search(lemma=new_variant):  # Если в словаре уже есть статья с таким словом
+    if dct.search(variants=[new_variant]):  # Если в словаре уже есть статья с таким словом
         window = TwoOptionsDialog(
             window_parent, app_data,
             'Статья с таким словом уже есть в словаре\n'
@@ -774,7 +774,7 @@ def edit_variant_or_merge(
 def add_homograph(app_data: AppData, window_parent: tk.Misc, lemma: str, tr: str) -> Entry | None:
     dct = app_data.manager.active.dct
 
-    if dct.search(lemma=lemma):  # Если в словаре уже есть статья с таким словом
+    if dct.search(variants=[lemma]):  # Если в словаре уже есть статья с таким словом
         window = TwoOptionsDialog(
             window_parent, app_data,
             'Статья с таким словом уже есть в словаре\n'
@@ -2373,7 +2373,7 @@ class SelectEntryFromHomographsW(tk.Toplevel):
             row=1, column=0, padx=6, pady=(0, 6))
         self.scrolled_frame_wrd.canvas.yview_moveto(0.0)
 
-        entries = self.dct.search(lemma=self.to_search_wrd)
+        entries = self.dct.search(variants=[self.to_search_wrd])
         self.widgets_wrd = [
             create_button(
                 self.scrolled_frame_wrd.frame_canvas,
@@ -7233,7 +7233,7 @@ class AddEntryW(tk.Toplevel):
             }
 
             if value_word in words:
-                entries_with_this_word = self.dct.search(lemma=value_word)
+                entries_with_this_word = self.dct.search(variants=[value_word])
                 translations = set().union(*(
                     entry.tr for entry in entries_with_this_word
                 ))

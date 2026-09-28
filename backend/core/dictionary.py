@@ -292,7 +292,7 @@ class Dictionary:
 
     def search(
             self,
-            lemma: str | None = None,
+            variants: list[str] | None = None,
             translations: list[str] | None = None,
             forms: list[str] | None = None,
             tags: list[str] | None = None,
@@ -314,8 +314,8 @@ class Dictionary:
         """
 
         query = {}
-        if lemma is not None:
-            query['lemmas'] = [lemma]
+        if variants is not None:
+            query['lemmas'] = variants
         if translations is not None:
             query['translations'] = translations
         if forms is not None:
@@ -420,7 +420,7 @@ class Dictionary:
         self._update_index('forms', chain(*new_entry.forms.values()), new_entry, 'add')
         self._update_index('tags', new_entry.tags, new_entry, 'add')
 
-        self._counters['lemmas']       += 1
+        self._counters['lemmas']       += new_entry.n_variants
         self._counters['translations'] += new_entry.n_translations
         self._counters['gram_forms']   += new_entry.n_gram_forms
         self._counters['word_forms']   += new_entry.n_word_forms
@@ -482,6 +482,7 @@ class Dictionary:
         self._update_index('forms', chain(*entry.forms.values()), entry, 'remove')
         self._update_index('tags', entry.tags, entry, 'remove')
 
+        self._counters['lemmas']       -= entry.n_variants
         self._counters['translations'] -= entry.n_translations
         self._counters['gram_forms']   -= entry.n_gram_forms
         self._counters['word_forms']   -= entry.n_word_forms
@@ -496,6 +497,7 @@ class Dictionary:
         self._update_index('forms', chain(*entry.forms.values()), entry, 'add')
         self._update_index('tags', entry.tags, entry, 'add')
 
+        self._counters['lemmas']       += entry.n_variants
         self._counters['translations'] += entry.n_translations
         self._counters['gram_forms']   += entry.n_gram_forms
         self._counters['word_forms']   += entry.n_word_forms
@@ -515,7 +517,7 @@ class Dictionary:
             entry: Entry to delete.
         """
 
-        self._counters['lemmas']       -= 1
+        self._counters['lemmas']       -= entry.n_variants
         self._counters['translations'] -= entry.n_translations
         self._counters['gram_forms']   -= entry.n_gram_forms
         self._counters['word_forms']   -= entry.n_word_forms
@@ -576,6 +578,7 @@ class Dictionary:
 
         is_modified, counter_delta = entry.variants._add(variant)
 
+        self._counters['lemmas'] += counter_delta
         self._update_index('lemmas', variant, entry, 'add')
 
         self._is_modified |= is_modified
@@ -598,6 +601,7 @@ class Dictionary:
 
         is_modified, counter_delta = entry.variants._edit(variant, new_variant)
 
+        self._counters['lemmas'] += counter_delta
         self._update_index('lemmas', variant, entry, 'remove')
         self._update_index('lemmas', new_variant, entry, 'add')
 
@@ -619,6 +623,7 @@ class Dictionary:
         if variant not in entry.variants:
             raise InvalidVariantError(variant)
 
+        self._counters['lemmas'] -= 1
         self._update_index('lemmas', variant, entry, 'remove')
 
         entry.variants._delete(variant)
