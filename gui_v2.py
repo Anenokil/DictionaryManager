@@ -1429,6 +1429,7 @@ class EntryDetailsDialog(QDialog):
         if self.is_new:
             self.validate_and_update_table(self.lemma_variants_table)
             self.validate_and_update_table(self.translations_table)
+            self.lemma_variants_table.edit(self.lemma_variants_table.model().index(0, 0))
 
     def _configure_window(self):
         title = 'New Entry' if self.is_new else f'Entry "{lemma_to_str(self.entry.variants)}"'
