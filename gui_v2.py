@@ -2608,7 +2608,7 @@ class BrowsingPage(QWidget):
         header.setMinimumSectionSize(20)
         header.setSectionResizeMode(QHeaderView.Interactive)
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header.setSectionsMovable(False)
+        header.setSectionsMovable(True)
         header.setSortIndicatorShown(True)
 
         # Enable horizontal scrollbar
