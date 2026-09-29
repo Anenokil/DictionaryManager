@@ -2291,6 +2291,8 @@ class EntriesTableModel(QAbstractTableModel):
         'Total attempts', 'Correct attempts', 'Win streak', 'Accuracy',
     ]
     ENTRY_ROLE = Qt.UserRole
+    DATA_ROLE = Qt.UserRole + 1
+    NUM_COLUMNS = [0, 7, 8, 9, 10]
 
     def __init__(self, entries: Iterable[Entry] | Dictionary, parent=None):
         super().__init__(parent)
@@ -2306,16 +2308,37 @@ class EntriesTableModel(QAbstractTableModel):
     def data(self, index: QModelIndex, role=Qt.DisplayRole):
         if not index.isValid():
             return None
+
         entry = self._entries[index.row()]
-        col = index.column()
 
         if role == self.ENTRY_ROLE:
             return entry
 
-        if col == 0:
-            if role == Qt.DecorationRole:
-                return QIcon(IMG_STAR_PATH) if entry.is_fav else None
-            return None
+        col = index.column()
+
+        if role == self.DATA_ROLE:
+            if col == 0:
+                return entry.is_fav
+            if col == 1:
+                return entry.variants
+            if col == 2:
+                return entry.tr
+            if col == 3:
+                return entry.forms
+            if col == 4:
+                return entry.phrases
+            if col == 5:
+                return entry.notes
+            if col == 6:
+                return entry.tags
+            if col == 7:
+                return entry.total_att
+            if col == 8:
+                return entry.correct_att
+            if col == 9:
+                return entry.win_streak
+            if col == 10:
+                return entry.accuracy
 
         if role in (Qt.DisplayRole, Qt.EditRole):
             if col == 1:
@@ -2338,6 +2361,10 @@ class EntriesTableModel(QAbstractTableModel):
                 return str(entry.win_streak)
             if col == 10:
                 return accuracy_to_str(entry)
+
+        if role == Qt.DecorationRole:
+            if col == 0:
+                return QIcon(IMG_STAR_PATH) if entry.is_fav else None
 
         return None
 
@@ -2430,6 +2457,14 @@ class SearchFilterProxyModel(QSortFilterProxyModel):
         self.endFilterChange()
         self.searchResultsChanged.emit()
 
+    def lessThan(self, source_left, source_right) -> bool:
+        if source_left.column() in EntriesTableModel.NUM_COLUMNS:
+            left_value = self.sourceModel().data(source_left, EntriesTableModel.DATA_ROLE)
+            right_value = self.sourceModel().data(source_right, EntriesTableModel.DATA_ROLE)
+            return left_value < right_value
+
+        return super().lessThan(source_left, source_right)
+
     def filterAcceptsRow(self, source_row: int, source_parent) -> bool:
         if not self._search_mode_on:
             return True
@@ -2483,6 +2518,46 @@ class SearchFilterProxyModel(QSortFilterProxyModel):
             return self._pattern.lower() in text.lower()
 
 
+class ThreeStateSortHeader(QHeaderView):
+    def __init__(
+            self,
+            table_view: QTableView,
+            proxy_model: QSortFilterProxyModel,
+            orientation=Qt.Horizontal,
+            parent=None,
+    ):
+        super().__init__(orientation, parent)
+
+        self.table_view = table_view
+        self.proxy_model = proxy_model
+        self._current_column = -1
+        self._current_order = 0  # 0=none, 1=asc, 2=desc
+
+        self.setSectionsClickable(True)
+
+        self.proxy_model.sort(-1)
+        self.setSortIndicator(-1, Qt.AscendingOrder)
+
+        self.sectionClicked.connect(self._on_section_clicked)
+
+    def _on_section_clicked(self, column: int):
+        if column == self._current_column:
+            self._current_order = (self._current_order + 1) % 3
+        else:
+            self._current_column = column
+            self._current_order = 1
+
+        if self._current_order == 0:
+            self.proxy_model.sort(-1)
+            self.setSortIndicator(-1, Qt.AscendingOrder)
+        elif self._current_order == 1:
+            self.proxy_model.sort(column, Qt.AscendingOrder)
+            self.setSortIndicator(column, Qt.AscendingOrder)
+        else:
+            self.proxy_model.sort(column, Qt.DescendingOrder)
+            self.setSortIndicator(column, Qt.DescendingOrder)
+
+
 class BrowsingPage(QWidget):
     on_practice_button_clicked = Signal()
     on_dct_edited = Signal()
@@ -2528,11 +2603,13 @@ class BrowsingPage(QWidget):
         self.table_widget.setSelectionMode(QTableView.ExtendedSelection)  # Multiple selection
 
         # Configure column resizing
-        header = self.table_widget.horizontalHeader()
+        header = ThreeStateSortHeader(self.table_widget, self.proxy_model, parent=self.table_widget)
+        self.table_widget.setHorizontalHeader(header)
         header.setMinimumSectionSize(20)
         header.setSectionResizeMode(QHeaderView.Interactive)
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         header.setSectionsMovable(False)
+        header.setSortIndicatorShown(True)
 
         # Enable horizontal scrollbar
         self.table_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
