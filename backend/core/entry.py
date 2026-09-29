@@ -488,6 +488,7 @@ class Entry:
             notes: Note | Iterable[Note] | None = None,
             tags: Iterable[Tag] | None = None,
             is_fav: bool = False,
+            img_fn: str | None = None,
             total_att: int = 0,
             correct_att: int = 0,
             win_streak: int = 0,
@@ -517,6 +518,7 @@ class Entry:
         self.notes = Notes(notes)
         self.tags = Tags(tags)
         self.is_fav = is_fav
+        self.img_fn = img_fn
         self._total_att = total_att
         self._correct_att = correct_att
         self._win_streak = win_streak
@@ -555,6 +557,7 @@ class Entry:
         notes = data.get('notes', None)
         tags = data.get('tags', None)
         is_fav = data.get('is_fav', False)
+        img_fn = data.get('img_fn', None)
 
         # Validate types
         validate_field_type('variants', variants, list[str])
@@ -569,6 +572,7 @@ class Entry:
         validate_field_type('notes', notes, (list[str], NoneType))
         validate_field_type('tags', tags, (list[str], NoneType))
         validate_field_type('is_fav', is_fav, bool)
+        validate_field_type('img_fn', img_fn, (str, NoneType))
         validate_field_type('total_att', total_att, int)
         validate_field_type('correct_att', correct_att, int)
         validate_field_type('win_streak', win_streak, int)
@@ -587,7 +591,7 @@ class Entry:
         latest_att_timestamp = tuple(latest_att_timestamp)
 
         return cls(
-            variants, translations, forms, phrases, notes, tags, is_fav,
+            variants, translations, forms, phrases, notes, tags, is_fav, img_fn,
             total_att, correct_att, win_streak, latest_att_timestamp,
         )
 
@@ -685,6 +689,7 @@ class Entry:
             notes: Note | Iterable[Note] = ...,
             tags: Iterable[Tag] = ...,
             is_fav: bool = ...,
+            img_fn: str | None = ...,
             total_att: int = ...,
             correct_att: int = ...,
             win_streak: int = ...,
@@ -704,6 +709,8 @@ class Entry:
             self.tags = Tags(tags)
         if is_fav is not ...:
             self.is_fav = is_fav
+        if img_fn is not ...:
+            self.img_fn = img_fn
         if total_att is not ...:
             self._total_att = total_att
         if correct_att is not ...:
@@ -774,6 +781,8 @@ class Entry:
             self.tags._add(tag)
         if other.is_fav:
             self.is_fav = True
+        if self.img_fn is None:
+            self.img_fn = other.img_fn
         self._total_att += other._total_att
         self._correct_att += other._correct_att
         self._win_streak += other._win_streak
@@ -805,5 +814,7 @@ class Entry:
             data['notes'] = self.notes._serialize()
         if self.tags:
             data['tags'] = self.tags._serialize()
+        if self.img_fn:
+            data['img_fn'] = self.img_fn
 
         return data

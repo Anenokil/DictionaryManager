@@ -364,6 +364,7 @@ class Dictionary:
             notes: Note | Iterable[Note] | None = None,
             tags: Iterable[Tag] | None = None,
             is_fav: bool = False,
+            img_fn: str | None = None,
             total_att: int = 0,
             correct_att: int = 0,
             win_streak: int = 0,
@@ -410,8 +411,8 @@ class Dictionary:
             tags.update(default_tags)
 
         new_entry = Entry(
-            lemma, tr, forms, phrases, notes, tags, is_fav,
-            total_att, correct_att, win_streak, latest_att_timestamp
+            lemma, tr, forms, phrases, notes, tags, is_fav, img_fn,
+            total_att, correct_att, win_streak, latest_att_timestamp,
         )
         self._entries.append(new_entry)
 
@@ -436,11 +437,12 @@ class Dictionary:
             entry: Entry,
             lemma: Word | Iterable[Word],
             tr: Translation | Iterable[Translation],
-            forms: Mapping[GramForm, Iterable[WordForm]] | None = None,
-            phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
-            notes: Note | Iterable[Note] | None = None,
-            tags: Iterable[Tag] | None = None,
-            is_fav: bool = False,
+            forms: Mapping[GramForm, Iterable[WordForm]],
+            phrases: Mapping[Phrase, Iterable[PhraseTr]],
+            notes: Note | Iterable[Note],
+            tags: Iterable[Tag],
+            is_fav: bool,
+            img_fn: str | None,
     ):
         """
         Edit all fields of an Entry.
@@ -463,7 +465,7 @@ class Dictionary:
             InvalidTagError: If invalid tags are specified.
         """
 
-        if forms is not None:
+        if forms is not ...:
             for gram_form in forms.keys():
                 if len(gram_form) != len(self._features):
                     raise InvalidGramFormError(gram_form)
@@ -471,7 +473,7 @@ class Dictionary:
                     if ctg_val != '' and ctg_val not in self._features[ctg]:
                         raise InvalidGramFormError(ctg_val)
 
-        if tags is not None:
+        if tags is not ...:
             tags = set(tags)
             invalid_tags = tags.difference(set(self._tags))
             if invalid_tags:
@@ -490,7 +492,7 @@ class Dictionary:
         self._counters['phrase_trs']   -= entry.n_phrase_translations
         self._counters['notes']        -= entry.n_notes
 
-        entry._edit(lemma, tr, forms, phrases, notes, tags, is_fav)
+        entry._edit(lemma, tr, forms, phrases, notes, tags, is_fav, img_fn)
 
         self._update_index('lemmas', entry.variants, entry, 'add')
         self._update_index('translations', entry.tr, entry, 'add')
