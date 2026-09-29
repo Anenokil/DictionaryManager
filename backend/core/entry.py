@@ -678,39 +678,39 @@ class Entry:
 
     def _edit(
             self,
-            lemma: Word | Iterable[Word] | None = None,
-            tr: Translation | Iterable[Translation] | None = None,
-            forms: Mapping[GramForm, Iterable[WordForm]] | None = None,
-            phrases: Mapping[Phrase, Iterable[PhraseTr]] | None = None,
-            notes: Note | Iterable[Note] | None = None,
-            tags: Iterable[Tag] | None = None,
-            is_fav: bool | None = None,
-            total_att: int | None = None,
-            correct_att: int | None = None,
-            win_streak: int | None = None,
-            latest_att_timestamp: Timestamp | None = None,
+            lemma: Word | Iterable[Word] = ...,
+            tr: Translation | Iterable[Translation] = ...,
+            forms: Mapping[GramForm, Iterable[WordForm]] = ...,
+            phrases: Mapping[Phrase, Iterable[PhraseTr]] = ...,
+            notes: Note | Iterable[Note] = ...,
+            tags: Iterable[Tag] = ...,
+            is_fav: bool = ...,
+            total_att: int = ...,
+            correct_att: int = ...,
+            win_streak: int = ...,
+            latest_att_timestamp: Timestamp = ...,
     ):
-        if lemma is not None:
+        if lemma is not ...:
             self.variants = Variants(lemma)
-        if tr is not None:
+        if tr is not ...:
             self.tr = Translations(tr)
-        if forms is not None:
+        if forms is not ...:
             self.forms = Forms(forms)
-        if phrases is not None:
+        if phrases is not ...:
             self.phrases = Phrases(phrases)
-        if notes is not None:
+        if notes is not ...:
             self.notes = Notes(notes)
-        if tags is not None:
+        if tags is not ...:
             self.tags = Tags(tags)
-        if is_fav is not None:
+        if is_fav is not ...:
             self.is_fav = is_fav
-        if total_att is not None:
+        if total_att is not ...:
             self._total_att = total_att
-        if correct_att is not None:
+        if correct_att is not ...:
             self._correct_att = correct_att
-        if win_streak is not None:
+        if win_streak is not ...:
             self._win_streak = win_streak
-        if latest_att_timestamp is not None:
+        if latest_att_timestamp is not ...:
             self._latest_att_timestamp = latest_att_timestamp
 
     def register_correct_answer(self, timestamp: Timestamp):
