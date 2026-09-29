@@ -2535,10 +2535,12 @@ class ThreeStateSortHeader(QHeaderView):
         self._current_order = 0  # 0=none, 1=asc, 2=desc
 
         self.setSectionsClickable(True)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
 
         self.proxy_model.sort(-1)
         self.setSortIndicator(-1, Qt.AscendingOrder)
 
+        self.customContextMenuRequested.connect(self._show_column_visibility_menu)
         self.sectionClicked.connect(self._on_section_clicked)
 
     def _on_section_clicked(self, column: int):
@@ -2557,6 +2559,32 @@ class ThreeStateSortHeader(QHeaderView):
         else:
             self.proxy_model.sort(column, Qt.DescendingOrder)
             self.setSortIndicator(column, Qt.DescendingOrder)
+
+    def _show_column_visibility_menu(self, pos):
+        source_model = self.proxy_model.sourceModel()
+        menu = QMenu(self.table_view)
+
+        for logical_index in range(source_model.columnCount()):
+            title = source_model.headerData(logical_index, Qt.Horizontal, Qt.DisplayRole) or 'Star'
+            action = menu.addAction(str(title))
+            action.setCheckable(True)
+            action.setChecked(not self.table_view.isColumnHidden(logical_index))
+            action.toggled.connect(
+                lambda checked, i=logical_index: self._toggle_column(i, checked)
+            )
+
+        menu.exec(self.mapToGlobal(pos))
+
+    def _toggle_column(self, logical_index: int, visible: bool):
+        if not visible:
+            visible_count = sum(
+                not self.table_view.isColumnHidden(i)
+                for i in range(self.proxy_model.sourceModel().columnCount())
+            )
+            if visible_count <= 1:
+                return
+
+        self.table_view.setColumnHidden(logical_index, not visible)
 
 
 class BrowsingPage(QWidget):
