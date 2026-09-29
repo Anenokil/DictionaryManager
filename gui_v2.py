@@ -2610,6 +2610,7 @@ class BrowsingPage(QWidget):
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         header.setSectionsMovable(True)
         header.setSortIndicatorShown(True)
+        header.setStretchLastSection(True)
 
         # Enable horizontal scrollbar
         self.table_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
