@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 wget = "*"
 pyside6 = "*"
+platformdirs = "*"
 
 [dev-packages]
 flake8 = "*"

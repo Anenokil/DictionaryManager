@@ -3,6 +3,7 @@ from copy import deepcopy
 import sys
 import re
 from pathlib import Path
+import platformdirs
 from dataclasses import dataclass
 
 from PySide6.QtWidgets import (
@@ -53,6 +54,9 @@ IMG_STOP_PATH = str(IMAGES_DIR / 'stop.png')
 IMG_STAR_PATH = str(IMAGES_DIR / 'star.png')
 IMG_SEARCH_PATH = str(IMAGES_DIR / 'search.png')
 IMG_TAG_PATH = str(IMAGES_DIR / 'tag.png')
+
+DATA_DIR = Path(platformdirs.user_data_dir('DictionaryManager'))
+APP_DATA_JSON_PATH = str(DATA_DIR / 'app_data.json')
 
 
 def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:
@@ -3970,8 +3974,7 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == '__main__':
-    savepath = './resources/app_data.json'  # TODO: replace with real path
-    app_data = AppData(savepath, 'qt')
+    app_data = AppData(APP_DATA_JSON_PATH, 'qt')
     app_data.load()
 
     app = QApplication(sys.argv)
