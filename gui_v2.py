@@ -2,7 +2,9 @@ from typing import Generator, Iterable, Collection, Callable, Any
 from copy import deepcopy
 import sys
 import re
+from pathlib import Path
 from dataclasses import dataclass
+
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QScrollArea, QFrame, QWidget,
     QStackedWidget, QTabWidget, QTabBar, QToolBar, QMenu,
@@ -31,25 +33,26 @@ from backend import (
 )
 from persistence import AppData, partial_save
 
-IMAGES_DIR = 'resources/qt/images'
-IMG_ADD_PATH = f'{IMAGES_DIR}/add.png'
-IMG_ADD_CTG_PATH = f'{IMAGES_DIR}/add_category.png'
-IMG_ADD_VALUE_PATH = f'{IMAGES_DIR}/add_value.png'
-IMG_ARROW_PATH = f'{IMAGES_DIR}/arrow.png'
-IMG_CLOSE_PATH = f'{IMAGES_DIR}/close.png'
-IMG_ENTER_PATH = f'{IMAGES_DIR}/enter.png'
-IMG_ESCAPE_SEQ_PATH = f'{IMAGES_DIR}/escape_seq.png'
-IMG_EXIT_PATH = f'{IMAGES_DIR}/exit.png'
-IMG_FEATURES_PATH = f'{IMAGES_DIR}/features.png'
-IMG_HINT_PATH = f'{IMAGES_DIR}/hint.png'
-IMG_MATCH_CASE_PATH = f'{IMAGES_DIR}/match_case.png'
-IMG_MATCH_WHOLE_WORD_PATH = f'{IMAGES_DIR}/match_whole_word.png'
-IMG_PRACTICE_PATH = f'{IMAGES_DIR}/practice.png'
-IMG_SETTINGS_PATH = f'{IMAGES_DIR}/settings.png'
-IMG_STOP_PATH = f'{IMAGES_DIR}/stop.png'
-IMG_STAR_PATH = f'{IMAGES_DIR}/star.png'
-IMG_SEARCH_PATH = f'{IMAGES_DIR}/search.png'
-IMG_TAG_PATH = f'{IMAGES_DIR}/tag.png'
+BASE_DIR = Path(__file__).resolve().parent
+IMAGES_DIR = BASE_DIR / 'resources' / 'qt' / 'images'
+IMG_ADD_PATH = str(IMAGES_DIR / 'add.png')
+IMG_ADD_CTG_PATH = str(IMAGES_DIR / 'add_category.png')
+IMG_ADD_VALUE_PATH = str(IMAGES_DIR / 'add_value.png')
+IMG_ARROW_PATH = str(IMAGES_DIR / 'arrow.png')
+IMG_CLOSE_PATH = str(IMAGES_DIR / 'close.png')
+IMG_ENTER_PATH = str(IMAGES_DIR / 'enter.png')
+IMG_ESCAPE_SEQ_PATH = str(IMAGES_DIR / 'escape_seq.png')
+IMG_EXIT_PATH = str(IMAGES_DIR / 'exit.png')
+IMG_FEATURES_PATH = str(IMAGES_DIR / 'features.png')
+IMG_HINT_PATH = str(IMAGES_DIR / 'hint.png')
+IMG_MATCH_CASE_PATH = str(IMAGES_DIR / 'match_case.png')
+IMG_MATCH_WHOLE_WORD_PATH = str(IMAGES_DIR / 'match_whole_word.png')
+IMG_PRACTICE_PATH = str(IMAGES_DIR / 'practice.png')
+IMG_SETTINGS_PATH = str(IMAGES_DIR / 'settings.png')
+IMG_STOP_PATH = str(IMAGES_DIR / 'stop.png')
+IMG_STAR_PATH = str(IMAGES_DIR / 'star.png')
+IMG_SEARCH_PATH = str(IMAGES_DIR / 'search.png')
+IMG_TAG_PATH = str(IMAGES_DIR / 'tag.png')
 
 
 def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:
