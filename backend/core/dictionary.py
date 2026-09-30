@@ -78,6 +78,9 @@ class Dictionary:
 
         self._name = name
 
+        self._id: str = ...
+        self._set_id()
+
         # The main Dictionary data structure containing Entry objects
         self._entries: Entries = []
 
@@ -161,6 +164,10 @@ class Dictionary:
     @name.setter
     def name(self, new_name: DctName):
         self.rename(new_name)
+
+    @property
+    def id(self) -> str:
+        return self._id
 
     @property
     def is_modified(self) -> bool:
@@ -1415,6 +1422,7 @@ class Dictionary:
             'version': self._schema_version,
             'data': {
                 'name': self._name,
+                'id': self._id,
                 'entries': entries,
                 'indexes': indexes,
                 'counters': self._counters,
@@ -1441,11 +1449,12 @@ class Dictionary:
         required_fields = ('version', 'data')
         validate_required_fields(data, required_fields)
 
-        required_fields = ('indexes', 'counters', 'is_modified')
+        required_fields = ('id', 'indexes', 'counters', 'is_modified')
         validate_required_fields(data['data'], required_fields)
 
         # Read required fields
         data = data['data']
+        dct_id = data['id']
         indexes = data['indexes']
         counters = data['counters']
         is_modified = data['is_modified']
@@ -1459,6 +1468,7 @@ class Dictionary:
 
         # Validate types
         validate_field_type('name', name, (str, NoneType))
+        validate_field_type('id', dct_id, str)
         validate_field_type('entries', entries, list[SerializedData])
         validate_field_type('indexes', indexes, dict[str, dict[str, list[int]]])
         validate_field_type('counters', counters, dict[str, int])
@@ -1481,6 +1491,7 @@ class Dictionary:
 
         # Set attributes
         self._name = name
+        self._id = dct_id
         self._entries = entries
         self._indexes = indexes
         self._counters = counters
@@ -1488,6 +1499,9 @@ class Dictionary:
         self._tags = tags
         self._default_tag_ids = default_tag_ids
         self._is_modified = is_modified
+
+    def _set_id(self):
+        self._id = str(uuid.uuid4())
 
     def _update_index(
             self,
