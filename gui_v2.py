@@ -3,9 +3,12 @@ from copy import deepcopy
 import sys
 import re
 import json
+import io
 from pathlib import Path
 import platformdirs
+import hashlib
 from dataclasses import dataclass
+from PIL import Image
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QScrollArea, QFrame, QWidget,
@@ -60,6 +63,7 @@ DATA_DIR = Path(platformdirs.user_data_dir('DictionaryManager'))
 APP_DATA_JSON_PATH = str(DATA_DIR / 'app_data.json')
 SAVES_DIR = DATA_DIR / 'saves'
 SAVE_JSON_PATH = lambda dct_id: str(SAVES_DIR / dct_id / 'dct_data.json')
+USER_IMAGES_DIR = lambda dct_id: SAVES_DIR / dct_id / 'user_images'
 
 
 def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:
@@ -1437,6 +1441,159 @@ class EqualGrowFormLayout(QGridLayout):
         self._row += 1
 
 
+class ClickableLabel(QLabel):
+    clicked = Signal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.setCursor(Qt.PointingHandCursor)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.clicked.emit()
+        super().mousePressEvent(event)
+
+
+class ImagePicker(QWidget):
+    def __init__(self, size: QSize, path: str | None = None, parent=None):
+        super().__init__(parent)
+
+        self._size = size
+        self._content: bytes | None = None
+        self._pixmap: QPixmap | None = None
+
+        self.image_label = ClickableLabel()
+        self.image_label.setFixedSize(size)
+        self.image_label.setAlignment(Qt.AlignCenter)
+        self.image_label.setStyleSheet('QLabel { border: 1px solid gray; background: #eee; }')
+        self.image_label.setScaledContents(False)
+        self.image_label.clicked.connect(self.choose_image)
+
+        def show_menu(pos):
+            show_context_menu(self, self.mapToGlobal(pos), [
+                ActionConfig('Save Image', self.save_image, lambda: self._pixmap is not None),
+                ActionConfig('Choose Image', self.choose_image),
+                ActionConfig('Remove Image', self.reset_image, lambda: self._pixmap is not None),
+            ])
+
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(show_menu)
+
+        if path is None:
+            self._set_placeholder()
+        else:
+            self._set_image(path)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.image_label, alignment=Qt.AlignCenter)
+
+    def choose_image(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self, 'Open Image File', '',
+            'Images (*.png *.jpg *.jpeg *.bmp *.webp *.gif)',
+        )
+        if not path:
+            return
+
+        self._set_image(path)
+
+    def reset_image(self):
+        self._content = None
+        self._pixmap = None
+        self._set_placeholder()
+
+    def save_image(self):
+        if self._pixmap is None:
+            return
+
+        path, _ = QFileDialog.getSaveFileName(self, 'Save Image', self._get_hashed_name(), 'JPEG Image (*.jpg)')
+        if not path:
+            return
+
+        Path(path).write_bytes(self._content)
+
+    def dedup_save_to(self, folder: Path) -> str | None:
+        if self._pixmap is None:
+            return None
+
+        folder.mkdir(parents=True, exist_ok=True)
+
+        path = folder / self._get_hashed_name()
+        if not path.exists():
+            path.write_bytes(self._content)
+
+        return str(path.name)
+
+    @staticmethod
+    def _process_image(
+            source_path: str,
+            max_size: tuple[int, int],
+            jpeg_quality: int,
+    ) -> tuple[bytes, QPixmap]:
+        img = Image.open(source_path)
+
+        if img.mode in ('RGBA', 'LA', 'P'):
+            img = img.convert('RGBA')
+            background = Image.new('RGB', img.size, (255, 255, 255))
+            background.paste(img, mask=img.split()[-1])
+            img = background
+        else:
+            img = img.convert('RGB')
+
+        img.thumbnail(max_size, Image.LANCZOS)
+
+        buffer = io.BytesIO()
+        img.save(buffer, format='JPEG', quality=jpeg_quality, optimize=True)
+        content = buffer.getvalue()
+
+        pixmap = QPixmap()
+        pixmap.loadFromData(content, 'JPEG')
+
+        return content, pixmap
+
+    def _get_hashed_name(self) -> str:
+        digest = hashlib.sha256(self._content).hexdigest()
+        filename = f'{digest}.jpg'
+        return filename
+
+    def _set_placeholder(self, text: str = 'No image'):
+        self.image_label.setPixmap(QPixmap())
+        self.image_label.setText(text)
+
+    def _set_image(self, path: str):
+        try:
+            content, pixmap = self._process_image(path, self._size.toTuple(), 60)
+        except FileNotFoundError:
+            self._set_placeholder('Not found')
+            self._content = None
+            self._pixmap = None
+            return
+        except Exception as e:
+            QMessageBox.warning(self, 'Error', f'Failed to process image: {e}')
+            self._set_placeholder('Error')
+            self._content = None
+            self._pixmap = None
+            return
+
+        if pixmap.isNull():
+            self._set_placeholder('Invalid image')
+            self._content = None
+            self._pixmap = None
+            return
+
+        self._content = content
+        self._pixmap = pixmap
+
+        scaled = self._pixmap.scaled(
+            self._size,
+            Qt.KeepAspectRatio,
+            Qt.SmoothTransformation,
+        )
+        self.image_label.setText('')
+        self.image_label.setPixmap(scaled)
+
+
 class EntryDetailsDialog(QDialog):
     """Dialog for displaying entry information."""
 
@@ -1472,11 +1629,26 @@ class EntryDetailsDialog(QDialog):
         title = 'New Entry' if self.is_new else f'Entry "{lemma_to_str(self.entry.variants)}"'
         self.setWindowTitle(title)
         self.setModal(True)
-        self.resize(500, 500)
+        self.resize(800, 550)
 
     def _create_widgets(self):
-        self.main_layout = QVBoxLayout(self)
+        self.main_layout = QGridLayout(self)
         self.main_layout.setSizeConstraint(QLayout.SetMinAndMaxSize)
+
+        if self.is_new:
+            img_path = None
+        else:
+            img_fn = self.entry.img_fn
+            if img_fn is None:
+                img_path = None
+            else:
+                img_path = USER_IMAGES_DIR(self.dct.id) / img_fn
+        self.image = ImagePicker(QSize(300, 300), img_path)
+        self.main_layout.addWidget(self.image, 0, 0, alignment=Qt.AlignTop)
+
+        self.fav_checkbox = QCheckBox('Starred')
+        self.fav_checkbox.setChecked(not self.is_new and self.entry.is_fav)
+        self.main_layout.addWidget(self.fav_checkbox, 1, 0, alignment=Qt.AlignTop | Qt.AlignHCenter)
 
         self._create_fields()
         self._create_buttons()
@@ -1484,7 +1656,7 @@ class EntryDetailsDialog(QDialog):
     def _create_fields(self):
         # Layout for displaying entry data
         self.form_layout = EqualGrowFormLayout(label_alignment=Qt.AlignRight | Qt.AlignVCenter)
-        self.main_layout.addLayout(self.form_layout)
+        self.main_layout.addLayout(self.form_layout, 0, 1, 3, 1)
 
         # Create labels
         lemma_variants_label = QLabel('Lemma\nvariants:', alignment=Qt.AlignRight)
@@ -1493,7 +1665,6 @@ class EntryDetailsDialog(QDialog):
         phrases_label = QLabel('Phrases:')
         notes_label = QLabel('Notes:')
         tags_label = QLabel('Tags:')
-        fav_label = QLabel('Starred:')
 
         # Create tables
         self.lemma_variants_table = self.create_single_column_table(
@@ -1584,9 +1755,6 @@ class EntryDetailsDialog(QDialog):
         self.tags_list.setMinimumHeight(50)
         self.tags_list.setMinimumWidth(120)
 
-        self.fav_checkbox = QCheckBox()
-        self.fav_checkbox.setChecked(not self.is_new and self.entry.is_fav)
-
         # Create image buttons
         self.add_lemma_variant_button = create_img_button(IMG_ADD_PATH)
         self.add_translation_button = create_img_button(IMG_ADD_PATH)
@@ -1656,7 +1824,6 @@ class EntryDetailsDialog(QDialog):
         self.form_layout.add_row(phrases_label, phrases_field_container, self.phrases_table)
         self.form_layout.add_row(notes_label, notes_field_container, self.notes_table)
         self.form_layout.add_row(tags_label, tags_field_container, self.tags_list)
-        self.form_layout.add_row(fav_label, self.fav_checkbox)
 
         # Configure table growth behavior
         make_table_growable_up_to_content(self.lemma_variants_table, self.main_layout.activate)
@@ -1683,7 +1850,7 @@ class EntryDetailsDialog(QDialog):
         if self.is_new:
             self.delete_button.setEnabled(False)
 
-        self.main_layout.addWidget(buttons)
+        self.main_layout.addWidget(buttons, 2, 0, alignment=Qt.AlignBottom | Qt.AlignHCenter)
 
     def _set_shortcuts(self):
         set_widget_shortcut('Ctrl+N', self.lemma_variants_table, self.add_lemma_variant)
@@ -2059,17 +2226,18 @@ class EntryDetailsDialog(QDialog):
         ]
         tags = self.tags_list.get_checked_items()
         is_fav = self.fav_checkbox.isChecked()
+        img_fn = self.image.dedup_save_to(USER_IMAGES_DIR(self.dct.id))
 
         if self.is_new:
             self.entry = self.dct.add_entry(
-                lemma_variants, translations, forms, phrases, notes, tags, is_fav,
+                lemma_variants, translations, forms, phrases, notes, tags, is_fav, img_fn,
             )
             self.is_new = False
             self.delete_button.setEnabled(True)
         else:
             self.dct.rewrite_entry(
                 self.entry,
-                lemma_variants, translations, forms, phrases, notes, tags, is_fav,
+                lemma_variants, translations, forms, phrases, notes, tags, is_fav, img_fn,
             )
 
         self.exit_code = 'save'
