@@ -7,6 +7,7 @@ import io
 from pathlib import Path
 import platformdirs
 import hashlib
+import zipfile
 from dataclasses import dataclass
 from PIL import Image
 
@@ -62,8 +63,9 @@ IMG_TAG_PATH = str(IMAGES_DIR / 'tag.png')
 DATA_DIR = Path(platformdirs.user_data_dir('DictionaryManager'))
 APP_DATA_JSON_PATH = str(DATA_DIR / 'app_data.json')
 SAVES_DIR = DATA_DIR / 'saves'
-SAVE_JSON_PATH = lambda dct_id: str(SAVES_DIR / dct_id / 'dct_data.json')
-USER_IMAGES_DIR = lambda dct_id: SAVES_DIR / dct_id / 'user_images'
+DCT_SAVE_DIR = lambda dct_id: SAVES_DIR / dct_id
+SAVE_JSON_PATH = lambda dct_id: str(DCT_SAVE_DIR(dct_id) / 'dct_data.json')
+USER_IMAGES_DIR = lambda dct_id: DCT_SAVE_DIR(dct_id) / 'user_images'
 
 
 def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:
@@ -114,27 +116,6 @@ def accuracy_to_str(entry: Entry) -> str:
     if entry.total_att == 0:
         return '-'
     return '{:.0%}'.format(entry.accuracy)
-
-
-def select_dct_file_to_load(parent: QWidget) -> tuple[str, bool]:
-    file_filter = '(*.json)'
-    file_path, _ = QFileDialog.getOpenFileName(
-        parent,
-        caption='Open Dictionary File',
-        filter=file_filter,
-    )
-    return file_path, bool(file_path)
-
-
-def select_dct_file_to_save(parent: QWidget, dct_name: str, ext: str = 'json') -> tuple[str, bool]:
-    file_filter = f'(*.{ext})'
-    file_path, _ = QFileDialog.getSaveFileName(
-        parent,
-        caption='Open Dictionary File',
-        dir=f'{dct_name}.{ext}',
-        filter=file_filter,
-    )
-    return file_path, bool(file_path)
 
 
 def ask_yes_no(parent: QWidget, title: str, text: str) -> bool:
@@ -2290,7 +2271,10 @@ class DctTabWidget(QTabWidget):
             ActionConfig('Save', lambda: self.save_dict(index)),
             ActionConfig('Save All', self.save_all_dicts),
             None,
-            ActionConfig('Export As...', lambda: self.export_dict_as(index)),
+            SubmenuConfig('Export', *create_context_menu(self, [
+                ActionConfig('to Text File...', lambda: self.export_dict_to_txt(index)),
+                ActionConfig('as Dictionary Package (.dmdct)...', lambda: self.export_dict_to_dmdct(index)),
+            ])),
         ])
 
     def rename_dict(self, index):
@@ -2324,12 +2308,31 @@ class DctTabWidget(QTabWidget):
         for index in range(len(self.manager.opened_dct_bundles)):
             self.save_dict(index)
 
-    def export_dict_as(self, index: int):
-        dct_name = self.manager.opened_dct_bundles[index].dct.name
-        file_path, ok = select_dct_file_to_save(self, dct_name, ext='txt')
-        if not ok:
+    def export_dict_to_txt(self, index: int):
+        dct = self.manager.opened_dct_bundles[index].dct
+        dct_name = dct.name
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, 'Export Dictionary', f'{dct_name}.txt', '(*.txt)',
+        )
+        if not file_path:
             return
-        self.manager.opened_dct_bundles[index].dct.to_txt(file_path)
+        dct.to_txt(file_path)
+
+    def export_dict_to_dmdct(self, index: int):
+        dct = self.manager.opened_dct_bundles[index].dct
+        dct_name = dct.name
+        dest_path, _ = QFileDialog.getSaveFileName(
+            self, 'Export Dictionary', f'{dct_name}.dmdct', '(*.dmdct)',
+        )
+        if not dest_path:
+            return
+
+        source_folder = DCT_SAVE_DIR(self.manager.opened_dct_bundles[index].dct.id)
+        with zipfile.ZipFile(dest_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for file_path in source_folder.rglob('*'):
+                if file_path.is_file():
+                    arcname = file_path.relative_to(source_folder)
+                    zf.write(file_path, arcname=arcname)
 
 
 class SearchBar(QFrame):
@@ -3947,7 +3950,6 @@ class MainWindow(QMainWindow):
     def _set_shortcuts(self):
         QShortcut(QKeySequence('Ctrl+Insert'), self, self.new_dict)
         QShortcut(QKeySequence('Ctrl+S'), self, self.save_dict)
-        QShortcut(QKeySequence('Ctrl+Shift+E'), self, self.export_dict_as)
 
     def show_file_menu(self):
         """Show the File dropdown menu below the File button."""
@@ -3958,14 +3960,22 @@ class MainWindow(QMainWindow):
             show_context_menu(self, pos, [
                 ActionConfig('New', self.new_dict, shortcut='Ctrl+Insert'),
                 ActionConfig('Open', self.open_dict),
-                SubmenuConfig('Import...', *create_context_menu(self, [
-                    ActionConfig('from JSON', self.import_dict_from_json),
+                SubmenuConfig('Import', *create_context_menu(self, [
+                    ActionConfig('JSON...', self.import_dict_from_json),
+                    ActionConfig('Dictionary Package (.dmdct)...', self.import_dict_from_dmdct),
                 ])),
                 None,
                 ActionConfig('Save', self.save_dict, lambda: self.tab_widget.count() != 0, 'Ctrl+S'),
                 ActionConfig('Save All', self.save_all_dicts, lambda: self.tab_widget.count() != 0),
                 None,
-                ActionConfig('Export As...', self.export_dict_as, lambda: self.tab_widget.count() != 0, 'Ctrl+Shift+E'),
+                SubmenuConfig('Export', *create_context_menu(self, [
+                    ActionConfig('to Text File...', self.export_dict_to_txt, lambda: self.tab_widget.count() != 0),
+                    ActionConfig(
+                        'as Dictionary Package (.dmdct)...',
+                        self.export_dict_to_dmdct,
+                        lambda: self.tab_widget.count() != 0
+                    ),
+                ])),
             ])
 
     def show_settings_menu(self):
@@ -4182,14 +4192,14 @@ class MainWindow(QMainWindow):
 
         name = dialog.selected_value()
         dct_id = id_by_name[name]
-        path = SAVES_DIR / dct_id / 'dct_data.json'
+        path = DCT_SAVE_DIR(dct_id) / 'dct_data.json'
 
         self.manager.open_dct(path, to_activate=True)
         self.create_new_tab(name, set_active=True)
 
     def import_dict_from_json(self):
-        file_path, ok = select_dct_file_to_load(self)
-        if not ok:
+        file_path, _ = QFileDialog.getOpenFileName(self, 'Open Dictionary File', '', '(*.json)')
+        if not file_path:
             return
         self.manager.open_dct(file_path, to_activate=True)
 
@@ -4201,6 +4211,30 @@ class MainWindow(QMainWindow):
         bundle.filepath = SAVE_JSON_PATH(dct.id)
         dct._set_id()
         self._save_new_dct(dct)
+
+    def import_dict_from_dmdct(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, 'Open Dictionary Package File', '', '(*.dmdct)')
+        if not file_path:
+            return
+
+        with zipfile.ZipFile(file_path, 'r') as zf:
+            dct_data = json.loads(zf.read('dct_data.json').decode('utf-8'))
+            bundle = DctBundle.from_dict(None, dct_data)
+            self.manager.add_dct(bundle, to_activate=True)
+            dct = bundle.dct
+            dct._set_id()
+            bundle.filepath = SAVE_JSON_PATH(dct.id)
+            self.create_new_tab(dct.name, set_active=True)
+            self._save_new_dct(dct)
+
+            images_dir = USER_IMAGES_DIR(dct.id)
+            images_dir.mkdir(parents=True, exist_ok=True)
+            for name in zf.namelist():
+                if not name.startswith('user_images'):
+                    continue
+                content = zf.read(name)
+                path = images_dir / Path(name).name
+                path.write_bytes(content)
 
     def new_dict(self):
         """
@@ -4217,7 +4251,7 @@ class MainWindow(QMainWindow):
         self._save_new_dct(self.manager.active.dct)
 
     def _save_new_dct(self, dct: Dictionary):
-        (SAVES_DIR / dct.id).mkdir(parents=True, exist_ok=True)
+        DCT_SAVE_DIR(dct.id).mkdir(parents=True, exist_ok=True)
         self.save_dict()
 
     def save_dict(self):
@@ -4227,9 +4261,13 @@ class MainWindow(QMainWindow):
     def save_all_dicts(self):
         self.tab_widget.save_all_dicts()
 
-    def export_dict_as(self):
+    def export_dict_to_txt(self):
         dct_index = self.manager.active_dct_id
-        self.tab_widget.export_dict_as(dct_index)
+        self.tab_widget.export_dict_to_txt(dct_index)
+
+    def export_dict_to_dmdct(self):
+        dct_index = self.manager.active_dct_id
+        self.tab_widget.export_dict_to_dmdct(dct_index)
 
 
 if __name__ == '__main__':
