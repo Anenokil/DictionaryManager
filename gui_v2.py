@@ -395,6 +395,18 @@ def set_widget_shortcut(key_sequence: str, widget: QWidget, action: Callable):
     shortcut.activated.connect(action)
 
 
+def purge_unused_user_images(dct: Dictionary):
+    images_dir = USER_IMAGES_DIR(dct.id)
+    if not images_dir.exists():
+        return
+
+    used_images = {entry.img_fn for entry in dct}
+    stored_images = {path.name for path in images_dir.iterdir() if path.suffix.lower() == '.jpg'}
+    for fn in stored_images - used_images:
+        path = images_dir / fn
+        path.unlink()
+
+
 class ColoredCellDelegate(QStyledItemDelegate):
     """
     Custom item background stays visible even when the cell is selected.
@@ -2306,6 +2318,7 @@ class DctTabWidget(QTabWidget):
         file_path = SAVE_JSON_PATH(dct.id)
         self.manager.save_dct(index, file_path)
         self.update_tab_title(index)
+        purge_unused_user_images(dct)
 
     def save_all_dicts(self):
         for index in range(len(self.manager.opened_dct_bundles)):
