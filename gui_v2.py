@@ -3539,13 +3539,13 @@ class PracticePage(QWidget):
     def _set_shortcuts(self):
         self.shortcut_enter = QShortcut(QKeySequence('Return'), self, self.enter)
         self.shortcut_hint = QShortcut(QKeySequence('Ctrl+H'), self, self.get_hint)
-        self.shortcut_stop = QShortcut(QKeySequence('Ctrl+S'), self, self.stop)
+        self.shortcut_stop = QShortcut(QKeySequence('Ctrl+.'), self, self.stop)
         self.shortcut_close = QShortcut(QKeySequence('Return'), self, self.on_close_button_clicked.emit)
 
     def _set_tooltips(self):
         self.enter_btn.setToolTip('Enter')
         self.hint_btn.setToolTip('Hints (Ctrl+H)')
-        self.stop_btn.setToolTip('End (Ctrl+S)')
+        self.stop_btn.setToolTip('End (Ctrl+.)')
         self.close_btn.setToolTip('Close')
 
     def _render_topbar(self) -> str:
