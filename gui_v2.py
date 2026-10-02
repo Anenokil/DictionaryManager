@@ -1476,7 +1476,7 @@ class ImagePicker(QWidget):
         if path is None:
             self._set_placeholder()
         else:
-            self._set_image(path)
+            self._set_image(path, is_new=False)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.image_label, alignment=Qt.AlignCenter)
@@ -1489,7 +1489,7 @@ class ImagePicker(QWidget):
         if not path:
             return
 
-        self._set_image(path)
+        self._set_image(path, is_new=True)
 
     def reset_image(self):
         self._content = None
@@ -1517,6 +1517,15 @@ class ImagePicker(QWidget):
             path.write_bytes(self._content)
 
         return str(path.name)
+
+    @staticmethod
+    def _read_image(source_path: str) -> tuple[bytes, QPixmap]:
+        content = Path(source_path).read_bytes()
+
+        pixmap = QPixmap()
+        pixmap.loadFromData(content, 'JPEG')
+
+        return content, pixmap
 
     @staticmethod
     def _process_image(
@@ -1554,9 +1563,12 @@ class ImagePicker(QWidget):
         self.image_label.setPixmap(QPixmap())
         self.image_label.setText(text)
 
-    def _set_image(self, path: str):
+    def _set_image(self, path: str, is_new: bool):
         try:
-            content, pixmap = self._process_image(path, self._size.toTuple(), 60)
+            if is_new:
+                content, pixmap = self._process_image(path, self._size.toTuple(), 60)
+            else:
+                content, pixmap = self._read_image(path)
         except FileNotFoundError:
             self._set_placeholder('Not found')
             self._content = None
