@@ -943,6 +943,31 @@ class GramFeaturesTree(QTreeWidget):
 
         self.expandAll()
 
+        self._setup_tree_context_menu()
+
+    def _setup_tree_context_menu(self):
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+
+        def show_menu(pos):
+            item = self.itemAt(pos)
+            if item is None:
+                return
+
+            self.setCurrentItem(item)
+
+            menu = QMenu(self)
+            if self.is_category(item):
+                action_text = f'Delete category "{item.text(0)}" and its values'
+            else:
+                action_text = f'Delete value "{item.text(0)}"'
+            delete_action = menu.addAction(action_text)
+
+            chosen = menu.exec(self.viewport().mapToGlobal(pos))
+            if chosen == delete_action:
+                self.delete_item(item)
+
+        self.customContextMenuRequested.connect(show_menu)
+
     def add_category(self, name: str = '', values: list[str] | None = None):
         item = QTreeWidgetItem([name])
         item.setData(0, Qt.UserRole, name or None)  # Store initial value
@@ -1087,30 +1112,6 @@ class GramFeaturesTree(QTreeWidget):
         return new_ctgs, new_values, renamed_ctgs, renamed_values, deleted_ctgs, deleted_values
 
 
-def setup_tree_context_menu(tree: GramFeaturesTree):
-    tree.setContextMenuPolicy(Qt.CustomContextMenu)
-
-    def show_menu(pos):
-        item = tree.itemAt(pos)
-        if item is None:
-            return
-
-        tree.setCurrentItem(item)
-
-        menu = QMenu(tree)
-        if tree.is_category(item):
-            action_text = f'Delete category "{item.text(0)}" and its values'
-        else:
-            action_text = f'Delete value "{item.text(0)}"'
-        delete_action = menu.addAction(action_text)
-
-        chosen = menu.exec(tree.viewport().mapToGlobal(pos))
-        if chosen == delete_action:
-            tree.delete_item(item)
-
-    tree.customContextMenuRequested.connect(show_menu)
-
-
 class ManageGramFeaturesDialog(QDialog):
     def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
         super().__init__(parent)
@@ -1122,7 +1123,6 @@ class ManageGramFeaturesDialog(QDialog):
         self.tree = GramFeaturesTree(dct_bundle.replacer, self.dct.features)
         self.tree.currentItemChanged.connect(self._update_add_value_button)
         self.tree.setItemDelegate(ColoredCellDelegate(self.tree))
-        setup_tree_context_menu(self.tree)
 
         buttons = QDialogButtonBox()
 
