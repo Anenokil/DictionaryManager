@@ -1149,6 +1149,20 @@ class ManageGramFeaturesDialog(QDialog):
         layout.addWidget(self.tree)
         layout.addWidget(buttons)
 
+        self._set_shortcuts()
+        self._set_tooltip()
+
+    def _set_shortcuts(self):
+        QShortcut(QKeySequence('Ctrl+Shift+C'), self, self._on_add_category)
+        QShortcut(QKeySequence('Ctrl+Shift+V'), self, self._on_add_value)
+        QShortcut(QKeySequence('Ctrl+S'), self, self.save_and_close)
+
+    def _set_tooltip(self):
+        self.add_category_button.setToolTip('Ctrl+Shift+C')
+        self.add_value_button.setToolTip('Ctrl+Shift+V')
+        self.close_button.setToolTip('Esc')
+        self.save_button.setToolTip('Ctrl+S')
+
     def _on_add_category(self):
         self.tree.add_category()
 
