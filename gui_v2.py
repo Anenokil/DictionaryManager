@@ -2450,6 +2450,14 @@ class SearchBar(QFrame):
         self.hide()
 
 
+class NoEnterComboBox(QComboBox):
+    def keyPressEvent(self, event):
+        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+            event.ignore()
+            return
+        super().keyPressEvent(event)
+
+
 class SearchSettingsDialog(QDialog):
     def __init__(
             self,
@@ -3889,7 +3897,7 @@ class ChoiceDialog(QDialog):
 
         self.setWindowTitle(title)
 
-        self.combo = QComboBox()
+        self.combo = NoEnterComboBox()
         self.combo.addItems(options)
 
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
