@@ -370,9 +370,12 @@ def setup_table_context_menu(
     table.customContextMenuRequested.connect(show_menu)
 
 
-def set_widget_shortcut(key_sequence: str, widget: QWidget, action: Callable):
+def set_widget_shortcut(key_sequence: str, widget: QWidget, action: Callable, with_children: bool = False):
     shortcut = QShortcut(QKeySequence(key_sequence), widget)
-    shortcut.setContext(Qt.WidgetShortcut)
+    if with_children:
+        shortcut.setContext(Qt.WidgetWithChildrenShortcut)
+    else:
+        shortcut.setContext(Qt.WidgetShortcut)
     shortcut.activated.connect(action)
 
 
@@ -1623,6 +1626,7 @@ class EntryDetailsDialog(QDialog):
 
         self._create_widgets()
         self._set_shortcuts()
+        self._set_tooltips()
         self._configure_window()
 
         if self.is_new:
@@ -1720,6 +1724,7 @@ class EntryDetailsDialog(QDialog):
                 'Delete',
                 self.delete_lemma_variants,
                 lambda: cnt(self.lemma_variants_table) < self.lemma_variants_table.rowCount(),
+                shortcut='Delete',
             )
         ])
         setup_table_context_menu(self.translations_table, [
@@ -1728,23 +1733,24 @@ class EntryDetailsDialog(QDialog):
             ActionConfig(
                 'Delete',
                 self.delete_translations,
-                lambda: len(self.translations_table.selectedIndexes()) < self.translations_table.rowCount(),
+                lambda: cnt(self.translations_table) < self.translations_table.rowCount(),
+                shortcut='Delete',
             )
         ])
         setup_table_context_menu(self.forms_table, [
             ActionConfig(lambda: n_selected_msg(cnt(self.forms_table), 'form'), None),
             None,
-            ActionConfig('Delete', self.delete_forms),
+            ActionConfig('Delete', self.delete_forms, shortcut='Delete'),
         ])
         setup_table_context_menu(self.phrases_table, [
             ActionConfig(lambda: n_selected_msg(cnt(self.phrases_table), 'phrase'), None),
             None,
-            ActionConfig('Delete', self.delete_phrases),
+            ActionConfig('Delete', self.delete_phrases, shortcut='Delete'),
         ])
         setup_table_context_menu(self.notes_table, [
             ActionConfig(lambda: n_selected_msg(cnt(self.notes_table), 'note'), None),
             None,
-            ActionConfig('Delete', self.delete_notes),
+            ActionConfig('Delete', self.delete_notes, shortcut='Delete'),
         ])
 
         # Create other widgets
@@ -1858,14 +1864,31 @@ class EntryDetailsDialog(QDialog):
         self.main_layout.addWidget(buttons, 2, 0, alignment=Qt.AlignBottom | Qt.AlignHCenter)
 
     def _set_shortcuts(self):
-        set_widget_shortcut('Ctrl+N', self.lemma_variants_table, self.add_lemma_variant)
-        set_widget_shortcut('Ctrl+N', self.translations_table, self.add_translation)
-        set_widget_shortcut('Ctrl+N', self.forms_table, self.add_form)
-        set_widget_shortcut('Ctrl+N', self.phrases_table, self.add_phrase)
-        set_widget_shortcut('Ctrl+N', self.notes_table, self.add_note)
+        set_widget_shortcut('Ctrl+N', self.lemma_variants_table, self.add_lemma_variant, True)
+        set_widget_shortcut('Ctrl+N', self.translations_table, self.add_translation, True)
+        set_widget_shortcut('Ctrl+N', self.forms_table, self.add_form, True)
+        set_widget_shortcut('Ctrl+N', self.phrases_table, self.add_phrase, True)
+        set_widget_shortcut('Ctrl+N', self.notes_table, self.add_note, True)
+        set_widget_shortcut('Ctrl+N', self.tags_list, self.add_tag, True)
+
+        set_widget_shortcut('Delete', self.lemma_variants_table, self.delete_lemma_variants)
+        set_widget_shortcut('Delete', self.translations_table, self.delete_translations)
+        set_widget_shortcut('Delete', self.forms_table, self.delete_forms)
+        set_widget_shortcut('Delete', self.phrases_table, self.delete_phrases)
+        set_widget_shortcut('Delete', self.notes_table, self.delete_notes)
 
         QShortcut(QKeySequence('Ctrl+S'), self, self.save_and_close)
-        QShortcut(QKeySequence('Ctrl+Q'), self, self.reject)
+
+    def _set_tooltips(self):
+        self.add_lemma_variant_button.setToolTip('Ctrl+N')
+        self.add_translation_button.setToolTip('Ctrl+N')
+        self.add_form_button.setToolTip('Ctrl+N')
+        self.add_phrase_button.setToolTip('Ctrl+N')
+        self.add_note_button.setToolTip('Ctrl+N')
+        self.add_tag_button.setToolTip('Ctrl+N')
+
+        self.save_button.setToolTip('Ctrl+S')
+        self.close_button.setToolTip('Esc')
 
     @staticmethod
     def create_single_column_table(content: Collection[str]) -> QTableWidget:
@@ -2188,10 +2211,14 @@ class EntryDetailsDialog(QDialog):
 
     def delete_lemma_variants(self):
         table = self.lemma_variants_table
+        if len(table.selectedIndexes()) >= table.rowCount():
+            return
         self._delete_selected_table_rows(table)
 
     def delete_translations(self):
         table = self.translations_table
+        if len(table.selectedIndexes()) >= table.rowCount():
+            return
         self._delete_selected_table_rows(table)
 
     def delete_forms(self):
