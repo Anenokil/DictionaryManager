@@ -2484,7 +2484,7 @@ class SearchSettingsDialog(QDialog):
         self.group_settings = QGroupBox(title='Search in:')
         self.layout_settings = QVBoxLayout(self.group_settings)
 
-        self.combobox_starred = QComboBox()
+        self.combobox_starred = NoEnterComboBox()
         self.combobox_starred.addItems(
             ['All entries', 'Starred entries only', 'Unstarred entries only']
         )
