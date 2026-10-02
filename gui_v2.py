@@ -730,7 +730,7 @@ class EditableTagList(QTableWidget):
             self.editItem(self.item(row, 0))
 
     def delete_tags(self):
-        selected_rows = {item.row() for item in self.selectedIndexes()}
+        selected_rows = sorted({item.row() for item in self.selectedIndexes()}, reverse=True)
         for row in selected_rows:
             self.removeRow(row)
 
