@@ -695,6 +695,8 @@ class EditableTagList(QTableWidget):
             ActionConfig(lambda: n_selected_msg(self.n_selected_tags(), 'tag'), None, False),
             None,
             ActionConfig('Delete', self.delete_tags),
+            ActionConfig('Mark as Default', self.mark_tags_default),
+            ActionConfig('Unmark as Default', self.unmark_tags_default),
         ])
 
     def n_selected_tags(self) -> int:
@@ -733,6 +735,18 @@ class EditableTagList(QTableWidget):
         selected_rows = sorted({item.row() for item in self.selectedIndexes()}, reverse=True)
         for row in selected_rows:
             self.removeRow(row)
+
+    def mark_tags_default(self):
+        selected_rows = {item.row() for item in self.selectedIndexes()}
+        for row in selected_rows:
+            checkbox = self.cellWidget(row, 1).checkbox
+            checkbox.setChecked(True)
+
+    def unmark_tags_default(self):
+        selected_rows = {item.row() for item in self.selectedIndexes()}
+        for row in selected_rows:
+            checkbox = self.cellWidget(row, 1).checkbox
+            checkbox.setChecked(False)
 
     def validate_and_update(self) -> bool:
         all_ok = True
