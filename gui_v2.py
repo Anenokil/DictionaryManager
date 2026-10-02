@@ -1244,9 +1244,7 @@ class ManageEscapeSequencesDialog(QDialog):
         self.discard_button = QPushButton('Discard')
         self.save_button = QPushButton('Save')
 
-        self.add_button.clicked.connect(
-            lambda: self.add_row(sorted(replacer.modifiers)[0], '', '', True)
-        )
+        self.add_button.clicked.connect(self.add_sequence)
         self.discard_button.clicked.connect(self.reject)
         self.save_button.clicked.connect(self.save_and_close)
 
@@ -1258,6 +1256,18 @@ class ManageEscapeSequencesDialog(QDialog):
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.scroll_area)
         main_layout.addLayout(buttons_layout)
+
+        self._set_shortcuts()
+        self._set_tooltip()
+
+    def _set_shortcuts(self):
+        QShortcut(QKeySequence('Ctrl+N'), self, self.add_sequence)
+        QShortcut(QKeySequence('Ctrl+S'), self, self.save_and_close)
+
+    def _set_tooltip(self):
+        self.add_button.setToolTip('Ctrl+N')
+        self.discard_button.setToolTip('Esc')
+        self.save_button.setToolTip('Ctrl+S')
 
     def validate_and_update(self) -> bool:
         def update_ui(item: QComboBox | QLineEdit, error_msg: str, ok: bool):
@@ -1367,6 +1377,9 @@ class ManageEscapeSequencesDialog(QDialog):
         self.rows.append(row_data)
 
         self.validate_and_update()
+
+    def add_sequence(self):
+        self.add_row(sorted(self.replacer.modifiers)[0], '', '', True)
 
     def delete_row(self, row_data: tuple[QComboBox, QLineEdit, QLineEdit, QWidget]):
         self.rows.remove(row_data)
