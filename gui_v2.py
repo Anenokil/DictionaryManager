@@ -694,10 +694,17 @@ class EditableTagList(QTableWidget):
         setup_table_context_menu(self, [
             ActionConfig(lambda: n_selected_msg(self.n_selected_tags(), 'tag'), None, False),
             None,
-            ActionConfig('Delete', self.delete_tags),
-            ActionConfig('Mark as Default', self.mark_tags_default),
-            ActionConfig('Unmark as Default', self.unmark_tags_default),
+            ActionConfig('Delete', self.delete_tags, shortcut='Delete'),
+            ActionConfig('Mark as Default', self.mark_tags_default, shortcut='Ctrl+M'),
+            ActionConfig('Unmark as Default', self.unmark_tags_default, shortcut='Ctrl+U'),
         ])
+
+        self._set_shortcuts()
+
+    def _set_shortcuts(self):
+        set_widget_shortcut('Delete', self, self.delete_tags, True)
+        set_widget_shortcut('Ctrl+M', self, self.mark_tags_default, True)
+        set_widget_shortcut('Ctrl+U', self, self.unmark_tags_default, True)
 
     def n_selected_tags(self) -> int:
         return len(self.selectedIndexes()) // self.columnCount()
