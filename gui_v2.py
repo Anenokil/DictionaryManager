@@ -944,6 +944,7 @@ class GramFeaturesTree(QTreeWidget):
         self.expandAll()
 
         self._setup_tree_context_menu()
+        self._set_shortcuts()
 
     def _setup_tree_context_menu(self):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -961,12 +962,16 @@ class GramFeaturesTree(QTreeWidget):
             else:
                 action_text = f'Delete value "{item.text(0)}"'
             delete_action = menu.addAction(action_text)
+            delete_action.setShortcut('Delete')
 
             chosen = menu.exec(self.viewport().mapToGlobal(pos))
             if chosen == delete_action:
                 self.delete_item(item)
 
         self.customContextMenuRequested.connect(show_menu)
+
+    def _set_shortcuts(self):
+        set_widget_shortcut('Delete', self, lambda: self.delete_item(self.currentItem()), True)
 
     def add_category(self, name: str = '', values: list[str] | None = None):
         item = QTreeWidgetItem([name])
