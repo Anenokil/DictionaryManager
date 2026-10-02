@@ -2970,7 +2970,7 @@ class BrowsingPage(QWidget):
 
         self.search_bar.match_case_btn.setToolTip('Match Case (Alt+C)')
         self.search_bar.match_whole_word_btn.setToolTip('Match Whole Word (Alt+W)')
-        self.search_bar.settings_btn.setToolTip('Match Case (Alt+S)')
+        self.search_bar.settings_btn.setToolTip('Search Settings (Alt+S)')
         self.search_bar.close_btn.setToolTip('Close')
 
     def show_search_bar(self):
