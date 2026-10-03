@@ -629,14 +629,20 @@ class CheckableList(QScrollArea):
 
         def show_menu(pos):
             show_context_menu(self, self.viewport().mapToGlobal(pos), [
-                ActionConfig('Check All', self.check_all, lambda: bool(self.checkboxes)),
-                ActionConfig('Uncheck All', self.uncheck_all, lambda: bool(self.checkboxes)),
+                ActionConfig('Check All', self.check_all, lambda: bool(self.checkboxes), shortcut='Ctrl+Shift+C'),
+                ActionConfig('Uncheck All', self.uncheck_all, lambda: bool(self.checkboxes), shortcut='Ctrl+Shift+U'),
             ])
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(show_menu)
 
+        self._set_shortcuts()
+
         self._update_max_height()
+
+    def _set_shortcuts(self):
+        set_widget_shortcut('Ctrl+Shift+C', self, self.check_all, True)
+        set_widget_shortcut('Ctrl+Shift+U', self, self.uncheck_all, True)
 
     def add_item(self, text: str, is_checked: bool = False):
         checkbox = QCheckBox(text)
