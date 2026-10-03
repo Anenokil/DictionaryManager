@@ -842,19 +842,33 @@ class TaggingDialog(QDialog):
         )
         self.tags_list.setWidgetResizable(True)
 
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
-        )
-        buttons.accepted.connect(self.accept)
-        buttons.rejected.connect(self.reject)
+        buttons = QDialogButtonBox()
 
-        add_tag_button = create_img_button(IMG_ADD_PATH)
-        add_tag_button.clicked.connect(self.add_tag)
-        buttons.addButton(add_tag_button, QDialogButtonBox.ActionRole)
+        self.add_tag_button = create_img_button(IMG_ADD_PATH)
+        self.add_tag_button.clicked.connect(self.add_tag)
+        buttons.addButton(self.add_tag_button, QDialogButtonBox.ActionRole)
+
+        self.close_button = QPushButton('Discard')
+        buttons.rejected.connect(self.reject)
+        buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
+
+        self.save_button = QPushButton('Save')
+        buttons.accepted.connect(self.accept)
+        buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.tags_list)
         layout.addWidget(buttons)
+
+        self._set_shortcuts()
+        self._set_tooltips()
+
+    def _set_shortcuts(self):
+        QShortcut(QKeySequence('Ctrl+N'), self, self.add_tag)
+
+    def _set_tooltips(self):
+        self.add_tag_button.setToolTip('Ctrl+N')
+        self.close_button.setToolTip('Esc')
 
     def add_tag(self):
         new_tag, is_default, ok = InputTagDialog.get_input(self.dct_bundle, parent=self)
