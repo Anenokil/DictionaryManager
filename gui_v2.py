@@ -139,8 +139,9 @@ def create_img_button(
         img_path: str,
         icon_size: tuple[int, int] = (24, 24),
         button_size: tuple[int, int] = (28, 28),
+        parent: QWidget | None = None,
 ) -> QPushButton:
-    button = QPushButton()
+    button = QPushButton(parent=parent)
     button.setIcon(QIcon(img_path))
     button.setIconSize(QSize(*icon_size))
     button.setFixedSize(*button_size)
@@ -504,8 +505,9 @@ class OptionsDialog(QDialog):
             defaults: tuple[str, ...],
             title: str,
             validator: Callable[[dict[str, str]], tuple[bool, str]] | None = None,
+            parent: QWidget | None = None,
     ):
-        super().__init__()
+        super().__init__(parent)
 
         self.specs = specs
         self.validator = validator
@@ -575,8 +577,9 @@ class OptionsDialog(QDialog):
             defaults: tuple[str, ...],
             title: str,
             validator: Callable[[dict[str, str]], tuple[bool, str]] | None = None,
+            parent: QWidget | None = None,
     ) -> tuple[dict[str, str] | None, bool]:
-        dialog = OptionsDialog(specs, defaults, title, validator)
+        dialog = OptionsDialog(specs, defaults, title, validator, parent)
         ok = dialog.exec() == QDialog.Accepted
         values = dialog.get_values() if ok else None
         return values, ok
@@ -603,8 +606,9 @@ class CheckableList(QScrollArea):
             items: dict[str, Qt.CheckState | bool],
             on_change: Callable[[], None] | None = None,
             is_tristate: bool = False,
+            parent: QWidget | None = None,
     ):
-        super().__init__()
+        super().__init__(parent)
 
         self._on_change = on_change
 
@@ -831,8 +835,9 @@ class TaggingDialog(QDialog):
             dct_bundle: DctBundle,
             specs: dict[str, Qt.CheckState],
             title: str,
+            parent: QWidget | None = None,
     ):
-        super().__init__()
+        super().__init__(parent)
 
         self.dct_bundle = dct_bundle
         self.dct = dct_bundle.dct
@@ -890,16 +895,17 @@ class TaggingDialog(QDialog):
             dct_bundle: DctBundle,
             specs: dict[str, Qt.CheckState],
             title: str,
+            parent: QWidget | None = None,
     ) -> tuple[dict[str, Qt.CheckState] | None, bool]:
-        dialog = TaggingDialog(dct_bundle, specs, title)
+        dialog = TaggingDialog(dct_bundle, specs, title, parent)
         ok = dialog.exec() == QDialog.Accepted
         values = dialog.get_values() if ok else None
         return values, ok
 
 
 class ManageTagsDialog(QDialog):
-    def __init__(self, dct_bundle: DctBundle):
-        super().__init__()
+    def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
+        super().__init__(parent)
 
         self.dct = dct_bundle.dct
 
@@ -1502,8 +1508,8 @@ class EqualGrowFormLayout(QGridLayout):
 
     _GROWABLE_STRETCH = 1
 
-    def __init__(self, label_alignment: Qt.AlignmentFlag):
-        super().__init__()
+    def __init__(self, label_alignment: Qt.AlignmentFlag, parent: QWidget | None = None):
+        super().__init__(parent)
 
         self._label_alignment = label_alignment
         self._row = 0
@@ -2227,7 +2233,7 @@ class EntryDetailsDialog(QDialog):
         specs = {k: [''] + v for k, v in self.dct.features.items()}
         gram_form = item.data(self._role_gram_form)
         res, ok = OptionsDialog.get_settings(
-            specs, gram_form, 'Grammatical Form Settings', validator=valid_gram_form
+            specs, gram_form, 'Grammatical Form Settings', validator=valid_gram_form, parent=self,
         )
         if not ok:
             return
@@ -2266,7 +2272,7 @@ class EntryDetailsDialog(QDialog):
         empty_gram_form = tuple('' for _ in range(len(self.dct.features)))
 
         res, ok = OptionsDialog.get_settings(
-            specs, empty_gram_form, 'Set Grammatical Form', validator=valid_gram_form
+            specs, empty_gram_form, 'Set Grammatical Form', validator=valid_gram_form, parent=self,
         )
         if not ok:
             return
@@ -2369,8 +2375,8 @@ class EntryDetailsDialog(QDialog):
 
 
 class DctTabWidget(QTabWidget):
-    def __init__(self, manager: Manager):
-        super().__init__()
+    def __init__(self, manager: Manager, parent: QWidget | None = None):
+        super().__init__(parent)
 
         self.manager = manager
 
@@ -3159,7 +3165,7 @@ class BrowsingPage(QWidget):
         self.update_tab_title()
 
     def manage_tags(self):
-        dialog = ManageTagsDialog(self.dct_bundle)
+        dialog = ManageTagsDialog(self.dct_bundle, parent=self)
         dialog.exec()
         self.update_tab_title()
 
@@ -3260,7 +3266,7 @@ class BrowsingPage(QWidget):
                 specs[tag] = Qt.Unchecked
             else:
                 specs[tag] = Qt.PartiallyChecked
-        res, ok = TaggingDialog.get_settings(self.dct_bundle, specs, 'Manage Tags')
+        res, ok = TaggingDialog.get_settings(self.dct_bundle, specs, 'Manage Tags', parent=self)
         if not ok:
             return
 
@@ -3923,7 +3929,7 @@ class DctWorkspaceWidget(QWidget):
     functionality and status bar with dictionary statistics.
     """
 
-    def __init__(self, tab_widget: DctTabWidget, dct_bundle: DctBundle):
+    def __init__(self, tab_widget: DctTabWidget, dct_bundle: DctBundle, parent: QWidget | None = None):
         """
         Initialize the workspace widget.
 
@@ -3931,7 +3937,7 @@ class DctWorkspaceWidget(QWidget):
             dct: Dictionary instance to display.
         """
 
-        super().__init__()
+        super().__init__(parent)
 
         self.dct_bundle = dct_bundle
         self.dct = dct_bundle.dct
@@ -4006,7 +4012,7 @@ class MainWindow(QMainWindow):
     and creating dictionaries, and handles application state persistence.
     """
 
-    def __init__(self, app_data: AppData):
+    def __init__(self, app_data: AppData, parent: QWidget | None = None):
         """
         Initialize the main window.
 
@@ -4014,7 +4020,7 @@ class MainWindow(QMainWindow):
             app_data: The main structure with app data.
         """
 
-        super().__init__()
+        super().__init__(parent)
 
         self.app_data = app_data
         self.manager = app_data.manager
