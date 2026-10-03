@@ -3814,6 +3814,10 @@ class PracticePage(QWidget):
 
         self.get_task()
 
+        if self.trainer.is_finished():
+            self.stop()
+            return
+
         self.fill_task_edit()
         self._update_hint_btn()
 
