@@ -5,6 +5,7 @@ import re
 import json
 import io
 from pathlib import Path
+import shutil
 import platformdirs
 import hashlib
 import zipfile
@@ -2375,6 +2376,8 @@ class EntryDetailsDialog(QDialog):
 
 
 class DctTabWidget(QTabWidget):
+    tab_closed = Signal(int)
+
     def __init__(self, manager: Manager, parent: QWidget | None = None):
         super().__init__(parent)
 
@@ -2405,6 +2408,8 @@ class DctTabWidget(QTabWidget):
                 ActionConfig('to Text File...', lambda: self.export_dict_to_txt(index)),
                 ActionConfig('as Dictionary Package (.dmdct)...', lambda: self.export_dict_to_dmdct(index)),
             ])),
+            None,
+            ActionConfig('Delete', lambda: self.delete_dict(index)),
         ])
 
     def rename_dict(self, index: int | None):
@@ -2475,6 +2480,26 @@ class DctTabWidget(QTabWidget):
                 if file_path.is_file():
                     arcname = file_path.relative_to(source_folder)
                     zf.write(file_path, arcname=arcname)
+
+    def delete_dict(self, index: int | None):
+        if index is None:
+            return
+
+        dct = self.manager.opened_dct_bundles[index].dct
+
+        reply = QMessageBox.question(
+            self,
+            'Delete Dictionary',
+            f'Delete dictionary "{dct.name}" and its {len(dct)} {'entry' if len(dct) == 1 else 'entries'}?\n'
+            f'This cannot be undone.',
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if reply != QMessageBox.Yes:
+            return
+
+        shutil.rmtree(DCT_SAVE_DIR(dct.id))
+        self.tab_closed.emit(index)
 
 
 class SearchBar(QFrame):
@@ -4092,8 +4117,8 @@ class MainWindow(QMainWindow):
         self.tab_widget.tabBar().setTabButton(0, QTabBar.LeftSide, None)
         self.tab_widget.tabBar().tabBarDoubleClicked.connect(self.on_tab_renamed)
 
-        # Connect signal for tab movement
         self.tab_widget.tabBar().tabMoved.connect(self.on_tab_moved)
+        self.tab_widget.tab_closed.connect(lambda index: self._close_tab(index))
 
     def _create_placeholder(self):
         # Create placeholder for empty workspace
@@ -4104,6 +4129,7 @@ class MainWindow(QMainWindow):
     def _set_shortcuts(self):
         QShortcut(QKeySequence('Ctrl+Insert'), self, self.new_dict)
         QShortcut(QKeySequence('Ctrl+S'), self, self.save_dict)
+        QShortcut(QKeySequence('Ctrl+Delete'), self, self.delete_dict)
 
     def show_file_menu(self):
         """Show the File dropdown menu below the File button."""
@@ -4130,6 +4156,8 @@ class MainWindow(QMainWindow):
                         lambda: self.tab_widget.count() != 0
                     ),
                 ])),
+                None,
+                ActionConfig('Delete', self.delete_dict, lambda: self.tab_widget.count() != 0, 'Ctrl+Delete'),
             ])
 
     def show_settings_menu(self):
@@ -4422,6 +4450,10 @@ class MainWindow(QMainWindow):
     def export_dict_to_dmdct(self):
         dct_index = self.manager.active_dct_id
         self.tab_widget.export_dict_to_dmdct(dct_index)
+
+    def delete_dict(self):
+        dct_index = self.manager.active_dct_id
+        self.tab_widget.delete_dict(dct_index)
 
 
 if __name__ == '__main__':
