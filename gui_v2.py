@@ -2407,13 +2407,16 @@ class DctTabWidget(QTabWidget):
             ])),
         ])
 
-    def rename_dict(self, index):
+    def rename_dict(self, index: int | None):
         """
         Rename tab.
 
         Args:
             index: Index of the tab, or -1 if no tab is selected.
         """
+
+        if index is None:
+            return
 
         if index >= 0:
             current_name = self.manager.opened_dct_bundles[index].dct.name
@@ -2427,7 +2430,10 @@ class DctTabWidget(QTabWidget):
                 self.manager.rename_dct(index, new_name)
                 self.update_tab_title(index)
 
-    def save_dict(self, index: int):
+    def save_dict(self, index: int | None):
+        if index is None:
+            return
+
         dct = self.manager.opened_dct_bundles[index].dct
         file_path = SAVE_JSON_PATH(dct.id)
         self.manager.save_dct(index, file_path)
@@ -2438,7 +2444,10 @@ class DctTabWidget(QTabWidget):
         for index in range(len(self.manager.opened_dct_bundles)):
             self.save_dict(index)
 
-    def export_dict_to_txt(self, index: int):
+    def export_dict_to_txt(self, index: int | None):
+        if index is None:
+            return
+
         dct = self.manager.opened_dct_bundles[index].dct
         dct_name = dct.name
         file_path, _ = QFileDialog.getSaveFileName(
@@ -2448,7 +2457,10 @@ class DctTabWidget(QTabWidget):
             return
         dct.to_txt(file_path)
 
-    def export_dict_to_dmdct(self, index: int):
+    def export_dict_to_dmdct(self, index: int | None):
+        if index is None:
+            return
+
         dct = self.manager.opened_dct_bundles[index].dct
         dct_name = dct.name
         dest_path, _ = QFileDialog.getSaveFileName(
