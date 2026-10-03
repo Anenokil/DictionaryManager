@@ -108,7 +108,7 @@ def check_dct_name(window_parent: tk.Misc, app_data: AppData, name: str) -> bool
     if name == '':
         warning(window_parent, app_data, 'Название должно содержать хотя бы один символ!')
         return False
-    if name in os.listdir(SAVES_PATH):
+    if os.path.exists(os.path.join(SAVES_PATH, name)):
         warning(window_parent, app_data, 'Словарь с таким названием уже существует!')
         return False
     return True
@@ -127,7 +127,7 @@ def check_dct_name_edit(
     if new_name == '':
         warning(window_parent, app_data, 'Название должно содержать хотя бы один символ!')
         return False
-    if new_name in os.listdir(SAVES_PATH) and new_name != old_name:
+    if os.path.exists(os.path.join(SAVES_PATH, new_name)) and new_name != old_name:
         warning(window_parent, app_data, 'Словарь с таким названием уже существует!')
         return False
     return True
@@ -1096,7 +1096,7 @@ def upload_themes(themes: list[str]):
         theme_dir_path = os.path.join(ADDITIONAL_THEMES_PATH, dir_name)
         if not os.path.isdir(theme_dir_path):
             continue
-        if STYLES_FN not in os.listdir(theme_dir_path):
+        if not os.path.exists(os.path.join(theme_dir_path, STYLES_FN)):
             continue
 
         theme_name = dir_name
@@ -1117,7 +1117,7 @@ def upload_themes(themes: list[str]):
 
 # Загрузить пользовательскую тему
 def upload_custom_theme(to_print: bool = True):
-    if STYLES_FN not in os.listdir(CUSTOM_THEME_PATH):
+    if not os.path.exists(os.path.join(CUSTOM_THEME_PATH, STYLES_FN)):
         create_default_custom_theme()
         return
 
@@ -1142,7 +1142,7 @@ def img_path(theme: str, img_name: str) -> str:
         theme_dir = os.path.join(ADDITIONAL_THEMES_PATH, theme)
 
     file_name = f'{img_name}.png'
-    if file_name in os.listdir(theme_dir):
+    if os.path.exists(os.path.join(theme_dir, file_name)):
         return os.path.join(theme_dir, file_name)
     return os.path.join(IMAGES_PATH, file_name)
 
@@ -4643,9 +4643,9 @@ class CustomThemeSettingsW(tk.Toplevel):
                 file_name = f'{img_name}.png'
                 src_path = os.path.join(self.dir_with_images, file_name)
                 dst_path = os.path.join(CUSTOM_THEME_PATH, file_name)
-                if file_name in os.listdir(CUSTOM_THEME_PATH):
+                if os.path.exists(os.path.join(CUSTOM_THEME_PATH, file_name)):
                     os.remove(dst_path)
-                if file_name in os.listdir(self.dir_with_images):
+                if os.path.exists(os.path.join(self.dir_with_images, file_name)):
                     shutil.copyfile(src_path, dst_path)
 
     # Отменить последнее действие
@@ -8735,21 +8735,21 @@ class MainW(tk.Tk):
 
 def main():
     # Если папки отсутствуют, то они создаются
-    if RESOURCES_DIR not in os.listdir(MAIN_PATH):
+    if not os.path.exists(RESOURCES_PATH):
         os.mkdir(RESOURCES_PATH)
-    if SAVES_DIR not in os.listdir(RESOURCES_PATH):
+    if not os.path.exists(SAVES_PATH):
         os.mkdir(SAVES_PATH)
-    if ADDITIONAL_THEMES_DIR not in os.listdir(RESOURCES_PATH):
+    if not os.path.exists(ADDITIONAL_THEMES_PATH):
         os.mkdir(ADDITIONAL_THEMES_PATH)
-    if CUSTOM_THEME_DIR not in os.listdir(RESOURCES_PATH):
+    if not os.path.exists(CUSTOM_THEME_PATH):
         os.mkdir(CUSTOM_THEME_PATH)
-    if IMAGES_DIR not in os.listdir(RESOURCES_PATH):
+    if not os.path.exists(IMAGES_PATH):
         os.mkdir(IMAGES_PATH)
 
-    if THEMES[1] not in os.listdir(ADDITIONAL_THEMES_PATH):
-        os.mkdir(os.path.join(ADDITIONAL_THEMES_PATH, THEMES[1]))
-    if THEMES[2] not in os.listdir(ADDITIONAL_THEMES_PATH):
-        os.mkdir(os.path.join(ADDITIONAL_THEMES_PATH, THEMES[2]))
+    for i in (1, 2):
+        theme_path = os.path.join(ADDITIONAL_THEMES_PATH, THEMES[i])
+        if not os.path.exists(theme_path):
+            os.mkdir(theme_path)
 
     # Если временный файл не удалён, то он удаляется
     if TMP_FN in os.listdir(RESOURCES_PATH):
@@ -8783,7 +8783,7 @@ def main():
     # Initialize GUI
     root = MainW(app_data)
     # Set icon
-    if ICON_FN in os.listdir(RESOURCES_PATH):
+    if os.path.exists(os.path.join(RESOURCES_PATH, ICON_FN)):
         root.iconphoto(True, tk.PhotoImage(file=ICON_PATH))  # Устанавливаем иконку
 
     print('\nЗапуск программы прошёл успешно')
