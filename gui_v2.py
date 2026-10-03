@@ -893,9 +893,9 @@ class ManageTagsDialog(QDialog):
 
         buttons = QDialogButtonBox()
 
-        add_tag_button = create_img_button(IMG_ADD_PATH)
-        add_tag_button.clicked.connect(self.add_tag)
-        buttons.addButton(add_tag_button, QDialogButtonBox.ActionRole)
+        self.add_tag_button = create_img_button(IMG_ADD_PATH)
+        self.add_tag_button.clicked.connect(self.add_tag)
+        buttons.addButton(self.add_tag_button, QDialogButtonBox.ActionRole)
 
         self.close_button = QPushButton('Discard')
         buttons.rejected.connect(self.reject)
@@ -908,6 +908,18 @@ class ManageTagsDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.addWidget(self.tags_list)
         layout.addWidget(buttons)
+
+        self._set_shortcuts()
+        self._set_tooltips()
+
+    def _set_shortcuts(self):
+        QShortcut(QKeySequence('Ctrl+N'), self, self.add_tag)
+        QShortcut(QKeySequence('Ctrl+S'), self, self.save_and_close)
+
+    def _set_tooltips(self):
+        self.add_tag_button.setToolTip('Ctrl+N')
+        self.close_button.setToolTip('Esc')
+        self.save_button.setToolTip('Ctrl+S')
 
     def add_tag(self):
         self.tags_list.add_tag('', False, is_new=True)
