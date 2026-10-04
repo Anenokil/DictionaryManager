@@ -1233,8 +1233,6 @@ class ManageGramFeaturesDialog(QDialog):
 
     def _on_add_value(self):
         current = self.tree.currentItem()
-        if current is None:
-            return
         category_item = current if self.tree.is_category(current) else current.parent()
         self.tree.add_value(category_item)
         category_item.setExpanded(True)
