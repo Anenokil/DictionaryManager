@@ -65,7 +65,7 @@ DATA_DIR = Path(platformdirs.user_data_dir('DictionaryManager'))
 APP_DATA_JSON_PATH = str(DATA_DIR / 'app_data.json')
 SAVES_DIR = DATA_DIR / 'saves'
 DCT_SAVE_DIR = lambda dct_id: SAVES_DIR / dct_id
-SAVE_JSON_PATH = lambda dct_id: str(DCT_SAVE_DIR(dct_id) / 'dct_data.json')
+DCT_MAIN_DATA_PATH = lambda dct_id: str(DCT_SAVE_DIR(dct_id) / 'dct_data.json')
 USER_IMAGES_DIR = lambda dct_id: DCT_SAVE_DIR(dct_id) / 'user_images'
 
 
@@ -81,7 +81,7 @@ def phrases_to_pairs(phrases: Phrases) -> Generator[tuple[str, str], None, None]
             yield phrase, tr
 
 
-def lemma_to_str(variants: Variants) -> str:
+def variants_to_str(variants: Variants) -> str:
     return ', '.join(variants)
 
 
@@ -295,27 +295,27 @@ def create_context_menu(
     menu = QMenu(widget)
     action_callbacks = {}
 
-    for entry in actions_config:
+    for item in actions_config:
         # Separator
-        if entry is None:
+        if item is None:
             menu.addSeparator()
             continue
 
         # Submenu
-        if isinstance(entry, SubmenuConfig):
-            submenu = menu.addMenu(entry.menu)
-            text = entry.text
+        if isinstance(item, SubmenuConfig):
+            submenu = menu.addMenu(item.menu)
+            text = item.text
             if text is not None:
                 if isinstance(text, Callable):
                     text = text()
                 submenu.setText(text)
-            action_callbacks.update(entry.callbacks)
+            action_callbacks.update(item.callbacks)
             continue
 
-        text = entry.text
-        callback = entry.callback
-        is_active = entry.is_active
-        shortcut = entry.shortcut
+        text = item.text
+        callback = item.callback
+        is_active = item.is_active
+        shortcut = item.shortcut
 
         if isinstance(text, Callable):
             text = text()
@@ -393,7 +393,7 @@ def purge_unused_user_images(dct: Dictionary):
         path.unlink()
 
 
-class ColoredCellDelegate(QStyledItemDelegate):
+class ColoredItemDelegate(QStyledItemDelegate):
     """
     Custom item background stays visible even when the cell is selected.
     """
@@ -447,9 +447,9 @@ class InputTagDialog(QDialog):
 
         self.setWindowTitle(title)
 
-        self._line_edit = QLineEdit(tag)
-        self._is_default = QCheckBox('Automatically apply this tag to new entries')
-        self._is_default.setChecked(is_default)
+        self.line_edit = QLineEdit(tag)
+        self.cb_default = QCheckBox('Automatically apply this tag to new entries')
+        self.cb_default.setChecked(is_default)
 
         buttons = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel
@@ -457,13 +457,13 @@ class InputTagDialog(QDialog):
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
 
-        label1 = QLabel('Tag:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        label_tag = QLabel('Tag:', alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.label_error = QLabel('', alignment=Qt.AlignHCenter)
 
         self.layout = QGridLayout(self)
-        self.layout.addWidget(label1, 0, 0)
-        self.layout.addWidget(self._line_edit, 0, 1)
-        self.layout.addWidget(self._is_default, 1, 0, 1, 2, alignment=Qt.AlignBottom)
+        self.layout.addWidget(label_tag, 0, 0)
+        self.layout.addWidget(self.line_edit, 0, 1)
+        self.layout.addWidget(self.cb_default, 1, 0, 1, 2, alignment=Qt.AlignBottom)
         self.layout.addWidget(buttons, 2, 0, 1, 2)
 
     def _validate(self) -> tuple[bool, str]:
@@ -475,9 +475,9 @@ class InputTagDialog(QDialog):
         return True, ''
 
     def accept(self):
-        is_ok, error_msg = self._validate()
+        ok, error_msg = self._validate()
 
-        if is_ok:
+        if ok:
             super().accept()
         else:
             self.label_error.setText(f'Invalid value: {error_msg}')
@@ -485,7 +485,7 @@ class InputTagDialog(QDialog):
             self.layout.addWidget(self.label_error, 3, 0, 1, 2)
 
     def get_text(self) -> tuple[str, bool]:
-        return self.replacer.replace(self._line_edit.text()), self._is_default.isChecked()
+        return self.replacer.replace(self.line_edit.text()), self.cb_default.isChecked()
 
     @staticmethod
     def get_input(
@@ -557,9 +557,9 @@ class OptionsDialog(QDialog):
         return self.validator(self.get_values())
 
     def accept(self):
-        is_ok, error_msg = self._validate()
+        ok, error_msg = self._validate()
 
-        if is_ok:
+        if ok:
             super().accept()
         else:
             self.label_error.setText(f'Invalid value: {error_msg}')
@@ -800,7 +800,7 @@ class EditableTagList(QTableWidget):
     def on_item_changed(self):
         self.validate_and_update()
 
-    def on_rows_removed(self, parent, first: int, last: int):
+    def on_rows_removed(self, _parent, _first: int, _last: int):
         self.validate_and_update()
 
     def get_changes(self) -> tuple[dict[str, bool], dict[str, str], dict[str, bool], set[str]]:
@@ -916,7 +916,7 @@ class ManageTagsDialog(QDialog):
             tag: self.dct.is_default_tag(tag)
             for tag in sorted(self.dct.tags, key=lambda s: (s.lower(), s))
         })
-        self.tags_list.setItemDelegate(ColoredCellDelegate(self.tags_list))
+        self.tags_list.setItemDelegate(ColoredItemDelegate(self.tags_list))
 
         buttons = QDialogButtonBox()
 
@@ -1058,8 +1058,8 @@ class GramFeaturesTree(QTreeWidget):
             item.parent().removeChild(item)
 
     def validate_and_update(self) -> bool:
-        def update_ui(item: QTreeWidgetItem, is_ok: bool):
-            if is_ok:
+        def update_ui(item: QTreeWidgetItem, ok: bool):
+            if ok:
                 item.setBackground(0, QBrush())
                 item.setToolTip(0, '')
             else:
@@ -1117,7 +1117,7 @@ class GramFeaturesTree(QTreeWidget):
     def on_item_changed(self):
         self.validate_and_update()
 
-    def on_rows_inserted(self, parent, first: int, last: int):
+    def on_rows_inserted(self, parent, first: int, _last: int):
         self.validate_and_update()
 
         index = self.model().index(first, 0, parent)
@@ -1125,7 +1125,7 @@ class GramFeaturesTree(QTreeWidget):
         self.setCurrentItem(item)
         self.editItem(item, 0)
 
-    def on_rows_removed(self, parent, first: int, last: int):
+    def on_rows_removed(self, _parent, _first: int, _last: int):
         self.validate_and_update()
 
     def get_changes(self) -> tuple[
@@ -1187,7 +1187,7 @@ class ManageGramFeaturesDialog(QDialog):
 
         self.tree = GramFeaturesTree(dct_bundle.replacer, self.dct.features)
         self.tree.currentItemChanged.connect(self._update_add_value_button)
-        self.tree.setItemDelegate(ColoredCellDelegate(self.tree))
+        self.tree.setItemDelegate(ColoredItemDelegate(self.tree))
 
         buttons = QDialogButtonBox()
 
@@ -1727,7 +1727,7 @@ class EntryDetailsDialog(QDialog):
             self.lemma_variants_table.edit(self.lemma_variants_table.model().index(0, 0))
 
     def _configure_window(self):
-        title = 'New Entry' if self.is_new else f'Entry "{lemma_to_str(self.entry.variants)}"'
+        title = 'New Entry' if self.is_new else f'Entry "{variants_to_str(self.entry.variants)}"'
         self.setWindowTitle(title)
         self.setModal(True)
         self.resize(800, 550)
@@ -1779,7 +1779,7 @@ class EntryDetailsDialog(QDialog):
                 (gf, self.replacer.escape(wf))
                 for gf, wf in forms_to_pairs(self.entry.forms)
             ],
-            gram_forms=[] if self.is_new else [
+            hidden_content_1=[] if self.is_new else [
                 gram_form
                 for gram_form, word_forms in self.entry.forms.items()
                 for _ in word_forms
@@ -1867,7 +1867,7 @@ class EntryDetailsDialog(QDialog):
         self.add_tag_button = create_img_button(IMG_ADD_PATH)
 
         # Signal handling
-        self.forms_table.cellDoubleClicked.connect(self.on_gram_form_double_clicked)
+        self.forms_table.cellDoubleClicked.connect(self.edit_gram_form)
 
         self.add_lemma_variant_button.clicked.connect(self.add_lemma_variant)
         self.add_translation_button.clicked.connect(self.add_translation)
@@ -1890,11 +1890,11 @@ class EntryDetailsDialog(QDialog):
         connect_table_handlers(self.notes_table)
 
         # Custom cell coloring delegate
-        self.lemma_variants_table.setItemDelegate(ColoredCellDelegate(self.lemma_variants_table))
-        self.translations_table.setItemDelegate(ColoredCellDelegate(self.translations_table))
-        self.forms_table.setItemDelegate(ColoredCellDelegate(self.forms_table))
-        self.phrases_table.setItemDelegate(ColoredCellDelegate(self.phrases_table))
-        self.notes_table.setItemDelegate(ColoredCellDelegate(self.notes_table))
+        self.lemma_variants_table.setItemDelegate(ColoredItemDelegate(self.lemma_variants_table))
+        self.translations_table.setItemDelegate(ColoredItemDelegate(self.translations_table))
+        self.forms_table.setItemDelegate(ColoredItemDelegate(self.forms_table))
+        self.phrases_table.setItemDelegate(ColoredItemDelegate(self.phrases_table))
+        self.notes_table.setItemDelegate(ColoredItemDelegate(self.notes_table))
 
         # Place widgets in the layout
         def create_field_container(table, button) -> QWidget:
@@ -2010,7 +2010,7 @@ class EntryDetailsDialog(QDialog):
     @staticmethod
     def create_two_column_table(
             content: Collection[tuple[str, str]],
-            gram_forms: Collection[GramForm] | None = None,
+            hidden_content_1: Collection[GramForm] | None = None,
             is_1_col_active: bool = True,
     ) -> QTableWidget:
         """Create a two-column table with the given data."""
@@ -2032,8 +2032,8 @@ class EntryDetailsDialog(QDialog):
         table.setRowCount(len(content))
         for row, (item1, item2) in enumerate(content):
             table_item1 = QTableWidgetItem(item1)
-            if gram_forms is not None:
-                data1 = gram_forms[row]
+            if hidden_content_1 is not None:
+                data1 = hidden_content_1[row]
                 table_item1.setData(EntryDetailsDialog._role_gram_form, data1)
             if is_1_col_active:
                 table_item1.setFlags(table_item1.flags() | Qt.ItemIsEditable)
@@ -2220,10 +2220,10 @@ class EntryDetailsDialog(QDialog):
         table = item.tableWidget()
         self.validate_and_update_table(table)
 
-    def on_rows_removed(self, table: QTableWidget, parent, first: int, last: int):
+    def on_rows_removed(self, table: QTableWidget, _parent, _first: int, _last: int):
         self.validate_and_update_table(table)
 
-    def on_gram_form_double_clicked(self, row: int, column: int):
+    def edit_gram_form(self, row: int, column: int):
         if column != 0:
             return
 
@@ -2323,8 +2323,8 @@ class EntryDetailsDialog(QDialog):
         self._delete_selected_table_rows(self.notes_table)
 
     def save_and_close(self):
-        is_ok, error_msg = self.validate_all()
-        if not is_ok:
+        ok, error_msg = self.validate_all()
+        if not ok:
             QMessageBox.critical(self, 'Error', error_msg)
             return
 
@@ -2399,20 +2399,20 @@ class DctTabWidget(QTabWidget):
             return
 
         show_context_menu(self, self.tabBar().mapToGlobal(pos), [
-            ActionConfig('Rename...', lambda: self.rename_dict(index)),
+            ActionConfig('Rename...', lambda: self.rename_dct(index)),
             None,
-            ActionConfig('Save', lambda: self.save_dict(index)),
-            ActionConfig('Save All', self.save_all_dicts),
+            ActionConfig('Save', lambda: self.save_dct(index)),
+            ActionConfig('Save All', self.save_all_dcts),
             None,
             SubmenuConfig('Export', *create_context_menu(self, [
-                ActionConfig('to Text File...', lambda: self.export_dict_to_txt(index)),
-                ActionConfig('as Dictionary Package (.dmdct)...', lambda: self.export_dict_to_dmdct(index)),
+                ActionConfig('to Text File...', lambda: self.export_dct_to_txt(index)),
+                ActionConfig('as Dictionary Package (.dmdct)...', lambda: self.export_dct_to_dmdct(index)),
             ])),
             None,
-            ActionConfig('Delete', lambda: self.delete_dict(index)),
+            ActionConfig('Delete', lambda: self.delete_dct(index)),
         ])
 
-    def rename_dict(self, index: int | None):
+    def rename_dct(self, index: int | None):
         """
         Rename tab.
 
@@ -2435,21 +2435,21 @@ class DctTabWidget(QTabWidget):
                 self.manager.rename_dct(index, new_name)
                 self.update_tab_title(index)
 
-    def save_dict(self, index: int | None):
+    def save_dct(self, index: int | None):
         if index is None:
             return
 
         dct = self.manager.opened_dct_bundles[index].dct
-        file_path = SAVE_JSON_PATH(dct.id)
+        file_path = DCT_MAIN_DATA_PATH(dct.id)
         self.manager.save_dct(index, file_path)
         self.update_tab_title(index)
         purge_unused_user_images(dct)
 
-    def save_all_dicts(self):
+    def save_all_dcts(self):
         for index in range(len(self.manager.opened_dct_bundles)):
-            self.save_dict(index)
+            self.save_dct(index)
 
-    def export_dict_to_txt(self, index: int | None):
+    def export_dct_to_txt(self, index: int | None):
         if index is None:
             return
 
@@ -2462,7 +2462,7 @@ class DctTabWidget(QTabWidget):
             return
         dct.to_txt(file_path)
 
-    def export_dict_to_dmdct(self, index: int | None):
+    def export_dct_to_dmdct(self, index: int | None):
         if index is None:
             return
 
@@ -2481,7 +2481,7 @@ class DctTabWidget(QTabWidget):
                     arcname = file_path.relative_to(source_folder)
                     zf.write(file_path, arcname=arcname)
 
-    def delete_dict(self, index: int | None):
+    def delete_dct(self, index: int | None):
         if index is None:
             return
 
@@ -2728,7 +2728,7 @@ class EntriesTableModel(QAbstractTableModel):
 
         if role in (Qt.DisplayRole, Qt.EditRole):
             if col == 1:
-                return lemma_to_str(entry.variants)
+                return variants_to_str(entry.variants)
             if col == 2:
                 return translations_to_str(entry.tr)
             if col == 3:
@@ -2811,7 +2811,7 @@ class EntriesTableModel(QAbstractTableModel):
 
 
 class SearchFilterProxyModel(QSortFilterProxyModel):
-    searchResultsChanged = Signal()
+    search_results_changed = Signal()
 
     def __init__(self, search_config: SearchConfig, parent=None):
         super().__init__(parent)
@@ -2830,18 +2830,18 @@ class SearchFilterProxyModel(QSortFilterProxyModel):
         self.beginFilterChange()
         self._pattern = text
         self.endFilterChange()
-        self.searchResultsChanged.emit()
+        self.search_results_changed.emit()
 
     def toggle_search_mode(self, enabled: bool):
         self.beginFilterChange()
         self._search_mode_on = enabled
         self.endFilterChange()
-        self.searchResultsChanged.emit()
+        self.search_results_changed.emit()
 
     def update_filter(self):
         self.beginFilterChange()
         self.endFilterChange()
-        self.searchResultsChanged.emit()
+        self.search_results_changed.emit()
 
     def lessThan(self, source_left, source_right) -> bool:
         if source_left.column() in EntriesTableModel.NUM_COLUMNS:
@@ -2973,8 +2973,8 @@ class ThreeStateSortHeader(QHeaderView):
 
 
 class BrowsingPage(QWidget):
-    on_practice_button_clicked = Signal()
-    on_dct_edited = Signal()
+    practice_button_clicked = Signal()
+    dct_edited = Signal()
     new_tab_requested = Signal(str, list)
 
     def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
@@ -3005,20 +3005,20 @@ class BrowsingPage(QWidget):
         self.source_model = EntriesTableModel(self.dct)
         self.proxy_model = SearchFilterProxyModel(self.dct_bundle.search_config)
         self.proxy_model.setSourceModel(self.source_model)
-        self.proxy_model.searchResultsChanged.connect(self.update_status_bar)
+        self.proxy_model.search_results_changed.connect(self.update_status_bar)
 
         # Create table widget
-        self.table_widget = QTableView()
-        self.table_widget.setModel(self.proxy_model)
-        self.main_layout.addWidget(self.table_widget, 1, 0, 1, 2)
+        self.entries_table = QTableView()
+        self.entries_table.setModel(self.proxy_model)
+        self.main_layout.addWidget(self.entries_table, 1, 0, 1, 2)
 
         # Configure row selection
-        self.table_widget.setSelectionBehavior(QTableView.SelectRows)
-        self.table_widget.setSelectionMode(QTableView.ExtendedSelection)  # Multiple selection
+        self.entries_table.setSelectionBehavior(QTableView.SelectRows)
+        self.entries_table.setSelectionMode(QTableView.ExtendedSelection)  # Multiple selection
 
         # Configure column resizing
-        header = ThreeStateSortHeader(self.table_widget, self.proxy_model, parent=self.table_widget)
-        self.table_widget.setHorizontalHeader(header)
+        header = ThreeStateSortHeader(self.entries_table, self.proxy_model, parent=self.entries_table)
+        self.entries_table.setHorizontalHeader(header)
         header.setMinimumSectionSize(20)
         header.setSectionResizeMode(QHeaderView.Interactive)
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
@@ -3027,21 +3027,21 @@ class BrowsingPage(QWidget):
         header.setStretchLastSection(True)
 
         # Enable horizontal scrollbar
-        self.table_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.entries_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         # Enable smooth scrolling (pixel-based scrolling, not item-based)
-        self.table_widget.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
-        self.table_widget.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.entries_table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.entries_table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
 
         # Disable table editing
-        self.table_widget.setEditTriggers(QTableView.NoEditTriggers)
+        self.entries_table.setEditTriggers(QTableView.NoEditTriggers)
 
         # Connect signal handlers
-        self.table_widget.doubleClicked.connect(self.on_item_double_clicked)
-        self.table_widget.selectionModel().selectionChanged.connect(self.on_selection_changed)
+        self.entries_table.doubleClicked.connect(self.edit_entry)
+        self.entries_table.selectionModel().selectionChanged.connect(self.on_selection_changed)
 
         # Setup context menu
         n_selected = lambda: n_selected_msg(len(self.get_selected_entries()), 'entry', 'entries')
-        setup_table_context_menu(self.table_widget, [
+        setup_table_context_menu(self.entries_table, [
             ActionConfig(n_selected, None, False),
             None,
             ActionConfig('Manage Tags...', self.manage_entries_tags, shortcut='Ctrl+Shift+T'),
@@ -3073,7 +3073,7 @@ class BrowsingPage(QWidget):
         self.manage_tags_btn.clicked.connect(self.manage_tags)
         self.manage_features_btn.clicked.connect(self.manage_features)
         self.manage_escape_sequences_btn.clicked.connect(self.manage_escape_sequences)
-        self.practice_btn.clicked.connect(self.on_practice_button_clicked.emit)
+        self.practice_btn.clicked.connect(self.practice_button_clicked.emit)
 
         self.buttons_layout.addWidget(self.search_btn)
         self.buttons_layout.addWidget(self.add_entry_btn)
@@ -3098,14 +3098,14 @@ class BrowsingPage(QWidget):
         QShortcut(QKeySequence('Ctrl+T'), self, self.manage_tags)
         QShortcut(QKeySequence('Ctrl+G'), self, self.manage_features)
         QShortcut(QKeySequence('Ctrl+E'), self, self.manage_escape_sequences)
-        QShortcut(QKeySequence('Ctrl+P'), self, self.on_practice_button_clicked.emit)
+        QShortcut(QKeySequence('Ctrl+P'), self, self.practice_button_clicked.emit)
 
-        set_widget_shortcut('Ctrl+Shift+T', self.table_widget, self.manage_entries_tags)
-        set_widget_shortcut('Ctrl+Shift+R', self.table_widget, self.star_entries)
-        set_widget_shortcut('Ctrl+Shift+U', self.table_widget, self.unstar_entries)
-        set_widget_shortcut('Ctrl+Shift+M', self.table_widget, self.merge_entries)
-        set_widget_shortcut('Ctrl+Shift+C', self.table_widget, self.cherry_pick_entries)
-        set_widget_shortcut('Ctrl+Shift+D', self.table_widget, self.delete_entries)
+        set_widget_shortcut('Ctrl+Shift+T', self.entries_table, self.manage_entries_tags)
+        set_widget_shortcut('Ctrl+Shift+R', self.entries_table, self.star_entries)
+        set_widget_shortcut('Ctrl+Shift+U', self.entries_table, self.unstar_entries)
+        set_widget_shortcut('Ctrl+Shift+M', self.entries_table, self.merge_entries)
+        set_widget_shortcut('Ctrl+Shift+C', self.entries_table, self.cherry_pick_entries)
+        set_widget_shortcut('Ctrl+Shift+D', self.entries_table, self.delete_entries)
 
         def toggle_match_case():
             if self.search_bar.isVisible():
@@ -3155,17 +3155,17 @@ class BrowsingPage(QWidget):
     def get_selected_entries(self) -> set[Entry]:
         return {
             item.data(EntriesTableModel.ENTRY_ROLE)
-            for item in self.table_widget.selectedIndexes()
+            for item in self.entries_table.selectedIndexes()
         }
 
     def get_selected(self) -> dict[int, Entry]:
         return {
             self.proxy_model.mapToSource(item).row(): item.data(EntriesTableModel.ENTRY_ROLE)
-            for item in self.table_widget.selectedIndexes()
+            for item in self.entries_table.selectedIndexes()
         }
 
     def update_tab_title(self):
-        self.on_dct_edited.emit()
+        self.dct_edited.emit()
 
     def add_entry(self):
         # Create and show details dialog
@@ -3179,7 +3179,7 @@ class BrowsingPage(QWidget):
         self.update_tab_title()
         self.update_status_bar()
 
-    def on_item_double_clicked(self, index):
+    def edit_entry(self, index):
         """
         Handle double-click event on table item.
 
@@ -3317,7 +3317,7 @@ class BrowsingPage(QWidget):
         self.update_tab_title()
 
     def _update_selected_rows(self):
-        selected_rows = {item.row() for item in self.table_widget.selectedIndexes()}
+        selected_rows = {item.row() for item in self.entries_table.selectedIndexes()}
         top_left = self.proxy_model.index(min(selected_rows), 0)
         bottom_right = self.proxy_model.index(max(selected_rows), self.proxy_model.columnCount() - 1)
         self.proxy_model.dataChanged.emit(top_left, bottom_right)
@@ -3373,8 +3373,8 @@ class BrowsingPage(QWidget):
 
 
 class PracticeConfigPage(QWidget):
-    on_practice_button_clicked = Signal()
-    on_close_button_clicked = Signal()
+    practice_button_clicked = Signal()
+    close_button_clicked = Signal()
 
     exercise_options = {
         'Words: to target language': TrainingFormat.TRANS_TO_WORD,
@@ -3485,7 +3485,7 @@ class PracticeConfigPage(QWidget):
         self.close_btn = create_img_button(IMG_EXIT_PATH)
 
         self.practice_btn.clicked.connect(self.start)
-        self.close_btn.clicked.connect(self.on_close_button_clicked.emit)
+        self.close_btn.clicked.connect(self.close_button_clicked.emit)
 
         self.buttons_layout.addWidget(self.practice_btn)
         self.buttons_layout.addWidget(self.close_btn)
@@ -3494,7 +3494,7 @@ class PracticeConfigPage(QWidget):
 
     def _set_shortcuts(self):
         QShortcut(QKeySequence('Return'), self, self.start)
-        QShortcut(QKeySequence('Esc'), self, self.on_close_button_clicked.emit)
+        QShortcut(QKeySequence('Esc'), self, self.close_button_clicked.emit)
 
     def _set_tooltips(self):
         self.practice_btn.setToolTip('Start')
@@ -3522,58 +3522,58 @@ class PracticeConfigPage(QWidget):
 
         partial_save(self.dct_bundle, train_config=True)
 
-        self.on_practice_button_clicked.emit()
+        self.practice_button_clicked.emit()
 
 
-def entry_practice_stats_repr(entry: Entry) -> tuple[str, int]:
+def entry_practice_stats(entry: Entry) -> tuple[str, int]:
     return accuracy_to_str(entry), entry.win_streak
 
 
-def lemma_and_stats_repr(entry: Entry) -> tuple[str, str, str, int]:
+def word_to_native_lang_task(entry: Entry) -> tuple[str, str, str, int]:
     return (
         'Translate to your native language:',
-        lemma_to_str(entry.variants),
-        *entry_practice_stats_repr(entry)
+        variants_to_str(entry.variants),
+        *entry_practice_stats(entry)
     )
 
 
-def lemma_with_no_article_and_stats_repr(entry: Entry) -> tuple[str, str, str, int]:
+def german_article_task(entry: Entry) -> tuple[str, str, str, int]:
     return (
         'Enter the correct article for the following word:',
-        lemma_to_str(entry.variants)[4:],
-        *entry_practice_stats_repr(entry)
+        variants_to_str(entry.variants)[4:],
+        *entry_practice_stats(entry)
     )
 
 
-def tr_and_stats_repr(entry: Entry) -> tuple[str, str, str, int]:
+def word_to_target_lang_task(entry: Entry) -> tuple[str, str, str, int]:
     return (
         'Translate to the target language:',
         translations_to_str(entry.tr),
-        *entry_practice_stats_repr(entry)
+        *entry_practice_stats(entry)
     )
 
 
-def tr_and_forms_and_stats_repr(entry: Entry, gram_form: Iterable[str]) -> tuple[str, str, str, int]:
+def form_to_target_lang_task(entry: Entry, gram_form: Iterable[str]) -> tuple[str, str, str, int]:
     return (
         'Translate to the target language:',
         f'{translations_to_str(entry.tr)} (at {gram_form_to_str(gram_form)})',
-        *entry_practice_stats_repr(entry)
+        *entry_practice_stats(entry)
     )
 
 
-def phrase_and_stats_repr(entry: Entry, phrase: str) -> tuple[str, str, str, int]:
+def phrase_to_native_lang_task(entry: Entry, phrase: str) -> tuple[str, str, str, int]:
     return (
         'Translate to your native language:',
         phrase,
-        *entry_practice_stats_repr(entry)
+        *entry_practice_stats(entry)
     )
 
 
-def phrase_tr_and_stats_repr(entry: Entry, phrase: str) -> tuple[str, str, str, int]:
+def phrase_to_target_lang_task(entry: Entry, phrase: str) -> tuple[str, str, str, int]:
     return (
         'Translate to the target language:',
         translations_to_str(entry.phrases[phrase]),
-        *entry_practice_stats_repr(entry)
+        *entry_practice_stats(entry)
     )
 
 
@@ -3621,8 +3621,8 @@ class WrongAnswerDialog(QDialog):
 
 
 class PracticePage(QWidget):
-    on_close_button_clicked = Signal()
-    on_dct_edited = Signal()
+    close_button_clicked = Signal()
+    dct_edited = Signal()
 
     def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
         super().__init__(parent)
@@ -3657,7 +3657,7 @@ class PracticePage(QWidget):
         self.enter_btn.clicked.connect(self.enter)
         self.hint_btn.clicked.connect(self.get_hint)
         self.stop_btn.clicked.connect(self.stop)
-        self.close_btn.clicked.connect(self.on_close_button_clicked.emit)
+        self.close_btn.clicked.connect(self.close_button_clicked.emit)
 
         self.main_layout.addWidget(self.enter_btn, 1, 1)
         self.main_layout.addWidget(self.hint_btn, 1, 2)
@@ -3668,7 +3668,7 @@ class PracticePage(QWidget):
         self.shortcut_enter = QShortcut(QKeySequence('Return'), self, self.enter)
         self.shortcut_hint = QShortcut(QKeySequence('Ctrl+H'), self, self.get_hint)
         self.shortcut_stop = QShortcut(QKeySequence('Ctrl+.'), self, self.stop)
-        self.shortcut_close = QShortcut(QKeySequence('Return'), self, self.on_close_button_clicked.emit)
+        self.shortcut_close = QShortcut(QKeySequence('Return'), self, self.close_button_clicked.emit)
 
     def _set_tooltips(self):
         self.enter_btn.setToolTip('Enter')
@@ -3749,7 +3749,7 @@ class PracticePage(QWidget):
                 TrainingFormat.TRANS_TO_PHRASE, TrainingFormat.PHRASE_TO_TRANS
         ):
             homonyms_repr = '<br>'.join(
-                f'{lemma_to_str(entry.variants)}: {translations_to_str(entry.tr)}'
+                f'{variants_to_str(entry.variants)}: {translations_to_str(entry.tr)}'
                 for entry in self.homonyms
             )
             hint += f'''
@@ -3877,23 +3877,23 @@ class PracticePage(QWidget):
 
         if self.trainer.config.format == TrainingFormat.TRANS_TO_WORD:
             if self.trainer.config.forms and self.current_form:
-                self._task_repr = tr_and_forms_and_stats_repr(
+                self._task_repr = form_to_target_lang_task(
                     self.current_entry, self.current_form,
                 )
             else:
-                self._task_repr = tr_and_stats_repr(self.current_entry)
+                self._task_repr = word_to_target_lang_task(self.current_entry)
         elif self.trainer.config.format == TrainingFormat.WORD_TO_TRANS:
-            self._task_repr = lemma_and_stats_repr(self.current_entry)
+            self._task_repr = word_to_native_lang_task(self.current_entry)
         elif self.trainer.config.format == TrainingFormat.TRANS_TO_PHRASE:
-            self._task_repr = phrase_tr_and_stats_repr(
+            self._task_repr = phrase_to_target_lang_task(
                 self.current_entry, self.current_phrase,
             )
         elif self.trainer.config.format == TrainingFormat.PHRASE_TO_TRANS:
-            self._task_repr = phrase_and_stats_repr(
+            self._task_repr = phrase_to_native_lang_task(
                 self.current_entry, self.current_phrase,
             )
         else:
-            self._task_repr = lemma_with_no_article_and_stats_repr(self.current_entry)
+            self._task_repr = german_article_task(self.current_entry)
 
         self._to_display_hint = False
 
@@ -3907,7 +3907,7 @@ class PracticePage(QWidget):
 
     def enter(self):
         self.trainer.dct.mark_modified()
-        self.on_dct_edited.emit()
+        self.dct_edited.emit()
 
         user_answer = self.replacer.replace(self.user_input_edit.text())
         self.check_answer(user_answer)
@@ -3991,16 +3991,16 @@ class DctWorkspaceWidget(QWidget):
         self.pages = QStackedWidget()
 
         self.browsing_page = BrowsingPage(self.dct_bundle)
-        self.browsing_page.on_practice_button_clicked.connect(self.open_practice_config_page)
-        self.browsing_page.on_dct_edited.connect(self.update_tab_title)
+        self.browsing_page.practice_button_clicked.connect(self.open_practice_config_page)
+        self.browsing_page.dct_edited.connect(self.update_tab_title)
 
         self.practice_config_page = PracticeConfigPage(self.dct_bundle)
-        self.practice_config_page.on_practice_button_clicked.connect(self.open_practice_page)
-        self.practice_config_page.on_close_button_clicked.connect(self.open_browsing_page)
+        self.practice_config_page.practice_button_clicked.connect(self.open_practice_page)
+        self.practice_config_page.close_button_clicked.connect(self.open_browsing_page)
 
         self.practice_page = PracticePage(self.dct_bundle)
-        self.practice_page.on_close_button_clicked.connect(self.open_browsing_page)
-        self.practice_page.on_dct_edited.connect(self.update_tab_title)
+        self.practice_page.close_button_clicked.connect(self.open_browsing_page)
+        self.practice_page.dct_edited.connect(self.update_tab_title)
 
         self.pages.addWidget(self.browsing_page)
         self.pages.addWidget(self.practice_config_page)
@@ -4127,9 +4127,9 @@ class MainWindow(QMainWindow):
         self.main_layout.addWidget(self.placeholder)
 
     def _set_shortcuts(self):
-        QShortcut(QKeySequence('Ctrl+Insert'), self, self.new_dict)
-        QShortcut(QKeySequence('Ctrl+S'), self, self.save_dict)
-        QShortcut(QKeySequence('Ctrl+Delete'), self, self.delete_dict)
+        QShortcut(QKeySequence('Ctrl+Insert'), self, self.new_dct)
+        QShortcut(QKeySequence('Ctrl+S'), self, self.save_dct)
+        QShortcut(QKeySequence('Ctrl+Delete'), self, self.delete_dct)
 
     def show_file_menu(self):
         """Show the File dropdown menu below the File button."""
@@ -4138,26 +4138,26 @@ class MainWindow(QMainWindow):
         if button_widget:
             pos = button_widget.mapToGlobal(button_widget.rect().bottomLeft())
             show_context_menu(self, pos, [
-                ActionConfig('New', self.new_dict, shortcut='Ctrl+Insert'),
-                ActionConfig('Open', self.open_dict),
+                ActionConfig('New', self.new_dct, shortcut='Ctrl+Insert'),
+                ActionConfig('Open', self.open_dct),
                 SubmenuConfig('Import', *create_context_menu(self, [
-                    ActionConfig('JSON...', self.import_dict_from_json),
-                    ActionConfig('Dictionary Package (.dmdct)...', self.import_dict_from_dmdct),
+                    ActionConfig('JSON...', self.import_dct_from_json),
+                    ActionConfig('Dictionary Package (.dmdct)...', self.import_dct_from_dmdct),
                 ])),
                 None,
-                ActionConfig('Save', self.save_dict, lambda: self.tab_widget.count() != 0, 'Ctrl+S'),
-                ActionConfig('Save All', self.save_all_dicts, lambda: self.tab_widget.count() != 0),
+                ActionConfig('Save', self.save_dct, lambda: self.tab_widget.count() != 0, 'Ctrl+S'),
+                ActionConfig('Save All', self.save_all_dcts, lambda: self.tab_widget.count() != 0),
                 None,
                 SubmenuConfig('Export', *create_context_menu(self, [
-                    ActionConfig('to Text File...', self.export_dict_to_txt, lambda: self.tab_widget.count() != 0),
+                    ActionConfig('to Text File...', self.export_dct_to_txt, lambda: self.tab_widget.count() != 0),
                     ActionConfig(
                         'as Dictionary Package (.dmdct)...',
-                        self.export_dict_to_dmdct,
+                        self.export_dct_to_dmdct,
                         lambda: self.tab_widget.count() != 0
                     ),
                 ])),
                 None,
-                ActionConfig('Delete', self.delete_dict, lambda: self.tab_widget.count() != 0, 'Ctrl+Delete'),
+                ActionConfig('Delete', self.delete_dct, lambda: self.tab_widget.count() != 0, 'Ctrl+Delete'),
             ])
 
     def show_settings_menu(self):
@@ -4189,7 +4189,7 @@ class MainWindow(QMainWindow):
             index: Index of the tab, or -1 if no tab is selected.
         """
 
-        self.tab_widget.rename_dict(index)
+        self.tab_widget.rename_dct(index)
 
     def on_new_tab_requested(self, dct_name: str, entries: list[Entry]):
         self.manager.create_dct(name=dct_name, to_activate=False)
@@ -4270,7 +4270,7 @@ class MainWindow(QMainWindow):
         if dct.is_modified:
             to_save = ask_yes_no(self, 'Unsaved changes', f'Save dictionary {dct.name}?')
             if to_save:
-                file_path = SAVE_JSON_PATH(dct.id)
+                file_path = DCT_MAIN_DATA_PATH(dct.id)
                 self.manager.save_dct(index, file_path)
 
         self._close_tab(index)
@@ -4328,13 +4328,13 @@ class MainWindow(QMainWindow):
             if dct.is_modified:
                 to_save = ask_yes_no(self, 'Unsaved changes', f'Save dictionary {dct.name}?')
                 if to_save:
-                    file_path = SAVE_JSON_PATH(dct.id)
+                    file_path = DCT_MAIN_DATA_PATH(dct.id)
                     self.manager.save_dct(index, file_path)
 
         self.save_state()
         event.accept()
 
-    def open_dict(self):
+    def open_dct(self):
         """
         Open a dictionary from file.
 
@@ -4379,7 +4379,7 @@ class MainWindow(QMainWindow):
         self.manager.open_dct(path, to_activate=True)
         self.create_new_tab(name, set_active=True)
 
-    def import_dict_from_json(self):
+    def import_dct_from_json(self):
         file_path, _ = QFileDialog.getOpenFileName(self, 'Open Dictionary File', '', '(*.json)')
         if not file_path:
             return
@@ -4390,11 +4390,11 @@ class MainWindow(QMainWindow):
 
         self.create_new_tab(dct.name, set_active=True)
 
-        bundle.filepath = SAVE_JSON_PATH(dct.id)
+        bundle.filepath = DCT_MAIN_DATA_PATH(dct.id)
         dct._set_id()
         self._save_new_dct(dct)
 
-    def import_dict_from_dmdct(self):
+    def import_dct_from_dmdct(self):
         file_path, _ = QFileDialog.getOpenFileName(self, 'Open Dictionary Package File', '', '(*.dmdct)')
         if not file_path:
             return
@@ -4405,7 +4405,7 @@ class MainWindow(QMainWindow):
             self.manager.add_dct(bundle, to_activate=True)
             dct = bundle.dct
             dct._set_id()
-            bundle.filepath = SAVE_JSON_PATH(dct.id)
+            bundle.filepath = DCT_MAIN_DATA_PATH(dct.id)
             self.create_new_tab(dct.name, set_active=True)
             self._save_new_dct(dct)
 
@@ -4418,42 +4418,42 @@ class MainWindow(QMainWindow):
                 path = images_dir / Path(name).name
                 path.write_bytes(content)
 
-    def new_dict(self):
+    def new_dct(self):
         """
         Create a new empty dictionary.
 
         Creates a new dictionary with default name and opens it in a new tab.
         """
 
-        new_dict_name = 'Untitled'
-        self.manager.create_dct(name=new_dict_name)
-        self.create_new_tab(new_dict_name)
+        new_dct_name = 'Untitled'
+        self.manager.create_dct(name=new_dct_name)
+        self.create_new_tab(new_dct_name)
         self.tab_widget.update_tab_title(self.tab_widget.count() - 1)
-        self.manager.active.filepath = SAVE_JSON_PATH(self.manager.active.dct.id)
+        self.manager.active.filepath = DCT_MAIN_DATA_PATH(self.manager.active.dct.id)
         self._save_new_dct(self.manager.active.dct)
 
     def _save_new_dct(self, dct: Dictionary):
         DCT_SAVE_DIR(dct.id).mkdir(parents=True, exist_ok=True)
-        self.save_dict()
+        self.save_dct()
 
-    def save_dict(self):
+    def save_dct(self):
         dct_index = self.manager.active_dct_id
-        self.tab_widget.save_dict(dct_index)
+        self.tab_widget.save_dct(dct_index)
 
-    def save_all_dicts(self):
-        self.tab_widget.save_all_dicts()
+    def save_all_dcts(self):
+        self.tab_widget.save_all_dcts()
 
-    def export_dict_to_txt(self):
+    def export_dct_to_txt(self):
         dct_index = self.manager.active_dct_id
-        self.tab_widget.export_dict_to_txt(dct_index)
+        self.tab_widget.export_dct_to_txt(dct_index)
 
-    def export_dict_to_dmdct(self):
+    def export_dct_to_dmdct(self):
         dct_index = self.manager.active_dct_id
-        self.tab_widget.export_dict_to_dmdct(dct_index)
+        self.tab_widget.export_dct_to_dmdct(dct_index)
 
-    def delete_dict(self):
+    def delete_dct(self):
         dct_index = self.manager.active_dct_id
-        self.tab_widget.delete_dict(dct_index)
+        self.tab_widget.delete_dct(dct_index)
 
 
 if __name__ == '__main__':
