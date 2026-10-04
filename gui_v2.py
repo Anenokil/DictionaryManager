@@ -28,7 +28,7 @@ from PySide6.QtGui import (
     QShortcut, QKeySequence, QValidator,
 )
 from PySide6.QtCore import (
-    Qt, QSize, QTimer, Signal, QPoint, QAbstractTableModel,
+    Qt, QObject, QSize, QTimer, Signal, QPoint, QAbstractTableModel,
     QModelIndex, QSortFilterProxyModel,
 )
 
@@ -366,7 +366,7 @@ def setup_table_context_menu(
 
     table.setContextMenuPolicy(Qt.CustomContextMenu)
 
-    def show_menu(pos):
+    def show_menu(pos: QPoint):
         show_context_menu(table, table.viewport().mapToGlobal(pos), actions_config)
 
     table.customContextMenuRequested.connect(show_menu)
@@ -632,7 +632,7 @@ class CheckableList(QScrollArea):
 
         self.setWidget(self.container)
 
-        def show_menu(pos):
+        def show_menu(pos: QPoint):
             show_context_menu(self, self.viewport().mapToGlobal(pos), [
                 ActionConfig('Check All', self.check_all, lambda: bool(self.checkboxes), shortcut='Ctrl+Shift+C'),
                 ActionConfig('Uncheck All', self.uncheck_all, lambda: bool(self.checkboxes), shortcut='Ctrl+Shift+U'),
@@ -680,7 +680,7 @@ class CheckableList(QScrollArea):
 
 
 class EditableTagList(QTableWidget):
-    def __init__(self, replacer: Replacer, items: dict[str, bool], parent=None):
+    def __init__(self, replacer: Replacer, items: dict[str, bool], parent: QWidget | None = None):
         super().__init__(0, 2, parent)
 
         self.replacer = replacer
@@ -800,7 +800,7 @@ class EditableTagList(QTableWidget):
     def on_item_changed(self):
         self.validate_and_update()
 
-    def on_rows_removed(self, _parent, _first: int, _last: int):
+    def on_rows_removed(self, _parent, _first, _last):
         self.validate_and_update()
 
     def get_changes(self) -> tuple[dict[str, bool], dict[str, str], dict[str, bool], set[str]]:
@@ -1009,7 +1009,7 @@ class GramFeaturesTree(QTreeWidget):
     def _setup_tree_context_menu(self):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
 
-        def show_menu(pos):
+        def show_menu(pos: QPoint):
             item = self.itemAt(pos)
             if item is None:
                 return
@@ -1117,7 +1117,7 @@ class GramFeaturesTree(QTreeWidget):
     def on_item_changed(self):
         self.validate_and_update()
 
-    def on_rows_inserted(self, parent, first: int, _last: int):
+    def on_rows_inserted(self, parent, first: int, _last):
         self.validate_and_update()
 
         index = self.model().index(first, 0, parent)
@@ -1125,7 +1125,7 @@ class GramFeaturesTree(QTreeWidget):
         self.setCurrentItem(item)
         self.editItem(item, 0)
 
-    def on_rows_removed(self, _parent, _first: int, _last: int):
+    def on_rows_removed(self, _parent, _first, _last):
         self.validate_and_update()
 
     def get_changes(self) -> tuple[
@@ -1515,7 +1515,7 @@ class EqualGrowFormLayout(QGridLayout):
         self._label_alignment = label_alignment
         self._row = 0
 
-    def add_row(self, label_widget, field_widget, growable_widget=None):
+    def add_row(self, label_widget: QWidget, field_widget: QWidget, growable_widget: QWidget | None = None):
         row = self._row
 
         self.addWidget(label_widget, row, 0, self._label_alignment)
@@ -1532,7 +1532,7 @@ class EqualGrowFormLayout(QGridLayout):
 class ClickableLabel(QLabel):
     clicked = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
         self.setCursor(Qt.PointingHandCursor)
@@ -1544,7 +1544,7 @@ class ClickableLabel(QLabel):
 
 
 class ImagePicker(QWidget):
-    def __init__(self, size: QSize, path: str | None = None, parent=None):
+    def __init__(self, size: QSize, path: str | None = None, parent: QWidget | None = None):
         super().__init__(parent)
 
         self._size = size
@@ -1558,7 +1558,7 @@ class ImagePicker(QWidget):
         self.image_label.setScaledContents(False)
         self.image_label.clicked.connect(self.choose_image)
 
-        def show_menu(pos):
+        def show_menu(pos: QPoint):
             show_context_menu(self, self.mapToGlobal(pos), [
                 ActionConfig('Save Image', self.save_image, lambda: self._pixmap is not None),
                 ActionConfig('Choose Image', self.choose_image),
@@ -2220,7 +2220,7 @@ class EntryDetailsDialog(QDialog):
         table = item.tableWidget()
         self.validate_and_update_table(table)
 
-    def on_rows_removed(self, table: QTableWidget, _parent, _first: int, _last: int):
+    def on_rows_removed(self, table: QTableWidget, _parent, _first, _last):
         self.validate_and_update_table(table)
 
     def edit_gram_form(self, row: int, column: int):
@@ -2393,7 +2393,7 @@ class DctTabWidget(QTabWidget):
         else:
             self.setTabText(index, dct.name)
 
-    def show_tab_context_menu(self, pos):
+    def show_tab_context_menu(self, pos: QPoint):
         index = self.tabBar().tabAt(pos)
         if index == -1:
             return
@@ -2680,18 +2680,18 @@ class EntriesTableModel(QAbstractTableModel):
     DATA_ROLE = Qt.UserRole + 1
     NUM_COLUMNS = [0, 7, 8, 9, 10]
 
-    def __init__(self, entries: Iterable[Entry] | Dictionary, parent=None):
+    def __init__(self, entries: Iterable[Entry] | Dictionary, parent: QWidget | None = None):
         super().__init__(parent)
 
         self._entries: list[Entry] = list(entries) or []
 
-    def rowCount(self, parent=QModelIndex()):
+    def rowCount(self, parent=QModelIndex()) -> int:
         return 0 if parent.isValid() else len(self._entries)
 
-    def columnCount(self, parent=QModelIndex()):
+    def columnCount(self, parent=QModelIndex()) -> int:
         return 0 if parent.isValid() else len(self.HEADERS)
 
-    def data(self, index: QModelIndex, role=Qt.DisplayRole):
+    def data(self, index: QModelIndex, role=Qt.DisplayRole) -> Any:
         if not index.isValid():
             return None
 
@@ -2754,7 +2754,7 @@ class EntriesTableModel(QAbstractTableModel):
 
         return None
 
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
+    def headerData(self, section: int, orientation, role=Qt.DisplayRole) -> str | int | None:
         if role != Qt.DisplayRole:
             return None
         if orientation == Qt.Horizontal:
@@ -2813,7 +2813,7 @@ class EntriesTableModel(QAbstractTableModel):
 class SearchFilterProxyModel(QSortFilterProxyModel):
     search_results_changed = Signal()
 
-    def __init__(self, search_config: SearchConfig, parent=None):
+    def __init__(self, search_config: SearchConfig, parent: QObject | None = None):
         super().__init__(parent)
 
         self.config = search_config
@@ -2910,7 +2910,7 @@ class ThreeStateSortHeader(QHeaderView):
             table_view: QTableView,
             proxy_model: QSortFilterProxyModel,
             orientation=Qt.Horizontal,
-            parent=None,
+            parent: QWidget | None = None,
     ):
         super().__init__(orientation, parent)
 
@@ -2945,7 +2945,7 @@ class ThreeStateSortHeader(QHeaderView):
             self.proxy_model.sort(column, Qt.DescendingOrder)
             self.setSortIndicator(column, Qt.DescendingOrder)
 
-    def _show_column_visibility_menu(self, pos):
+    def _show_column_visibility_menu(self, pos: QPoint):
         source_model = self.proxy_model.sourceModel()
         menu = QMenu(self.table_view)
 
@@ -3858,14 +3858,14 @@ class PracticePage(QWidget):
         self.fill_task_edit()
         self._update_hint_btn()
 
-    def total_score_repr(self):
+    def total_score_repr(self) -> str:
         correct, total = self.trainer.dct.total_score
         return percent_repr(correct, total)
 
-    def session_score_repr(self):
+    def session_score_repr(self) -> str:
         return percent_repr(self.count_correct, self.count_all)
 
-    def answered_repr(self):
+    def answered_repr(self) -> str:
         return percent_repr(self.count_correct, self.initial_pool_size)
 
     def get_task(self):
@@ -4024,7 +4024,7 @@ class DctWorkspaceWidget(QWidget):
 
 
 class ChoiceDialog(QDialog):
-    def __init__(self, title: str, label_text: str, options: list[str], parent=None):
+    def __init__(self, title: str, label_text: str, options: list[str], parent: QWidget | None = None):
         super().__init__(parent)
 
         self.setWindowTitle(title)
@@ -4163,7 +4163,7 @@ class MainWindow(QMainWindow):
     def show_settings_menu(self):
         pass
 
-    def on_tab_changed(self, index):
+    def on_tab_changed(self, index: int):
         """
         Handle tab switching event.
 
@@ -4176,12 +4176,12 @@ class MainWindow(QMainWindow):
         if index >= 0:
             self.manager.switch_dct(index)
 
-    def on_tab_moved(self, to_index, from_index):
+    def on_tab_moved(self, to_index: int, from_index: int):
         """Handle tab movement and update manager."""
 
         self.manager.move_dct(from_index, to_index)
 
-    def on_tab_renamed(self, index):
+    def on_tab_renamed(self, index: int):
         """
         Rename tab on double click.
 
