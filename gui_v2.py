@@ -2401,7 +2401,6 @@ class DctTabWidget(QTabWidget):
             None,
             ActionConfig('Save', lambda: self.save_dct(index)),
             ActionConfig('Save All', self.save_all_dcts),
-            None,
             SubmenuConfig('Export', *create_context_menu(self, [
                 ActionConfig('to Text File...', lambda: self.export_dct_to_txt(index)),
                 ActionConfig('as Dictionary Package (.dmdct)...', lambda: self.export_dct_to_dmdct(index)),
@@ -4145,7 +4144,6 @@ class MainWindow(QMainWindow):
                 None,
                 ActionConfig('Save', self.save_dct, lambda: self.tab_widget.count() != 0, 'Ctrl+S'),
                 ActionConfig('Save All', self.save_all_dcts, lambda: self.tab_widget.count() != 0),
-                None,
                 SubmenuConfig('Export', *create_context_menu(self, [
                     ActionConfig('to Text File...', self.export_dct_to_txt, lambda: self.tab_widget.count() != 0),
                     ActionConfig(
