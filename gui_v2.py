@@ -2555,19 +2555,19 @@ class SearchBar(QFrame):
     def toggle_match_case(self, enabled: bool):
         self.config.to_match_case = enabled
         self.table_proxy_model.update_filter()
-        partial_save(self.dct_bundle, search_config=True)
+        partial_save(self.dct_bundle, DCT_MAIN_DATA_PATH(self.dct.id), search_config=True)
 
     def toggle_match_whole_word(self, enabled: bool):
         self.config.to_match_whole_word = enabled
         self.table_proxy_model.update_filter()
-        partial_save(self.dct_bundle, search_config=True)
+        partial_save(self.dct_bundle, DCT_MAIN_DATA_PATH(self.dct.id), search_config=True)
 
     def open_settings(self):
         dialog = SearchSettingsDialog(self.dct, self.config, self)
         ok = dialog.exec() == QDialog.Accepted
         if ok:
             self._apply_search()
-            partial_save(self.dct_bundle, search_config=True)
+            partial_save(self.dct_bundle, DCT_MAIN_DATA_PATH(self.dct.id), search_config=True)
 
     def on_open(self):
         self.table_proxy_model.toggle_search_mode(True)
@@ -3519,7 +3519,7 @@ class PracticeConfigPage(QWidget):
         self.config.forms = forms
         self.config.tags = self.list_tags.get_checked_items()
 
-        partial_save(self.dct_bundle, train_config=True)
+        partial_save(self.dct_bundle, DCT_MAIN_DATA_PATH(self.dct.id), train_config=True)
 
         self.practice_button_clicked.emit()
 
@@ -4351,7 +4351,7 @@ class MainWindow(QMainWindow):
                     continue
                 try:
                     data = json.loads(save_path.read_text(encoding='utf-8'))
-                    dct = DctBundle.from_dict(None, data).dct
+                    dct = DctBundle.from_dict(data).dct
                 except Exception as e:
                     print(e)
                     continue
@@ -4388,7 +4388,6 @@ class MainWindow(QMainWindow):
 
         self.create_new_tab(dct.name, set_active=True)
 
-        bundle.filepath = DCT_MAIN_DATA_PATH(dct.id)
         dct._set_id()
         self._save_new_dct(dct)
 
@@ -4399,11 +4398,10 @@ class MainWindow(QMainWindow):
 
         with zipfile.ZipFile(file_path, 'r') as zf:
             dct_data = json.loads(zf.read(DCT_MAIN_DATA_FILENAME).decode('utf-8'))
-            bundle = DctBundle.from_dict(None, dct_data)
+            bundle = DctBundle.from_dict(dct_data)
             self.manager.add_dct(bundle, to_activate=True)
             dct = bundle.dct
             dct._set_id()
-            bundle.filepath = DCT_MAIN_DATA_PATH(dct.id)
             self.create_new_tab(dct.name, set_active=True)
             self._save_new_dct(dct)
 
@@ -4427,7 +4425,6 @@ class MainWindow(QMainWindow):
         self.manager.create_dct(name=new_dct_name)
         self.create_new_tab(new_dct_name)
         self.tab_widget.update_tab_title(self.tab_widget.count() - 1)
-        self.manager.active.filepath = DCT_MAIN_DATA_PATH(self.manager.active.dct.id)
         self._save_new_dct(self.manager.active.dct)
 
     def _save_new_dct(self, dct: Dictionary):
@@ -4454,8 +4451,18 @@ class MainWindow(QMainWindow):
         self.tab_widget.delete_dct(dct_index)
 
 
+def load_bundle_by_id(bundle_id: str) -> DctBundle | None:
+    filepath = Path(DCT_MAIN_DATA_PATH(bundle_id))
+    if not filepath.exists():
+        return None
+
+    with open(filepath, 'r') as file:
+        data = json.load(file)
+    return DctBundle.from_dict(data)
+
+
 if __name__ == '__main__':
-    app_data = AppData(APP_DATA_JSON_PATH, 'qt')
+    app_data = AppData(APP_DATA_JSON_PATH, 'qt', load_bundle_by_id)
     app_data.load()
 
     app = QApplication(sys.argv)

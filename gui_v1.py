@@ -7637,7 +7637,7 @@ class SettingsW(tk.Toplevel):
         save_dct_if_has_progress(self, self.app_data)
 
         filepath = f'./resources/saves/{savename}/dct_data.json'  # TODO: choose filepath
-        self.manager.create_dct(filepath, savename)
+        self.manager.create_dct(savename)
         self.manager.save_dct(self.manager.active_dct_id, filepath)
         self.app_data.save(glob=False, ui=False)
 

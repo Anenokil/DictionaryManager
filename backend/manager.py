@@ -5,7 +5,7 @@ Author: Anenokil
 """
 
 from types import NoneType
-from typing import Literal
+from typing import Literal, Callable
 import os
 import json
 
@@ -145,14 +145,12 @@ class DctBundle:
 
     def __init__(
             self,
-            filepath: str | None = None,
             dct: Dictionary | None = None,
             session_number: int = 1,
             search_config: SearchConfig | None = None,
             train_config: TrainingConfig | None = None,
             replacer: Replacer | None = None,
     ):
-        self.filepath = None if filepath is None else os.path.abspath(filepath)
         self.dct = Dictionary() if dct is None else dct
         self.session_number = session_number
         self.search_config = SearchConfig() if search_config is None else search_config
@@ -161,10 +159,14 @@ class DctBundle:
         self.trainer = Trainer(self.dct, self.train_config)
 
     @classmethod
-    def from_dict(cls, filepath: str, data: SerializedData):
-        dct_bundle = cls(filepath)
+    def from_dict(cls, data: SerializedData):
+        dct_bundle = cls()
         dct_bundle.load_from_dict(data)
         return dct_bundle
+
+    @property
+    def id(self) -> str:
+        return self.dct.id
 
     def to_dict(self) -> SerializedData:
         return {
@@ -243,7 +245,7 @@ class Manager:
         self.active_dct_id: int | None = None
 
     @classmethod
-    def from_json_dict(cls, data: SerializedData) -> 'Manager':
+    def from_json_dict(cls, data: SerializedData, load_bundle_by_id: Callable[[str], DctBundle | None]) -> 'Manager':
         """
         Deserialize Manager state from a JSON format.
 
@@ -255,7 +257,7 @@ class Manager:
         """
 
         manager = cls()
-        manager.load_from_json_dict(data)
+        manager.load_from_json_dict(data, load_bundle_by_id)
         return manager
 
     @property
@@ -299,7 +301,6 @@ class Manager:
 
     def create_dct(
             self,
-            filepath: str | None = None,
             name: DctName = None,
             to_activate: bool = True,
     ):
@@ -313,7 +314,7 @@ class Manager:
                          If False, add it without switching the active index.
         """
 
-        new_dct_bundle = DctBundle(filepath)
+        new_dct_bundle = DctBundle()
         new_dct_bundle.dct.rename(name)
 
         self.opened_dct_bundles.append(new_dct_bundle)
@@ -336,7 +337,7 @@ class Manager:
 
         with open(filepath, 'r') as file:
             data = json.load(file)
-        dct_bundle = DctBundle.from_dict(filepath, data)
+        dct_bundle = DctBundle.from_dict(data)
         dct_bundle.dct.mark_saved()
 
         self.opened_dct_bundles.append(dct_bundle)
@@ -381,7 +382,7 @@ class Manager:
 
         del self.opened_dct_bundles[dct_id]
 
-    def save_dct(self, dct_id: int, filepath: str | None = None):
+    def save_dct(self, dct_id: int, filepath: str):
         """
         Save a Dictionary along with its Bundle to a file.
 
@@ -398,17 +399,11 @@ class Manager:
         if not (0 <= dct_id < len(self.opened_dct_bundles)):
             raise KeyError('Index out of range')
 
-        bundle = self.opened_dct_bundles[dct_id]
-        filepath = filepath or bundle.filepath
-
-        if filepath is None:
-            raise ValueError('No filepath was specified')
-
         if not os.path.exists(filepath):
             parent_dir = os.path.split(filepath)[0]
             os.makedirs(parent_dir, exist_ok=True)
 
-        bundle.filepath = filepath
+        bundle = self.opened_dct_bundles[dct_id]
         bundle.dct.mark_saved()
 
         data = bundle.to_dict()
@@ -475,12 +470,12 @@ class Manager:
         return {
             'version': self._schema_version,
             'data': {
-                'opened_dct_bundles': [bundle.filepath for bundle in self.opened_dct_bundles],
+                'opened_dct_bundles': [bundle.id for bundle in self.opened_dct_bundles],
                 'active_dct_id': self.active_dct_id,
             }
         }
 
-    def load_from_json_dict(self, data: SerializedData):
+    def load_from_json_dict(self, data: SerializedData, load_bundle_by_id: Callable[[str], DctBundle | None]):
         """
         Deserialize Manager state from a JSON format.
 
@@ -505,18 +500,9 @@ class Manager:
         validate_field_type('active_dct_id', active_dct_id, (int, NoneType))
 
         # Read opened Dictionaries
-        opened_dct_bundles = [self._load_dct(filepath) for filepath in data['opened_dct_bundles']]
+        opened_dct_bundles = [load_bundle_by_id(bundle_id) for bundle_id in data['opened_dct_bundles']]
         opened_dct_bundles = [bundle for bundle in opened_dct_bundles if bundle is not None]
 
         # Set attributes
         self.opened_dct_bundles = opened_dct_bundles
         self.active_dct_id = active_dct_id
-
-    @staticmethod
-    def _load_dct(filepath: str) -> DctBundle | None:
-        if not os.path.exists(filepath):
-            return None
-
-        with open(filepath, 'r') as file:
-            data = json.load(file)
-        return DctBundle.from_dict(filepath, data)

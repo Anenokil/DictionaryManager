@@ -4,7 +4,7 @@
 Author: Anenokil
 """
 
-from typing import Literal
+from typing import Literal, Callable
 import os
 import json
 
@@ -136,11 +136,12 @@ class UISettingsQT:
 class AppData:
     schema_version = 1
 
-    def __init__(self, path: str, ui: Literal['tk', 'qt']):
+    def __init__(self, path: str, ui: Literal['tk', 'qt'], load_bundle_by_id: Callable[[str], DctBundle | None]):
         assert ui in ('tk', 'qt')
 
         self.path = path
         self.ui = ui
+        self.load_bundle_by_id = load_bundle_by_id
 
         self.manager = Manager()
         self.global_settings = GlobalSettings()
@@ -186,7 +187,7 @@ class AppData:
         data = self._check_and_migrate(data)
 
         if manager:
-            self.manager.load_from_json_dict(data['manager'])
+            self.manager.load_from_json_dict(data['manager'], self.load_bundle_by_id)
         if glob:
             self.global_settings.deserialize(data['global'])
         if ui:
@@ -212,14 +213,13 @@ class AppData:
 
 def partial_save(
         dct_bundle: DctBundle,
+        filepath: str,
         dct: bool = False,
         session_number: bool = False,
         search_config: bool = False,
         train_config: bool = False,
         replacer: bool = False,
 ):
-    filepath = dct_bundle.filepath
-
     with open(filepath, 'r') as f:
         data = json.load(f)
 
@@ -239,13 +239,13 @@ def partial_save(
         json.dump(data, f)
 
 
-def save_dct(dct_bundle: DctBundle):
-    partial_save(dct_bundle, dct=True)
+def save_dct(dct_bundle: DctBundle, filepath: str):
+    partial_save(dct_bundle, filepath, dct=True)
 
 
-def save_dct_settings(dct_bundle: DctBundle):
-    partial_save(dct_bundle, replacer=True)
+def save_dct_settings(dct_bundle: DctBundle, filepath: str):
+    partial_save(dct_bundle, filepath, replacer=True)
 
 
-def save_dct_cache(dct_bundle: DctBundle):
-    partial_save(dct_bundle, session_number=True, search_config=True, train_config=True)
+def save_dct_cache(dct_bundle: DctBundle, filepath: str):
+    partial_save(dct_bundle, filepath, session_number=True, search_config=True, train_config=True)

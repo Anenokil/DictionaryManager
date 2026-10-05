@@ -64,7 +64,7 @@ def test_add_dct(manager, to_activate):
     size_before = manager.n_opened
     active_id_before = manager.active_dct_id
 
-    db = DctBundle(os.path.join(data_path, 'tmp_fn.json'))
+    db = DctBundle()
     manager.add_dct(db, to_activate)
 
     assert manager.n_opened == size_before + 1
@@ -84,7 +84,7 @@ def test_create_dct(manager, name, to_activate):
     size_before = manager.n_opened
     active_id_before = manager.active_dct_id
 
-    manager.create_dct('tmp.json', name, to_activate)
+    manager.create_dct(name, to_activate)
 
     assert manager.n_opened == size_before + 1
     assert manager.opened_dct_bundles[-1].dct.name == name
@@ -208,10 +208,6 @@ def test_save_dct(manager, dct_id, tmp_path, path):
 @pytest.mark.parametrize('dct_id', [0, 1, 2])
 def test_save_dct_bad_path(manager, dct_id):
     state_before = deepcopy(manager.to_dict())
-
-    # Operation should raise on invalid save
-    with pytest.raises(ValueError):
-        manager.save_dct(dct_id, None)
 
     # State must remain unchanged after failed operation
     assert manager.to_dict() == state_before
