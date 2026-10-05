@@ -65,8 +65,10 @@ DATA_DIR = Path(platformdirs.user_data_dir('DictionaryManager'))
 APP_DATA_JSON_PATH = str(DATA_DIR / 'app_data.json')
 SAVES_DIR = DATA_DIR / 'saves'
 DCT_SAVE_DIR = lambda dct_id: SAVES_DIR / dct_id
-DCT_MAIN_DATA_PATH = lambda dct_id: str(DCT_SAVE_DIR(dct_id) / 'dct_data.json')
-USER_IMAGES_DIR = lambda dct_id: DCT_SAVE_DIR(dct_id) / 'user_images'
+DCT_MAIN_DATA_FILENAME = 'dct_data.json'
+DCT_MAIN_DATA_PATH = lambda dct_id: str(DCT_SAVE_DIR(dct_id) / DCT_MAIN_DATA_FILENAME)
+USER_IMAGES_DIRNAME = 'user_images'
+USER_IMAGES_DIR = lambda dct_id: DCT_SAVE_DIR(dct_id) / USER_IMAGES_DIRNAME
 
 
 def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:
@@ -4344,7 +4346,7 @@ class MainWindow(QMainWindow):
         id_by_name = {}
         for save_dir in sorted(SAVES_DIR.iterdir()):
             if save_dir.is_dir():
-                save_path = save_dir / 'dct_data.json'
+                save_path = save_dir / DCT_MAIN_DATA_FILENAME
                 if not save_path.exists():
                     continue
                 try:
@@ -4370,7 +4372,7 @@ class MainWindow(QMainWindow):
 
         name = dialog.selected_value()
         dct_id = id_by_name[name]
-        path = DCT_SAVE_DIR(dct_id) / 'dct_data.json'
+        path = DCT_SAVE_DIR(dct_id) / DCT_MAIN_DATA_FILENAME
 
         self.manager.open_dct(path, to_activate=True)
         self.create_new_tab(name, set_active=True)
@@ -4396,7 +4398,7 @@ class MainWindow(QMainWindow):
             return
 
         with zipfile.ZipFile(file_path, 'r') as zf:
-            dct_data = json.loads(zf.read('dct_data.json').decode('utf-8'))
+            dct_data = json.loads(zf.read(DCT_MAIN_DATA_FILENAME).decode('utf-8'))
             bundle = DctBundle.from_dict(None, dct_data)
             self.manager.add_dct(bundle, to_activate=True)
             dct = bundle.dct
@@ -4408,7 +4410,7 @@ class MainWindow(QMainWindow):
             images_dir = USER_IMAGES_DIR(dct.id)
             images_dir.mkdir(parents=True, exist_ok=True)
             for name in zf.namelist():
-                if not name.startswith('user_images'):
+                if not name.startswith(USER_IMAGES_DIRNAME):
                     continue
                 content = zf.read(name)
                 path = images_dir / Path(name).name
