@@ -166,14 +166,6 @@ class DctBundle:
         dct_bundle.load_from_dict(data)
         return dct_bundle
 
-    def set_defaults(self):
-        self.dct = Dictionary()
-        self.session_number = 1
-        self.search_config.set_defaults()
-        self.train_config.set_defaults()
-        self.replacer = Replacer()
-        self.trainer = Trainer(self.dct, self.train_config)
-
     def to_dict(self) -> SerializedData:
         return {
             'version': self._schema_version,
