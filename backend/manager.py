@@ -5,7 +5,7 @@ Author: Anenokil
 """
 
 from types import NoneType
-from typing import Literal, Callable
+from typing import Literal, Callable, Any
 import os
 import json
 
@@ -146,6 +146,7 @@ class DctBundle:
         self.search_config = SearchConfig() if search_config is None else search_config
         self.train_config = TrainingConfig() if train_config is None else train_config
         self.replacer = Replacer() if replacer is None else replacer
+        self.optional: dict[str, Any] = {}
 
     @classmethod
     def from_dict(cls, data: SerializedData):
