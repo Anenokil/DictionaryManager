@@ -76,19 +76,22 @@ class SearchConfig:
     def to_dict(self) -> SerializedData:
         return {
             'version': self._schema_version,
-            'fav_filter': self.fav_filter,
-            'to_match_whole_word': self.to_match_whole_word,
-            'to_match_case': self.to_match_case,
-            'to_search_in_words': self.to_search_in_words,
-            'to_search_in_translations': self.to_search_in_translations,
-            'to_search_in_forms': self.to_search_in_forms,
-            'to_search_in_phrases': self.to_search_in_phrases,
-            'to_search_in_notes': self.to_search_in_notes,
-            'search_tags': self.search_tags,
+            'data': {
+                'fav_filter': self.fav_filter,
+                'to_match_whole_word': self.to_match_whole_word,
+                'to_match_case': self.to_match_case,
+                'to_search_in_words': self.to_search_in_words,
+                'to_search_in_translations': self.to_search_in_translations,
+                'to_search_in_forms': self.to_search_in_forms,
+                'to_search_in_phrases': self.to_search_in_phrases,
+                'to_search_in_notes': self.to_search_in_notes,
+                'search_tags': self.search_tags,
+            }
         }
 
     def load_from_dict(self, data: SerializedData):
         data = self._check_and_migrate(data)
+        data = data['data']
 
         self.fav_filter = data['fav_filter']
         self.to_match_whole_word = data['to_match_whole_word']
@@ -113,6 +116,9 @@ class SearchConfig:
 
     @staticmethod
     def _validate_data(data: SerializedData):
+        validate_required_fields(data, ('data',))
+        data = data['data']
+
         bool_fields = (
             'to_match_whole_word', 'to_match_case', 'to_search_in_words',
             'to_search_in_translations', 'to_search_in_forms',

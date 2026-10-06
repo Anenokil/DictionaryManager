@@ -93,16 +93,19 @@ class TrainingConfig:
     def to_dict(self) -> SerializedData:
         return {
             'version': self._schema_version,
-            'is_case_sensitive': self.is_case_sensitive,
-            'format': self.format.value,
-            'order': self.order.value,
-            'entries': self.entries.value,
-            'forms': self.forms.value,
-            'tags': self.tags,
+            'data': {
+                'is_case_sensitive': self.is_case_sensitive,
+                'format': self.format.value,
+                'order': self.order.value,
+                'entries': self.entries.value,
+                'forms': self.forms.value,
+                'tags': self.tags,
+            }
         }
 
     def load_from_dict(self, data: SerializedData):
         data = self._check_and_migrate(data)
+        data = data['data']
 
         self.is_case_sensitive = data['is_case_sensitive']
         self.format = TrainingFormat(data['format'])
@@ -124,6 +127,9 @@ class TrainingConfig:
 
     @staticmethod
     def _validate_data(data: SerializedData):
+        validate_required_fields(data, ('data',))
+        data = data['data']
+
         str_fields = ('format', 'order', 'entries', 'forms')
         required_fields = str_fields + ('is_case_sensitive', 'tags')
         validate_required_fields(data, required_fields)

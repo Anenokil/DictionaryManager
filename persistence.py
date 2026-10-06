@@ -32,6 +32,7 @@ class GlobalSettings:
 
     def deserialize(self, data: SerializedData):
         data = self._check_and_migrate(data)
+        data = data['data']
 
         self.to_check_for_updates: bool = data['to_check_for_updates']
         self.is_typo_btn_on: bool = data['is_typo_btn_on']
@@ -39,8 +40,10 @@ class GlobalSettings:
     def serialize(self) -> SerializedData:
         return {
             'version': self.schema_version,
-            'to_check_for_updates': self.to_check_for_updates,
-            'is_typo_btn_on': self.is_typo_btn_on,
+            'data': {
+                'to_check_for_updates': self.to_check_for_updates,
+                'is_typo_btn_on': self.is_typo_btn_on,
+            }
         }
 
     @staticmethod
@@ -56,6 +59,9 @@ class GlobalSettings:
 
     @staticmethod
     def _validate_data(data: SerializedData):
+        validate_required_fields(data, ('data',))
+        data = data['data']
+
         required_fields = ('to_check_for_updates', 'is_typo_btn_on')
         validate_required_fields(data, required_fields)
 
@@ -81,6 +87,7 @@ class UISettingsTK:
 
     def deserialize(self, data: SerializedData):
         data = self._check_and_migrate(data)
+        data = data['data']
 
         self.theme: str = data['theme']
         self.scale: int = data['scale']
@@ -88,8 +95,10 @@ class UISettingsTK:
     def serialize(self) -> SerializedData:
         return {
             'version': self.schema_version,
-            'theme': self.theme,
-            'scale': self.scale,
+            'data': {
+                'theme': self.theme,
+                'scale': self.scale,
+            }
         }
 
     @staticmethod
@@ -105,6 +114,9 @@ class UISettingsTK:
 
     @staticmethod
     def _validate_data(data: SerializedData):
+        validate_required_fields(data, ('data',))
+        data = data['data']
+
         required_fields = ('theme', 'scale')
         validate_required_fields(data, required_fields)
 
@@ -130,6 +142,7 @@ class UISettingsQT:
     def serialize(self) -> SerializedData:
         return {
             'version': self.schema_version,
+            'data': {}
         }
 
 
@@ -170,12 +183,14 @@ class AppData:
         data = self._check_and_migrate(data)
 
         data['version'] = self.schema_version
+        data['data'] = {}
+
         if manager:
-            data['manager'] = self.manager.to_dict()
+            data['data']['manager'] = self.manager.to_dict()
         if glob:
-            data['global'] = self.global_settings.serialize()
+            data['data']['global'] = self.global_settings.serialize()
         if ui:
-            data[f'ui_{self.ui}'] = self.ui_settings.serialize()
+            data['data'][f'ui_{self.ui}'] = self.ui_settings.serialize()
 
         with open(self.path, 'w') as f:
             json.dump(data, f)
@@ -185,6 +200,7 @@ class AppData:
             data = json.load(f)
 
         data = self._check_and_migrate(data)
+        data = data['data']
 
         if manager:
             self.manager.load_from_json_dict(data['manager'], self.load_bundle_by_id)
@@ -204,11 +220,16 @@ class AppData:
         raise UnknownVersionError(AppData.__name__, version)
 
     def _validate_data(self, data: SerializedData):
+        validate_required_fields(data, ('data',))
+        validate_field_type('data', data['data'], SerializedData)
+
+        payload = data['data']
+
         required_fields = ('manager', 'global', f'ui_{self.ui}')
-        validate_required_fields(data, required_fields)
+        validate_required_fields(payload, required_fields)
 
         for field_name in required_fields:
-            validate_field_type(field_name, data[field_name], SerializedData)
+            validate_field_type(field_name, payload[field_name], SerializedData)
 
 
 def partial_save(
