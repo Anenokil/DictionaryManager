@@ -400,7 +400,7 @@ def is_splittable(line: str) -> bool:
 def variants_repr(entry: Entry) -> str:
     res = str(entry.lemma)
     if entry.n_variants > 1:
-        res += f' ({', '.join(entry.variants[1:])})'
+        res += f' ({", ".join(entry.variants[1:])})'
     return res
 
 
@@ -412,7 +412,7 @@ def tr_repr(entry: Entry) -> str:
 # Вывести словоформы
 def forms_repr(entry: Entry, tab: int = 0) -> str:
     return ('\n' + ' ' * tab).join((
-        f'[{gram_form_to_str(gram_form)}] {', '.join(word_form)}'
+        f'[{gram_form_to_str(gram_form)}] {", ".join(word_form)}'
         for gram_form, word_form in entry.forms.items()
     ))
 
@@ -504,10 +504,10 @@ def entry_repr_complete(entry: Entry, str_len: int, tab: int = 0) -> str:
         res += '-\n'
     else:
         gram_forms = tuple(entry.forms.keys())
-        res += f'[{gram_form_to_str(gram_forms[0])}] {', '.join(entry.forms[gram_forms[0]])}\n'
+        res += f'[{gram_form_to_str(gram_forms[0])}] {", ".join(entry.forms[gram_forms[0]])}\n'
         for i in range(1, entry.n_gram_forms):
             res += f'             [{gram_form_to_str(gram_forms[i])}] '\
-                   f'{', '.join(entry.forms[gram_forms[i]])}\n'
+                   f'{", ".join(entry.forms[gram_forms[i]])}\n'
 
     res += '      Фразы: '
     res += '-' if entry.n_phrases == 0 else phrases_repr(entry, tab=13)

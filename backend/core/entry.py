@@ -609,12 +609,12 @@ class Entry:
             tokens.append('* (fav)\n')
         tokens.append(f'| {self.lemma}')
         if self.n_variants > 1:
-            tokens.append(f' (alternative: {', '.join(self.variants[1:])})')
+            tokens.append(f' (alternative: {", ".join(self.variants[1:])})')
         tokens.append(' - ')
         tokens.append(', '.join(self.tr))
         tokens.append('\n')
         for gram_form, word_forms in self.forms.items():
-            tokens.append(f'|  [{gram_form_to_str(gram_form)}] {', '.join(word_forms)}\n')
+            tokens.append(f'|  [{gram_form_to_str(gram_form)}] {", ".join(word_forms)}\n')
         for phrase, phrase_tr in self.phrases.items():
             tokens.append(f'|  {phrase} - ')
             tokens.append(', '.join(tr for tr in phrase_tr))

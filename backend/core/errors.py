@@ -17,7 +17,7 @@ def _type_repr(t: TypeRef) -> str:
     if isinstance(t, (GenericAlias, _GenericAlias)):
         origin = get_origin(t)
         args = get_args(t)
-        return f'{_type_repr(origin)}[{', '.join(map(_type_repr, args))}]'
+        return f'{_type_repr(origin)}[{", ".join(map(_type_repr, args))}]'
     if hasattr(t, '__name__'):
         return t.__name__
     trepr = str(t)
@@ -55,7 +55,7 @@ class MissingFieldsError(DeserializationError):
     def __str__(self) -> str:
         if len(self.fields) == 1:
             return f'Missing required field: {self.fields[0]}'
-        return f'Missing required fields: {', '.join(self.fields)}'
+        return f'Missing required fields: {", ".join(self.fields)}'
 
 
 class FieldTypeError(DeserializationError):

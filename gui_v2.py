@@ -168,7 +168,7 @@ def translations_to_str(tr: Translations) -> str:
 
 def forms_to_str(forms: Forms) -> str:
     return '\n'.join(
-        f'[{gram_form_to_str(gram_form)}] {', '.join(word_forms)}'
+        f'[{gram_form_to_str(gram_form)}] {", ".join(word_forms)}'
         for gram_form, word_forms in forms.items()
     )
 
@@ -2564,7 +2564,7 @@ class DctTabWidget(QTabWidget):
         reply = QMessageBox.question(
             self,
             'Delete Dictionary',
-            f'Delete dictionary "{dct.name}" and its {len(dct)} {'entry' if len(dct) == 1 else 'entries'}?\n'
+            f'Delete dictionary "{dct.name}" and its {len(dct)} {"entry" if len(dct) == 1 else "entries"}?\n'
             f'This cannot be undone.',
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No,
