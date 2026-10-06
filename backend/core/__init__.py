@@ -9,8 +9,8 @@ from .types import (
     Phrase, PhraseTr, Note, Tag, Timestamp, DctName, SerializedData,
 )
 from .errors import (
-    DMError, BackendError, DeserializationError,
-    MissingFieldsError, FieldTypeError, UnknownVersionError,
+    DMError, BackendError, DeserializationError, MissingFieldsError,
+    FieldTypeError, UnknownVersionError, MigrationError,
 )
 from .entry import Entry, Variants, Translations, Forms, Phrases, Notes, Tags
 from .dictionary import (

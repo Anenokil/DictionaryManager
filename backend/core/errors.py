@@ -115,3 +115,7 @@ class UnknownVersionError(DeserializationError):
 
     def __str__(self) -> str:
         return f'Unknown version of {self.source}: {self.version}'
+
+
+class MigrationError(DeserializationError):
+    """Exception raised when a migration fails."""
