@@ -12,7 +12,7 @@ import json
 from .core.types import Tag, DctName, SerializedData
 from .core.errors import UnknownVersionError
 from .core.dictionary import Dictionary
-from .core.trainer import TrainingConfig, Trainer
+from .core.trainer import TrainingConfig
 from .core.utils import validate_required_fields, validate_field_type
 from .replacements import Replacer
 
@@ -156,7 +156,6 @@ class DctBundle:
         self.search_config = SearchConfig() if search_config is None else search_config
         self.train_config = TrainingConfig() if train_config is None else train_config
         self.replacer = Replacer() if replacer is None else replacer
-        self.trainer = Trainer(self.dct, self.train_config)
 
     @classmethod
     def from_dict(cls, data: SerializedData):
@@ -189,7 +188,6 @@ class DctBundle:
         self.search_config.load_from_dict(data['search_config'])
         self.train_config.load_from_dict(data['train_config'])
         self.replacer.load_from_json_dict(data['replacer'])
-        self.trainer = Trainer(self.dct, self.train_config)
 
         self.session_number += 1
 

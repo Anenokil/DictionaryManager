@@ -35,7 +35,7 @@ from PySide6.QtCore import (
 from backend import (
     Translations, Variants, Forms, GramForm, Phrases, Notes,
     Tags, Entry, Dictionary, DctBundle, Manager, gram_form_to_str,
-    TrainingFormat, TrainingOrder, EntrySelection, FormSelection,
+    Trainer, TrainingFormat, TrainingOrder, EntrySelection, FormSelection,
     Replacer, SearchConfig,
 )
 from persistence import AppData, partial_save
@@ -3627,7 +3627,7 @@ class PracticePage(QWidget):
         super().__init__(parent)
 
         self.dct_bundle = dct_bundle
-        self.trainer = dct_bundle.trainer
+        self.trainer = Trainer(dct_bundle.dct, dct_bundle.train_config)
         self.replacer = dct_bundle.replacer
 
         self._practice_session_num = 0
