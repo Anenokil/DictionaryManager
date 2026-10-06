@@ -12,7 +12,10 @@ from typing import (
 )
 
 from .types import Word, CtgValue, SerializedData
-from .errors import DeserializationError, MissingFieldsError, FieldTypeError
+from .errors import (
+    DeserializationError, MissingFieldsError, FieldTypeError,
+    UnknownVersionError, MigrationError,
+)
 if TYPE_CHECKING:
     from .entry import Entry
 
@@ -214,3 +217,81 @@ def validate_field_len(field_name: Any, field_value: Collection, expected_length
 
     if len(field_value) != expected_length:
         raise DeserializationError(f'Field "{field_name}" must have length {expected_length}')
+
+
+def validation_and_migration(
+        latest_version: int,
+        fields: list[tuple[str, bool, type | tuple[type, ...]]],
+):
+    """
+    Class decorator that adds schema validation and version migration support.
+
+    Attaches _check_and_migrate, _validate_data and _migrate static methods to
+    the decorated class (unless already defined there), plus a _schema_version
+    attribute set to latest_version.
+
+    _validate_data(data) checks that all required fields are present and that
+    present fields match their expected type.
+
+    The decorated class may override _migrate to implement actual migration
+    logic to the latest version.
+
+    Args:
+        latest_version: The current data schema version to migrate to.
+        fields: Field specs as (name, is_required, expected_type) tuples.
+                expected_type may be a single type or a tuple of types.
+    """
+
+    def validate_version(data: SerializedData):
+        validate_required_fields(data, ('version',))
+        validate_field_type('version', data['version'], int)
+
+    required_fields = [name for name, is_required, _ in fields if is_required]
+
+    def decorator(cls):
+        def _check_and_migrate(data: SerializedData) -> SerializedData:
+            validate_version(data)
+
+            version = data['version']
+            if not (1 <= version <= latest_version):
+                raise UnknownVersionError(cls.__name__, version)
+            if version < latest_version:
+                data = cls._migrate(data, version)
+
+                validate_version(data)
+                if data['version'] != latest_version:
+                    raise MigrationError(
+                        f'{cls.__name__}: migration from {version} returned version {data["version"]}, '
+                        f'expected {latest_version}'
+                    )
+
+            cls._validate_data(data)
+            return data
+
+        def _validate_data(data: SerializedData):
+            validate_required_fields(data, ('data',))
+            validate_field_type('data', data['data'], SerializedData)
+
+            payload = data['data']
+
+            validate_required_fields(payload, required_fields)
+
+            for field, _, type_ in fields:
+                if field not in payload:
+                    continue
+                validate_field_type(field, payload[field], type_)
+
+        def _migrate(data: SerializedData, version: int) -> SerializedData:
+            raise NotImplementedError(f'{cls.__name__}: no migration from version {version}')
+
+        cls._schema_version = latest_version
+        for name, value in [
+            ('_check_and_migrate', staticmethod(_check_and_migrate)),
+            ('_validate_data', staticmethod(_validate_data)),
+            ('_migrate', staticmethod(_migrate)),
+        ]:
+            if name not in cls.__dict__:
+                setattr(cls, name, value)
+
+        return cls
+    return decorator

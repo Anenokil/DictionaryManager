@@ -10,13 +10,23 @@ import os
 import json
 
 from .core.types import Tag, DctName, SerializedData
-from .core.errors import UnknownVersionError
 from .core.dictionary import Dictionary
 from .core.trainer import TrainingConfig
-from .core.utils import validate_required_fields, validate_field_type
+from .core.utils import validate_required_fields, validate_field_type, validation_and_migration
 from .replacements import Replacer
 
 
+@validation_and_migration(1, [
+    ('to_match_whole_word', True, bool),
+    ('to_match_case', True, bool),
+    ('to_search_in_words', True, bool),
+    ('to_search_in_translations', True, bool),
+    ('to_search_in_forms', True, bool),
+    ('to_search_in_phrases', True, bool),
+    ('to_search_in_notes', True, bool),
+    ('fav_filter', True, str),
+    ('search_tags', True, (list[str], NoneType)),
+])
 class SearchConfig:
     """
     Configuration for Dictionary search.
@@ -31,8 +41,6 @@ class SearchConfig:
         to_search_in_notes: Whether to include notes in search.
         search_tags: List of tags to restrict search to, or None to search across all tags.
     """
-
-    _schema_version = 1
 
     def __init__(
             self,
@@ -103,36 +111,14 @@ class SearchConfig:
         self.to_search_in_notes = data['to_search_in_notes']
         self.search_tags = data['search_tags']
 
-    @staticmethod
-    def _check_and_migrate(data: SerializedData) -> SerializedData:
-        validate_required_fields(data, ('version',))
-        validate_field_type('version', data['version'], int)
 
-        version: int = data['version']
-        if version == 1:
-            SearchConfig._validate_data(data)
-            return data
-        raise UnknownVersionError(SearchConfig.__name__, version)
-
-    @staticmethod
-    def _validate_data(data: SerializedData):
-        validate_required_fields(data, ('data',))
-        data = data['data']
-
-        bool_fields = (
-            'to_match_whole_word', 'to_match_case', 'to_search_in_words',
-            'to_search_in_translations', 'to_search_in_forms',
-            'to_search_in_phrases', 'to_search_in_notes',
-        )
-        required_fields = bool_fields + ('fav_filter', 'search_tags')
-        validate_required_fields(data, required_fields)
-
-        for field_name in bool_fields:
-            validate_field_type(field_name, data[field_name], bool)
-        validate_field_type('fav_filter', data['fav_filter'], str)
-        validate_field_type('search_tags', data['search_tags'], (list[str], NoneType))
-
-
+@validation_and_migration(1, [
+    ('dct', True, SerializedData),
+    ('session_number', True, int),
+    ('search_config', True, SerializedData),
+    ('train_config', True, SerializedData),
+    ('replacer', True, SerializedData),
+])
 class DctBundle:
     """
     Main Dictionary container holding its configuration, settings and file information.
@@ -146,8 +132,6 @@ class DctBundle:
         replacer: Replacer instance.
         trainer: Trainer instance.
     """
-
-    _schema_version = 1
 
     def __init__(
             self,
@@ -196,33 +180,6 @@ class DctBundle:
         self.replacer.load_from_json_dict(data['replacer'])
 
         self.session_number += 1
-
-    @staticmethod
-    def _check_and_migrate(data: SerializedData) -> SerializedData:
-        validate_required_fields(data, ('version',))
-        validate_field_type('version', data['version'], int)
-
-        version: int = data['version']
-        if version == 1:
-            DctBundle._validate_data(data)
-            return data
-        raise UnknownVersionError(DctBundle.__name__, version)
-
-    @staticmethod
-    def _validate_data(data: SerializedData):
-        validate_required_fields(data, ('data',))
-        data = data['data']
-
-        required_fields = (
-            'dct', 'session_number', 'search_config', 'train_config', 'replacer',
-        )
-        validate_required_fields(data, required_fields)
-
-        validate_field_type('dct', data['dct'], SerializedData)
-        validate_field_type('session_number', data['session_number'], int)
-        validate_field_type('search_config', data['search_config'], SerializedData)
-        validate_field_type('train_config', data['train_config'], SerializedData)
-        validate_field_type('replacer', data['replacer'], SerializedData)
 
 
 class Manager:

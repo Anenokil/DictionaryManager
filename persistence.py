@@ -10,13 +10,15 @@ import json
 
 from backend.core.types import SerializedData
 from backend.core.errors import UnknownVersionError
-from backend.core.utils import validate_required_fields, validate_field_type
+from backend.core.utils import validate_required_fields, validate_field_type, validation_and_migration
 from backend.manager import Manager, DctBundle
 
 
+@validation_and_migration(1, [
+    ('to_check_for_updates', True, bool),
+    ('is_typo_btn_on', True, bool),
+])
 class GlobalSettings:
-    schema_version = 1
-
     def __init__(self, data: SerializedData | None = None):
         self.to_check_for_updates: bool = ...
         self.is_typo_btn_on: bool = ...
@@ -39,39 +41,19 @@ class GlobalSettings:
 
     def serialize(self) -> SerializedData:
         return {
-            'version': self.schema_version,
+            'version': self._schema_version,
             'data': {
                 'to_check_for_updates': self.to_check_for_updates,
                 'is_typo_btn_on': self.is_typo_btn_on,
             }
         }
 
-    @staticmethod
-    def _check_and_migrate(data: SerializedData) -> SerializedData:
-        validate_required_fields(data, ('version',))
-        validate_field_type('version', data['version'], int)
 
-        version: int = data['version']
-        if version == 1:
-            GlobalSettings._validate_data(data)
-            return data
-        raise UnknownVersionError(GlobalSettings.__name__, version)
-
-    @staticmethod
-    def _validate_data(data: SerializedData):
-        validate_required_fields(data, ('data',))
-        data = data['data']
-
-        required_fields = ('to_check_for_updates', 'is_typo_btn_on')
-        validate_required_fields(data, required_fields)
-
-        validate_field_type('to_check_for_updates', data['to_check_for_updates'], bool)
-        validate_field_type('is_typo_btn_on', data['is_typo_btn_on'], bool)
-
-
+@validation_and_migration(1, [
+    ('theme', True, str),
+    ('scale', True, int),
+])
 class UISettingsTK:
-    schema_version = 1
-
     def __init__(self, data: SerializedData | None = None):
         self.theme: str = ...
         self.scale: int = ...
@@ -94,34 +76,12 @@ class UISettingsTK:
 
     def serialize(self) -> SerializedData:
         return {
-            'version': self.schema_version,
+            'version': self._schema_version,
             'data': {
                 'theme': self.theme,
                 'scale': self.scale,
             }
         }
-
-    @staticmethod
-    def _check_and_migrate(data: SerializedData) -> SerializedData:
-        validate_required_fields(data, ('version',))
-        validate_field_type('version', data['version'], int)
-
-        version: int = data['version']
-        if version == 1:
-            UISettingsTK._validate_data(data)
-            return data
-        raise UnknownVersionError(UISettingsTK.__name__, version)
-
-    @staticmethod
-    def _validate_data(data: SerializedData):
-        validate_required_fields(data, ('data',))
-        data = data['data']
-
-        required_fields = ('theme', 'scale')
-        validate_required_fields(data, required_fields)
-
-        validate_field_type('theme', data['theme'], str)
-        validate_field_type('scale', data['scale'], int)
 
 
 class UISettingsQT:
@@ -147,7 +107,7 @@ class UISettingsQT:
 
 
 class AppData:
-    schema_version = 1
+    _schema_version = 1
 
     def __init__(self, path: str, ui: Literal['tk', 'qt'], load_bundle_by_id: Callable[[str], DctBundle | None]):
         assert ui in ('tk', 'qt')
@@ -182,7 +142,7 @@ class AppData:
 
         data = self._check_and_migrate(data)
 
-        data['version'] = self.schema_version
+        data['version'] = self._schema_version
         data['data'] = {}
 
         if manager:
@@ -213,11 +173,12 @@ class AppData:
         validate_required_fields(data, ('version',))
         validate_field_type('version', data['version'], int)
 
-        version: int = data['version']
-        if version == 1:
-            self._validate_data(data)
-            return data
-        raise UnknownVersionError(AppData.__name__, version)
+        version = data['version']
+        if not (1 <= version <= self._schema_version):
+            raise UnknownVersionError(self.__class__.__name__, version)
+
+        self._validate_data(data)
+        return data
 
     def _validate_data(self, data: SerializedData):
         validate_required_fields(data, ('data',))

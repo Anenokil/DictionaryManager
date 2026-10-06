@@ -11,12 +11,9 @@ from enum import Enum
 import random
 
 from .types import GramForm, Phrase, Tag, SerializedData
-from .errors import UnknownVersionError
 from .entry import Entry
 from .dictionary import Dictionary
-from .utils import (
-    difficulty, has_article, validate_required_fields, validate_field_type,
-)
+from .utils import difficulty, has_article, validation_and_migration
 
 # Typing aliases used in the module
 Pool = list[tuple[Entry, GramForm | None, Phrase | None]]
@@ -55,10 +52,16 @@ class FormSelection(Enum):
     ALL = 'all'
 
 
+@validation_and_migration(1, [
+    ('format', True, str),
+    ('order', True, str),
+    ('entries', True, str),
+    ('forms', True, str),
+    ('is_case_sensitive', True, bool),
+    ('tags', True, (list[str], NoneType)),
+])
 class TrainingConfig:
     """ TODO """
-
-    _schema_version = 1
 
     def __init__(
             self,
@@ -113,31 +116,6 @@ class TrainingConfig:
         self.entries = EntrySelection(data['entries'])
         self.forms = FormSelection(data['forms'])
         self.tags = data['tags']
-
-    @staticmethod
-    def _check_and_migrate(data: SerializedData) -> SerializedData:
-        validate_required_fields(data, ('version',))
-        validate_field_type('version', data['version'], int)
-
-        version: int = data['version']
-        if version == 1:
-            TrainingConfig._validate_data(data)
-            return data
-        raise UnknownVersionError(TrainingConfig.__name__, version)
-
-    @staticmethod
-    def _validate_data(data: SerializedData):
-        validate_required_fields(data, ('data',))
-        data = data['data']
-
-        str_fields = ('format', 'order', 'entries', 'forms')
-        required_fields = str_fields + ('is_case_sensitive', 'tags')
-        validate_required_fields(data, required_fields)
-
-        for field_name in str_fields:
-            validate_field_type(field_name, data[field_name], str)
-        validate_field_type('is_case_sensitive', data['is_case_sensitive'], bool)
-        validate_field_type('tags', data['tags'], (list[str], NoneType))
 
 
 class Trainer:
