@@ -36,7 +36,7 @@ from backend import (
     Translations, Variants, Forms, GramForm, Phrases, Notes,
     Tags, Entry, Dictionary, DctBundle, Manager, gram_form_to_str,
     Trainer, TrainingFormat, TrainingOrder, EntrySelection, FormSelection,
-    Replacer, SearchConfig,
+    Replacer, SearchConfig, SerializedData, validation_and_migration,
 )
 from persistence import AppData, partial_save
 
@@ -67,8 +67,83 @@ SAVES_DIR = DATA_DIR / 'saves'
 DCT_SAVE_DIR = lambda dct_id: SAVES_DIR / dct_id
 DCT_MAIN_DATA_FILENAME = 'dct_data.json'
 DCT_MAIN_DATA_PATH = lambda dct_id: str(DCT_SAVE_DIR(dct_id) / DCT_MAIN_DATA_FILENAME)
+DCT_GUI_DATA_FILENAME = 'qt_config.json'
+DCT_GUI_DATA_PATH = lambda dct_id: str(DCT_SAVE_DIR(dct_id) / DCT_GUI_DATA_FILENAME)
 USER_IMAGES_DIRNAME = 'user_images'
 USER_IMAGES_DIR = lambda dct_id: DCT_SAVE_DIR(dct_id) / USER_IMAGES_DIRNAME
+
+
+@validation_and_migration(1, [
+    ('entries_table_columns_order', True, list[int]),
+    ('entries_table_hidden_columns', True, list[int]),
+    ('entries_table_column_widths', True, list[int]),
+    ('entries_table_sort_column', True, int),
+    ('entries_table_sort_order', True, int),
+])
+class DctUISettings:
+    def __init__(self, data: SerializedData | None = None):
+        self.entries_table_columns_order: list[int] = ...
+        self.entries_table_hidden_columns: set[int] = ...
+        self.entries_table_column_widths: list[int] = ...
+        self.entries_table_sort_column: int = ...
+        self.entries_table_sort_order: int = ...
+
+        if data is None:
+            self.set_defaults()
+        else:
+            self.load_from_dict(data)
+
+    @classmethod
+    def from_json(cls, path: str) -> 'DctUISettings':
+        instance = cls()
+        instance.load_from_json(path)
+        return instance
+
+    def set_defaults(self):
+        n_columns = len(EntriesTableModel.HEADERS)
+        all_columns = range(n_columns)
+
+        self.entries_table_columns_order = list(all_columns)
+        self.entries_table_hidden_columns = set()
+        self.entries_table_column_widths = [-1 for _ in all_columns]  # -1 = default section size
+        self.entries_table_sort_column = -1
+        self.entries_table_sort_order = 0
+
+    def load_from_dict(self, data: SerializedData):
+        data = self._check_and_migrate(data)
+        data = data['data']
+
+        self.entries_table_columns_order: list[int] = data['entries_table_columns_order']
+        self.entries_table_hidden_columns: set[int] = set(data['entries_table_hidden_columns'])
+        self.entries_table_column_widths: list[int] = data['entries_table_column_widths']
+        self.entries_table_sort_column: int = data['entries_table_sort_column']
+        self.entries_table_sort_order: int = data['entries_table_sort_order']
+
+    def to_dict(self) -> SerializedData:
+        return {
+            'version': self._schema_version,
+            'data': {
+                'entries_table_columns_order': self.entries_table_columns_order,
+                'entries_table_hidden_columns': list(self.entries_table_hidden_columns),
+                'entries_table_column_widths': self.entries_table_column_widths,
+                'entries_table_sort_column': self.entries_table_sort_column,
+                'entries_table_sort_order': self.entries_table_sort_order,
+            }
+        }
+
+    def load_from_json(self, path: str):
+        if not Path(path).exists():
+            self.set_defaults()
+            return
+
+        with open(path, 'r') as f:
+            data = json.load(f)
+        self.load_from_dict(data)
+
+    def save_to_json(self, path: str):
+        data = self.to_dict()
+        with open(path, 'w') as f:
+            json.dump(data, f)
 
 
 def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:
@@ -2904,6 +2979,9 @@ class SearchFilterProxyModel(QSortFilterProxyModel):
 
 
 class ThreeStateSortHeader(QHeaderView):
+    column_visibility_changed = Signal(int, bool)
+    sort_changed = Signal(int, int)
+
     def __init__(
             self,
             table_view: QTableView,
@@ -2927,6 +3005,23 @@ class ThreeStateSortHeader(QHeaderView):
         self.customContextMenuRequested.connect(self._show_column_visibility_menu)
         self.sectionClicked.connect(self._on_section_clicked)
 
+    def set_sort(self, column: int, order: int):
+        self._current_column = column
+        self._current_order = order
+
+        self._update()
+
+    def _update(self):
+        if self._current_order == 0:
+            self.proxy_model.sort(-1)
+            self.setSortIndicator(-1, Qt.AscendingOrder)
+        elif self._current_order == 1:
+            self.proxy_model.sort(self._current_column, Qt.AscendingOrder)
+            self.setSortIndicator(self._current_column, Qt.AscendingOrder)
+        else:
+            self.proxy_model.sort(self._current_column, Qt.DescendingOrder)
+            self.setSortIndicator(self._current_column, Qt.DescendingOrder)
+
     def _on_section_clicked(self, column: int):
         if column == self._current_column:
             self._current_order = (self._current_order + 1) % 3
@@ -2934,15 +3029,8 @@ class ThreeStateSortHeader(QHeaderView):
             self._current_column = column
             self._current_order = 1
 
-        if self._current_order == 0:
-            self.proxy_model.sort(-1)
-            self.setSortIndicator(-1, Qt.AscendingOrder)
-        elif self._current_order == 1:
-            self.proxy_model.sort(column, Qt.AscendingOrder)
-            self.setSortIndicator(column, Qt.AscendingOrder)
-        else:
-            self.proxy_model.sort(column, Qt.DescendingOrder)
-            self.setSortIndicator(column, Qt.DescendingOrder)
+        self._update()
+        self.sort_changed.emit(column, self._current_order)
 
     def _show_column_visibility_menu(self, pos: QPoint):
         source_model = self.proxy_model.sourceModel()
@@ -2969,6 +3057,7 @@ class ThreeStateSortHeader(QHeaderView):
                 return
 
         self.table_view.setColumnHidden(logical_index, not visible)
+        self.column_visibility_changed.emit(logical_index, visible)
 
 
 class BrowsingPage(QWidget):
@@ -2981,6 +3070,7 @@ class BrowsingPage(QWidget):
 
         self.dct_bundle = dct_bundle
         self.dct = dct_bundle.dct
+        self.ui_config: DctUISettings = self.dct_bundle.optional['qt']
 
         self._create_widgets()
         self._set_shortcuts()
@@ -3055,6 +3145,24 @@ class BrowsingPage(QWidget):
             None,
             ActionConfig('Delete', self.delete_entries, shortcut='Ctrl+Shift+D'),
         ])
+
+        # Restore table state
+        for target_visual_pos, logical_col in enumerate(self.ui_config.entries_table_columns_order):
+            current_visual_pos = header.visualIndex(logical_col)
+            header.moveSection(current_visual_pos, target_visual_pos)
+        header.sectionMoved.connect(self._on_column_moved)
+
+        for column in self.ui_config.entries_table_hidden_columns:
+            self.entries_table.setColumnHidden(column, True)
+        header.column_visibility_changed.connect(self._on_column_visibility_changed)
+
+        for column, width in enumerate(self.ui_config.entries_table_column_widths):
+            if width != -1:
+                header.resizeSection(column, width)
+        header.sectionResized.connect(self._on_column_width_changed)
+
+        header.set_sort(self.ui_config.entries_table_sort_column, self.ui_config.entries_table_sort_order)
+        header.sort_changed.connect(self._on_column_sort_changed)
 
     def _create_dct_buttons(self):
         # Create button for adding new entry
@@ -3369,6 +3477,27 @@ class BrowsingPage(QWidget):
         self.source_model.remove_rows(selected.keys())
 
         self.update_tab_title()
+
+    def _on_column_moved(self, logical_index: int, old_visual_index: int, new_visual_index: int):
+        self.ui_config.entries_table_columns_order.pop(old_visual_index)
+        self.ui_config.entries_table_columns_order.insert(new_visual_index, logical_index)
+        self.ui_config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
+
+    def _on_column_visibility_changed(self, column: int, is_visible: bool):
+        if is_visible:
+            self.ui_config.entries_table_hidden_columns.remove(column)
+        else:
+            self.ui_config.entries_table_hidden_columns.add(column)
+        self.ui_config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
+
+    def _on_column_width_changed(self, column: int, width: int):
+        self.ui_config.entries_table_column_widths[column] = width
+        self.ui_config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
+
+    def _on_column_sort_changed(self, column: int, order: int):
+        self.ui_config.entries_table_sort_column = column
+        self.ui_config.entries_table_sort_order = order
+        self.ui_config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
 
 
 class PracticeConfigPage(QWidget):
@@ -4300,6 +4429,8 @@ class MainWindow(QMainWindow):
 
                 for dct_bundle in self.manager.opened_dct_bundles:
                     dct = dct_bundle.dct
+                    gui_data_path = DCT_GUI_DATA_PATH(dct.id)
+                    dct_bundle.optional['qt'] = DctUISettings.from_json(gui_data_path)
                     self.create_new_tab(dct.name, dct_bundle, set_active=False)
 
                 # Restore active tab
@@ -4372,9 +4503,11 @@ class MainWindow(QMainWindow):
 
         name = dialog.selected_value()
         dct_id = id_by_name[name]
-        path = DCT_SAVE_DIR(dct_id) / DCT_MAIN_DATA_FILENAME
+        main_data_path = DCT_SAVE_DIR(dct_id) / DCT_MAIN_DATA_FILENAME
+        gui_data_path = DCT_SAVE_DIR(dct_id) / DCT_GUI_DATA_FILENAME
 
-        self.manager.open_dct(path, to_activate=True)
+        self.manager.open_dct(main_data_path, to_activate=True)
+        self.manager.active.optional['qt'] = DctUISettings.from_json(gui_data_path)
         self.create_new_tab(name, set_active=True)
 
     def import_dct_from_json(self):
@@ -4388,6 +4521,7 @@ class MainWindow(QMainWindow):
 
         self.create_new_tab(dct.name, set_active=True)
 
+        bundle.optional['qt'] = DctUISettings()
         dct._set_id()
         self._save_new_dct(dct)
 
@@ -4397,8 +4531,10 @@ class MainWindow(QMainWindow):
             return
 
         with zipfile.ZipFile(file_path, 'r') as zf:
-            dct_data = json.loads(zf.read(DCT_MAIN_DATA_FILENAME).decode('utf-8'))
-            bundle = DctBundle.from_dict(dct_data)
+            dct_main_data = json.loads(zf.read(DCT_MAIN_DATA_FILENAME).decode('utf-8'))
+            bundle = DctBundle.from_dict(dct_main_data)
+            dct_gui_data = json.loads(zf.read(DCT_GUI_DATA_FILENAME).decode('utf-8'))
+            bundle.optional['qt'] = DctUISettings(dct_gui_data)
             self.manager.add_dct(bundle, to_activate=True)
             dct = bundle.dct
             dct._set_id()
@@ -4425,7 +4561,9 @@ class MainWindow(QMainWindow):
         self.manager.create_dct(name=new_dct_name)
         self.create_new_tab(new_dct_name)
         self.tab_widget.update_tab_title(self.tab_widget.count() - 1)
-        self._save_new_dct(self.manager.active.dct)
+        bundle = self.manager.active
+        bundle.optional['qt'] = DctUISettings()
+        self._save_new_dct(bundle.dct)
 
     def _save_new_dct(self, dct: Dictionary):
         DCT_SAVE_DIR(dct.id).mkdir(parents=True, exist_ok=True)
