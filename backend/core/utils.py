@@ -10,6 +10,8 @@ from typing import (
     Any, Iterable, Collection, Generator, Mapping, TypeVar,
     _GenericAlias, get_origin, get_args, TYPE_CHECKING,
 )
+from pathlib import Path
+import json
 
 from .types import Word, CtgValue, SerializedData
 from .errors import (
@@ -295,3 +297,13 @@ def validation_and_migration(
 
         return cls
     return decorator
+
+
+def read_json(path: str | Path) -> Any:
+    with open(path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def save_json(data: Any, path: str | Path):
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(data, f)

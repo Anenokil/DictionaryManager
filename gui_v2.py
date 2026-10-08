@@ -39,7 +39,7 @@ from backend import (
     Trainer, TrainingFormat, TrainingOrder, EntrySelection, FormSelection,
     Replacer, SerializedData, validation_and_migration,
 )
-from persistence import AppData, partial_save
+from persistence import AppData
 
 BASE_DIR = Path(__file__).resolve().parent
 IMAGES_DIR = BASE_DIR / 'resources' / 'qt' / 'images'
@@ -66,8 +66,10 @@ DATA_DIR = Path(platformdirs.user_data_dir('DictionaryManager'))
 APP_DATA_JSON_PATH = str(DATA_DIR / 'app_data.json')
 SAVES_DIR = DATA_DIR / 'saves'
 DCT_SAVE_DIR = lambda dct_id: SAVES_DIR / dct_id
-DCT_MAIN_DATA_FILENAME = 'dct_data.json'
-DCT_MAIN_DATA_PATH = lambda dct_id: str(DCT_SAVE_DIR(dct_id) / DCT_MAIN_DATA_FILENAME)
+DCT_MAIN_DATA_FILENAME = 'dct.json'
+DCT_METADATA_FILENAME = 'metadata.json'
+DCT_PRACTICE_CONFIG_FILENAME = 'train_config.json'
+DCT_REPLACER_FILENAME = 'replacer.json'
 DCT_GUI_DATA_FILENAME = 'qt_config.json'
 DCT_GUI_DATA_PATH = lambda dct_id: str(DCT_SAVE_DIR(dct_id) / DCT_GUI_DATA_FILENAME)
 USER_IMAGES_DIRNAME = 'user_images'
@@ -2560,8 +2562,7 @@ class DctTabWidget(QTabWidget):
             return
 
         dct = self.manager.opened_dct_bundles[index].dct
-        file_path = DCT_MAIN_DATA_PATH(dct.id)
-        self.manager.save_dct(index, file_path)
+        self.manager.save_dct(index, DCT_SAVE_DIR(dct.id))
         self.update_tab_title(index)
         purge_unused_user_images(dct)
 
@@ -3138,7 +3139,7 @@ class BrowsingPage(QWidget):
     def _create_entries_table(self):
         # Create table model
         self.source_model = EntriesTableModel(self.dct)
-        self.proxy_model = SearchFilterProxyModel(self.dct_bundle.search_config)
+        self.proxy_model = SearchFilterProxyModel(self.ui_config)
         self.proxy_model.setSourceModel(self.source_model)
         self.proxy_model.search_results_changed.connect(self.update_status_bar)
 
@@ -3694,7 +3695,7 @@ class PracticeConfigPage(QWidget):
         self.config.forms = forms
         self.config.tags = self.list_tags.get_checked_items()
 
-        partial_save(self.dct_bundle, DCT_MAIN_DATA_PATH(self.dct.id), train_config=True)
+        self.dct_bundle.partial_save(DCT_SAVE_DIR(self.dct.id), train_config=True)
 
         self.practice_button_clicked.emit()
 
@@ -4099,7 +4100,7 @@ class PracticePage(QWidget):
         correct_answers = self.trainer.get_correct_answers()
         correct_answers_repr = ', '.join(correct_answers)
         timestamp = (
-            self.dct_bundle.session_number,
+            self.dct_bundle.metadata.session_number,
             self._practice_session_num,
             self.count_all,
         )
@@ -4315,7 +4316,6 @@ class MainWindow(QMainWindow):
                 ActionConfig('New', self.new_dct, shortcut='Ctrl+Insert'),
                 ActionConfig('Open', self.open_dct),
                 SubmenuConfig('Import', *create_context_menu(self, [
-                    ActionConfig('JSON...', self.import_dct_from_json),
                     ActionConfig('Dictionary Package (.dmdct)...', self.import_dct_from_dmdct),
                 ])),
                 None,
@@ -4443,8 +4443,7 @@ class MainWindow(QMainWindow):
         if dct.is_modified:
             to_save = ask_yes_no(self, 'Unsaved changes', f'Save dictionary {dct.name}?')
             if to_save:
-                file_path = DCT_MAIN_DATA_PATH(dct.id)
-                self.manager.save_dct(index, file_path)
+                self.manager.save_dct(index, DCT_SAVE_DIR(dct.id))
 
         self._close_tab(index)
 
@@ -4503,8 +4502,7 @@ class MainWindow(QMainWindow):
             if dct.is_modified:
                 to_save = ask_yes_no(self, 'Unsaved changes', f'Save dictionary {dct.name}?')
                 if to_save:
-                    file_path = DCT_MAIN_DATA_PATH(dct.id)
-                    self.manager.save_dct(index, file_path)
+                    self.manager.save_dct(index, DCT_SAVE_DIR(dct.id))
 
         self.save_state()
         event.accept()
@@ -4523,12 +4521,8 @@ class MainWindow(QMainWindow):
         id_by_name = {}
         for save_dir in sorted(SAVES_DIR.iterdir()):
             if save_dir.is_dir():
-                save_path = save_dir / DCT_MAIN_DATA_FILENAME
-                if not save_path.exists():
-                    continue
                 try:
-                    data = json.loads(save_path.read_text(encoding='utf-8'))
-                    dct = DctBundle.from_dict(data).dct
+                    dct = DctBundle.from_files(save_dir).dct
                 except Exception as e:
                     print(e)
                     continue
@@ -4549,27 +4543,11 @@ class MainWindow(QMainWindow):
 
         name = dialog.selected_value()
         dct_id = id_by_name[name]
-        main_data_path = DCT_SAVE_DIR(dct_id) / DCT_MAIN_DATA_FILENAME
         gui_data_path = DCT_SAVE_DIR(dct_id) / DCT_GUI_DATA_FILENAME
 
-        self.manager.open_dct(main_data_path, to_activate=True)
+        self.manager.open_dct(DCT_SAVE_DIR(dct_id), to_activate=True)
         self.manager.active.optional['qt'] = DctUISettings.from_json(gui_data_path)
         self.create_new_tab(name, set_active=True)
-
-    def import_dct_from_json(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, 'Open Dictionary File', '', '(*.json)')
-        if not file_path:
-            return
-        self.manager.open_dct(file_path, to_activate=True)
-
-        bundle = self.manager.active
-        dct = bundle.dct
-
-        self.create_new_tab(dct.name, set_active=True)
-
-        bundle.optional['qt'] = DctUISettings()
-        dct._set_id()
-        self._save_new_dct(dct)
 
     def import_dct_from_dmdct(self):
         file_path, _ = QFileDialog.getOpenFileName(self, 'Open Dictionary Package File', '', '(*.dmdct)')
@@ -4578,7 +4556,10 @@ class MainWindow(QMainWindow):
 
         with zipfile.ZipFile(file_path, 'r') as zf:
             dct_main_data = json.loads(zf.read(DCT_MAIN_DATA_FILENAME).decode('utf-8'))
-            bundle = DctBundle.from_dict(dct_main_data)
+            dct_metadata = json.loads(zf.read(DCT_METADATA_FILENAME).decode('utf-8'))
+            dct_practice_config_data = json.loads(zf.read(DCT_PRACTICE_CONFIG_FILENAME).decode('utf-8'))
+            dct_replacer_data = json.loads(zf.read(DCT_REPLACER_FILENAME).decode('utf-8'))
+            bundle = DctBundle.from_dicts(dct_main_data, dct_metadata, dct_practice_config_data, dct_replacer_data)
             dct_gui_data = json.loads(zf.read(DCT_GUI_DATA_FILENAME).decode('utf-8'))
             bundle.optional['qt'] = DctUISettings(dct_gui_data)
             self.manager.add_dct(bundle, to_activate=True)
@@ -4636,13 +4617,10 @@ class MainWindow(QMainWindow):
 
 
 def load_bundle_by_id(bundle_id: str) -> DctBundle | None:
-    filepath = Path(DCT_MAIN_DATA_PATH(bundle_id))
-    if not filepath.exists():
+    folder = DCT_SAVE_DIR(bundle_id)
+    if not folder.exists():
         return None
-
-    with open(filepath, 'r') as file:
-        data = json.load(file)
-    return DctBundle.from_dict(data)
+    return DctBundle.from_files(folder)
 
 
 if __name__ == '__main__':

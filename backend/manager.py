@@ -7,21 +7,50 @@ Author: Anenokil
 from types import NoneType
 from typing import Callable, Any
 import os
-import json
 
 from .core.types import DctName, SerializedData
 from .core.dictionary import Dictionary
 from .core.trainer import TrainingConfig
-from .core.utils import validate_required_fields, validate_field_type, validation_and_migration
+from .core.utils import (
+    validate_required_fields, validate_field_type,
+    validation_and_migration, save_json, read_json,
+)
 from .replacements import Replacer
 
 
 @validation_and_migration(1, [
-    ('dct', True, SerializedData),
     ('session_number', True, int),
-    ('train_config', True, SerializedData),
-    ('replacer', True, SerializedData),
 ])
+class DctMetadata:
+    def __init__(self, session_number: int = 1):
+        self.session_number = session_number
+
+    @classmethod
+    def from_dict(cls, data: SerializedData):
+        search_settings = cls()
+        search_settings.load_from_dict(data)
+        return search_settings
+
+    def set_defaults(self):
+        self.session_number = 1
+
+    def to_dict(self) -> SerializedData:
+        return {
+            'version': self._schema_version,
+            'data': {
+                'session_number': self.session_number,
+            }
+        }
+
+    def load_from_dict(self, data: SerializedData):
+        data = self._check_and_migrate(data)
+        data = data['data']
+
+        self.session_number = data['session_number']
+
+        self.session_number += 1
+
+
 class DctBundle:
     """
     Main Dictionary container holding its configuration, settings and file information.
@@ -39,47 +68,78 @@ class DctBundle:
     def __init__(
             self,
             dct: Dictionary | None = None,
-            session_number: int = 1,
+            metadata: DctMetadata | None = None,
             train_config: TrainingConfig | None = None,
             replacer: Replacer | None = None,
     ):
         self.dct = Dictionary() if dct is None else dct
-        self.session_number = session_number
+        self.metadata = DctMetadata() if metadata is None else metadata
         self.train_config = TrainingConfig() if train_config is None else train_config
         self.replacer = Replacer() if replacer is None else replacer
         self.optional: dict[str, Any] = {}
 
     @classmethod
-    def from_dict(cls, data: SerializedData):
+    def from_files(cls, folder: str):
         dct_bundle = cls()
-        dct_bundle.load_from_dict(data)
+        dct_bundle.read(folder)
+        return dct_bundle
+
+    @classmethod
+    def from_dicts(
+            cls,
+            dct: SerializedData,
+            metadata: SerializedData,
+            train_config: SerializedData,
+            replacer: SerializedData,
+    ):
+        dct_bundle = cls()
+        dct_bundle.load_from_dicts(dct, metadata, train_config, replacer)
         return dct_bundle
 
     @property
     def id(self) -> str:
         return self.dct.id
 
-    def to_dict(self) -> SerializedData:
-        return {
-            'version': self._schema_version,
-            'data': {
-                'dct': self.dct.to_dict(),
-                'session_number': self.session_number,
-                'train_config': self.train_config.to_dict(),
-                'replacer': self.replacer.to_dict(),
-            }
-        }
+    def partial_save(
+            self,
+            folder: str,
+            dct: bool = False,
+            metadata: bool = False,
+            train_config: bool = False,
+            replacer: bool = False,
+    ):
+        for data, filename, to_save in [
+            (self.dct, 'dct.json', dct),
+            (self.metadata, 'metadata.json', metadata),
+            (self.train_config, 'train_config.json', train_config),
+            (self.replacer, 'replacer.json', replacer),
+        ]:
+            if to_save:
+                filepath = os.path.join(folder, filename)
+                save_json(data.to_dict(), filepath)
 
-    def load_from_dict(self, data: SerializedData):
-        data = self._check_and_migrate(data)
-        data = data['data']
+    def save(self, folder: str):
+        self.partial_save(folder, True, True, True, True)
 
-        self.dct.load_from_json_dict(data['dct'])
-        self.session_number = data['session_number']
-        self.train_config.load_from_dict(data['train_config'])
-        self.replacer.load_from_json_dict(data['replacer'])
+    def load_from_dicts(
+            self,
+            dct: SerializedData,
+            metadata: SerializedData,
+            train_config: SerializedData,
+            replacer: SerializedData,
+    ):
+        self.dct.load_from_json_dict(dct)
+        self.metadata.load_from_dict(metadata)
+        self.train_config.load_from_dict(train_config)
+        self.replacer.load_from_json_dict(replacer)
 
-        self.session_number += 1
+    def read(self, folder: str):
+        self.load_from_dicts(
+            read_json(os.path.join(folder, 'dct.json')),
+            read_json(os.path.join(folder, 'metadata.json')),
+            read_json(os.path.join(folder, 'train_config.json')),
+            read_json(os.path.join(folder, 'replacer.json'))
+        )
 
 
 class Manager:
@@ -183,7 +243,7 @@ class Manager:
         if to_activate or self.n_opened == 1:
             self.active_dct_id = len(self.opened_dct_bundles) - 1
 
-    def open_dct(self, filepath: str, to_activate: bool = True):
+    def open_dct(self, folder: str, to_activate: bool = True):
         """
         Load a Dictionary from a file and add it to the Manager.
 
@@ -196,9 +256,7 @@ class Manager:
             FileNotFoundError: If the file does not exist.
         """
 
-        with open(filepath, 'r') as file:
-            data = json.load(file)
-        dct_bundle = DctBundle.from_dict(data)
+        dct_bundle = DctBundle.from_files(folder)
         dct_bundle.dct.mark_saved()
 
         self.opened_dct_bundles.append(dct_bundle)
@@ -243,7 +301,7 @@ class Manager:
 
         del self.opened_dct_bundles[dct_id]
 
-    def save_dct(self, dct_id: int, filepath: str):
+    def save_dct(self, dct_id: int, folder: str):
         """
         Save a Dictionary along with its Bundle to a file.
 
@@ -260,16 +318,12 @@ class Manager:
         if not (0 <= dct_id < len(self.opened_dct_bundles)):
             raise KeyError('Index out of range')
 
-        if not os.path.exists(filepath):
-            parent_dir = os.path.split(filepath)[0]
-            os.makedirs(parent_dir, exist_ok=True)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
 
         bundle = self.opened_dct_bundles[dct_id]
+        bundle.save(folder)
         bundle.dct.mark_saved()
-
-        data = bundle.to_dict()
-        with open(filepath, 'w') as file:
-            json.dump(data, file)
 
     def rename_dct(self, dct_id: int, new_name: str):
         """
