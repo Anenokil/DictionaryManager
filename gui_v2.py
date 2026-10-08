@@ -90,12 +90,15 @@ USER_IMAGES_DIR = lambda dct_id: DCT_SAVE_DIR(dct_id) / USER_IMAGES_DIRNAME
     ('searchbar_to_search_in_phrases', True, bool),
     ('searchbar_to_search_in_notes', True, bool),
     ('searchbar_fav_filter', True, str),
+    ('searchbar_img_filter', True, str),
     ('searchbar_search_tags', True, (list[str], NoneType)),
 ])
 class DctUISettings(OptionalDctData):
     _filename = DCT_GUI_DATA_FILENAME
     _FAV_FILTER_OPTIONS = Literal['all', 'fav', 'unfav']
+    _IMG_FILTER_OPTIONS = Literal['all', 'img', 'no_img']
     FAV_FILTER_OPTIONS = get_args(_FAV_FILTER_OPTIONS)
+    IMG_FILTER_OPTIONS = get_args(_IMG_FILTER_OPTIONS)
 
     def __init__(self, data: SerializedData | None = None):
         self.entries_table_columns_order: list[int] = ...
@@ -111,6 +114,7 @@ class DctUISettings(OptionalDctData):
         self.searchbar_to_search_in_phrases: bool = ...
         self.searchbar_to_search_in_notes: bool = ...
         self.searchbar_fav_filter: DctUISettings._FAV_FILTER_OPTIONS = ...
+        self.searchbar_img_filter: DctUISettings._IMG_FILTER_OPTIONS = ...
         self.searchbar_search_tags: list[str] | None = ...
 
         if data is None:
@@ -145,6 +149,7 @@ class DctUISettings(OptionalDctData):
         self.searchbar_to_search_in_phrases = False
         self.searchbar_to_search_in_notes = False
         self.searchbar_fav_filter = self.FAV_FILTER_OPTIONS[0]
+        self.searchbar_img_filter = self.IMG_FILTER_OPTIONS[0]
         self.searchbar_search_tags = None
 
     def load_from_dict(self, data: SerializedData):
@@ -164,6 +169,7 @@ class DctUISettings(OptionalDctData):
         self.searchbar_to_search_in_phrases: bool = data['searchbar_to_search_in_phrases']
         self.searchbar_to_search_in_notes: bool = data['searchbar_to_search_in_notes']
         self.searchbar_fav_filter: DctUISettings._FAV_FILTER_OPTIONS = data['searchbar_fav_filter']
+        self.searchbar_img_filter: DctUISettings._IMG_FILTER_OPTIONS = data['searchbar_img_filter']
         self.searchbar_search_tags: list[str] | None = data['searchbar_search_tags']
 
     def to_dict(self) -> SerializedData:
@@ -183,6 +189,7 @@ class DctUISettings(OptionalDctData):
                 'searchbar_to_search_in_phrases': self.searchbar_to_search_in_phrases,
                 'searchbar_to_search_in_notes': self.searchbar_to_search_in_notes,
                 'searchbar_fav_filter': self.searchbar_fav_filter,
+                'searchbar_img_filter': self.searchbar_img_filter,
                 'searchbar_search_tags': self.searchbar_search_tags,
             }
         }
@@ -2776,6 +2783,13 @@ class SearchSettingsDialog(QDialog):
         self.combobox_starred.setCurrentIndex(self.config.FAV_FILTER_OPTIONS.index(self.config.searchbar_fav_filter))
         self.layout_settings.addWidget(self.combobox_starred)
 
+        self.combobox_with_image = NoEnterComboBox()
+        self.combobox_with_image.addItems(
+            ['All entries', 'With image only', 'Without image only']
+        )
+        self.combobox_with_image.setCurrentIndex(self.config.IMG_FILTER_OPTIONS.index(self.config.searchbar_img_filter))
+        self.layout_settings.addWidget(self.combobox_with_image)
+
         self.layout_settings.addWidget(QLabel('Target fields'))
 
         fields = {
@@ -2823,6 +2837,7 @@ class SearchSettingsDialog(QDialog):
         self.config.searchbar_to_search_in_notes = n
 
         self.config.searchbar_fav_filter = self.config.FAV_FILTER_OPTIONS[self.combobox_starred.currentIndex()]
+        self.config.searchbar_img_filter = self.config.IMG_FILTER_OPTIONS[self.combobox_with_image.currentIndex()]
         self.config.searchbar_search_tags = self.tags_list.get_checked_items()
 
         self.accept()
@@ -3018,6 +3033,11 @@ class SearchFilterProxyModel(QSortFilterProxyModel):
         if self.config.searchbar_fav_filter == 'fav' and not entry.is_fav:
             return False
         if self.config.searchbar_fav_filter == 'unfav' and entry.is_fav:
+            return False
+
+        if self.config.searchbar_img_filter == 'img' and entry.img_fn is None:
+            return False
+        if self.config.searchbar_img_filter == 'no_img' and entry.img_fn is not None:
             return False
 
         if self.config.searchbar_search_tags is not None:
