@@ -1,5 +1,5 @@
 from types import NoneType
-from typing import Generator, Iterable, Collection, Callable, Literal, Any
+from typing import Generator, Iterable, Collection, Callable, Literal, Any, get_args
 from copy import deepcopy
 import sys
 import re
@@ -94,6 +94,8 @@ USER_IMAGES_DIR = lambda dct_id: DCT_SAVE_DIR(dct_id) / USER_IMAGES_DIRNAME
 ])
 class DctUISettings(OptionalDctData):
     _filename = DCT_GUI_DATA_FILENAME
+    _FAV_FILTER_OPTIONS = Literal['all', 'fav', 'unfav']
+    FAV_FILTER_OPTIONS = get_args(_FAV_FILTER_OPTIONS)
 
     def __init__(self, data: SerializedData | None = None):
         self.entries_table_columns_order: list[int] = ...
@@ -108,7 +110,7 @@ class DctUISettings(OptionalDctData):
         self.searchbar_to_search_in_forms: bool = ...
         self.searchbar_to_search_in_phrases: bool = ...
         self.searchbar_to_search_in_notes: bool = ...
-        self.searchbar_fav_filter: Literal['all', 'fav', 'unfav'] = ...
+        self.searchbar_fav_filter: DctUISettings._FAV_FILTER_OPTIONS = ...
         self.searchbar_search_tags: list[str] | None = ...
 
         if data is None:
@@ -142,7 +144,7 @@ class DctUISettings(OptionalDctData):
         self.searchbar_to_search_in_forms = False
         self.searchbar_to_search_in_phrases = False
         self.searchbar_to_search_in_notes = False
-        self.searchbar_fav_filter = 'all'
+        self.searchbar_fav_filter = self.FAV_FILTER_OPTIONS[0]
         self.searchbar_search_tags = None
 
     def load_from_dict(self, data: SerializedData):
@@ -161,7 +163,7 @@ class DctUISettings(OptionalDctData):
         self.searchbar_to_search_in_forms: bool = data['searchbar_to_search_in_forms']
         self.searchbar_to_search_in_phrases: bool = data['searchbar_to_search_in_phrases']
         self.searchbar_to_search_in_notes: bool = data['searchbar_to_search_in_notes']
-        self.searchbar_fav_filter: Literal['all', 'fav', 'unfav'] = data['searchbar_fav_filter']
+        self.searchbar_fav_filter: DctUISettings._FAV_FILTER_OPTIONS = data['searchbar_fav_filter']
         self.searchbar_search_tags: list[str] | None = data['searchbar_search_tags']
 
     def to_dict(self) -> SerializedData:
@@ -2771,7 +2773,7 @@ class SearchSettingsDialog(QDialog):
         self.combobox_starred.addItems(
             ['All entries', 'Starred entries only', 'Unstarred entries only']
         )
-        self.combobox_starred.setCurrentIndex(['all', 'fav', 'unfav'].index(self.config.searchbar_fav_filter))
+        self.combobox_starred.setCurrentIndex(self.config.FAV_FILTER_OPTIONS.index(self.config.searchbar_fav_filter))
         self.layout_settings.addWidget(self.combobox_starred)
 
         self.layout_settings.addWidget(QLabel('Target fields'))
@@ -2820,7 +2822,7 @@ class SearchSettingsDialog(QDialog):
         self.config.searchbar_to_search_in_phrases = p
         self.config.searchbar_to_search_in_notes = n
 
-        self.config.searchbar_fav_filter = ['all', 'fav', 'unfav'][self.combobox_starred.currentIndex()]
+        self.config.searchbar_fav_filter = self.config.FAV_FILTER_OPTIONS[self.combobox_starred.currentIndex()]
         self.config.searchbar_search_tags = self.tags_list.get_checked_items()
 
         self.accept()
