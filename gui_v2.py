@@ -38,6 +38,7 @@ from backend import (
     Tags, Entry, Dictionary, DctBundle, Manager, gram_form_to_str,
     Trainer, TrainingFormat, TrainingOrder, EntrySelection, FormSelection,
     Replacer, SerializedData, validation_and_migration, save_json, read_json,
+    OptionalDctData,
 )
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -91,7 +92,9 @@ USER_IMAGES_DIR = lambda dct_id: DCT_SAVE_DIR(dct_id) / USER_IMAGES_DIRNAME
     ('searchbar_fav_filter', True, str),
     ('searchbar_search_tags', True, (list[str], NoneType)),
 ])
-class DctUISettings:
+class DctUISettings(OptionalDctData):
+    _filename = DCT_GUI_DATA_FILENAME
+
     def __init__(self, data: SerializedData | None = None):
         self.entries_table_columns_order: list[int] = ...
         self.entries_table_hidden_columns: set[int] = ...
@@ -113,9 +116,13 @@ class DctUISettings:
         else:
             self.load_from_dict(data)
 
+    @property
+    def filename(self) -> str:
+        return self._filename
+
     @classmethod
-    def from_json(cls, path: str) -> 'DctUISettings':
-        instance = cls()
+    def from_json(cls, filename: str, path: str) -> 'DctUISettings':
+        instance = cls(filename)
         instance.load_from_json(path)
         return instance
 
@@ -178,13 +185,17 @@ class DctUISettings:
             }
         }
 
-    def load_from_json(self, path: str):
+    def read_json(self, path: str) -> SerializedData:
         if not Path(path).exists():
             self.set_defaults()
-            return
+            return self.to_dict()
 
         with open(path, 'r') as f:
             data = json.load(f)
+        return data
+
+    def load_from_json(self, path: str):
+        data = self.read_json(path)
         self.load_from_dict(data)
 
     def save_to_json(self, path: str):
@@ -208,7 +219,7 @@ class AppData:
         folder = DCT_SAVE_DIR(bundle_id)
         if not folder.exists():
             return None
-        return DctBundle.from_files(folder)
+        return DctBundle.from_files(folder, {'qt': DctUISettings})
 
     def save(self):
         save_json(self.manager.to_dict(), MANAGER_PATH)
@@ -4388,7 +4399,7 @@ class MainWindow(QMainWindow):
         self.tab_widget.rename_dct(index)
 
     def on_new_tab_requested(self, dct_name: str, entries: list[Entry]):
-        self.manager.create_dct(name=dct_name, to_activate=False)
+        self.manager.create_dct(name=dct_name, to_activate=False, optional_classes={'qt': DctUISettings})
         old_dct = self.manager.active.dct
         new_dct_bundle = self.manager.opened_dct_bundles[self.manager.n_opened - 1]
         new_dct = new_dct_bundle.dct
@@ -4496,10 +4507,7 @@ class MainWindow(QMainWindow):
                 self.tab_widget.currentChanged.disconnect()
 
                 for dct_bundle in self.manager.opened_dct_bundles:
-                    dct = dct_bundle.dct
-                    gui_data_path = DCT_GUI_DATA_PATH(dct.id)
-                    dct_bundle.optional['qt'] = DctUISettings.from_json(gui_data_path)
-                    self.create_new_tab(dct.name, dct_bundle, set_active=False)
+                    self.create_new_tab(dct_bundle.dct.name, dct_bundle, set_active=False)
 
                 # Restore active tab
                 if self.manager.active_dct_id is not None:
@@ -4545,7 +4553,7 @@ class MainWindow(QMainWindow):
         for save_dir in sorted(SAVES_DIR.iterdir()):
             if save_dir.is_dir():
                 try:
-                    dct = DctBundle.from_files(save_dir).dct
+                    dct = DctBundle.from_files(save_dir, {'qt': DctUISettings}).dct
                 except Exception as e:
                     print(e)
                     continue
@@ -4568,8 +4576,7 @@ class MainWindow(QMainWindow):
         dct_id = id_by_name[name]
         gui_data_path = DCT_SAVE_DIR(dct_id) / DCT_GUI_DATA_FILENAME
 
-        self.manager.open_dct(DCT_SAVE_DIR(dct_id), to_activate=True)
-        self.manager.active.optional['qt'] = DctUISettings.from_json(gui_data_path)
+        self.manager.open_dct(DCT_SAVE_DIR(dct_id), to_activate=True, optional_classes={'qt': DctUISettings})
         self.create_new_tab(name, set_active=True)
 
     def import_dct_from_dmdct(self):
@@ -4582,9 +4589,11 @@ class MainWindow(QMainWindow):
             dct_metadata = json.loads(zf.read(DCT_METADATA_FILENAME).decode('utf-8'))
             dct_practice_config_data = json.loads(zf.read(DCT_PRACTICE_CONFIG_FILENAME).decode('utf-8'))
             dct_replacer_data = json.loads(zf.read(DCT_REPLACER_FILENAME).decode('utf-8'))
-            bundle = DctBundle.from_dicts(dct_main_data, dct_metadata, dct_practice_config_data, dct_replacer_data)
             dct_gui_data = json.loads(zf.read(DCT_GUI_DATA_FILENAME).decode('utf-8'))
-            bundle.optional['qt'] = DctUISettings(dct_gui_data)
+            bundle = DctBundle.from_dicts(
+                dct_main_data, dct_metadata, dct_practice_config_data, dct_replacer_data,
+                {'qt': (DctUISettings, dct_gui_data)}
+            )
             self.manager.add_dct(bundle, to_activate=True)
             dct = bundle.dct
             dct._set_id()
@@ -4608,12 +4617,10 @@ class MainWindow(QMainWindow):
         """
 
         new_dct_name = 'Untitled'
-        self.manager.create_dct(name=new_dct_name)
+        self.manager.create_dct(name=new_dct_name, optional_classes={'qt': DctUISettings})
         self.create_new_tab(new_dct_name)
         self.tab_widget.update_tab_title(self.tab_widget.count() - 1)
-        bundle = self.manager.active
-        bundle.optional['qt'] = DctUISettings()
-        self._save_new_dct(bundle.dct)
+        self._save_new_dct(self.manager.active.dct)
 
     def _save_new_dct(self, dct: Dictionary):
         DCT_SAVE_DIR(dct.id).mkdir(parents=True, exist_ok=True)

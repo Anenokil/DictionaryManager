@@ -5,5 +5,5 @@ Author: Anenokil
 """
 
 from .core import *
-from .manager import Manager, DctMetadata, DctBundle
+from .manager import Manager, DctMetadata, OptionalDctData, DctBundle
 from .replacements import Replacer, Replacements

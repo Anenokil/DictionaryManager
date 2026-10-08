@@ -5,7 +5,8 @@ Author: Anenokil
 """
 
 from types import NoneType
-from typing import Callable, Any
+from typing import Callable
+from abc import ABC, abstractmethod
 import os
 
 from .core.types import DctName, SerializedData
@@ -51,6 +52,24 @@ class DctMetadata:
         self.session_number += 1
 
 
+class OptionalDctData(ABC):
+    @abstractmethod
+    def __init__(self): ...
+
+    @property
+    @abstractmethod
+    def filename(self) -> str: ...
+
+    @abstractmethod
+    def to_dict(self) -> SerializedData: ...
+
+    @abstractmethod
+    def load_from_dict(self, data: SerializedData): ...
+
+    @abstractmethod
+    def read_json(self, path: str) -> SerializedData: ...
+
+
 class DctBundle:
     """
     Main Dictionary container holding its configuration, settings and file information.
@@ -65,22 +84,19 @@ class DctBundle:
         trainer: Trainer instance.
     """
 
-    def __init__(
-            self,
-            dct: Dictionary | None = None,
-            metadata: DctMetadata | None = None,
-            train_config: TrainingConfig | None = None,
-            replacer: Replacer | None = None,
-    ):
-        self.dct = Dictionary() if dct is None else dct
-        self.metadata = DctMetadata() if metadata is None else metadata
-        self.train_config = TrainingConfig() if train_config is None else train_config
-        self.replacer = Replacer() if replacer is None else replacer
-        self.optional: dict[str, Any] = {}
+    def __init__(self, optional_classes: dict[str, type[OptionalDctData]] | None = None):
+        self.dct = Dictionary()
+        self.metadata = DctMetadata()
+        self.train_config = TrainingConfig()
+        self.replacer = Replacer()
+        self.optional: dict[str, OptionalDctData] = {
+            name: optional_class()
+            for name, optional_class in optional_classes.items()
+        } if optional_classes is not None else {}
 
     @classmethod
-    def from_files(cls, folder: str):
-        dct_bundle = cls()
+    def from_files(cls, folder: str, optional_classes: dict[str, type[OptionalDctData]] | None = None):
+        dct_bundle = cls(optional_classes)
         dct_bundle.read(folder)
         return dct_bundle
 
@@ -91,9 +107,13 @@ class DctBundle:
             metadata: SerializedData,
             train_config: SerializedData,
             replacer: SerializedData,
+            optional: dict[str, tuple[type[OptionalDctData], SerializedData]],
     ):
-        dct_bundle = cls()
-        dct_bundle.load_from_dicts(dct, metadata, train_config, replacer)
+        optional_classes = {name: pair[0] for name, pair in optional.items()}
+        optional_data = {name: pair[1] for name, pair in optional.items()}
+
+        dct_bundle = cls(optional_classes)
+        dct_bundle.load_from_dicts(dct, metadata, train_config, replacer, optional_data)
         return dct_bundle
 
     @property
@@ -107,7 +127,12 @@ class DctBundle:
             metadata: bool = False,
             train_config: bool = False,
             replacer: bool = False,
+            optional: bool | set[str] = False,
     ):
+        def save(data, filename: str):
+            filepath = os.path.join(folder, filename)
+            save_json(data.to_dict(), filepath)
+
         for data, filename, to_save in [
             (self.dct, 'dct.json', dct),
             (self.metadata, 'metadata.json', metadata),
@@ -115,11 +140,19 @@ class DctBundle:
             (self.replacer, 'replacer.json', replacer),
         ]:
             if to_save:
-                filepath = os.path.join(folder, filename)
-                save_json(data.to_dict(), filepath)
+                save(data, filename)
+
+        if isinstance(optional, bool):
+            if optional:
+                for field_name, field in self.optional.items():
+                    save(field, field.filename)
+        elif isinstance(optional, set):
+            for field_name in optional:
+                field = self.optional[field_name]
+                save(field, field.filename)
 
     def save(self, folder: str):
-        self.partial_save(folder, True, True, True, True)
+        self.partial_save(folder, True, True, True, True, True)
 
     def load_from_dicts(
             self,
@@ -127,18 +160,25 @@ class DctBundle:
             metadata: SerializedData,
             train_config: SerializedData,
             replacer: SerializedData,
+            optional: dict[str, SerializedData],
     ):
         self.dct.load_from_json_dict(dct)
         self.metadata.load_from_dict(metadata)
         self.train_config.load_from_dict(train_config)
         self.replacer.load_from_json_dict(replacer)
+        for field_name, data in optional.items():
+            self.optional[field_name].load_from_dict(data)
 
     def read(self, folder: str):
         self.load_from_dicts(
             read_json(os.path.join(folder, 'dct.json')),
             read_json(os.path.join(folder, 'metadata.json')),
             read_json(os.path.join(folder, 'train_config.json')),
-            read_json(os.path.join(folder, 'replacer.json'))
+            read_json(os.path.join(folder, 'replacer.json')),
+            {
+                name: field.read_json(os.path.join(folder, field.filename))
+                for name, field in self.optional.items()
+            }
         )
 
 
@@ -224,6 +264,7 @@ class Manager:
             self,
             name: DctName = None,
             to_activate: bool = True,
+            optional_classes: dict[str, type[OptionalDctData]] | None = None,
     ):
         """
         Create a new empty Dictionary and add it to the Manager.
@@ -235,7 +276,7 @@ class Manager:
                          If False, add it without switching the active index.
         """
 
-        new_dct_bundle = DctBundle()
+        new_dct_bundle = DctBundle(optional_classes)
         new_dct_bundle.dct.rename(name)
 
         self.opened_dct_bundles.append(new_dct_bundle)
@@ -243,7 +284,12 @@ class Manager:
         if to_activate or self.n_opened == 1:
             self.active_dct_id = len(self.opened_dct_bundles) - 1
 
-    def open_dct(self, folder: str, to_activate: bool = True):
+    def open_dct(
+            self,
+            folder: str,
+            to_activate: bool = True,
+            optional_classes: dict[str, type[OptionalDctData]] | None = None,
+    ):
         """
         Load a Dictionary from a file and add it to the Manager.
 
@@ -256,7 +302,7 @@ class Manager:
             FileNotFoundError: If the file does not exist.
         """
 
-        dct_bundle = DctBundle.from_files(folder)
+        dct_bundle = DctBundle.from_files(folder, optional_classes)
         dct_bundle.dct.mark_saved()
 
         self.opened_dct_bundles.append(dct_bundle)
