@@ -274,11 +274,17 @@ class ActionConfig:
     shortcut:  str | None = None
 
 
-def show_context_menu(
+@dataclass
+class SubmenuConfig:
+    text:      Callable[[], str] | str
+    menu:      QMenu
+    callbacks: dict[QAction, Callable[[], Any]]
+
+
+def create_context_menu(
         widget: QWidget,
-        pos: QPoint,
-        actions_config: list[None | ActionConfig],
-):
+        actions_config: list[None | ActionConfig | SubmenuConfig],
+) -> tuple[QMenu, dict[QAction, Callable[[], Any]]]:
     """
     Configure and show a context menu.
 
@@ -305,6 +311,17 @@ def show_context_menu(
             menu.addSeparator()
             continue
 
+        # Submenu
+        if isinstance(entry, SubmenuConfig):
+            submenu = menu.addMenu(entry.menu)
+            text = entry.text
+            if text is not None:
+                if isinstance(text, Callable):
+                    text = text()
+                submenu.setText(text)
+            action_callbacks.update(entry.callbacks)
+            continue
+
         text = entry.text
         callback = entry.callback
         is_active = entry.is_active
@@ -324,6 +341,16 @@ def show_context_menu(
         else:
             action_callbacks[action] = callback
 
+    return menu, action_callbacks
+
+
+def show_context_menu(
+        widget: QWidget,
+        pos: QPoint,
+        actions_config: list[None | ActionConfig | SubmenuConfig],
+):
+    menu, action_callbacks = create_context_menu(widget, actions_config)
+
     chosen = menu.exec(pos)
     if chosen in action_callbacks:
         action_callbacks[chosen]()
@@ -331,7 +358,7 @@ def show_context_menu(
 
 def setup_table_context_menu(
         table: QTableWidget | QTableView,
-        actions_config: list[None | ActionConfig],
+        actions_config: list[None | ActionConfig | SubmenuConfig],
 ):
     """
     Configure a context menu for the given table.
