@@ -89,6 +89,83 @@ STYLES = {
 }
 STYLE_KEYS = list(STYLES.keys())
 
+
+@validation_and_migration(1, [
+    ('theme', True, str),
+    ('scale', True, int),
+    ('to_check_for_updates', True, bool),
+    ('is_typo_btn_on', True, bool),
+])
+class UISettings:
+    def __init__(self, data: SerializedData | None = None):
+        self.theme: str = ...
+        self.scale: int = ...
+        self.to_check_for_updates: bool = ...
+        self.is_typo_btn_on: bool = ...
+
+        if data is None:
+            self.set_defaults()
+        else:
+            self.deserialize(data)
+
+    def set_defaults(self):
+        self.theme = 'light'
+        self.scale = 10
+        self.to_check_for_updates = True
+        self.is_typo_btn_on = False
+
+    def deserialize(self, data: SerializedData):
+        data = self._check_and_migrate(data)
+        data = data['data']
+
+        self.theme: str = data['theme']
+        self.scale: int = data['scale']
+        self.to_check_for_updates: bool = data['to_check_for_updates']
+        self.is_typo_btn_on: bool = data['is_typo_btn_on']
+
+    def serialize(self) -> SerializedData:
+        return {
+            'version': self._schema_version,
+            'data': {
+                'theme': self.theme,
+                'scale': self.scale,
+                'to_check_for_updates': self.to_check_for_updates,
+                'is_typo_btn_on': self.is_typo_btn_on,
+            }
+        }
+
+
+class AppData:
+    def __init__(self, folder: str):
+        self.folder = folder
+        self.manager = Manager()
+        self.ui_settings = UISettings()
+
+        if os.path.exists(folder):
+            self.load(True, True)
+        else:
+            os.makedirs(folder, exist_ok=True)
+            self.save(True, True)
+
+    def load_bundle_by_id(self, bundle_id: str) -> DctBundle | None:
+        folder = os.path.join(self.folder, 'saves', bundle_id)
+        if not os.path.exists(folder):
+            return None
+        return DctBundle.from_files(folder)
+
+    def save(self, manager: bool = True, ui: bool = True):
+        if manager:
+            save_json(self.manager.to_dict(), os.path.join(self.folder, 'manager.json'))
+        if ui:
+            save_json(self.ui_settings.serialize(), os.path.join(self.folder, 'tk_config.json'))
+
+    def load(self, manager: bool = True, ui: bool = True):
+        if manager:
+            self.manager.load_from_json_dict(read_json(os.path.join(self.folder, 'manager.json')), self.load_bundle_by_id)
+        if ui:
+            self.ui_settings.deserialize(read_json(os.path.join(self.folder, 'tk_config.json')))
+
+
 """ Функции проверки """
 
 
@@ -8777,7 +8854,7 @@ def main():
     upload_themes(THEMES)  # Загружаем дополнительные темы
     upload_custom_theme()  # Загружаем пользовательскую тему
 
-    app_data = AppData('./resources/app_data.json', 'tk')  # TODO: replace with real path
+    app_data = AppData('./resources/app_data.json')  # TODO: replace with real path
     app_data.load()
 
     # Initialize GUI

@@ -37,9 +37,8 @@ from backend import (
     Translations, Variants, Forms, GramForm, Phrases, Notes,
     Tags, Entry, Dictionary, DctBundle, Manager, gram_form_to_str,
     Trainer, TrainingFormat, TrainingOrder, EntrySelection, FormSelection,
-    Replacer, SerializedData, validation_and_migration,
+    Replacer, SerializedData, validation_and_migration, save_json, read_json,
 )
-from persistence import AppData
 
 BASE_DIR = Path(__file__).resolve().parent
 IMAGES_DIR = BASE_DIR / 'resources' / 'qt' / 'images'
@@ -63,7 +62,7 @@ IMG_SEARCH_PATH = str(IMAGES_DIR / 'search.png')
 IMG_TAG_PATH = str(IMAGES_DIR / 'tag.png')
 
 DATA_DIR = Path(platformdirs.user_data_dir('DictionaryManager'))
-APP_DATA_JSON_PATH = str(DATA_DIR / 'app_data.json')
+MANAGER_PATH = str(DATA_DIR / 'manager.json')
 SAVES_DIR = DATA_DIR / 'saves'
 DCT_SAVE_DIR = lambda dct_id: SAVES_DIR / dct_id
 DCT_MAIN_DATA_FILENAME = 'dct.json'
@@ -192,6 +191,30 @@ class DctUISettings:
         data = self.to_dict()
         with open(path, 'w') as f:
             json.dump(data, f)
+
+
+class AppData:
+    def __init__(self):
+        self.manager = Manager()
+
+        if Path(MANAGER_PATH).exists():
+            self.load()
+        else:
+            DATA_DIR.mkdir(parents=True, exist_ok=True)
+            self.save()
+
+    @staticmethod
+    def load_bundle_by_id(bundle_id: str) -> DctBundle | None:
+        folder = DCT_SAVE_DIR(bundle_id)
+        if not folder.exists():
+            return None
+        return DctBundle.from_files(folder)
+
+    def save(self):
+        save_json(self.manager.to_dict(), MANAGER_PATH)
+
+    def load(self):
+        self.manager.load_from_json_dict(read_json(MANAGER_PATH), self.load_bundle_by_id)
 
 
 def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:
@@ -4616,15 +4639,8 @@ class MainWindow(QMainWindow):
         self.tab_widget.delete_dct(dct_index)
 
 
-def load_bundle_by_id(bundle_id: str) -> DctBundle | None:
-    folder = DCT_SAVE_DIR(bundle_id)
-    if not folder.exists():
-        return None
-    return DctBundle.from_files(folder)
-
-
 if __name__ == '__main__':
-    app_data = AppData(APP_DATA_JSON_PATH, 'qt', load_bundle_by_id)
+    app_data = AppData()
     app_data.load()
 
     app = QApplication(sys.argv)
