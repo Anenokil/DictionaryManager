@@ -2,6 +2,7 @@ from typing import Generator, Iterable, Collection, Callable, Any
 from copy import deepcopy
 import sys
 import re
+import json
 from pathlib import Path
 import platformdirs
 from dataclasses import dataclass
@@ -57,6 +58,8 @@ IMG_TAG_PATH = str(IMAGES_DIR / 'tag.png')
 
 DATA_DIR = Path(platformdirs.user_data_dir('DictionaryManager'))
 APP_DATA_JSON_PATH = str(DATA_DIR / 'app_data.json')
+SAVES_DIR = DATA_DIR / 'saves'
+SAVE_JSON_PATH = lambda dct_id: str(SAVES_DIR / dct_id / 'dct_data.json')
 
 
 def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:
@@ -2105,7 +2108,6 @@ class DctTabWidget(QTabWidget):
             ActionConfig('Rename...', lambda: self.rename_dict(index)),
             None,
             ActionConfig('Save', lambda: self.save_dict(index)),
-            ActionConfig('Save As...', lambda: self.save_dict_as(index)),
             ActionConfig('Save All', self.save_all_dicts),
             None,
             ActionConfig('Export As...', lambda: self.export_dict_as(index)),
@@ -2132,18 +2134,8 @@ class DctTabWidget(QTabWidget):
                 self.update_tab_title(index)
 
     def save_dict(self, index: int):
-        file_path = self.manager.opened_dct_bundles[index].filepath
-        if file_path:
-            self.manager.save_dct(index)
-            self.update_tab_title(index)
-        else:
-            self.save_dict_as(index)
-
-    def save_dict_as(self, index: int):
-        dct_name = self.manager.opened_dct_bundles[index].dct.name
-        file_path, ok = select_dct_file_to_save(self, dct_name)
-        if not ok:
-            return
+        dct = self.manager.opened_dct_bundles[index].dct
+        file_path = SAVE_JSON_PATH(dct.id)
         self.manager.save_dct(index, file_path)
         self.update_tab_title(index)
 
@@ -3668,6 +3660,28 @@ class DctWorkspaceWidget(QWidget):
         self.tab_widget.update_tab_title(self.tab_widget.indexOf(self))
 
 
+class ChoiceDialog(QDialog):
+    def __init__(self, title: str, label_text: str, options: list[str], parent=None):
+        super().__init__(parent)
+
+        self.setWindowTitle(title)
+
+        self.combo = QComboBox()
+        self.combo.addItems(options)
+
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel(label_text))
+        layout.addWidget(self.combo)
+        layout.addWidget(button_box)
+
+    def selected_value(self) -> str:
+        return self.combo.currentText()
+
+
 class MainWindow(QMainWindow):
     """
     Main application window for Dictionary Manager.
@@ -3752,7 +3766,6 @@ class MainWindow(QMainWindow):
     def _set_shortcuts(self):
         QShortcut(QKeySequence('Ctrl+Insert'), self, self.new_dict)
         QShortcut(QKeySequence('Ctrl+S'), self, self.save_dict)
-        QShortcut(QKeySequence('Ctrl+Shift+S'), self, self.save_dict_as)
         QShortcut(QKeySequence('Ctrl+Shift+E'), self, self.export_dict_as)
 
     def show_file_menu(self):
@@ -3764,9 +3777,11 @@ class MainWindow(QMainWindow):
             show_context_menu(self, pos, [
                 ActionConfig('New', self.new_dict, shortcut='Ctrl+Insert'),
                 ActionConfig('Open', self.open_dict),
+                SubmenuConfig('Import...', *create_context_menu(self, [
+                    ActionConfig('from JSON', self.import_dict_from_json),
+                ])),
                 None,
                 ActionConfig('Save', self.save_dict, lambda: self.tab_widget.count() != 0, 'Ctrl+S'),
-                ActionConfig('Save As...', self.save_dict_as, lambda: self.tab_widget.count() != 0, 'Ctrl+Shift+S'),
                 ActionConfig('Save All', self.save_all_dicts, lambda: self.tab_widget.count() != 0),
                 None,
                 ActionConfig('Export As...', self.export_dict_as, lambda: self.tab_widget.count() != 0, 'Ctrl+Shift+E'),
@@ -3819,6 +3834,7 @@ class MainWindow(QMainWindow):
                 entry.win_streak, entry.latest_att_timestamp,
             )
         self.create_new_tab(dct_name, new_dct_bundle, set_active=False)
+        self._save_new_dct(new_dct)
         self.tab_widget.update_tab_title(self.tab_widget.count() - 1)
 
     def create_new_tab(
@@ -3881,13 +3897,8 @@ class MainWindow(QMainWindow):
         if dct.is_modified:
             to_save = ask_yes_no(self, 'Unsaved changes', f'Save dictionary {dct.name}?')
             if to_save:
-                file_path = dct_bundle.filepath
-                if file_path:
-                    self.manager.save_dct(index, file_path)
-                else:
-                    file_path, ok = select_dct_file_to_save(self, dct.name)
-                    if ok:
-                        self.manager.save_dct(index, file_path)
+                file_path = SAVE_JSON_PATH(dct.id)
+                self.manager.save_dct(index, file_path)
 
         self._close_tab(index)
 
@@ -3944,14 +3955,8 @@ class MainWindow(QMainWindow):
             if dct.is_modified:
                 to_save = ask_yes_no(self, 'Unsaved changes', f'Save dictionary {dct.name}?')
                 if to_save:
-                    file_path = dct_bundle.filepath
-                    if not file_path:
-                        file_path, ok = select_dct_file_to_save(self, dct.name)
-                        if not ok:
-                            continue
+                    file_path = SAVE_JSON_PATH(dct.id)
                     self.manager.save_dct(index, file_path)
-                elif dct_bundle.filepath is None:
-                    self._close_tab(index)
 
         self.save_state()
         event.accept()
@@ -3964,13 +3969,57 @@ class MainWindow(QMainWindow):
         manager, and creates a new tab for the opened dictionary.
         """
 
+        opened_ids = {bundle.dct.id for bundle in self.manager.opened_dct_bundles}
+
+        options = []
+        id_by_name = {}
+        for save_dir in sorted(SAVES_DIR.iterdir()):
+            if save_dir.is_dir():
+                save_path = save_dir / 'dct_data.json'
+                if not save_path.exists():
+                    continue
+                try:
+                    data = json.loads(save_path.read_text(encoding='utf-8'))
+                    dct = DctBundle.from_dict(None, data).dct
+                except Exception as e:
+                    print(e)
+                    continue
+                if dct.id in opened_ids:
+                    continue
+                options.append(dct.name)
+                id_by_name[dct.name] = dct.id
+
+        dialog = ChoiceDialog(
+            'Open Dictionary',
+            'Choose dictionary to open:',
+            sorted(options),
+            parent=self,
+        )
+        ok = dialog.exec() == QDialog.Accepted
+        if not ok:
+            return
+
+        name = dialog.selected_value()
+        dct_id = id_by_name[name]
+        path = SAVES_DIR / dct_id / 'dct_data.json'
+
+        self.manager.open_dct(path, to_activate=True)
+        self.create_new_tab(name, set_active=True)
+
+    def import_dict_from_json(self):
         file_path, ok = select_dct_file_to_load(self)
         if not ok:
             return
         self.manager.open_dct(file_path, to_activate=True)
 
-        dict_name = self.manager.active.dct.name
-        self.create_new_tab(dict_name, set_active=True)
+        bundle = self.manager.active
+        dct = bundle.dct
+
+        self.create_new_tab(dct.name, set_active=True)
+
+        bundle.filepath = SAVE_JSON_PATH(dct.id)
+        dct._set_id()
+        self._save_new_dct(dct)
 
     def new_dict(self):
         """
@@ -3983,14 +4032,16 @@ class MainWindow(QMainWindow):
         self.manager.create_dct(name=new_dict_name)
         self.create_new_tab(new_dict_name)
         self.tab_widget.update_tab_title(self.tab_widget.count() - 1)
+        self.manager.active.filepath = SAVE_JSON_PATH(self.manager.active.dct.id)
+        self._save_new_dct(self.manager.active.dct)
+
+    def _save_new_dct(self, dct: Dictionary):
+        (SAVES_DIR / dct.id).mkdir(parents=True, exist_ok=True)
+        self.save_dict()
 
     def save_dict(self):
         dct_index = self.manager.active_dct_id
         self.tab_widget.save_dict(dct_index)
-
-    def save_dict_as(self):
-        dct_index = self.manager.active_dct_id
-        self.tab_widget.save_dict_as(dct_index)
 
     def save_all_dicts(self):
         self.tab_widget.save_all_dicts()
