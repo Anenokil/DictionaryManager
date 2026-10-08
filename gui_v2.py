@@ -1,4 +1,5 @@
-from typing import Generator, Iterable, Collection, Callable, Any
+from types import NoneType
+from typing import Generator, Iterable, Collection, Callable, Literal, Any
 from copy import deepcopy
 import sys
 import re
@@ -36,7 +37,7 @@ from backend import (
     Translations, Variants, Forms, GramForm, Phrases, Notes,
     Tags, Entry, Dictionary, DctBundle, Manager, gram_form_to_str,
     Trainer, TrainingFormat, TrainingOrder, EntrySelection, FormSelection,
-    Replacer, SearchConfig, SerializedData, validation_and_migration,
+    Replacer, SerializedData, validation_and_migration,
 )
 from persistence import AppData, partial_save
 
@@ -79,6 +80,15 @@ USER_IMAGES_DIR = lambda dct_id: DCT_SAVE_DIR(dct_id) / USER_IMAGES_DIRNAME
     ('entries_table_column_widths', True, list[int]),
     ('entries_table_sort_column', True, int),
     ('entries_table_sort_order', True, int),
+    ('searchbar_to_match_whole_word', True, bool),
+    ('searchbar_to_match_case', True, bool),
+    ('searchbar_to_search_in_words', True, bool),
+    ('searchbar_to_search_in_translations', True, bool),
+    ('searchbar_to_search_in_forms', True, bool),
+    ('searchbar_to_search_in_phrases', True, bool),
+    ('searchbar_to_search_in_notes', True, bool),
+    ('searchbar_fav_filter', True, str),
+    ('searchbar_search_tags', True, (list[str], NoneType)),
 ])
 class DctUISettings:
     def __init__(self, data: SerializedData | None = None):
@@ -87,6 +97,15 @@ class DctUISettings:
         self.entries_table_column_widths: list[int] = ...
         self.entries_table_sort_column: int = ...
         self.entries_table_sort_order: int = ...
+        self.searchbar_to_match_whole_word: bool = ...
+        self.searchbar_to_match_case: bool = ...
+        self.searchbar_to_search_in_words: bool = ...
+        self.searchbar_to_search_in_translations: bool = ...
+        self.searchbar_to_search_in_forms: bool = ...
+        self.searchbar_to_search_in_phrases: bool = ...
+        self.searchbar_to_search_in_notes: bool = ...
+        self.searchbar_fav_filter: Literal['all', 'fav', 'unfav'] = ...
+        self.searchbar_search_tags: list[str] | None = ...
 
         if data is None:
             self.set_defaults()
@@ -108,6 +127,15 @@ class DctUISettings:
         self.entries_table_column_widths = [-1 for _ in all_columns]  # -1 = default section size
         self.entries_table_sort_column = -1
         self.entries_table_sort_order = 0
+        self.searchbar_to_match_whole_word = False
+        self.searchbar_to_match_case = False
+        self.searchbar_to_search_in_words = True
+        self.searchbar_to_search_in_translations = True
+        self.searchbar_to_search_in_forms = False
+        self.searchbar_to_search_in_phrases = False
+        self.searchbar_to_search_in_notes = False
+        self.searchbar_fav_filter = 'all'
+        self.searchbar_search_tags = None
 
     def load_from_dict(self, data: SerializedData):
         data = self._check_and_migrate(data)
@@ -118,6 +146,15 @@ class DctUISettings:
         self.entries_table_column_widths: list[int] = data['entries_table_column_widths']
         self.entries_table_sort_column: int = data['entries_table_sort_column']
         self.entries_table_sort_order: int = data['entries_table_sort_order']
+        self.searchbar_to_match_whole_word: bool = data['searchbar_to_match_whole_word']
+        self.searchbar_to_match_case: bool = data['searchbar_to_match_case']
+        self.searchbar_to_search_in_words: bool = data['searchbar_to_search_in_words']
+        self.searchbar_to_search_in_translations: bool = data['searchbar_to_search_in_translations']
+        self.searchbar_to_search_in_forms: bool = data['searchbar_to_search_in_forms']
+        self.searchbar_to_search_in_phrases: bool = data['searchbar_to_search_in_phrases']
+        self.searchbar_to_search_in_notes: bool = data['searchbar_to_search_in_notes']
+        self.searchbar_fav_filter: Literal['all', 'fav', 'unfav'] = data['searchbar_fav_filter']
+        self.searchbar_search_tags: list[str] | None = data['searchbar_search_tags']
 
     def to_dict(self) -> SerializedData:
         return {
@@ -128,6 +165,15 @@ class DctUISettings:
                 'entries_table_column_widths': self.entries_table_column_widths,
                 'entries_table_sort_column': self.entries_table_sort_column,
                 'entries_table_sort_order': self.entries_table_sort_order,
+                'searchbar_to_match_whole_word': self.searchbar_to_match_whole_word,
+                'searchbar_to_match_case': self.searchbar_to_match_case,
+                'searchbar_to_search_in_words': self.searchbar_to_search_in_words,
+                'searchbar_to_search_in_translations': self.searchbar_to_search_in_translations,
+                'searchbar_to_search_in_forms': self.searchbar_to_search_in_forms,
+                'searchbar_to_search_in_phrases': self.searchbar_to_search_in_phrases,
+                'searchbar_to_search_in_notes': self.searchbar_to_search_in_notes,
+                'searchbar_fav_filter': self.searchbar_fav_filter,
+                'searchbar_search_tags': self.searchbar_search_tags,
             }
         }
 
@@ -2587,7 +2633,7 @@ class SearchBar(QFrame):
 
         self.dct_bundle = dct_bundle
         self.dct = dct_bundle.dct
-        self.config = dct_bundle.search_config
+        self.config: DctUISettings = dct_bundle.optional['qt']
         self.table_proxy_model = table_proxy_model
 
         layout = QHBoxLayout(self)
@@ -2602,13 +2648,13 @@ class SearchBar(QFrame):
 
         self.match_case_btn = create_img_button(IMG_MATCH_CASE_PATH)
         self.match_case_btn.setCheckable(True)
-        self.match_case_btn.setChecked(self.config.to_match_case)
+        self.match_case_btn.setChecked(self.config.searchbar_to_match_case)
         self.match_case_btn.clicked.connect(self.toggle_match_case)
         layout.addWidget(self.match_case_btn)
 
         self.match_whole_word_btn = create_img_button(IMG_MATCH_WHOLE_WORD_PATH)
         self.match_whole_word_btn.setCheckable(True)
-        self.match_whole_word_btn.setChecked(self.config.to_match_whole_word)
+        self.match_whole_word_btn.setChecked(self.config.searchbar_to_match_whole_word)
         self.match_whole_word_btn.clicked.connect(self.toggle_match_whole_word)
         layout.addWidget(self.match_whole_word_btn)
 
@@ -2628,21 +2674,21 @@ class SearchBar(QFrame):
         self.table_proxy_model.set_search_text(self.line_edit.text())
 
     def toggle_match_case(self, enabled: bool):
-        self.config.to_match_case = enabled
+        self.config.searchbar_to_match_case = enabled
         self.table_proxy_model.update_filter()
-        partial_save(self.dct_bundle, DCT_MAIN_DATA_PATH(self.dct.id), search_config=True)
+        self.config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
 
     def toggle_match_whole_word(self, enabled: bool):
-        self.config.to_match_whole_word = enabled
+        self.config.searchbar_to_match_whole_word = enabled
         self.table_proxy_model.update_filter()
-        partial_save(self.dct_bundle, DCT_MAIN_DATA_PATH(self.dct.id), search_config=True)
+        self.config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
 
     def open_settings(self):
         dialog = SearchSettingsDialog(self.dct, self.config, self)
         ok = dialog.exec() == QDialog.Accepted
         if ok:
             self._apply_search()
-            partial_save(self.dct_bundle, DCT_MAIN_DATA_PATH(self.dct.id), search_config=True)
+            self.config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
 
     def on_open(self):
         self.table_proxy_model.toggle_search_mode(True)
@@ -2664,13 +2710,13 @@ class SearchSettingsDialog(QDialog):
     def __init__(
             self,
             dct: Dictionary,
-            config: SearchConfig,
+            ui_config: DctUISettings,
             parent: QWidget | None = None,
     ):
         super().__init__(parent)
 
         self.dct = dct
-        self.config = config
+        self.config = ui_config
 
         self.setWindowTitle('Search Settings')
 
@@ -2690,24 +2736,24 @@ class SearchSettingsDialog(QDialog):
         self.combobox_starred.addItems(
             ['All entries', 'Starred entries only', 'Unstarred entries only']
         )
-        self.combobox_starred.setCurrentIndex(['all', 'fav', 'unfav'].index(self.config.fav_filter))
+        self.combobox_starred.setCurrentIndex(['all', 'fav', 'unfav'].index(self.config.searchbar_fav_filter))
         self.layout_settings.addWidget(self.combobox_starred)
 
         self.layout_settings.addWidget(QLabel('Target fields'))
 
         fields = {
-            'Lemmas': self.config.to_search_in_words,
-            'Translations': self.config.to_search_in_translations,
-            'Forms': self.config.to_search_in_forms,
-            'Phrases': self.config.to_search_in_phrases,
-            'Notes': self.config.to_search_in_notes,
+            'Lemmas': self.config.searchbar_to_search_in_words,
+            'Translations': self.config.searchbar_to_search_in_translations,
+            'Forms': self.config.searchbar_to_search_in_forms,
+            'Phrases': self.config.searchbar_to_search_in_phrases,
+            'Notes': self.config.searchbar_to_search_in_notes,
         }
         self.fields_list = CheckableList(fields)
         self.layout_settings.addWidget(self.fields_list)
 
         self.layout_settings.addWidget(QLabel('Required tags'))
 
-        required_tags = self.config.search_tags or []
+        required_tags = self.config.searchbar_search_tags or []
         tags = {
             tag: tag in required_tags
             for tag in self.dct.tags
@@ -2733,14 +2779,14 @@ class SearchSettingsDialog(QDialog):
 
     def save_and_close(self):
         w, t, f, p, n = [(state == Qt.Checked) for state in self.fields_list.get_states().values()]
-        self.config.to_search_in_words = w
-        self.config.to_search_in_translations = t
-        self.config.to_search_in_forms = f
-        self.config.to_search_in_phrases = p
-        self.config.to_search_in_notes = n
+        self.config.searchbar_to_search_in_words = w
+        self.config.searchbar_to_search_in_translations = t
+        self.config.searchbar_to_search_in_forms = f
+        self.config.searchbar_to_search_in_phrases = p
+        self.config.searchbar_to_search_in_notes = n
 
-        self.config.fav_filter = ['all', 'fav', 'unfav'][self.combobox_starred.currentIndex()]
-        self.config.search_tags = self.tags_list.get_checked_items()
+        self.config.searchbar_fav_filter = ['all', 'fav', 'unfav'][self.combobox_starred.currentIndex()]
+        self.config.searchbar_search_tags = self.tags_list.get_checked_items()
 
         self.accept()
 
@@ -2887,10 +2933,10 @@ class EntriesTableModel(QAbstractTableModel):
 class SearchFilterProxyModel(QSortFilterProxyModel):
     search_results_changed = Signal()
 
-    def __init__(self, search_config: SearchConfig, parent: QObject | None = None):
+    def __init__(self, ui_config: DctUISettings, parent: QObject | None = None):
         super().__init__(parent)
 
-        self.config = search_config
+        self.config = ui_config
         self._pattern = ''
         self._search_mode_on = False
 
@@ -2932,13 +2978,13 @@ class SearchFilterProxyModel(QSortFilterProxyModel):
         model = self.sourceModel()
         entry = model.data(model.index(source_row, 0, source_parent), EntriesTableModel.ENTRY_ROLE)
 
-        if self.config.fav_filter == 'fav' and not entry.is_fav:
+        if self.config.searchbar_fav_filter == 'fav' and not entry.is_fav:
             return False
-        if self.config.fav_filter == 'unfav' and entry.is_fav:
+        if self.config.searchbar_fav_filter == 'unfav' and entry.is_fav:
             return False
 
-        if self.config.search_tags is not None:
-            required_tags = set(self.config.search_tags)
+        if self.config.searchbar_search_tags is not None:
+            required_tags = set(self.config.searchbar_search_tags)
             if not set(required_tags).issubset(entry.tags):
                 return False
 
@@ -2952,28 +2998,28 @@ class SearchFilterProxyModel(QSortFilterProxyModel):
         return False
 
     def _get_search_targets(self, entry: Entry) -> Generator[str, None, None]:
-        if self.config.to_search_in_words:
+        if self.config.searchbar_to_search_in_words:
             yield from entry.variants
-        if self.config.to_search_in_translations:
+        if self.config.searchbar_to_search_in_translations:
             yield from entry.tr
-        if self.config.to_search_in_forms:
+        if self.config.searchbar_to_search_in_forms:
             for forms in entry.forms.values:
                 yield from forms
-        if self.config.to_search_in_phrases:
+        if self.config.searchbar_to_search_in_phrases:
             yield from entry.phrases.keys()
             for phrase_tr in entry.phrases.values():
                 yield from phrase_tr
-        if self.config.to_search_in_notes:
+        if self.config.searchbar_to_search_in_notes:
             yield from entry.notes
 
     def _matches(self, text: str) -> bool:
-        if self.config.to_match_whole_word:
-            flags = 0 if self.config.to_match_case else re.IGNORECASE
+        if self.config.searchbar_to_match_whole_word:
+            flags = 0 if self.config.searchbar_to_match_case else re.IGNORECASE
             escaped = re.escape(self._pattern)
             pattern = rf'\b{escaped}\b'
             return re.search(pattern, text, flags) is not None
         else:
-            if self.config.to_match_case:
+            if self.config.searchbar_to_match_case:
                 return self._pattern in text
             return self._pattern.lower() in text.lower()
 

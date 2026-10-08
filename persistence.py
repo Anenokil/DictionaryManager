@@ -198,7 +198,6 @@ def partial_save(
         filepath: str,
         dct: bool = False,
         session_number: bool = False,
-        search_config: bool = False,
         train_config: bool = False,
         replacer: bool = False,
 ):
@@ -210,8 +209,6 @@ def partial_save(
         dct_bundle.dct.mark_saved()
     if session_number:
         data['data']['session_number'] = dct_bundle.session_number
-    if search_config:
-        data['data']['search_config'] = dct_bundle.search_config.to_dict()
     if train_config:
         data['data']['train_config'] = dct_bundle.train_config.to_dict()
     if replacer:
@@ -230,4 +227,4 @@ def save_dct_settings(dct_bundle: DctBundle, filepath: str):
 
 
 def save_dct_cache(dct_bundle: DctBundle, filepath: str):
-    partial_save(dct_bundle, filepath, session_number=True, search_config=True, train_config=True)
+    partial_save(dct_bundle, filepath, session_number=True, train_config=True)

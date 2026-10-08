@@ -5,11 +5,11 @@ Author: Anenokil
 """
 
 from types import NoneType
-from typing import Literal, Callable, Any
+from typing import Callable, Any
 import os
 import json
 
-from .core.types import Tag, DctName, SerializedData
+from .core.types import DctName, SerializedData
 from .core.dictionary import Dictionary
 from .core.trainer import TrainingConfig
 from .core.utils import validate_required_fields, validate_field_type, validation_and_migration
@@ -17,105 +17,8 @@ from .replacements import Replacer
 
 
 @validation_and_migration(1, [
-    ('to_match_whole_word', True, bool),
-    ('to_match_case', True, bool),
-    ('to_search_in_words', True, bool),
-    ('to_search_in_translations', True, bool),
-    ('to_search_in_forms', True, bool),
-    ('to_search_in_phrases', True, bool),
-    ('to_search_in_notes', True, bool),
-    ('fav_filter', True, str),
-    ('search_tags', True, (list[str], NoneType)),
-])
-class SearchConfig:
-    """
-    Configuration for Dictionary search.
-
-    Attributes:
-        to_search_only_fav: Whether to search only across favorite Entries.
-        to_search_only_full: Whether to search only full matches.
-        to_search_in_words: Whether to include lemmas in search.
-        to_search_in_translations: Whether to include translations in search.
-        to_search_in_forms: Whether to include forms in search.
-        to_search_in_phrases: Whether to include phrases in search.
-        to_search_in_notes: Whether to include notes in search.
-        search_tags: List of tags to restrict search to, or None to search across all tags.
-    """
-
-    def __init__(
-            self,
-            fav_filter: Literal['all', 'fav', 'unfav'] = 'all',
-            to_match_whole_word: bool = False,
-            to_match_case: bool = False,
-            to_search_in_words: bool = True,
-            to_search_in_translations: bool = True,
-            to_search_in_forms: bool = False,
-            to_search_in_phrases: bool = False,
-            to_search_in_notes: bool = False,
-            search_tags: list[Tag] | None = None,
-    ):
-        self.fav_filter = fav_filter
-        self.to_match_whole_word = to_match_whole_word
-        self.to_match_case = to_match_case
-        self.to_search_in_words = to_search_in_words
-        self.to_search_in_translations = to_search_in_translations
-        self.to_search_in_forms = to_search_in_forms
-        self.to_search_in_phrases = to_search_in_phrases
-        self.to_search_in_notes = to_search_in_notes
-        self.search_tags = search_tags
-
-    @classmethod
-    def from_dict(cls, data: SerializedData):
-        search_settings = cls()
-        search_settings.load_from_dict(data)
-        return search_settings
-
-    def set_defaults(self):
-        self.fav_filter = 'all'
-        self.to_match_whole_word = False
-        self.to_match_case = False
-        self.to_search_in_words = True
-        self.to_search_in_translations = True
-        self.to_search_in_forms = False
-        self.to_search_in_phrases = False
-        self.to_search_in_notes = False
-        self.search_tags = None
-
-    def to_dict(self) -> SerializedData:
-        return {
-            'version': self._schema_version,
-            'data': {
-                'fav_filter': self.fav_filter,
-                'to_match_whole_word': self.to_match_whole_word,
-                'to_match_case': self.to_match_case,
-                'to_search_in_words': self.to_search_in_words,
-                'to_search_in_translations': self.to_search_in_translations,
-                'to_search_in_forms': self.to_search_in_forms,
-                'to_search_in_phrases': self.to_search_in_phrases,
-                'to_search_in_notes': self.to_search_in_notes,
-                'search_tags': self.search_tags,
-            }
-        }
-
-    def load_from_dict(self, data: SerializedData):
-        data = self._check_and_migrate(data)
-        data = data['data']
-
-        self.fav_filter = data['fav_filter']
-        self.to_match_whole_word = data['to_match_whole_word']
-        self.to_match_case = data['to_match_case']
-        self.to_search_in_words = data['to_search_in_words']
-        self.to_search_in_translations = data['to_search_in_translations']
-        self.to_search_in_forms = data['to_search_in_forms']
-        self.to_search_in_phrases = data['to_search_in_phrases']
-        self.to_search_in_notes = data['to_search_in_notes']
-        self.search_tags = data['search_tags']
-
-
-@validation_and_migration(1, [
     ('dct', True, SerializedData),
     ('session_number', True, int),
-    ('search_config', True, SerializedData),
     ('train_config', True, SerializedData),
     ('replacer', True, SerializedData),
 ])
@@ -137,13 +40,11 @@ class DctBundle:
             self,
             dct: Dictionary | None = None,
             session_number: int = 1,
-            search_config: SearchConfig | None = None,
             train_config: TrainingConfig | None = None,
             replacer: Replacer | None = None,
     ):
         self.dct = Dictionary() if dct is None else dct
         self.session_number = session_number
-        self.search_config = SearchConfig() if search_config is None else search_config
         self.train_config = TrainingConfig() if train_config is None else train_config
         self.replacer = Replacer() if replacer is None else replacer
         self.optional: dict[str, Any] = {}
@@ -164,7 +65,6 @@ class DctBundle:
             'data': {
                 'dct': self.dct.to_json_dict(),
                 'session_number': self.session_number,
-                'search_config': self.search_config.to_dict(),
                 'train_config': self.train_config.to_dict(),
                 'replacer': self.replacer.to_json_dict(),
             }
@@ -176,7 +76,6 @@ class DctBundle:
 
         self.dct.load_from_json_dict(data['dct'])
         self.session_number = data['session_number']
-        self.search_config.load_from_dict(data['search_config'])
         self.train_config.load_from_dict(data['train_config'])
         self.replacer.load_from_json_dict(data['replacer'])
 
