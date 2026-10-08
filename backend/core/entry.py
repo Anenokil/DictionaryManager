@@ -788,7 +788,7 @@ class Entry:
         self._win_streak += other._win_streak
         self._latest_att_timestamp = max(self._latest_att_timestamp, other._latest_att_timestamp)
 
-    def to_json_dict(self) -> SerializedData:
+    def to_dict(self) -> SerializedData:
         """
         Serialize the entry to a JSON format.
 

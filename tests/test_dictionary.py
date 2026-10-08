@@ -66,13 +66,13 @@ def test_add_tag_to_entries(dct_small, tag, entry_indexes, iter_type):
 
         assert dct.search(tags=[tag]) == tag_entries.union(entries)
     else:
-        state_before = deepcopy(dct.to_json_dict())
+        state_before = deepcopy(dct.to_dict())
 
         # Operation should raise on invalid arguments
         with pytest.raises(InvalidTagError):
             dct.add_tag_to_entries(tag, entries_)
 
-        state_after = dct.to_json_dict()
+        state_after = dct.to_dict()
 
         # State must remain unchanged after failed operation
         assert state_after == state_before
@@ -109,13 +109,13 @@ def test_remove_tag_from_entries(dct_small, tag, entry_indexes, iter_type):
 
         assert dct.search(tags=[tag]) == tag_entries.difference(entries)
     else:
-        state_before = deepcopy(dct.to_json_dict())
+        state_before = deepcopy(dct.to_dict())
 
         # Operation should raise on invalid arguments
         with pytest.raises(InvalidTagError):
             dct.remove_tag_from_entries(tag, entries_)
 
-        state_after = dct.to_json_dict()
+        state_after = dct.to_dict()
 
         # State must remain unchanged after failed operation
         assert state_after == state_before
@@ -168,13 +168,13 @@ def test_rename_tag(dct_small, target_tag, new_tag):
 def test_rename_tag_bad(dct_small, target_tag, new_tag):
     dct = dct_small
 
-    state_before = deepcopy(dct.to_json_dict())
+    state_before = deepcopy(dct.to_dict())
 
     # Operation should raise on invalid rename
     with pytest.raises(InvalidTagError):
         dct.rename_tag(target_tag, new_tag)
 
-    state_after = dct.to_json_dict()
+    state_after = dct.to_dict()
 
     # State must remain unchanged after failed operation
     assert state_after == state_before
@@ -199,13 +199,13 @@ def test_delete_tag(dct_small, tag):
 def test_delete_tag_bad(dct_small, tag):
     dct = dct_small
 
-    state_before = deepcopy(dct.to_json_dict())
+    state_before = deepcopy(dct.to_dict())
 
     # Operation should raise on invalid tag
     with pytest.raises(InvalidTagError):
         dct.delete_tag(tag)
 
-    state_after = dct.to_json_dict()
+    state_after = dct.to_dict()
 
     # State must remain unchanged after failed operation
     assert state_after == state_before
@@ -227,13 +227,13 @@ def test_mark_tag_as_default(dct_small, tag):
 def test_mark_tag_as_default_bad(dct_small, tag):
     dct = dct_small
 
-    state_before = deepcopy(dct.to_json_dict())
+    state_before = deepcopy(dct.to_dict())
 
     # Operation should raise on invalid tag
     with pytest.raises(InvalidTagError):
         dct.mark_tag_as_default(tag)
 
-    state_after = dct.to_json_dict()
+    state_after = dct.to_dict()
 
     # State must remain unchanged after failed operation
     assert state_after == state_before
@@ -255,13 +255,13 @@ def test_unmark_tag_as_default(dct_small, tag):
 def test_unmark_tag_as_default_bad(dct_small, tag):
     dct = dct_small
 
-    state_before = deepcopy(dct.to_json_dict())
+    state_before = deepcopy(dct.to_dict())
 
     # Operation should raise on invalid tag
     with pytest.raises(InvalidTagError):
         dct.unmark_tag_as_default(tag)
 
-    state_after = dct.to_json_dict()
+    state_after = dct.to_dict()
 
     # State must remain unchanged after failed operation
     assert state_after == state_before

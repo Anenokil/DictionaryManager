@@ -63,10 +63,10 @@ class DctBundle:
         return {
             'version': self._schema_version,
             'data': {
-                'dct': self.dct.to_json_dict(),
+                'dct': self.dct.to_dict(),
                 'session_number': self.session_number,
                 'train_config': self.train_config.to_dict(),
-                'replacer': self.replacer.to_json_dict(),
+                'replacer': self.replacer.to_dict(),
             }
         }
 

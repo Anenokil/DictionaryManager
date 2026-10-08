@@ -1401,7 +1401,7 @@ class Dictionary:
                 file.write(str(entry))
                 file.write('\n')
 
-    def to_json_dict(self) -> SerializedData:
+    def to_dict(self) -> SerializedData:
         """
         Serialize the Dictionary to a JSON format.
 
@@ -1409,7 +1409,7 @@ class Dictionary:
             Dict containing saving version and all Dictionary data.
         """
 
-        entries = [entry.to_json_dict() for entry in self._entries]
+        entries = [entry.to_dict() for entry in self._entries]
         indexes = {
             index_name: {
                 query: [self._entries.index(entry) for entry in entries]

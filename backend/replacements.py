@@ -111,7 +111,7 @@ class Replacer:
             for char in text
         )
 
-    def to_json_dict(self) -> SerializedData:
+    def to_dict(self) -> SerializedData:
         return {
             'version': self._schema_version,
             'data': {

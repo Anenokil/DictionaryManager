@@ -205,14 +205,14 @@ def partial_save(
         data = json.load(f)
 
     if dct:
-        data['data']['dct'] = dct_bundle.dct.to_json_dict()
+        data['data']['dct'] = dct_bundle.dct.to_dict()
         dct_bundle.dct.mark_saved()
     if session_number:
         data['data']['session_number'] = dct_bundle.session_number
     if train_config:
         data['data']['train_config'] = dct_bundle.train_config.to_dict()
     if replacer:
-        data['data']['replacer'] = dct_bundle.replacer.to_json_dict()
+        data['data']['replacer'] = dct_bundle.replacer.to_dict()
 
     with open(filepath, 'w') as f:
         json.dump(data, f)
