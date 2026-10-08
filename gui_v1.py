@@ -1007,7 +1007,7 @@ def check_updates(
         app_data: AppData,
         to_show_if_no_updates: bool,
 ):
-    to_check_for_updates = app_data.global_settings.to_check_for_updates
+    to_check_for_updates = app_data.ui_settings.to_check_for_updates
 
     print('\nПроверка наличия обновлений...')
     window_new_version = None
@@ -5359,7 +5359,7 @@ class TrainingW(tk.Toplevel):
         else:
             self.print(f'Неверно. Правильный ответ: "{correct_answers_repr}"\n')
             if entry.is_fav:
-                if self.app_data.global_settings.is_typo_btn_on:
+                if self.app_data.ui_settings.is_typo_btn_on:
                     window = TwoOptionsDialog(
                         self, self.app_data,
                         f'Неверно.\n'
@@ -5397,7 +5397,7 @@ class TrainingW(tk.Toplevel):
                     self, self.app_data,
                     self.replacer.replace(self.entry_input.get()),
                     correct_answers_repr,
-                    self.app_data.global_settings.is_typo_btn_on,
+                    self.app_data.ui_settings.is_typo_btn_on,
                 )
                 result = window.open()
                 if result != 'typo':
@@ -7316,10 +7316,10 @@ class SettingsW(tk.Toplevel):
         self.backup_scale = self.app_data.ui_settings.scale
 
         self.var_show_updates = tk.BooleanVar(
-            value=self.app_data.global_settings.to_check_for_updates
+            value=self.app_data.ui_settings.to_check_for_updates
         )
         self.var_show_typo_button = tk.BooleanVar(
-            value=self.app_data.global_settings.is_typo_btn_on
+            value=self.app_data.ui_settings.is_typo_btn_on
         )
         self.var_theme = tk.StringVar(value=self.app_data.ui_settings.theme)
         self.var_themes_url = tk.StringVar(value=URL_RELEASES)
@@ -7559,7 +7559,7 @@ class SettingsW(tk.Toplevel):
 
         filepath = f'./resources/saves/{dct_name}/dct_data.json'  # TODO: choose filepath
         self.manager.open_dct(filepath)
-        self.app_data.save(glob=False, ui=False)
+        self.app_data.save(ui=False)
 
         self.backup_dct = copy.deepcopy(self.manager.active.dct)
 
@@ -7592,7 +7592,7 @@ class SettingsW(tk.Toplevel):
         os.rename(os.path.join(SAVES_PATH, old_name), os.path.join(SAVES_PATH, new_name))
         if self.manager.active.dct.name == old_name:
             self.manager.active.dct.name = new_name
-            self.app_data.save(glob=False, ui=False)
+            self.app_data.save(ui=False)
             # Обновляем надписи с названием открытого словаря
             self.refresh_dct_name(new_name)
         print(f'Словарь "{old_name}" успешно переименован в "{new_name}"')
@@ -7639,7 +7639,7 @@ class SettingsW(tk.Toplevel):
         filepath = f'./resources/saves/{savename}/dct_data.json'  # TODO: choose filepath
         self.manager.create_dct(savename)
         self.manager.save_dct(self.manager.active_dct_id, filepath)
-        self.app_data.save(glob=False, ui=False)
+        self.app_data.save(ui=False)
 
         print(f'\nСловарь "{savename}" успешно создан и открыт')
 
@@ -7731,10 +7731,10 @@ class SettingsW(tk.Toplevel):
     # Сохранить настройки (срабатывает при нажатии на кнопку)
     def save(self):
         # Разрешить/запретить сообщать о новых версиях
-        self.app_data.global_settings.to_check_for_updates = self.var_show_updates.get()
+        self.app_data.ui_settings.to_check_for_updates = self.var_show_updates.get()
 
         # Показывать/скрывать кнопку "Опечатка" при неверном ответе в учёбе
-        self.app_data.global_settings.is_typo_btn_on = self.var_show_typo_button.get()
+        self.app_data.ui_settings.is_typo_btn_on = self.var_show_typo_button.get()
 
         # Установка выбранной темы
         self.set_theme()
@@ -7897,8 +7897,8 @@ class SettingsW(tk.Toplevel):
     def has_changes(self):
         return (
             self.has_local_changes or
-            self.var_show_updates.get() != self.app_data.global_settings.to_check_for_updates or
-            self.var_show_typo_button.get() != self.app_data.global_settings.is_typo_btn_on or
+            self.var_show_updates.get() != self.app_data.ui_settings.to_check_for_updates or
+            self.var_show_typo_button.get() != self.app_data.ui_settings.is_typo_btn_on or
             self.var_theme.get() != self.app_data.ui_settings.theme or
             self.backup_scale != self.app_data.ui_settings.scale
         )
