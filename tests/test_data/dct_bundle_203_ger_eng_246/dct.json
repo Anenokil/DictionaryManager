@@ -1,0 +1,10492 @@
+{
+  "version": 1,
+  "data": {
+    "name": "test-dct_deu-eng_246",
+    "entries": [
+      {
+        "translations": [
+          "I",
+          "me"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          76,
+          0,
+          66
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "Gen",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Dat",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Akk",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "meiner"
+            ],
+            [
+              "mir"
+            ],
+            [
+              "mich"
+            ]
+          ]
+        },
+        "variants": [
+          "ich"
+        ]
+      },
+      {
+        "translations": [
+          "we"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          73,
+          0,
+          39
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "Gen",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Dat",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Akk",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "unser"
+            ],
+            [
+              "uns"
+            ],
+            [
+              "uns"
+            ]
+          ]
+        },
+        "variants": [
+          "wir"
+        ]
+      },
+      {
+        "translations": [
+          "you"
+        ],
+        "is_fav": false,
+        "total_att": 11,
+        "correct_att": 10,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          31,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "Gen",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Dat",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Akk",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "deiner"
+            ],
+            [
+              "dir"
+            ],
+            [
+              "dich"
+            ]
+          ]
+        },
+        "notes": [
+          "Singular"
+        ],
+        "variants": [
+          "du"
+        ]
+      },
+      {
+        "translations": [
+          "you"
+        ],
+        "is_fav": false,
+        "total_att": 10,
+        "correct_att": 10,
+        "win_streak": 10,
+        "latest_att_timestamp": [
+          45,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "Gen",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Dat",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Akk",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "euer"
+            ],
+            [
+              "euch"
+            ],
+            [
+              "euch"
+            ]
+          ]
+        },
+        "notes": [
+          "Plural"
+        ],
+        "variants": [
+          "ihr"
+        ]
+      },
+      {
+        "translations": [
+          "he"
+        ],
+        "is_fav": false,
+        "total_att": 12,
+        "correct_att": 9,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "Gen",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Dat",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Akk",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "seiner"
+            ],
+            [
+              "ihm"
+            ],
+            [
+              "ihn"
+            ]
+          ]
+        },
+        "variants": [
+          "er"
+        ]
+      },
+      {
+        "translations": [
+          "it"
+        ],
+        "is_fav": false,
+        "total_att": 17,
+        "correct_att": 15,
+        "win_streak": 9,
+        "latest_att_timestamp": [
+          59,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "Gen",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Dat",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Akk",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "seiner"
+            ],
+            [
+              "ihm"
+            ],
+            [
+              "es"
+            ]
+          ]
+        },
+        "variants": [
+          "es"
+        ]
+      },
+      {
+        "translations": [
+          "she"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          116,
+          0,
+          256
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "Gen",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Dat",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Akk",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "ihrer"
+            ],
+            [
+              "ihr"
+            ],
+            [
+              "sie"
+            ]
+          ]
+        },
+        "variants": [
+          "sie"
+        ]
+      },
+      {
+        "translations": [
+          "you"
+        ],
+        "is_fav": false,
+        "total_att": 10,
+        "correct_att": 8,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          38,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "Gen",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Dat",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Akk",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "Ihrer"
+            ],
+            [
+              "Ihnen"
+            ],
+            [
+              "Sie"
+            ]
+          ]
+        },
+        "notes": [
+          "Respectful"
+        ],
+        "variants": [
+          "Sie"
+        ]
+      },
+      {
+        "translations": [
+          "one",
+          "1"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          165,
+          0,
+          190
+        ],
+        "variants": [
+          "eins"
+        ]
+      },
+      {
+        "translations": [
+          "two",
+          "2"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          55,
+          0,
+          0
+        ],
+        "variants": [
+          "zwei"
+        ]
+      },
+      {
+        "translations": [
+          "three",
+          "3"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          30,
+          0,
+          0
+        ],
+        "variants": [
+          "drei"
+        ]
+      },
+      {
+        "translations": [
+          "four",
+          "4"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          63,
+          0,
+          0
+        ],
+        "variants": [
+          "vier"
+        ]
+      },
+      {
+        "translations": [
+          "five",
+          "5"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          41,
+          0,
+          0
+        ],
+        "variants": [
+          "f\u00fcnf"
+        ]
+      },
+      {
+        "translations": [
+          "six",
+          "6"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "variants": [
+          "sechs"
+        ]
+      },
+      {
+        "translations": [
+          "seven",
+          "7"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          41,
+          0,
+          0
+        ],
+        "variants": [
+          "sieben"
+        ]
+      },
+      {
+        "translations": [
+          "eight",
+          "8"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          80,
+          3,
+          13
+        ],
+        "variants": [
+          "acht"
+        ]
+      },
+      {
+        "translations": [
+          "nine",
+          "9"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          97,
+          3,
+          210
+        ],
+        "variants": [
+          "neun"
+        ]
+      },
+      {
+        "translations": [
+          "ten",
+          "10"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          45,
+          0,
+          0
+        ],
+        "variants": [
+          "zehn"
+        ]
+      },
+      {
+        "translations": [
+          "eleven",
+          "11"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          31,
+          0,
+          0
+        ],
+        "variants": [
+          "elf"
+        ]
+      },
+      {
+        "translations": [
+          "twelve",
+          "12"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          80,
+          3,
+          45
+        ],
+        "variants": [
+          "zw\u00f6lf"
+        ]
+      },
+      {
+        "translations": [
+          "thirteen",
+          "13"
+        ],
+        "is_fav": false,
+        "total_att": 9,
+        "correct_att": 8,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          97,
+          3,
+          190
+        ],
+        "variants": [
+          "dreizehn"
+        ]
+      },
+      {
+        "translations": [
+          "fourteen",
+          "14"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 6,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "variants": [
+          "vierzehn"
+        ]
+      },
+      {
+        "translations": [
+          "fifteen",
+          "15"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          97,
+          3,
+          32
+        ],
+        "variants": [
+          "f\u00fcnfzehn"
+        ]
+      },
+      {
+        "translations": [
+          "sixteen",
+          "16"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          45,
+          0,
+          0
+        ],
+        "variants": [
+          "sechzehn"
+        ]
+      },
+      {
+        "translations": [
+          "seventeen",
+          "17"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          116,
+          0,
+          163
+        ],
+        "variants": [
+          "siebzehn"
+        ]
+      },
+      {
+        "translations": [
+          "eighteen",
+          "18"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          30,
+          0,
+          0
+        ],
+        "variants": [
+          "achtzehn"
+        ]
+      },
+      {
+        "translations": [
+          "nineteen",
+          "19"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          30,
+          0,
+          0
+        ],
+        "variants": [
+          "neunzehn"
+        ]
+      },
+      {
+        "translations": [
+          "zero",
+          "0"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "variants": [
+          "null"
+        ]
+      },
+      {
+        "translations": [
+          "yes"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "variants": [
+          "ja"
+        ]
+      },
+      {
+        "translations": [
+          "no"
+        ],
+        "is_fav": false,
+        "total_att": 9,
+        "correct_att": 9,
+        "win_streak": 9,
+        "latest_att_timestamp": [
+          55,
+          0,
+          0
+        ],
+        "variants": [
+          "nein"
+        ]
+      },
+      {
+        "translations": [
+          "man",
+          "male",
+          "husband"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die M\u00e4nner"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -er"
+        ],
+        "variants": [
+          "der Mann"
+        ]
+      },
+      {
+        "translations": [
+          "woman",
+          "female",
+          "wife"
+        ],
+        "is_fav": false,
+        "total_att": 11,
+        "correct_att": 9,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Frauen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Frau"
+        ]
+      },
+      {
+        "translations": [
+          "man",
+          "human"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          82,
+          1,
+          36
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Menschen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "der Mensch"
+        ]
+      },
+      {
+        "translations": [
+          "pen"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          55,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Kulis"
+            ]
+          ]
+        },
+        "notes": [
+          "ballpoint"
+        ],
+        "tags": [
+          "noun",
+          "plural -s"
+        ],
+        "variants": [
+          "der Kuli"
+        ]
+      },
+      {
+        "translations": [
+          "pen"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          76,
+          0,
+          79
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Kugelschreiber"
+            ]
+          ]
+        },
+        "notes": [
+          "ballpoint"
+        ],
+        "tags": [
+          "plural -",
+          "noun"
+        ],
+        "variants": [
+          "der Kugelschreiber"
+        ]
+      },
+      {
+        "translations": [
+          "animal",
+          "beast",
+          "pet"
+        ],
+        "is_fav": false,
+        "total_att": 12,
+        "correct_att": 11,
+        "win_streak": 2,
+        "latest_att_timestamp": [
+          31,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Tiere"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "das Tier"
+        ]
+      },
+      {
+        "translations": [
+          "kid",
+          "child",
+          "baby"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Kinder"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -er"
+        ],
+        "variants": [
+          "das Kind"
+        ]
+      },
+      {
+        "translations": [
+          "dog"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          78,
+          0,
+          28
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Hunde"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "der Hund"
+        ]
+      },
+      {
+        "translations": [
+          "horse"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          117,
+          0,
+          175
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Pferde"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "das Pferd"
+        ]
+      },
+      {
+        "translations": [
+          "bee"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          752,
+          6,
+          22
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Bienen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Biene"
+        ]
+      },
+      {
+        "translations": [
+          "water"
+        ],
+        "is_fav": false,
+        "total_att": 12,
+        "correct_att": 11,
+        "win_streak": 2,
+        "latest_att_timestamp": [
+          82,
+          3,
+          98
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "das Wasser"
+        ]
+      },
+      {
+        "translations": [
+          "cat"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          38,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Katzen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Katze"
+        ]
+      },
+      {
+        "translations": [
+          "cat"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Kater"
+            ]
+          ]
+        },
+        "notes": [
+          "masculine"
+        ],
+        "tags": [
+          "plural -",
+          "noun"
+        ],
+        "variants": [
+          "der Kater"
+        ]
+      },
+      {
+        "translations": [
+          "friend"
+        ],
+        "is_fav": false,
+        "total_att": 10,
+        "correct_att": 10,
+        "win_streak": 10,
+        "latest_att_timestamp": [
+          728,
+          7,
+          21
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "F",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Freunde"
+            ],
+            [
+              "die Freundin"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "der Freund"
+        ]
+      },
+      {
+        "translations": [
+          "hello"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          82,
+          3,
+          67
+        ],
+        "variants": [
+          "hallo"
+        ]
+      },
+      {
+        "translations": [
+          "bye"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          40,
+          0,
+          0
+        ],
+        "notes": [
+          "Also: \"tsch\u00fcss\", \"tsch\u00fcs\""
+        ],
+        "variants": [
+          "tsch\u00fc\u00df"
+        ]
+      },
+      {
+        "translations": [
+          "to see"
+        ],
+        "is_fav": false,
+        "total_att": 32,
+        "correct_att": 32,
+        "win_streak": 32,
+        "latest_att_timestamp": [
+          624,
+          0,
+          38
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "3p",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ]
+          ],
+          "values": [
+            [
+              "siehst"
+            ],
+            [
+              "sieht"
+            ],
+            [
+              "gesehen haben"
+            ],
+            [
+              "sah"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "sehen"
+        ]
+      },
+      {
+        "translations": [
+          "brother"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          32,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Br\u00fcder"
+            ]
+          ]
+        },
+        "tags": [
+          "plural -",
+          "noun"
+        ],
+        "variants": [
+          "der Bruder"
+        ]
+      },
+      {
+        "translations": [
+          "sister"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 7,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          82,
+          2,
+          25
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Schwestern"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Schwester"
+        ]
+      },
+      {
+        "translations": [
+          "father",
+          "dad"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          73,
+          2,
+          83
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die V\u00e4ter"
+            ]
+          ]
+        },
+        "tags": [
+          "plural -",
+          "noun"
+        ],
+        "variants": [
+          "der Vater"
+        ]
+      },
+      {
+        "translations": [
+          "mother",
+          "mom"
+        ],
+        "is_fav": false,
+        "total_att": 3,
+        "correct_att": 3,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          82,
+          2,
+          48
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die M\u00fctter"
+            ]
+          ]
+        },
+        "tags": [
+          "plural -",
+          "noun"
+        ],
+        "variants": [
+          "die Mutter"
+        ]
+      },
+      {
+        "translations": [
+          "son"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          60,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die S\u00f6hne"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "der Sohn"
+        ]
+      },
+      {
+        "translations": [
+          "daughter"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 5,
+        "win_streak": 2,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die T\u00f6chter"
+            ]
+          ]
+        },
+        "tags": [
+          "plural -",
+          "noun"
+        ],
+        "variants": [
+          "die Tochter"
+        ]
+      },
+      {
+        "translations": [
+          "bag",
+          "pocket"
+        ],
+        "is_fav": false,
+        "total_att": 9,
+        "correct_att": 9,
+        "win_streak": 9,
+        "latest_att_timestamp": [
+          221,
+          1,
+          15
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Taschen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Tasche"
+        ]
+      },
+      {
+        "translations": [
+          "meat",
+          "flesh"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          60,
+          0,
+          0
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "das Fleisch"
+        ]
+      },
+      {
+        "translations": [
+          "fish"
+        ],
+        "is_fav": false,
+        "total_att": 3,
+        "correct_att": 3,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          80,
+          3,
+          118
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Fische"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "der Fisch"
+        ]
+      },
+      {
+        "translations": [
+          "german"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          317,
+          0,
+          16
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "deutsch"
+        ]
+      },
+      {
+        "translations": [
+          "all",
+          "everything"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          97,
+          3,
+          100
+        ],
+        "variants": [
+          "alles"
+        ]
+      },
+      {
+        "translations": [
+          "all",
+          "everyone",
+          "everybody"
+        ],
+        "is_fav": false,
+        "total_att": 14,
+        "correct_att": 13,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          32,
+          0,
+          0
+        ],
+        "variants": [
+          "alle"
+        ]
+      },
+      {
+        "translations": [
+          "juice"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          57,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die S\u00e4fte"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "der Saft"
+        ]
+      },
+      {
+        "translations": [
+          "good"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          241,
+          4,
+          47
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "",
+              "",
+              "Komparativ",
+              ""
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "Superlativ",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "besser"
+            ],
+            [
+              "am besten"
+            ]
+          ]
+        },
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "gut"
+        ]
+      },
+      {
+        "translations": [
+          "bad"
+        ],
+        "is_fav": false,
+        "total_att": 9,
+        "correct_att": 9,
+        "win_streak": 9,
+        "latest_att_timestamp": [
+          47,
+          0,
+          0
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "schlecht"
+        ]
+      },
+      {
+        "translations": [
+          "nice"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          45,
+          0,
+          0
+        ],
+        "notes": [
+          "danke sch\u00f6n"
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "sch\u00f6n"
+        ]
+      },
+      {
+        "translations": [
+          "small",
+          "little"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          55,
+          0,
+          0
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "klein"
+        ]
+      },
+      {
+        "translations": [
+          "big",
+          "large"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          163,
+          1,
+          223
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "gro\u00df"
+        ]
+      },
+      {
+        "translations": [
+          "cold"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          116,
+          0,
+          176
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "kalt"
+        ]
+      },
+      {
+        "translations": [
+          "warm"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          40,
+          0,
+          0
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "warm"
+        ]
+      },
+      {
+        "translations": [
+          "hot"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          12,
+          0,
+          0
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "hei\u00df"
+        ]
+      },
+      {
+        "translations": [
+          "much",
+          "many",
+          "a lot"
+        ],
+        "is_fav": false,
+        "total_att": 31,
+        "correct_att": 28,
+        "win_streak": 20,
+        "latest_att_timestamp": [
+          354,
+          4,
+          51
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "",
+              "",
+              "Komparativ",
+              ""
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "Superlativ",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "mehr"
+            ],
+            [
+              "am meisten"
+            ]
+          ]
+        },
+        "variants": [
+          "viel"
+        ]
+      },
+      {
+        "translations": [
+          "few",
+          "a little"
+        ],
+        "is_fav": false,
+        "total_att": 40,
+        "correct_att": 32,
+        "win_streak": 12,
+        "latest_att_timestamp": [
+          367,
+          1,
+          108
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "",
+              "",
+              "Komparativ",
+              ""
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "Superlativ",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "minder"
+            ],
+            [
+              "am mindesten"
+            ]
+          ]
+        },
+        "variants": [
+          "wenig"
+        ]
+      },
+      {
+        "translations": [
+          "correct",
+          "right"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          163,
+          1,
+          23
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "richtig"
+        ]
+      },
+      {
+        "translations": [
+          "wrong",
+          "incorrect",
+          "false"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          163,
+          1,
+          219
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "falsch"
+        ]
+      },
+      {
+        "translations": [
+          "strong"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          9,
+          0,
+          0
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "stark"
+        ]
+      },
+      {
+        "translations": [
+          "weak"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          78,
+          1,
+          86
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "schwach"
+        ]
+      },
+      {
+        "translations": [
+          "light",
+          "easy",
+          "simple"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          78,
+          1,
+          146
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "leicht"
+        ]
+      },
+      {
+        "translations": [
+          "coffee"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          55,
+          0,
+          0
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "der Kaffee"
+        ]
+      },
+      {
+        "translations": [
+          "tea"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          30,
+          0,
+          0
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "der Tee"
+        ]
+      },
+      {
+        "translations": [
+          "difficult",
+          "hard",
+          "heavy"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          97,
+          3,
+          220
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "schwer"
+        ]
+      },
+      {
+        "translations": [
+          "what"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          221,
+          1,
+          11
+        ],
+        "variants": [
+          "was"
+        ]
+      },
+      {
+        "translations": [
+          "who"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          117,
+          0,
+          158
+        ],
+        "variants": [
+          "wer"
+        ]
+      },
+      {
+        "translations": [
+          "where"
+        ],
+        "is_fav": false,
+        "total_att": 3,
+        "correct_att": 3,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          30,
+          0,
+          0
+        ],
+        "variants": [
+          "wo"
+        ]
+      },
+      {
+        "translations": [
+          "where from"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          31,
+          0,
+          0
+        ],
+        "variants": [
+          "woher"
+        ]
+      },
+      {
+        "translations": [
+          "where"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          611,
+          9,
+          6
+        ],
+        "variants": [
+          "wohin"
+        ]
+      },
+      {
+        "translations": [
+          "when"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          55,
+          0,
+          0
+        ],
+        "variants": [
+          "wann"
+        ]
+      },
+      {
+        "translations": [
+          "why"
+        ],
+        "is_fav": false,
+        "total_att": 3,
+        "correct_att": 3,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "variants": [
+          "warum"
+        ]
+      },
+      {
+        "translations": [
+          "how"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          31,
+          0,
+          0
+        ],
+        "variants": [
+          "wie"
+        ]
+      },
+      {
+        "translations": [
+          "red"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          55,
+          0,
+          0
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "rot"
+        ]
+      },
+      {
+        "translations": [
+          "blue"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          80,
+          3,
+          132
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "blau"
+        ]
+      },
+      {
+        "translations": [
+          "phone"
+        ],
+        "is_fav": false,
+        "total_att": 3,
+        "correct_att": 3,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          38,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Telefone"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "das Telefon"
+        ]
+      },
+      {
+        "translations": [
+          "phone",
+          "mobile",
+          "mobile phone"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          146,
+          1,
+          40
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "das Handy"
+        ]
+      },
+      {
+        "translations": [
+          "thanks"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          117,
+          0,
+          78
+        ],
+        "variants": [
+          "danke"
+        ]
+      },
+      {
+        "translations": [
+          "please"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          82,
+          1,
+          7
+        ],
+        "variants": [
+          "bitte"
+        ]
+      },
+      {
+        "translations": [
+          "night"
+        ],
+        "is_fav": false,
+        "total_att": 26,
+        "correct_att": 24,
+        "win_streak": 17,
+        "latest_att_timestamp": [
+          241,
+          4,
+          42
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die N\u00e4chte"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "die Nacht"
+        ]
+      },
+      {
+        "translations": [
+          "day"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          40,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Tage"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "der Tag"
+        ]
+      },
+      {
+        "translations": [
+          "evening",
+          "eve"
+        ],
+        "is_fav": false,
+        "total_att": 14,
+        "correct_att": 13,
+        "win_streak": 9,
+        "latest_att_timestamp": [
+          221,
+          1,
+          6
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "der Abend"
+        ]
+      },
+      {
+        "translations": [
+          "morning"
+        ],
+        "is_fav": false,
+        "total_att": 3,
+        "correct_att": 3,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          82,
+          1,
+          63
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "der Morgen"
+        ]
+      },
+      {
+        "translations": [
+          "tomorrow"
+        ],
+        "is_fav": false,
+        "total_att": 13,
+        "correct_att": 12,
+        "win_streak": 2,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "variants": [
+          "morgen"
+        ]
+      },
+      {
+        "translations": [
+          "old"
+        ],
+        "is_fav": false,
+        "total_att": 26,
+        "correct_att": 24,
+        "win_streak": 17,
+        "latest_att_timestamp": [
+          333,
+          9,
+          448
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "",
+              "",
+              "Komparativ",
+              ""
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "Superlativ",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "\u00e4lter"
+            ],
+            [
+              "am \u00e4ltesten"
+            ]
+          ]
+        },
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "alt"
+        ]
+      },
+      {
+        "translations": [
+          "new"
+        ],
+        "is_fav": false,
+        "total_att": 3,
+        "correct_att": 3,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          40,
+          0,
+          0
+        ],
+        "notes": [
+          "z.B.: etwas Neues lernen"
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "neu"
+        ]
+      },
+      {
+        "translations": [
+          "parents"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          241,
+          4,
+          38
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "das Elter"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Eltern"
+        ]
+      },
+      {
+        "translations": [
+          "food"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          454,
+          2,
+          68
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "das Essen"
+        ]
+      },
+      {
+        "translations": [
+          "to eat"
+        ],
+        "is_fav": false,
+        "total_att": 25,
+        "correct_att": 25,
+        "win_streak": 25,
+        "latest_att_timestamp": [
+          624,
+          0,
+          37
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "3p",
+              "",
+              ""
+            ],
+            [
+              "Plur",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ]
+          ],
+          "values": [
+            [
+              "isst"
+            ],
+            [
+              "isst"
+            ],
+            [
+              "esst"
+            ],
+            [
+              "a\u00df"
+            ],
+            [
+              "gegessen haben"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "essen"
+        ]
+      },
+      {
+        "translations": [
+          "to go",
+          "to walk"
+        ],
+        "is_fav": false,
+        "total_att": 30,
+        "correct_att": 30,
+        "win_streak": 30,
+        "latest_att_timestamp": [
+          711,
+          0,
+          8
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ]
+          ],
+          "values": [
+            [
+              "gegangen sein"
+            ],
+            [
+              "ging"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "sein-verb"
+        ],
+        "variants": [
+          "gehen"
+        ]
+      },
+      {
+        "translations": [
+          "to come",
+          "to arrive"
+        ],
+        "is_fav": false,
+        "total_att": 32,
+        "correct_att": 30,
+        "win_streak": 19,
+        "latest_att_timestamp": [
+          706,
+          0,
+          8
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ]
+          ],
+          "values": [
+            [
+              "kam"
+            ],
+            [
+              "gekommen sein"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "sein-verb"
+        ],
+        "variants": [
+          "kommen"
+        ]
+      },
+      {
+        "translations": [
+          "apple"
+        ],
+        "is_fav": false,
+        "total_att": 10,
+        "correct_att": 10,
+        "win_streak": 10,
+        "latest_att_timestamp": [
+          32,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die \u00c4pfel"
+            ]
+          ]
+        },
+        "tags": [
+          "plural -",
+          "noun"
+        ],
+        "variants": [
+          "der Apfel"
+        ]
+      },
+      {
+        "translations": [
+          "bread"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          82,
+          0,
+          1
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "das Brot"
+        ]
+      },
+      {
+        "translations": [
+          "bun"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          31,
+          0,
+          0
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "das Br\u00f6tchen"
+        ]
+      },
+      {
+        "translations": [
+          "lemon"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          73,
+          0,
+          18
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Zitronen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Zitrone"
+        ]
+      },
+      {
+        "translations": [
+          "orange"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 4,
+        "win_streak": 2,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Orangen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Orange"
+        ]
+      },
+      {
+        "translations": [
+          "tomato"
+        ],
+        "is_fav": false,
+        "total_att": 13,
+        "correct_att": 12,
+        "win_streak": 9,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Tomaten"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Tomate"
+        ]
+      },
+      {
+        "translations": [
+          "potato"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          30,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Kartoffeln"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Kartoffel"
+        ]
+      },
+      {
+        "translations": [
+          "onion"
+        ],
+        "is_fav": false,
+        "total_att": 3,
+        "correct_att": 3,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Zwiebeln"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Zwiebel"
+        ]
+      },
+      {
+        "translations": [
+          "banana"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Bananen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Banane"
+        ]
+      },
+      {
+        "translations": [
+          "soup"
+        ],
+        "is_fav": false,
+        "total_att": 22,
+        "correct_att": 18,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          97,
+          2,
+          5
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Suppen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Suppe"
+        ]
+      },
+      {
+        "translations": [
+          "house"
+        ],
+        "is_fav": false,
+        "total_att": 9,
+        "correct_att": 9,
+        "win_streak": 9,
+        "latest_att_timestamp": [
+          117,
+          0,
+          202
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die H\u00e4user"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -er"
+        ],
+        "variants": [
+          "das Haus"
+        ]
+      },
+      {
+        "translations": [
+          "very"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          97,
+          3,
+          238
+        ],
+        "variants": [
+          "sehr"
+        ]
+      },
+      {
+        "translations": [
+          "and"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          78,
+          1,
+          62
+        ],
+        "variants": [
+          "und"
+        ]
+      },
+      {
+        "translations": [
+          "or"
+        ],
+        "is_fav": false,
+        "total_att": 9,
+        "correct_att": 9,
+        "win_streak": 9,
+        "latest_att_timestamp": [
+          625,
+          24,
+          11
+        ],
+        "variants": [
+          "oder"
+        ]
+      },
+      {
+        "translations": [
+          "gladly"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          784,
+          7,
+          5
+        ],
+        "variants": [
+          "gern"
+        ]
+      },
+      {
+        "translations": [
+          "to love"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          32,
+          0,
+          0
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "lieben"
+        ]
+      },
+      {
+        "translations": [
+          "to like"
+        ],
+        "is_fav": false,
+        "total_att": 55,
+        "correct_att": 54,
+        "win_streak": 41,
+        "latest_att_timestamp": [
+          752,
+          6,
+          26
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "3p",
+              "",
+              ""
+            ],
+            [
+              "Plur",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ]
+          ],
+          "values": [
+            [
+              "mag"
+            ],
+            [
+              "magst"
+            ],
+            [
+              "mag"
+            ],
+            [
+              "m\u00f6gt"
+            ],
+            [
+              "gemocht haben"
+            ],
+            [
+              "mochte"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "m\u00f6gen"
+        ]
+      },
+      {
+        "translations": [
+          "to live"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          165,
+          0,
+          183
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "leben"
+        ]
+      },
+      {
+        "translations": [
+          "to live",
+          "to dwell",
+          "to reside"
+        ],
+        "is_fav": false,
+        "total_att": 17,
+        "correct_att": 15,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          41,
+          0,
+          0
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "wohnen"
+        ]
+      },
+      {
+        "translations": [
+          "to have"
+        ],
+        "is_fav": false,
+        "total_att": 22,
+        "correct_att": 22,
+        "win_streak": 22,
+        "latest_att_timestamp": [
+          661,
+          0,
+          37
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "3p",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ]
+          ],
+          "values": [
+            [
+              "hast"
+            ],
+            [
+              "hat"
+            ],
+            [
+              "gehabt haben"
+            ],
+            [
+              "hatte"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "haben"
+        ]
+      },
+      {
+        "translations": [
+          "important"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          32,
+          0,
+          0
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "wichtig"
+        ]
+      },
+      {
+        "translations": [
+          "life"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          41,
+          0,
+          0
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "das Leben"
+        ]
+      },
+      {
+        "translations": [
+          "love"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "die Liebe"
+        ]
+      },
+      {
+        "translations": [
+          "too"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          30,
+          0,
+          0
+        ],
+        "variants": [
+          "zu"
+        ]
+      },
+      {
+        "translations": [
+          "so"
+        ],
+        "is_fav": false,
+        "total_att": 9,
+        "correct_att": 9,
+        "win_streak": 9,
+        "latest_att_timestamp": [
+          316,
+          11,
+          4
+        ],
+        "variants": [
+          "so"
+        ]
+      },
+      {
+        "translations": [
+          "year"
+        ],
+        "is_fav": false,
+        "total_att": 9,
+        "correct_att": 8,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          97,
+          3,
+          242
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Jahre"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "das Jahr"
+        ]
+      },
+      {
+        "translations": [
+          "black"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          57,
+          0,
+          0
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "schwarz"
+        ]
+      },
+      {
+        "translations": [
+          "white"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          64,
+          0,
+          40
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "wei\u00df"
+        ]
+      },
+      {
+        "translations": [
+          "newspaper"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          40,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Zeitungen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Zeitung"
+        ]
+      },
+      {
+        "translations": [
+          "book"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die B\u00fccher"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -er"
+        ],
+        "variants": [
+          "das Buch"
+        ]
+      },
+      {
+        "translations": [
+          "letter"
+        ],
+        "is_fav": false,
+        "total_att": 29,
+        "correct_att": 27,
+        "win_streak": 20,
+        "latest_att_timestamp": [
+          752,
+          8,
+          10
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Briefe"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "der Brief"
+        ]
+      },
+      {
+        "translations": [
+          "young"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          64,
+          0,
+          25
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "jung"
+        ]
+      },
+      {
+        "translations": [
+          "to understand"
+        ],
+        "is_fav": false,
+        "total_att": 37,
+        "correct_att": 36,
+        "win_streak": 28,
+        "latest_att_timestamp": [
+          715,
+          0,
+          5
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ]
+          ],
+          "values": [
+            [
+              "verstand"
+            ],
+            [
+              "verstanden haben"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "verstehen"
+        ]
+      },
+      {
+        "translations": [
+          "fast"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          11,
+          0,
+          0
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "schnell"
+        ]
+      },
+      {
+        "translations": [
+          "to write",
+          "to type"
+        ],
+        "is_fav": false,
+        "total_att": 27,
+        "correct_att": 27,
+        "win_streak": 27,
+        "latest_att_timestamp": [
+          763,
+          0,
+          12
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ]
+          ],
+          "values": [
+            [
+              "schrieb"
+            ],
+            [
+              "geschrieben haben"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "schreiben"
+        ]
+      },
+      {
+        "translations": [
+          "to speak",
+          "to talk",
+          "to say"
+        ],
+        "is_fav": false,
+        "total_att": 66,
+        "correct_att": 64,
+        "win_streak": 55,
+        "latest_att_timestamp": [
+          724,
+          1,
+          7
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "3p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ]
+          ],
+          "values": [
+            [
+              "sprichst"
+            ],
+            [
+              "spricht"
+            ],
+            [
+              "sprach"
+            ],
+            [
+              "gesprochen haben"
+            ]
+          ]
+        },
+        "phrases": {
+          "sprechen mit dir \u00fcber ihn": [
+            "talk to you about him"
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "sprechen"
+        ]
+      },
+      {
+        "translations": [
+          "slow"
+        ],
+        "is_fav": false,
+        "total_att": 12,
+        "correct_att": 11,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          146,
+          1,
+          85
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "langsam"
+        ]
+      },
+      {
+        "translations": [
+          "milk"
+        ],
+        "is_fav": false,
+        "total_att": 9,
+        "correct_att": 9,
+        "win_streak": 9,
+        "latest_att_timestamp": [
+          165,
+          0,
+          117
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "die Milch"
+        ]
+      },
+      {
+        "translations": [
+          "money"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          611,
+          11,
+          9
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "das Geld"
+        ]
+      },
+      {
+        "translations": [
+          "to need",
+          "to require"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          116,
+          0,
+          76
+        ],
+        "phrases": {
+          "brauchen dich": [
+            "need you"
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "brauchen"
+        ]
+      },
+      {
+        "translations": [
+          "only"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          40,
+          0,
+          0
+        ],
+        "variants": [
+          "nur"
+        ]
+      },
+      {
+        "translations": [
+          "to drink"
+        ],
+        "is_fav": true,
+        "total_att": 18,
+        "correct_att": 16,
+        "win_streak": 2,
+        "latest_att_timestamp": [
+          784,
+          8,
+          13
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ]
+          ],
+          "values": [
+            [
+              "getrunken haben"
+            ],
+            [
+              "trank"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "trinken"
+        ]
+      },
+      {
+        "translations": [
+          "some"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          116,
+          0,
+          248
+        ],
+        "variants": [
+          "einige"
+        ]
+      },
+      {
+        "translations": [
+          "name"
+        ],
+        "is_fav": false,
+        "total_att": 12,
+        "correct_att": 12,
+        "win_streak": 12,
+        "latest_att_timestamp": [
+          241,
+          4,
+          44
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Namen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "der Name"
+        ]
+      },
+      {
+        "translations": [
+          "hobby"
+        ],
+        "is_fav": false,
+        "total_att": 10,
+        "correct_att": 9,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          31,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Hobbys"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -s"
+        ],
+        "variants": [
+          "das Hobby"
+        ]
+      },
+      {
+        "translations": [
+          "fruits"
+        ],
+        "is_fav": false,
+        "total_att": 9,
+        "correct_att": 8,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          64,
+          0,
+          35
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "das Obst"
+        ]
+      },
+      {
+        "translations": [
+          "vegetables"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          82,
+          1,
+          52
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "das Gem\u00fcse"
+        ]
+      },
+      {
+        "translations": [
+          "to read"
+        ],
+        "is_fav": true,
+        "total_att": 12,
+        "correct_att": 11,
+        "win_streak": 9,
+        "latest_att_timestamp": [
+          728,
+          7,
+          20
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "3p",
+              "",
+              ""
+            ],
+            [
+              "Plur",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ]
+          ],
+          "values": [
+            [
+              "liest"
+            ],
+            [
+              "liest"
+            ],
+            [
+              "lest"
+            ],
+            [
+              "las"
+            ],
+            [
+              "gelesen haben"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "lesen"
+        ]
+      },
+      {
+        "translations": [
+          "game"
+        ],
+        "is_fav": false,
+        "total_att": 21,
+        "correct_att": 20,
+        "win_streak": 13,
+        "latest_att_timestamp": [
+          784,
+          7,
+          4
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Spiele"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "das Spiel"
+        ]
+      },
+      {
+        "translations": [
+          "to play"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          57,
+          0,
+          0
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "spielen"
+        ]
+      },
+      {
+        "translations": [
+          "football"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          165,
+          0,
+          223
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "der Fu\u00dfball"
+        ]
+      },
+      {
+        "translations": [
+          "to drive",
+          "to ride"
+        ],
+        "is_fav": false,
+        "total_att": 61,
+        "correct_att": 59,
+        "win_streak": 53,
+        "latest_att_timestamp": [
+          724,
+          1,
+          15
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "3p",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ]
+          ],
+          "values": [
+            [
+              "f\u00e4hrst"
+            ],
+            [
+              "f\u00e4hrt"
+            ],
+            [
+              "gefahren sein"
+            ],
+            [
+              "fuhr"
+            ]
+          ]
+        },
+        "phrases": {
+          "Fahrrad fahren": [
+            "ride a bicycle"
+          ]
+        },
+        "tags": [
+          "verb",
+          "sein-verb"
+        ],
+        "variants": [
+          "fahren"
+        ]
+      },
+      {
+        "translations": [
+          "wheel",
+          "bicycle"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          82,
+          2,
+          68
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die R\u00e4der"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -er"
+        ],
+        "variants": [
+          "das Rad"
+        ]
+      },
+      {
+        "translations": [
+          "bicycle"
+        ],
+        "is_fav": false,
+        "total_att": 20,
+        "correct_att": 18,
+        "win_streak": 11,
+        "latest_att_timestamp": [
+          184,
+          1,
+          34
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Fahrr\u00e4der"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -er"
+        ],
+        "variants": [
+          "das Fahrrad"
+        ]
+      },
+      {
+        "translations": [
+          "heart"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Herzen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "das Herz"
+        ]
+      },
+      {
+        "translations": [
+          "photo"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          454,
+          1,
+          1
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Fotos"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -s"
+        ],
+        "variants": [
+          "das Foto"
+        ]
+      },
+      {
+        "translations": [
+          "possible"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          116,
+          0,
+          26
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "m\u00f6glich"
+        ]
+      },
+      {
+        "translations": [
+          "to hear",
+          "to listen"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          82,
+          3,
+          64
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "h\u00f6ren"
+        ]
+      },
+      {
+        "translations": [
+          "computer"
+        ],
+        "is_fav": false,
+        "total_att": 9,
+        "correct_att": 8,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Computer"
+            ]
+          ]
+        },
+        "tags": [
+          "plural -",
+          "noun"
+        ],
+        "variants": [
+          "der Computer"
+        ]
+      },
+      {
+        "translations": [
+          "to call",
+          "to be called"
+        ],
+        "is_fav": false,
+        "total_att": 51,
+        "correct_att": 47,
+        "win_streak": 32,
+        "latest_att_timestamp": [
+          706,
+          0,
+          12
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ]
+          ],
+          "values": [
+            [
+              "hie\u00df"
+            ],
+            [
+              "gehei\u00dfen haben"
+            ]
+          ]
+        },
+        "phrases": {
+          "ich hei\u00dfe John": [
+            "my name is John"
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "hei\u00dfen"
+        ]
+      },
+      {
+        "translations": [
+          "butter"
+        ],
+        "is_fav": false,
+        "total_att": 11,
+        "correct_att": 10,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          221,
+          1,
+          14
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "die Butter"
+        ]
+      },
+      {
+        "translations": [
+          "cheese"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          454,
+          2,
+          74
+        ],
+        "tags": [
+          "noun"
+        ],
+        "variants": [
+          "der K\u00e4se"
+        ]
+      },
+      {
+        "translations": [
+          "complete"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          78,
+          1,
+          125
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "fertig"
+        ]
+      },
+      {
+        "translations": [
+          "to run"
+        ],
+        "is_fav": false,
+        "total_att": 83,
+        "correct_att": 80,
+        "win_streak": 52,
+        "latest_att_timestamp": [
+          770,
+          0,
+          23
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "3p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ]
+          ],
+          "values": [
+            [
+              "l\u00e4ufst"
+            ],
+            [
+              "l\u00e4uft"
+            ],
+            [
+              "lief"
+            ],
+            [
+              "gelaufen sein"
+            ]
+          ]
+        },
+        "phrases": {
+          "Ski laufen": [
+            "skiing"
+          ]
+        },
+        "tags": [
+          "verb",
+          "sein-verb"
+        ],
+        "variants": [
+          "laufen"
+        ]
+      },
+      {
+        "translations": [
+          "ball"
+        ],
+        "is_fav": false,
+        "total_att": 15,
+        "correct_att": 14,
+        "win_streak": 2,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die B\u00e4lle"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "der Ball"
+        ]
+      },
+      {
+        "translations": [
+          "also"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          97,
+          3,
+          49
+        ],
+        "variants": [
+          "auch"
+        ]
+      },
+      {
+        "translations": [
+          "teacher"
+        ],
+        "is_fav": false,
+        "total_att": 14,
+        "correct_att": 13,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          163,
+          1,
+          210
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Lehrer"
+            ]
+          ]
+        },
+        "tags": [
+          "plural -",
+          "noun"
+        ],
+        "variants": [
+          "der Lehrer"
+        ]
+      },
+      {
+        "translations": [
+          "student"
+        ],
+        "is_fav": false,
+        "total_att": 10,
+        "correct_att": 10,
+        "win_streak": 10,
+        "latest_att_timestamp": [
+          752,
+          6,
+          20
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "F",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              "Plur",
+              "F",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Studenten"
+            ],
+            [
+              "die Studentin"
+            ],
+            [
+              "die Studentinnen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "der Student"
+        ]
+      },
+      {
+        "translations": [
+          "problem"
+        ],
+        "is_fav": false,
+        "total_att": 20,
+        "correct_att": 19,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          97,
+          3,
+          251
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Probleme"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "das Problem"
+        ]
+      },
+      {
+        "translations": [
+          "to order"
+        ],
+        "is_fav": false,
+        "total_att": 23,
+        "correct_att": 22,
+        "win_streak": 12,
+        "latest_att_timestamp": [
+          367,
+          1,
+          60
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "bestellen"
+        ]
+      },
+      {
+        "translations": [
+          "song"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Lieder"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -er"
+        ],
+        "variants": [
+          "das Lied"
+        ]
+      },
+      {
+        "translations": [
+          "picture"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Bilder"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -er"
+        ],
+        "variants": [
+          "das Bild"
+        ]
+      },
+      {
+        "translations": [
+          "to swim"
+        ],
+        "is_fav": true,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          40,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ]
+          ],
+          "values": [
+            [
+              "schwamm"
+            ],
+            [
+              "geschwommen sein"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "sein-verb"
+        ],
+        "variants": [
+          "schwimmen"
+        ]
+      },
+      {
+        "translations": [
+          "to can"
+        ],
+        "is_fav": false,
+        "total_att": 62,
+        "correct_att": 61,
+        "win_streak": 49,
+        "latest_att_timestamp": [
+          614,
+          0,
+          31
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "3p",
+              "",
+              ""
+            ],
+            [
+              "Plur",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ]
+          ],
+          "values": [
+            [
+              "kann"
+            ],
+            [
+              "kannst"
+            ],
+            [
+              "kann"
+            ],
+            [
+              "k\u00f6nnt"
+            ],
+            [
+              "gekonnt haben"
+            ],
+            [
+              "konnte"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "k\u00f6nnen"
+        ]
+      },
+      {
+        "translations": [
+          "to dance"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          45,
+          0,
+          0
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "tanzen"
+        ]
+      },
+      {
+        "translations": [
+          "to paint"
+        ],
+        "is_fav": false,
+        "total_att": 15,
+        "correct_att": 14,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          163,
+          1,
+          193
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "malen"
+        ]
+      },
+      {
+        "translations": [
+          "to sing"
+        ],
+        "is_fav": true,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          80,
+          3,
+          50
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ]
+          ],
+          "values": [
+            [
+              "sang"
+            ],
+            [
+              "gesungen haben"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "singen"
+        ]
+      },
+      {
+        "translations": [
+          "clear"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "klar"
+        ]
+      },
+      {
+        "translations": [
+          "number"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Nummern"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Nummer"
+        ]
+      },
+      {
+        "translations": [
+          "welcome"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 5,
+        "win_streak": 2,
+        "latest_att_timestamp": [
+          47,
+          0,
+          0
+        ],
+        "variants": [
+          "willkommen"
+        ]
+      },
+      {
+        "translations": [
+          "month"
+        ],
+        "is_fav": false,
+        "total_att": 23,
+        "correct_att": 21,
+        "win_streak": 10,
+        "latest_att_timestamp": [
+          413,
+          4,
+          15
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Monate"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "der Monat"
+        ]
+      },
+      {
+        "translations": [
+          "week"
+        ],
+        "is_fav": false,
+        "total_att": 14,
+        "correct_att": 13,
+        "win_streak": 10,
+        "latest_att_timestamp": [
+          41,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Wochen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Woche"
+        ]
+      },
+      {
+        "translations": [
+          "hour"
+        ],
+        "is_fav": false,
+        "total_att": 16,
+        "correct_att": 15,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          59,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Stunden"
+            ]
+          ]
+        },
+        "notes": [
+          "= 60 min"
+        ],
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Stunde"
+        ]
+      },
+      {
+        "translations": [
+          "second"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          41,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Sekunden"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Sekunde"
+        ]
+      },
+      {
+        "translations": [
+          "minute"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          78,
+          1,
+          49
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Minuten"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Minute"
+        ]
+      },
+      {
+        "translations": [
+          "today"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          11,
+          0,
+          0
+        ],
+        "variants": [
+          "heute"
+        ]
+      },
+      {
+        "translations": [
+          "yesterday"
+        ],
+        "is_fav": false,
+        "total_att": 9,
+        "correct_att": 9,
+        "win_streak": 9,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "variants": [
+          "gestern"
+        ]
+      },
+      {
+        "translations": [
+          "soon"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          116,
+          0,
+          201
+        ],
+        "tags": [
+          "adjective"
+        ],
+        "variants": [
+          "bald"
+        ]
+      },
+      {
+        "translations": [
+          "often"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "variants": [
+          "oft"
+        ]
+      },
+      {
+        "translations": [
+          "to end"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "enden"
+        ]
+      },
+      {
+        "translations": [
+          "always"
+        ],
+        "is_fav": false,
+        "total_att": 5,
+        "correct_att": 5,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          97,
+          3,
+          254
+        ],
+        "variants": [
+          "immer"
+        ]
+      },
+      {
+        "translations": [
+          "now"
+        ],
+        "is_fav": false,
+        "total_att": 6,
+        "correct_att": 6,
+        "win_streak": 6,
+        "latest_att_timestamp": [
+          628,
+          0,
+          9
+        ],
+        "variants": [
+          "jetzt"
+        ]
+      },
+      {
+        "translations": [
+          "monday"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          78,
+          0,
+          83
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Montage"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "der Montag"
+        ]
+      },
+      {
+        "translations": [
+          "to cost"
+        ],
+        "is_fav": false,
+        "total_att": 11,
+        "correct_att": 10,
+        "win_streak": 3,
+        "latest_att_timestamp": [
+          116,
+          0,
+          254
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "kosten"
+        ]
+      },
+      {
+        "translations": [
+          "to think"
+        ],
+        "is_fav": false,
+        "total_att": 76,
+        "correct_att": 71,
+        "win_streak": 30,
+        "latest_att_timestamp": [
+          730,
+          1,
+          6
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ]
+          ],
+          "values": [
+            [
+              "gedacht haben"
+            ],
+            [
+              "dachte"
+            ]
+          ]
+        },
+        "phrases": {
+          "denken an dich": [
+            "think of you"
+          ],
+          "denken \u00fcber dich": [
+            "think about you"
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "denken"
+        ]
+      },
+      {
+        "translations": [
+          "to know"
+        ],
+        "is_fav": false,
+        "total_att": 64,
+        "correct_att": 63,
+        "win_streak": 58,
+        "latest_att_timestamp": [
+          738,
+          1,
+          12
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "3p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ]
+          ],
+          "values": [
+            [
+              "wei\u00df"
+            ],
+            [
+              "wei\u00dft"
+            ],
+            [
+              "wei\u00df"
+            ],
+            [
+              "wusste"
+            ],
+            [
+              "gewusst haben"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "wissen"
+        ]
+      },
+      {
+        "translations": [
+          "to ask"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          12,
+          0,
+          0
+        ],
+        "phrases": {
+          "fragen dich nach ihm": [
+            "ask you about him"
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "fragen"
+        ]
+      },
+      {
+        "translations": [
+          "with"
+        ],
+        "is_fav": false,
+        "total_att": 7,
+        "correct_att": 7,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          73,
+          0,
+          37
+        ],
+        "variants": [
+          "mit"
+        ]
+      },
+      {
+        "translations": [
+          "to say"
+        ],
+        "is_fav": false,
+        "total_att": 23,
+        "correct_att": 19,
+        "win_streak": 2,
+        "latest_att_timestamp": [
+          116,
+          0,
+          219
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "sagen"
+        ]
+      },
+      {
+        "translations": [
+          "to want"
+        ],
+        "is_fav": false,
+        "total_att": 31,
+        "correct_att": 27,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          611,
+          9,
+          3
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "3p",
+              "",
+              ""
+            ],
+            [
+              "Plur",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ]
+          ],
+          "values": [
+            [
+              "will"
+            ],
+            [
+              "willst"
+            ],
+            [
+              "will"
+            ],
+            [
+              "wollt"
+            ],
+            [
+              "wollte"
+            ]
+          ]
+        },
+        "notes": [
+          "a wish, not a request"
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "wollen"
+        ]
+      },
+      {
+        "translations": [
+          "to remain"
+        ],
+        "is_fav": true,
+        "total_att": 76,
+        "correct_att": 58,
+        "win_streak": 24,
+        "latest_att_timestamp": [
+          32,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ]
+          ],
+          "values": [
+            [
+              "blieb"
+            ],
+            [
+              "geblieben sein"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "sein-verb"
+        ],
+        "variants": [
+          "bleiben"
+        ]
+      },
+      {
+        "translations": [
+          "to take"
+        ],
+        "is_fav": false,
+        "total_att": 128,
+        "correct_att": 110,
+        "win_streak": 45,
+        "latest_att_timestamp": [
+          729,
+          0,
+          19
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "3p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ]
+          ],
+          "values": [
+            [
+              "nimmt"
+            ],
+            [
+              "nimmst"
+            ],
+            [
+              "genommen haben"
+            ],
+            [
+              "nahm"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "nehmen"
+        ]
+      },
+      {
+        "translations": [
+          "to show"
+        ],
+        "is_fav": false,
+        "total_att": 65,
+        "correct_att": 56,
+        "win_streak": 27,
+        "latest_att_timestamp": [
+          367,
+          1,
+          55
+        ],
+        "tags": [
+          "difficult",
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "zeigen"
+        ]
+      },
+      {
+        "translations": [
+          "to know"
+        ],
+        "is_fav": false,
+        "total_att": 101,
+        "correct_att": 92,
+        "win_streak": 50,
+        "latest_att_timestamp": [
+          724,
+          1,
+          12
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Konjuktiv II"
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ]
+          ],
+          "values": [
+            [
+              "gekannt haben"
+            ],
+            [
+              "kennte"
+            ],
+            [
+              "kannte"
+            ]
+          ]
+        },
+        "phrases": {
+          "ich kenne dich": [
+            "I know you"
+          ]
+        },
+        "notes": [
+          "to know someone"
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "kennen"
+        ]
+      },
+      {
+        "translations": [
+          "to pay"
+        ],
+        "is_fav": false,
+        "total_att": 11,
+        "correct_att": 10,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "zahlen"
+        ]
+      },
+      {
+        "translations": [
+          "to buy"
+        ],
+        "is_fav": false,
+        "total_att": 46,
+        "correct_att": 44,
+        "win_streak": 34,
+        "latest_att_timestamp": [
+          803,
+          0,
+          4
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "2p",
+              "",
+              ""
+            ],
+            [
+              "Sing",
+              "",
+              "",
+              "3p",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "kaufst"
+            ],
+            [
+              "kauft"
+            ]
+          ]
+        },
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "kaufen"
+        ]
+      },
+      {
+        "translations": [
+          "to add"
+        ],
+        "is_fav": false,
+        "total_att": 88,
+        "correct_att": 67,
+        "win_streak": 39,
+        "latest_att_timestamp": [
+          502,
+          3,
+          0
+        ],
+        "tags": [
+          "difficult",
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "erg\u00e4nzen"
+        ]
+      },
+      {
+        "translations": [
+          "to control",
+          "to check"
+        ],
+        "is_fav": false,
+        "total_att": 9,
+        "correct_att": 7,
+        "win_streak": 2,
+        "latest_att_timestamp": [
+          60,
+          0,
+          0
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "kontrollieren"
+        ]
+      },
+      {
+        "translations": [
+          "to choose",
+          "to select"
+        ],
+        "is_fav": false,
+        "total_att": 36,
+        "correct_att": 29,
+        "win_streak": 5,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "w\u00e4hlen"
+        ]
+      },
+      {
+        "translations": [
+          "to save"
+        ],
+        "is_fav": false,
+        "total_att": 59,
+        "correct_att": 44,
+        "win_streak": 31,
+        "latest_att_timestamp": [
+          78,
+          0,
+          8
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "speichern"
+        ]
+      },
+      {
+        "translations": [
+          "doctor"
+        ],
+        "is_fav": false,
+        "total_att": 4,
+        "correct_att": 4,
+        "win_streak": 4,
+        "latest_att_timestamp": [
+          32,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "F",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              "Plur",
+              "F",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die \u00c4rztin"
+            ],
+            [
+              "die \u00c4rzte"
+            ],
+            [
+              "die \u00c4rztinnen"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "der Arzt"
+        ]
+      },
+      {
+        "translations": [
+          "sibling"
+        ],
+        "is_fav": false,
+        "total_att": 12,
+        "correct_att": 11,
+        "win_streak": 10,
+        "latest_att_timestamp": [
+          40,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Geschwister"
+            ]
+          ]
+        },
+        "tags": [
+          "plural -",
+          "noun"
+        ],
+        "variants": [
+          "das Geschwister"
+        ]
+      },
+      {
+        "translations": [
+          "to cry"
+        ],
+        "is_fav": false,
+        "total_att": 11,
+        "correct_att": 11,
+        "win_streak": 11,
+        "latest_att_timestamp": [
+          97,
+          3,
+          209
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "weinen"
+        ]
+      },
+      {
+        "translations": [
+          "to cook"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          30,
+          0,
+          0
+        ],
+        "tags": [
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "kochen"
+        ]
+      },
+      {
+        "translations": [
+          "body"
+        ],
+        "is_fav": false,
+        "total_att": 13,
+        "correct_att": 11,
+        "win_streak": 7,
+        "latest_att_timestamp": [
+          13,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die K\u00f6rper"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -er"
+        ],
+        "variants": [
+          "der K\u00f6rper"
+        ]
+      },
+      {
+        "translations": [
+          "door"
+        ],
+        "is_fav": false,
+        "total_att": 23,
+        "correct_att": 18,
+        "win_streak": 10,
+        "latest_att_timestamp": [
+          40,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die T\u00fcren"
+            ]
+          ]
+        },
+        "tags": [
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die T\u00fcr"
+        ]
+      },
+      {
+        "translations": [
+          "secure",
+          "sure"
+        ],
+        "is_fav": false,
+        "total_att": 19,
+        "correct_att": 19,
+        "win_streak": 19,
+        "latest_att_timestamp": [
+          181,
+          1,
+          52
+        ],
+        "tags": [
+          "difficult",
+          "new",
+          "adjective"
+        ],
+        "variants": [
+          "sicher"
+        ]
+      },
+      {
+        "translations": [
+          "gift"
+        ],
+        "is_fav": false,
+        "total_att": 18,
+        "correct_att": 17,
+        "win_streak": 11,
+        "latest_att_timestamp": [
+          31,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Geschenke"
+            ]
+          ]
+        },
+        "tags": [
+          "new",
+          "noun",
+          "plural -e"
+        ],
+        "variants": [
+          "das Geschenk"
+        ]
+      },
+      {
+        "translations": [
+          "window"
+        ],
+        "is_fav": false,
+        "total_att": 18,
+        "correct_att": 16,
+        "win_streak": 15,
+        "latest_att_timestamp": [
+          752,
+          5,
+          11
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Fenster"
+            ]
+          ]
+        },
+        "tags": [
+          "plural -",
+          "new",
+          "noun"
+        ],
+        "variants": [
+          "das Fenster"
+        ]
+      },
+      {
+        "translations": [
+          "plant"
+        ],
+        "is_fav": false,
+        "total_att": 13,
+        "correct_att": 13,
+        "win_streak": 13,
+        "latest_att_timestamp": [
+          165,
+          0,
+          247
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Pflanzen"
+            ]
+          ]
+        },
+        "tags": [
+          "new",
+          "noun",
+          "plural -en"
+        ],
+        "variants": [
+          "die Pflanze"
+        ]
+      },
+      {
+        "translations": [
+          "to switch"
+        ],
+        "is_fav": false,
+        "total_att": 13,
+        "correct_att": 12,
+        "win_streak": 10,
+        "latest_att_timestamp": [
+          11,
+          0,
+          0
+        ],
+        "tags": [
+          "difficult",
+          "new",
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "schalten"
+        ]
+      },
+      {
+        "translations": [
+          "switch"
+        ],
+        "is_fav": false,
+        "total_att": 20,
+        "correct_att": 18,
+        "win_streak": 16,
+        "latest_att_timestamp": [
+          31,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Schalter"
+            ]
+          ]
+        },
+        "notes": [
+          "Lichtschalter - light switch"
+        ],
+        "tags": [
+          "new",
+          "noun",
+          "plural -er"
+        ],
+        "variants": [
+          "der Schalter"
+        ]
+      },
+      {
+        "translations": [
+          "desire"
+        ],
+        "is_fav": false,
+        "total_att": 11,
+        "correct_att": 11,
+        "win_streak": 11,
+        "latest_att_timestamp": [
+          241,
+          3,
+          42
+        ],
+        "tags": [
+          "new",
+          "noun"
+        ],
+        "variants": [
+          "die Lust"
+        ]
+      },
+      {
+        "translations": [
+          "participant"
+        ],
+        "is_fav": false,
+        "total_att": 12,
+        "correct_att": 12,
+        "win_streak": 12,
+        "latest_att_timestamp": [
+          163,
+          1,
+          256
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Teilnehmer"
+            ]
+          ]
+        },
+        "tags": [
+          "new",
+          "noun",
+          "plural -er"
+        ],
+        "variants": [
+          "der Teilnehmer"
+        ]
+      },
+      {
+        "translations": [
+          "bath",
+          "bathroom"
+        ],
+        "is_fav": false,
+        "total_att": 16,
+        "correct_att": 14,
+        "win_streak": 13,
+        "latest_att_timestamp": [
+          749,
+          2,
+          7
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die B\u00e4der"
+            ]
+          ]
+        },
+        "tags": [
+          "new",
+          "noun",
+          "plural -er"
+        ],
+        "variants": [
+          "das Bad"
+        ]
+      },
+      {
+        "translations": [
+          "hungry"
+        ],
+        "is_fav": false,
+        "total_att": 18,
+        "correct_att": 17,
+        "win_streak": 10,
+        "latest_att_timestamp": [
+          31,
+          0,
+          0
+        ],
+        "tags": [
+          "new",
+          "adjective"
+        ],
+        "variants": [
+          "hungrig"
+        ]
+      },
+      {
+        "translations": [
+          "hunger"
+        ],
+        "is_fav": false,
+        "total_att": 11,
+        "correct_att": 11,
+        "win_streak": 11,
+        "latest_att_timestamp": [
+          163,
+          1,
+          289
+        ],
+        "tags": [
+          "new",
+          "noun"
+        ],
+        "variants": [
+          "der Hunger"
+        ]
+      },
+      {
+        "translations": [
+          "thirst"
+        ],
+        "is_fav": false,
+        "total_att": 13,
+        "correct_att": 12,
+        "win_streak": 11,
+        "latest_att_timestamp": [
+          165,
+          0,
+          244
+        ],
+        "tags": [
+          "difficult",
+          "new",
+          "noun"
+        ],
+        "variants": [
+          "der Durst"
+        ]
+      },
+      {
+        "translations": [
+          "thirsty"
+        ],
+        "is_fav": false,
+        "total_att": 12,
+        "correct_att": 12,
+        "win_streak": 12,
+        "latest_att_timestamp": [
+          165,
+          0,
+          155
+        ],
+        "tags": [
+          "new",
+          "adjective"
+        ],
+        "variants": [
+          "durstig"
+        ]
+      },
+      {
+        "translations": [
+          "joy"
+        ],
+        "is_fav": false,
+        "total_att": 20,
+        "correct_att": 16,
+        "win_streak": 12,
+        "latest_att_timestamp": [
+          31,
+          0,
+          0
+        ],
+        "tags": [
+          "difficult",
+          "new",
+          "noun"
+        ],
+        "variants": [
+          "die Freude"
+        ]
+      },
+      {
+        "translations": [
+          "happy",
+          "cheerful"
+        ],
+        "is_fav": false,
+        "total_att": 42,
+        "correct_att": 36,
+        "win_streak": 15,
+        "latest_att_timestamp": [
+          393,
+          4,
+          10
+        ],
+        "tags": [
+          "difficult",
+          "new",
+          "adjective"
+        ],
+        "variants": [
+          "fr\u00f6hlich"
+        ]
+      },
+      {
+        "translations": [
+          "without"
+        ],
+        "is_fav": false,
+        "total_att": 9,
+        "correct_att": 9,
+        "win_streak": 9,
+        "latest_att_timestamp": [
+          163,
+          1,
+          184
+        ],
+        "tags": [
+          "new"
+        ],
+        "variants": [
+          "ohne"
+        ]
+      },
+      {
+        "translations": [
+          "bedroom"
+        ],
+        "is_fav": false,
+        "total_att": 13,
+        "correct_att": 11,
+        "win_streak": 11,
+        "latest_att_timestamp": [
+          12,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Plur",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "die Schlafzimmer"
+            ]
+          ]
+        },
+        "tags": [
+          "plural -",
+          "new",
+          "noun"
+        ],
+        "variants": [
+          "das Schlafzimmer"
+        ]
+      },
+      {
+        "translations": [
+          "breakfast"
+        ],
+        "is_fav": false,
+        "total_att": 23,
+        "correct_att": 18,
+        "win_streak": 17,
+        "latest_att_timestamp": [
+          250,
+          0,
+          12
+        ],
+        "tags": [
+          "new",
+          "noun"
+        ],
+        "variants": [
+          "das Fr\u00fchst\u00fcck"
+        ]
+      },
+      {
+        "translations": [
+          "to move"
+        ],
+        "is_fav": false,
+        "total_att": 8,
+        "correct_att": 8,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          41,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ]
+          ],
+          "values": [
+            [
+              "bewegte"
+            ],
+            [
+              "bewegt haben"
+            ]
+          ]
+        },
+        "tags": [
+          "new",
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "bewegen"
+        ]
+      },
+      {
+        "translations": [
+          "to demand"
+        ],
+        "is_fav": false,
+        "total_att": 49,
+        "correct_att": 37,
+        "win_streak": 34,
+        "latest_att_timestamp": [
+          130,
+          0,
+          7
+        ],
+        "tags": [
+          "new",
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "fordern"
+        ]
+      },
+      {
+        "translations": [
+          "to close"
+        ],
+        "is_fav": false,
+        "total_att": 32,
+        "correct_att": 30,
+        "win_streak": 27,
+        "latest_att_timestamp": [
+          793,
+          0,
+          8
+        ],
+        "forms": {
+          "keys": [
+            [
+              "Sing",
+              "",
+              "",
+              "1p",
+              "",
+              "Pr\u00e4teritum"
+            ],
+            [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Infinitiv II"
+            ]
+          ],
+          "values": [
+            [
+              "schloss"
+            ],
+            [
+              "geschlossen haben"
+            ]
+          ]
+        },
+        "tags": [
+          "new",
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "schlie\u00dfen"
+        ]
+      },
+      {
+        "translations": [
+          "to open"
+        ],
+        "is_fav": false,
+        "total_att": 14,
+        "correct_att": 12,
+        "win_streak": 8,
+        "latest_att_timestamp": [
+          57,
+          0,
+          0
+        ],
+        "tags": [
+          "new",
+          "verb",
+          "haben-verb"
+        ],
+        "variants": [
+          "\u00f6ffnen"
+        ]
+      },
+      {
+        "translations": [
+          "first"
+        ],
+        "is_fav": false,
+        "total_att": 0,
+        "correct_att": 0,
+        "win_streak": 0,
+        "latest_att_timestamp": [
+          0,
+          0,
+          0
+        ],
+        "tags": [
+          "new"
+        ],
+        "variants": [
+          "erste"
+        ]
+      },
+      {
+        "translations": [
+          "second"
+        ],
+        "is_fav": false,
+        "total_att": 0,
+        "correct_att": 0,
+        "win_streak": 0,
+        "latest_att_timestamp": [
+          0,
+          0,
+          0
+        ],
+        "tags": [
+          "new"
+        ],
+        "variants": [
+          "zweite"
+        ]
+      },
+      {
+        "translations": [
+          "third"
+        ],
+        "is_fav": false,
+        "total_att": 0,
+        "correct_att": 0,
+        "win_streak": 0,
+        "latest_att_timestamp": [
+          0,
+          0,
+          0
+        ],
+        "tags": [
+          "new"
+        ],
+        "variants": [
+          "dritte"
+        ]
+      },
+      {
+        "translations": [
+          "they"
+        ],
+        "is_fav": false,
+        "total_att": 0,
+        "correct_att": 0,
+        "win_streak": 0,
+        "latest_att_timestamp": [
+          0,
+          0,
+          0
+        ],
+        "forms": {
+          "keys": [
+            [
+              "",
+              "",
+              "Gen",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Dat",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              "Akk",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "values": [
+            [
+              "ihrer"
+            ],
+            [
+              "ihren"
+            ],
+            [
+              "sie"
+            ]
+          ]
+        },
+        "variants": [
+          "sie"
+        ]
+      }
+    ],
+    "indexes": {
+      "lemmas": {
+        "ich": [
+          0
+        ],
+        "wir": [
+          1
+        ],
+        "du": [
+          2
+        ],
+        "ihr": [
+          3
+        ],
+        "er": [
+          4
+        ],
+        "es": [
+          5
+        ],
+        "sie": [
+          245,
+          6
+        ],
+        "Sie": [
+          7
+        ],
+        "eins": [
+          8
+        ],
+        "zwei": [
+          9
+        ],
+        "drei": [
+          10
+        ],
+        "vier": [
+          11
+        ],
+        "f\u00fcnf": [
+          12
+        ],
+        "sechs": [
+          13
+        ],
+        "sieben": [
+          14
+        ],
+        "acht": [
+          15
+        ],
+        "neun": [
+          16
+        ],
+        "zehn": [
+          17
+        ],
+        "elf": [
+          18
+        ],
+        "zw\u00f6lf": [
+          19
+        ],
+        "dreizehn": [
+          20
+        ],
+        "vierzehn": [
+          21
+        ],
+        "f\u00fcnfzehn": [
+          22
+        ],
+        "sechzehn": [
+          23
+        ],
+        "siebzehn": [
+          24
+        ],
+        "achtzehn": [
+          25
+        ],
+        "neunzehn": [
+          26
+        ],
+        "null": [
+          27
+        ],
+        "ja": [
+          28
+        ],
+        "nein": [
+          29
+        ],
+        "der Mann": [
+          30
+        ],
+        "die Frau": [
+          31
+        ],
+        "der Mensch": [
+          32
+        ],
+        "der Kuli": [
+          33
+        ],
+        "der Kugelschreiber": [
+          34
+        ],
+        "das Tier": [
+          35
+        ],
+        "das Kind": [
+          36
+        ],
+        "der Hund": [
+          37
+        ],
+        "das Pferd": [
+          38
+        ],
+        "die Biene": [
+          39
+        ],
+        "das Wasser": [
+          40
+        ],
+        "die Katze": [
+          41
+        ],
+        "der Kater": [
+          42
+        ],
+        "der Freund": [
+          43
+        ],
+        "hallo": [
+          44
+        ],
+        "tsch\u00fc\u00df": [
+          45
+        ],
+        "sehen": [
+          46
+        ],
+        "der Bruder": [
+          47
+        ],
+        "die Schwester": [
+          48
+        ],
+        "der Vater": [
+          49
+        ],
+        "die Mutter": [
+          50
+        ],
+        "der Sohn": [
+          51
+        ],
+        "die Tochter": [
+          52
+        ],
+        "die Tasche": [
+          53
+        ],
+        "das Fleisch": [
+          54
+        ],
+        "der Fisch": [
+          55
+        ],
+        "deutsch": [
+          56
+        ],
+        "alles": [
+          57
+        ],
+        "alle": [
+          58
+        ],
+        "der Saft": [
+          59
+        ],
+        "gut": [
+          60
+        ],
+        "schlecht": [
+          61
+        ],
+        "sch\u00f6n": [
+          62
+        ],
+        "klein": [
+          63
+        ],
+        "gro\u00df": [
+          64
+        ],
+        "kalt": [
+          65
+        ],
+        "warm": [
+          66
+        ],
+        "hei\u00df": [
+          67
+        ],
+        "viel": [
+          68
+        ],
+        "wenig": [
+          69
+        ],
+        "richtig": [
+          70
+        ],
+        "falsch": [
+          71
+        ],
+        "stark": [
+          72
+        ],
+        "schwach": [
+          73
+        ],
+        "leicht": [
+          74
+        ],
+        "der Kaffee": [
+          75
+        ],
+        "der Tee": [
+          76
+        ],
+        "schwer": [
+          77
+        ],
+        "was": [
+          78
+        ],
+        "wer": [
+          79
+        ],
+        "wo": [
+          80
+        ],
+        "woher": [
+          81
+        ],
+        "wohin": [
+          82
+        ],
+        "wann": [
+          83
+        ],
+        "warum": [
+          84
+        ],
+        "wie": [
+          85
+        ],
+        "rot": [
+          86
+        ],
+        "blau": [
+          87
+        ],
+        "das Telefon": [
+          88
+        ],
+        "das Handy": [
+          89
+        ],
+        "danke": [
+          90
+        ],
+        "bitte": [
+          91
+        ],
+        "die Nacht": [
+          92
+        ],
+        "der Tag": [
+          93
+        ],
+        "der Abend": [
+          94
+        ],
+        "der Morgen": [
+          95
+        ],
+        "morgen": [
+          96
+        ],
+        "alt": [
+          97
+        ],
+        "neu": [
+          98
+        ],
+        "die Eltern": [
+          99
+        ],
+        "das Essen": [
+          100
+        ],
+        "essen": [
+          101
+        ],
+        "gehen": [
+          102
+        ],
+        "kommen": [
+          103
+        ],
+        "der Apfel": [
+          104
+        ],
+        "das Brot": [
+          105
+        ],
+        "das Br\u00f6tchen": [
+          106
+        ],
+        "die Zitrone": [
+          107
+        ],
+        "die Orange": [
+          108
+        ],
+        "die Tomate": [
+          109
+        ],
+        "die Kartoffel": [
+          110
+        ],
+        "die Zwiebel": [
+          111
+        ],
+        "die Banane": [
+          112
+        ],
+        "die Suppe": [
+          113
+        ],
+        "das Haus": [
+          114
+        ],
+        "sehr": [
+          115
+        ],
+        "und": [
+          116
+        ],
+        "oder": [
+          117
+        ],
+        "gern": [
+          118
+        ],
+        "lieben": [
+          119
+        ],
+        "m\u00f6gen": [
+          120
+        ],
+        "leben": [
+          121
+        ],
+        "wohnen": [
+          122
+        ],
+        "haben": [
+          123
+        ],
+        "wichtig": [
+          124
+        ],
+        "das Leben": [
+          125
+        ],
+        "die Liebe": [
+          126
+        ],
+        "zu": [
+          127
+        ],
+        "so": [
+          128
+        ],
+        "das Jahr": [
+          129
+        ],
+        "schwarz": [
+          130
+        ],
+        "wei\u00df": [
+          131
+        ],
+        "die Zeitung": [
+          132
+        ],
+        "das Buch": [
+          133
+        ],
+        "der Brief": [
+          134
+        ],
+        "jung": [
+          135
+        ],
+        "verstehen": [
+          136
+        ],
+        "schnell": [
+          137
+        ],
+        "schreiben": [
+          138
+        ],
+        "sprechen": [
+          139
+        ],
+        "langsam": [
+          140
+        ],
+        "die Milch": [
+          141
+        ],
+        "das Geld": [
+          142
+        ],
+        "brauchen": [
+          143
+        ],
+        "nur": [
+          144
+        ],
+        "trinken": [
+          145
+        ],
+        "einige": [
+          146
+        ],
+        "der Name": [
+          147
+        ],
+        "das Hobby": [
+          148
+        ],
+        "das Obst": [
+          149
+        ],
+        "das Gem\u00fcse": [
+          150
+        ],
+        "lesen": [
+          151
+        ],
+        "das Spiel": [
+          152
+        ],
+        "spielen": [
+          153
+        ],
+        "der Fu\u00dfball": [
+          154
+        ],
+        "fahren": [
+          155
+        ],
+        "das Rad": [
+          156
+        ],
+        "das Fahrrad": [
+          157
+        ],
+        "das Herz": [
+          158
+        ],
+        "das Foto": [
+          159
+        ],
+        "m\u00f6glich": [
+          160
+        ],
+        "h\u00f6ren": [
+          161
+        ],
+        "der Computer": [
+          162
+        ],
+        "hei\u00dfen": [
+          163
+        ],
+        "die Butter": [
+          164
+        ],
+        "der K\u00e4se": [
+          165
+        ],
+        "fertig": [
+          166
+        ],
+        "laufen": [
+          167
+        ],
+        "der Ball": [
+          168
+        ],
+        "auch": [
+          169
+        ],
+        "der Lehrer": [
+          170
+        ],
+        "der Student": [
+          171
+        ],
+        "das Problem": [
+          172
+        ],
+        "bestellen": [
+          173
+        ],
+        "das Lied": [
+          174
+        ],
+        "das Bild": [
+          175
+        ],
+        "schwimmen": [
+          176
+        ],
+        "k\u00f6nnen": [
+          177
+        ],
+        "tanzen": [
+          178
+        ],
+        "malen": [
+          179
+        ],
+        "singen": [
+          180
+        ],
+        "klar": [
+          181
+        ],
+        "die Nummer": [
+          182
+        ],
+        "willkommen": [
+          183
+        ],
+        "der Monat": [
+          184
+        ],
+        "die Woche": [
+          185
+        ],
+        "die Stunde": [
+          186
+        ],
+        "die Sekunde": [
+          187
+        ],
+        "die Minute": [
+          188
+        ],
+        "heute": [
+          189
+        ],
+        "gestern": [
+          190
+        ],
+        "bald": [
+          191
+        ],
+        "oft": [
+          192
+        ],
+        "enden": [
+          193
+        ],
+        "immer": [
+          194
+        ],
+        "jetzt": [
+          195
+        ],
+        "der Montag": [
+          196
+        ],
+        "kosten": [
+          197
+        ],
+        "denken": [
+          198
+        ],
+        "wissen": [
+          199
+        ],
+        "fragen": [
+          200
+        ],
+        "mit": [
+          201
+        ],
+        "sagen": [
+          202
+        ],
+        "wollen": [
+          203
+        ],
+        "bleiben": [
+          204
+        ],
+        "nehmen": [
+          205
+        ],
+        "zeigen": [
+          206
+        ],
+        "kennen": [
+          207
+        ],
+        "zahlen": [
+          208
+        ],
+        "kaufen": [
+          209
+        ],
+        "erg\u00e4nzen": [
+          210
+        ],
+        "kontrollieren": [
+          211
+        ],
+        "w\u00e4hlen": [
+          212
+        ],
+        "speichern": [
+          213
+        ],
+        "der Arzt": [
+          214
+        ],
+        "das Geschwister": [
+          215
+        ],
+        "weinen": [
+          216
+        ],
+        "kochen": [
+          217
+        ],
+        "der K\u00f6rper": [
+          218
+        ],
+        "die T\u00fcr": [
+          219
+        ],
+        "sicher": [
+          220
+        ],
+        "das Geschenk": [
+          221
+        ],
+        "das Fenster": [
+          222
+        ],
+        "die Pflanze": [
+          223
+        ],
+        "schalten": [
+          224
+        ],
+        "der Schalter": [
+          225
+        ],
+        "die Lust": [
+          226
+        ],
+        "der Teilnehmer": [
+          227
+        ],
+        "das Bad": [
+          228
+        ],
+        "hungrig": [
+          229
+        ],
+        "der Hunger": [
+          230
+        ],
+        "der Durst": [
+          231
+        ],
+        "durstig": [
+          232
+        ],
+        "die Freude": [
+          233
+        ],
+        "fr\u00f6hlich": [
+          234
+        ],
+        "ohne": [
+          235
+        ],
+        "das Schlafzimmer": [
+          236
+        ],
+        "das Fr\u00fchst\u00fcck": [
+          237
+        ],
+        "bewegen": [
+          238
+        ],
+        "fordern": [
+          239
+        ],
+        "schlie\u00dfen": [
+          240
+        ],
+        "\u00f6ffnen": [
+          241
+        ],
+        "erste": [
+          242
+        ],
+        "zweite": [
+          243
+        ],
+        "dritte": [
+          244
+        ]
+      },
+      "translations": {
+        "1": [
+          8
+        ],
+        "2": [
+          9
+        ],
+        "3": [
+          10
+        ],
+        "4": [
+          11
+        ],
+        "5": [
+          12
+        ],
+        "6": [
+          13
+        ],
+        "7": [
+          14
+        ],
+        "8": [
+          15
+        ],
+        "9": [
+          16
+        ],
+        "10": [
+          17
+        ],
+        "11": [
+          18
+        ],
+        "12": [
+          19
+        ],
+        "13": [
+          20
+        ],
+        "14": [
+          21
+        ],
+        "15": [
+          22
+        ],
+        "16": [
+          23
+        ],
+        "17": [
+          24
+        ],
+        "18": [
+          25
+        ],
+        "19": [
+          26
+        ],
+        "0": [
+          27
+        ],
+        "I": [
+          0
+        ],
+        "we": [
+          1
+        ],
+        "me": [
+          0
+        ],
+        "you": [
+          7,
+          2,
+          3
+        ],
+        "he": [
+          4
+        ],
+        "it": [
+          5
+        ],
+        "she": [
+          6
+        ],
+        "one": [
+          8
+        ],
+        "two": [
+          9
+        ],
+        "three": [
+          10
+        ],
+        "four": [
+          11
+        ],
+        "five": [
+          12
+        ],
+        "six": [
+          13
+        ],
+        "seven": [
+          14
+        ],
+        "eight": [
+          15
+        ],
+        "nine": [
+          16
+        ],
+        "ten": [
+          17
+        ],
+        "eleven": [
+          18
+        ],
+        "twelve": [
+          19
+        ],
+        "thirteen": [
+          20
+        ],
+        "fourteen": [
+          21
+        ],
+        "fifteen": [
+          22
+        ],
+        "sixteen": [
+          23
+        ],
+        "seventeen": [
+          24
+        ],
+        "eighteen": [
+          25
+        ],
+        "nineteen": [
+          26
+        ],
+        "zero": [
+          27
+        ],
+        "yes": [
+          28
+        ],
+        "no": [
+          29
+        ],
+        "man": [
+          32,
+          30
+        ],
+        "male": [
+          30
+        ],
+        "husband": [
+          30
+        ],
+        "woman": [
+          31
+        ],
+        "female": [
+          31
+        ],
+        "wife": [
+          31
+        ],
+        "human": [
+          32
+        ],
+        "pen": [
+          33,
+          34
+        ],
+        "animal": [
+          35
+        ],
+        "beast": [
+          35
+        ],
+        "pet": [
+          35
+        ],
+        "kid": [
+          36
+        ],
+        "child": [
+          36
+        ],
+        "baby": [
+          36
+        ],
+        "dog": [
+          37
+        ],
+        "horse": [
+          38
+        ],
+        "bee": [
+          39
+        ],
+        "water": [
+          40
+        ],
+        "cat": [
+          41,
+          42
+        ],
+        "friend": [
+          43
+        ],
+        "hello": [
+          44
+        ],
+        "bye": [
+          45
+        ],
+        "to see": [
+          46
+        ],
+        "brother": [
+          47
+        ],
+        "sister": [
+          48
+        ],
+        "father": [
+          49
+        ],
+        "dad": [
+          49
+        ],
+        "mother": [
+          50
+        ],
+        "mom": [
+          50
+        ],
+        "son": [
+          51
+        ],
+        "daughter": [
+          52
+        ],
+        "bag": [
+          53
+        ],
+        "pocket": [
+          53
+        ],
+        "meat": [
+          54
+        ],
+        "flesh": [
+          54
+        ],
+        "fish": [
+          55
+        ],
+        "german": [
+          56
+        ],
+        "all": [
+          57,
+          58
+        ],
+        "everything": [
+          57
+        ],
+        "everyone": [
+          58
+        ],
+        "everybody": [
+          58
+        ],
+        "juice": [
+          59
+        ],
+        "good": [
+          60
+        ],
+        "bad": [
+          61
+        ],
+        "nice": [
+          62
+        ],
+        "small": [
+          63
+        ],
+        "little": [
+          63
+        ],
+        "big": [
+          64
+        ],
+        "large": [
+          64
+        ],
+        "cold": [
+          65
+        ],
+        "warm": [
+          66
+        ],
+        "hot": [
+          67
+        ],
+        "much": [
+          68
+        ],
+        "many": [
+          68
+        ],
+        "a lot": [
+          68
+        ],
+        "few": [
+          69
+        ],
+        "a little": [
+          69
+        ],
+        "correct": [
+          70
+        ],
+        "right": [
+          70
+        ],
+        "wrong": [
+          71
+        ],
+        "incorrect": [
+          71
+        ],
+        "false": [
+          71
+        ],
+        "strong": [
+          72
+        ],
+        "weak": [
+          73
+        ],
+        "light": [
+          74
+        ],
+        "easy": [
+          74
+        ],
+        "simple": [
+          74
+        ],
+        "coffee": [
+          75
+        ],
+        "tea": [
+          76
+        ],
+        "difficult": [
+          77
+        ],
+        "hard": [
+          77
+        ],
+        "heavy": [
+          77
+        ],
+        "what": [
+          78
+        ],
+        "who": [
+          79
+        ],
+        "where": [
+          80,
+          82
+        ],
+        "where from": [
+          81
+        ],
+        "when": [
+          83
+        ],
+        "why": [
+          84
+        ],
+        "how": [
+          85
+        ],
+        "red": [
+          86
+        ],
+        "blue": [
+          87
+        ],
+        "phone": [
+          88,
+          89
+        ],
+        "mobile": [
+          89
+        ],
+        "mobile phone": [
+          89
+        ],
+        "thanks": [
+          90
+        ],
+        "please": [
+          91
+        ],
+        "night": [
+          92
+        ],
+        "day": [
+          93
+        ],
+        "evening": [
+          94
+        ],
+        "eve": [
+          94
+        ],
+        "morning": [
+          95
+        ],
+        "tomorrow": [
+          96
+        ],
+        "old": [
+          97
+        ],
+        "new": [
+          98
+        ],
+        "parents": [
+          99
+        ],
+        "to eat": [
+          101
+        ],
+        "to go": [
+          102
+        ],
+        "to walk": [
+          102
+        ],
+        "to come": [
+          103
+        ],
+        "to arrive": [
+          103
+        ],
+        "to love": [
+          119
+        ],
+        "to like": [
+          120
+        ],
+        "to live": [
+          121,
+          122
+        ],
+        "to dwell": [
+          122
+        ],
+        "to reside": [
+          122
+        ],
+        "to have": [
+          123
+        ],
+        "to understand": [
+          136
+        ],
+        "to write": [
+          138
+        ],
+        "to type": [
+          138
+        ],
+        "to speak": [
+          139
+        ],
+        "to talk": [
+          139
+        ],
+        "to say": [
+          202,
+          139
+        ],
+        "to need": [
+          143
+        ],
+        "to require": [
+          143
+        ],
+        "to drink": [
+          145
+        ],
+        "to read": [
+          151
+        ],
+        "to play": [
+          153
+        ],
+        "to drive": [
+          155
+        ],
+        "to ride": [
+          155
+        ],
+        "food": [
+          100
+        ],
+        "apple": [
+          104
+        ],
+        "bread": [
+          105
+        ],
+        "lemon": [
+          107
+        ],
+        "bun": [
+          106
+        ],
+        "orange": [
+          108
+        ],
+        "tomato": [
+          109
+        ],
+        "potato": [
+          110
+        ],
+        "onion": [
+          111
+        ],
+        "banana": [
+          112
+        ],
+        "soup": [
+          113
+        ],
+        "house": [
+          114
+        ],
+        "and": [
+          116
+        ],
+        "or": [
+          117
+        ],
+        "gladly": [
+          118
+        ],
+        "very": [
+          115
+        ],
+        "life": [
+          125
+        ],
+        "important": [
+          124
+        ],
+        "love": [
+          126
+        ],
+        "so": [
+          128
+        ],
+        "too": [
+          127
+        ],
+        "year": [
+          129
+        ],
+        "black": [
+          130
+        ],
+        "white": [
+          131
+        ],
+        "newspaper": [
+          132
+        ],
+        "book": [
+          133
+        ],
+        "letter": [
+          134
+        ],
+        "young": [
+          135
+        ],
+        "fast": [
+          137
+        ],
+        "slow": [
+          140
+        ],
+        "milk": [
+          141
+        ],
+        "money": [
+          142
+        ],
+        "also": [
+          169
+        ],
+        "welcome": [
+          183
+        ],
+        "number": [
+          182
+        ],
+        "clear": [
+          181
+        ],
+        "to paint": [
+          179
+        ],
+        "to sing": [
+          180
+        ],
+        "to dance": [
+          178
+        ],
+        "to swim": [
+          176
+        ],
+        "to can": [
+          177
+        ],
+        "song": [
+          174
+        ],
+        "picture": [
+          175
+        ],
+        "to order": [
+          173
+        ],
+        "student": [
+          171
+        ],
+        "problem": [
+          172
+        ],
+        "teacher": [
+          170
+        ],
+        "only": [
+          144
+        ],
+        "some": [
+          146
+        ],
+        "name": [
+          147
+        ],
+        "hobby": [
+          148
+        ],
+        "fruits": [
+          149
+        ],
+        "vegetables": [
+          150
+        ],
+        "game": [
+          152
+        ],
+        "football": [
+          154
+        ],
+        "bicycle": [
+          156,
+          157
+        ],
+        "wheel": [
+          156
+        ],
+        "heart": [
+          158
+        ],
+        "photo": [
+          159
+        ],
+        "possible": [
+          160
+        ],
+        "to hear": [
+          161
+        ],
+        "to listen": [
+          161
+        ],
+        "to call": [
+          163
+        ],
+        "to be called": [
+          163
+        ],
+        "to run": [
+          167
+        ],
+        "window": [
+          222
+        ],
+        "plant": [
+          223
+        ],
+        "to switch": [
+          224
+        ],
+        "switch": [
+          225
+        ],
+        "desire": [
+          226
+        ],
+        "participant": [
+          227
+        ],
+        "bath": [
+          228
+        ],
+        "bathroom": [
+          228
+        ],
+        "hungry": [
+          229
+        ],
+        "hunger": [
+          230
+        ],
+        "thirst": [
+          231
+        ],
+        "thirsty": [
+          232
+        ],
+        "joy": [
+          233
+        ],
+        "happy": [
+          234
+        ],
+        "cheerful": [
+          234
+        ],
+        "cheese": [
+          165
+        ],
+        "butter": [
+          164
+        ],
+        "complete": [
+          166
+        ],
+        "bedroom": [
+          236
+        ],
+        "sibling": [
+          215
+        ],
+        "to know": [
+          199,
+          207
+        ],
+        "to want": [
+          203
+        ],
+        "to pay": [
+          208
+        ],
+        "to show": [
+          206
+        ],
+        "to select": [
+          212
+        ],
+        "to choose": [
+          212
+        ],
+        "to cry": [
+          216
+        ],
+        "to think": [
+          198
+        ],
+        "to cook": [
+          217
+        ],
+        "to open": [
+          241
+        ],
+        "to close": [
+          240
+        ],
+        "gift": [
+          221
+        ],
+        "without": [
+          235
+        ],
+        "body": [
+          218
+        ],
+        "ball": [
+          168
+        ],
+        "yesterday": [
+          190
+        ],
+        "today": [
+          189
+        ],
+        "soon": [
+          191
+        ],
+        "often": [
+          192
+        ],
+        "always": [
+          194
+        ],
+        "now": [
+          195
+        ],
+        "monday": [
+          196
+        ],
+        "with": [
+          201
+        ],
+        "to ask": [
+          200
+        ],
+        "doctor": [
+          214
+        ],
+        "to save": [
+          213
+        ],
+        "to demand": [
+          239
+        ],
+        "to add": [
+          210
+        ],
+        "to remain": [
+          204
+        ],
+        "to control": [
+          211
+        ],
+        "to check": [
+          211
+        ],
+        "breakfast": [
+          237
+        ],
+        "door": [
+          219
+        ],
+        "to take": [
+          205
+        ],
+        "secure": [
+          220
+        ],
+        "sure": [
+          220
+        ],
+        "to buy": [
+          209
+        ],
+        "to cost": [
+          197
+        ],
+        "computer": [
+          162
+        ],
+        "week": [
+          185
+        ],
+        "month": [
+          184
+        ],
+        "hour": [
+          186
+        ],
+        "minute": [
+          188
+        ],
+        "second": [
+          243,
+          187
+        ],
+        "to end": [
+          193
+        ],
+        "first": [
+          242
+        ],
+        "third": [
+          244
+        ],
+        "to move": [
+          238
+        ],
+        "they": [
+          245
+        ]
+      },
+      "forms": {
+        "meiner": [
+          0
+        ],
+        "mir": [
+          0
+        ],
+        "mich": [
+          0
+        ],
+        "unser": [
+          1
+        ],
+        "uns": [
+          1
+        ],
+        "deiner": [
+          2
+        ],
+        "dir": [
+          2
+        ],
+        "dich": [
+          2
+        ],
+        "euer": [
+          3
+        ],
+        "euch": [
+          3
+        ],
+        "seiner": [
+          4,
+          5
+        ],
+        "ihm": [
+          4,
+          5
+        ],
+        "ihn": [
+          4
+        ],
+        "es": [
+          5
+        ],
+        "ihrer": [
+          245,
+          6
+        ],
+        "ihr": [
+          6
+        ],
+        "sie": [
+          245,
+          6
+        ],
+        "Ihrer": [
+          7
+        ],
+        "Ihnen": [
+          7
+        ],
+        "Sie": [
+          7
+        ],
+        "die M\u00e4nner": [
+          30
+        ],
+        "die Frauen": [
+          31
+        ],
+        "die Menschen": [
+          32
+        ],
+        "die Kulis": [
+          33
+        ],
+        "die Kugelschreiber": [
+          34
+        ],
+        "die Tiere": [
+          35
+        ],
+        "die Kinder": [
+          36
+        ],
+        "die Hunde": [
+          37
+        ],
+        "die Pferde": [
+          38
+        ],
+        "die Bienen": [
+          39
+        ],
+        "die Katzen": [
+          41
+        ],
+        "die Kater": [
+          42
+        ],
+        "die Freunde": [
+          43
+        ],
+        "die Freundin": [
+          43
+        ],
+        "siehst": [
+          46
+        ],
+        "sieht": [
+          46
+        ],
+        "gesehen haben": [
+          46
+        ],
+        "sah": [
+          46
+        ],
+        "die Br\u00fcder": [
+          47
+        ],
+        "die Schwestern": [
+          48
+        ],
+        "die V\u00e4ter": [
+          49
+        ],
+        "die M\u00fctter": [
+          50
+        ],
+        "die S\u00f6hne": [
+          51
+        ],
+        "die T\u00f6chter": [
+          52
+        ],
+        "die Taschen": [
+          53
+        ],
+        "die Fische": [
+          55
+        ],
+        "die S\u00e4fte": [
+          59
+        ],
+        "besser": [
+          60
+        ],
+        "am besten": [
+          60
+        ],
+        "mehr": [
+          68
+        ],
+        "am meisten": [
+          68
+        ],
+        "minder": [
+          69
+        ],
+        "am mindesten": [
+          69
+        ],
+        "die Telefone": [
+          88
+        ],
+        "die N\u00e4chte": [
+          92
+        ],
+        "die Tage": [
+          93
+        ],
+        "\u00e4lter": [
+          97
+        ],
+        "am \u00e4ltesten": [
+          97
+        ],
+        "das Elter": [
+          99
+        ],
+        "isst": [
+          101
+        ],
+        "esst": [
+          101
+        ],
+        "a\u00df": [
+          101
+        ],
+        "gegessen haben": [
+          101
+        ],
+        "gegangen sein": [
+          102
+        ],
+        "ging": [
+          102
+        ],
+        "kam": [
+          103
+        ],
+        "gekommen sein": [
+          103
+        ],
+        "die \u00c4pfel": [
+          104
+        ],
+        "die Zitronen": [
+          107
+        ],
+        "die Orangen": [
+          108
+        ],
+        "die Tomaten": [
+          109
+        ],
+        "die Kartoffeln": [
+          110
+        ],
+        "die Zwiebeln": [
+          111
+        ],
+        "die Bananen": [
+          112
+        ],
+        "die Suppen": [
+          113
+        ],
+        "die H\u00e4user": [
+          114
+        ],
+        "mag": [
+          120
+        ],
+        "magst": [
+          120
+        ],
+        "m\u00f6gt": [
+          120
+        ],
+        "gemocht haben": [
+          120
+        ],
+        "mochte": [
+          120
+        ],
+        "hast": [
+          123
+        ],
+        "hat": [
+          123
+        ],
+        "gehabt haben": [
+          123
+        ],
+        "hatte": [
+          123
+        ],
+        "die Jahre": [
+          129
+        ],
+        "die Zeitungen": [
+          132
+        ],
+        "die B\u00fccher": [
+          133
+        ],
+        "die Briefe": [
+          134
+        ],
+        "verstand": [
+          136
+        ],
+        "verstanden haben": [
+          136
+        ],
+        "schrieb": [
+          138
+        ],
+        "geschrieben haben": [
+          138
+        ],
+        "sprichst": [
+          139
+        ],
+        "spricht": [
+          139
+        ],
+        "sprach": [
+          139
+        ],
+        "gesprochen haben": [
+          139
+        ],
+        "getrunken haben": [
+          145
+        ],
+        "trank": [
+          145
+        ],
+        "die Namen": [
+          147
+        ],
+        "die Hobbys": [
+          148
+        ],
+        "liest": [
+          151
+        ],
+        "lest": [
+          151
+        ],
+        "las": [
+          151
+        ],
+        "gelesen haben": [
+          151
+        ],
+        "die Spiele": [
+          152
+        ],
+        "f\u00e4hrst": [
+          155
+        ],
+        "f\u00e4hrt": [
+          155
+        ],
+        "gefahren sein": [
+          155
+        ],
+        "fuhr": [
+          155
+        ],
+        "die R\u00e4der": [
+          156
+        ],
+        "die Fahrr\u00e4der": [
+          157
+        ],
+        "die Herzen": [
+          158
+        ],
+        "die Fotos": [
+          159
+        ],
+        "die Computer": [
+          162
+        ],
+        "hie\u00df": [
+          163
+        ],
+        "gehei\u00dfen haben": [
+          163
+        ],
+        "l\u00e4ufst": [
+          167
+        ],
+        "l\u00e4uft": [
+          167
+        ],
+        "lief": [
+          167
+        ],
+        "gelaufen sein": [
+          167
+        ],
+        "die B\u00e4lle": [
+          168
+        ],
+        "die Lehrer": [
+          170
+        ],
+        "die Studenten": [
+          171
+        ],
+        "die Studentin": [
+          171
+        ],
+        "die Studentinnen": [
+          171
+        ],
+        "die Probleme": [
+          172
+        ],
+        "die Lieder": [
+          174
+        ],
+        "die Bilder": [
+          175
+        ],
+        "schwamm": [
+          176
+        ],
+        "geschwommen sein": [
+          176
+        ],
+        "kann": [
+          177
+        ],
+        "kannst": [
+          177
+        ],
+        "k\u00f6nnt": [
+          177
+        ],
+        "gekonnt haben": [
+          177
+        ],
+        "konnte": [
+          177
+        ],
+        "sang": [
+          180
+        ],
+        "gesungen haben": [
+          180
+        ],
+        "die Nummern": [
+          182
+        ],
+        "die Monate": [
+          184
+        ],
+        "die Wochen": [
+          185
+        ],
+        "die Stunden": [
+          186
+        ],
+        "die Sekunden": [
+          187
+        ],
+        "die Minuten": [
+          188
+        ],
+        "die Montage": [
+          196
+        ],
+        "gedacht haben": [
+          198
+        ],
+        "dachte": [
+          198
+        ],
+        "wei\u00df": [
+          199
+        ],
+        "wei\u00dft": [
+          199
+        ],
+        "wusste": [
+          199
+        ],
+        "gewusst haben": [
+          199
+        ],
+        "will": [
+          203
+        ],
+        "willst": [
+          203
+        ],
+        "wollt": [
+          203
+        ],
+        "wollte": [
+          203
+        ],
+        "blieb": [
+          204
+        ],
+        "geblieben sein": [
+          204
+        ],
+        "nimmt": [
+          205
+        ],
+        "nimmst": [
+          205
+        ],
+        "genommen haben": [
+          205
+        ],
+        "nahm": [
+          205
+        ],
+        "gekannt haben": [
+          207
+        ],
+        "kennte": [
+          207
+        ],
+        "kannte": [
+          207
+        ],
+        "kaufst": [
+          209
+        ],
+        "kauft": [
+          209
+        ],
+        "die \u00c4rztin": [
+          214
+        ],
+        "die \u00c4rzte": [
+          214
+        ],
+        "die \u00c4rztinnen": [
+          214
+        ],
+        "die Geschwister": [
+          215
+        ],
+        "die K\u00f6rper": [
+          218
+        ],
+        "die T\u00fcren": [
+          219
+        ],
+        "die Geschenke": [
+          221
+        ],
+        "die Fenster": [
+          222
+        ],
+        "die Pflanzen": [
+          223
+        ],
+        "die Schalter": [
+          225
+        ],
+        "die Teilnehmer": [
+          227
+        ],
+        "die B\u00e4der": [
+          228
+        ],
+        "die Schlafzimmer": [
+          236
+        ],
+        "bewegte": [
+          238
+        ],
+        "bewegt haben": [
+          238
+        ],
+        "schloss": [
+          240
+        ],
+        "geschlossen haben": [
+          240
+        ]
+      },
+      "tags": {
+        "noun": [
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          59,
+          215,
+          75,
+          76,
+          88,
+          89,
+          92,
+          93,
+          94,
+          95,
+          99,
+          100,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          218,
+          110,
+          111,
+          112,
+          113,
+          219,
+          114,
+          125,
+          126,
+          129,
+          132,
+          133,
+          134,
+          141,
+          142,
+          147,
+          148,
+          149,
+          150,
+          152,
+          154,
+          156,
+          157,
+          158,
+          159,
+          162,
+          164,
+          165,
+          214,
+          168,
+          170,
+          171,
+          172,
+          174,
+          175,
+          221,
+          222,
+          223,
+          182,
+          225,
+          184,
+          185,
+          186,
+          187,
+          188,
+          226,
+          227,
+          228,
+          230,
+          231,
+          233,
+          196,
+          236,
+          237
+        ],
+        "difficult phrase": [],
+        "difficult form": [],
+        "verb": [
+          119,
+          120,
+          121,
+          122,
+          123,
+          136,
+          211,
+          138,
+          238,
+          199,
+          212,
+          143,
+          200,
+          139,
+          239,
+          198,
+          213,
+          240,
+          241,
+          145,
+          151,
+          153,
+          46,
+          155,
+          202,
+          203,
+          161,
+          163,
+          197,
+          204,
+          205,
+          206,
+          167,
+          207,
+          173,
+          176,
+          177,
+          178,
+          179,
+          180,
+          224,
+          216,
+          208,
+          193,
+          101,
+          102,
+          103,
+          209,
+          217,
+          210
+        ],
+        "new": [
+          237,
+          238,
+          239,
+          240,
+          241,
+          242,
+          220,
+          221,
+          222,
+          223,
+          224,
+          225,
+          226,
+          227,
+          228,
+          229,
+          230,
+          231,
+          232,
+          233,
+          234,
+          235,
+          236
+        ],
+        "plural -": [
+          34,
+          215,
+          42,
+          170,
+          104,
+          47,
+          236,
+          49,
+          50,
+          52,
+          222,
+          162
+        ],
+        "plural -s": [
+          159,
+          33,
+          148
+        ],
+        "plural -e": [
+          129,
+          134,
+          214,
+          35,
+          37,
+          38,
+          43,
+          152,
+          51,
+          55,
+          59,
+          168,
+          172,
+          221,
+          184,
+          88,
+          92,
+          93,
+          196
+        ],
+        "plural -er": [
+          227,
+          228,
+          36,
+          133,
+          225,
+          156,
+          157,
+          174,
+          175,
+          218,
+          114,
+          30
+        ],
+        "plural -en": [
+          132,
+          31,
+          32,
+          147,
+          39,
+          41,
+          48,
+          158,
+          53,
+          171,
+          223,
+          182,
+          185,
+          186,
+          187,
+          188,
+          99,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          219
+        ],
+        "plural other": [],
+        "adjective": [
+          124,
+          130,
+          131,
+          135,
+          137,
+          140,
+          160,
+          56,
+          60,
+          61,
+          62,
+          166,
+          63,
+          64,
+          65,
+          66,
+          67,
+          70,
+          71,
+          72,
+          73,
+          74,
+          220,
+          77,
+          181,
+          86,
+          87,
+          229,
+          232,
+          191,
+          234,
+          97,
+          98
+        ],
+        "difficult": [
+          206,
+          231,
+          233,
+          234,
+          220,
+          210,
+          224
+        ],
+        "ru": [],
+        "haben-verb": [
+          119,
+          120,
+          121,
+          122,
+          123,
+          136,
+          211,
+          138,
+          238,
+          199,
+          212,
+          143,
+          200,
+          139,
+          239,
+          198,
+          213,
+          240,
+          241,
+          145,
+          151,
+          153,
+          46,
+          202,
+          203,
+          161,
+          163,
+          197,
+          205,
+          206,
+          207,
+          173,
+          177,
+          178,
+          179,
+          180,
+          224,
+          216,
+          208,
+          193,
+          101,
+          209,
+          217,
+          210
+        ],
+        "sein-verb": [
+          167,
+          102,
+          103,
+          155,
+          176,
+          204
+        ]
+      }
+    },
+    "counters": {
+      "lemmas": 246,
+      "translations": 315,
+      "gram_forms": 196,
+      "word_forms": 196,
+      "phrases": 9,
+      "phrase_trs": 0,
+      "notes": 13
+    },
+    "features": {
+      "Numerus": [
+        "Sing",
+        "Plur"
+      ],
+      "Genus": [
+        "M",
+        "N",
+        "F"
+      ],
+      "Kasus": [
+        "Nom",
+        "Gen",
+        "Dat",
+        "Akk"
+      ],
+      "Person": [
+        "1p",
+        "2p",
+        "3p"
+      ],
+      "Komparation": [
+        "Positiv",
+        "Komparativ",
+        "Superlativ"
+      ],
+      "Verbformen": [
+        "Pr\u00e4sens",
+        "Pr\u00e4teritum",
+        "Infinitiv II",
+        "Konjuktiv I",
+        "Konjuktiv II",
+        "Partizip I",
+        "Partizip II"
+      ]
+    },
+    "tags": [
+      "difficult",
+      "noun",
+      "verb",
+      "adjective",
+      "haben-verb",
+      "sein-verb",
+      "plural -",
+      "plural -s",
+      "plural -e",
+      "plural -er",
+      "plural -en",
+      "plural other",
+      "new"
+    ],
+    "default_tag_ids": [
+      12
+    ],
+    "is_modified": false,
+    "id": "fd34420a-dba3-4146-a94a-67f54ae5169e"
+  }
+}

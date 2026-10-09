@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "data": {
+    "is_case_sensitive": false,
+    "format": "translation_to_word",
+    "order": "difficult_first",
+    "entries": "mostly_fav",
+    "forms": "random_form",
+    "tags": null
+  }
+}

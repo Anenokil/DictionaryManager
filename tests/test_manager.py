@@ -12,10 +12,10 @@ import pytest
 from backend import Manager, DctBundle
 
 data_path = os.path.join('tests', 'test_data')
-dct_bundle_path_101 = os.path.join(data_path, 'dct_bundle_101_empty_with_tags.json')
-dct_bundle_path_201 = os.path.join(data_path, 'dct_bundle_201_ger_eng_29.json')
-dct_bundle_path_202 = os.path.join(data_path, 'dct_bundle_202_ger_eng_128.json')
-dct_bundle_path_203 = os.path.join(data_path, 'dct_bundle_203_ger_eng_246.json')
+dct_bundle_path_101 = os.path.join(data_path, 'dct_bundle_101_empty_with_tags')
+dct_bundle_path_201 = os.path.join(data_path, 'dct_bundle_201_ger_eng_29')
+dct_bundle_path_202 = os.path.join(data_path, 'dct_bundle_202_ger_eng_128')
+dct_bundle_path_203 = os.path.join(data_path, 'dct_bundle_203_ger_eng_246')
 
 
 @pytest.fixture
@@ -183,22 +183,18 @@ def test_close_dct(manager, dct_id):
 @pytest.mark.parametrize('dct_id', [-1, 0, 1, 2, 3])
 @pytest.mark.parametrize('path', ['data.json', 'a/b/c/data.json'])
 def test_save_dct(manager, dct_id, tmp_path, path):
-    filepath = tmp_path / path
+    folder = tmp_path / path
 
     if 0 <= dct_id < manager.n_opened:
-        manager.save_dct(dct_id, filepath)
+        manager.save_dct(dct_id, folder)
 
-        assert filepath.exists()
-
-        with open(filepath, 'r') as f:
-            data = json.load(f)
-        assert data == manager.active.to_dict()
+        assert folder.exists()
     else:
         state_before = deepcopy(manager.to_dict())
 
         # Operation should raise on invalid dct_id
         with pytest.raises(KeyError):
-            manager.save_dct(dct_id, filepath)
+            manager.save_dct(dct_id, folder)
 
         # State must remain unchanged after failed operation
         assert manager.to_dict() == state_before

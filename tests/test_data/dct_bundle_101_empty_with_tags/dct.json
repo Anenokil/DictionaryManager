@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "data": {
+    "name": "test-dct_empty-with-tags",
+    "entries": [],
+    "indexes": {
+      "lemmas": {},
+      "translations": {},
+      "forms": {},
+      "tags": {
+        "difficult": [],
+        "noun": [],
+        "verb": [],
+        "adjective": [],
+        "haben-verb": [],
+        "sein-verb": [],
+        "plural -": [],
+        "plural -s": [],
+        "plural -e": [],
+        "plural -er": [],
+        "plural -en": [],
+        "plural other": [],
+        "new": []
+      }
+    },
+    "counters": {
+      "lemmas": 0,
+      "translations": 0,
+      "gram_forms": 0,
+      "word_forms": 0,
+      "phrases": 0,
+      "notes": 0,
+      "phrase_trs": 0
+    },
+    "features": {},
+    "tags": [
+      "difficult",
+      "noun",
+      "verb",
+      "adjective",
+      "haben-verb",
+      "sein-verb",
+      "plural -",
+      "plural -s",
+      "plural -e",
+      "plural -er",
+      "plural -en",
+      "plural other",
+      "new"
+    ],
+    "default_group_ids": [],
+    "is_modified": false,
+    "id": "cf1439eb-ac3d-4a4a-8011-5b9fa2c27845"
+  }
+}
