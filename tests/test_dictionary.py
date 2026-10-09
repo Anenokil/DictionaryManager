@@ -29,7 +29,7 @@ def to_type(iterable: Iterable[T], target_type: str) -> Iterable[T]:
 
 @pytest.fixture
 def dct_small(request):
-    dct_path = os.path.join('tests', 'test_data', 'dct_201_ger_eng_29.json')
+    dct_path = os.path.join('tests', 'test_data', 'dct_bundle_201_ger_eng_29/dct.json')
     with open(dct_path, 'r') as file:
         data = json.load(file)
     return Dictionary.from_json_dict(data)

@@ -21,8 +21,8 @@ def dct_fxt(request):
     dct_id = request.param
     dct_folder_path = os.path.join('tests', 'test_data')
     dct_fns = os.listdir(dct_folder_path)
-    dct_fn = {fn for fn in dct_fns if fn.startswith(f'dct_{dct_id}_')}.pop()
-    dct_path = os.path.join(dct_folder_path, dct_fn)
+    dct_fn = {fn for fn in dct_fns if fn.startswith(f'dct_bundle_{dct_id}_')}.pop()
+    dct_path = os.path.join(dct_folder_path, dct_fn, 'dct.json')
     with open(dct_path, 'r') as file:
         data = json.load(file)
     return Dictionary.from_json_dict(data)
