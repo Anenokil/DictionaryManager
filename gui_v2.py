@@ -3408,6 +3408,8 @@ class BrowsingPage(QWidget):
         dialog.exec()
         if dialog.exit_code == 'delete':
             self.source_model.removeRow(self.proxy_model.mapToSource(index).row())
+        else:
+            self.proxy_model.update_filter()
 
         self.update_tab_title()
 
@@ -3525,6 +3527,7 @@ class BrowsingPage(QWidget):
                     self.dct.remove_tag_from_entries(tag, selected)
 
         self.update_tab_title()
+        self.proxy_model.update_filter()
 
     def _update_selected_rows(self):
         selected_rows = {item.row() for item in self.entries_table.selectedIndexes()}
@@ -3537,12 +3540,14 @@ class BrowsingPage(QWidget):
         self.dct.add_to_fav(selected)
         self.update_tab_title()
         self._update_selected_rows()
+        self.proxy_model.update_filter()
 
     def unstar_entries(self):
         selected = set(self.get_selected_entries())
         self.dct.remove_from_fav(selected)
         self.update_tab_title()
         self._update_selected_rows()
+        self.proxy_model.update_filter()
 
     def merge_entries(self):
         selected = sorted(self.get_selected().items())
