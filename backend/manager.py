@@ -368,8 +368,8 @@ class Manager:
             os.makedirs(folder)
 
         bundle = self.opened_dct_bundles[dct_id]
-        bundle.save(folder)
         bundle.dct.mark_saved()
+        bundle.save(folder)
 
     def rename_dct(self, dct_id: int, new_name: str):
         """
