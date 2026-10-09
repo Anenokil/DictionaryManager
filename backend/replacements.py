@@ -106,10 +106,19 @@ class Replacer:
         return pattern.sub(lambda match: replacements[match.group()], text)
 
     def escape(self, text: str) -> str:
-        return ''.join(
-            char * 2 if char in self.active_modifiers else char
-            for char in text
-        )
+        inverse = {}
+        for modifier, char_pairs in self._replacements.items():
+            for input_char, output_char in char_pairs.items():
+                inverse[output_char] = modifier + input_char
+
+        def escape_char(char: str) -> str:
+            if char in self.active_modifiers:
+                return char * 2
+            if ('' in self._replacements) and (char in self._replacements['']):
+                return inverse[char]
+            return char
+
+        return ''.join(escape_char(char) for char in text)
 
     def to_dict(self) -> SerializedData:
         return {
