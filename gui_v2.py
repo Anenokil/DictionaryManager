@@ -824,6 +824,9 @@ class CheckableList(QScrollArea):
         self.checkboxes[text] = checkbox
         QTimer.singleShot(0, self._update_max_height)
 
+    def set_item(self, text: str, is_checked: bool = False):
+        self.checkboxes[text].setChecked(is_checked)
+
     def check_all(self):
         for cb in self.checkboxes.values():
             cb.setChecked(True)
@@ -1734,10 +1737,7 @@ class ImagePicker(QWidget):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(show_menu)
 
-        if path is None:
-            self._set_placeholder()
-        else:
-            self._set_image(path, is_new=False)
+        self.reset_image(path, is_new=False)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.image_label, alignment=Qt.AlignCenter)
@@ -1752,10 +1752,13 @@ class ImagePicker(QWidget):
 
         self._set_image(path, is_new=True)
 
-    def reset_image(self):
-        self._content = None
-        self._pixmap = None
-        self._set_placeholder()
+    def reset_image(self, path: str | None = None, is_new: bool = True):
+        if path is None:
+            self._content = None
+            self._pixmap = None
+            self._set_placeholder()
+        else:
+            self._set_image(path, is_new=is_new)
 
     def save_image(self):
         if self._pixmap is None:
@@ -1865,6 +1868,8 @@ class EntryDetailsDialog(QDialog):
 
     _role_gram_form = Qt.UserRole
     _role_valid = Qt.UserRole + 1
+    next_entry_requested = Signal()
+    prev_entry_requested = Signal()
 
     def __init__(
             self,
@@ -1881,8 +1886,11 @@ class EntryDetailsDialog(QDialog):
         self.is_new = entry is None
         self.exit_code = None
         self._ignore_item_changed = False
+        self._ignore_validation = False
 
         self._create_widgets()
+        self._fill_data()
+        self._configure_fields()
         self._set_shortcuts()
         self._set_tooltips()
         self._configure_window()
@@ -1892,9 +1900,12 @@ class EntryDetailsDialog(QDialog):
             self.validate_and_update_table(self.translations_table)
             self.lemma_variants_table.edit(self.lemma_variants_table.model().index(0, 0))
 
-    def _configure_window(self):
+    def _set_title(self):
         title = 'New Entry' if self.is_new else f'Entry "{variants_to_str(self.entry.variants)}"'
         self.setWindowTitle(title)
+
+    def _configure_window(self):
+        self._set_title()
         self.setModal(True)
         self.resize(800, 550)
 
@@ -1902,28 +1913,21 @@ class EntryDetailsDialog(QDialog):
         self.main_layout = QGridLayout(self)
         self.main_layout.setSizeConstraint(QLayout.SetMinAndMaxSize)
 
-        if self.is_new:
-            img_path = None
-        else:
-            img_fn = self.entry.img_fn
-            if img_fn is None:
-                img_path = None
-            else:
-                img_path = USER_IMAGES_DIR(self.dct.id) / img_fn
-        self.image = ImagePicker(QSize(300, 300), img_path)
+        self.image = ImagePicker(QSize(300, 300))
         self.main_layout.addWidget(self.image, 0, 0, alignment=Qt.AlignTop)
 
         self.fav_checkbox = QCheckBox('Starred')
-        self.fav_checkbox.setChecked(not self.is_new and self.entry.is_fav)
         self.main_layout.addWidget(self.fav_checkbox, 1, 0, alignment=Qt.AlignTop | Qt.AlignHCenter)
 
         self._create_fields()
+        if not self.is_new:
+            self._create_nav_buttons()
         self._create_buttons()
 
     def _create_fields(self):
         # Layout for displaying entry data
         self.form_layout = EqualGrowFormLayout(label_alignment=Qt.AlignRight | Qt.AlignVCenter)
-        self.main_layout.addLayout(self.form_layout, 0, 1, 3, 1)
+        self.main_layout.addLayout(self.form_layout, 0, 1, 4, 1)
 
         # Create labels
         lemma_variants_label = QLabel('Lemma\nvariants:', alignment=Qt.AlignRight)
@@ -1934,33 +1938,11 @@ class EntryDetailsDialog(QDialog):
         tags_label = QLabel('Tags:')
 
         # Create tables
-        self.lemma_variants_table = self.create_single_column_table(
-            [''] if self.is_new else [self.replacer.escape(s) for s in self.entry.variants]
-        )
-        self.translations_table = self.create_single_column_table(
-            [''] if self.is_new else [self.replacer.escape(s) for s in self.entry.tr]
-        )
-        self.forms_table = self.create_two_column_table(
-            [] if self.is_new else [
-                (gf, self.replacer.escape(wf))
-                for gf, wf in forms_to_pairs(self.entry.forms)
-            ],
-            hidden_content_1=[] if self.is_new else [
-                gram_form
-                for gram_form, word_forms in self.entry.forms.items()
-                for _ in word_forms
-            ],
-            is_1_col_active=False,
-        )
-        self.phrases_table = self.create_two_column_table(
-            [] if self.is_new else [
-                (self.replacer.escape(ph), self.replacer.escape(pt))
-                for ph, pt in phrases_to_pairs(self.entry.phrases)
-            ]
-        )
-        self.notes_table = self.create_single_column_table(
-            [] if self.is_new else [self.replacer.escape(s) for s in self.entry.notes]
-        )
+        self.lemma_variants_table = self.create_single_column_table()
+        self.translations_table = self.create_single_column_table()
+        self.forms_table = self.create_two_column_table()
+        self.phrases_table = self.create_two_column_table()
+        self.notes_table = self.create_single_column_table()
 
         self.tables = [
             self.lemma_variants_table,
@@ -1970,6 +1952,60 @@ class EntryDetailsDialog(QDialog):
             self.notes_table,
         ]
 
+        # Create other widgets
+        self.tags_list = CheckableList(
+            {
+                tag: False
+                for tag in sorted(self.dct.tags, key=lambda s: (s.lower(), s))
+            },
+            on_change=self.main_layout.activate,
+        )
+        self.tags_list.setWidgetResizable(True)
+        self.tags_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.tags_list.setMinimumHeight(50)
+        self.tags_list.setMinimumWidth(120)
+
+        # Create image buttons
+        self.add_lemma_variant_button = create_img_button(IMG_ADD_PATH)
+        self.add_translation_button = create_img_button(IMG_ADD_PATH)
+        self.add_form_button = create_img_button(IMG_ADD_PATH)
+        self.add_phrase_button = create_img_button(IMG_ADD_PATH)
+        self.add_note_button = create_img_button(IMG_ADD_PATH)
+        self.add_tag_button = create_img_button(IMG_ADD_PATH)
+
+        # Place widgets in the layout
+        def create_field_container(table, button) -> QWidget:
+            field_container = QWidget()
+            field_layout = QHBoxLayout(field_container)
+            field_layout.setContentsMargins(0, 0, 0, 0)
+            field_layout.setSizeConstraint(QLayout.SetMaximumSize)
+            field_layout.addWidget(table)
+            field_layout.addWidget(button)
+            return field_container
+
+        lemma_field_container = create_field_container(
+            self.lemma_variants_table, self.add_lemma_variant_button,
+        )
+        translations_field_container = create_field_container(
+            self.translations_table, self.add_translation_button,
+        )
+        forms_field_container = create_field_container(self.forms_table, self.add_form_button)
+        phrases_field_container = create_field_container(self.phrases_table, self.add_phrase_button)
+        notes_field_container = create_field_container(self.notes_table, self.add_note_button)
+        tags_field_container = create_field_container(self.tags_list, self.add_tag_button)
+
+        self.form_layout.add_row(
+            lemma_variants_label, lemma_field_container, self.lemma_variants_table
+        )
+        self.form_layout.add_row(
+            translations_label, translations_field_container, self.translations_table
+        )
+        self.form_layout.add_row(forms_label, forms_field_container, self.forms_table)
+        self.form_layout.add_row(phrases_label, phrases_field_container, self.phrases_table)
+        self.form_layout.add_row(notes_label, notes_field_container, self.notes_table)
+        self.form_layout.add_row(tags_label, tags_field_container, self.tags_list)
+
+    def _configure_fields(self):
         link_exclusive_selection(self.tables)
 
         def cnt(table: QTableWidget) -> int:
@@ -2011,27 +2047,6 @@ class EntryDetailsDialog(QDialog):
             ActionConfig('Delete', self.delete_notes, shortcut='Delete'),
         ])
 
-        # Create other widgets
-        self.tags_list = CheckableList(
-            {
-                tag: (not self.is_new) and (tag in self.entry.tags)
-                for tag in sorted(self.dct.tags, key=lambda s: (s.lower(), s))
-            },
-            on_change=self.main_layout.activate,
-        )
-        self.tags_list.setWidgetResizable(True)
-        self.tags_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.tags_list.setMinimumHeight(50)
-        self.tags_list.setMinimumWidth(120)
-
-        # Create image buttons
-        self.add_lemma_variant_button = create_img_button(IMG_ADD_PATH)
-        self.add_translation_button = create_img_button(IMG_ADD_PATH)
-        self.add_form_button = create_img_button(IMG_ADD_PATH)
-        self.add_phrase_button = create_img_button(IMG_ADD_PATH)
-        self.add_note_button = create_img_button(IMG_ADD_PATH)
-        self.add_tag_button = create_img_button(IMG_ADD_PATH)
-
         # Signal handling
         self.forms_table.cellDoubleClicked.connect(self.edit_gram_form)
 
@@ -2062,44 +2077,26 @@ class EntryDetailsDialog(QDialog):
         self.phrases_table.setItemDelegate(ColoredItemDelegate(self.phrases_table))
         self.notes_table.setItemDelegate(ColoredItemDelegate(self.notes_table))
 
-        # Place widgets in the layout
-        def create_field_container(table, button) -> QWidget:
-            field_container = QWidget()
-            field_layout = QHBoxLayout(field_container)
-            field_layout.setContentsMargins(0, 0, 0, 0)
-            field_layout.setSizeConstraint(QLayout.SetMaximumSize)
-            field_layout.addWidget(table)
-            field_layout.addWidget(button)
-            return field_container
-
-        lemma_field_container = create_field_container(
-            self.lemma_variants_table, self.add_lemma_variant_button,
-        )
-        translations_field_container = create_field_container(
-            self.translations_table, self.add_translation_button,
-        )
-        forms_field_container = create_field_container(self.forms_table, self.add_form_button)
-        phrases_field_container = create_field_container(self.phrases_table, self.add_phrase_button)
-        notes_field_container = create_field_container(self.notes_table, self.add_note_button)
-        tags_field_container = create_field_container(self.tags_list, self.add_tag_button)
-
-        self.form_layout.add_row(
-            lemma_variants_label, lemma_field_container, self.lemma_variants_table
-        )
-        self.form_layout.add_row(
-            translations_label, translations_field_container, self.translations_table
-        )
-        self.form_layout.add_row(forms_label, forms_field_container, self.forms_table)
-        self.form_layout.add_row(phrases_label, phrases_field_container, self.phrases_table)
-        self.form_layout.add_row(notes_label, notes_field_container, self.notes_table)
-        self.form_layout.add_row(tags_label, tags_field_container, self.tags_list)
-
         # Configure table growth behavior
         make_table_growable_up_to_content(self.lemma_variants_table, self.main_layout.activate)
         make_table_growable_up_to_content(self.translations_table, self.main_layout.activate)
         make_table_growable_up_to_content(self.forms_table, self.main_layout.activate)
         make_table_growable_up_to_content(self.phrases_table, self.main_layout.activate)
         make_table_growable_up_to_content(self.notes_table, self.main_layout.activate)
+
+    def _create_nav_buttons(self):
+        nav_buttons = QDialogButtonBox()
+
+        self.prev_button = QPushButton('Previous entry')
+        self.next_button = QPushButton('Next entry')
+
+        nav_buttons.addButton(self.next_button, QDialogButtonBox.RejectRole)
+        nav_buttons.addButton(self.prev_button, QDialogButtonBox.RejectRole)
+
+        self.prev_button.clicked.connect(self.open_prev_entry)
+        self.next_button.clicked.connect(self.open_next_entry)
+
+        self.main_layout.addWidget(nav_buttons, 2, 0, alignment=Qt.AlignBottom | Qt.AlignHCenter)
 
     def _create_buttons(self):
         buttons = QDialogButtonBox()
@@ -2110,16 +2107,70 @@ class EntryDetailsDialog(QDialog):
 
         buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
         buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
-        buttons.addButton(self.delete_button, QDialogButtonBox.DestructiveRole)
+        if not self.is_new:
+            buttons.addButton(self.delete_button, QDialogButtonBox.DestructiveRole)
 
         self.save_button.clicked.connect(self.save_and_close)
         self.close_button.clicked.connect(self.reject)
         self.delete_button.clicked.connect(self.delete_entry)
 
-        if self.is_new:
-            self.delete_button.setEnabled(False)
+        self.main_layout.addWidget(buttons, 3, 0, alignment=Qt.AlignBottom | Qt.AlignHCenter)
 
-        self.main_layout.addWidget(buttons, 2, 0, alignment=Qt.AlignBottom | Qt.AlignHCenter)
+    def _fill_data(self):
+        self._ignore_item_changed = True
+        self._ignore_validation = True
+
+        if self.is_new:
+            img_path = None
+        else:
+            img_fn = self.entry.img_fn
+            if img_fn is None:
+                img_path = None
+            else:
+                img_path = USER_IMAGES_DIR(self.dct.id) / img_fn
+        self.image.reset_image(img_path, is_new=False)
+
+        self.fav_checkbox.setChecked(not self.is_new and self.entry.is_fav)
+
+        self.fill_single_column_table(
+            self.lemma_variants_table,
+            [''] if self.is_new else [self.replacer.escape(s) for s in self.entry.variants]
+        )
+        self.fill_single_column_table(
+            self.translations_table,
+            [''] if self.is_new else [self.replacer.escape(s) for s in self.entry.tr]
+        )
+        self.fill_single_column_table(
+            self.notes_table,
+            [] if self.is_new else [self.replacer.escape(s) for s in self.entry.notes]
+        )
+
+        self.fill_two_column_table(
+            self.forms_table,
+            [] if self.is_new else [
+                (gf, self.replacer.escape(wf))
+                for gf, wf in forms_to_pairs(self.entry.forms)
+            ],
+            hidden_content_1=[] if self.is_new else [
+                gram_form
+                for gram_form, word_forms in self.entry.forms.items()
+                for _ in word_forms
+            ],
+            is_1_col_active=False,
+        )
+        self.fill_two_column_table(
+            self.phrases_table,
+            [] if self.is_new else [
+                (self.replacer.escape(ph), self.replacer.escape(pt))
+                for ph, pt in phrases_to_pairs(self.entry.phrases)
+            ]
+        )
+
+        for tag in self.dct.tags:
+            self.tags_list.set_item(tag, (not self.is_new) and (tag in self.entry.tags))
+
+        self._ignore_item_changed = False
+        self._ignore_validation = False
 
     def _set_shortcuts(self):
         set_widget_shortcut('Ctrl+N', self.lemma_variants_table, self.add_lemma_variant, True)
@@ -2149,7 +2200,7 @@ class EntryDetailsDialog(QDialog):
         self.close_button.setToolTip('Esc')
 
     @staticmethod
-    def create_single_column_table(content: Collection[str]) -> QTableWidget:
+    def create_single_column_table() -> QTableWidget:
         """Create a single-column table with the given data."""
 
         table = QTableWidget()
@@ -2162,23 +2213,10 @@ class EntryDetailsDialog(QDialog):
         header.setVisible(False)
         header.setSectionResizeMode(0, QHeaderView.Stretch)
 
-        # Populate data
-        table.setRowCount(len(content))
-        for row, item in enumerate(content):
-            table_item = QTableWidgetItem(item)
-            table.setItem(row, 0, table_item)
-
-        table.setMinimumHeight(30)
-        table.setMinimumWidth(100)
-
         return table
 
     @staticmethod
-    def create_two_column_table(
-            content: Collection[tuple[str, str]],
-            hidden_content_1: Collection[GramForm] | None = None,
-            is_1_col_active: bool = True,
-    ) -> QTableWidget:
+    def create_two_column_table() -> QTableWidget:
         """Create a two-column table with the given data."""
 
         table = QTableWidget()
@@ -2194,7 +2232,25 @@ class EntryDetailsDialog(QDialog):
         header.setSectionResizeMode(0, QHeaderView.Interactive)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
 
-        # Populate data
+        return table
+
+    @staticmethod
+    def fill_single_column_table(table: QTableWidget, content: Collection[str]):
+        table.setRowCount(len(content))
+        for row, item in enumerate(content):
+            table_item = QTableWidgetItem(item)
+            table.setItem(row, 0, table_item)
+
+        table.setMinimumHeight(30)
+        table.setMinimumWidth(100)
+
+    @staticmethod
+    def fill_two_column_table(
+            table: QTableWidget,
+            content: Collection[str],
+            hidden_content_1: Collection[GramForm] | None = None,
+            is_1_col_active: bool = True,
+    ):
         table.setRowCount(len(content))
         for row, (item1, item2) in enumerate(content):
             table_item1 = QTableWidgetItem(item1)
@@ -2221,8 +2277,6 @@ class EntryDetailsDialog(QDialog):
 
         table.resizeEvent = lambda event, orig=table.resizeEvent: (orig(event), update_column0_cap())
         update_column0_cap()
-
-        return table
 
     @staticmethod
     def add_row_to_single_column_table(table: QTableWidget):
@@ -2358,6 +2412,9 @@ class EntryDetailsDialog(QDialog):
         return False, 'Unknown table'
 
     def validate_and_update_table(self, table: QTableWidget):
+        if self._ignore_validation:
+            return
+
         # Validate all cells in the table
         for row in range(table.rowCount()):
             for column in range(table.columnCount()):
@@ -2488,6 +2545,21 @@ class EntryDetailsDialog(QDialog):
     def delete_notes(self):
         self._delete_selected_table_rows(self.notes_table)
 
+    def open_prev_entry(self):
+        self.prev_entry_requested.emit()
+
+    def open_next_entry(self):
+        self.next_entry_requested.emit()
+
+    def open_other_entry(self, entry: Entry):
+        self.entry = entry
+        self.is_new = False
+        self._ignore_item_changed = False
+        self._ignore_validation = False
+
+        self._set_title()
+        self._fill_data()
+
     def save_and_close(self):
         ok, error_msg = self.validate_all()
         if not ok:
@@ -2522,8 +2594,6 @@ class EntryDetailsDialog(QDialog):
             self.entry = self.dct.add_entry(
                 lemma_variants, translations, forms, phrases, notes, tags, is_fav, img_fn,
             )
-            self.is_new = False
-            self.delete_button.setEnabled(True)
         else:
             self.dct.rewrite_entry(
                 self.entry,
@@ -3399,12 +3469,39 @@ class BrowsingPage(QWidget):
             index: QModelIndex of the clicked cell.
         """
 
-        # Get object from cell data
-        item = self.proxy_model.index(index.row(), index.column())
-        entry = item.data(EntriesTableModel.ENTRY_ROLE)
+        def get_entry(row: int) -> Entry:
+            item = self.proxy_model.index(row, index.column())
+            entry = item.data(EntriesTableModel.ENTRY_ROLE)
+            return entry
 
-        # Create and show details dialog
-        dialog = EntryDetailsDialog(self.dct_bundle, entry, self)
+        def on_entry_saved(row: int):
+            self._update_row(row)
+            self.proxy_model.update_filter()
+
+        def open_prev(current: int):
+            open_entry_details(current - 1, False)
+
+        def open_next(current: int):
+            open_entry_details(current + 1, False)
+
+        row = index.row()
+        entry = get_entry(row)
+        dialog = EntryDetailsDialog(self.dct_bundle, entry, parent=self)
+
+        def open_entry_details(row: int, is_first: bool):
+            if not is_first:
+                entry = get_entry(row)
+                dialog.open_other_entry(entry)
+
+                dialog.prev_entry_requested.disconnect()
+                dialog.next_entry_requested.disconnect()
+            dialog.prev_entry_requested.connect(lambda: open_prev(row))
+            dialog.next_entry_requested.connect(lambda: open_next(row))
+
+            dialog.prev_button.setDisabled(row == 0)
+            dialog.next_button.setDisabled(row == self.proxy_model.rowCount() - 1)
+
+        open_entry_details(row, True)
         dialog.exec()
         if dialog.exit_code == 'delete':
             self.source_model.removeRow(self.proxy_model.mapToSource(index).row())
@@ -3528,6 +3625,11 @@ class BrowsingPage(QWidget):
 
         self.update_tab_title()
         self.proxy_model.update_filter()
+
+    def _update_row(self, row: int):
+        top_left = self.proxy_model.index(row, 0)
+        bottom_right = self.proxy_model.index(row, self.proxy_model.columnCount() - 1)
+        self.proxy_model.dataChanged.emit(top_left, bottom_right)
 
     def _update_selected_rows(self):
         selected_rows = {item.row() for item in self.entries_table.selectedIndexes()}
