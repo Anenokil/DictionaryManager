@@ -28,6 +28,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pipenv'
+        cache-dependency-path: Pipfile
 
     - name: Install dependencies
       run: |
