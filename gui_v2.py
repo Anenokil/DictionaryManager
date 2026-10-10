@@ -2555,10 +2555,27 @@ class EntryDetailsDialog(QDialog):
     def delete_notes(self):
         self._delete_selected_table_rows(self.notes_table)
 
+    def warn_unsaved_changes(self) -> bool:
+        if self.is_modified():
+            reply = QMessageBox.question(
+                self,
+                'Discard Changes',
+                f'You have unsaved changes in the entry "{self.entry.lemma}".\n'
+                'Are you sure you want to discard them?',
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No,
+            )
+            return reply != QMessageBox.Yes
+        return False
+
     def open_prev_entry(self):
+        if self.warn_unsaved_changes():
+            return
         self.prev_entry_requested.emit()
 
     def open_next_entry(self):
+        if self.warn_unsaved_changes():
+            return
         self.next_entry_requested.emit()
 
     def open_other_entry(self, entry: Entry):
