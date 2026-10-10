@@ -4626,8 +4626,8 @@ class MainWindow(QMainWindow):
         for entry in entries:
             new_dct.add_entry(
                 entry.variants, entry.tr, entry.forms, entry.phrases, entry.notes,
-                entry.tags, entry.is_fav, entry.total_att, entry.correct_att,
-                entry.win_streak, entry.latest_att_timestamp,
+                entry.tags, entry.is_fav, entry.img_fn, entry.total_att,
+                entry.correct_att, entry.win_streak, entry.latest_att_timestamp,
             )
         self.create_new_tab(dct_name, new_dct_bundle, set_active=False)
         self._save_new_dct(new_dct)
