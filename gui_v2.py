@@ -3396,6 +3396,7 @@ class BrowsingPage(QWidget):
             ActionConfig('Manage Tags...', self.manage_entries_tags, shortcut='Ctrl+Shift+T'),
             ActionConfig('Star', self.star_entries, shortcut='Ctrl+Shift+R'),
             ActionConfig('Unstar', self.unstar_entries, shortcut='Ctrl+Shift+U'),
+            ActionConfig('Reset Practice Statistics', self.reset_stat, shortcut='Ctrl+Shift+P'),
             ActionConfig(
                 'Merge', self.merge_entries,
                 lambda: len(self.get_selected_entries()) > 1,
@@ -3470,6 +3471,7 @@ class BrowsingPage(QWidget):
         set_widget_shortcut('Ctrl+Shift+T', self.entries_table, self.manage_entries_tags)
         set_widget_shortcut('Ctrl+Shift+R', self.entries_table, self.star_entries)
         set_widget_shortcut('Ctrl+Shift+U', self.entries_table, self.unstar_entries)
+        set_widget_shortcut('Ctrl+Shift+P', self.entries_table, self.reset_stat)
         set_widget_shortcut('Ctrl+Shift+M', self.entries_table, self.merge_entries)
         set_widget_shortcut('Ctrl+Shift+C', self.entries_table, self.cherry_pick_entries)
         set_widget_shortcut('Ctrl+Shift+D', self.entries_table, self.delete_entries)
@@ -3743,6 +3745,13 @@ class BrowsingPage(QWidget):
         self.update_tab_title()
         self._update_selected_rows()
         self.proxy_model.update_filter()
+
+    def reset_stat(self):
+        selected = set(self.get_selected_entries())
+        for entry in selected:
+            self.dct.reset_stats(entry)
+        self.update_tab_title()
+        self._update_selected_rows()
 
     def merge_entries(self):
         selected = sorted(self.get_selected().items())
