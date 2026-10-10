@@ -220,7 +220,7 @@ def test_mark_tag_as_default(dct_small, tag):
     dct.mark_tag_as_default(tag)
 
     assert dct.is_default_tag(tag)
-    assert set(dct.default_tags) == set(default_tags).union({tag})
+    assert dct.default_tags == default_tags.union({tag})
 
 
 @pytest.mark.parametrize('tag', ['', 'invalid'])
@@ -248,7 +248,7 @@ def test_unmark_tag_as_default(dct_small, tag):
     dct.unmark_tag_as_default(tag)
 
     assert not dct.is_default_tag(tag)
-    assert set(dct.default_tags) == set(default_tags).difference({tag})
+    assert dct.default_tags == default_tags.difference({tag})
 
 
 @pytest.mark.parametrize('tag', ['', 'invalid'])

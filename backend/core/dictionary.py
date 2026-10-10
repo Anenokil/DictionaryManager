@@ -182,8 +182,8 @@ class Dictionary:
         return self._tags
 
     @property
-    def default_tags(self) -> TagRegistry:
-        return [self._tags[i] for i in self._default_tag_ids]
+    def default_tags(self) -> set[Tag]:
+        return {self._tags[i] for i in self._default_tag_ids}
 
     @property
     def total_score(self) -> tuple[int, int]:
@@ -415,8 +415,7 @@ class Dictionary:
         if invalid_tags:
             raise InvalidTagError(*invalid_tags)
         if to_add_default_tags:
-            default_tags = {self._tags[i] for i in self._default_tag_ids}
-            tags.update(default_tags)
+            tags.update(self.default_tags)
 
         new_entry = Entry(
             lemma, tr, forms, phrases, notes, tags, is_fav, img_fn,
