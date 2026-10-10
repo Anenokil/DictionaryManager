@@ -720,6 +720,27 @@ class Entry:
         if latest_att_timestamp is not ...:
             self._latest_att_timestamp = latest_att_timestamp
 
+    def has_same_content(self, other: 'Entry', include_stats: bool = False) -> bool:
+        if include_stats:
+            if not (
+                    self._total_att == other._total_att and
+                    self._correct_att == other._correct_att and
+                    self._win_streak == other._win_streak and
+                    self._latest_att_timestamp == other._latest_att_timestamp
+            ):
+                return False
+
+        return (
+            self.is_fav == other.is_fav and
+            self.img_fn == other.img_fn and
+            set(self.tags) == set(other.tags) and
+            list(self.variants) == list(other.variants) and
+            list(self.tr) == list(other.tr) and
+            list(self.notes) == list(other.notes) and
+            dict(self.forms) == dict(other.forms) and
+            dict(self.phrases) == dict(other.phrases)
+        )
+
     def register_correct_answer(self, timestamp: Timestamp):
         """
         Update learning statistics when a correct attempt is made.
