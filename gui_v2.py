@@ -2177,7 +2177,10 @@ class EntryDetailsDialog(QDialog):
         )
 
         for tag in self.dct.tags:
-            self.tags_list.set_item(tag, (not self.is_new) and (tag in self.entry.tags))
+            if self.is_new:
+                self.tags_list.set_item(tag, tag in self.dct.default_tags)
+            else:
+                self.tags_list.set_item(tag, tag in self.entry.tags)
 
         self._ignore_item_changed = False
         self._ignore_validation = False
@@ -2653,7 +2656,7 @@ class EntryDetailsDialog(QDialog):
 
         if self.is_new:
             self.image.dedup_save_to(USER_IMAGES_DIR(self.dct.id))
-            self.entry = self.dct.add_entry(*self._get_data())
+            self.entry = self.dct.add_entry(*self._get_data(), to_add_default_tags=False)
         elif self.is_modified():
             self.image.dedup_save_to(USER_IMAGES_DIR(self.dct.id))
             self.dct.rewrite_entry(self.entry, *self._get_data())
