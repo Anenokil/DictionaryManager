@@ -409,13 +409,12 @@ class Dictionary:
                     if ctg_val not in self._features[ctg]:
                         raise InvalidGramFormError(ctg_val)
 
-        if tags is not None:
-            tags = set(tags)
-            invalid_tags = tags.difference(set(self._tags))
-            if invalid_tags:
-                raise InvalidTagError(*invalid_tags)
-            default_tags = {self._tags[i] for i in self._default_tag_ids}
-            tags.update(default_tags)
+        tags = set() if tags is None else set(tags)
+        invalid_tags = tags.difference(set(self._tags))
+        if invalid_tags:
+            raise InvalidTagError(*invalid_tags)
+        default_tags = {self._tags[i] for i in self._default_tag_ids}
+        tags.update(default_tags)
 
         new_entry = Entry(
             lemma, tr, forms, phrases, notes, tags, is_fav, img_fn,
