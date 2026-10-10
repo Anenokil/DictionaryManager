@@ -1771,7 +1771,7 @@ class ImagePicker(QWidget):
         if self._pixmap is None:
             return
 
-        path, _ = QFileDialog.getSaveFileName(self, 'Save Image', self._get_hashed_name(), 'JPEG Image (*.jpg)')
+        path, _ = QFileDialog.getSaveFileName(self, 'Save Image', self.get_hashed_name(), 'JPEG Image (*.jpg)')
         if not path:
             return
 
@@ -1783,7 +1783,7 @@ class ImagePicker(QWidget):
 
         folder.mkdir(parents=True, exist_ok=True)
 
-        path = folder / self._get_hashed_name()
+        path = folder / self.get_hashed_name()
         if not path.exists():
             path.write_bytes(self._content)
 
@@ -1825,7 +1825,10 @@ class ImagePicker(QWidget):
 
         return content, pixmap
 
-    def _get_hashed_name(self) -> str:
+    def get_hashed_name(self) -> str | None:
+        if self._pixmap is None:
+            return None
+
         digest = hashlib.sha256(self._content).hexdigest()
         filename = f'{digest}.jpg'
         return filename
@@ -2567,45 +2570,76 @@ class EntryDetailsDialog(QDialog):
         self._set_title()
         self._fill_data()
 
+    @property
+    def _lemma_variants(self):
+         return [
+            self.replacer.replace(s)
+            for s in get_column_data(self.lemma_variants_table, 0)
+        ]
+
+    @property
+    def _translations(self):
+        return [
+            self.replacer.replace(s)
+            for s in get_column_data(self.translations_table, 0)
+        ]
+
+    @property
+    def _forms(self):
+        return {
+            gf: [self.replacer.replace(wf) for wf in wfs]
+            for gf, wfs in self.get_forms_data(self.forms_table).items()
+        }
+
+    @property
+    def _phrases(self):
+         return {
+            self.replacer.replace(ph): [self.replacer.replace(pt) for pt in pts]
+            for ph, pts in self.get_phrases_data(self.phrases_table).items()
+        }
+
+    @property
+    def _notes(self):
+         return [
+            self.replacer.replace(s)
+            for s in get_column_data(self.notes_table, 0)
+        ]
+
+    @property
+    def _tags(self):
+         return self.tags_list.get_checked_items()
+
+    @property
+    def _is_fav(self):
+         return self.fav_checkbox.isChecked()
+
+    @property
+    def _img_fn(self):
+         return self.image.get_hashed_name()
+
+    def _get_data(self):
+        return (
+            self._lemma_variants, self._translations, self._forms,
+            self._phrases, self._notes, self._tags, self._is_fav, self._img_fn,
+        )
+
+    def is_modified(self) -> bool:
+        if self.is_new:
+            return False
+        return not self.entry.has_same_content(Entry(*self._get_data()))
+
     def save_and_close(self):
         ok, error_msg = self.validate_all()
         if not ok:
             QMessageBox.critical(self, 'Error', error_msg)
             return
 
-        lemma_variants = [
-            self.replacer.replace(s)
-            for s in get_column_data(self.lemma_variants_table, 0)
-        ]
-        translations = [
-            self.replacer.replace(s)
-            for s in get_column_data(self.translations_table, 0)
-        ]
-        forms = {
-            gf: [self.replacer.replace(wf) for wf in wfs]
-            for gf, wfs in self.get_forms_data(self.forms_table).items()
-        }
-        phrases = {
-            self.replacer.replace(ph): [self.replacer.replace(pt) for pt in pts]
-            for ph, pts in self.get_phrases_data(self.phrases_table).items()
-        }
-        notes = [
-            self.replacer.replace(s)
-            for s in get_column_data(self.notes_table, 0)
-        ]
-        tags = self.tags_list.get_checked_items()
-        is_fav = self.fav_checkbox.isChecked()
-        img_fn = self.image.dedup_save_to(USER_IMAGES_DIR(self.dct.id))
-
         if self.is_new:
-            self.entry = self.dct.add_entry(
-                lemma_variants, translations, forms, phrases, notes, tags, is_fav, img_fn,
-            )
-        else:
-            self.dct.rewrite_entry(
-                self.entry,
-                lemma_variants, translations, forms, phrases, notes, tags, is_fav, img_fn,
-            )
+            self.image.dedup_save_to(USER_IMAGES_DIR(self.dct.id))
+            self.entry = self.dct.add_entry(*self._get_data())
+        elif self.is_modified():
+            self.image.dedup_save_to(USER_IMAGES_DIR(self.dct.id))
+            self.dct.rewrite_entry(self.entry, *self._get_data())
 
         self.exit_code = 'save'
         self.accept()
