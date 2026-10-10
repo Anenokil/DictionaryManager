@@ -1106,7 +1106,7 @@ class ManageTagsDialog(QDialog):
         buttons.rejected.connect(self.reject)
         buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
 
-        self.save_button = QPushButton('Save')
+        self.save_button = QPushButton('OK')
         buttons.accepted.connect(self.save_and_close)
         buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
 
@@ -1384,7 +1384,7 @@ class ManageGramFeaturesDialog(QDialog):
         buttons.rejected.connect(self.reject)
         buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
 
-        self.save_button = QPushButton('Save')
+        self.save_button = QPushButton('OK')
         buttons.accepted.connect(self.save_and_close)
         buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
 
@@ -1497,7 +1497,7 @@ class ManageEscapeSequencesDialog(QDialog):
 
         self.add_button = create_img_button(IMG_ADD_PATH)
         self.discard_button = QPushButton('Discard')
-        self.save_button = QPushButton('Save')
+        self.save_button = QPushButton('OK')
 
         self.add_button.clicked.connect(self.add_sequence)
         self.discard_button.clicked.connect(self.reject)
@@ -2682,6 +2682,7 @@ class NewEntryDialog(_EntryDetailsDialog):
     def _create_buttons(self):
         super()._create_buttons()
         self.delete_button.hide()
+        self.save_button.setText('OK')
 
     def _fill_data(self):
         self._ignore_item_changed = True
@@ -3004,7 +3005,7 @@ class SearchSettingsDialog(QDialog):
         buttons = QDialogButtonBox()
 
         self.reset_button = QPushButton('Reset')
-        self.save_button = QPushButton('Save')
+        self.save_button = QPushButton('OK')
         self.close_button = QPushButton('Discard')
 
         buttons.addButton(self.reset_button, QDialogButtonBox.ActionRole)
