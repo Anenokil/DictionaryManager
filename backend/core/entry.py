@@ -741,7 +741,7 @@ class Entry:
             dict(self.phrases) == dict(other.phrases)
         )
 
-    def register_correct_answer(self, timestamp: Timestamp):
+    def _register_correct_answer(self, timestamp: Timestamp):
         """
         Update learning statistics when a correct attempt is made.
 
@@ -760,7 +760,7 @@ class Entry:
             self._win_streak += 1
         self._latest_att_timestamp = timestamp
 
-    def register_incorrect_answer(self, timestamp: Timestamp):
+    def _register_incorrect_answer(self, timestamp: Timestamp):
         """
         Update learning statistics when an incorrect attempt is made.
 
@@ -778,14 +778,14 @@ class Entry:
             self._win_streak -= 1
         self._latest_att_timestamp = timestamp
 
-    def reset_stats(self):
+    def _reset_stats(self):
         """Reset learning statistics."""
 
         self._total_att = 0
         self._correct_att = 0
         self._win_streak = 0
 
-    def merge(self, other: 'Entry'):
+    def _merge(self, other: 'Entry'):
         for variant in other.variants:
             self.variants._add(variant)
         for tr in other.tr:

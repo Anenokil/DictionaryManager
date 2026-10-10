@@ -5168,6 +5168,7 @@ class TrainingW(tk.Toplevel):
 
         self.app_data = app_data
         self.dct_bundle = app_data.manager.active
+        self.dct = self.dct_bundle.dct
         self.replacer = self.dct_bundle.replacer
 
         self.trainer = Trainer(self.dct_bundle.dct, train_config)
@@ -5304,8 +5305,6 @@ class TrainingW(tk.Toplevel):
             # Если все слова отвечены, то завершаем учёбу
             self.on_stop()
             return
-        else:
-            self.dct_bundle.dct.mark_modified()
 
         # Выбор слова
         (self.current_entry, self.current_form, self.current_phrase,
@@ -5413,7 +5412,7 @@ class TrainingW(tk.Toplevel):
 
         entry = self.current_entry
         if is_correct:
-            entry.register_correct_answer((
+            self.dct.register_correct_answer(entry, (
                 self.dct_bundle.session_number,
                 self._session_number,
                 self.count_all,
@@ -5456,14 +5455,14 @@ class TrainingW(tk.Toplevel):
                     window.bind('<Tab>', lambda event: window.btn_right.invoke())
                     result = window.open()
                     if result != 'typo':
-                        entry.register_incorrect_answer((
+                        self.dct.register_incorrect_answer(entry, (
                             self.dct_bundle.session_number,
                             self._session_number,
                             self.count_all,
                         ))
                         self.count_all += 1
                 else:
-                    entry.register_incorrect_answer((
+                    self.dct.register_incorrect_answer(entry, (
                         self.dct_bundle.session_number,
                         self._session_number,
                         self.count_all,
@@ -5478,7 +5477,7 @@ class TrainingW(tk.Toplevel):
                 )
                 result = window.open()
                 if result != 'typo':
-                    entry.register_incorrect_answer((
+                    self.dct.register_incorrect_answer(entry, (
                         self.dct_bundle.session_number,
                         self._session_number,
                         self.count_all,

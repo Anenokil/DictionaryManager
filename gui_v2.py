@@ -4059,6 +4059,7 @@ class PracticePage(QWidget):
         super().__init__(parent)
 
         self.dct_bundle = dct_bundle
+        self.dct = dct_bundle.dct
         self.trainer = Trainer(dct_bundle.dct, dct_bundle.train_config)
         self.replacer = dct_bundle.replacer
 
@@ -4337,9 +4338,6 @@ class PracticePage(QWidget):
         self.hint_btn.setEnabled(False)
 
     def enter(self):
-        self.trainer.dct.mark_modified()
-        self.dct_edited.emit()
-
         user_answer = self.replacer.replace(self.user_input_edit.text())
         self.check_answer(user_answer)
 
@@ -4365,10 +4363,12 @@ class PracticePage(QWidget):
 
         if is_correct:
             self.count_correct += 1
-            self.current_entry.register_correct_answer(timestamp)
+            self.dct.register_correct_answer(self.current_entry, timestamp)
+            self.dct_edited.emit()
             dialog = CorrectAnswerDialog(parent=self)
         else:
-            self.current_entry.register_incorrect_answer(timestamp)
+            self.dct.register_incorrect_answer(self.current_entry, timestamp)
+            self.dct_edited.emit()
             dialog = WrongAnswerDialog(user_answer, correct_answers_repr, parent=self)
 
         dialog.exec()

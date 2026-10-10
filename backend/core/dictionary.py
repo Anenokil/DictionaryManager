@@ -566,7 +566,7 @@ class Dictionary:
         self._counters['phrase_trs']   -= target_entry.n_phrase_translations
         self._counters['notes']        -= target_entry.n_notes
 
-        target_entry.merge(source_entry)
+        target_entry._merge(source_entry)
         self.delete_entry(source_entry)
 
         self._counters['translations'] += target_entry.n_translations
@@ -1007,6 +1007,21 @@ class Dictionary:
             if entry.is_fav:
                 entry.is_fav = False
                 self._is_modified = True
+
+    @_mark_modified
+    def register_correct_answer(self, entry: Entry, timestamp: Timestamp):
+        entry._register_correct_answer(timestamp)
+
+    @_mark_modified
+    def register_incorrect_answer(self, entry: Entry, timestamp: Timestamp):
+        entry._register_incorrect_answer(timestamp)
+
+    def reset_stats(self, entry: Entry):
+        if entry.total_att == 0:
+            return
+
+        entry._reset_stats()
+        self._is_modified = True
 
     @_mark_modified
     def add_ctg(self, ctg_name: Category, ctg_values: list[CtgValue]):
