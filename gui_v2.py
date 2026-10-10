@@ -2096,7 +2096,7 @@ class _EntryDetailsDialog(QDialog):
         buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
         buttons.addButton(self.delete_button, QDialogButtonBox.DestructiveRole)
 
-        self.save_button.clicked.connect(self.save_and_close)
+        self.save_button.clicked.connect(self.save)
         self.close_button.clicked.connect(self.reject)
         self.delete_button.clicked.connect(self.delete_entry)
 
@@ -2119,7 +2119,7 @@ class _EntryDetailsDialog(QDialog):
         set_widget_shortcut('Delete', self.phrases_table, self.delete_phrases)
         set_widget_shortcut('Delete', self.notes_table, self.delete_notes)
 
-        QShortcut(QKeySequence('Ctrl+S'), self, self.save_and_close)
+        QShortcut(QKeySequence('Ctrl+S'), self, self.save)
 
     def _set_tooltips(self):
         self.add_lemma_variant_button.setToolTip('Ctrl+N')
@@ -2560,7 +2560,7 @@ class _EntryDetailsDialog(QDialog):
     def is_modified(self) -> bool:
         ...
 
-    def save_and_close(self):
+    def save(self):
         ...
 
     def delete_entry(self):
@@ -2568,6 +2568,8 @@ class _EntryDetailsDialog(QDialog):
 
 
 class EditEntryDialog(_EntryDetailsDialog):
+    saved = Signal()
+
     def __init__(
             self,
             dct_bundle: DctBundle,
@@ -2643,7 +2645,7 @@ class EditEntryDialog(_EntryDetailsDialog):
     def is_modified(self) -> bool:
         return not self.entry.has_same_content(Entry(*self._get_data()))
 
-    def save_and_close(self):
+    def save(self):
         ok, error_msg = self.validate_all()
         if not ok:
             QMessageBox.critical(self, 'Error', error_msg)
@@ -2653,8 +2655,7 @@ class EditEntryDialog(_EntryDetailsDialog):
             self.image.dedup_save_to(USER_IMAGES_DIR(self.dct.id))
             self.dct.rewrite_entry(self.entry, *self._get_data())
 
-        self.exit_code = 'save'
-        self.accept()
+        self.saved.emit()
 
     def delete_entry(self):
         self.dct.delete_entry(self.entry)
@@ -2713,7 +2714,7 @@ class NewEntryDialog(_EntryDetailsDialog):
     def is_modified(self) -> bool:
         return False
 
-    def save_and_close(self):
+    def save(self):
         ok, error_msg = self.validate_all()
         if not ok:
             QMessageBox.critical(self, 'Error', error_msg)
@@ -3642,8 +3643,10 @@ class BrowsingPage(QWidget):
                 entry = get_entry(row)
                 dialog.open_other_entry(entry)
 
+                dialog.saved.disconnect()
                 dialog.prev_entry_requested.disconnect()
                 dialog.next_entry_requested.disconnect()
+            dialog.saved.connect(lambda: on_entry_saved(row))
             dialog.prev_entry_requested.connect(lambda: open_prev(row))
             dialog.next_entry_requested.connect(lambda: open_next(row))
 
@@ -3654,8 +3657,6 @@ class BrowsingPage(QWidget):
         dialog.exec()
         if dialog.exit_code == 'delete':
             self.source_model.removeRow(self.proxy_model.mapToSource(index).row())
-        else:
-            self.proxy_model.update_filter()
 
         self.update_tab_title()
 
