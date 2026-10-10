@@ -2805,6 +2805,7 @@ class SearchBar(QFrame):
 
         self.dct_bundle = dct_bundle
         self.dct = dct_bundle.dct
+        self.replacer = dct_bundle.replacer
         self.config: DctUISettings = dct_bundle.optional['qt']
         self.table_proxy_model = table_proxy_model
 
@@ -2847,7 +2848,9 @@ class SearchBar(QFrame):
         self.setVisible(False)
 
     def _apply_search(self):
-        self.table_proxy_model.set_search_text(self.line_edit.text())
+        raw_query = self.line_edit.text()
+        query = self.replacer.replace(raw_query)
+        self.table_proxy_model.set_search_text(query)
 
     def toggle_match_case(self, enabled: bool):
         self.config.searchbar_to_match_case = enabled
