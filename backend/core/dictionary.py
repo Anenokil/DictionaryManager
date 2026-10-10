@@ -376,6 +376,7 @@ class Dictionary:
             correct_att: int = 0,
             win_streak: int = 0,
             latest_att_timestamp: Timestamp = (0, 0, 0),
+            to_add_default_tags: bool = True,
     ) -> Entry:
         """
         Add a new Entry.
@@ -413,8 +414,9 @@ class Dictionary:
         invalid_tags = tags.difference(set(self._tags))
         if invalid_tags:
             raise InvalidTagError(*invalid_tags)
-        default_tags = {self._tags[i] for i in self._default_tag_ids}
-        tags.update(default_tags)
+        if to_add_default_tags:
+            default_tags = {self._tags[i] for i in self._default_tag_ids}
+            tags.update(default_tags)
 
         new_entry = Entry(
             lemma, tr, forms, phrases, notes, tags, is_fav, img_fn,
