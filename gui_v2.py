@@ -56,6 +56,7 @@ IMG_HINT_PATH = str(IMAGES_DIR / 'hint.png')
 IMG_MATCH_CASE_PATH = str(IMAGES_DIR / 'match_case.png')
 IMG_MATCH_WHOLE_WORD_PATH = str(IMAGES_DIR / 'match_whole_word.png')
 IMG_PRACTICE_PATH = str(IMAGES_DIR / 'practice.png')
+IMG_RESET_PATH = str(IMAGES_DIR / 'reset.png')
 IMG_SETTINGS_PATH = str(IMAGES_DIR / 'settings.png')
 IMG_STOP_PATH = str(IMAGES_DIR / 'stop.png')
 IMG_STAR_PATH = str(IMAGES_DIR / 'star.png')
@@ -118,7 +119,7 @@ class DctUISettings(OptionalDctData):
         self.searchbar_search_tags: list[str] | None = ...
 
         if data is None:
-            self.set_defaults()
+            self.set_defaults(True, True)
         else:
             self.load_from_dict(data)
 
@@ -132,25 +133,27 @@ class DctUISettings(OptionalDctData):
         instance.load_from_json(path)
         return instance
 
-    def set_defaults(self):
+    def set_defaults(self, entries_table: bool = False, searchbar: bool = False):
         n_columns = len(EntriesTableModel.HEADERS)
         all_columns = range(n_columns)
 
-        self.entries_table_columns_order = list(all_columns)
-        self.entries_table_hidden_columns = set()
-        self.entries_table_column_widths = [-1 for _ in all_columns]  # -1 = default section size
-        self.entries_table_sort_column = -1
-        self.entries_table_sort_order = 0
-        self.searchbar_to_match_whole_word = False
-        self.searchbar_to_match_case = False
-        self.searchbar_to_search_in_words = True
-        self.searchbar_to_search_in_translations = True
-        self.searchbar_to_search_in_forms = False
-        self.searchbar_to_search_in_phrases = False
-        self.searchbar_to_search_in_notes = False
-        self.searchbar_fav_filter = self.FAV_FILTER_OPTIONS[0]
-        self.searchbar_img_filter = self.IMG_FILTER_OPTIONS[0]
-        self.searchbar_search_tags = None
+        if entries_table:
+            self.entries_table_columns_order = list(all_columns)
+            self.entries_table_hidden_columns = set()
+            self.entries_table_column_widths = [-1 for _ in all_columns]  # -1 = default section size
+            self.entries_table_sort_column = -1
+            self.entries_table_sort_order = 0
+        if searchbar:
+            self.searchbar_to_match_whole_word = False
+            self.searchbar_to_match_case = False
+            self.searchbar_to_search_in_words = True
+            self.searchbar_to_search_in_translations = True
+            self.searchbar_to_search_in_forms = False
+            self.searchbar_to_search_in_phrases = False
+            self.searchbar_to_search_in_notes = False
+            self.searchbar_fav_filter = self.FAV_FILTER_OPTIONS[0]
+            self.searchbar_img_filter = self.IMG_FILTER_OPTIONS[0]
+            self.searchbar_search_tags = None
 
     def load_from_dict(self, data: SerializedData):
         data = self._check_and_migrate(data)
@@ -196,7 +199,7 @@ class DctUISettings(OptionalDctData):
 
     def read_json(self, path: str) -> SerializedData:
         if not Path(path).exists():
-            self.set_defaults()
+            self.set_defaults(True, True)
             return self.to_dict()
 
         with open(path, 'r') as f:
@@ -826,6 +829,10 @@ class CheckableList(QScrollArea):
 
     def set_item(self, text: str, is_checked: bool = False):
         self.checkboxes[text].setChecked(is_checked)
+
+    def set_items(self, items: dict[str, bool]):
+        for text, is_checked in items.items():
+            self.set_item(text, is_checked)
 
     def check_all(self):
         for cb in self.checkboxes.values():
@@ -2776,6 +2783,10 @@ class SearchBar(QFrame):
         self.settings_btn.clicked.connect(self.open_settings)
         layout.addWidget(self.settings_btn)
 
+        self.reset_settings_btn = create_img_button(IMG_RESET_PATH)
+        self.reset_settings_btn.clicked.connect(self.reset_settings)
+        layout.addWidget(self.reset_settings_btn)
+
         self.close_btn = create_img_button(IMG_CLOSE_PATH, button_size=(24, 24))
         self.close_btn.clicked.connect(self.on_close)
         layout.addWidget(self.close_btn)
@@ -2803,6 +2814,11 @@ class SearchBar(QFrame):
         if ok:
             self._apply_search()
             self.config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
+
+    def reset_settings(self):
+        self.config.set_defaults(searchbar=True)
+        self._apply_search()
+        self.config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
 
     def on_open(self):
         self.table_proxy_model.toggle_search_mode(True)
@@ -2835,6 +2851,7 @@ class SearchSettingsDialog(QDialog):
         self.setWindowTitle('Search Settings')
 
         self._create_widgets()
+        self._fill_data()
 
     def _create_widgets(self):
         self.main_layout = QVBoxLayout(self)
@@ -2850,17 +2867,47 @@ class SearchSettingsDialog(QDialog):
         self.combobox_starred.addItems(
             ['All entries', 'Starred entries only', 'Unstarred entries only']
         )
-        self.combobox_starred.setCurrentIndex(self.config.FAV_FILTER_OPTIONS.index(self.config.searchbar_fav_filter))
         self.layout_settings.addWidget(self.combobox_starred)
 
         self.combobox_with_image = NoEnterComboBox()
         self.combobox_with_image.addItems(
             ['All entries', 'With image only', 'Without image only']
         )
-        self.combobox_with_image.setCurrentIndex(self.config.IMG_FILTER_OPTIONS.index(self.config.searchbar_img_filter))
         self.layout_settings.addWidget(self.combobox_with_image)
 
         self.layout_settings.addWidget(QLabel('Target fields'))
+
+        fields = ['Lemmas', 'Translations', 'Forms', 'Phrases', 'Notes']
+        self.fields_list = CheckableList({field: False for field in fields})
+        self.layout_settings.addWidget(self.fields_list)
+
+        self.layout_settings.addWidget(QLabel('Required tags'))
+
+        self.tags_list = CheckableList({tag: False for tag in self.dct.tags})
+        self.layout_settings.addWidget(self.tags_list)
+
+        self.main_layout.addWidget(self.group_settings)
+
+    def _create_buttons(self):
+        buttons = QDialogButtonBox()
+
+        self.reset_button = QPushButton('Reset')
+        self.save_button = QPushButton('Save')
+        self.close_button = QPushButton('Discard')
+
+        buttons.addButton(self.reset_button, QDialogButtonBox.ActionRole)
+        buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
+        buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
+
+        self.reset_button.clicked.connect(self.reset)
+        self.save_button.clicked.connect(self.save_and_close)
+        self.close_button.clicked.connect(self.reject)
+
+        self.main_layout.addWidget(buttons)
+
+    def _fill_data(self):
+        self.combobox_starred.setCurrentIndex(self.config.FAV_FILTER_OPTIONS.index(self.config.searchbar_fav_filter))
+        self.combobox_with_image.setCurrentIndex(self.config.IMG_FILTER_OPTIONS.index(self.config.searchbar_img_filter))
 
         fields = {
             'Lemmas': self.config.searchbar_to_search_in_words,
@@ -2869,34 +2916,17 @@ class SearchSettingsDialog(QDialog):
             'Phrases': self.config.searchbar_to_search_in_phrases,
             'Notes': self.config.searchbar_to_search_in_notes,
         }
-        self.fields_list = CheckableList(fields)
-        self.layout_settings.addWidget(self.fields_list)
-
-        self.layout_settings.addWidget(QLabel('Required tags'))
+        self.fields_list.set_items(fields)
 
         required_tags = self.config.searchbar_search_tags or []
         tags = {
             tag: tag in required_tags
             for tag in self.dct.tags
         }
-        self.tags_list = CheckableList(tags)
-        self.layout_settings.addWidget(self.tags_list)
+        self.tags_list.set_items(tags)
 
-        self.main_layout.addWidget(self.group_settings)
-
-    def _create_buttons(self):
-        buttons = QDialogButtonBox()
-
-        self.save_button = QPushButton('Save')
-        self.close_button = QPushButton('Discard')
-
-        buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
-        buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
-
-        self.save_button.clicked.connect(self.save_and_close)
-        self.close_button.clicked.connect(self.reject)
-
-        self.main_layout.addWidget(buttons)
+    def reset(self):
+        self._fill_data()
 
     def save_and_close(self):
         w, t, f, p, n = [(state == Qt.Checked) for state in self.fields_list.get_states().values()]
@@ -3399,9 +3429,14 @@ class BrowsingPage(QWidget):
             if self.search_bar.isVisible():
                 self.search_bar.open_settings()
 
+        def reset_settings():
+            if self.search_bar.isVisible():
+                self.search_bar.reset_settings()
+
         QShortcut(QKeySequence('Alt+C'), self, toggle_match_case)
         QShortcut(QKeySequence('Alt+W'), self, toggle_match_whole_word)
         QShortcut(QKeySequence('Alt+S'), self, open_settings)
+        QShortcut(QKeySequence('Alt+R'), self, reset_settings)
 
     def _set_tooltips(self):
         self.search_btn.setToolTip('Find Entries (Ctrl+F)')
@@ -3414,6 +3449,7 @@ class BrowsingPage(QWidget):
         self.search_bar.match_case_btn.setToolTip('Match Case (Alt+C)')
         self.search_bar.match_whole_word_btn.setToolTip('Match Whole Word (Alt+W)')
         self.search_bar.settings_btn.setToolTip('Search Settings (Alt+S)')
+        self.search_bar.reset_settings_btn.setToolTip('Reset Search Settings (Alt+R)')
         self.search_bar.close_btn.setToolTip('Close')
 
     def show_search_bar(self):
