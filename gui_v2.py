@@ -3631,36 +3631,41 @@ class BrowsingPage(QWidget):
             entry = item.data(EntriesTableModel.ENTRY_ROLE)
             return entry
 
+        def get_entries() -> list[Entry]:
+            return [
+                get_entry(row)
+                for row in range(self.proxy_model.rowCount())
+            ]
+
         def on_entry_saved(row: int):
             self._update_row(row)
             self.proxy_model.update_filter()
+            self.update_tab_title()
 
-        def open_prev(current: int):
-            open_entry_details(current - 1, False)
-
-        def open_next(current: int):
-            open_entry_details(current + 1, False)
-
-        row = index.row()
-        entry = get_entry(row)
+        entry = get_entry(index.row())
         dialog = EditEntryDialog(self.dct_bundle, entry, parent=self)
 
-        def open_entry_details(row: int, is_first: bool):
+        def open_entry_details(entry: Entry, is_first: bool):
+            row = get_entries().index(entry)
+
             if not is_first:
                 entry = get_entry(row)
                 dialog.open_other_entry(entry)
 
-                dialog.saved.disconnect()
                 dialog.prev_entry_requested.disconnect()
                 dialog.next_entry_requested.disconnect()
+                dialog.saved.disconnect()
+
+            prev_entry = get_entry(row - 1)
+            next_entry = get_entry(row + 1)
+            dialog.prev_entry_requested.connect(lambda: open_entry_details(prev_entry, False))
+            dialog.next_entry_requested.connect(lambda: open_entry_details(next_entry, False))
             dialog.saved.connect(lambda: on_entry_saved(row))
-            dialog.prev_entry_requested.connect(lambda: open_prev(row))
-            dialog.next_entry_requested.connect(lambda: open_next(row))
 
-            dialog.prev_button.setDisabled(row == 0)
-            dialog.next_button.setDisabled(row == self.proxy_model.rowCount() - 1)
+            dialog.prev_button.setDisabled(row <= 0)
+            dialog.next_button.setDisabled(row >= self.proxy_model.rowCount() - 1)
 
-        open_entry_details(row, True)
+        open_entry_details(entry, True)
         dialog.exec()
         if dialog.exit_code == 'delete':
             self.source_model.removeRow(self.proxy_model.mapToSource(index).row())
