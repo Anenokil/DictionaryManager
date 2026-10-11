@@ -785,23 +785,16 @@ class CheckableList(QScrollArea):
         super().__init__(parent)
 
         self._on_change = on_change
-
-        CheckboxClass = TristateCheckBox if is_tristate else QCheckBox
+        self._checkbox_class = TristateCheckBox if is_tristate else QCheckBox
 
         self.container = QWidget()
-        layout = QVBoxLayout(self.container)
-        layout.setAlignment(Qt.AlignTop)
+        self._layout = QVBoxLayout(self.container)
+        self._layout.setAlignment(Qt.AlignTop)
 
-        self.checkboxes: dict[str, CheckboxClass] = {}
+        self.checkboxes: dict[str, QCheckBox] = {}
 
         for text, state in items.items():
-            checkbox = CheckboxClass(text)
-            if isinstance(state, bool):
-                checkbox.setChecked(state)
-            else:
-                checkbox.setCheckState(state)
-            layout.addWidget(checkbox)
-            self.checkboxes[text] = checkbox
+            self._create_checkbox(text, state)
 
         self.setWidget(self.container)
 
@@ -822,11 +815,31 @@ class CheckableList(QScrollArea):
         set_widget_shortcut('Ctrl+Shift+C', self, self.check_all, True)
         set_widget_shortcut('Ctrl+Shift+U', self, self.uncheck_all, True)
 
-    def add_item(self, text: str, is_checked: bool = False):
-        checkbox = QCheckBox(text)
-        checkbox.setChecked(is_checked)
-        self.container.layout().addWidget(checkbox)
+    def _create_checkbox(self, text: str, state: Qt.CheckState | bool = False):
+        checkbox = self._checkbox_class(text)
+        if isinstance(state, bool):
+            checkbox.setChecked(state)
+        else:
+            checkbox.setCheckState(state)
+        self._layout.addWidget(checkbox)
         self.checkboxes[text] = checkbox
+
+    def add_item(self, text: str, state: Qt.CheckState | bool = False):
+        self._create_checkbox(text, state)
+        QTimer.singleShot(0, self._update_max_height)
+
+    def clear(self):
+        for checkbox in self.checkboxes.values():
+            self._layout.removeWidget(checkbox)
+            checkbox.setParent(None)
+            checkbox.deleteLater()
+        self.checkboxes.clear()
+        QTimer.singleShot(0, self._update_max_height)
+
+    def reset_items(self, items: dict[str, Qt.CheckState | bool]):
+        self.clear()
+        for text, state in items.items():
+            self._create_checkbox(text, state)
         QTimer.singleShot(0, self._update_max_height)
 
     def set_item(self, text: str, is_checked: bool = False):
