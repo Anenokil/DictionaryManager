@@ -4382,11 +4382,11 @@ class PracticePage(QWidget):
         self.shortcut_stop.setEnabled(True)
         self.shortcut_close.setEnabled(False)
 
-        self.get_task()
-
         if self.trainer.is_finished():
             self.stop()
             return
+
+        self.get_task()
 
         self.fill_task_edit()
         self._update_hint_btn()
@@ -4402,10 +4402,6 @@ class PracticePage(QWidget):
         return percent_repr(self.count_correct, self.initial_pool_size)
 
     def get_task(self):
-        if self.trainer.is_finished():
-            self.stop()
-            return
-
         self.current_entry, self.current_form, self.current_phrase, self.homonyms = self.trainer.get_task()
 
         if self.trainer.config.format == TrainingFormat.TRANS_TO_WORD:
@@ -4441,6 +4437,10 @@ class PracticePage(QWidget):
     def enter(self):
         user_answer = self.replacer.replace(self.user_input_edit.text())
         self.check_answer(user_answer)
+
+        if self.trainer.is_finished():
+            self.stop()
+            return
 
         self.get_task()
 
