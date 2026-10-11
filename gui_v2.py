@@ -225,7 +225,7 @@ class AppData:
         if Path(MANAGER_PATH).exists():
             self.load()
         else:
-            DATA_DIR.mkdir(parents=True, exist_ok=True)
+            Path(MANAGER_PATH).parent.mkdir(parents=True, exist_ok=True)
             self.save()
 
     @staticmethod
@@ -465,7 +465,7 @@ def create_context_menu(
                                        the action is currently clickable.
     """
 
-    menu = QMenu(widget)
+    menu = QMenu(parent=widget)
     action_callbacks = {}
 
     for item in actions_config:
@@ -1870,11 +1870,7 @@ class ImagePicker(QWidget):
         self._content = content
         self._pixmap = pixmap
 
-        scaled = self._pixmap.scaled(
-            self._size,
-            Qt.KeepAspectRatio,
-            Qt.SmoothTransformation,
-        )
+        scaled = self._pixmap.scaled(self._size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.image_label.setText('')
         self.image_label.setPixmap(scaled)
 
@@ -2928,7 +2924,7 @@ class SearchBar(QFrame):
         self.config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
 
     def open_settings(self):
-        dialog = SearchSettingsDialog(self.dct, self.config, self)
+        dialog = SearchSettingsDialog(self.dct, self.config, parent=self)
         ok = dialog.exec() == QDialog.Accepted
         if ok:
             self._apply_search()
@@ -3678,14 +3674,13 @@ class BrowsingPage(QWidget):
         self.update_tab_title()
 
     def manage_features(self):
-        dialog = ManageGramFeaturesDialog(self.dct_bundle, self)
+        dialog = ManageGramFeaturesDialog(self.dct_bundle, parent=self)
         dialog.exec()
         self.update_tab_title()
 
     def manage_escape_sequences(self):
-        dialog = ManageEscapeSequencesDialog(self.dct_bundle.replacer, self)
+        dialog = ManageEscapeSequencesDialog(self.dct_bundle.replacer, parent=self)
         dialog.exec()
-
         self.update_tab_title()
 
     def on_selection_changed(self):
