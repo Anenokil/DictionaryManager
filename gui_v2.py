@@ -885,9 +885,21 @@ class EditableTagList(QTableWidget):
         setup_table_context_menu(self, [
             ActionConfig(lambda: n_selected_msg(self.n_selected_tags(), 'tag'), None, False),
             None,
-            ActionConfig('Delete', self.delete_tags, shortcut='Delete'),
-            ActionConfig('Mark as Default', self.mark_tags_default, shortcut='Ctrl+M'),
-            ActionConfig('Unmark as Default', self.unmark_tags_default, shortcut='Ctrl+U'),
+            ActionConfig(
+                'Delete', self.delete_tags,
+                lambda: self.n_selected_tags() > 0,
+                shortcut='Delete'
+            ),
+            ActionConfig(
+                'Mark as Default', self.mark_tags_default,
+                lambda: self.n_selected_tags() > 0,
+                shortcut='Ctrl+M'
+            ),
+            ActionConfig(
+                'Unmark as Default', self.unmark_tags_default,
+                lambda: self.n_selected_tags() > 0,
+                shortcut='Ctrl+U'
+            ),
         ])
 
         self._set_shortcuts()
@@ -2020,7 +2032,7 @@ class _EntryDetailsDialog(QDialog):
             ActionConfig(
                 'Delete',
                 self.delete_lemma_variants,
-                lambda: cnt(self.lemma_variants_table) < self.lemma_variants_table.rowCount(),
+                lambda: 0 < cnt(self.lemma_variants_table) < self.lemma_variants_table.rowCount(),
                 shortcut='Delete',
             )
         ])
@@ -2030,24 +2042,24 @@ class _EntryDetailsDialog(QDialog):
             ActionConfig(
                 'Delete',
                 self.delete_translations,
-                lambda: cnt(self.translations_table) < self.translations_table.rowCount(),
+                lambda: 0 < cnt(self.translations_table) < self.translations_table.rowCount(),
                 shortcut='Delete',
             )
         ])
         setup_table_context_menu(self.forms_table, [
             ActionConfig(lambda: n_selected_msg(cnt(self.forms_table), 'form'), None),
             None,
-            ActionConfig('Delete', self.delete_forms, shortcut='Delete'),
+            ActionConfig('Delete', self.delete_forms, lambda: 0 < cnt(self.forms_table), shortcut='Delete'),
         ])
         setup_table_context_menu(self.phrases_table, [
             ActionConfig(lambda: n_selected_msg(cnt(self.phrases_table), 'phrase'), None),
             None,
-            ActionConfig('Delete', self.delete_phrases, shortcut='Delete'),
+            ActionConfig('Delete', self.delete_phrases, lambda: 0 < cnt(self.phrases_table), shortcut='Delete'),
         ])
         setup_table_context_menu(self.notes_table, [
             ActionConfig(lambda: n_selected_msg(cnt(self.notes_table), 'note'), None),
             None,
-            ActionConfig('Delete', self.delete_notes, shortcut='Delete'),
+            ActionConfig('Delete', self.delete_notes, lambda: 0 < cnt(self.notes_table), shortcut='Delete'),
         ])
 
         # Signal handling
@@ -3447,22 +3459,21 @@ class BrowsingPage(QWidget):
         self.entries_table.selectionModel().selectionChanged.connect(self.on_selection_changed)
 
         # Setup context menu
-        n_selected = lambda: n_selected_msg(len(self.get_selected_entries()), 'entry', 'entries')
+        def cnt() -> int:
+            return len({i.row() for i in self.entries_table.selectedIndexes()})
+
+        n_selected = lambda: n_selected_msg(cnt(), 'entry', 'entries')
         setup_table_context_menu(self.entries_table, [
             ActionConfig(n_selected, None, False),
             None,
-            ActionConfig('Manage Tags...', self.manage_entries_tags, shortcut='Ctrl+Shift+T'),
-            ActionConfig('Star', self.star_entries, shortcut='Ctrl+Shift+R'),
-            ActionConfig('Unstar', self.unstar_entries, shortcut='Ctrl+Shift+U'),
-            ActionConfig('Reset Practice Statistics', self.reset_stat, shortcut='Ctrl+Shift+P'),
-            ActionConfig(
-                'Merge', self.merge_entries,
-                lambda: len(self.get_selected_entries()) > 1,
-                shortcut='Ctrl+Shift+M'
-            ),
-            ActionConfig('Create Dictionary...', self.cherry_pick_entries, shortcut='Ctrl+Shift+C'),
+            ActionConfig('Manage Tags...', self.manage_entries_tags, lambda: cnt() > 0, shortcut='Ctrl+Shift+T'),
+            ActionConfig('Star', self.star_entries, lambda: cnt() > 0, shortcut='Ctrl+Shift+R'),
+            ActionConfig('Unstar', self.unstar_entries, lambda: cnt() > 0, shortcut='Ctrl+Shift+U'),
+            ActionConfig('Reset Practice Statistics', self.reset_stat, lambda: cnt() > 0, shortcut='Ctrl+Shift+P'),
+            ActionConfig('Merge', self.merge_entries, lambda: cnt() > 1, shortcut='Ctrl+Shift+M'),
+            ActionConfig('Create Dictionary...', self.cherry_pick_entries, lambda: cnt() > 0, shortcut='Ctrl+Shift+C'),
             None,
-            ActionConfig('Delete', self.delete_entries, shortcut='Ctrl+Shift+D'),
+            ActionConfig('Delete', self.delete_entries, lambda: cnt() > 0, shortcut='Ctrl+Shift+D'),
         ])
 
         # Restore table state
