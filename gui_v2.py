@@ -80,21 +80,21 @@ USER_IMAGES_DIR = lambda dct_id: DCT_SAVE_DIR(dct_id) / USER_IMAGES_DIRNAME
 
 
 @validation_and_migration(1, [
-    ('entries_table_columns_order', True, list[int]),
-    ('entries_table_hidden_columns', True, list[int]),
-    ('entries_table_column_widths', True, list[int]),
-    ('entries_table_sort_column', True, int),
-    ('entries_table_sort_order', True, int),
-    ('searchbar_to_match_whole_word', True, bool),
-    ('searchbar_to_match_case', True, bool),
-    ('searchbar_to_search_in_words', True, bool),
-    ('searchbar_to_search_in_translations', True, bool),
-    ('searchbar_to_search_in_forms', True, bool),
-    ('searchbar_to_search_in_phrases', True, bool),
-    ('searchbar_to_search_in_notes', True, bool),
-    ('searchbar_fav_filter', True, str),
-    ('searchbar_img_filter', True, str),
-    ('searchbar_search_tags', True, (list[str], NoneType)),
+    ('entries_table_columns_order', False, list[int]),
+    ('entries_table_hidden_columns', False, list[int]),
+    ('entries_table_column_widths', False, list[int]),
+    ('entries_table_sort_column', False, int),
+    ('entries_table_sort_order', False, int),
+    ('searchbar_to_match_whole_word', False, bool),
+    ('searchbar_to_match_case', False, bool),
+    ('searchbar_to_search_in_words', False, bool),
+    ('searchbar_to_search_in_translations', False, bool),
+    ('searchbar_to_search_in_forms', False, bool),
+    ('searchbar_to_search_in_phrases', False, bool),
+    ('searchbar_to_search_in_notes', False, bool),
+    ('searchbar_fav_filter', False, str),
+    ('searchbar_img_filter', False, str),
+    ('searchbar_search_tags', False, (list[str], NoneType)),
 ])
 class DctUISettings(OptionalDctData):
     _filename = DCT_GUI_DATA_FILENAME
@@ -104,25 +104,9 @@ class DctUISettings(OptionalDctData):
     IMG_FILTER_OPTIONS = get_args(_IMG_FILTER_OPTIONS)
 
     def __init__(self, data: SerializedData | None = None):
-        self.entries_table_columns_order: list[int] = ...
-        self.entries_table_hidden_columns: set[int] = ...
-        self.entries_table_column_widths: list[int] = ...
-        self.entries_table_sort_column: int = ...
-        self.entries_table_sort_order: int = ...
-        self.searchbar_to_match_whole_word: bool = ...
-        self.searchbar_to_match_case: bool = ...
-        self.searchbar_to_search_in_words: bool = ...
-        self.searchbar_to_search_in_translations: bool = ...
-        self.searchbar_to_search_in_forms: bool = ...
-        self.searchbar_to_search_in_phrases: bool = ...
-        self.searchbar_to_search_in_notes: bool = ...
-        self.searchbar_fav_filter: DctUISettings._FAV_FILTER_OPTIONS = ...
-        self.searchbar_img_filter: DctUISettings._IMG_FILTER_OPTIONS = ...
-        self.searchbar_search_tags: list[str] | None = ...
+        self.set_defaults(True, True, True)
 
-        if data is None:
-            self.set_defaults(True, True)
-        else:
+        if data is not None:
             self.load_from_dict(data)
 
     @property
@@ -161,21 +145,29 @@ class DctUISettings(OptionalDctData):
         data = self._check_and_migrate(data)
         data = data['data']
 
-        self.entries_table_columns_order: list[int] = data['entries_table_columns_order']
-        self.entries_table_hidden_columns: set[int] = set(data['entries_table_hidden_columns'])
-        self.entries_table_column_widths: list[int] = data['entries_table_column_widths']
-        self.entries_table_sort_column: int = data['entries_table_sort_column']
-        self.entries_table_sort_order: int = data['entries_table_sort_order']
-        self.searchbar_to_match_whole_word: bool = data['searchbar_to_match_whole_word']
-        self.searchbar_to_match_case: bool = data['searchbar_to_match_case']
-        self.searchbar_to_search_in_words: bool = data['searchbar_to_search_in_words']
-        self.searchbar_to_search_in_translations: bool = data['searchbar_to_search_in_translations']
-        self.searchbar_to_search_in_forms: bool = data['searchbar_to_search_in_forms']
-        self.searchbar_to_search_in_phrases: bool = data['searchbar_to_search_in_phrases']
-        self.searchbar_to_search_in_notes: bool = data['searchbar_to_search_in_notes']
-        self.searchbar_fav_filter: DctUISettings._FAV_FILTER_OPTIONS = data['searchbar_fav_filter']
-        self.searchbar_img_filter: DctUISettings._IMG_FILTER_OPTIONS = data['searchbar_img_filter']
-        self.searchbar_search_tags: list[str] | None = data['searchbar_search_tags']
+        keys = [
+            'entries_table_columns_order',
+            'entries_table_hidden_columns',
+            'entries_table_column_widths',
+            'entries_table_sort_column',
+            'entries_table_sort_order',
+            'searchbar_to_match_whole_word',
+            'searchbar_to_match_case',
+            'searchbar_to_search_in_words',
+            'searchbar_to_search_in_translations',
+            'searchbar_to_search_in_forms',
+            'searchbar_to_search_in_phrases',
+            'searchbar_to_search_in_notes',
+            'searchbar_fav_filter',
+            'searchbar_img_filter',
+            'searchbar_search_tags',
+        ]
+        for key in keys:
+            if key in data:
+                value = data[key]
+                if key == 'entries_table_hidden_columns':
+                    value = set(value)
+                setattr(self, key, value)
 
     def to_dict(self) -> SerializedData:
         return {
