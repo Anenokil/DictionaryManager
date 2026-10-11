@@ -42,7 +42,8 @@ from backend import (
 )
 
 BASE_DIR = Path(__file__).resolve().parent
-IMAGES_DIR = BASE_DIR / 'resources' / 'qt' / 'images'
+RESOURCES_DIR = BASE_DIR / 'resources' / 'qt'
+IMAGES_DIR = RESOURCES_DIR / 'images'
 IMG_ADD_PATH = str(IMAGES_DIR / 'add.png')
 IMG_ADD_CTG_PATH = str(IMAGES_DIR / 'add_category.png')
 IMG_ADD_VALUE_PATH = str(IMAGES_DIR / 'add_value.png')
@@ -62,6 +63,7 @@ IMG_STOP_PATH = str(IMAGES_DIR / 'stop.png')
 IMG_STAR_PATH = str(IMAGES_DIR / 'star.png')
 IMG_SEARCH_PATH = str(IMAGES_DIR / 'search.png')
 IMG_TAG_PATH = str(IMAGES_DIR / 'tag.png')
+TOPICS_DIR = RESOURCES_DIR / 'topics'
 
 DATA_DIR = Path(platformdirs.user_data_dir('DictionaryManager'))
 MANAGER_PATH = str(DATA_DIR / 'manager.json')
@@ -4545,6 +4547,54 @@ class ChoiceDialog(QDialog):
         return self.combo.currentText()
 
 
+class HelpWindow(QDialog):
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+
+        self._configure_window()
+        self._create_widgets()
+
+        self._fill(self.tree.invisibleRootItem())
+        self.tree.expandAll()
+        self.tree.currentItemChanged.connect(self._on_item_changed)
+        self.tree.setCurrentItem(self.tree.topLevelItem(0))
+
+    def _configure_window(self):
+        self.setWindowTitle('Help')
+        self.resize(800, 500)
+
+    def _create_widgets(self):
+        self.tree = QTreeWidget()
+        self.tree.setHeaderHidden(True)
+        self.tree.setMinimumWidth(180)
+
+        self.text = QTextEdit()
+        self.text.setReadOnly(True)
+
+        layout = QHBoxLayout(self)
+        layout.addWidget(self.tree, 1)
+        layout.addWidget(self.text, 3)
+
+    @staticmethod
+    def get_topics() -> Generator[tuple[str, str], None, None]:
+        for filepath in sorted(TOPICS_DIR.glob('*.html')):
+            _, _, title = filepath.stem.partition(' ')
+            if not title:
+                continue
+            html = filepath.read_text(encoding='utf-8')
+            html = html.replace('__TITLE__', title)
+            yield title, html
+
+    def _fill(self, parent_item):
+        for title, html in  self.get_topics():
+            item = QTreeWidgetItem(parent_item, [title])
+            item.setData(0, Qt.UserRole, html)
+
+    def _on_item_changed(self, current, _previous):
+        if current is not None:
+            self.text.setHtml(current.data(0, Qt.UserRole))
+
+
 class MainWindow(QMainWindow):
     """
     Main application window for Dictionary Manager.
@@ -4602,6 +4652,10 @@ class MainWindow(QMainWindow):
         self.settings_action.triggered.connect(self.show_settings_menu)
         self.toolbar.addAction(self.settings_action)
 
+        self.help_action = QAction('Help', self)
+        self.help_action.triggered.connect(self.show_help_window)
+        self.toolbar.addAction(self.help_action)
+
     def _create_tab_widget(self):
         # Create tab widget
         self.tab_widget = DctTabWidget(self.manager)
@@ -4657,6 +4711,9 @@ class MainWindow(QMainWindow):
                 None,
                 ActionConfig('Delete', self.delete_dct, lambda: self.tab_widget.count() != 0, 'Ctrl+Delete'),
             ])
+
+    def show_help_window(self):
+        HelpWindow(self).exec()
 
     def show_settings_menu(self):
         pass
