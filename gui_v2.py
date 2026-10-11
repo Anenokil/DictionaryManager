@@ -130,8 +130,8 @@ class DctUISettings(OptionalDctData):
         return self._filename
 
     @classmethod
-    def from_json(cls, filename: str, path: str) -> 'DctUISettings':
-        instance = cls(filename)
+    def from_json(cls, path: str) -> 'DctUISettings':
+        instance = cls()
         instance.load_from_json(path)
         return instance
 
