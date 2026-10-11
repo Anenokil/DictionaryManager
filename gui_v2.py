@@ -5025,7 +5025,8 @@ class MainWindow(QMainWindow):
 
     def _save_new_dct(self, dct: Dictionary):
         DCT_SAVE_DIR(dct.id).mkdir(parents=True, exist_ok=True)
-        self.save_dct()
+        dct_index = self.manager.n_opened - 1
+        self.tab_widget.save_dct(dct_index)
 
     def save_dct(self):
         dct_index = self.manager.active_dct_id
