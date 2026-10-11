@@ -4531,13 +4531,31 @@ class DctWorkspaceWidget(QWidget):
 
 
 class ChoiceDialog(QDialog):
-    def __init__(self, title: str, label_text: str, options: list[str], parent: QWidget | None = None):
+    def __init__(
+            self,
+            title: str,
+            label_text: str,
+            options: list[str],
+            options_data: list[Any] | None = None,
+            parent: QWidget | None = None,
+    ):
         super().__init__(parent)
 
         self.setWindowTitle(title)
 
+        self.options_data = options_data
+
         self.combo = NoEnterComboBox()
-        self.combo.addItems(options)
+        if options_data is None:
+            self.combo.addItems(options)
+        else:
+            if len(options_data) != len(options):
+                raise ValueError(
+                    f'options_data length ({len(options_data)}) '
+                    f'must match options length ({len(options)})'
+                )
+            for text, data in zip(options, options_data):
+                self.combo.addItem(text, data)
 
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         button_box.accepted.connect(self.accept)
@@ -4550,6 +4568,9 @@ class ChoiceDialog(QDialog):
 
     def selected_value(self) -> str:
         return self.combo.currentText()
+
+    def selected_data(self) -> Any:
+        return self.combo.currentData()
 
 
 class HelpWindow(QDialog):
