@@ -1653,7 +1653,11 @@ class ManageEscapeSequencesDialog(QDialog):
             if row[0].currentText() == modifier
         ]
         if len(same_modifier) == 1:
-            self.delete_row(same_modifier[0])
+            row = same_modifier[0]
+            input_char = row[1].text()
+            output_char = row[2].text()
+            if input_char == output_char != '':
+                self.delete_row(row)
 
     def save_and_close(self):
         ok = self.validate_and_update()
