@@ -4923,7 +4923,6 @@ class MainWindow(QMainWindow):
         opened_ids = {bundle.dct.id for bundle in self.manager.opened_dct_bundles}
 
         options = []
-        id_by_name = {}
         for save_dir in sorted(SAVES_DIR.iterdir()):
             if save_dir.is_dir():
                 try:
@@ -4933,25 +4932,27 @@ class MainWindow(QMainWindow):
                     continue
                 if dct.id in opened_ids:
                     continue
-                options.append(dct.name)
-                id_by_name[dct.name] = dct.id
+                options.append((dct.name, dct.id))
+        if not options:
+            QMessageBox.information(self, 'No Saves', 'There are no dictionaries available to open.')
+            return
+        names, ids = zip(*sorted(options))
 
         dialog = ChoiceDialog(
             'Open Dictionary',
             'Choose dictionary to open:',
-            sorted(options),
+            names, ids,
             parent=self,
         )
         ok = dialog.exec() == QDialog.Accepted
         if not ok:
             return
 
-        name = dialog.selected_value()
-        dct_id = id_by_name[name]
-        gui_data_path = DCT_SAVE_DIR(dct_id) / DCT_GUI_DATA_FILENAME
+        dct_name = dialog.selected_value()
+        dct_id = dialog.selected_data()
 
         self.manager.open_dct(DCT_SAVE_DIR(dct_id), to_activate=True, optional_classes={'qt': DctUISettings})
-        self.create_new_tab(name, set_active=True)
+        self.create_new_tab(dct_name, set_active=True)
 
     def import_dct_from_dmdct(self):
         file_path, _ = QFileDialog.getOpenFileName(self, 'Open Dictionary Package File', '', '(*.dmdct)')
