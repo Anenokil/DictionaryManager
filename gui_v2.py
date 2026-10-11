@@ -4026,6 +4026,12 @@ class PracticeConfigPage(QWidget):
         self.practice_btn.setToolTip('Start')
         self.close_btn.setToolTip('Close')
 
+    def on_page_opened(self):
+        self.list_tags.reset_items({
+            tag: (self.config.tags is not None) and (tag in self.config.tags)
+            for tag in sorted(self.dct.tags)
+        })
+
     def on_exercise_changed(self):
         if self.combo_exercise.currentIndex() == 0:
             self.label_forms.show()
@@ -4540,6 +4546,7 @@ class DctWorkspaceWidget(QWidget):
 
     def open_practice_config_page(self):
         self.pages.setCurrentIndex(1)
+        self.practice_config_page.on_page_opened()
 
     def open_practice_page(self):
         self.pages.setCurrentIndex(2)
