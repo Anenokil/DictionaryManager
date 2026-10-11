@@ -3965,7 +3965,7 @@ class PracticeConfigPage(QWidget):
         self.settings_layout.addWidget(self.label_tags, 2, 0)
         self.list_tags = CheckableList({
             tag: (self.config.tags is not None) and (tag in self.config.tags)
-            for tag in self.dct.tags
+            for tag in sorted(self.dct.tags)
         })
         self.settings_layout.addWidget(self.list_tags, 2, 1)
 
