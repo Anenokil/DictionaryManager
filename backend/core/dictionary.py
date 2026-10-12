@@ -223,52 +223,21 @@ class Dictionary:
             return sum(len(ctg_vals) for ctg_vals in self._features.values())
         return self._counters[target]
 
-    def count_by_tag(self, tag: Tag) -> tuple[int, int, int, int]:
+    def count_filtered_entries(self, tag: Tag | None = None, to_filter_fav: bool = False) -> tuple[int, int, int, int]:
         """
-        Count the number of Entries, translations, and inflected forms with the specified tag.
+        Count entries, translations, and inflected forms, optionally restricted by tag and favorite status.
 
         Args:
-            tag: Tag for which to count statistics.
+            tag: If specified, counts only entries that have this tag.
+                 If None, counts entries across the entire dictionary.
+            to_filter_fav: If True, counts only favorite entries.
 
         Returns:
             Tuple (n_entries, n_translations, n_gram_forms, n_word_forms).
-            - n_entries: Number of Dictionary Entries with the tag.
-            - n_translations: Total number of translations across all Entries with the tag.
-            - n_gram_forms: Total number of grammatical forms across all Entries with the tag.
-            - n_word_forms: Total number of word forms across all Entries with the tag.
-
-        Raises:
-            InvalidTagError: If the tag does not exist.
-        """
-
-        if tag not in self._indexes['tags']:
-            raise InvalidTagError(tag)
-
-        n_entries = 0
-        n_translations = 0
-        n_gram_forms = 0
-        n_word_forms = 0
-        for entry in self._indexes['tags'][tag]:
-            n_entries += 1
-            n_translations += entry.n_translations
-            n_gram_forms += entry.n_gram_forms
-            n_word_forms += entry.n_word_forms
-        return n_entries, n_translations, n_gram_forms, n_word_forms
-
-    def count_by_fav(self, tag: Tag | None = None) -> tuple[int, int, int, int]:
-        """
-        Count the number of favorite Entries, their translations, and inflected forms.
-
-        Args:
-            tag: If specified, counts only favorite Entries within the tag.
-                 If None, counts all favorite Entries in the Dictionary.
-
-        Returns:
-            Tuple (n_entries, n_translations, n_gram_forms, n_word_forms).
-            - n_entries: Number of favorite Dictionary Entries.
-            - n_translations: Total number of translations across favorite Entries.
-            - n_gram_forms: Total number of grammatical forms across favorite Entries.
-            - n_word_forms: Total number of word forms across favorite Entries.
+            - n_entries: Number of matching entries.
+            - n_translations: Total number of translations across matching entries.
+            - n_gram_forms: Total number of grammatical forms across matching entries.
+            - n_word_forms: Total number of word forms across matching entries.
 
         Raises:
             InvalidTagError: If the tag does not exist.
@@ -286,11 +255,12 @@ class Dictionary:
         n_gram_forms = 0
         n_word_forms = 0
         for entry in target:
-            if entry.is_fav:
-                n_entries += 1
-                n_translations += entry.n_translations
-                n_gram_forms += entry.n_gram_forms
-                n_word_forms += entry.n_word_forms
+            if to_filter_fav and not entry.is_fav:
+                continue
+            n_entries += 1
+            n_translations += entry.n_translations
+            n_gram_forms += entry.n_gram_forms
+            n_word_forms += entry.n_word_forms
         return n_entries, n_translations, n_gram_forms, n_word_forms
 
     def count_forms_by_ctg(self, ctg: Category, ctg_value: CtgValue | None = None) -> tuple[int, int]:

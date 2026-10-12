@@ -3816,7 +3816,7 @@ class TagSettingsW(tk.Toplevel):
     def delete_tag(self, tag_id: int):
         tag = self.tags[tag_id]
 
-        tag_size = self.dct.count_by_tag(tag)[0]
+        tag_size = self.dct.count_filtered_entries(tag)[0]
         if tag_size != 0:
             tmp = select_word_form(
                 tag_size,
@@ -3894,7 +3894,7 @@ class TagSettingsW(tk.Toplevel):
         self.tips = [
             ttip.Hovertip(
                 self.buttons[i],
-                f'Статей в группе: {self.dct.count_by_tag(self.tags[i])[0]}',
+                f'Статей в группе: {self.dct.count_filtered_entries(self.tags[i])[0]}',
                 hover_delay=500,
             ) for i in range(tags_count)
         ]
@@ -6766,7 +6766,7 @@ class BrowseDctTab(ttk.Frame):
         tag = self.var_tag.get()
         if tag == ALL_TAGS:
             if self.var_fav_only.get():
-                w, t, gf, wf = self.dct.count_by_fav()
+                w, t, gf, wf = self.dct.count_filtered_entries(to_filter_fav=True)
                 info = dct_fav_stats_repr(
                     (w, self.dct.count('lemmas')),
                     (t, self.dct.count('translations')),
@@ -6780,11 +6780,11 @@ class BrowseDctTab(ttk.Frame):
                 )
         else:
             if self.var_fav_only.get():
-                w1, t1, gf1, wf1 = self.dct.count_by_fav(tag)
-                w2, t2, gf2, wf2 = self.dct.count_by_tag(tag)
+                w1, t1, gf1, wf1 = self.dct.count_filtered_entries(tag, to_filter_fav=True)
+                w2, t2, gf2, wf2 = self.dct.count_filtered_entries(tag)
                 info = dct_fav_stats_repr((w1, w2), (t1, t2), (wf1, wf2))
             else:
-                w, t, gf, wf = self.dct.count_by_tag(tag)
+                w, t, gf, wf = self.dct.count_filtered_entries(tag)
                 info = dct_stats_repr(w, t, wf)
         self.var_info.set(info)
 
