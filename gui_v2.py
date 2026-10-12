@@ -95,6 +95,7 @@ USER_IMAGES_DIR = lambda dct_id: DCT_SAVE_DIR(dct_id) / USER_IMAGES_DIRNAME
     ('searchbar_fav_filter', False, str),
     ('searchbar_img_filter', False, str),
     ('searchbar_search_tags', False, (list[str], NoneType)),
+    ('practice_is_ignore_allowed', False, bool),
 ])
 class DctUISettings(OptionalDctData):
     _filename = DCT_GUI_DATA_FILENAME
@@ -119,7 +120,7 @@ class DctUISettings(OptionalDctData):
         instance.load_from_json(path)
         return instance
 
-    def set_defaults(self, entries_table: bool = False, searchbar: bool = False):
+    def set_defaults(self, entries_table: bool = False, searchbar: bool = False, practice: bool = False):
         n_columns = len(EntriesTableModel.HEADERS)
         all_columns = range(n_columns)
 
@@ -140,6 +141,8 @@ class DctUISettings(OptionalDctData):
             self.searchbar_fav_filter = self.FAV_FILTER_OPTIONS[0]
             self.searchbar_img_filter = self.IMG_FILTER_OPTIONS[0]
             self.searchbar_search_tags = None
+        if practice:
+            self.practice_is_ignore_allowed = True
 
     def load_from_dict(self, data: SerializedData):
         data = self._check_and_migrate(data)
@@ -161,6 +164,7 @@ class DctUISettings(OptionalDctData):
             'searchbar_fav_filter',
             'searchbar_img_filter',
             'searchbar_search_tags',
+            'practice_is_ignore_allowed',
         ]
         for key in keys:
             if key in data:
@@ -188,6 +192,7 @@ class DctUISettings(OptionalDctData):
                 'searchbar_fav_filter': self.searchbar_fav_filter,
                 'searchbar_img_filter': self.searchbar_img_filter,
                 'searchbar_search_tags': self.searchbar_search_tags,
+                'practice_is_ignore_allowed': self.practice_is_ignore_allowed,
             }
         }
 
@@ -4127,7 +4132,9 @@ class CorrectAnswerDialog(QDialog):
 
 
 class WrongAnswerDialog(QDialog):
-    def __init__(self, user_answer: str, correct_answer: str, parent: QWidget | None = None):
+    RESULT_IGNORE = 99
+
+    def __init__(self, user_answer: str, correct_answer: str, show_ignore_btn: bool, parent: QWidget | None = None):
         super().__init__(parent)
 
         self.setWindowTitle('Wrong Answer')
@@ -4139,9 +4146,22 @@ class WrongAnswerDialog(QDialog):
             label.setStyleSheet('color: #c62828;')
             layout.addWidget(label)
 
-        btn = QPushButton('OK')
-        btn.clicked.connect(self.accept)
-        layout.addWidget(btn)
+        ok_btn = QPushButton('OK')
+        ok_btn.clicked.connect(self.accept)
+
+        ignore_btn = QPushButton("Don't count")
+        ignore_btn.clicked.connect(self.ignore)
+
+        layout_buttons = QHBoxLayout()
+        if show_ignore_btn:
+            layout_buttons.addWidget(ok_btn)
+            layout_buttons.addWidget(ignore_btn)
+        else:
+            layout_buttons.addWidget(ok_btn)
+        layout.addLayout(layout_buttons)
+
+    def ignore(self):
+        self.done(self.RESULT_IGNORE)
 
 
 class PracticePage(QWidget):
@@ -4153,6 +4173,7 @@ class PracticePage(QWidget):
 
         self.dct_bundle = dct_bundle
         self.dct = dct_bundle.dct
+        self.ui_settings = dct_bundle.optional['qt']
         self.trainer = Trainer(dct_bundle.dct, dct_bundle.train_config)
         self.replacer = dct_bundle.replacer
 
@@ -4452,20 +4473,23 @@ class PracticePage(QWidget):
             self.count_all,
         )
 
-        self.count_all += 1
-
         if is_correct:
+            dialog = CorrectAnswerDialog(parent=self)
+            dialog.exec()
+
             self.count_correct += 1
             self.dct.register_correct_answer(self.current_entry, timestamp)
-            self.dct_edited.emit()
-            dialog = CorrectAnswerDialog(parent=self)
         else:
+            is_ignore_allowed = self.ui_settings.practice_is_ignore_allowed
+            dialog = WrongAnswerDialog(user_answer, correct_answers_repr, is_ignore_allowed, parent=self)
+            if dialog.exec() == WrongAnswerDialog.RESULT_IGNORE:
+                self.history.pop(-1)
+                return
+
             self.dct.register_incorrect_answer(self.current_entry, timestamp)
-            self.dct_edited.emit()
-            dialog = WrongAnswerDialog(user_answer, correct_answers_repr, parent=self)
 
-        dialog.exec()
-
+        self.count_all += 1
+        self.dct_edited.emit()
         self.history[-1]['is_correct'] = is_correct
         self.history[-1]['correct_answer'] = correct_answers_repr
         self.history[-1]['user_answer'] = user_answer
@@ -4647,6 +4671,25 @@ class SettingsPage(QWidget):
         raise NotImplementedError
 
 
+class PracticeSettingsPage(SettingsPage):
+    def __init__(self):
+        super().__init__()
+
+        self.cb_is_ignore_wrong_answer_allowed = QCheckBox('Show "Don\'t count" button on wrong answer')
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.cb_is_ignore_wrong_answer_allowed)
+        layout.addStretch()
+
+    def fill(self, dct_config: DctUISettings):
+        self.cb_is_ignore_wrong_answer_allowed.setChecked(dct_config.practice_is_ignore_allowed)
+
+    def get_settings(self) -> dict[str, Any]:
+        return {
+            'practice_is_ignore_allowed': self.cb_is_ignore_wrong_answer_allowed.isChecked()
+        }
+
+
 class SettingsDialog(QDialog):
     def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
         super().__init__(parent)
@@ -4662,7 +4705,11 @@ class SettingsDialog(QDialog):
         self.pages = QStackedWidget()
         self.page_list = []
 
-        sections = []
+        sections = [
+            ('Dictionary Settings', None, [
+                ('Practice', PracticeSettingsPage(), [])
+            ]),
+        ]
         self._fill(self.tree.invisibleRootItem(), sections)
         self.tree.expandAll()
 
