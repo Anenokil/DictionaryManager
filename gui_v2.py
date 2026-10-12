@@ -4388,6 +4388,8 @@ class PracticePage(QWidget):
         self.hint_btn.show()
         self.stop_btn.show()
         self.close_btn.hide()
+
+        self.user_input_edit.clear()
         self.user_input_edit.setFocus()
 
         self.shortcut_enter.setEnabled(True)
