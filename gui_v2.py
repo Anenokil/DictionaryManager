@@ -1182,13 +1182,14 @@ class ManageTagsDialog(QDialog):
 class GramFeaturesTree(QTreeWidget):
     def __init__(
             self,
-            replacer: Replacer,
+            dct_bundle: DctBundle,
             features: dict[str, list[str]],
             parent: QWidget | None = None,
     ):
         super().__init__(parent)
 
-        self.replacer = replacer
+        self.dct = dct_bundle.dct
+        self.replacer = dct_bundle.replacer
         self.init_categories = set(features.keys())
         self.init_values = {ctg: set(values) for ctg, values in features.items()}
 
@@ -1253,6 +1254,35 @@ class GramFeaturesTree(QTreeWidget):
         return item.parent() is None
 
     def delete_item(self, item: QTreeWidgetItem):
+        if self.is_category(item):
+            ctg = item.text(0)
+            ctg_val = None
+            is_new = ctg not in self.dct.features
+            messagebox_title = f'Delete Category "{ctg}"'
+        else:
+            ctg = item.parent().text(0)
+            ctg_val = item.text(0)
+            is_new = (ctg not in self.dct.features) or (ctg_val not in self.dct.features[ctg])
+            messagebox_title = f'Delete Category Value "{ctg_val}"'
+
+        if not is_new:
+            n_gram_forms_to_delete, n_word_forms_to_delete = self.dct.count_forms_by_ctg(ctg, ctg_val)
+            if n_gram_forms_to_delete > 0:
+                text = f'This will cause deletion of up to {n_gram_forms_to_delete} word form'
+                if n_gram_forms_to_delete > 1:
+                    text += 's'
+                if n_word_forms_to_delete != n_gram_forms_to_delete:
+                    text += f' (including {n_word_forms_to_delete} form variants)'
+                text += '.\nAre you sure you want to proceed?'
+
+                reply = QMessageBox.question(
+                    self, messagebox_title, text,
+                    QMessageBox.Yes | QMessageBox.No,
+                    QMessageBox.No,
+                )
+                if reply != QMessageBox.Yes:
+                    return
+
         if self.is_category(item):
             index = self.indexOfTopLevelItem(item)
             self.takeTopLevelItem(index)
@@ -1387,7 +1417,7 @@ class ManageGramFeaturesDialog(QDialog):
 
         self.setWindowTitle('Grammatical Features')
 
-        self.tree = GramFeaturesTree(dct_bundle.replacer, self.dct.features)
+        self.tree = GramFeaturesTree(dct_bundle, self.dct.features)
         self.tree.currentItemChanged.connect(self._update_add_value_button)
         self.tree.setItemDelegate(ColoredItemDelegate(self.tree))
 
