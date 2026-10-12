@@ -274,27 +274,23 @@ class Dictionary:
             InvalidTagError: If the tag does not exist.
         """
 
+        if tag is None:
+            target = self._entries
+        else:
+            if tag not in self._indexes['tags']:
+                raise InvalidTagError(tag)
+            target = self._indexes['tags'][tag]
+
         n_entries = 0
         n_translations = 0
         n_gram_forms = 0
         n_word_forms = 0
-        if tag is None:
-            for entry in self._entries:
-                if entry.is_fav:
-                    n_entries += 1
-                    n_translations += entry.n_translations
-                    n_gram_forms += entry.n_gram_forms
-                    n_word_forms += entry.n_word_forms
-        else:
-            if tag not in self._indexes['tags']:
-                raise InvalidTagError(tag)
-
-            for entry in self._indexes['tags'][tag]:
-                if entry.is_fav:
-                    n_entries += 1
-                    n_translations += entry.n_translations
-                    n_gram_forms += entry.n_gram_forms
-                    n_word_forms += entry.n_word_forms
+        for entry in target:
+            if entry.is_fav:
+                n_entries += 1
+                n_translations += entry.n_translations
+                n_gram_forms += entry.n_gram_forms
+                n_word_forms += entry.n_word_forms
         return n_entries, n_translations, n_gram_forms, n_word_forms
 
     def count_forms_by_ctg(self, ctg: Category, ctg_value: CtgValue | None = None) -> tuple[int, int]:
