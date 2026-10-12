@@ -1024,6 +1024,47 @@ def delete_ctg_value(
     return True
 
 
+def count_filtered_entries(
+        dct: Dictionary,
+        tag: Tag | None = None,
+        to_filter_fav: bool = False,
+) -> tuple[int, int, int, int]:
+    """
+    Count entries, translations, and inflected forms, optionally restricted by tag and favorite status.
+
+    Args:
+        dct: Dictionary whose entries are counted.
+        tag: If specified, counts only entries that have this tag.
+             If None, counts entries across the entire dictionary.
+        to_filter_fav: If True, counts only favorite entries.
+
+    Returns:
+        Tuple (n_entries, n_translations, n_gram_forms, n_word_forms).
+        - n_entries: Number of matching entries.
+        - n_translations: Total number of translations across matching entries.
+        - n_gram_forms: Total number of grammatical forms across matching entries.
+        - n_word_forms: Total number of word forms across matching entries.
+    """
+
+    if tag is None:
+        target = dct
+    else:
+        target = dct.search(tags=[tag])
+
+    n_entries = 0
+    n_translations = 0
+    n_gram_forms = 0
+    n_word_forms = 0
+    for entry in target:
+        if to_filter_fav and not entry.is_fav:
+            continue
+        n_entries += 1
+        n_translations += entry.n_translations
+        n_gram_forms += entry.n_gram_forms
+        n_word_forms += entry.n_word_forms
+    return n_entries, n_translations, n_gram_forms, n_word_forms
+
+
 # Поиск статей в словаре
 def search_entries(
         entries: Iterable[Entry],
@@ -3816,7 +3857,7 @@ class TagSettingsW(tk.Toplevel):
     def delete_tag(self, tag_id: int):
         tag = self.tags[tag_id]
 
-        tag_size = self.dct.count_filtered_entries(tag)[0]
+        tag_size = count_filtered_entries(self.dct, tag)[0]
         if tag_size != 0:
             tmp = select_word_form(
                 tag_size,
@@ -3894,7 +3935,7 @@ class TagSettingsW(tk.Toplevel):
         self.tips = [
             ttip.Hovertip(
                 self.buttons[i],
-                f'Статей в группе: {self.dct.count_filtered_entries(self.tags[i])[0]}',
+                f'Статей в группе: {count_filtered_entries(self.dct, self.tags[i])[0]}',
                 hover_delay=500,
             ) for i in range(tags_count)
         ]
@@ -6766,7 +6807,7 @@ class BrowseDctTab(ttk.Frame):
         tag = self.var_tag.get()
         if tag == ALL_TAGS:
             if self.var_fav_only.get():
-                w, t, gf, wf = self.dct.count_filtered_entries(to_filter_fav=True)
+                w, t, gf, wf = count_filtered_entries(self.dct, to_filter_fav=True)
                 info = dct_fav_stats_repr(
                     (w, self.dct.count('lemmas')),
                     (t, self.dct.count('translations')),
@@ -6780,11 +6821,11 @@ class BrowseDctTab(ttk.Frame):
                 )
         else:
             if self.var_fav_only.get():
-                w1, t1, gf1, wf1 = self.dct.count_filtered_entries(tag, to_filter_fav=True)
-                w2, t2, gf2, wf2 = self.dct.count_filtered_entries(tag)
+                w1, t1, gf1, wf1 = count_filtered_entries(self.dct, tag, to_filter_fav=True)
+                w2, t2, gf2, wf2 = count_filtered_entries(self.dct, tag)
                 info = dct_fav_stats_repr((w1, w2), (t1, t2), (wf1, wf2))
             else:
-                w, t, gf, wf = self.dct.count_filtered_entries(tag)
+                w, t, gf, wf = count_filtered_entries(self.dct, tag)
                 info = dct_stats_repr(w, t, wf)
         self.var_info.set(info)
 
