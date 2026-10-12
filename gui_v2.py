@@ -870,13 +870,14 @@ class CheckableList(QScrollArea):
 
 
 class EditableTagList(QTableWidget):
-    def __init__(self, replacer: Replacer, items: dict[str, bool], parent: QWidget | None = None):
-        super().__init__(0, 2, parent)
+    def __init__(self, dct_bundle: DctBundle, items: dict[str, bool], parent: QWidget | None = None):
+        super().__init__(0, 3, parent)
 
-        self.replacer = replacer
+        self.dct = dct_bundle.dct
+        self.replacer = dct_bundle.replacer
         self.init_tags = set(items)
 
-        self.setHorizontalHeaderLabels(['Tag', 'Default'])
+        self.setHorizontalHeaderLabels(['Tag', 'Default', 'Uses'])
         self.verticalHeader().setVisible(False)
         self.setEditTriggers(QTableWidget.DoubleClicked | QTableWidget.EditKeyPressed)
         self.setSelectionMode(QTableWidget.ExtendedSelection)
@@ -885,6 +886,7 @@ class EditableTagList(QTableWidget):
         header = self.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
 
         self.itemChanged.connect(self.on_item_changed)
         self.model().rowsRemoved.connect(self.on_rows_removed)
@@ -945,6 +947,11 @@ class EditableTagList(QTableWidget):
         checkbox_item = QTableWidgetItem()
         checkbox_item.setData(Qt.UserRole, None if is_new else is_default)
         self.setItem(row, 1, checkbox_item)
+
+        uses_item = QTableWidgetItem(str(0 if is_new else len(self.dct.search(tags=[tag]))))
+        uses_item.setFlags(tag_item.flags() & ~Qt.ItemIsEditable)
+        uses_item.setTextAlignment(Qt.AlignRight)
+        self.setItem(row, 2, uses_item)
 
         if is_new:
             # Set focus on the new cell
@@ -1114,7 +1121,7 @@ class ManageTagsDialog(QDialog):
 
         self.setWindowTitle('Tags')
 
-        self.tags_list = EditableTagList(dct_bundle.replacer, {
+        self.tags_list = EditableTagList(dct_bundle, {
             tag: self.dct.is_default_tag(tag)
             for tag in sorted(self.dct.tags, key=lambda s: (s.lower(), s))
         })
