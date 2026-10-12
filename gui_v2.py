@@ -4639,6 +4639,85 @@ class HelpWindow(QDialog):
             self.text.setHtml(current.data(0, Qt.UserRole))
 
 
+class SettingsPage(QWidget):
+    def fill(self, dct_config: DctUISettings):
+        raise NotImplementedError
+
+    def get_settings(self) -> dict[str, Any]:
+        raise NotImplementedError
+
+
+class SettingsDialog(QDialog):
+    def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
+        super().__init__(parent)
+
+        self._configure_window()
+
+        self.dct_bundle = dct_bundle
+        self.dct_config: DctUISettings = dct_bundle.optional['qt']
+
+        self.tree = QTreeWidget()
+        self.tree.setHeaderHidden(True)
+        self.tree.setMinimumWidth(160)
+        self.pages = QStackedWidget()
+        self.page_list = []
+
+        sections = []
+        self._fill(self.tree.invisibleRootItem(), sections)
+        self.tree.expandAll()
+
+        for page in self.page_list:
+            page.fill(self.dct_config)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.save_and_close)
+        buttons.rejected.connect(self.reject)
+
+        content = QHBoxLayout()
+        content.addWidget(self.tree, 1)
+        content.addWidget(self.pages, 3)
+
+        layout = QVBoxLayout(self)
+        layout.addLayout(content)
+        layout.addWidget(buttons)
+
+        self.tree.currentItemChanged.connect(self._on_item_changed)
+        self.tree.setCurrentItem(self.tree.topLevelItem(0))
+
+    def _configure_window(self):
+        self.setWindowTitle('Settings')
+        self.resize(700, 500)
+
+    def _fill(self, parent_item, sections):
+        for title, page, children in sections:
+            item = QTreeWidgetItem(parent_item, [title])
+            if page is not None:
+                index = self.pages.addWidget(page)
+                item.setData(0, Qt.UserRole, index)
+                self.page_list.append(page)
+            self._fill(item, children)
+
+    def _on_item_changed(self, current, _previous):
+        if current is None:
+            return
+        index = current.data(0, Qt.UserRole)
+        if index is None:
+            if current.childCount():
+                self.tree.setCurrentItem(current.child(0))
+            return
+        self.pages.setCurrentIndex(index)
+
+    def save(self):
+        for page in self.page_list:
+            for key, value in page.get_settings().items():
+                setattr(self.dct_config, key, value)
+        self.dct_bundle.partial_save(DCT_SAVE_DIR(self.dct_bundle.id), optional={'qt'})
+
+    def save_and_close(self):
+        self.save()
+        self.accept()
+
+
 class MainWindow(QMainWindow):
     """
     Main application window for Dictionary Manager.
@@ -4760,7 +4839,7 @@ class MainWindow(QMainWindow):
         HelpWindow(self).exec()
 
     def show_settings_menu(self):
-        pass
+        SettingsDialog(self.manager.active, parent=self).exec()
 
     def on_tab_changed(self, index: int):
         """
