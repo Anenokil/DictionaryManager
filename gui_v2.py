@@ -914,6 +914,8 @@ class EditableTagList(QTableWidget):
             ),
         ])
 
+        self.horizontalHeaderItem(1).setToolTip('Default tags are automatically added to every new entry')
+
         self._set_shortcuts()
 
     def _set_shortcuts(self):
