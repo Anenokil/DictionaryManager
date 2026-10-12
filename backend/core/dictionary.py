@@ -278,11 +278,11 @@ class Dictionary:
         for index_name, search_terms in query.items():
             index = self._indexes[index_name]
             for search_term in search_terms:
-                if search_term in index:
-                    if results:
-                        results.intersection_update(index[search_term])
-                    else:
-                        results = set(index[search_term])
+                found = index.get(search_term, set())
+                if results:
+                    results.intersection_update(found)
+                else:
+                    results = set(found)
         return results
 
     def mark_saved(self):
