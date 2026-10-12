@@ -247,6 +247,7 @@ class Dictionary:
             translations: list[str] | None = None,
             forms: list[str] | None = None,
             tags: list[str] | None = None,
+            mode: Literal['and', 'or'] = 'and',
     ) -> set[Entry]:
         """
         Search for Entries across multiple indexes using the specified query conditions.
@@ -274,6 +275,11 @@ class Dictionary:
         if tags is not None:
             query['tags'] = tags
 
+        if mode == 'and':
+            update_fn = lambda a, b: a.intersection_update(b)
+        else:
+            update_fn = lambda a, b: a.update(b)
+
         results = None
         for index_name, search_terms in query.items():
             index = self._indexes[index_name]
@@ -282,7 +288,7 @@ class Dictionary:
                 if results is None:
                     results = set(found)
                 else:
-                    results.intersection_update(found)
+                    update_fn(results, found)
         return results or set()
 
     def mark_saved(self):
