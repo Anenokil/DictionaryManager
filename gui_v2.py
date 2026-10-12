@@ -1071,7 +1071,7 @@ class TaggingDialog(QDialog):
         self.add_tag_button.clicked.connect(self.add_tag)
         buttons.addButton(self.add_tag_button, QDialogButtonBox.ActionRole)
 
-        self.close_button = QPushButton('Discard')
+        self.close_button = QPushButton('Cancel')
         buttons.rejected.connect(self.reject)
         buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
 
@@ -1135,7 +1135,7 @@ class ManageTagsDialog(QDialog):
         self.add_tag_button.clicked.connect(self.add_tag)
         buttons.addButton(self.add_tag_button, QDialogButtonBox.ActionRole)
 
-        self.close_button = QPushButton('Discard')
+        self.close_button = QPushButton('Cancel')
         buttons.rejected.connect(self.reject)
         buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
 
@@ -1443,7 +1443,7 @@ class ManageGramFeaturesDialog(QDialog):
         self.add_value_button.clicked.connect(self._on_add_value)
         buttons.addButton(self.add_value_button, QDialogButtonBox.ActionRole)
 
-        self.close_button = QPushButton('Discard')
+        self.close_button = QPushButton('Cancel')
         buttons.rejected.connect(self.reject)
         buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
 
@@ -1559,7 +1559,7 @@ class ManageEscapeSequencesDialog(QDialog):
             self.add_row(modifier_char, input_char, output_char, is_deletable)
 
         self.add_button = create_img_button(IMG_ADD_PATH)
-        self.discard_button = QPushButton('Discard')
+        self.discard_button = QPushButton('Cancel')
         self.save_button = QPushButton('OK')
 
         self.add_button.clicked.connect(self.add_sequence)
@@ -2152,7 +2152,7 @@ class _EntryDetailsDialog(QDialog):
         buttons = QDialogButtonBox()
 
         self.save_button = QPushButton('Save')
-        self.close_button = QPushButton('Discard')
+        self.close_button = QPushButton('Cancel')
         self.delete_button = QPushButton('Delete')
 
         buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
@@ -3069,7 +3069,7 @@ class SearchSettingsDialog(QDialog):
 
         self.reset_button = QPushButton('Reset')
         self.save_button = QPushButton('OK')
-        self.close_button = QPushButton('Discard')
+        self.close_button = QPushButton('Cancel')
 
         buttons.addButton(self.reset_button, QDialogButtonBox.ActionRole)
         buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
