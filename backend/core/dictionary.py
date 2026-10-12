@@ -274,16 +274,16 @@ class Dictionary:
         if tags is not None:
             query['tags'] = tags
 
-        results = set()
+        results = None
         for index_name, search_terms in query.items():
             index = self._indexes[index_name]
             for search_term in search_terms:
                 found = index.get(search_term, set())
-                if results:
-                    results.intersection_update(found)
-                else:
+                if results is None:
                     results = set(found)
-        return results
+                else:
+                    results.intersection_update(found)
+        return results or set()
 
     def mark_saved(self):
         self._is_modified = False
