@@ -4346,7 +4346,7 @@ class PracticePage(QWidget):
 
     def _render_results_html(self) -> str:
         history = ''
-        for task in self.history[:-1]:
+        for task in self.history:
             color = '#2e7d32' if task['is_correct'] else '#c62828'
             history += f'''
                 <hr>
@@ -4398,7 +4398,7 @@ class PracticePage(QWidget):
         self.shortcut_close.setEnabled(False)
 
         if self.trainer.is_finished():
-            self.stop()
+            self.on_stop()
             return
 
         self.get_task()
@@ -4454,7 +4454,7 @@ class PracticePage(QWidget):
         self.check_answer(user_answer)
 
         if self.trainer.is_finished():
-            self.stop()
+            self.on_stop()
             return
 
         self.get_task()
@@ -4497,6 +4497,10 @@ class PracticePage(QWidget):
         self.history[-1]['user_answer'] = user_answer
 
     def stop(self):
+        self.history.pop(-1)
+        self.on_stop()
+
+    def on_stop(self):
         html = self._render_results_html()
         self.task_edit.setText(html)
 
