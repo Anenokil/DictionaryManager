@@ -3088,6 +3088,7 @@ class EntriesTableModel(QAbstractTableModel):
     ENTRY_ROLE = Qt.UserRole
     DATA_ROLE = Qt.UserRole + 1
     NUM_COLUMNS = [0, 7, 8, 9, 10]
+    STAT_COLUMNS = [7, 8, 9, 10]
 
     def __init__(self, entries: Iterable[Entry] | Dictionary, parent: QWidget | None = None):
         super().__init__(parent)
@@ -3217,6 +3218,13 @@ class EntriesTableModel(QAbstractTableModel):
                 if i not in rows_set
             ]
             self.endResetModel()
+
+    def refresh_stats(self):
+        if not self._entries:
+            return
+        top_left = self.index(0, min(self.STAT_COLUMNS))
+        bottom_right = self.index(len(self._entries) - 1, max(self.STAT_COLUMNS))
+        self.dataChanged.emit(top_left, bottom_right)
 
 
 class SearchFilterProxyModel(QSortFilterProxyModel):
@@ -4553,7 +4561,7 @@ class DctWorkspaceWidget(QWidget):
         self.practice_config_page.close_button_clicked.connect(self.open_browsing_page)
 
         self.practice_page = PracticePage(self.dct_bundle)
-        self.practice_page.close_button_clicked.connect(self.open_browsing_page)
+        self.practice_page.close_button_clicked.connect(self.on_practice_session_ends)
         self.practice_page.dct_edited.connect(self.update_tab_title)
 
         self.pages.addWidget(self.browsing_page)
@@ -4573,6 +4581,10 @@ class DctWorkspaceWidget(QWidget):
     def open_practice_page(self):
         self.pages.setCurrentIndex(2)
         self.practice_page.on_page_opened()
+
+    def on_practice_session_ends(self):
+        self.open_browsing_page()
+        self.browsing_page.source_model.refresh_stats()
 
     def update_tab_title(self):
         self.tab_widget.update_tab_title(self.tab_widget.indexOf(self))
