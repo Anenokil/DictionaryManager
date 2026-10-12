@@ -297,6 +297,24 @@ class Dictionary:
                     n_word_forms += entry.n_word_forms
         return n_entries, n_translations, n_gram_forms, n_word_forms
 
+    def count_forms_by_ctg(self, ctg: Category, ctg_value: CtgValue | None = None) -> tuple[int, int]:
+        ctg_idx = list(self._features.keys()).index(ctg)
+
+        if ctg_value is None:
+            is_match = lambda gf: gf[ctg_idx] != ''
+        else:
+            is_match = lambda gf: gf[ctg_idx] == ctg_value
+
+        n_gram_forms = 0
+        n_word_forms = 0
+        for entry in self._entries:
+            for gram_form, word_forms in entry.forms.items():
+                if is_match(gram_form):
+                    n_gram_forms += 1
+                    n_word_forms += len(word_forms)
+
+        return n_gram_forms, n_word_forms
+
     def search(
             self,
             variants: list[str] | None = None,
