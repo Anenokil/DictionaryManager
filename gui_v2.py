@@ -3344,7 +3344,7 @@ class SearchFilterProxyModel(QSortFilterProxyModel):
         if self.config.searchbar_to_search_in_translations:
             yield from entry.tr
         if self.config.searchbar_to_search_in_forms:
-            for forms in entry.forms.values:
+            for forms in entry.forms.values():
                 yield from forms
         if self.config.searchbar_to_search_in_phrases:
             yield from entry.phrases.keys()
