@@ -3326,7 +3326,7 @@ class SearchFilterProxyModel(QSortFilterProxyModel):
 
         if self.config.searchbar_search_tags is not None:
             required_tags = set(self.config.searchbar_search_tags)
-            if not set(required_tags).issubset(entry.tags):
+            if not required_tags.issubset(entry.tags):
                 return False
 
         if not self._pattern:
