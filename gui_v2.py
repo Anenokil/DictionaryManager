@@ -5226,7 +5226,6 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app_data = AppData()
-    app_data.load()
 
     app = QApplication(sys.argv)
     window = MainWindow(app_data)
