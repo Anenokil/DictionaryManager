@@ -1,6 +1,7 @@
-from types import NoneType
+from types import NoneType, EllipsisType
 from typing import Generator, Iterable, Collection, Callable, Literal, Any, get_args
 from copy import deepcopy
+from functools import wraps
 import sys
 import re
 import json
@@ -30,7 +31,8 @@ from PySide6.QtGui import (
 )
 from PySide6.QtCore import (
     Qt, QObject, QSize, QTimer, Signal, QPoint, QAbstractTableModel,
-    QModelIndex, QSortFilterProxyModel,
+    QModelIndex, QSortFilterProxyModel, QEvent, QCoreApplication,
+    QT_TRANSLATE_NOOP, QTranslator, QLocale,
 )
 
 from backend import (
@@ -64,9 +66,11 @@ IMG_STAR_PATH = str(IMAGES_DIR / 'star.png')
 IMG_SEARCH_PATH = str(IMAGES_DIR / 'search.png')
 IMG_TAG_PATH = str(IMAGES_DIR / 'tag.png')
 TOPICS_DIR = RESOURCES_DIR / 'topics'
+LOCALES_DIR = RESOURCES_DIR / 'locales'
 
 DATA_DIR = Path(platformdirs.user_data_dir('DictionaryManager'))
 MANAGER_PATH = str(DATA_DIR / 'manager.json')
+GUI_CONFIG_PATH = str(DATA_DIR / 'qt_config.json')
 SAVES_DIR = DATA_DIR / 'saves'
 DCT_SAVE_DIR = lambda dct_id: SAVES_DIR / dct_id
 DCT_MAIN_DATA_FILENAME = 'dct.json'
@@ -215,15 +219,51 @@ class DctUISettings(OptionalDctData):
             json.dump(data, f)
 
 
+@validation_and_migration(1, [
+    ('locale', False, str),
+])
+class UISettings:
+    def __init__(self, data: SerializedData | None = None):
+        self.set_defaults()
+
+        if data is not None:
+            self.deserialize(data)
+
+    def set_defaults(self):
+        self.locale: str = QLocale.system().name()
+
+    def deserialize(self, data: SerializedData):
+        data = self._check_and_migrate(data)
+        data = data['data']
+
+        self.locale: str = data['locale']
+
+    def serialize(self) -> SerializedData:
+        return {
+            'version': self._schema_version,
+            'data': {
+                'locale': self.locale,
+            }
+        }
+
+
 class AppData:
     def __init__(self):
         self.manager = Manager()
+        self.ui_settings = UISettings()
+        self.translator = QTranslator()
 
         if Path(MANAGER_PATH).exists():
-            self.load()
+            self.load(True, False)
         else:
             Path(MANAGER_PATH).parent.mkdir(parents=True, exist_ok=True)
-            self.save()
+            self.save(True, False)
+
+        if Path(GUI_CONFIG_PATH).exists():
+            self.load(False, True)
+        else:
+            Path(GUI_CONFIG_PATH).parent.mkdir(parents=True, exist_ok=True)
+            self.save(False, True)
 
     @staticmethod
     def load_bundle_by_id(bundle_id: str) -> DctBundle | None:
@@ -232,11 +272,17 @@ class AppData:
             return None
         return DctBundle.from_files(folder, {'qt': DctUISettings})
 
-    def save(self):
-        save_json(self.manager.to_dict(), MANAGER_PATH)
+    def save(self, manager: bool = True, ui: bool = True):
+        if manager:
+            save_json(self.manager.to_dict(), MANAGER_PATH)
+        if ui:
+            save_json(self.ui_settings.serialize(), GUI_CONFIG_PATH)
 
-    def load(self):
-        self.manager.load_from_json_dict(read_json(MANAGER_PATH), self.load_bundle_by_id)
+    def load(self, manager: bool = True, ui: bool = True):
+        if manager:
+            self.manager.load_from_json_dict(read_json(MANAGER_PATH), self.load_bundle_by_id)
+        if ui:
+            self.ui_settings.deserialize(read_json(GUI_CONFIG_PATH))
 
 
 def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:
@@ -400,21 +446,6 @@ def link_exclusive_selection(tables: list[QTableWidget]):
         table.itemSelectionChanged.connect(make_handler(table))
 
 
-def valid_gram_form(gram_form: dict[str, str]) -> tuple[bool, str]:
-    if all(val == '' for val in gram_form.values()):
-        return False, 'Grammatical form must not be empty'
-    return True, ''
-
-
-def n_selected_msg(n: int, singular: str, plural: str | None = None) -> str:
-    if n == 1:
-        return f'1 {singular} selected'
-
-    if plural is None:
-        plural = f'{singular}s'
-    return f'{n} {plural} selected'
-
-
 @dataclass
 class ActionConfig:
     """
@@ -563,6 +594,19 @@ def purge_unused_user_images(dct: Dictionary):
         path.unlink()
 
 
+def lang_update(cls):
+    original = cls.changeEvent
+
+    @wraps(original)
+    def changeEvent(self, event: QEvent):
+        if event.type() == QEvent.LanguageChange:
+            self._set_texts()
+        original(self, event)
+
+    cls.changeEvent = changeEvent
+    return cls
+
+
 class ColoredItemDelegate(QStyledItemDelegate):
     """
     Custom item background stays visible even when the cell is selected.
@@ -606,19 +650,19 @@ class InputTagDialog(QDialog):
 
         self.replacer = dct_bundle.replacer
         if initial is None:
-            title = 'New Tag'
+            title = self.tr('New Tag')
             tag = ''
             is_default = False
             self.other_tags = set(dct_bundle.dct.tags)
         else:
-            title = 'Edit Tag'
+            title = self.tr('Edit Tag')
             tag, is_default = initial
             self.other_tags = set(dct_bundle.dct.tags).difference({tag})
 
         self.setWindowTitle(title)
 
         self.line_edit = QLineEdit(tag)
-        self.cb_default = QCheckBox('Automatically apply this tag to new entries')
+        self.cb_default = QCheckBox(self.tr('Automatically apply this tag to new entries'))
         self.cb_default.setChecked(is_default)
 
         buttons = QDialogButtonBox(
@@ -627,7 +671,7 @@ class InputTagDialog(QDialog):
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
 
-        label_tag = QLabel('Tag:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        label_tag = QLabel(self.tr('Tag:'), alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.label_error = QLabel('', alignment=Qt.AlignHCenter)
 
         self.layout = QGridLayout(self)
@@ -639,9 +683,9 @@ class InputTagDialog(QDialog):
     def _validate(self) -> tuple[bool, str]:
         tag, _ = self.get_text()
         if tag == '':
-            return False, 'Tag must not be empty'
+            return False, self.tr('Tag must not be empty')
         if tag in self.other_tags:
-            return False, 'Tag already exists'
+            return False, self.tr('Tag already exists')
         return True, ''
 
     def accept(self):
@@ -650,7 +694,7 @@ class InputTagDialog(QDialog):
         if ok:
             super().accept()
         else:
-            self.label_error.setText(f'Invalid value: {error_msg}')
+            self.label_error.setText(self.tr('Invalid value: %s') % error_msg)
             self.label_error.setStyleSheet('color: #d32f2f;')
             self.layout.addWidget(self.label_error, 3, 0, 1, 2)
 
@@ -732,7 +776,7 @@ class OptionsDialog(QDialog):
         if ok:
             super().accept()
         else:
-            self.label_error.setText(f'Invalid value: {error_msg}')
+            self.label_error.setText(self.tr('Invalid value: %s') % error_msg)
             self.label_error.setStyleSheet('color: #d32f2f;')
             self.layout.addWidget(self.label_error)
 
@@ -797,8 +841,14 @@ class CheckableList(QScrollArea):
 
         def show_menu(pos: QPoint):
             show_context_menu(self, self.viewport().mapToGlobal(pos), [
-                ActionConfig('Check All', self.check_all, lambda: bool(self.checkboxes), shortcut='Ctrl+Shift+C'),
-                ActionConfig('Uncheck All', self.uncheck_all, lambda: bool(self.checkboxes), shortcut='Ctrl+Shift+U'),
+                ActionConfig(
+                    self.tr('Check All'), self.check_all,
+                    lambda: bool(self.checkboxes),
+                    shortcut='Ctrl+Shift+C'),
+                ActionConfig(
+                    self.tr('Uncheck All'), self.uncheck_all,
+                    lambda: bool(self.checkboxes),
+                    shortcut='Ctrl+Shift+U'),
             ])
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -877,7 +927,7 @@ class EditableTagList(QTableWidget):
         self.replacer = dct_bundle.replacer
         self.init_tags = set(items)
 
-        self.setHorizontalHeaderLabels(['Tag', 'Default', 'Uses'])
+        self.setHorizontalHeaderLabels([self.tr('Tag'), self.tr('Default'), self.tr('Uses')])
         self.verticalHeader().setVisible(False)
         self.setEditTriggers(QTableWidget.DoubleClicked | QTableWidget.EditKeyPressed)
         self.setSelectionMode(QTableWidget.ExtendedSelection)
@@ -895,26 +945,26 @@ class EditableTagList(QTableWidget):
             self.add_tag(tag, is_default)
 
         setup_table_context_menu(self, [
-            ActionConfig(lambda: n_selected_msg(self.n_selected_tags(), 'tag'), None, False),
+            ActionConfig(lambda: self.tr('%n tags selected', None, self.n_selected_tags()), None, False),
             None,
             ActionConfig(
-                'Delete', self.delete_tags,
+                self.tr('Delete'), self.delete_tags,
                 lambda: self.n_selected_tags() > 0,
                 shortcut='Delete'
             ),
             ActionConfig(
-                'Mark as Default', self.mark_tags_default,
+                self.tr('Mark as Default'), self.mark_tags_default,
                 lambda: self.n_selected_tags() > 0,
                 shortcut='Ctrl+M'
             ),
             ActionConfig(
-                'Unmark as Default', self.unmark_tags_default,
+                self.tr('Unmark as Default'), self.unmark_tags_default,
                 lambda: self.n_selected_tags() > 0,
                 shortcut='Ctrl+U'
             ),
         ])
 
-        self.horizontalHeaderItem(1).setToolTip('Default tags are automatically added to every new entry')
+        self.horizontalHeaderItem(1).setToolTip(self.tr('Default tags are automatically added to every new entry'))
 
         self._set_shortcuts()
 
@@ -987,10 +1037,10 @@ class EditableTagList(QTableWidget):
 
             # Validate
             if tag == '':
-                error_msg = 'Tag name must not be empty'
+                error_msg = self.tr('Tag name must not be empty')
                 ok = False
             elif tags.count(tag) > 1:
-                error_msg = f'Tag "{tag}" is a duplicate'
+                error_msg = self.tr('Tag "%s" is a duplicate') % tag
                 ok = False
             else:
                 error_msg = ''
@@ -1071,11 +1121,11 @@ class TaggingDialog(QDialog):
         self.add_tag_button.clicked.connect(self.add_tag)
         buttons.addButton(self.add_tag_button, QDialogButtonBox.ActionRole)
 
-        self.close_button = QPushButton('Cancel')
+        self.close_button = QPushButton(self.tr('Cancel'))
         buttons.rejected.connect(self.reject)
         buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
 
-        self.save_button = QPushButton('Save')
+        self.save_button = QPushButton(self.tr('Save'))
         buttons.accepted.connect(self.accept)
         buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
 
@@ -1121,7 +1171,7 @@ class ManageTagsDialog(QDialog):
 
         self.dct = dct_bundle.dct
 
-        self.setWindowTitle('Tags')
+        self.setWindowTitle(self.tr('Tags'))
 
         self.tags_list = EditableTagList(dct_bundle, {
             tag: self.dct.is_default_tag(tag)
@@ -1135,11 +1185,11 @@ class ManageTagsDialog(QDialog):
         self.add_tag_button.clicked.connect(self.add_tag)
         buttons.addButton(self.add_tag_button, QDialogButtonBox.ActionRole)
 
-        self.close_button = QPushButton('Cancel')
+        self.close_button = QPushButton(self.tr('Cancel'))
         buttons.rejected.connect(self.reject)
         buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
 
-        self.save_button = QPushButton('OK')
+        self.save_button = QPushButton(self.tr('OK'))
         buttons.accepted.connect(self.save_and_close)
         buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
 
@@ -1167,8 +1217,8 @@ class ManageTagsDialog(QDialog):
         if not ok:
             QMessageBox.critical(
                 self,
-                'Error',
-                'Cannot apply your changes while there are invalid values (highlighted in red).'
+                self.tr('Error'),
+                self.tr('Cannot apply your changes while there are invalid values (highlighted in red).')
             )
             return
 
@@ -1230,9 +1280,9 @@ class GramFeaturesTree(QTreeWidget):
 
             menu = QMenu(self)
             if self.is_category(item):
-                action_text = f'Delete category "{item.text(0)}" and its values'
+                action_text = self.tr('Delete category "%s" and its values') % item.text(0)
             else:
-                action_text = f'Delete value "{item.text(0)}"'
+                action_text = self.tr('Delete value "%s"') % item.text(0)
             delete_action = menu.addAction(action_text)
             delete_action.setShortcut('Delete')
 
@@ -1267,22 +1317,20 @@ class GramFeaturesTree(QTreeWidget):
             ctg = item.text(0)
             ctg_val = None
             is_new = ctg not in self.dct.features
-            messagebox_title = f'Delete Category "{ctg}"'
+            messagebox_title = self.tr('Delete Category "%s"') % ctg
         else:
             ctg = item.parent().text(0)
             ctg_val = item.text(0)
             is_new = (ctg not in self.dct.features) or (ctg_val not in self.dct.features[ctg])
-            messagebox_title = f'Delete Category Value "{ctg_val}"'
+            messagebox_title = self.tr('Delete Category Value "%s"') % ctg_val
 
         if not is_new:
             n_gram_forms_to_delete, n_word_forms_to_delete = self.dct.count_forms_by_ctg(ctg, ctg_val)
             if n_gram_forms_to_delete > 0:
-                text = f'This will cause deletion of up to {n_gram_forms_to_delete} word form'
-                if n_gram_forms_to_delete > 1:
-                    text += 's'
+                text = self.tr('This will cause deletion of up to %n word forms', None, n_gram_forms_to_delete)
                 if n_word_forms_to_delete != n_gram_forms_to_delete:
-                    text += f' (including {n_word_forms_to_delete} form variants)'
-                text += '.\nAre you sure you want to proceed?'
+                    text += self.tr(' (including %n form variants)', None, n_word_forms_to_delete)
+                text += self.tr('.\nAre you sure you want to proceed?')
 
                 reply = QMessageBox.question(
                     self, messagebox_title, text,
@@ -1319,10 +1367,10 @@ class GramFeaturesTree(QTreeWidget):
 
             # Validate category name
             if category == '':
-                error_msg = 'Category name must not be empty'
+                error_msg = self.tr('Category name must not be empty')
                 ok = False
             elif categories.count(category) > 1:
-                error_msg = f'Category "{category}" is a duplicate'
+                error_msg = self.tr('Category "%s" is a duplicate') % category
                 ok = False
             else:
                 error_msg = ''
@@ -1341,10 +1389,10 @@ class GramFeaturesTree(QTreeWidget):
 
                 # Validate category value
                 if value == '':
-                    error_msg = 'Category value must not be empty'
+                    error_msg = self.tr('Category value must not be empty')
                     ok = False
                 elif values.count(value) > 1:
-                    error_msg = f'Category value "{value}" is a duplicate'
+                    error_msg = self.tr('Category value "%s" is a duplicate') % value
                     ok = False
                 else:
                     error_msg = ''
@@ -1424,7 +1472,7 @@ class ManageGramFeaturesDialog(QDialog):
 
         self.dct = dct_bundle.dct
 
-        self.setWindowTitle('Grammatical Features')
+        self.setWindowTitle(self.tr('Grammatical Features'))
 
         self.tree = GramFeaturesTree(dct_bundle, self.dct.features)
         self.tree.currentItemChanged.connect(self._update_add_value_button)
@@ -1441,11 +1489,11 @@ class ManageGramFeaturesDialog(QDialog):
         self.add_value_button.clicked.connect(self._on_add_value)
         buttons.addButton(self.add_value_button, QDialogButtonBox.ActionRole)
 
-        self.close_button = QPushButton('Cancel')
+        self.close_button = QPushButton(self.tr('Cancel'))
         buttons.rejected.connect(self.reject)
         buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
 
-        self.save_button = QPushButton('OK')
+        self.save_button = QPushButton(self.tr('OK'))
         buttons.accepted.connect(self.save_and_close)
         buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
 
@@ -1484,8 +1532,8 @@ class ManageGramFeaturesDialog(QDialog):
         if not ok:
             QMessageBox.critical(
                 self,
-                'Error',
-                'Cannot apply your changes while there are invalid values (highlighted in red).'
+                self.tr('Error'),
+                self.tr('Cannot apply your changes while there are invalid values (highlighted in red).')
             )
             return
 
@@ -1538,7 +1586,7 @@ class ManageEscapeSequencesDialog(QDialog):
     def __init__(self, replacer: Replacer, parent: QWidget | None = None):
         super().__init__(parent)
 
-        self.setWindowTitle('Escape Sequences')
+        self.setWindowTitle(self.tr('Escape Sequences'))
 
         self.replacer = replacer
         self.combo_options = sorted(replacer.modifiers)
@@ -1557,8 +1605,8 @@ class ManageEscapeSequencesDialog(QDialog):
             self.add_row(modifier_char, input_char, output_char, is_deletable)
 
         self.add_button = create_img_button(IMG_ADD_PATH)
-        self.discard_button = QPushButton('Cancel')
-        self.save_button = QPushButton('OK')
+        self.discard_button = QPushButton(self.tr('Cancel'))
+        self.save_button = QPushButton(self.tr('OK'))
 
         self.add_button.clicked.connect(self.add_sequence)
         self.discard_button.clicked.connect(self.reject)
@@ -1607,21 +1655,21 @@ class ManageEscapeSequencesDialog(QDialog):
             output_char = line_edit2.text()
 
             if modifier not in self.combo_options:
-                modifier_error_msg = 'Invalid modifier'
+                modifier_error_msg = self.tr('Invalid modifier')
                 modifier_ok = False
             else:
                 modifier_error_msg = ''
                 modifier_ok = True
 
             if input_char == '':
-                input_error_msg = 'Input char must not be empty'
+                input_error_msg = self.tr('Input char must not be empty')
                 input_ok = False
             else:
                 input_error_msg = ''
                 input_ok = True
 
             if output_char == '':
-                output_error_msg = 'Output char must not be empty'
+                output_error_msg = self.tr('Output char must not be empty')
                 output_ok = False
             else:
                 output_error_msg = ''
@@ -1629,7 +1677,9 @@ class ManageEscapeSequencesDialog(QDialog):
 
             if input_pairs.count((modifier, input_char)) > 1:
                 if modifier_ok and input_ok:
-                    modifier_error_msg = input_error_msg = f'Sequence "{modifier}{input_char}" is a duplicate'
+                    modifier_error_msg = input_error_msg = self.tr(
+                        'Sequence "%s%s" is a duplicate'
+                    ) % (modifier, input_char)
                     modifier_ok = input_ok = False
 
             update_ui(combo, modifier_error_msg, modifier_ok)
@@ -1725,8 +1775,8 @@ class ManageEscapeSequencesDialog(QDialog):
         if not ok:
             QMessageBox.critical(
                 self,
-                'Error',
-                'Cannot apply your changes while there are invalid values (highlighted in red).'
+                self.tr('Error'),
+                self.tr('Cannot apply your changes while there are invalid values (highlighted in red).')
             )
             return
 
@@ -1801,9 +1851,9 @@ class ImagePicker(QWidget):
 
         def show_menu(pos: QPoint):
             show_context_menu(self, self.mapToGlobal(pos), [
-                ActionConfig('Save Image', self.save_image, lambda: self._pixmap is not None),
-                ActionConfig('Choose Image', self.choose_image),
-                ActionConfig('Remove Image', self.reset_image, lambda: self._pixmap is not None),
+                ActionConfig(self.tr('Save Image'), self.save_image, lambda: self._pixmap is not None),
+                ActionConfig(self.tr('Choose Image'), self.choose_image),
+                ActionConfig(self.tr('Remove Image'), self.reset_image, lambda: self._pixmap is not None),
             ])
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -1816,7 +1866,7 @@ class ImagePicker(QWidget):
 
     def choose_image(self):
         path, _ = QFileDialog.getOpenFileName(
-            self, 'Open Image File', '',
+            self, self.tr('Open Image File'), '',
             'Images (*.png *.jpg *.jpeg *.bmp *.webp *.gif)',
         )
         if not path:
@@ -1836,7 +1886,7 @@ class ImagePicker(QWidget):
         if self._pixmap is None:
             return
 
-        path, _ = QFileDialog.getSaveFileName(self, 'Save Image', self.get_hashed_name(), 'JPEG Image (*.jpg)')
+        path, _ = QFileDialog.getSaveFileName(self, self.tr('Save Image'), self.get_hashed_name(), 'JPEG Image (*.jpg)')
         if not path:
             return
 
@@ -1898,7 +1948,9 @@ class ImagePicker(QWidget):
         filename = f'{digest}.jpg'
         return filename
 
-    def _set_placeholder(self, text: str = 'No image'):
+    def _set_placeholder(self, text: str = ...):
+        if isinstance(text, EllipsisType):
+            text = self.tr('No image')
         self.image_label.setPixmap(QPixmap())
         self.image_label.setText(text)
 
@@ -1909,19 +1961,19 @@ class ImagePicker(QWidget):
             else:
                 content, pixmap = self._read_image(path)
         except FileNotFoundError:
-            self._set_placeholder('Not found')
+            self._set_placeholder(self.tr('Not found'))
             self._content = None
             self._pixmap = None
             return
         except Exception as e:
-            QMessageBox.warning(self, 'Error', f'Failed to process image: {e}')
-            self._set_placeholder('Error')
+            QMessageBox.warning(self, self.tr('Error'), self.tr('Failed to process image: %s') % e)
+            self._set_placeholder(self.tr('Error'))
             self._content = None
             self._pixmap = None
             return
 
         if pixmap.isNull():
-            self._set_placeholder('Invalid image')
+            self._set_placeholder(self.tr('Invalid image'))
             self._content = None
             self._pixmap = None
             return
@@ -1966,7 +2018,7 @@ class _EntryDetailsDialog(QDialog):
         self._configure_window()
 
     def _set_title(self):
-        self.setWindowTitle('Entry Details')
+        self.setWindowTitle(self.tr('Entry Details'))
 
     def _configure_window(self):
         self._set_title()
@@ -1980,7 +2032,7 @@ class _EntryDetailsDialog(QDialog):
         self.image = ImagePicker(QSize(300, 300))
         self.main_layout.addWidget(self.image, 0, 0, alignment=Qt.AlignTop)
 
-        self.fav_checkbox = QCheckBox('Starred')
+        self.fav_checkbox = QCheckBox(self.tr('Starred'))
         self.main_layout.addWidget(self.fav_checkbox, 1, 0, alignment=Qt.AlignTop | Qt.AlignHCenter)
 
         self._create_fields()
@@ -1992,12 +2044,12 @@ class _EntryDetailsDialog(QDialog):
         self.main_layout.addLayout(self.form_layout, 0, 1, 4, 1)
 
         # Create labels
-        lemma_variants_label = QLabel('Lemma\nvariants:', alignment=Qt.AlignRight)
-        translations_label = QLabel('Translations:')
-        forms_label = QLabel('Forms:')
-        phrases_label = QLabel('Phrases:')
-        notes_label = QLabel('Notes:')
-        tags_label = QLabel('Tags:')
+        lemma_variants_label = QLabel(self.tr('Lemma\nvariants:'), alignment=Qt.AlignRight)
+        translations_label = QLabel(self.tr('Translations:'))
+        forms_label = QLabel(self.tr('Forms:'))
+        phrases_label = QLabel(self.tr('Phrases:'))
+        notes_label = QLabel(self.tr('Notes:'))
+        tags_label = QLabel(self.tr('Tags:'))
 
         # Create tables
         self.lemma_variants_table = self.create_single_column_table()
@@ -2074,39 +2126,44 @@ class _EntryDetailsDialog(QDialog):
             return len({i.row() for i in table.selectedIndexes()})
 
         setup_table_context_menu(self.lemma_variants_table, [
-            ActionConfig(lambda: n_selected_msg(cnt(self.lemma_variants_table), 'variant'), None),
+            ActionConfig(lambda: self.tr('%n variants selected', None, cnt(self.lemma_variants_table)), None),
             None,
             ActionConfig(
-                'Delete',
+                self.tr('Delete'),
                 self.delete_lemma_variants,
                 lambda: 0 < cnt(self.lemma_variants_table) < self.lemma_variants_table.rowCount(),
                 shortcut='Delete',
             )
         ])
         setup_table_context_menu(self.translations_table, [
-            ActionConfig(lambda: n_selected_msg(cnt(self.translations_table), 'translation'), None),
+            ActionConfig(lambda: self.tr('%n translations selected', None, cnt(self.translations_table)), None),
             None,
             ActionConfig(
-                'Delete',
+                self.tr('Delete'),
                 self.delete_translations,
                 lambda: 0 < cnt(self.translations_table) < self.translations_table.rowCount(),
                 shortcut='Delete',
             )
         ])
         setup_table_context_menu(self.forms_table, [
-            ActionConfig(lambda: n_selected_msg(cnt(self.forms_table), 'form'), None),
+            ActionConfig(lambda: self.tr('%n forms selected', None, cnt(self.forms_table)), None),
             None,
-            ActionConfig('Delete', self.delete_forms, lambda: 0 < cnt(self.forms_table), shortcut='Delete'),
+            ActionConfig(self.tr('Delete'), self.delete_forms, lambda: 0 < cnt(self.forms_table), shortcut='Delete'),
         ])
         setup_table_context_menu(self.phrases_table, [
-            ActionConfig(lambda: n_selected_msg(cnt(self.phrases_table), 'phrase'), None),
+            ActionConfig(lambda: self.tr('%n phrases selected', None, cnt(self.phrases_table)), None),
             None,
-            ActionConfig('Delete', self.delete_phrases, lambda: 0 < cnt(self.phrases_table), shortcut='Delete'),
+            ActionConfig(
+                self.tr('Delete'),
+                self.delete_phrases,
+                lambda: 0 < cnt(self.phrases_table),
+                shortcut='Delete',
+            ),
         ])
         setup_table_context_menu(self.notes_table, [
-            ActionConfig(lambda: n_selected_msg(cnt(self.notes_table), 'note'), None),
+            ActionConfig(lambda: self.tr('%n notes selected', None, cnt(self.notes_table)), None),
             None,
-            ActionConfig('Delete', self.delete_notes, lambda: 0 < cnt(self.notes_table), shortcut='Delete'),
+            ActionConfig(self.tr('Delete'), self.delete_notes, lambda: 0 < cnt(self.notes_table), shortcut='Delete'),
         ])
 
         # Signal handling
@@ -2149,9 +2206,9 @@ class _EntryDetailsDialog(QDialog):
     def _create_buttons(self):
         buttons = QDialogButtonBox()
 
-        self.save_button = QPushButton('Save')
-        self.close_button = QPushButton('Cancel')
-        self.delete_button = QPushButton('Delete')
+        self.save_button = QPushButton(self.tr('Save'))
+        self.close_button = QPushButton(self.tr('Cancel'))
+        self.delete_button = QPushButton(self.tr('Delete'))
 
         buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
         buttons.addButton(self.close_button, QDialogButtonBox.RejectRole)
@@ -2333,23 +2390,23 @@ class _EntryDetailsDialog(QDialog):
 
     def validate_lemma_variant(self, variant: str) -> tuple[bool, str]:
         if variant == '':
-            return False, 'Lemma variant must not be empty'
+            return False, self.tr('Lemma variant must not be empty')
         variants = get_column_data(self.lemma_variants_table, 0)
         if variants.count(variant) > 1:
-            return False, f'Variant "{variant}" is a duplicate'
+            return False, self.tr('Variant "%s" is a duplicate') % variant
         return True, ''
 
     def validate_translation(self, translation: str) -> tuple[bool, str]:
         if translation == '':
-            return False, 'Translation must not be empty'
+            return False, self.tr('Translation must not be empty')
         translations = get_column_data(self.translations_table, 0)
         if translations.count(translation) > 1:
-            return False, f'Translation "{translation}" is a duplicate'
+            return False, self.tr('Translation "%s" is a duplicate') % translation
         return True, ''
 
     def validate_word_form(self, gram_form: GramForm, word_form: str) -> tuple[bool, str]:
         if word_form == '':
-            return False, 'Word form must not be empty'
+            return False, self.tr('Word form must not be empty')
         gram_forms = [
             self.forms_table.item(row, 0).data(self._role_gram_form)
             for row in range(self.forms_table.rowCount())
@@ -2357,30 +2414,30 @@ class _EntryDetailsDialog(QDialog):
         word_forms = get_column_data(self.forms_table, 1)
         adj_word_forms = [wf for gf, wf in zip(gram_forms, word_forms) if gf == gram_form]
         if adj_word_forms.count(word_form) > 1:
-            return False, f'Word form "{word_form}" is a duplicate'
+            return False, self.tr('Word form "%s" is a duplicate') % word_form
         return True, ''
 
     def validate_phrase(self, phrase: str) -> tuple[bool, str]:
         if phrase == '':
-            return False, 'Phrase must not be empty'
+            return False, self.tr('Phrase must not be empty')
         return True, ''
 
     def validate_phrase_translation(self, phrase: str, phrase_tr: str) -> tuple[bool, str]:
         if phrase_tr == '':
-            return False, 'Phrase translation must not be empty'
+            return False, self.tr('Phrase translation must not be empty')
         phrases = get_column_data(self.phrases_table, 0)
         phrase_trs = get_column_data(self.phrases_table, 1)
         adj_phrase_trs = [pt for ph, pt in zip(phrases, phrase_trs) if ph == phrase]
         if adj_phrase_trs.count(phrase_tr) > 1:
-            return False, f'Phrase translation "{phrase_tr}" is a duplicate'
+            return False, self.tr('Phrase translation "%s" is a duplicate') % phrase_tr
         return True, ''
 
     def validate_note(self, note: str) -> tuple[bool, str]:
         if note == '':
-            return False, 'Note must not be empty'
+            return False, self.tr('Note must not be empty')
         notes = get_column_data(self.notes_table, 0)
         if notes.count(note) > 1:
-            return False, f'Note "{note}" is a duplicate'
+            return False, self.tr('Note "%s" is a duplicate') % note
         return True, ''
 
     def validate_cell(self, item: QTableWidgetItem) -> tuple[bool, str]:
@@ -2403,7 +2460,7 @@ class _EntryDetailsDialog(QDialog):
                 return self.validate_phrase_translation(phrase, item.text())
             case self.notes_table:
                 return self.validate_note(item.text())
-        return False, 'Unknown table'
+        return False, self.tr('Unknown table')
 
     def validate_and_update_table(self, table: QTableWidget):
         if self._ignore_validation:
@@ -2431,6 +2488,11 @@ class _EntryDetailsDialog(QDialog):
 
                 self._ignore_item_changed = False
 
+    def valid_gram_form(self, gram_form: dict[str, str]) -> tuple[bool, str]:
+        if all(val == '' for val in gram_form.values()):
+            return False, self.tr('Grammatical form must not be empty')
+        return True, ''
+
     def on_item_changed(self, item: QTableWidgetItem):
         if self._ignore_item_changed:
             return
@@ -2451,7 +2513,7 @@ class _EntryDetailsDialog(QDialog):
         specs = {k: [''] + v for k, v in self.dct.features.items()}
         gram_form = item.data(self._role_gram_form)
         res, ok = OptionsDialog.get_settings(
-            specs, gram_form, 'Grammatical Form Settings', validator=valid_gram_form, parent=self,
+            specs, gram_form, self.tr('Edit Grammatical Form'), validator=self.valid_gram_form, parent=self,
         )
         if not ok:
             return
@@ -2467,8 +2529,7 @@ class _EntryDetailsDialog(QDialog):
                     cell = table.item(row, column)
                     error_msg = cell.data(self._role_valid)
                     if error_msg:
-                        return (
-                            False,
+                        return False, self.tr(
                             'Cannot apply your changes while there are '
                             'invalid values (highlighted in red).'
                         )
@@ -2485,7 +2546,7 @@ class _EntryDetailsDialog(QDialog):
         empty_gram_form = tuple('' for _ in range(len(self.dct.features)))
 
         res, ok = OptionsDialog.get_settings(
-            specs, empty_gram_form, 'Set Grammatical Form', validator=valid_gram_form, parent=self,
+            specs, empty_gram_form, self.tr('Set Grammatical Form'), validator=self.valid_gram_form, parent=self,
         )
         if not ok:
             return
@@ -2538,9 +2599,11 @@ class _EntryDetailsDialog(QDialog):
         if self.is_modified():
             reply = QMessageBox.question(
                 self,
-                'Discard Changes',
-                f'You have unsaved changes in the entry "{self.entry.lemma}".\n'
-                'Are you sure you want to discard them?',
+                self.tr('Discard Changes'),
+                self.tr(
+                    'You have unsaved changes in the entry "%s".\n'
+                    'Are you sure you want to discard them?'
+                ) % self.entry.lemma,
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.No,
             )
@@ -2640,7 +2703,7 @@ class EditEntryDialog(_EntryDetailsDialog):
         super().__init__(dct_bundle, entry, parent)
 
     def _set_title(self):
-        title = f'Entry "{variants_to_str(self.entry.variants)}"'
+        title = self.tr('Entry "%s"') % variants_to_str(self.entry.variants)
         self.setWindowTitle(title)
 
     def _create_widgets(self):
@@ -2650,8 +2713,8 @@ class EditEntryDialog(_EntryDetailsDialog):
     def _create_nav_buttons(self):
         nav_buttons = QDialogButtonBox()
 
-        self.prev_button = QPushButton('Previous entry')
-        self.next_button = QPushButton('Next entry')
+        self.prev_button = QPushButton(self.tr('Previous entry'))
+        self.next_button = QPushButton(self.tr('Next entry'))
 
         nav_buttons.addButton(self.next_button, QDialogButtonBox.RejectRole)
         nav_buttons.addButton(self.prev_button, QDialogButtonBox.RejectRole)
@@ -2709,7 +2772,7 @@ class EditEntryDialog(_EntryDetailsDialog):
     def save(self):
         ok, error_msg = self.validate_all()
         if not ok:
-            QMessageBox.critical(self, 'Error', error_msg)
+            QMessageBox.critical(self, self.tr('Error'), error_msg)
             return
 
         if self.is_modified():
@@ -2737,13 +2800,12 @@ class NewEntryDialog(_EntryDetailsDialog):
         self.lemma_variants_table.edit(self.lemma_variants_table.model().index(0, 0))
 
     def _set_title(self):
-        title = 'New Entry'
-        self.setWindowTitle(title)
+        self.setWindowTitle(self.tr('New Entry'))
 
     def _create_buttons(self):
         super()._create_buttons()
         self.delete_button.hide()
-        self.save_button.setText('OK')
+        self.save_button.setText(self.tr('OK'))
 
     def _fill_data(self):
         self._ignore_item_changed = True
@@ -2768,9 +2830,9 @@ class NewEntryDialog(_EntryDetailsDialog):
 
     def validate_all(self) -> tuple[bool, str]:
         if self.lemma_variants_table.rowCount() == 0:
-            return False, 'Entry must have at least one lemma variant'
+            return False, self.tr('Entry must have at least one lemma variant')
         if self.translations_table.rowCount() == 0:
-            return False, 'Entry must have at least one translation'
+            return False, self.tr('Entry must have at least one translation')
         return super().validate_all()
 
     def is_modified(self) -> bool:
@@ -2779,7 +2841,7 @@ class NewEntryDialog(_EntryDetailsDialog):
     def save(self):
         ok, error_msg = self.validate_all()
         if not ok:
-            QMessageBox.critical(self, 'Error', error_msg)
+            QMessageBox.critical(self, self.tr('Error'), error_msg)
             return
 
         self.image.dedup_save_to(USER_IMAGES_DIR(self.dct.id))
@@ -2813,16 +2875,16 @@ class DctTabWidget(QTabWidget):
             return
 
         show_context_menu(self, self.tabBar().mapToGlobal(pos), [
-            ActionConfig('Rename...', lambda: self.rename_dct(index)),
+            ActionConfig(self.tr('Rename...'), lambda: self.rename_dct(index)),
             None,
-            ActionConfig('Save', lambda: self.save_dct(index)),
-            ActionConfig('Save All', self.save_all_dcts),
-            SubmenuConfig('Export', *create_context_menu(self, [
-                ActionConfig('to Text File...', lambda: self.export_dct_to_txt(index)),
-                ActionConfig('as Dictionary Package (.dmdct)...', lambda: self.export_dct_to_dmdct(index)),
+            ActionConfig(self.tr('Save'), lambda: self.save_dct(index)),
+            ActionConfig(self.tr('Save All'), self.save_all_dcts),
+            SubmenuConfig(self.tr('Export'), *create_context_menu(self, [
+                ActionConfig(self.tr('to Text File...'), lambda: self.export_dct_to_txt(index)),
+                ActionConfig(self.tr('as Dictionary Package (.dmdct)...'), lambda: self.export_dct_to_dmdct(index)),
             ])),
             None,
-            ActionConfig('Delete', lambda: self.delete_dct(index)),
+            ActionConfig(self.tr('Delete'), lambda: self.delete_dct(index)),
         ])
 
     def rename_dct(self, index: int | None):
@@ -2840,8 +2902,8 @@ class DctTabWidget(QTabWidget):
             current_name = self.manager.opened_dct_bundles[index].dct.name
             new_name, ok = QInputDialog.getText(
                 self,
-                'Rename Dictionary',
-                'Enter new dictionary name:',
+                self.tr('Rename Dictionary'),
+                self.tr('Enter new dictionary name:'),
                 text=current_name,
             )
             if ok and new_name:
@@ -2868,7 +2930,7 @@ class DctTabWidget(QTabWidget):
         dct = self.manager.opened_dct_bundles[index].dct
         dct_name = dct.name
         file_path, _ = QFileDialog.getSaveFileName(
-            self, 'Export Dictionary', f'{dct_name}.txt', '(*.txt)',
+            self, self.tr('Export Dictionary'), f'{dct_name}.txt', '(*.txt)',
         )
         if not file_path:
             return
@@ -2881,7 +2943,7 @@ class DctTabWidget(QTabWidget):
         dct = self.manager.opened_dct_bundles[index].dct
         dct_name = dct.name
         dest_path, _ = QFileDialog.getSaveFileName(
-            self, 'Export Dictionary', f'{dct_name}.dmdct', '(*.dmdct)',
+            self, self.tr('Export Dictionary'), f'{dct_name}.dmdct', '(*.dmdct)',
         )
         if not dest_path:
             return
@@ -2901,9 +2963,8 @@ class DctTabWidget(QTabWidget):
 
         reply = QMessageBox.question(
             self,
-            'Delete Dictionary',
-            f'Delete dictionary "{dct.name}" and its {len(dct)} {"entry" if len(dct) == 1 else "entries"}?\n'
-            f'This cannot be undone.',
+            self.tr('Delete Dictionary'),
+            self.tr('Delete dictionary "%s" and its %n entries?\nThis cannot be undone.', None, len(dct)) % dct.name,
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No,
         )
@@ -2914,6 +2975,7 @@ class DctTabWidget(QTabWidget):
         self.tab_closed.emit(index)
 
 
+@lang_update
 class SearchBar(QFrame):
     def __init__(
             self,
@@ -2934,7 +2996,6 @@ class SearchBar(QFrame):
         layout.setSpacing(3)
 
         self.line_edit = QLineEdit()
-        self.line_edit.setPlaceholderText('Search')
         self.line_edit.setMaximumWidth(700)
         self.line_edit.textChanged.connect(self._apply_search)
         layout.addWidget(self.line_edit)
@@ -2965,7 +3026,12 @@ class SearchBar(QFrame):
 
         layout.addStretch()
 
+        self._set_texts()
+
         self.setVisible(False)
+
+    def _set_texts(self):
+        self.line_edit.setPlaceholderText(self.tr('Search'))
 
     def _apply_search(self):
         raw_query = self.line_edit.text()
@@ -3011,6 +3077,24 @@ class NoEnterComboBox(QComboBox):
 
 
 class SearchSettingsDialog(QDialog):
+    STAR_OPTIONS = [
+        QT_TRANSLATE_NOOP('SearchSettingsDialog', 'All entries'),
+        QT_TRANSLATE_NOOP('SearchSettingsDialog', 'Starred entries only'),
+        QT_TRANSLATE_NOOP('SearchSettingsDialog', 'Unstarred entries only'),
+    ]
+    IMAGE_OPTIONS = [
+        QT_TRANSLATE_NOOP('SearchSettingsDialog', 'All entries'),
+        QT_TRANSLATE_NOOP('SearchSettingsDialog', 'With image only'),
+        QT_TRANSLATE_NOOP('SearchSettingsDialog', 'Without image only'),
+    ]
+    TARGET_FIELDS = [
+        QT_TRANSLATE_NOOP('SearchSettingsDialog', 'Lemmas'),
+        QT_TRANSLATE_NOOP('SearchSettingsDialog', 'Translations'),
+        QT_TRANSLATE_NOOP('SearchSettingsDialog', 'Forms'),
+        QT_TRANSLATE_NOOP('SearchSettingsDialog', 'Phrases'),
+        QT_TRANSLATE_NOOP('SearchSettingsDialog', 'Notes'),
+    ]
+
     def __init__(
             self,
             dct: Dictionary,
@@ -3022,7 +3106,7 @@ class SearchSettingsDialog(QDialog):
         self.dct = dct
         self.config = ui_config
 
-        self.setWindowTitle('Search Settings')
+        self.setWindowTitle(self.tr('Search Settings'))
 
         self._create_widgets()
         self._fill_data()
@@ -3034,28 +3118,29 @@ class SearchSettingsDialog(QDialog):
         self._create_buttons()
 
     def _create_layout_settings(self):
-        self.group_settings = QGroupBox(title='Search in:')
+        self.group_settings = QGroupBox(title=self.tr('Search in:'))
         self.layout_settings = QVBoxLayout(self.group_settings)
 
         self.combobox_starred = NoEnterComboBox()
-        self.combobox_starred.addItems(
-            ['All entries', 'Starred entries only', 'Unstarred entries only']
-        )
+        self.combobox_starred.addItems([
+            QCoreApplication.translate('SearchSettingsDialog', option) for option in self.STAR_OPTIONS
+        ])
         self.layout_settings.addWidget(self.combobox_starred)
 
         self.combobox_with_image = NoEnterComboBox()
-        self.combobox_with_image.addItems(
-            ['All entries', 'With image only', 'Without image only']
-        )
+        self.combobox_with_image.addItems([
+            QCoreApplication.translate('SearchSettingsDialog', option) for option in self.IMAGE_OPTIONS
+        ])
         self.layout_settings.addWidget(self.combobox_with_image)
 
-        self.layout_settings.addWidget(QLabel('Target fields'))
+        self.layout_settings.addWidget(QLabel(self.tr('Target fields')))
 
-        fields = ['Lemmas', 'Translations', 'Forms', 'Phrases', 'Notes']
-        self.fields_list = CheckableList({field: False for field in fields})
+        self.fields_list = CheckableList({
+            QCoreApplication.translate('SearchSettingsDialog', field): False for field in self.TARGET_FIELDS
+        })
         self.layout_settings.addWidget(self.fields_list)
 
-        self.layout_settings.addWidget(QLabel('Required tags'))
+        self.layout_settings.addWidget(QLabel(self.tr('Required tags')))
 
         self.tags_list = CheckableList({tag: False for tag in self.dct.tags})
         self.layout_settings.addWidget(self.tags_list)
@@ -3065,9 +3150,9 @@ class SearchSettingsDialog(QDialog):
     def _create_buttons(self):
         buttons = QDialogButtonBox()
 
-        self.reset_button = QPushButton('Reset')
-        self.save_button = QPushButton('OK')
-        self.close_button = QPushButton('Cancel')
+        self.reset_button = QPushButton(self.tr('Reset'))
+        self.save_button = QPushButton(self.tr('OK'))
+        self.close_button = QPushButton(self.tr('Cancel'))
 
         buttons.addButton(self.reset_button, QDialogButtonBox.ActionRole)
         buttons.addButton(self.save_button, QDialogButtonBox.AcceptRole)
@@ -3084,11 +3169,11 @@ class SearchSettingsDialog(QDialog):
         self.combobox_with_image.setCurrentIndex(self.config.IMG_FILTER_OPTIONS.index(self.config.searchbar_img_filter))
 
         fields = {
-            'Lemmas': self.config.searchbar_to_search_in_words,
-            'Translations': self.config.searchbar_to_search_in_translations,
-            'Forms': self.config.searchbar_to_search_in_forms,
-            'Phrases': self.config.searchbar_to_search_in_phrases,
-            'Notes': self.config.searchbar_to_search_in_notes,
+            self.tr('Lemmas'): self.config.searchbar_to_search_in_words,
+            self.tr('Translations'): self.config.searchbar_to_search_in_translations,
+            self.tr('Forms'): self.config.searchbar_to_search_in_forms,
+            self.tr('Phrases'): self.config.searchbar_to_search_in_phrases,
+            self.tr('Notes'): self.config.searchbar_to_search_in_notes,
         }
         self.fields_list.set_items(fields)
 
@@ -3119,8 +3204,17 @@ class SearchSettingsDialog(QDialog):
 
 class EntriesTableModel(QAbstractTableModel):
     HEADERS = [
-        '', 'Word', 'Translation', 'Forms', 'Phrases', 'Notes', 'Tags',
-        'Total attempts', 'Correct attempts', 'Win streak', 'Accuracy',
+        QT_TRANSLATE_NOOP('EntriesTableModel', ''),
+        QT_TRANSLATE_NOOP('EntriesTableModel', 'Word'),
+        QT_TRANSLATE_NOOP('EntriesTableModel', 'Translation'),
+        QT_TRANSLATE_NOOP('EntriesTableModel', 'Forms'),
+        QT_TRANSLATE_NOOP('EntriesTableModel', 'Phrases'),
+        QT_TRANSLATE_NOOP('EntriesTableModel', 'Notes'),
+        QT_TRANSLATE_NOOP('EntriesTableModel', 'Tags'),
+        QT_TRANSLATE_NOOP('EntriesTableModel', 'Total attempts'),
+        QT_TRANSLATE_NOOP('EntriesTableModel', 'Correct attempts'),
+        QT_TRANSLATE_NOOP('EntriesTableModel', 'Win streak'),
+        QT_TRANSLATE_NOOP('EntriesTableModel', 'Accuracy'),
     ]
     ENTRY_ROLE = Qt.UserRole
     DATA_ROLE = Qt.UserRole + 1
@@ -3205,7 +3299,7 @@ class EntriesTableModel(QAbstractTableModel):
         if role != Qt.DisplayRole:
             return None
         if orientation == Qt.Horizontal:
-            return self.HEADERS[section]
+            return QCoreApplication.translate('EntriesTableModel', self.HEADERS[section])
         return section + 1
 
     def add_row(self, row: int, entry: Entry, parent=QModelIndex()) -> bool:
@@ -3422,7 +3516,7 @@ class ThreeStateSortHeader(QHeaderView):
         menu = QMenu(self.table_view)
 
         for logical_index in range(source_model.columnCount()):
-            title = source_model.headerData(logical_index, Qt.Horizontal, Qt.DisplayRole) or 'Star'
+            title = source_model.headerData(logical_index, Qt.Horizontal, Qt.DisplayRole) or self.tr('Star')
             action = menu.addAction(str(title))
             action.setCheckable(True)
             action.setChecked(not self.table_view.isColumnHidden(logical_index))
@@ -3445,6 +3539,7 @@ class ThreeStateSortHeader(QHeaderView):
         self.column_visibility_changed.emit(logical_index, visible)
 
 
+@lang_update
 class BrowsingPage(QWidget):
     practice_button_clicked = Signal()
     dct_edited = Signal()
@@ -3459,7 +3554,7 @@ class BrowsingPage(QWidget):
 
         self._create_widgets()
         self._set_shortcuts()
-        self._set_tooltips()
+        self._set_texts()
 
     def _create_widgets(self):
         self.main_layout = QGridLayout(self)
@@ -3518,18 +3613,17 @@ class BrowsingPage(QWidget):
         def cnt() -> int:
             return len({i.row() for i in self.entries_table.selectedIndexes()})
 
-        n_selected = lambda: n_selected_msg(cnt(), 'entry', 'entries')
         setup_table_context_menu(self.entries_table, [
-            ActionConfig(n_selected, None, False),
+            ActionConfig(lambda: self.tr('%n entries selected', None, cnt()), None, False),
             None,
-            ActionConfig('Manage Tags...', self.manage_entries_tags, lambda: cnt() > 0, shortcut='Ctrl+Shift+T'),
-            ActionConfig('Star', self.star_entries, lambda: cnt() > 0, shortcut='Ctrl+Shift+R'),
-            ActionConfig('Unstar', self.unstar_entries, lambda: cnt() > 0, shortcut='Ctrl+Shift+U'),
-            ActionConfig('Reset Practice Statistics', self.reset_stat, lambda: cnt() > 0, shortcut='Ctrl+Shift+P'),
-            ActionConfig('Merge', self.merge_entries, lambda: cnt() > 1, shortcut='Ctrl+Shift+M'),
-            ActionConfig('Create Dictionary...', self.cherry_pick_entries, lambda: cnt() > 0, shortcut='Ctrl+Shift+C'),
+            ActionConfig(self.tr('Manage Tags...'), self.manage_entries_tags, lambda: cnt() > 0, 'Ctrl+Shift+T'),
+            ActionConfig(self.tr('Star'), self.star_entries, lambda: cnt() > 0, 'Ctrl+Shift+R'),
+            ActionConfig(self.tr('Unstar'), self.unstar_entries, lambda: cnt() > 0, 'Ctrl+Shift+U'),
+            ActionConfig(self.tr('Reset Practice Statistics'), self.reset_stat, lambda: cnt() > 0, 'Ctrl+Shift+P'),
+            ActionConfig(self.tr('Merge'), self.merge_entries, lambda: cnt() > 1, 'Ctrl+Shift+M'),
+            ActionConfig(self.tr('Create Dictionary...'), self.cherry_pick_entries, lambda: cnt() > 0, 'Ctrl+Shift+C'),
             None,
-            ActionConfig('Delete', self.delete_entries, lambda: cnt() > 0, shortcut='Ctrl+Shift+D'),
+            ActionConfig(self.tr('Delete'), self.delete_entries, lambda: cnt() > 0, 'Ctrl+Shift+D'),
         ])
 
         # Restore table state
@@ -3582,8 +3676,6 @@ class BrowsingPage(QWidget):
         self.status_bar.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.main_layout.addWidget(self.status_bar, 2, 1)
 
-        self.update_status_bar()
-
     def _set_shortcuts(self):
         QShortcut(QKeySequence('Ctrl+F'), self, self.show_search_bar)
         QShortcut(QKeySequence('Esc'), self, self.hide_search_bar)
@@ -3622,19 +3714,21 @@ class BrowsingPage(QWidget):
         QShortcut(QKeySequence('Alt+S'), self, open_settings)
         QShortcut(QKeySequence('Alt+R'), self, reset_settings)
 
-    def _set_tooltips(self):
-        self.search_btn.setToolTip('Find Entries (Ctrl+F)')
-        self.add_entry_btn.setToolTip('New Entry (Ctrl+N)')
-        self.manage_tags_btn.setToolTip('Tags (Ctrl+T)')
-        self.manage_features_btn.setToolTip('Grammatical Features (Ctrl+G)')
-        self.manage_escape_sequences_btn.setToolTip('Escape Sequences (Ctrl+E)')
-        self.practice_btn.setToolTip('Practice (Ctrl+P)')
+    def _set_texts(self):
+        self.search_btn.setToolTip(self.tr('Find Entries (%s)') % 'Ctrl+F')
+        self.add_entry_btn.setToolTip(self.tr('New Entry (%s)') % 'Ctrl+N')
+        self.manage_tags_btn.setToolTip(self.tr('Tags (%s)') % 'Ctrl+T')
+        self.manage_features_btn.setToolTip(self.tr('Grammatical Features (%s)') % 'Ctrl+G')
+        self.manage_escape_sequences_btn.setToolTip(self.tr('Escape Sequences (%s)') % 'Ctrl+E')
+        self.practice_btn.setToolTip(self.tr('Practice (%s)') % 'Ctrl+P')
 
-        self.search_bar.match_case_btn.setToolTip('Match Case (Alt+C)')
-        self.search_bar.match_whole_word_btn.setToolTip('Match Whole Word (Alt+W)')
-        self.search_bar.settings_btn.setToolTip('Search Settings (Alt+S)')
-        self.search_bar.reset_settings_btn.setToolTip('Reset Search Settings (Alt+R)')
-        self.search_bar.close_btn.setToolTip('Close')
+        self.search_bar.match_case_btn.setToolTip(self.tr('Match Case (%s)') % 'Alt+C')
+        self.search_bar.match_whole_word_btn.setToolTip(self.tr('Match Whole Word (%s)') % 'Alt+W')
+        self.search_bar.settings_btn.setToolTip(self.tr('Search Settings (%s)') % 'Alt+S')
+        self.search_bar.reset_settings_btn.setToolTip(self.tr('Reset Search Settings (%s)') % 'Alt+R')
+        self.search_bar.close_btn.setToolTip(self.tr('Close'))
+
+        self.update_status_bar()
 
     def show_search_bar(self):
         self.search_bar.on_open()
@@ -3797,29 +3891,38 @@ class BrowsingPage(QWidget):
                 n_sel_gram_forms += entry.n_gram_forms
                 n_sel_word_forms += entry.n_word_forms
                 n_sel_phrases += entry.n_phrases
-            status_text = (
-                f'Selected: '
-                f'{n_sel_entries} E, {n_sel_lemmas} W, {n_sel_translations} T | '
-                f'{n_entries} E, {n_lemmas} W, {n_translations} T'
+            status_text = self.tr('Selected: %s E, %s W, %s T | %s E, %s W, %s T') % (
+                n_sel_entries, n_sel_lemmas, n_sel_translations, n_entries, n_lemmas, n_translations,
             )
-            tooltip_text = (
-                f'Selected:\n'
-                f'{n_sel_entries}/{n_entries} entries\n'
-                f'{n_sel_lemmas}/{n_lemmas} words\n'
-                f'{n_sel_translations}/{n_translations} translations\n'
-                f'{n_sel_gram_forms}/{n_gram_forms} grammatical forms\n'
-                f'{n_sel_word_forms}/{n_word_forms} word forms\n'
-                f'{n_sel_phrases}/{n_phrases} phrases'
-            )
+            tooltip_text = self.tr(
+                'Selected:\n'
+            ) + self.tr(
+                '%n/%s entries\n', None, n_sel_entries
+            ) % n_entries + self.tr(
+                '%n/%s words\n', None, n_sel_lemmas
+            ) % n_lemmas + self.tr(
+                '%n/%s translations\n', None, n_sel_translations
+            ) % n_translations + self.tr(
+                '%n/%s grammatical forms\n', None, n_sel_gram_forms
+            ) % n_gram_forms + self.tr(
+                '%n/%s word forms\n', None, n_sel_word_forms
+            ) % n_word_forms + self.tr(
+                '%n/%s phrases', None, n_sel_phrases
+            ) % n_phrases
         else:
-            status_text = f'{n_entries} E, {n_lemmas} W, {n_translations} T'
-            tooltip_text = (
-                f'{n_entries} entries\n'
-                f'{n_lemmas} words\n'
-                f'{n_translations} translations\n'
-                f'{n_gram_forms} grammatical forms\n'
-                f'{n_word_forms} word forms\n'
-                f'{n_phrases} phrases'
+            status_text = self.tr('%s E, %s W, %s T') % (n_entries, n_lemmas, n_translations)
+            tooltip_text = self.tr(
+                '%n entries\n', None, n_entries
+            ) + self.tr(
+                '%n words\n', None, n_lemmas
+            ) + self.tr(
+                '%n translations\n', None, n_translations
+            ) + self.tr(
+                '%n grammatical forms\n', None, n_gram_forms
+            ) + self.tr(
+                '%n word forms\n', None, n_word_forms
+            ) + self.tr(
+                '%n phrases', None, n_phrases
             )
 
         self.status_bar.setText(status_text)
@@ -3836,7 +3939,7 @@ class BrowsingPage(QWidget):
                 specs[tag] = Qt.Unchecked
             else:
                 specs[tag] = Qt.PartiallyChecked
-        res, ok = TaggingDialog.get_settings(self.dct_bundle, specs, 'Manage Tags', parent=self)
+        res, ok = TaggingDialog.get_settings(self.dct_bundle, specs, self.tr('Manage Tags'), parent=self)
         if not ok:
             return
 
@@ -3900,8 +4003,8 @@ class BrowsingPage(QWidget):
     def cherry_pick_entries(self):
         dct_name, ok = QInputDialog.getText(
             self,
-            'Create Dictionary',
-            'Enter dictionary name:',
+            self.tr('Create Dictionary'),
+            self.tr('Enter dictionary name:'),
             text=f'{self.dct.name} - selected',
         )
         if ok and dct_name:
@@ -3941,40 +4044,36 @@ class BrowsingPage(QWidget):
         self.ui_config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
 
 
+@lang_update
 class PracticeConfigPage(QWidget):
     practice_button_clicked = Signal()
     close_button_clicked = Signal()
 
-    exercise_options = {
-        'Words: to target language': TrainingFormat.TRANS_TO_WORD,
-        'Words: to native language': TrainingFormat.WORD_TO_TRANS,
-        'Phrases: to target language': TrainingFormat.TRANS_TO_PHRASE,
-        'Phrases: to native language': TrainingFormat.PHRASE_TO_TRANS,
-        'Der-Die-Das (German)': TrainingFormat.ARTICLES_GERMAN,
+    exercise_to_txt = {
+        TrainingFormat.TRANS_TO_WORD:   QT_TRANSLATE_NOOP('PracticeConfigPage', 'Words: to target language'),
+        TrainingFormat.WORD_TO_TRANS:   QT_TRANSLATE_NOOP('PracticeConfigPage', 'Words: to native language'),
+        TrainingFormat.TRANS_TO_PHRASE: QT_TRANSLATE_NOOP('PracticeConfigPage', 'Phrases: to target language'),
+        TrainingFormat.PHRASE_TO_TRANS: QT_TRANSLATE_NOOP('PracticeConfigPage', 'Phrases: to native language'),
+        TrainingFormat.ARTICLES_GERMAN: QT_TRANSLATE_NOOP('PracticeConfigPage', 'Der-Die-Das (German)'),
     }
-    order_options = {
-        'Random': TrainingOrder.RANDOM,
-        'Difficult first': TrainingOrder.DIFFICULT_FIRST,
+    order_to_txt = {
+        TrainingOrder.RANDOM:          QT_TRANSLATE_NOOP('PracticeConfigPage', 'Random'),
+        TrainingOrder.DIFFICULT_FIRST: QT_TRANSLATE_NOOP('PracticeConfigPage', 'Difficult first'),
     }
-    entries_options = {
-        'All': EntrySelection.ALL,
-        'Mostly starred': EntrySelection.MOSTLY_FAV,
-        'Starred only': EntrySelection.FAV,
-        'Unanswered only': EntrySelection.UNANSWERED,
-        '10 random': EntrySelection.RANDOM_10,
-        '10 random from starred': EntrySelection.RANDOM_10_FAV,
+    entries_to_txt = {
+        EntrySelection.ALL:           QT_TRANSLATE_NOOP('PracticeConfigPage', 'All'),
+        EntrySelection.MOSTLY_FAV:    QT_TRANSLATE_NOOP('PracticeConfigPage', 'Mostly starred'),
+        EntrySelection.FAV:           QT_TRANSLATE_NOOP('PracticeConfigPage', 'Starred only'),
+        EntrySelection.UNANSWERED:    QT_TRANSLATE_NOOP('PracticeConfigPage', 'Unanswered only'),
+        EntrySelection.RANDOM_10:     QT_TRANSLATE_NOOP('PracticeConfigPage', '10 random'),
+        EntrySelection.RANDOM_10_FAV: QT_TRANSLATE_NOOP('PracticeConfigPage', '10 random from starred'),
     }
-    forms_options = {
-        'Lemma only': FormSelection.LEMMAS,
-        'One random form': FormSelection.RANDOM,
-        'Inflected only': FormSelection.INFLECTED,
-        'All': FormSelection.ALL,
+    forms_to_txt = {
+        FormSelection.LEMMAS:    QT_TRANSLATE_NOOP('PracticeConfigPage', 'Lemma only'),
+        FormSelection.RANDOM:    QT_TRANSLATE_NOOP('PracticeConfigPage', 'One random form'),
+        FormSelection.INFLECTED: QT_TRANSLATE_NOOP('PracticeConfigPage', 'Inflected only'),
+        FormSelection.ALL:       QT_TRANSLATE_NOOP('PracticeConfigPage', 'All'),
     }
-
-    exercise_texts = {v: k for k, v in exercise_options.items()}
-    order_texts = {v: k for k, v in order_options.items()}
-    entries_texts = {v: k for k, v in entries_options.items()}
-    forms_texts = {v: k for k, v in forms_options.items()}
 
     def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
         super().__init__(parent)
@@ -3985,7 +4084,7 @@ class PracticeConfigPage(QWidget):
 
         self._create_widgets()
         self._set_shortcuts()
-        self._set_tooltips()
+        self._set_texts()
         self.on_exercise_changed()
 
     def _create_widgets(self):
@@ -3997,27 +4096,29 @@ class PracticeConfigPage(QWidget):
         self._create_buttons()
 
     def _create_settings_widgets(self):
-        label = QLabel('Configure practice')
-        self.main_layout.addWidget(label, alignment=Qt.AlignHCenter)
+        self.label_main = QLabel()
+        self.main_layout.addWidget(self.label_main, alignment=Qt.AlignHCenter)
 
         self.settings_layout = QGridLayout()
 
-        self.label_exercise = QLabel('Exercise:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        self.label_exercise = QLabel(alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.settings_layout.addWidget(self.label_exercise, 0, 0)
         self.combo_exercise = QComboBox()
-        self.combo_exercise.addItems(self.exercise_options)
-        self.combo_exercise.setCurrentText(self.exercise_texts[self.config.format])
+        for option in self.exercise_to_txt:
+            self.combo_exercise.addItem('', userData=option)
+        self.combo_exercise.setCurrentIndex(self.combo_exercise.findData(self.config.format))
         self.combo_exercise.currentIndexChanged.connect(self.on_exercise_changed)
         self.settings_layout.addWidget(self.combo_exercise, 0, 1)
 
-        self.label_entries = QLabel('Entries:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        self.label_entries = QLabel(alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.settings_layout.addWidget(self.label_entries, 1, 0)
         self.combo_entries = QComboBox()
-        self.combo_entries.addItems(self.entries_options)
-        self.combo_entries.setCurrentText(self.entries_texts[self.config.entries])
+        for option in self.entries_to_txt:
+            self.combo_entries.addItem('', userData=option)
+        self.combo_entries.setCurrentIndex(self.combo_entries.findData(self.config.entries))
         self.settings_layout.addWidget(self.combo_entries, 1, 1)
 
-        self.label_tags = QLabel('Required tags:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        self.label_tags = QLabel(alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.settings_layout.addWidget(self.label_tags, 2, 0)
         self.list_tags = CheckableList({
             tag: (self.config.tags is not None) and (tag in self.config.tags)
@@ -4025,21 +4126,23 @@ class PracticeConfigPage(QWidget):
         })
         self.settings_layout.addWidget(self.list_tags, 2, 1)
 
-        self.label_forms = QLabel('Word forms:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        self.label_forms = QLabel(alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.settings_layout.addWidget(self.label_forms, 3, 0)
         self.combo_forms = QComboBox()
-        self.combo_forms.addItems(self.forms_options)
-        self.combo_forms.setCurrentText(self.forms_texts[self.config.forms])
+        for option in self.forms_to_txt:
+            self.combo_forms.addItem('', userData=option)
+        self.combo_forms.setCurrentIndex(self.combo_forms.findData(self.config.forms))
         self.settings_layout.addWidget(self.combo_forms, 3, 1)
 
-        self.label_order = QLabel('Order:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        self.label_order = QLabel(alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.settings_layout.addWidget(self.label_order, 4, 0)
         self.combo_order = QComboBox()
-        self.combo_order.addItems(self.order_options)
-        self.combo_order.setCurrentText(self.order_texts[self.config.order])
+        for option in self.order_to_txt:
+            self.combo_order.addItem('', userData=option)
+        self.combo_order.setCurrentIndex(self.combo_order.findData(self.config.order))
         self.settings_layout.addWidget(self.combo_order, 4, 1)
 
-        self.label_case = QLabel('Case sensitive:', alignment=Qt.AlignRight | Qt.AlignVCenter)
+        self.label_case = QLabel(alignment=Qt.AlignRight | Qt.AlignVCenter)
         self.settings_layout.addWidget(self.label_case, 5, 0)
         self.checkbox_case = QCheckBox()
         self.checkbox_case.setChecked(self.config.is_case_sensitive)
@@ -4065,9 +4168,26 @@ class PracticeConfigPage(QWidget):
         QShortcut(QKeySequence('Return'), self, self.start)
         QShortcut(QKeySequence('Esc'), self, self.close_button_clicked.emit)
 
-    def _set_tooltips(self):
-        self.practice_btn.setToolTip('Start')
-        self.close_btn.setToolTip('Close')
+    def _set_texts(self):
+        self.label_main.setText(self.tr('Configure practice'))
+        self.label_exercise.setText(self.tr('Exercise:'))
+        self.label_entries.setText(self.tr('Entries:'))
+        self.label_tags.setText(self.tr('Required tags:'))
+        self.label_forms.setText(self.tr('Word forms:'))
+        self.label_order.setText(self.tr('Order:'))
+        self.label_case.setText(self.tr('Case sensitive:'))
+        self.practice_btn.setToolTip(self.tr('Start'))
+        self.close_btn.setToolTip(self.tr('Close'))
+
+        def set_combo_options(combo: QComboBox, texts: dict):
+            for option, text in texts.items():
+                index = combo.findData(option)
+                combo.setItemText(index, QCoreApplication.translate('PracticeConfigPage', text))
+
+        set_combo_options(self.combo_exercise, self.exercise_to_txt)
+        set_combo_options(self.combo_order, self.order_to_txt)
+        set_combo_options(self.combo_entries, self.entries_to_txt)
+        set_combo_options(self.combo_forms, self.forms_to_txt)
 
     def on_page_opened(self):
         self.list_tags.reset_items({
@@ -4085,11 +4205,11 @@ class PracticeConfigPage(QWidget):
 
     def start(self):
         self.config.is_case_sensitive = self.checkbox_case.isChecked()
-        self.config.format = self.exercise_options[self.combo_exercise.currentText()]
-        self.config.order = self.order_options[self.combo_order.currentText()]
-        self.config.entries = self.entries_options[self.combo_entries.currentText()]
+        self.config.format = self.combo_exercise.currentData(Qt.UserRole)
+        self.config.order = self.combo_order.currentData(Qt.UserRole)
+        self.config.entries = self.combo_entries.currentData(Qt.UserRole)
         if self.config.format == TrainingFormat.TRANS_TO_WORD:
-            forms = self.forms_options[self.combo_forms.currentText()]
+            forms = self.combo_forms.currentData(Qt.UserRole)
         else:
             forms = FormSelection.LEMMAS
         self.config.forms = forms
@@ -4104,54 +4224,6 @@ def entry_practice_stats(entry: Entry) -> tuple[str, int]:
     return accuracy_to_str(entry), entry.win_streak
 
 
-def word_to_native_lang_task(entry: Entry) -> tuple[str, str, str, int]:
-    return (
-        'Translate to your native language:',
-        variants_to_str(entry.variants),
-        *entry_practice_stats(entry)
-    )
-
-
-def german_article_task(entry: Entry) -> tuple[str, str, str, int]:
-    return (
-        'Enter the correct article for the following word:',
-        variants_to_str(entry.variants)[4:],
-        *entry_practice_stats(entry)
-    )
-
-
-def word_to_target_lang_task(entry: Entry) -> tuple[str, str, str, int]:
-    return (
-        'Translate to the target language:',
-        translations_to_str(entry.tr),
-        *entry_practice_stats(entry)
-    )
-
-
-def form_to_target_lang_task(entry: Entry, gram_form: Iterable[str]) -> tuple[str, str, str, int]:
-    return (
-        'Translate to the target language:',
-        f'{translations_to_str(entry.tr)} (at {gram_form_to_str(gram_form)})',
-        *entry_practice_stats(entry)
-    )
-
-
-def phrase_to_native_lang_task(entry: Entry, phrase: str) -> tuple[str, str, str, int]:
-    return (
-        'Translate to your native language:',
-        phrase,
-        *entry_practice_stats(entry)
-    )
-
-
-def phrase_to_target_lang_task(entry: Entry, phrase: str) -> tuple[str, str, str, int]:
-    return (
-        'Translate to the target language:',
-        translations_to_str(entry.phrases[phrase]),
-        *entry_practice_stats(entry)
-    )
-
-
 def percent_repr(numerator: int, denominator: int) -> str:
     if denominator == 0:
         return '---'
@@ -4164,15 +4236,15 @@ class CorrectAnswerDialog(QDialog):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
-        self.setWindowTitle('Correct Answer')
+        self.setWindowTitle(self.tr('Correct Answer'))
 
         layout = QVBoxLayout(self)
 
-        label = QLabel('Correct!')
+        label = QLabel(self.tr('Correct!'))
         label.setStyleSheet('color: #2e7d32;')
         layout.addWidget(label)
 
-        btn = QPushButton('OK')
+        btn = QPushButton(self.tr('OK'))
         btn.clicked.connect(self.accept)
         layout.addWidget(btn)
 
@@ -4183,19 +4255,23 @@ class WrongAnswerDialog(QDialog):
     def __init__(self, user_answer: str, correct_answer: str, show_ignore_btn: bool, parent: QWidget | None = None):
         super().__init__(parent)
 
-        self.setWindowTitle('Wrong Answer')
+        self.setWindowTitle(self.tr('Wrong Answer'))
 
         layout = QVBoxLayout(self)
 
-        for line in ['Wrong!', f'Your answer: {user_answer}', f'Correct answer: {correct_answer}']:
+        for line in [
+                self.tr('Wrong!'),
+                self.tr('Your answer: %s') % user_answer,
+                self.tr('Correct answer: %s') % correct_answer,
+        ]:
             label = QLabel(line)
             label.setStyleSheet('color: #c62828;')
             layout.addWidget(label)
 
-        ok_btn = QPushButton('OK')
+        ok_btn = QPushButton(self.tr('OK'))
         ok_btn.clicked.connect(self.accept)
 
-        ignore_btn = QPushButton("Don't count")
+        ignore_btn = QPushButton(self.tr("Don't count"))
         ignore_btn.clicked.connect(self.ignore)
 
         layout_buttons = QHBoxLayout()
@@ -4214,6 +4290,8 @@ class PracticePage(QWidget):
     close_button_clicked = Signal()
     dct_edited = Signal()
 
+    TaskRepr = tuple[Callable[[], str], str, str, int]
+
     def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
         super().__init__(parent)
 
@@ -4224,10 +4302,11 @@ class PracticePage(QWidget):
         self.replacer = dct_bundle.replacer
 
         self._practice_session_num = 0
+        self._latest_html_fn: Callable | None = None
 
         self._create_widgets()
         self._set_shortcuts()
-        self._set_tooltips()
+        self._set_texts()
 
     def _create_widgets(self):
         self.main_layout = QGridLayout(self)
@@ -4238,7 +4317,6 @@ class PracticePage(QWidget):
         self.main_layout.addWidget(self.task_edit, 0, 0, 1, 4)
 
         self.user_input_edit = QLineEdit()
-        self.user_input_edit.setPlaceholderText('Your answer')
         self.main_layout.addWidget(self.user_input_edit, 1, 0)
 
         self.enter_btn = create_img_button(IMG_ENTER_PATH)
@@ -4262,13 +4340,18 @@ class PracticePage(QWidget):
         self.shortcut_stop = QShortcut(QKeySequence('Ctrl+.'), self, self.stop)
         self.shortcut_close = QShortcut(QKeySequence('Return'), self, self.close_button_clicked.emit)
 
-    def _set_tooltips(self):
-        self.enter_btn.setToolTip('Enter')
-        self.hint_btn.setToolTip('Hints (Ctrl+H)')
-        self.stop_btn.setToolTip('End (Ctrl+.)')
-        self.close_btn.setToolTip('Close')
+    def _set_texts(self):
+        self.user_input_edit.setPlaceholderText(self.tr('Your answer'))
+        self.enter_btn.setToolTip(self.tr('Enter'))
+        self.hint_btn.setToolTip(self.tr('Hints (%s)') % 'Ctrl+H')
+        self.stop_btn.setToolTip(self.tr('End (%s)') % 'Ctrl+.')
+        self.close_btn.setToolTip(self.tr('Close'))
 
     def _render_topbar(self) -> str:
+        TOTAL_DCT_SCORE = self.tr('Total dictionary score:')
+        SESSION_SCORE = self.tr('Session score:')
+        ANSWERED = self.tr('Answered:')
+
         return f'''
             <div style="
                 padding-bottom: 6px;
@@ -4278,7 +4361,7 @@ class PracticePage(QWidget):
                 <table align="center" style="border-collapse: collapse;">
                     <tr>
                         <td style="text-align: right; padding-right: 4px; color: #888888; font-size: 13px;">
-                            Total dictionary score:
+                            {TOTAL_DCT_SCORE}
                         </td>
                         <td style="text-align: left; color: #888888; font-size: 13px;">
                             {self.total_score_repr()}
@@ -4286,7 +4369,7 @@ class PracticePage(QWidget):
                     </tr>
                     <tr>
                         <td style="text-align: right; padding-right: 4px; color: #888888; font-size: 13px;">
-                            Session score:
+                            {SESSION_SCORE}
                         </td>
                         <td style="text-align: left; color: #888888; font-size: 13px;">
                             {self.session_score_repr()}
@@ -4294,7 +4377,7 @@ class PracticePage(QWidget):
                     </tr>
                     <tr>
                         <td style="text-align: right; padding-right: 4px; color: #888888; font-size: 13px;">
-                            Answered:
+                            {ANSWERED}
                         </td>
                         <td style="text-align: left; color: #888888; font-size: 13px;">
                             {self.answered_repr()}
@@ -4317,9 +4400,12 @@ class PracticePage(QWidget):
         ):
             self.hint_btn.setEnabled(True)
 
-    def _render_hint(self) -> str:
+    def _render_hint_html(self) -> str:
         if not self._to_display_hint:
             return ''
+
+        NOTES = self.tr('Notes:')
+        HOMONYMS = self.tr('Homonyms:')
 
         hint = ''
 
@@ -4330,7 +4416,7 @@ class PracticePage(QWidget):
             hint += f'''
                 <hr>
                 <div style="color: #333333; font-size: 17px;">
-                    Notes:
+                    {NOTES}
                 </div>
                 <div style="color: #999999; font-size: 14px; margin-bottom: 8px;">
                     {notes_repr}
@@ -4347,7 +4433,7 @@ class PracticePage(QWidget):
             hint += f'''
                 <hr>
                 <div style="color: #333333; font-size: 17px;">
-                    Homonyms:
+                    {HOMONYMS}
                 </div>
                 <div style="color: #999999; font-size: 14px; margin-bottom: 8px;">
                     {homonyms_repr}
@@ -4357,6 +4443,10 @@ class PracticePage(QWidget):
         return hint
 
     def _render_task_html(self) -> str:
+        STATS = self.tr('Your statistics on the word:')
+        ACCURACY = self.tr('Accuracy:')
+        WIN_STREAK = self.tr('Win streak:')
+
         return f'''
             <div style="text-align: center; font-family: sans-serif;">
 
@@ -4366,7 +4456,7 @@ class PracticePage(QWidget):
 
                 <div style="margin-bottom: 18px; margin-top: 32px;">
                     <div style="color: #666666; font-size: 20px; margin-bottom: 8px;">
-                        {self._task_repr[0]}
+                        {self._task_repr[0]()}
                     </div>
                     <div style="font-size: 32px; font-weight: bold; color: #1a1a1a;">
                         {self._task_repr[1]}
@@ -4381,16 +4471,19 @@ class PracticePage(QWidget):
                     margin-top: 10px;
                     margin-bottom: 32px;
                 ">
-                    Your statistics on the word:<br>
-                    Accuracy: {self._task_repr[2]} &nbsp;&middot;&nbsp; Win streak: {self._task_repr[3]}
+                    {STATS}<br>
+                    {ACCURACY} {self._task_repr[2]} &nbsp;&middot;&nbsp; {WIN_STREAK} {self._task_repr[3]}
                 </div>
 
-                {self._render_hint()}
+                {self._render_hint_html()}
 
             </div>
         '''
 
     def _render_results_html(self) -> str:
+        YOUR_ANSWER = self.tr('Your answer:')
+        CORRECT_ANSWER = self.tr('The correct answer:')
+
         history = ''
         for task in self.history:
             color = '#2e7d32' if task['is_correct'] else '#c62828'
@@ -4398,8 +4491,8 @@ class PracticePage(QWidget):
                 <hr>
                 <div style="color: {color}; font-size: 14px; margin-bottom: 8px;">
                     {task["task"]}<br>
-                    Your answer: {task["user_answer"]}<br>
-                    The correct answer: {task["correct_answer"]}
+                    {YOUR_ANSWER} {task["user_answer"]}<br>
+                    {CORRECT_ANSWER} {task["correct_answer"]}
                 </div>
             '''
 
@@ -4411,8 +4504,59 @@ class PracticePage(QWidget):
             </div>
         '''
 
+    def changeEvent(self, event: QEvent):
+        if event.type() == QEvent.LanguageChange:
+            self._set_texts()
+            if self._latest_html_fn is not None:
+                html = self._latest_html_fn()
+                self.task_edit.setHtml(html)
+        super().changeEvent(event)
+
+    def word_to_native_lang_task(self, entry: Entry) -> TaskRepr:
+        return (
+            lambda: self.tr('Translate to your native language:'),
+            variants_to_str(entry.variants),
+            *entry_practice_stats(entry)
+        )
+
+    def german_article_task(self, entry: Entry) -> TaskRepr:
+        return (
+            lambda: self.tr('Enter the correct article for the following word:'),
+            variants_to_str(entry.variants)[4:],
+            *entry_practice_stats(entry)
+        )
+
+    def word_to_target_lang_task(self, entry: Entry) -> TaskRepr:
+        return (
+            lambda: self.tr('Translate to the target language:'),
+            translations_to_str(entry.tr),
+            *entry_practice_stats(entry)
+        )
+
+    def form_to_target_lang_task(self, entry: Entry, gram_form: Iterable[str]) -> TaskRepr:
+        return (
+            lambda: self.tr('Translate to the target language:'),
+            f'{translations_to_str(entry.tr)} (at {gram_form_to_str(gram_form)})',
+            *entry_practice_stats(entry)
+        )
+
+    def phrase_to_native_lang_task(self, entry: Entry, phrase: str) -> TaskRepr:
+        return (
+            lambda: self.tr('Translate to your native language:'),
+            phrase,
+            *entry_practice_stats(entry)
+        )
+
+    def phrase_to_target_lang_task(self, entry: Entry, phrase: str) -> TaskRepr:
+        return (
+            lambda: self.tr('Translate to the target language:'),
+            translations_to_str(entry.phrases[phrase]),
+            *entry_practice_stats(entry)
+        )
+
     def fill_task_edit(self):
-        html = self._render_task_html()
+        self._latest_html_fn = self._render_task_html
+        html = self._latest_html_fn()
         self.task_edit.setHtml(html)
 
     def on_page_opened(self):
@@ -4425,7 +4569,7 @@ class PracticePage(QWidget):
         self.count_all = 0
         self.count_correct = 0
         self._practice_session_num += 1
-        self._task_repr = ('', '', '', '')
+        self._task_repr: PracticePage.TaskRepr = (lambda: '', '', '', 0)
         self._to_display_hint = False
         self.history = []
 
@@ -4467,23 +4611,23 @@ class PracticePage(QWidget):
 
         if self.trainer.config.format == TrainingFormat.TRANS_TO_WORD:
             if self.trainer.config.forms and self.current_form:
-                self._task_repr = form_to_target_lang_task(
+                self._task_repr = self.form_to_target_lang_task(
                     self.current_entry, self.current_form,
                 )
             else:
-                self._task_repr = word_to_target_lang_task(self.current_entry)
+                self._task_repr = self.word_to_target_lang_task(self.current_entry)
         elif self.trainer.config.format == TrainingFormat.WORD_TO_TRANS:
-            self._task_repr = word_to_native_lang_task(self.current_entry)
+            self._task_repr = self.word_to_native_lang_task(self.current_entry)
         elif self.trainer.config.format == TrainingFormat.TRANS_TO_PHRASE:
-            self._task_repr = phrase_to_target_lang_task(
+            self._task_repr = self.phrase_to_target_lang_task(
                 self.current_entry, self.current_phrase,
             )
         elif self.trainer.config.format == TrainingFormat.PHRASE_TO_TRANS:
-            self._task_repr = phrase_to_native_lang_task(
+            self._task_repr = self.phrase_to_native_lang_task(
                 self.current_entry, self.current_phrase,
             )
         else:
-            self._task_repr = german_article_task(self.current_entry)
+            self._task_repr = self.german_article_task(self.current_entry)
 
         self._to_display_hint = False
 
@@ -4505,6 +4649,7 @@ class PracticePage(QWidget):
 
         self.get_task()
 
+        self._latest_html_fn = None
         self.task_edit.clear()
         self.fill_task_edit()
         self.user_input_edit.clear()
@@ -4547,7 +4692,8 @@ class PracticePage(QWidget):
         self.on_stop()
 
     def on_stop(self):
-        html = self._render_results_html()
+        self._latest_html_fn = self._render_results_html
+        html = self._latest_html_fn()
         self.task_edit.setText(html)
 
         self.user_input_edit.hide()
@@ -4684,7 +4830,7 @@ class HelpWindow(QDialog):
         self.tree.setCurrentItem(self.tree.topLevelItem(0))
 
     def _configure_window(self):
-        self.setWindowTitle('Help')
+        self.setWindowTitle(self.tr('Help'))
         self.resize(800, 500)
 
     def _create_widgets(self):
@@ -4731,7 +4877,7 @@ class PracticeSettingsPage(SettingsPage):
     def __init__(self):
         super().__init__()
 
-        self.cb_is_ignore_wrong_answer_allowed = QCheckBox('Show "Don\'t count" button on wrong answer')
+        self.cb_is_ignore_wrong_answer_allowed = QCheckBox(self.tr('Show "Don\'t count" button on wrong answer'))
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.cb_is_ignore_wrong_answer_allowed)
@@ -4762,8 +4908,8 @@ class SettingsDialog(QDialog):
         self.page_list = []
 
         sections = [
-            ('Dictionary Settings', None, [
-                ('Practice', PracticeSettingsPage(), [])
+            (self.tr('Dictionary Settings'), None, [
+                (self.tr('Practice'), PracticeSettingsPage(), [])
             ]),
         ]
         self._fill(self.tree.invisibleRootItem(), sections)
@@ -4788,7 +4934,7 @@ class SettingsDialog(QDialog):
         self.tree.setCurrentItem(self.tree.topLevelItem(0))
 
     def _configure_window(self):
-        self.setWindowTitle('Settings')
+        self.setWindowTitle(self.tr('Settings'))
         self.resize(700, 500)
 
     def _fill(self, parent_item, sections):
@@ -4821,6 +4967,7 @@ class SettingsDialog(QDialog):
         self.accept()
 
 
+@lang_update
 class MainWindow(QMainWindow):
     """
     Main application window for Dictionary Manager.
@@ -4845,11 +4992,11 @@ class MainWindow(QMainWindow):
         self._configure_window()
         self._create_widgets()
         self._set_shortcuts()
+        self._set_texts()
 
         self.load_state()
 
     def _configure_window(self):
-        self.setWindowTitle('Dictionary Manager 2.0')
         self.setGeometry(100, 100, 800, 600)
 
     def _create_widgets(self):
@@ -4870,15 +5017,15 @@ class MainWindow(QMainWindow):
         self.toolbar.setMovable(False)
         self.main_layout.addWidget(self.toolbar)
 
-        self.file_action = QAction('File', self)
+        self.file_action = QAction(self)
         self.file_action.triggered.connect(self.show_file_menu)
         self.toolbar.addAction(self.file_action)
 
-        self.settings_action = QAction('Settings', self)
+        self.settings_action = QAction(self)
         self.settings_action.triggered.connect(self.show_settings_menu)
         self.toolbar.addAction(self.settings_action)
 
-        self.help_action = QAction('Help', self)
+        self.help_action = QAction(self)
         self.help_action.triggered.connect(self.show_help_window)
         self.toolbar.addAction(self.help_action)
 
@@ -4902,7 +5049,7 @@ class MainWindow(QMainWindow):
 
     def _create_placeholder(self):
         # Create placeholder for empty workspace
-        self.placeholder = QLabel('No dictionary open')
+        self.placeholder = QLabel()
         self.placeholder.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(self.placeholder)
 
@@ -4911,6 +5058,13 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence('Ctrl+S'), self, self.save_dct)
         QShortcut(QKeySequence('Ctrl+Delete'), self, self.delete_dct)
 
+    def _set_texts(self):
+        self.setWindowTitle(self.tr('Dictionary Manager 2.0'))
+        self.file_action.setText(self.tr('File'))
+        self.settings_action.setText(self.tr('Settings'))
+        self.help_action.setText(self.tr('Help'))
+        self.placeholder.setText(self.tr('No dictionary open'))
+
     def show_file_menu(self):
         """Show the File dropdown menu below the File button."""
 
@@ -4918,24 +5072,28 @@ class MainWindow(QMainWindow):
         if button_widget:
             pos = button_widget.mapToGlobal(button_widget.rect().bottomLeft())
             show_context_menu(self, pos, [
-                ActionConfig('New', self.new_dct, shortcut='Ctrl+Insert'),
-                ActionConfig('Open', self.open_dct),
-                SubmenuConfig('Import', *create_context_menu(self, [
-                    ActionConfig('Dictionary Package (.dmdct)...', self.import_dct_from_dmdct),
+                ActionConfig(self.tr('New'), self.new_dct, shortcut='Ctrl+Insert'),
+                ActionConfig(self.tr('Open'), self.open_dct),
+                SubmenuConfig(self.tr('Import'), *create_context_menu(self, [
+                    ActionConfig(self.tr('Dictionary Package (.dmdct)...'), self.import_dct_from_dmdct),
                 ])),
                 None,
-                ActionConfig('Save', self.save_dct, lambda: self.tab_widget.count() != 0, 'Ctrl+S'),
-                ActionConfig('Save All', self.save_all_dcts, lambda: self.tab_widget.count() != 0),
-                SubmenuConfig('Export', *create_context_menu(self, [
-                    ActionConfig('to Text File...', self.export_dct_to_txt, lambda: self.tab_widget.count() != 0),
+                ActionConfig(self.tr('Save'), self.save_dct, lambda: self.tab_widget.count() != 0, 'Ctrl+S'),
+                ActionConfig(self.tr('Save All'), self.save_all_dcts, lambda: self.tab_widget.count() != 0),
+                SubmenuConfig(self.tr('Export'), *create_context_menu(self, [
                     ActionConfig(
-                        'as Dictionary Package (.dmdct)...',
+                        self.tr('to Text File...'),
+                        self.export_dct_to_txt,
+                        lambda: self.tab_widget.count() != 0
+                    ),
+                    ActionConfig(
+                        self.tr('as Dictionary Package (.dmdct)...'),
                         self.export_dct_to_dmdct,
                         lambda: self.tab_widget.count() != 0
                     ),
                 ])),
                 None,
-                ActionConfig('Delete', self.delete_dct, lambda: self.tab_widget.count() != 0, 'Ctrl+Delete'),
+                ActionConfig(self.tr('Delete'), self.delete_dct, lambda: self.tab_widget.count() != 0, 'Ctrl+Delete'),
             ])
 
     def show_help_window(self):
@@ -5049,7 +5207,7 @@ class MainWindow(QMainWindow):
         dct_bundle = self.manager.opened_dct_bundles[index]
         dct = dct_bundle.dct
         if dct.is_modified:
-            to_save = ask_yes_no(self, 'Unsaved changes', f'Save dictionary {dct.name}?')
+            to_save = ask_yes_no(self, self.tr('Unsaved Changes'), self.tr('Save dictionary "%s"?') % dct.name)
             if to_save:
                 self.manager.save_dct(index, DCT_SAVE_DIR(dct.id))
 
@@ -5105,7 +5263,7 @@ class MainWindow(QMainWindow):
         for index, dct_bundle in list(enumerate(self.manager.opened_dct_bundles))[::-1]:
             dct = dct_bundle.dct
             if dct.is_modified:
-                to_save = ask_yes_no(self, 'Unsaved changes', f'Save dictionary {dct.name}?')
+                to_save = ask_yes_no(self, self.tr('Unsaved Changes'), self.tr('Save dictionary "%s"?') % dct.name)
                 if to_save:
                     self.manager.save_dct(index, DCT_SAVE_DIR(dct.id))
 
@@ -5134,13 +5292,13 @@ class MainWindow(QMainWindow):
                     continue
                 options.append((dct.name, dct.id))
         if not options:
-            QMessageBox.information(self, 'No Saves', 'There are no dictionaries available to open.')
+            QMessageBox.information(self, self.tr('No Saves'), self.tr('There are no dictionaries available to open.'))
             return
         names, ids = zip(*sorted(options))
 
         dialog = ChoiceDialog(
-            'Open Dictionary',
-            'Choose dictionary to open:',
+            self.tr('Open Dictionary'),
+            self.tr('Choose dictionary to open:'),
             names, ids,
             parent=self,
         )
@@ -5155,7 +5313,7 @@ class MainWindow(QMainWindow):
         self.create_new_tab(dct_name, set_active=True)
 
     def import_dct_from_dmdct(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, 'Open Dictionary Package File', '', '(*.dmdct)')
+        file_path, _ = QFileDialog.getOpenFileName(self, self.tr('Open Dictionary Package File'), '', '(*.dmdct)')
         if not file_path:
             return
 
@@ -5191,7 +5349,7 @@ class MainWindow(QMainWindow):
         Creates a new dictionary with default name and opens it in a new tab.
         """
 
-        new_dct_name = 'Untitled'
+        new_dct_name = self.tr('Untitled')
         self.manager.create_dct(name=new_dct_name, optional_classes={'qt': DctUISettings})
         self.create_new_tab(new_dct_name)
         self.tab_widget.update_tab_title(self.tab_widget.count() - 1)
@@ -5226,6 +5384,10 @@ if __name__ == '__main__':
     app_data = AppData()
 
     app = QApplication(sys.argv)
+
+    if app_data.translator.load(app_data.ui_settings.locale, str(LOCALES_DIR)):
+        app.installTranslator(app_data.translator)
+
     window = MainWindow(app_data)
     window.show()
     sys.exit(app.exec())
