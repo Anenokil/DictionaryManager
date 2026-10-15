@@ -218,8 +218,7 @@ class Trainer:
         def filter_by_format(entries: Iterable[Entry]) -> Iterable[Entry]:
             if self._config.format == TrainingFormat.ARTICLES_GERMAN:
                 for entry in entries:
-                    lemma = entry.lemma
-                    if has_article(lemma.lower(), ('der ', 'die ', 'das ')):
+                    if all(has_article(lemma.lower(), ('der ', 'die ', 'das ')) for lemma in entry.variants):
                         yield entry
             elif self._config.format in (
                     TrainingFormat.PHRASE_TO_TRANS, TrainingFormat.TRANS_TO_PHRASE
@@ -357,15 +356,15 @@ class Trainer:
         entry, gram_form, phrase = self._pool.pop(0)
 
         if self._config.format == TrainingFormat.WORD_TO_TRANS:
-            related = self.dct.search(variants=[entry.lemma])
+            related = self.dct.search(variants=list(entry.variants), mode='or')
         elif self._config.format == TrainingFormat.TRANS_TO_WORD:
             related = set().union(*(
                 self.dct.search(translations=[tr]) for tr in entry.tr
             ))
         elif self._config.format == TrainingFormat.ARTICLES_GERMAN:
             related = {
-                e for e in self.dct.search(variants=[entry.lemma])
-                if has_article(e.lemma.lower(), ('der ', 'die ', 'das '))
+                e for e in self.dct.search(variants=list(entry.variants), mode='or')
+                if any(has_article(lemma.lower(), ('der ', 'die ', 'das ')) for lemma in e.variants)
             }
         else:
             related = set()
@@ -399,7 +398,7 @@ class Trainer:
         elif self._config.format == TrainingFormat.PHRASE_TO_TRANS:
             correct_answers = entry.phrases[phrase]
         else:
-            correct_answers = [entry.lemma[:3]]
+            correct_answers = sorted({lemma[:3] for lemma in entry.variants})
 
         return correct_answers
 

@@ -107,7 +107,7 @@ def test_initialize(dct_fxt, frmt, order, entries, forms, tags):
     elif frmt == TF.ARTICLES_GERMAN:
         allowed_entries = {
             entry for entry in allowed_entries
-            if has_article(entry.lemma.lower(), ('der ', 'die ', 'das '))
+            if all(has_article(lemma.lower(), ('der ', 'die ', 'das ')) for lemma in entry.variants)
         }
         allowed_tuples = {
             (entry, None, None)
