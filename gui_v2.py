@@ -1140,7 +1140,7 @@ class TaggingDialog(QDialog):
         QShortcut(QKeySequence('Ctrl+N'), self, self.add_tag)
 
     def _set_tooltips(self):
-        self.add_tag_button.setToolTip('Ctrl+N')
+        self.add_tag_button.setToolTip(self.tr('New Tag (%s)') % 'Ctrl+N')
         self.close_button.setToolTip('Esc')
 
     def add_tag(self):
@@ -1205,7 +1205,7 @@ class ManageTagsDialog(QDialog):
         QShortcut(QKeySequence('Ctrl+S'), self, self.save_and_close)
 
     def _set_tooltips(self):
-        self.add_tag_button.setToolTip('Ctrl+N')
+        self.add_tag_button.setToolTip(self.tr('New Tag (%s)') % 'Ctrl+N')
         self.close_button.setToolTip('Esc')
         self.save_button.setToolTip('Ctrl+S')
 
@@ -1510,8 +1510,8 @@ class ManageGramFeaturesDialog(QDialog):
         QShortcut(QKeySequence('Ctrl+S'), self, self.save_and_close)
 
     def _set_tooltip(self):
-        self.add_category_button.setToolTip('Ctrl+Shift+C')
-        self.add_value_button.setToolTip('Ctrl+Shift+V')
+        self.add_category_button.setToolTip(self.tr('New Category (%s)') % 'Ctrl+Shift+C')
+        self.add_value_button.setToolTip(self.tr('New Value (%s)') % 'Ctrl+Shift+V')
         self.close_button.setToolTip('Esc')
         self.save_button.setToolTip('Ctrl+S')
 
@@ -1629,7 +1629,7 @@ class ManageEscapeSequencesDialog(QDialog):
         QShortcut(QKeySequence('Ctrl+S'), self, self.save_and_close)
 
     def _set_tooltip(self):
-        self.add_button.setToolTip('Ctrl+N')
+        self.add_button.setToolTip(self.tr('New Sequence (%s)') % 'Ctrl+N')
         self.discard_button.setToolTip('Esc')
         self.save_button.setToolTip('Ctrl+S')
 
