@@ -1433,12 +1433,10 @@ class ManageGramFeaturesDialog(QDialog):
         buttons = QDialogButtonBox()
 
         self.add_category_button = create_img_button(IMG_ADD_CTG_PATH)
-        self.add_category_button.setToolTip('Add category')
         self.add_category_button.clicked.connect(self._on_add_category)
         buttons.addButton(self.add_category_button, QDialogButtonBox.ActionRole)
 
         self.add_value_button = create_img_button(IMG_ADD_VALUE_PATH)
-        self.add_value_button.setToolTip('Add value')
         self.add_value_button.setEnabled(self.tree.topLevelItemCount() != 0)
         self.add_value_button.clicked.connect(self._on_add_value)
         buttons.addButton(self.add_value_button, QDialogButtonBox.ActionRole)
