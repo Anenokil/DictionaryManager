@@ -4866,11 +4866,50 @@ class HelpWindow(QDialog):
 
 
 class SettingsPage(QWidget):
-    def fill(self, dct_config: DctUISettings):
+    def fill(self, app_config: UISettings, dct_config: DctUISettings):
         raise NotImplementedError
 
-    def get_settings(self) -> dict[str, Any]:
+    def get_settings(self) -> tuple[dict[str, Any], dict[str, Any]]:
         raise NotImplementedError
+
+
+class LocaleSettingsPage(SettingsPage):
+    def __init__(self):
+        super().__init__()
+
+        locale_label = QLabel(self.tr('Language:'))
+
+        self.locale_combo = QComboBox()
+        self.locale_combo.setEditable(False)
+
+        locale_layout = QHBoxLayout()
+        locale_layout.addWidget(locale_label)
+        locale_layout.addWidget(self.locale_combo)
+        locale_layout.addStretch()
+
+        layout = QVBoxLayout(self)
+        layout.addLayout(locale_layout)
+        layout.addStretch()
+
+    def fill(self, app_config: UISettings, dct_config: DctUISettings):
+        def locale_title(code: str) -> str:
+            loc = QLocale(code)
+            lang = loc.nativeLanguageName()
+            lang = lang[:1].upper() + lang[1:]
+            territory = loc.nativeTerritoryName()
+            return f'{lang} ({territory})' if territory else lang
+
+        locale_codes = ['en_US', app_config.locale] + [path.stem for path in LOCALES_DIR.glob('*.qm')]
+        locale_pairs = ((locale_title(c), c) for c in set(locale_codes))
+        for title, code in sorted(locale_pairs):
+            self.locale_combo.addItem(title, userData=code)
+
+        self.locale_combo.setCurrentText(locale_title(app_config.locale))
+
+    def get_settings(self) -> tuple[dict[str, Any], dict[str, Any]]:
+        return {
+            'locale': self.locale_combo.currentData(Qt.UserRole)
+        }, {}
 
 
 class PracticeSettingsPage(SettingsPage):
@@ -4883,21 +4922,23 @@ class PracticeSettingsPage(SettingsPage):
         layout.addWidget(self.cb_is_ignore_wrong_answer_allowed)
         layout.addStretch()
 
-    def fill(self, dct_config: DctUISettings):
+    def fill(self, app_config: UISettings, dct_config: DctUISettings):
         self.cb_is_ignore_wrong_answer_allowed.setChecked(dct_config.practice_is_ignore_allowed)
 
-    def get_settings(self) -> dict[str, Any]:
-        return {
+    def get_settings(self) -> tuple[dict[str, Any], dict[str, Any]]:
+        return {}, {
             'practice_is_ignore_allowed': self.cb_is_ignore_wrong_answer_allowed.isChecked()
         }
 
 
 class SettingsDialog(QDialog):
-    def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
+    def __init__(self, app_data: AppData, dct_bundle: DctBundle, parent: QWidget | None = None):
         super().__init__(parent)
 
         self._configure_window()
 
+        self.app_data = app_data
+        self.app_config = app_data.ui_settings
         self.dct_bundle = dct_bundle
         self.dct_config: DctUISettings = dct_bundle.optional['qt']
 
@@ -4908,6 +4949,9 @@ class SettingsDialog(QDialog):
         self.page_list = []
 
         sections = [
+            (self.tr('App Settings'), None, [
+                (self.tr('Locale'), LocaleSettingsPage(), [])
+            ]),
             (self.tr('Dictionary Settings'), None, [
                 (self.tr('Practice'), PracticeSettingsPage(), [])
             ]),
@@ -4916,7 +4960,7 @@ class SettingsDialog(QDialog):
         self.tree.expandAll()
 
         for page in self.page_list:
-            page.fill(self.dct_config)
+            page.fill(self.app_config, self.dct_config)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.save_and_close)
@@ -4958,9 +5002,18 @@ class SettingsDialog(QDialog):
 
     def save(self):
         for page in self.page_list:
-            for key, value in page.get_settings().items():
+            app_settings, dct_settings = page.get_settings()
+            for key, value in app_settings.items():
+                setattr(self.app_config, key, value)
+            for key, value in dct_settings.items():
                 setattr(self.dct_config, key, value)
+        self.app_data.save(False, True)
         self.dct_bundle.partial_save(DCT_SAVE_DIR(self.dct_bundle.id), optional={'qt'})
+
+        app.removeTranslator(self.app_data.translator)
+        self.app_data.translator = QTranslator()
+        self.app_data.translator.load(app_data.ui_settings.locale, str(LOCALES_DIR))
+        app.installTranslator(self.app_data.translator)
 
     def save_and_close(self):
         self.save()
@@ -5100,7 +5153,7 @@ class MainWindow(QMainWindow):
         HelpWindow(self).exec()
 
     def show_settings_menu(self):
-        SettingsDialog(self.manager.active, parent=self).exec()
+        SettingsDialog(self.app_data, self.manager.active, parent=self).exec()
 
     def on_tab_changed(self, index: int):
         """
