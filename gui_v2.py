@@ -4932,7 +4932,7 @@ class PracticeSettingsPage(SettingsPage):
 
 
 class SettingsDialog(QDialog):
-    def __init__(self, app_data: AppData, dct_bundle: DctBundle, parent: QWidget | None = None):
+    def __init__(self, app_data: AppData, dct_bundle: DctBundle | None, parent: QWidget | None = None):
         super().__init__(parent)
 
         self._configure_window()
@@ -4940,7 +4940,7 @@ class SettingsDialog(QDialog):
         self.app_data = app_data
         self.app_config = app_data.ui_settings
         self.dct_bundle = dct_bundle
-        self.dct_config: DctUISettings = dct_bundle.optional['qt']
+        self.dct_config: DctUISettings | None = None if (dct_bundle is None) else dct_bundle.optional['qt']
 
         self.tree = QTreeWidget()
         self.tree.setHeaderHidden(True)
@@ -4952,10 +4952,13 @@ class SettingsDialog(QDialog):
             (self.tr('App Settings'), None, [
                 (self.tr('Locale'), LocaleSettingsPage(), [])
             ]),
-            (self.tr('Dictionary Settings'), None, [
-                (self.tr('Practice'), PracticeSettingsPage(), [])
-            ]),
         ]
+        if dct_bundle is not None:
+            sections += [
+                (self.tr('Dictionary Settings'), None, [
+                    (self.tr('Practice'), PracticeSettingsPage(), [])
+                ]),
+            ]
         self._fill(self.tree.invisibleRootItem(), sections)
         self.tree.expandAll()
 
@@ -5005,10 +5008,12 @@ class SettingsDialog(QDialog):
             app_settings, dct_settings = page.get_settings()
             for key, value in app_settings.items():
                 setattr(self.app_config, key, value)
-            for key, value in dct_settings.items():
-                setattr(self.dct_config, key, value)
+            if self.dct_config is not None:
+                for key, value in dct_settings.items():
+                    setattr(self.dct_config, key, value)
         self.app_data.save(False, True)
-        self.dct_bundle.partial_save(DCT_SAVE_DIR(self.dct_bundle.id), optional={'qt'})
+        if self.dct_bundle is not None:
+            self.dct_bundle.partial_save(DCT_SAVE_DIR(self.dct_bundle.id), optional={'qt'})
 
         app.removeTranslator(self.app_data.translator)
         self.app_data.translator = QTranslator()
