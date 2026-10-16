@@ -2863,7 +2863,7 @@ class DctTabWidget(QTabWidget):
         self.tabBar().customContextMenuRequested.connect(self.show_tab_context_menu)
 
     def update_tab_title(self, index: int):
-        dct = self.manager.opened_dct_bundles[index].dct
+        dct = self.manager.opened[index].dct
         if dct.is_modified:
             self.setTabText(index, f'{dct.name} *')
         else:
@@ -2899,7 +2899,7 @@ class DctTabWidget(QTabWidget):
             return
 
         if index >= 0:
-            current_name = self.manager.opened_dct_bundles[index].dct.name
+            current_name = self.manager.opened[index].dct.name
             new_name, ok = QInputDialog.getText(
                 self,
                 self.tr('Rename Dictionary'),
@@ -2914,20 +2914,20 @@ class DctTabWidget(QTabWidget):
         if index is None:
             return
 
-        dct = self.manager.opened_dct_bundles[index].dct
+        dct = self.manager.opened[index].dct
         self.manager.save_dct(index, DCT_SAVE_DIR(dct.id))
         self.update_tab_title(index)
         purge_unused_user_images(dct)
 
     def save_all_dcts(self):
-        for index in range(len(self.manager.opened_dct_bundles)):
+        for index in range(len(self.manager.opened)):
             self.save_dct(index)
 
     def export_dct_to_txt(self, index: int | None):
         if index is None:
             return
 
-        dct = self.manager.opened_dct_bundles[index].dct
+        dct = self.manager.opened[index].dct
         dct_name = dct.name
         file_path, _ = QFileDialog.getSaveFileName(
             self, self.tr('Export Dictionary'), f'{dct_name}.txt', '(*.txt)',
@@ -2940,7 +2940,7 @@ class DctTabWidget(QTabWidget):
         if index is None:
             return
 
-        dct = self.manager.opened_dct_bundles[index].dct
+        dct = self.manager.opened[index].dct
         dct_name = dct.name
         dest_path, _ = QFileDialog.getSaveFileName(
             self, self.tr('Export Dictionary'), f'{dct_name}.dmdct', '(*.dmdct)',
@@ -2948,7 +2948,7 @@ class DctTabWidget(QTabWidget):
         if not dest_path:
             return
 
-        source_folder = DCT_SAVE_DIR(self.manager.opened_dct_bundles[index].dct.id)
+        source_folder = DCT_SAVE_DIR(self.manager.opened[index].dct.id)
         with zipfile.ZipFile(dest_path, 'w', zipfile.ZIP_DEFLATED) as zf:
             for file_path in source_folder.rglob('*'):
                 if file_path.is_file():
@@ -2959,7 +2959,7 @@ class DctTabWidget(QTabWidget):
         if index is None:
             return
 
-        dct = self.manager.opened_dct_bundles[index].dct
+        dct = self.manager.opened[index].dct
 
         reply = QMessageBox.question(
             self,
@@ -5261,7 +5261,7 @@ class MainWindow(QMainWindow):
             index: Index of the tab to close.
         """
 
-        dct_bundle = self.manager.opened_dct_bundles[index]
+        dct_bundle = self.manager.opened[index]
         dct = dct_bundle.dct
         if dct.is_modified:
             to_save = ask_yes_no(self, self.tr('Unsaved Changes'), self.tr('Save dictionary "%s"?') % dct.name)
@@ -5291,11 +5291,11 @@ class MainWindow(QMainWindow):
 
         try:
             # Restore tabs for all opened dictionaries
-            if self.manager.opened_dct_bundles:
+            if self.manager.opened:
                 # Temporarily disconnect signal to avoid calling switch_dct during restoration
                 self.tab_widget.currentChanged.disconnect()
 
-                for dct_bundle in self.manager.opened_dct_bundles:
+                for dct_bundle in self.manager.opened:
                     self.create_new_tab(dct_bundle.dct.name, dct_bundle, set_active=False)
 
                 # Restore active tab
@@ -5317,7 +5317,7 @@ class MainWindow(QMainWindow):
             event: Close event from Qt.
         """
 
-        for index, dct_bundle in list(enumerate(self.manager.opened_dct_bundles))[::-1]:
+        for index, dct_bundle in list(enumerate(self.manager.opened))[::-1]:
             dct = dct_bundle.dct
             if dct.is_modified:
                 to_save = ask_yes_no(self, self.tr('Unsaved Changes'), self.tr('Save dictionary "%s"?') % dct.name)
@@ -5335,7 +5335,7 @@ class MainWindow(QMainWindow):
         manager, and creates a new tab for the opened dictionary.
         """
 
-        opened_ids = {bundle.dct.id for bundle in self.manager.opened_dct_bundles}
+        opened_ids = {bundle.dct.id for bundle in self.manager.opened}
 
         options = []
         for save_dir in sorted(SAVES_DIR.iterdir()):

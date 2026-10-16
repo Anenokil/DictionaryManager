@@ -46,7 +46,7 @@ def manager_3_dct_no_paths(request):
     manager.open_dct(dct_bundle_path_201, to_activate=True)
     manager.open_dct(dct_bundle_path_202, to_activate=True)
     for i in range(3):
-        manager.opened_dct_bundles[i].filepath = None
+        manager.opened[i].filepath = None
     return manager
 
 
@@ -87,7 +87,7 @@ def test_create_dct(manager, name, to_activate):
     manager.create_dct(name, to_activate)
 
     assert manager.n_opened == size_before + 1
-    assert manager.opened_dct_bundles[-1].dct.name == name
+    assert manager.opened[-1].dct.name == name
     if manager.n_opened == 1 or to_activate:
         assert manager.active_idx == manager.n_opened - 1
     else:
@@ -220,7 +220,7 @@ def test_rename_dct(manager, dct_id):
     if 0 <= dct_id < manager.n_opened:
         manager.rename_dct(dct_id, new_name)
 
-        assert manager.opened_dct_bundles[dct_id].dct.name == new_name
+        assert manager.opened[dct_id].dct.name == new_name
     else:
         state_before = deepcopy(manager.to_dict())
 
@@ -240,11 +240,11 @@ def test_rename_dct(manager, dct_id):
 @pytest.mark.parametrize('to_index', [-1, 0, 1, 2, 3])
 def test_move_dct(manager, from_index, to_index):
     if (0 <= from_index < manager.n_opened) and (0 <= to_index < manager.n_opened):
-        bundles_before = list(manager.opened_dct_bundles)
+        bundles_before = list(manager.opened)
 
         manager.move_dct(from_index, to_index)
 
-        bundles_after = list(manager.opened_dct_bundles)
+        bundles_after = list(manager.opened)
 
         assert bundles_before[from_index] == bundles_after[to_index]
 

@@ -202,7 +202,7 @@ class Manager:
         Creates an empty Manager with no opened Dictionaries.
         """
 
-        self.opened_dct_bundles: list[DctBundle] = []
+        self.opened: list[DctBundle] = []
         self.active_idx: int | None = None
 
     @classmethod
@@ -230,7 +230,7 @@ class Manager:
             Number of opened Dictionaries.
         """
 
-        return len(self.opened_dct_bundles)
+        return len(self.opened)
 
     @property
     def active(self) -> DctBundle | None:
@@ -243,7 +243,7 @@ class Manager:
 
         if self.active_idx is None:
             return None
-        return self.opened_dct_bundles[self.active_idx]
+        return self.opened[self.active_idx]
 
     def add_dct(self, dct_bundle: DctBundle, to_activate: bool = True):
         """
@@ -255,10 +255,10 @@ class Manager:
                          If False, add it without switching the active index.
         """
 
-        self.opened_dct_bundles.append(dct_bundle)
+        self.opened.append(dct_bundle)
 
         if to_activate or self.n_opened == 1:
-            self.active_idx = len(self.opened_dct_bundles) - 1
+            self.active_idx = len(self.opened) - 1
 
     def create_dct(
             self,
@@ -279,10 +279,10 @@ class Manager:
         new_dct_bundle = DctBundle(optional_classes)
         new_dct_bundle.dct.rename(name)
 
-        self.opened_dct_bundles.append(new_dct_bundle)
+        self.opened.append(new_dct_bundle)
 
         if to_activate or self.n_opened == 1:
-            self.active_idx = len(self.opened_dct_bundles) - 1
+            self.active_idx = len(self.opened) - 1
 
         return new_dct_bundle
 
@@ -307,10 +307,10 @@ class Manager:
         dct_bundle = DctBundle.from_files(folder, optional_classes)
         dct_bundle.dct.mark_saved()
 
-        self.opened_dct_bundles.append(dct_bundle)
+        self.opened.append(dct_bundle)
 
         if to_activate or self.n_opened == 1:
-            self.active_idx = len(self.opened_dct_bundles) - 1
+            self.active_idx = len(self.opened) - 1
 
         return dct_bundle
 
@@ -325,7 +325,7 @@ class Manager:
             KeyError: If the Dictionary index is out of range.
         """
 
-        if not (0 <= dct_idx < len(self.opened_dct_bundles)):
+        if not (0 <= dct_idx < len(self.opened)):
             raise KeyError('Index out of range')
 
         self.active_idx = dct_idx
@@ -341,15 +341,15 @@ class Manager:
             KeyError: If the Dictionary index is out of range.
         """
 
-        if not (0 <= dct_idx < len(self.opened_dct_bundles)):
+        if not (0 <= dct_idx < len(self.opened)):
             raise KeyError('Index out of range')
 
-        if len(self.opened_dct_bundles) == 1:
+        if len(self.opened) == 1:
             self.active_idx = None
-        elif dct_idx < self.active_idx or self.active_idx == len(self.opened_dct_bundles) - 1:
+        elif dct_idx < self.active_idx or self.active_idx == len(self.opened) - 1:
             self.active_idx -= 1
 
-        del self.opened_dct_bundles[dct_idx]
+        del self.opened[dct_idx]
 
     def save_dct(self, dct_idx: int, folder: str):
         """
@@ -365,13 +365,13 @@ class Manager:
             ValueError: If no filepath is specified and the Dictionary has none.
         """
 
-        if not (0 <= dct_idx < len(self.opened_dct_bundles)):
+        if not (0 <= dct_idx < len(self.opened)):
             raise KeyError('Index out of range')
 
         if not os.path.exists(folder):
             os.makedirs(folder)
 
-        bundle = self.opened_dct_bundles[dct_idx]
+        bundle = self.opened[dct_idx]
         bundle.dct.mark_saved()
         bundle.save(folder)
 
@@ -387,10 +387,10 @@ class Manager:
             KeyError: If the Dictionary index is out of range.
         """
 
-        if not (0 <= dct_idx < len(self.opened_dct_bundles)):
+        if not (0 <= dct_idx < len(self.opened)):
             raise KeyError('Index out of range')
 
-        self.opened_dct_bundles[dct_idx].dct.rename(new_name)
+        self.opened[dct_idx].dct.rename(new_name)
 
     def move_dct(self, from_index: int, to_index: int):
         """
@@ -404,20 +404,19 @@ class Manager:
             KeyError: If the Dictionary index is out of range.
         """
 
-        if not (0 <= from_index < len(self.opened_dct_bundles)):
+        if not (0 <= from_index < len(self.opened)):
             raise KeyError('Index out of range')
-        if not (0 <= to_index < len(self.opened_dct_bundles)):
+        if not (0 <= to_index < len(self.opened)):
             raise KeyError('Index out of range')
 
-        target_dct = self.opened_dct_bundles[from_index]
+        target_dct = self.opened[from_index]
         is_active = from_index == self.active_idx
 
         if not is_active and self.active_idx > from_index:
             self.active_idx -= 1
 
-        del self.opened_dct_bundles[from_index]
-        self.opened_dct_bundles = self.opened_dct_bundles[:to_index] + [target_dct] + \
-                                  self.opened_dct_bundles[to_index:]
+        del self.opened[from_index]
+        self.opened = self.opened[:to_index] + [target_dct] + self.opened[to_index:]
 
         if is_active:
             self.active_idx = to_index
@@ -435,7 +434,7 @@ class Manager:
         return {
             'version': self._schema_version,
             'data': {
-                'opened_dct_bundles': [bundle.id for bundle in self.opened_dct_bundles],
+                'opened': [bundle.id for bundle in self.opened],
                 'active_idx': self.active_idx,
             }
         }
@@ -452,22 +451,22 @@ class Manager:
         required_fields = ('version', 'data')
         validate_required_fields(data, required_fields)
 
-        required_fields = ('opened_dct_bundles', 'active_idx')
+        required_fields = ('opened', 'active_idx')
         validate_required_fields(data['data'], required_fields)
 
         # Read required fields
         data = data['data']
-        opened_dct_bundles = data['opened_dct_bundles']
+        opened = data['opened']
         active_idx = data['active_idx']
 
         # Validate types
-        validate_field_type('opened_dct_bundles', opened_dct_bundles, list[str])
+        validate_field_type('opened', opened, list[str])
         validate_field_type('active_idx', active_idx, (int, NoneType))
 
         # Read opened Dictionaries
-        opened_dct_bundles = [load_bundle_by_id(bundle_id) for bundle_id in data['opened_dct_bundles']]
-        opened_dct_bundles = [bundle for bundle in opened_dct_bundles if bundle is not None]
+        opened = [load_bundle_by_id(bundle_id) for bundle_id in data['opened']]
+        opened = [bundle for bundle in opened if bundle is not None]
 
         # Set attributes
-        self.opened_dct_bundles = opened_dct_bundles
+        self.opened = opened
         self.active_idx = active_idx
