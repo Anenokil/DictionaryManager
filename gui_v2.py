@@ -5189,9 +5189,8 @@ class MainWindow(QMainWindow):
         self.tab_widget.rename_dct(index)
 
     def on_new_tab_requested(self, dct_name: str, entries: list[Entry]):
-        self.manager.create_dct(name=dct_name, to_activate=False, optional_classes={'qt': DctUISettings})
+        new_dct_bundle = self.manager.create_dct(name=dct_name, to_activate=False, optional_classes={'qt': DctUISettings})
         old_dct = self.manager.active.dct
-        new_dct_bundle = self.manager.opened_dct_bundles[self.manager.n_opened - 1]
         new_dct = new_dct_bundle.dct
         for ctg, ctg_vals in old_dct.features.items():
             new_dct.add_ctg(ctg, ctg_vals)
@@ -5408,10 +5407,10 @@ class MainWindow(QMainWindow):
         """
 
         new_dct_name = self.tr('Untitled')
-        self.manager.create_dct(name=new_dct_name, optional_classes={'qt': DctUISettings})
+        new_dct_bundle = self.manager.create_dct(name=new_dct_name, optional_classes={'qt': DctUISettings})
         self.create_new_tab(new_dct_name)
         self.tab_widget.update_tab_title(self.tab_widget.count() - 1)
-        self._save_new_dct(self.manager.active.dct)
+        self._save_new_dct(new_dct_bundle.dct)
 
     def _save_new_dct(self, dct: Dictionary):
         DCT_SAVE_DIR(dct.id).mkdir(parents=True, exist_ok=True)

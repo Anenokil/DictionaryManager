@@ -265,7 +265,7 @@ class Manager:
             name: DctName = None,
             to_activate: bool = True,
             optional_classes: dict[str, type[OptionalDctData]] | None = None,
-    ):
+    ) -> DctBundle:
         """
         Create a new empty Dictionary and add it to the Manager.
 
@@ -284,12 +284,14 @@ class Manager:
         if to_activate or self.n_opened == 1:
             self.active_dct_id = len(self.opened_dct_bundles) - 1
 
+        return new_dct_bundle
+
     def open_dct(
             self,
             folder: str,
             to_activate: bool = True,
             optional_classes: dict[str, type[OptionalDctData]] | None = None,
-    ):
+    ) -> DctBundle:
         """
         Load a Dictionary from a file and add it to the Manager.
 
@@ -309,6 +311,8 @@ class Manager:
 
         if to_activate or self.n_opened == 1:
             self.active_dct_id = len(self.opened_dct_bundles) - 1
+
+        return dct_bundle
 
     def switch_dct(self, dct_id: int):
         """
