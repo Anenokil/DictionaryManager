@@ -62,16 +62,16 @@ def manager(request):
 @pytest.mark.parametrize('to_activate', [True, False])
 def test_add_dct(manager, to_activate):
     size_before = manager.n_opened
-    active_id_before = manager.active_dct_id
+    active_id_before = manager.active_idx
 
     db = DctBundle()
     manager.add_dct(db, to_activate)
 
     assert manager.n_opened == size_before + 1
     if manager.n_opened == 1 or to_activate:
-        assert manager.active_dct_id == manager.n_opened - 1
+        assert manager.active_idx == manager.n_opened - 1
     else:
-        assert manager.active_dct_id == active_id_before
+        assert manager.active_idx == active_id_before
 
 
 @pytest.mark.parametrize(
@@ -82,16 +82,16 @@ def test_add_dct(manager, to_activate):
 @pytest.mark.parametrize('to_activate', [True, False])
 def test_create_dct(manager, name, to_activate):
     size_before = manager.n_opened
-    active_id_before = manager.active_dct_id
+    active_id_before = manager.active_idx
 
     manager.create_dct(name, to_activate)
 
     assert manager.n_opened == size_before + 1
     assert manager.opened_dct_bundles[-1].dct.name == name
     if manager.n_opened == 1 or to_activate:
-        assert manager.active_dct_id == manager.n_opened - 1
+        assert manager.active_idx == manager.n_opened - 1
     else:
-        assert manager.active_dct_id == active_id_before
+        assert manager.active_idx == active_id_before
 
 
 @pytest.mark.parametrize(
@@ -102,15 +102,15 @@ def test_create_dct(manager, name, to_activate):
 @pytest.mark.parametrize('to_activate', [True, False])
 def test_open_dct(manager, filepath, to_activate):
     size_before = manager.n_opened
-    active_id_before = manager.active_dct_id
+    active_id_before = manager.active_idx
 
     manager.open_dct(filepath, to_activate)
 
     assert manager.n_opened == size_before + 1
     if manager.n_opened == 1 or to_activate:
-        assert manager.active_dct_id == manager.n_opened - 1
+        assert manager.active_idx == manager.n_opened - 1
     else:
-        assert manager.active_dct_id == active_id_before
+        assert manager.active_idx == active_id_before
 
 
 @pytest.mark.parametrize(
@@ -138,7 +138,7 @@ def test_switch_dct(manager, dct_id):
     if 0 <= dct_id < manager.n_opened:
         manager.switch_dct(dct_id)
 
-        assert manager.active_dct_id == dct_id
+        assert manager.active_idx == dct_id
     else:
         state_before = deepcopy(manager.to_dict())
 
@@ -157,14 +157,14 @@ def test_switch_dct(manager, dct_id):
 @pytest.mark.parametrize('dct_id', [-1, 0, 1, 2, 3])
 def test_close_dct(manager, dct_id):
     if 0 <= dct_id < manager.n_opened:
-        active_id = manager.active_dct_id
+        active_id = manager.active_idx
 
         manager.close_dct(dct_id)
 
         if manager.n_opened == 0:
-            assert manager.active_dct_id is None
+            assert manager.active_idx is None
         else:
-            assert manager.active_dct_id == min(active_id, manager.n_opened - 1)
+            assert manager.active_idx == min(active_id, manager.n_opened - 1)
     else:
         state_before = deepcopy(manager.to_dict())
 

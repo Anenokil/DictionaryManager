@@ -5299,8 +5299,8 @@ class MainWindow(QMainWindow):
                     self.create_new_tab(dct_bundle.dct.name, dct_bundle, set_active=False)
 
                 # Restore active tab
-                if self.manager.active_dct_id is not None:
-                    self.tab_widget.setCurrentIndex(self.manager.active_dct_id)
+                if self.manager.active_idx is not None:
+                    self.tab_widget.setCurrentIndex(self.manager.active_idx)
 
                 # Reconnect signal
                 self.tab_widget.currentChanged.connect(self.on_tab_changed)
@@ -5418,22 +5418,22 @@ class MainWindow(QMainWindow):
         self.tab_widget.save_dct(dct_index)
 
     def save_dct(self):
-        dct_index = self.manager.active_dct_id
+        dct_index = self.manager.active_idx
         self.tab_widget.save_dct(dct_index)
 
     def save_all_dcts(self):
         self.tab_widget.save_all_dcts()
 
     def export_dct_to_txt(self):
-        dct_index = self.manager.active_dct_id
+        dct_index = self.manager.active_idx
         self.tab_widget.export_dct_to_txt(dct_index)
 
     def export_dct_to_dmdct(self):
-        dct_index = self.manager.active_dct_id
+        dct_index = self.manager.active_idx
         self.tab_widget.export_dct_to_dmdct(dct_index)
 
     def delete_dct(self):
-        dct_index = self.manager.active_dct_id
+        dct_index = self.manager.active_idx
         self.tab_widget.delete_dct(dct_index)
 
 

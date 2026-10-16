@@ -203,7 +203,7 @@ class Manager:
         """
 
         self.opened_dct_bundles: list[DctBundle] = []
-        self.active_dct_id: int | None = None
+        self.active_idx: int | None = None
 
     @classmethod
     def from_json_dict(cls, data: SerializedData, load_bundle_by_id: Callable[[str], DctBundle | None]) -> 'Manager':
@@ -241,9 +241,9 @@ class Manager:
             Bundle of the active Dictionary, or None if no Dictionary is active.
         """
 
-        if self.active_dct_id is None:
+        if self.active_idx is None:
             return None
-        return self.opened_dct_bundles[self.active_dct_id]
+        return self.opened_dct_bundles[self.active_idx]
 
     def add_dct(self, dct_bundle: DctBundle, to_activate: bool = True):
         """
@@ -258,7 +258,7 @@ class Manager:
         self.opened_dct_bundles.append(dct_bundle)
 
         if to_activate or self.n_opened == 1:
-            self.active_dct_id = len(self.opened_dct_bundles) - 1
+            self.active_idx = len(self.opened_dct_bundles) - 1
 
     def create_dct(
             self,
@@ -282,7 +282,7 @@ class Manager:
         self.opened_dct_bundles.append(new_dct_bundle)
 
         if to_activate or self.n_opened == 1:
-            self.active_dct_id = len(self.opened_dct_bundles) - 1
+            self.active_idx = len(self.opened_dct_bundles) - 1
 
         return new_dct_bundle
 
@@ -310,11 +310,11 @@ class Manager:
         self.opened_dct_bundles.append(dct_bundle)
 
         if to_activate or self.n_opened == 1:
-            self.active_dct_id = len(self.opened_dct_bundles) - 1
+            self.active_idx = len(self.opened_dct_bundles) - 1
 
         return dct_bundle
 
-    def switch_dct(self, dct_id: int):
+    def switch_dct(self, dct_idx: int):
         """
         Switch to a different Dictionary as the active one.
 
@@ -325,12 +325,12 @@ class Manager:
             KeyError: If the Dictionary index is out of range.
         """
 
-        if not (0 <= dct_id < len(self.opened_dct_bundles)):
+        if not (0 <= dct_idx < len(self.opened_dct_bundles)):
             raise KeyError('Index out of range')
 
-        self.active_dct_id = dct_id
+        self.active_idx = dct_idx
 
-    def close_dct(self, dct_id: int):
+    def close_dct(self, dct_idx: int):
         """
         Close a Dictionary and remove it from the Manager.
 
@@ -341,17 +341,17 @@ class Manager:
             KeyError: If the Dictionary index is out of range.
         """
 
-        if not (0 <= dct_id < len(self.opened_dct_bundles)):
+        if not (0 <= dct_idx < len(self.opened_dct_bundles)):
             raise KeyError('Index out of range')
 
         if len(self.opened_dct_bundles) == 1:
-            self.active_dct_id = None
-        elif dct_id < self.active_dct_id or self.active_dct_id == len(self.opened_dct_bundles) - 1:
-            self.active_dct_id -= 1
+            self.active_idx = None
+        elif dct_idx < self.active_idx or self.active_idx == len(self.opened_dct_bundles) - 1:
+            self.active_idx -= 1
 
-        del self.opened_dct_bundles[dct_id]
+        del self.opened_dct_bundles[dct_idx]
 
-    def save_dct(self, dct_id: int, folder: str):
+    def save_dct(self, dct_idx: int, folder: str):
         """
         Save a Dictionary along with its Bundle to a file.
 
@@ -365,17 +365,17 @@ class Manager:
             ValueError: If no filepath is specified and the Dictionary has none.
         """
 
-        if not (0 <= dct_id < len(self.opened_dct_bundles)):
+        if not (0 <= dct_idx < len(self.opened_dct_bundles)):
             raise KeyError('Index out of range')
 
         if not os.path.exists(folder):
             os.makedirs(folder)
 
-        bundle = self.opened_dct_bundles[dct_id]
+        bundle = self.opened_dct_bundles[dct_idx]
         bundle.dct.mark_saved()
         bundle.save(folder)
 
-    def rename_dct(self, dct_id: int, new_name: str):
+    def rename_dct(self, dct_idx: int, new_name: str):
         """
         Rename a Dictionary.
 
@@ -387,10 +387,10 @@ class Manager:
             KeyError: If the Dictionary index is out of range.
         """
 
-        if not (0 <= dct_id < len(self.opened_dct_bundles)):
+        if not (0 <= dct_idx < len(self.opened_dct_bundles)):
             raise KeyError('Index out of range')
 
-        self.opened_dct_bundles[dct_id].dct.rename(new_name)
+        self.opened_dct_bundles[dct_idx].dct.rename(new_name)
 
     def move_dct(self, from_index: int, to_index: int):
         """
@@ -410,19 +410,19 @@ class Manager:
             raise KeyError('Index out of range')
 
         target_dct = self.opened_dct_bundles[from_index]
-        is_active = from_index == self.active_dct_id
+        is_active = from_index == self.active_idx
 
-        if not is_active and self.active_dct_id > from_index:
-            self.active_dct_id -= 1
+        if not is_active and self.active_idx > from_index:
+            self.active_idx -= 1
 
         del self.opened_dct_bundles[from_index]
         self.opened_dct_bundles = self.opened_dct_bundles[:to_index] + [target_dct] + \
                                   self.opened_dct_bundles[to_index:]
 
         if is_active:
-            self.active_dct_id = to_index
-        elif self.active_dct_id > to_index:
-            self.active_dct_id += 1
+            self.active_idx = to_index
+        elif self.active_idx > to_index:
+            self.active_idx += 1
 
     def to_dict(self) -> SerializedData:
         """
@@ -436,7 +436,7 @@ class Manager:
             'version': self._schema_version,
             'data': {
                 'opened_dct_bundles': [bundle.id for bundle in self.opened_dct_bundles],
-                'active_dct_id': self.active_dct_id,
+                'active_idx': self.active_idx,
             }
         }
 
@@ -452,17 +452,17 @@ class Manager:
         required_fields = ('version', 'data')
         validate_required_fields(data, required_fields)
 
-        required_fields = ('opened_dct_bundles', 'active_dct_id')
+        required_fields = ('opened_dct_bundles', 'active_idx')
         validate_required_fields(data['data'], required_fields)
 
         # Read required fields
         data = data['data']
         opened_dct_bundles = data['opened_dct_bundles']
-        active_dct_id = data['active_dct_id']
+        active_idx = data['active_idx']
 
         # Validate types
         validate_field_type('opened_dct_bundles', opened_dct_bundles, list[str])
-        validate_field_type('active_dct_id', active_dct_id, (int, NoneType))
+        validate_field_type('active_idx', active_idx, (int, NoneType))
 
         # Read opened Dictionaries
         opened_dct_bundles = [load_bundle_by_id(bundle_id) for bundle_id in data['opened_dct_bundles']]
@@ -470,4 +470,4 @@ class Manager:
 
         # Set attributes
         self.opened_dct_bundles = opened_dct_bundles
-        self.active_dct_id = active_dct_id
+        self.active_idx = active_idx
