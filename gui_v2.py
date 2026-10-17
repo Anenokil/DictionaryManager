@@ -2948,7 +2948,7 @@ class DctTabWidget(QTabWidget):
         if not dest_path:
             return
 
-        source_folder = DCT_SAVE_DIR(self.manager.opened[index].dct.id)
+        source_folder = DCT_SAVE_DIR(self.manager.opened[index].id)
         with zipfile.ZipFile(dest_path, 'w', zipfile.ZIP_DEFLATED) as zf:
             for file_path in source_folder.rglob('*'):
                 if file_path.is_file():
@@ -5335,7 +5335,7 @@ class MainWindow(QMainWindow):
         manager, and creates a new tab for the opened dictionary.
         """
 
-        opened_ids = {bundle.dct.id for bundle in self.manager.opened}
+        opened_ids = {bundle.id for bundle in self.manager.opened}
 
         options = []
         for save_dir in sorted(SAVES_DIR.iterdir()):
@@ -5439,7 +5439,6 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app_data = AppData()
-
     app = QApplication(sys.argv)
 
     if app_data.translator.load(app_data.ui_settings.locale, str(LOCALES_DIR)):
@@ -5447,4 +5446,5 @@ if __name__ == '__main__':
 
     window = MainWindow(app_data)
     window.show()
+
     sys.exit(app.exec())
