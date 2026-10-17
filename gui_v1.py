@@ -1,31 +1,77 @@
-import os
-import shutil
-from typing import Any, Literal, TypeVar, Type, Callable
-import copy
-import platform
+from types import NoneType
+from typing import Any, Literal, TypeVar, Type, Callable, Iterable
+import inspect
 import math
+import re
+import platform
+import os
+from pathlib import Path
+import shutil
+import platformdirs
+import unicodedata
 import json
+import webbrowser
+import urllib.request as urllib2
+import wget
+import zipfile
+
 import tkinter as tk
 from tkinter import colorchooser
 from tkinter.font import Font
+from tkinter.filedialog import askdirectory, asksaveasfilename, askopenfilename
 import tkinter.ttk as ttk
-import idlelib.tooltip as ttip  # Всплывающие подсказки
-from tkinter.filedialog import askdirectory
-import re  # Несколько разделителей в split
-import webbrowser  # Для открытия веб-страницы
-import urllib.request as urllib2  # Для проверки наличия обновлений
-import wget  # Для загрузки обновления
-import zipfile  # Для распаковки обновления
-from itertools import chain
+import idlelib.tooltip as ttip
 
 from backend import (
-    Entry, Dictionary, Trainer, GramForm,
-    gram_form_to_str, create_training_config,
-    TrainingFormat, TrainingOrder, EntrySelection,
-    FormSelection, TrainingConfig,
+    Entry, Dictionary, OptionalDctData, DctBundle, Manager, Replacer,
+    Trainer, TrainingConfig, TrainingFormat, TrainingOrder, EntrySelection, FormSelection,
+    GramForm, WordForm, gram_form_to_str, Tag, SerializedData, validation_and_migration,
+    get_dct_name_from_dict, get_dct_id_from_dict, set_dct_name_in_dict, read_json, save_json,
 )
-from constants import *
-from upgrades import *
+from constants import (
+    SCALE_SMALL_FRAME_HEIGHT_SHORT, SCALE_SMALL_FRAME_HEIGHT_TALL, SCALE_CUSTOM_THEME_FRAME_WIDTH,
+    SCALE_MAX, SCALE_MIN, SCALE_SMALL_FRAME_WIDTH, SCALE_DEFAULT_FRAME_WIDTH,
+    SCALE_CUSTOM_THEME_COMBO_WIDTH, RET_TH_OLD, RET_TH_OK,
+    SCALE_DEFAULT_FRAME_HEIGHT, SCALE_FRAME_HEIGHT_ONE_LINE, PROGRAM_VERSION, REQUIRED_THEME_VERSION,
+    IMG_NAMES, ICON_NAMES, PROGRAM_DATE, PROGRAM_TIME, EXIT_UPDATE, PROGRAM_NAME, ALL_TAGS,
+
+    LEARN_VALUES_WORDS, LEARN_VALUES_FORMS, LEARN_VALUES_FORMAT, LEARN_VALUES_ORDER,
+    PRINT_VALUES_ORDER,
+)
+from upgrades import upgrade_theme
+
+BASE_DIR = Path(__file__).resolve().parent
+RESOURCES_DIR = BASE_DIR / 'resources' / 'tk'
+ICON_PATH = str(RESOURCES_DIR / 'icon.png')
+THEMES_DIR = RESOURCES_DIR / 'themes'
+CUSTOM_THEME_DIR = RESOURCES_DIR / 'custom_theme'
+STYLES_FN = 'styles.txt'
+IMAGES_DIR = RESOURCES_DIR / 'images'
+IMG_ADD_PATH = str(IMAGES_DIR / 'add.png')
+
+DATA_DIR = Path(platformdirs.user_data_dir('DictionaryManager'))
+MANAGER_PATH = str(DATA_DIR / 'manager_tk.json')
+GUI_CONFIG_PATH = str(DATA_DIR / 'tk_config.json')
+SAVES_DIR = DATA_DIR / 'saves'
+DCT_SAVE_DIR = lambda dct_id: SAVES_DIR / dct_id
+DCT_MAIN_DATA_FILENAME = 'dct.json'
+DCT_MAIN_DATA_PATH = lambda dct_id: str(DCT_SAVE_DIR(dct_id) / DCT_MAIN_DATA_FILENAME)
+DCT_METADATA_FILENAME = 'metadata.json'
+DCT_PRACTICE_CONFIG_FILENAME = 'train_config.json'
+DCT_REPLACER_FILENAME = 'replacer.json'
+DCT_GUI_DATA_FILENAME = 'tk_config.json'
+DCT_GUI_DATA_PATH = lambda dct_id: str(DCT_SAVE_DIR(dct_id) / DCT_GUI_DATA_FILENAME)
+
+REPOSITORY_NAME = 'DictionaryManager'
+URL_GITHUB = f'https://github.com/Anenokil/{REPOSITORY_NAME}'
+URL_RELEASES = f'https://github.com/Anenokil/{REPOSITORY_NAME}/releases'
+URL_LAST_VERSION = f'https://raw.githubusercontent.com/Anenokil/{REPOSITORY_NAME}/dev/ver'
+URL_DOWNLOAD_ZIP = f'https://github.com/Anenokil/{REPOSITORY_NAME}/archive/refs/heads/dev.zip'
+
+NEW_VERSION_DIRNAME = f'{REPOSITORY_NAME}-master'
+NEW_VERSION_DIR = BASE_DIR / NEW_VERSION_DIRNAME
+NEW_VERSION_ZIP_PATH = BASE_DIR / f'{NEW_VERSION_DIRNAME}.zip'
+UPDATE_FILES_FILENAME = 'update_files'
 
 CompoundValues = Literal['none', 'image', 'text', 'left', 'right', 'top', 'bottom', 'center']
 T = TypeVar('T', bound=ttk.Widget)
@@ -91,10 +137,105 @@ STYLE_KEYS = list(STYLES.keys())
 
 
 @validation_and_migration(1, [
-    ('theme', True, str),
-    ('scale', True, int),
-    ('to_check_for_updates', True, bool),
-    ('is_typo_btn_on', True, bool),
+    ('search_page_to_match_whole_word', False, bool),
+    ('search_page_to_search_in_words', False, bool),
+    ('search_page_to_search_in_translations', False, bool),
+    ('search_page_to_search_in_forms', False, bool),
+    ('search_page_to_search_in_phrases', False, bool),
+    ('search_page_to_search_in_notes', False, bool),
+    ('search_page_to_filter_fav', False, bool),
+    ('search_page_search_tag', False, (str, NoneType)),
+])
+class DctUISettings(OptionalDctData):
+    _filename = DCT_GUI_DATA_FILENAME
+
+    def __init__(self, data: SerializedData | None = None):
+        self.search_page_to_match_whole_word: bool = ...
+        self.search_page_to_search_in_words: bool = ...
+        self.search_page_to_search_in_translations: bool = ...
+        self.search_page_to_search_in_forms: bool = ...
+        self.search_page_to_search_in_phrases: bool = ...
+        self.search_page_to_search_in_notes: bool = ...
+        self.search_page_to_filter_fav: bool = ...
+        self.search_page_search_tag: str | None = ...
+
+        if data is None:
+            self.set_defaults()
+        else:
+            self.load_from_dict(data)
+
+    @property
+    def filename(self) -> str:
+        return self._filename
+
+    @classmethod
+    def from_json(cls, path: str) -> 'DctUISettings':
+        instance = cls()
+        instance.load_from_json(path)
+        return instance
+
+    def set_defaults(self):
+        self.search_page_to_match_whole_word = False
+        self.search_page_to_search_in_words = True
+        self.search_page_to_search_in_translations = True
+        self.search_page_to_search_in_forms = False
+        self.search_page_to_search_in_phrases = False
+        self.search_page_to_search_in_notes = False
+        self.search_page_to_filter_fav = False
+        self.search_page_search_tag = None
+
+    def load_from_dict(self, data: SerializedData):
+        data = self._check_and_migrate(data)
+        data = data['data']
+
+        self.search_page_to_match_whole_word: bool = data['search_page_to_match_whole_word']
+        self.search_page_to_search_in_words: bool = data['search_page_to_search_in_words']
+        self.search_page_to_search_in_translations: bool = data['search_page_to_search_in_translations']
+        self.search_page_to_search_in_forms: bool = data['search_page_to_search_in_forms']
+        self.search_page_to_search_in_phrases: bool = data['search_page_to_search_in_phrases']
+        self.search_page_to_search_in_notes: bool = data['search_page_to_search_in_notes']
+        self.search_page_to_filter_fav: bool = data['search_page_to_filter_fav']
+        self.search_page_search_tag: str | None = data['search_page_search_tag']
+
+    def to_dict(self) -> SerializedData:
+        return {
+            'version': self._schema_version,
+            'data': {
+                'search_page_to_match_whole_word': self.search_page_to_match_whole_word,
+                'search_page_to_search_in_words': self.search_page_to_search_in_words,
+                'search_page_to_search_in_translations': self.search_page_to_search_in_translations,
+                'search_page_to_search_in_forms': self.search_page_to_search_in_forms,
+                'search_page_to_search_in_phrases': self.search_page_to_search_in_phrases,
+                'search_page_to_search_in_notes': self.search_page_to_search_in_notes,
+                'search_page_to_filter_fav': self.search_page_to_filter_fav,
+                'search_page_search_tag': self.search_page_search_tag,
+            }
+        }
+
+    def read_json(self, path: str) -> SerializedData:
+        if not Path(path).exists():
+            self.set_defaults()
+            return self.to_dict()
+
+        with open(path, 'r') as f:
+            data = json.load(f)
+        return data
+
+    def load_from_json(self, path: str):
+        data = self.read_json(path)
+        self.load_from_dict(data)
+
+    def save_to_json(self, path: str):
+        data = self.to_dict()
+        with open(path, 'w') as f:
+            json.dump(data, f)
+
+
+@validation_and_migration(1, [
+    ('theme', False, str),
+    ('scale', False, int),
+    ('to_check_for_updates', False, bool),
+    ('is_typo_btn_on', False, bool),
 ])
 class UISettings:
     def __init__(self, data: SerializedData | None = None):
@@ -136,45 +277,37 @@ class UISettings:
 
 
 class AppData:
-    def __init__(self, folder: str):
-        self.folder = folder
+    def __init__(self):
         self.manager = Manager()
         self.ui_settings = UISettings()
 
-        if os.path.exists(folder):
+        if os.path.exists(MANAGER_PATH):
             self.load(True, True)
         else:
-            os.makedirs(folder, exist_ok=True)
+            os.makedirs(DATA_DIR, exist_ok=True)
             self.save(True, True)
 
-    def load_bundle_by_id(self, bundle_id: str) -> DctBundle | None:
-        folder = os.path.join(self.folder, 'saves', bundle_id)
+    @staticmethod
+    def load_bundle_by_id(bundle_id: str) -> DctBundle | None:
+        folder = DCT_SAVE_DIR(bundle_id)
         if not os.path.exists(folder):
             return None
-        return DctBundle.from_files(folder)
+        return DctBundle.from_files(folder, {'tk': DctUISettings})
 
     def save(self, manager: bool = True, ui: bool = True):
         if manager:
-            save_json(self.manager.to_dict(), os.path.join(self.folder, 'manager.json'))
+            save_json(self.manager.to_dict(), MANAGER_PATH)
         if ui:
-            save_json(self.ui_settings.serialize(), os.path.join(self.folder, 'tk_config.json'))
+            save_json(self.ui_settings.serialize(), GUI_CONFIG_PATH)
 
     def load(self, manager: bool = True, ui: bool = True):
         if manager:
-            self.manager.load_from_json_dict(read_json(os.path.join(self.folder, 'manager.json')), self.load_bundle_by_id)
+            self.manager.load_from_json_dict(read_json(MANAGER_PATH), self.load_bundle_by_id)
         if ui:
-            self.ui_settings.deserialize(read_json(os.path.join(self.folder, 'tk_config.json')))
+            self.ui_settings.deserialize(read_json(GUI_CONFIG_PATH))
 
 
 """ Функции проверки """
-
-
-# Проверить строку на непустоту
-def check_not_void(window_parent: tk.Misc, app_data: AppData, value: str, msg_if_void: str) -> bool:
-    if value == '':
-        warning(window_parent, app_data, msg_if_void)
-        return False
-    return True
 
 
 # Проверить корректность названия словаря
@@ -184,28 +317,6 @@ def check_dct_name(window_parent: tk.Misc, app_data: AppData, name: str) -> bool
         return False
     if name == '':
         warning(window_parent, app_data, 'Название должно содержать хотя бы один символ!')
-        return False
-    if os.path.exists(os.path.join(SAVES_PATH, name)):
-        warning(window_parent, app_data, 'Словарь с таким названием уже существует!')
-        return False
-    return True
-
-
-# Проверить корректность названия словаря при изменении
-def check_dct_name_edit(
-        window_parent: tk.Misc,
-        app_data: AppData,
-        old_name: str,
-        new_name: str,
-) -> bool:
-    if len(new_name) > 100:
-        warning(window_parent, app_data, 'Название слишком длинное (> 100)!')
-        return False
-    if new_name == '':
-        warning(window_parent, app_data, 'Название должно содержать хотя бы один символ!')
-        return False
-    if os.path.exists(os.path.join(SAVES_PATH, new_name)) and new_name != old_name:
-        warning(window_parent, app_data, 'Словарь с таким названием уже существует!')
         return False
     return True
 
@@ -876,154 +987,6 @@ def add_homograph(app_data: AppData, window_parent: tk.Misc, lemma: str, tr: str
         return dct.add_entry(lemma, tr)
 
 
-# Добавить категорию
-def add_ctg(window_parent: tk.Misc, app_data: AppData) -> bool:
-    dct = app_data.manager.active.dct
-
-    # Ввод названия новой категории
-    window_ctg = InputDialog(
-        window_parent, app_data,
-        'Введите название новой категории',
-        check_answer_function=lambda wnd, val: check_ctg(
-            wnd, app_data, tuple(dct.features.keys()), val
-        ),
-    )
-    cancelled, new_ctg = window_ctg.open()
-    if cancelled:
-        return False
-
-    # Ввод первого значения категории
-    window_val = InputDialog(
-        window_parent, app_data,
-        'Необходимо добавить хотя бы одно значение для категории',
-        check_answer_function=lambda wnd, val: check_ctg_val(wnd, app_data, (), val),
-    )
-    cancelled, new_ctg_val = window_val.open()
-    if cancelled:
-        return False
-
-    # Обновление категорий
-    dct.add_ctg(new_ctg, [new_ctg_val])
-    return True
-
-
-# Переименовать категорию
-def rename_ctg(window_parent: tk.Misc, app_data: AppData, old_ctg_name: str) -> bool | None:
-    dct = app_data.manager.active.dct
-
-    # Ввод нового названия категории
-    window_entry = InputDialog(
-        window_parent, app_data,
-        'Введите новое название категории',
-        default_value=old_ctg_name,
-        check_answer_function=lambda wnd, val: check_ctg_edit(
-            wnd, app_data, tuple(dct.features.keys()), old_ctg_name, val
-        ),
-    )
-    cancelled, new_ctg_name = window_entry.open()
-    if cancelled:
-        return False
-    if new_ctg_name == old_ctg_name:
-        return None
-
-    # Обновление категорий
-    dct.rename_ctg(old_ctg_name, new_ctg_name)
-    return True
-
-
-# Удалить категорию
-def delete_ctg(window_parent: tk.Misc, app_data: AppData, ctg_name: str) -> bool:
-    dct = app_data.manager.active.dct
-
-    window_dia = TwoOptionsDialog(
-        window_parent, app_data,
-        f'Все словоформы, содержащие категорию {ctg_name}, будут удалены!\n'
-        f'Хотите продолжить?',
-    )  # Подтверждение действия
-    result = window_dia.open()
-    if not result:
-        return False
-
-    # Обновление категорий
-    dct.delete_ctg(ctg_name)
-    return True
-
-
-# Добавить значение категории
-def add_ctg_value(
-        window_parent: tk.Misc,
-        app_data: AppData,
-        ctg_name: str,
-        ctg_values: list[str] | tuple[str, ...],
-) -> bool:
-    dct = app_data.manager.active.dct
-
-    # Ввод нового значения
-    window_entry = InputDialog(
-        window_parent, app_data,
-        'Введите новое значение категории',
-        check_answer_function=lambda wnd, val: check_ctg_val(wnd, app_data, ctg_values, val),
-    )
-    cancelled, new_ctg_val = window_entry.open()
-    if cancelled:
-        return False
-
-    dct.add_ctg_value(ctg_name, new_ctg_val)
-    return True
-
-
-# Переименовать значение категории
-def rename_ctg_value(
-        window_parent: tk.Misc,
-        app_data: AppData,
-        ctg_name: str,
-        old_ctg_val: str,
-) -> bool:
-    dct = app_data.manager.active.dct
-
-    # Ввод нового значения
-    window_entry = InputDialog(
-        window_parent, app_data,
-        'Введите новое название значения',
-        default_value=old_ctg_val,
-        check_answer_function=lambda wnd, val: check_ctg_val_edit(
-            wnd, app_data, dct.features[ctg_name], old_ctg_val, val
-        ),
-    )
-    cancelled, new_ctg_val = window_entry.open()
-    if cancelled:
-        return False
-    if new_ctg_val == old_ctg_val:
-        return False
-
-    # Переименовывание значения во всех словоформах, его содержащих
-    dct.rename_ctg_value(ctg_name, old_ctg_val, new_ctg_val)
-    return True
-
-
-# Удалить значение категории
-def delete_ctg_value(
-        window_parent: tk.Misc,
-        app_data: AppData,
-        ctg_name: str,
-        ctg_val: str,
-) -> bool:
-    dct = app_data.manager.active.dct
-
-    window_dia = TwoOptionsDialog(
-        window_parent, app_data,
-        f'Все словоформы, содержащие значение {ctg_val}, будут удалены!\n'
-        f'Хотите продолжить?',
-    )  # Подтверждение действия
-    result = window_dia.open()
-    if not result:
-        return False
-
-    # Удаление всех словоформ, содержащих это значение категории
-    dct.delete_ctg_value(ctg_name, ctg_val)
-    return True
-
-
 def count_filtered_entries(
         dct: Dictionary,
         tag: Tag | None = None,
@@ -1162,7 +1125,7 @@ def check_updates(
 
 # Установить в качестве пользовательской темы тему по умолчанию
 def create_default_custom_theme():
-    styles_path = os.path.join(CUSTOM_THEME_PATH, STYLES_FN)
+    styles_path = os.path.join(CUSTOM_THEME_DIR, STYLES_FN)
     with open(styles_path, 'w', encoding='utf-8') as styles_file:
         styles_file.write(
             f'{REQUIRED_THEME_VERSION}\n'
@@ -1210,8 +1173,8 @@ def upload_one_theme(theme_path: str, theme_name: str) -> int:
 
 # Загрузить дополнительные темы
 def upload_themes(themes: list[str]):
-    for dir_name in os.listdir(ADDITIONAL_THEMES_PATH):
-        theme_dir_path = os.path.join(ADDITIONAL_THEMES_PATH, dir_name)
+    for dir_name in os.listdir(THEMES_DIR):
+        theme_dir_path = os.path.join(THEMES_DIR, dir_name)
         if not os.path.isdir(theme_dir_path):
             continue
         if not os.path.exists(os.path.join(theme_dir_path, STYLES_FN)):
@@ -1235,13 +1198,13 @@ def upload_themes(themes: list[str]):
 
 # Загрузить пользовательскую тему
 def upload_custom_theme(to_print: bool = True):
-    if not os.path.exists(os.path.join(CUSTOM_THEME_PATH, STYLES_FN)):
+    if not os.path.exists(os.path.join(CUSTOM_THEME_DIR, STYLES_FN)):
         create_default_custom_theme()
         return
 
     print('Загрузка пользовательской темы. ', end='')
     try:
-        ret = upload_one_theme(CUSTOM_THEME_PATH, CUSTOM_TH)
+        ret = upload_one_theme(CUSTOM_THEME_DIR, CUSTOM_TH)
     except Exception as exc:
         print(f'Ошибка: {exc}')
     else:
@@ -1255,37 +1218,42 @@ def img_path(theme: str, img_name: str) -> str:
     assert img_name in IMG_NAMES
 
     if theme == CUSTOM_TH:
-        theme_dir = CUSTOM_THEME_PATH
+        theme_dir = CUSTOM_THEME_DIR
     else:
-        theme_dir = os.path.join(ADDITIONAL_THEMES_PATH, theme)
+        theme_dir = os.path.join(THEMES_DIR, theme)
 
     file_name = f'{img_name}.png'
     if os.path.exists(os.path.join(theme_dir, file_name)):
         return os.path.join(theme_dir, file_name)
-    return os.path.join(IMAGES_PATH, file_name)
+    return os.path.join(IMAGES_DIR, file_name)
+
+
+def rename_dct_on_disk(dct_id: str, new_name: str):
+    path = DCT_MAIN_DATA_PATH(dct_id)
+    disk_data = read_json(path)
+    set_dct_name_in_dict(disk_data, new_name)
+    save_json(disk_data, path)
 
 
 # Предложить сохранение настроек, если есть изменения
 def save_settings_if_has_changes(window_parent: tk.Misc, app_data: AppData):
     window_dia = TwoOptionsDialog(
         window_parent, app_data,
-        'Хотите сохранить изменения настроек?', 'Да', 'Нет',
+        'Хотите сохранить изменения настроек словаря?', 'Да', 'Нет',
     )
     result = window_dia.open()
     if result:
         dct_bundle = app_data.manager.active
-        save_dct_settings(dct_bundle)
-        save_dct_cache(dct_bundle)
-        app_data.save()
-        MessageDialog(window_parent, app_data, 'Настройки успешно сохранены').open()
-        print('\nНастройки успешно сохранены')
+        dct_bundle.partial_save(DCT_SAVE_DIR(dct_bundle.id), replacer=True, optional={'tk'})
+        MessageDialog(window_parent, app_data, 'Настройки словаря успешно сохранены').open()
+        print('\nНастройки словаря успешно сохранены')
 
 
 # Предложить сохранение словаря, если есть изменения
 def save_dct_if_has_progress(window_parent: tk.Misc, app_data: AppData):
     manager = app_data.manager
     dct = manager.active.dct
-    dct_id = manager.active_dct_id
+    dct_idx = manager.active_idx
 
     if dct.is_modified:
         window_dia = TwoOptionsDialog(
@@ -1294,21 +1262,9 @@ def save_dct_if_has_progress(window_parent: tk.Misc, app_data: AppData):
         )
         result = window_dia.open()
         if result:
-            manager.save_dct(dct_id)
+            manager.save_dct(dct_idx, DCT_SAVE_DIR(dct.id))
             MessageDialog(window_parent, app_data, 'Прогресс успешно сохранён').open()
             print('\nПрогресс успешно сохранён')
-
-
-# Экспортировать словарь
-def dct_export(savename: str, dst_path: str):
-    src_path = os.path.join(SAVES_PATH, savename)
-    shutil.copytree(src_path, os.path.join(dst_path, savename))
-
-
-# Импортировать словарь
-def dct_import(savename: str, src_path: str):
-    dst_path = os.path.join(SAVES_PATH, savename)
-    shutil.copytree(src_path, dst_path)
 
 
 """ Графический интерфейс - вспомогательные функции """
@@ -2205,7 +2161,7 @@ class TrainSettingsW(tk.Toplevel):
 
         self.cancelled = False
 
-        save_dct_cache(self.dct_bundle)
+        self.dct_bundle.partial_save(DCT_SAVE_DIR(self.dct_bundle.id), metadata=True, train_config=True)
 
         self.destroy()
 
@@ -2437,19 +2393,17 @@ class SearchSettingsW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        self.dct_bundle.search_config = SearchConfig(
-            'fav' if self.var_search_only_fav.get() else 'all',
-            self.var_search_only_full.get(),
-            self.dct_bundle.search_config.to_match_case,
-            self.var_search_wrd.get(),
-            self.var_search_tr.get(),
-            self.var_search_frm.get(),
-            self.var_search_phr.get(),
-            self.var_search_nt.get(),
-            None if self.var_search_tag.get() == ALL_TAGS else [self.var_search_tag.get()],
-        )
+        config: DctUISettings = self.dct_bundle.optional['tk']
+        config.search_page_to_filter_fav = self.var_search_only_fav.get()
+        config.search_page_to_match_whole_word = self.var_search_only_full.get()
+        config.search_page_to_search_in_words = self.var_search_wrd.get()
+        config.search_page_to_search_in_translations = self.var_search_tr.get()
+        config.search_page_to_search_in_forms = self.var_search_frm.get()
+        config.search_page_to_search_in_phrases = self.var_search_phr.get()
+        config.search_page_to_search_in_notes = self.var_search_nt.get()
+        config.search_page_search_tag = None if self.var_search_tag.get() == ALL_TAGS else self.var_search_tag.get()
 
-        save_dct_cache(self.dct_bundle)
+        self.dct_bundle.partial_save(DCT_SAVE_DIR(self.dct_bundle.id), metadata=True, optional={'tk'})
 
         return (
             self.var_search_only_fav.get(), self.var_search_only_full.get(),
@@ -3597,20 +3551,154 @@ class EnterFormW(tk.Toplevel):
         return gram_form, word_form
 
 
+def change_tracked(cls):
+    """
+    Class decorator, similar to @dataclass, that adds change tracking.
+
+    Fields are declared as annotations. For each field x the class gets:
+        * x_cur - the current value;
+        * x_init - the initial value (None if the item is new);
+        * property `x` that reads/writes x_cur.
+
+    Also added: is_new, is_deleted, delete(), _state(), and the status property.
+    The generated __init__ takes the fields (in order) followed by is_new.
+    """
+
+    Status = Literal['new', 'deleted', 'modified', 'no changes']
+    RESERVED = {'is_new', 'is_deleted', 'delete', 'status'}
+
+    annotations = inspect.get_annotations(cls)
+    fields = list(annotations)
+
+    if not fields:
+        raise TypeError(f'{cls.__name__}: no fields declared')
+    for name in fields:
+        if name in RESERVED:
+            raise TypeError(f'{cls.__name__}: field name {name!r} is reserved')
+        if name in vars(cls):
+            raise TypeError(f'{cls.__name__}.{name}: default values are not supported')
+
+    kind = inspect.Parameter.POSITIONAL_OR_KEYWORD
+    signature = inspect.Signature([
+        inspect.Parameter('self', kind),
+        *(inspect.Parameter(name, kind, annotation=annotations[name]) for name in fields),
+        inspect.Parameter('is_new', kind, annotation=bool),
+    ])
+
+    def __init__(self, *args, **kwargs):
+        arguments = signature.bind(self, *args, **kwargs).arguments
+        is_new = arguments['is_new']
+        for name in fields:
+            value = arguments[name]
+            setattr(self, f'{name}_cur', value)
+            setattr(self, f'{name}_init', None if is_new else value)
+        self.is_new = is_new
+        self.is_deleted = False
+
+    __init__.__signature__ = signature
+
+    def _state(self) -> tuple:
+        return (
+            *(getattr(self, f'{name}_cur') for name in fields),
+            *(getattr(self, f'{name}_init') for name in fields),
+        )
+
+    def __eq__(self, other) -> bool:
+        if other.__class__ is not self.__class__:
+            return False
+
+        return self._state() == other._state()
+
+    def __str__(self) -> str:
+        res = []
+        if self.status == 'no changes':
+            for name in fields:
+                value_cur = getattr(self, f'{name}_cur')
+                res.append(f'{name}: {value_cur}')
+        else:
+            for name in fields:
+                value_cur = getattr(self, f'{name}_cur')
+                value_init = getattr(self, f'{name}_init')
+                res.append(f'{name}: {value_cur} [{value_init}]')
+        return self.status + ' ~~~ ' + ',   '.join(res)
+
+    def delete(self):
+        for name in fields:
+            setattr(self, f'{name}_cur', None)
+        self.is_deleted = True
+
+    def status(self) -> Status:
+        if self.is_new:
+            if self.is_deleted:
+                return 'no changes'
+            return 'new'
+        if self.is_deleted:
+            return 'deleted'
+        for name in fields:
+            if getattr(self, f'{name}_cur') != getattr(self, f'{name}_init'):
+                return 'modified'
+        return 'no changes'
+
+    def make_property(name):
+        cur = f'{name}_cur'
+        return property(
+            lambda self: getattr(self, cur),
+            lambda self, value: setattr(self, cur, value),
+            doc=f'Current value of {name!r}.',
+        )
+
+    cls.__init__ = __init__
+    cls._state = _state
+    cls.__eq__ = __eq__
+    cls.__hash__ = None  # mutable object: must not be hashable
+    cls.__str__ = __str__
+    cls.delete = delete
+    cls.status = property(status)
+    for name in fields:
+        setattr(cls, name, make_property(name))
+
+    return cls
+
+
+@change_tracked
+class EditedTag:
+    name: str
+    is_default: bool
+
+
+@change_tracked
+class EditedCtgValue:
+    name: str
+
+
+@change_tracked
+class EditedCtgName:
+    name: str
+
+
+@change_tracked
+class EditedReplacement:
+    modifier: str
+    input_char: str
+    output_char: str
+
+
 # Окно настроек грамматических категорий
 class CategoriesSettingsW(tk.Toplevel):
-    def __init__(self, parent: tk.Misc, app_data: AppData):
+    def __init__(
+            self,
+            parent: tk.Misc,
+            app_data: AppData,
+            categories: list[tuple[EditedCtgName, list[EditedCtgValue]]],
+    ):
         super().__init__(parent)
         self.parent = parent
 
         self.app_data = app_data
-        self.dct = app_data.manager.active.dct
-
-        self.has_changes = False
 
         self.img_help = tk.PhotoImage()
 
-        self.categories = []
+        self.categories = categories
         self.frames = []
         self.buttons = []
 
@@ -3653,24 +3741,75 @@ class CategoriesSettingsW(tk.Toplevel):
 
     # Добавить категорию
     def add_ctg(self):
-        self.has_changes = add_ctg(self, self.app_data) or self.has_changes
+        window_ctg = InputDialog(
+            self, self.app_data,
+            'Введите название новой категории',
+            check_answer_function=lambda wnd, val: check_ctg(
+                wnd, self.app_data, [c.name for c, _ in self.categories], val
+            ),
+        )
+        cancelled, new_ctg = window_ctg.open()
+        if cancelled:
+            return
+
+        window_val = InputDialog(
+            self, self.app_data,
+            'Необходимо добавить хотя бы одно значение для категории',
+            check_answer_function=lambda wnd, val: check_ctg_val(wnd, self.app_data, (), val),
+        )
+        cancelled, new_ctg_val = window_val.open()
+        if cancelled:
+            return
+
+        self.categories.append((
+            EditedCtgName(new_ctg, is_new=True),
+            [EditedCtgValue(new_ctg_val, is_new=True)]
+        ))
+
         self.print_categories(False)
 
     # Переименовать категорию
-    def rename_ctg(self, gram_form: str):
-        self.has_changes = rename_ctg(self, self.app_data, gram_form) or self.has_changes
+    def rename_ctg(self, ctg: EditedCtgName):
+        window_entry = InputDialog(
+            self, self.app_data,
+            'Введите новое название категории',
+            default_value=ctg.name,
+            check_answer_function=lambda wnd, val: check_ctg_edit(
+                wnd, self.app_data, [c.name for c, _ in self.categories], ctg.name, val
+            ),
+        )
+        cancelled, new_ctg_name = window_entry.open()
+        if cancelled:
+            return
+        if new_ctg_name == ctg.name:
+            return
+
+        ctg.name = new_ctg_name
+
         self.print_categories(False)
 
     # Удалить категорию
-    def delete_ctg(self, gram_form: str):
-        self.has_changes = delete_ctg(self, self.app_data, gram_form) or self.has_changes
+    def delete_ctg(self, ctg: EditedCtgName):
+        window_dia = TwoOptionsDialog(
+            self, self.app_data,
+            f'Все словоформы, содержащие категорию {ctg.name}, будут удалены!\n'
+            f'Хотите продолжить?',
+        )
+        result = window_dia.open()
+        if not result:
+            return
+
+        ctg.delete()
+
         self.print_categories(False)
 
     # Перейти к настройкам значений категории
-    def edit_ctg_values(self, gram_form: str):
-        self.has_changes = CategoryValuesSettingsW(
-            self, gram_form, self.app_data
-        ).open() or self.has_changes
+    def edit_ctg_values(self, ctg: EditedCtgName, ctg_vals: list[EditedCtgValue]):
+        new_ctg_vals = CategoryValuesSettingsW(self, self.app_data, ctg.name, ctg_vals).open()
+
+        if all(val.is_deleted for val in new_ctg_vals):
+            ctg.delete()
+            self.print_categories(False)
 
     # Напечатать существующие категории
     def print_categories(self, move_scroll: bool):
@@ -3688,8 +3827,8 @@ class CategoriesSettingsW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем категории
-        self.categories = list(self.dct.features.keys())
-        categories_count = len(self.categories)
+        categories = [(k, v) for k, v in self.categories if not k.is_deleted]
+        categories_count = len(categories)
 
         # Создаём новые фреймы
         self.frames = [
@@ -3702,27 +3841,22 @@ class CategoriesSettingsW(tk.Toplevel):
         self.buttons = [
             create_button(
                 self.frames[i],
-                lambda i=i: self.edit_ctg_values(self.categories[i]),
+                lambda ctg=ctg, vals=vals: self.edit_ctg_values(ctg, vals),
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
                 row=0, column=0, padx=0, pady=0, sticky='WE',
-            ) for i in range(categories_count)
+            ) for i, (ctg, vals) in enumerate(categories)
         ]
-        for i in range(categories_count):
+        for i, (ctg, vals) in enumerate(categories):
             # Выводим текст на кнопки
-            ctg = self.categories[i]
-            self.buttons[i].configure(text=split_text(f'{ctg}', 35))
+            self.buttons[i].configure(text=split_text(f'{ctg.name}', 35))
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
-            self.frames[i].bind(
-                '<Control-r>', lambda event, i=i: self.rename_ctg(self.categories[i]))
-            self.frames[i].bind(
-                '<Control-R>', lambda event, i=i: self.rename_ctg(self.categories[i]))
-            self.frames[i].bind(
-                '<Control-d>', lambda event, i=i: self.delete_ctg(self.categories[i]))
-            self.frames[i].bind(
-                '<Control-D>', lambda event, i=i: self.delete_ctg(self.categories[i]))
+            self.frames[i].bind('<Control-r>', lambda event, ctg=ctg: self.rename_ctg(ctg))
+            self.frames[i].bind('<Control-R>', lambda event, ctg=ctg: self.rename_ctg(ctg))
+            self.frames[i].bind('<Control-d>', lambda event, ctg=ctg: self.delete_ctg(ctg))
+            self.frames[i].bind('<Control-D>', lambda event, ctg=ctg: self.delete_ctg(ctg))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -3745,30 +3879,27 @@ class CategoriesSettingsW(tk.Toplevel):
         self.bind('<Return>', lambda event: self.destroy())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self) -> bool:
+    def open(self) -> list[tuple[EditedCtgName, list[EditedCtgValue]]]:
         self.set_focus()
 
         self.grab_set()
         self.wait_window()
 
-        return self.has_changes
+        return self.categories
 
 
 # Окно настроек групп
 class TagSettingsW(tk.Toplevel):
-    def __init__(self, parent: tk.Misc, app_data: AppData):
+    def __init__(self, parent: tk.Misc, app_data: AppData, tags: list[EditedTag]):
         super().__init__(parent)
         self.parent = parent
 
         self.app_data = app_data
-        self.dct_bundle = app_data.manager.active
-        self.dct = self.dct_bundle.dct
-
-        self.has_changes = False
+        self.dct = app_data.manager.active.dct
 
         self.img_help = tk.PhotoImage()
 
-        self.tags = []
+        self.tags = tags
         self.frames = []
         self.buttons = []
         self.tips = []
@@ -3816,82 +3947,61 @@ class TagSettingsW(tk.Toplevel):
             self, self.app_data,
             'Введите название новой группы',
             check_answer_function=lambda wnd, val: check_tag_name(
-                wnd, self.app_data, self.dct.tags, val
+                wnd, self.app_data, [t.name for t in self.tags], val
             ),
         )
         cancelled, tag = window.open()
         if cancelled:
             return
-        self.dct.add_tag(tag)
+
+        self.tags.append(EditedTag(tag, False, is_new=True))
 
         self.print_tags(False)
-        self.has_changes = True
 
     # Переименовать группу
-    def rename_tag(self, tag_id: int):
-        tag_old = self.tags[tag_id]
-
+    def rename_tag(self, tag: EditedTag):
         window = InputDialog(
             self, self.app_data,
             'Введите новое название группы',
-            default_value=tag_old,
+            default_value=tag.name,
             check_answer_function=lambda wnd, val: check_tag_name_edit(
-                wnd, self.app_data, self.dct.tags, tag_old, val
+                wnd, self.app_data, [t.name for t in self.tags], tag.name, val
             ),
         )
         cancelled, tag_new = window.open()
         if cancelled:
             return
 
-        self.dct.rename_tag(tag_old, tag_new)
-
-        if self.dct_bundle.train_config.tags is not None:
-            train_tag = self.dct_bundle.train_config.tags[0]
-            if train_tag == tag_old:
-                self.dct_bundle.train_config.tags = [tag_new]
+        tag.name = tag_new
 
         self.print_tags(False)
-        self.has_changes = True
 
     # Удалить группу
-    def delete_tag(self, tag_id: int):
-        tag = self.tags[tag_id]
-
-        tag_size = count_filtered_entries(self.dct, tag)[0]
+    def delete_tag(self, tag: EditedTag):
+        tag_size = count_filtered_entries(self.dct, tag.name)[0]
         if tag_size != 0:
             tmp = select_word_form(
                 tag_size,
-                ('слово будет убрано', 'слова будут убраны', 'слов будут убраны'),
+                ('слова будет убрано', 'слов будут убраны', 'слов будут убраны'),
             )
             window_dia = TwoOptionsDialog(
                 self, self.app_data,
-                f'{tag_size} {tmp} из группы "{tag}", а сама группа будет удалена!\n'
+                f'До {tag_size} {tmp} из группы "{tag.name}", а сама группа будет удалена!\n'
                 f'Хотите продолжить?',
             )
             result = window_dia.open()
             if not result:
                 return
 
-        train_tag = self.dct_bundle.train_config.tags[0]
-        if train_tag == tag:
-            self.dct_bundle.train_config.tags = [ALL_TAGS]
-
-        self.dct.delete_tag(tag)
+        tag.delete()
 
         self.print_tags(False)
-        self.has_changes = True
 
     # Добавить группу в избранное
-    def set_tag_default(self, tag_id: int):
-        tag = self.tags[tag_id]
-
-        if self.dct.is_default_tag(tag):
-            self.dct.unmark_tag_as_default(tag)
-        else:
-            self.dct.mark_tag_as_default(tag)
+    def set_tag_default(self, tag: EditedTag):
+        tag.is_default = not tag.is_default
 
         self.print_tags(False)
-        self.has_changes = True
 
     # Напечатать существующие группы
     def print_tags(self, move_scroll: bool):
@@ -3912,7 +4022,7 @@ class TagSettingsW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем группы
-        self.tags = list(self.dct.tags)
+        tags = [tag for tag in self.tags if not tag.is_deleted]
         tags_count = len(self.tags)
 
         # Создаём новые фреймы
@@ -3926,36 +4036,35 @@ class TagSettingsW(tk.Toplevel):
         self.buttons = [
             create_button(
                 self.frames[i],
-                lambda i=i: self.rename_tag(i),
+                lambda tag=tag: self.rename_tag(tag),
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
                 row=0, column=0, padx=0, pady=0, sticky='WE',
-            ) for i in range(tags_count)
+            ) for i, tag in enumerate(tags)
         ]
         # Создаём новые подсказки
         self.tips = [
             ttip.Hovertip(
                 self.buttons[i],
-                f'Статей в группе: {count_filtered_entries(self.dct, self.tags[i])[0]}',
+                f'Статей в группе: {count_filtered_entries(self.dct, tag.name)[0]}',
                 hover_delay=500,
-            ) for i in range(tags_count)
+            ) for i, tag in enumerate(tags)
         ]
-        for i in range(tags_count):
+        for i, tag in enumerate(tags):
             # Выводим текст на кнопки
-            tag = self.tags[i]
-            if self.dct.is_default_tag(tag):
-                self.buttons[i].configure(text=split_text(f'{tag} (*)', 35))
+            if tag.is_default:
+                self.buttons[i].configure(text=split_text(f'{tag.name} (*)', 35))
             else:
-                self.buttons[i].configure(text=split_text(f'{tag}', 35))
+                self.buttons[i].configure(text=split_text(f'{tag.name}', 35))
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
-            self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename_tag(i))
-            self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename_tag(i))
-            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete_tag(i))
-            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete_tag(i))
-            self.frames[i].bind('<Control-f>', lambda event, i=i: self.set_tag_default(i))
-            self.frames[i].bind('<Control-F>', lambda event, i=i: self.set_tag_default(i))
+            self.frames[i].bind('<Control-r>', lambda event, tag=tag: self.rename_tag(tag))
+            self.frames[i].bind('<Control-R>', lambda event, tag=tag: self.rename_tag(tag))
+            self.frames[i].bind('<Control-d>', lambda event, tag=tag: self.delete_tag(tag))
+            self.frames[i].bind('<Control-D>', lambda event, tag=tag: self.delete_tag(tag))
+            self.frames[i].bind('<Control-f>', lambda event, tag=tag: self.set_tag_default(tag))
+            self.frames[i].bind('<Control-F>', lambda event, tag=tag: self.set_tag_default(tag))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -3979,31 +4088,27 @@ class TagSettingsW(tk.Toplevel):
         self.bind('<Return>', lambda event: self.destroy())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self) -> bool:
+    def open(self) -> list[EditedTag]:
         self.set_focus()
 
         self.grab_set()
         self.wait_window()
 
-        return self.has_changes
+        return self.tags
 
 
 # Окно настроек значений грамматической категории
 class CategoryValuesSettingsW(tk.Toplevel):
-    def __init__(self, parent: CategoriesSettingsW, gram_form: str, app_data: AppData):
+    def __init__(self, parent: CategoriesSettingsW, app_data: AppData, ctg_name: str, ctg_values: list[EditedCtgValue]):
         super().__init__(parent)
         self.parent = parent
 
         self.app_data = app_data
-        self.dct = app_data.manager.active.dct
-
-        self.gram_form = gram_form  # Название изменяемой категории
-        self.ctg_values = self.dct.features[self.gram_form]  # Значения изменяемой категории
-        self.has_changes = False
 
         self.img_help = tk.PhotoImage()
 
-        self.values = []
+        self.ctg_name = ctg_name  # Название изменяемой категории
+        self.ctg_values = ctg_values  # Значения изменяемой категории
         self.frames = []
         self.buttons = []
 
@@ -4029,7 +4134,7 @@ class CategoryValuesSettingsW(tk.Toplevel):
         self.lbl_ctg_values = create_label(
             self,
             f'Существующие значения категории\n'
-            f'"{self.gram_form}":',
+            f'"{self.ctg_name}":',
             justify='center',
             row=0, column=1, padx=(0, 6), pady=(6, 0), sticky='W')
         self.scrollbar = ttk.Scrollbar(self, style='Vertical.TScrollbar')
@@ -4050,25 +4155,56 @@ class CategoryValuesSettingsW(tk.Toplevel):
 
     # Добавить значение категории
     def add_value(self):
-        self.has_changes = add_ctg_value(
-            self, self.app_data, self.gram_form, self.ctg_values
-        ) or self.has_changes
+        window_entry = InputDialog(
+            self, self.app_data,
+            'Введите новое значение категории',
+            check_answer_function=lambda wnd, val: check_ctg_val(
+                wnd, self.app_data, [v.name for v in self.ctg_values], val
+            ),
+        )
+        cancelled, new_ctg_val = window_entry.open()
+        if cancelled:
+            return
+
+        self.ctg_values.append(EditedCtgValue(new_ctg_val, is_new=True))
+
         self.print_values(False)
 
     # Переименовать значение категории
-    def rename_value(self, val: str):
-        self.has_changes = rename_ctg_value(
-            self, self.app_data, self.gram_form, val
-        ) or self.has_changes
+    def rename_value(self, val: EditedCtgValue):
+        window_entry = InputDialog(
+            self, self.app_data,
+            'Введите новое название значения',
+            default_value=val.name,
+            check_answer_function=lambda wnd, new_val: check_ctg_val_edit(
+                wnd, self.app_data, [v.name for v in self.ctg_values], val.name, new_val
+            ),
+        )
+        cancelled, new_ctg_val = window_entry.open()
+        if cancelled:
+            return
+        if new_ctg_val == val.name:
+            return
+
+        val.name = new_ctg_val
+
         self.print_values(False)
 
     # Удалить значение категории
-    def delete_value(self, val: str):
-        self.has_changes = delete_ctg_value(
-            self, self.app_data, self.gram_form, val
-        ) or self.has_changes
+    def delete_value(self, val: EditedCtgValue):
+        window_dia = TwoOptionsDialog(
+            self, self.app_data,
+            f'Все словоформы, содержащие значение {val.name}, будут удалены!\n'
+            f'Хотите продолжить?',
+        )
+        result = window_dia.open()
+        if not result:
+            return
+
+        val.delete()
+
         self.print_values(False)
-        if self.gram_form not in self.dct.features:
+        if all(val.is_deleted for val in self.ctg_values):
             self.parent.print_categories(False)
             self.destroy()
 
@@ -4088,37 +4224,36 @@ class CategoryValuesSettingsW(tk.Toplevel):
             fr.destroy()
 
         # Выбираем значения
-        self.values = self.ctg_values
-        categories_count = len(self.values)
+        ctg_values = [val for val in self.ctg_values if not val.is_deleted]
+        n_values = len(ctg_values)
 
         # Создаём новые фреймы
         self.frames = [
             create_frame(
                 self.scrolled_frame.frame_canvas, 'Invis.TFrame',
                 row=i, column=0, padx=0, pady=0, sticky='WE',
-            ) for i in range(categories_count)
+            ) for i in range(n_values)
         ]
         # Создаём новые кнопки
         self.buttons = [
             create_button(
                 self.frames[i],
-                lambda i=i: self.rename_value(self.values[i]),
+                lambda val=val: self.rename_value(val),
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
                 row=0, column=0, padx=0, pady=0, sticky='WE',
-            ) for i in range(categories_count)
+            ) for i, val in enumerate(ctg_values)
         ]
-        for i in range(categories_count):
+        for i, val in enumerate(ctg_values):
             # Выводим текст на кнопки
-            ctg = self.values[i]
-            self.buttons[i].configure(text=split_text(f'{ctg}', 35))
+            self.buttons[i].configure(text=split_text(f'{val.name}', 35))
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
-            self.frames[i].bind('<Control-r>', lambda event, i=i: self.rename_value(self.values[i]))
-            self.frames[i].bind('<Control-R>', lambda event, i=i: self.rename_value(self.values[i]))
-            self.frames[i].bind('<Control-d>', lambda event, i=i: self.delete_value(self.values[i]))
-            self.frames[i].bind('<Control-D>', lambda event, i=i: self.delete_value(self.values[i]))
+            self.frames[i].bind('<Control-r>', lambda event, val=val: self.rename_value(val))
+            self.frames[i].bind('<Control-R>', lambda event, val=val: self.rename_value(val))
+            self.frames[i].bind('<Control-d>', lambda event, val=val: self.delete_value(val))
+            self.frames[i].bind('<Control-D>', lambda event, val=val: self.delete_value(val))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -4140,30 +4275,26 @@ class CategoryValuesSettingsW(tk.Toplevel):
         self.bind('<Return>', lambda event: self.destroy())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self) -> bool:
+    def open(self) -> list[EditedCtgValue]:
         self.set_focus()
 
         self.grab_set()
         self.wait_window()
 
-        return self.has_changes
+        return self.ctg_values
 
 
 # Окно настроек специальных комбинаций
 class InputReplacementsSettingsW(tk.Toplevel):
-    def __init__(self, parent: tk.Misc, app_data: AppData):
+    def __init__(self, parent: tk.Misc, app_data: AppData, replacements: list[EditedReplacement]):
         super().__init__(parent)
         self.parent = parent
 
         self.app_data = app_data
-        self.dct_bundle = app_data.manager.active
-        self.dct = self.dct_bundle.dct
-        self.replacer = self.dct_bundle.replacer
-
-        self.has_changes = False
 
         self.img_help = tk.PhotoImage()
 
+        self.replacements = replacements
         self.frames = []
         self.buttons = {}
 
@@ -4210,36 +4341,36 @@ class InputReplacementsSettingsW(tk.Toplevel):
         cancelled, modifier, key, val = window.open()
         if cancelled or modifier == '' or key == '' or val == '':
             return
-        if (modifier, key) in self.replacer.replacements.keys():
+        if (modifier, key) in self.replacements:
             warning(self, self.app_data, f'Комбинация {modifier}{key} уже существует!')
             return
-        self.replacer.set_replacement(modifier, key, val)
+
+        self.replacements.append(EditedReplacement(modifier, key, val, is_new=True))
+
         self.print_replacements(False)
-        self.has_changes = True
 
     # Изменить комбинацию
-    def edit_replacement(self, old_modifier: str, old_key: str):
-        old_val = self.replacer.replacements[old_modifier, old_key]
+    def edit_replacement(self, rep: EditedReplacement):
         window = EnterInputReplacementW(
-            self, self.app_data, default_value=(old_modifier, old_key, old_val)
+            self, self.app_data, default_value=(rep.modifier, rep.input_char, rep.output_char)
         )
         cancelled, new_modifier, new_key, new_val = window.open()
         if cancelled or new_modifier == '' or new_key == '' or new_val == '':
             return
-        if new_modifier == old_modifier and new_key == old_key and new_val == old_val:
+        if new_modifier == rep.modifier and new_key == rep.input_char and new_val == rep.output_char:
             return
 
-        self.replacer.delete_replacement(old_modifier, old_key)
+        rep.modifier = new_modifier
+        rep.input_char = new_key
+        rep.output_char = new_val
 
-        self.replacer.set_replacement(new_modifier, new_key, new_val)
         self.print_replacements(False)
-        self.has_changes = True
 
     # Удалить комбинацию
-    def delete_replacement(self, modifier: str, key: str):
-        self.replacer.delete_replacement(modifier, key)
+    def delete_replacement(self, rep: EditedReplacement):
+        rep.delete()
+
         self.print_replacements(False)
-        self.has_changes = True
 
     # Напечатать существующие комбинации
     def print_replacements(self, move_scroll: bool):
@@ -4256,53 +4387,49 @@ class InputReplacementsSettingsW(tk.Toplevel):
             fr.unbind('<Leave>')
             fr.destroy()
 
-        # Выбираем комбинации
-        input_pairs = tuple(self.replacer.replacements.keys())
+        replacements = [rep for rep in self.replacements if not rep.is_deleted]
 
         # Создаём новые фреймы
         self.frames = [
             create_label(
                 self.scrolled_frame.frame_canvas,
-                replacement_repr(pair, self.replacer.replacements[pair]),
+                replacement_repr((rep.modifier, rep.input_char), rep.output_char),
                 'FlatL.TLabel',
                 row=i, column=0, padx=0, pady=0, sticky='WE',
             )
-            if pair[0] == pair[1] else
+            if rep.modifier == rep.input_char else
             create_frame(
                 self.scrolled_frame.frame_canvas, 'Invis.TFrame',
                 row=i, column=0, padx=0, pady=0, sticky='WE',
             )
-            for i, pair in enumerate(input_pairs)
+            for i, rep in enumerate(replacements)
         ]
         # Создаём новые кнопки
         self.buttons = {
             i: create_button(
                 self.frames[i],
-                lambda i=i: self.edit_replacement(*input_pairs[i]),
+                lambda rep=rep: self.edit_replacement(rep),
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
                 row=0, column=0, padx=0, pady=0, sticky='WE',
-            ) for i, pair in enumerate(input_pairs) if pair[0] != pair[1]
+            ) for i, rep in enumerate(replacements) if rep.modifier != rep.input_char
         }
 
-        for i, pair in enumerate(input_pairs):
-            if pair[0] == pair[1]:
+        for i, rep in enumerate(replacements):
+            if rep.modifier == rep.input_char:
                 continue
 
             # Выводим текст на кнопки
-            output = self.replacer.replacements[pair]
-            self.buttons[i].configure(text=split_text(replacement_repr(pair, output), 35))
+            self.buttons[i].configure(text=split_text(
+                replacement_repr((rep.modifier, rep.input_char), rep.output_char), 35
+            ))
 
             # Привязываем события
             self.frames[i].bind('<Enter>', lambda event, i=i: self.frames[i].focus_set())
             self.frames[i].bind('<Leave>', lambda event: self.focus_set())
-            self.frames[i].bind(
-                '<Control-e>', lambda event, i=i: self.edit_replacement(*input_pairs[i]))
-            self.frames[i].bind(
-                '<Control-E>', lambda event, i=i: self.edit_replacement(*input_pairs[i]))
-            self.frames[i].bind(
-                '<Control-d>', lambda event, i=i: self.delete_replacement(*input_pairs[i]))
-            self.frames[i].bind(
-                '<Control-D>', lambda event, i=i: self.delete_replacement(*input_pairs[i]))
+            self.frames[i].bind('<Control-e>', lambda event, rep=rep: self.edit_replacement(rep))
+            self.frames[i].bind('<Control-E>', lambda event, rep=rep: self.edit_replacement(rep))
+            self.frames[i].bind('<Control-d>', lambda event, rep=rep: self.delete_replacement(rep))
+            self.frames[i].bind('<Control-D>', lambda event, rep=rep: self.delete_replacement(rep))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -4324,13 +4451,13 @@ class InputReplacementsSettingsW(tk.Toplevel):
         self.bind('<Return>', lambda event: self.destroy())
         self.bind('<Escape>', lambda event: self.destroy())
 
-    def open(self) -> bool:
+    def open(self) -> list[EditedReplacement]:
         self.set_focus()
 
         self.grab_set()
         self.wait_window()
 
-        return self.has_changes
+        return self.replacements
 
 
 # Окно ввода специальной комбинации
@@ -4435,7 +4562,7 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.custom_styles = {}  # Стили пользовательской темы
         self.history = []  # История изменений
         self.history_undo = []  # История отмен
-        self.dir_with_images = CUSTOM_THEME_PATH  # Папка с изображениями
+        self.dir_with_images = CUSTOM_THEME_DIR  # Папка с изображениями
 
         self.var_theme = tk.StringVar(value=DEFAULT_TH)
         self.var_images = tk.StringVar(value=DEFAULT_TH)
@@ -4718,7 +4845,7 @@ class CustomThemeSettingsW(tk.Toplevel):
     # Выбрать изображения
     def set_images(self):
         old_img = self.dir_with_images
-        new_img = os.path.join(ADDITIONAL_THEMES_PATH, self.var_images.get())
+        new_img = os.path.join(THEMES_DIR, self.var_images.get())
 
         self.dir_with_images = new_img
 
@@ -4749,19 +4876,19 @@ class CustomThemeSettingsW(tk.Toplevel):
     def save(self):
         self.custom_styles['FRAME.RELIEF.*'] = self.var_relief_frame.get()
         self.custom_styles['TXT.RELIEF.*'] = self.var_relief_text.get()
-        filepath = os.path.join(CUSTOM_THEME_PATH, STYLES_FN)
+        filepath = os.path.join(CUSTOM_THEME_DIR, STYLES_FN)
         with open(filepath, 'w', encoding='utf-8') as file:
             file.write(f'{REQUIRED_THEME_VERSION}')
             file.write('\n1')
             for el in STYLE_KEYS:
                 file.write(f'\n{el} = {self.custom_styles[el]}')
 
-        if self.dir_with_images != CUSTOM_THEME_PATH:
+        if self.dir_with_images != CUSTOM_THEME_DIR:
             for img_name in IMG_NAMES:
                 file_name = f'{img_name}.png'
                 src_path = os.path.join(self.dir_with_images, file_name)
-                dst_path = os.path.join(CUSTOM_THEME_PATH, file_name)
-                if os.path.exists(os.path.join(CUSTOM_THEME_PATH, file_name)):
+                dst_path = os.path.join(CUSTOM_THEME_DIR, file_name)
+                if os.path.exists(os.path.join(CUSTOM_THEME_DIR, file_name)):
                     os.remove(dst_path)
                 if os.path.exists(os.path.join(self.dir_with_images, file_name)):
                     shutil.copyfile(src_path, dst_path)
@@ -4850,7 +4977,7 @@ class CustomThemeSettingsW(tk.Toplevel):
 
     # Загрузить пользовательскую тему
     def _load(self):
-        filepath = os.path.join(CUSTOM_THEME_PATH, STYLES_FN)
+        filepath = os.path.join(CUSTOM_THEME_DIR, STYLES_FN)
         upgrade_theme(filepath)
         with open(filepath, 'r', encoding='utf-8') as file:
             file.readline()  # Версия темы
@@ -5164,7 +5291,7 @@ class CustomThemeSettingsW(tk.Toplevel):
                 self.images[i].config(file=os.path.join(self.dir_with_images, img))
             except tk.TclError:
                 try:
-                    self.images[i].config(file=os.path.join(IMAGES_PATH, img))
+                    self.images[i].config(file=os.path.join(IMAGES_DIR, img))
                 except tk.TclError:
                     self.img_buttons[i].config(
                         text='-', image='', compound='text', style='DemoDefault.TButton'
@@ -5454,7 +5581,7 @@ class TrainingW(tk.Toplevel):
         entry = self.current_entry
         if is_correct:
             self.dct.register_correct_answer(entry, (
-                self.dct_bundle.session_number,
+                self.dct_bundle.metadata.session_number,
                 self._session_number,
                 self.count_all,
             ))
@@ -5497,14 +5624,14 @@ class TrainingW(tk.Toplevel):
                     result = window.open()
                     if result != 'typo':
                         self.dct.register_incorrect_answer(entry, (
-                            self.dct_bundle.session_number,
+                            self.dct_bundle.metadata.session_number,
                             self._session_number,
                             self.count_all,
                         ))
                         self.count_all += 1
                 else:
                     self.dct.register_incorrect_answer(entry, (
-                        self.dct_bundle.session_number,
+                        self.dct_bundle.metadata.session_number,
                         self._session_number,
                         self.count_all,
                     ))
@@ -5519,7 +5646,7 @@ class TrainingW(tk.Toplevel):
                 result = window.open()
                 if result != 'typo':
                     self.dct.register_incorrect_answer(entry, (
-                        self.dct_bundle.session_number,
+                        self.dct_bundle.metadata.session_number,
                         self._session_number,
                         self.count_all,
                     ))
@@ -5767,19 +5894,15 @@ class SearchTab(ttk.Frame):
         self.n_entries_on_page = None
 
         # Параметры поиска
-        search_config = self.dct_bundle.search_config
-        self.to_search_only_fav = search_config.fav_filter == 'fav'
-        self.to_search_only_full = search_config.to_search_only_full
-        self.to_search_wrd = search_config.to_search_in_words
-        self.to_search_tr = search_config.to_search_in_translations
-        self.to_search_frm = search_config.to_search_in_forms
-        self.to_search_phr = search_config.to_search_in_phrases
-        self.to_search_nt = search_config.to_search_in_notes
-        self.search_tag = search_config.search_tags
-        if self.search_tag is None:
-            self.search_tag = ''
-        else:
-            self.search_tag = self.search_tag[0]  # TODO: several tags
+        config: DctUISettings = self.dct_bundle.optional['tk']
+        self.to_search_only_fav = config.search_page_to_filter_fav
+        self.to_search_only_full = config.search_page_to_match_whole_word
+        self.to_search_wrd = config.search_page_to_search_in_words
+        self.to_search_tr = config.search_page_to_search_in_translations
+        self.to_search_frm = config.search_page_to_search_in_forms
+        self.to_search_phr = config.search_page_to_search_in_phrases
+        self.to_search_nt = config.search_page_to_search_in_notes
+        self.search_tag = config.search_page_search_tag or ''
 
         self.var_query = tk.StringVar()
         self.var_info = tk.StringVar()
@@ -6796,7 +6919,7 @@ class BrowseDctTab(ttk.Frame):
 
     # Нажатие на кнопку "Распечатать словарь в файл"
     def export(self):
-        folder = askdirectory(initialdir=MAIN_PATH, title='В какую папку сохранить файл?')
+        folder = askdirectory(initialdir=BASE_DIR, title='В какую папку сохранить файл?')
         if not folder:
             return
         filename = f'Распечатка_{self.dct.name}.txt'
@@ -7426,11 +7549,12 @@ class SettingsW(tk.Toplevel):
         self.manager = app_data.manager
 
         self.active_tab = 0  # Текущая вкладка (0 или 1)
-        self.are_features_modified = False
-        self.are_tags_modified = False
-        self.are_replacements_modified = False
-        self.backup_dct = copy.deepcopy(self.manager.active.dct)
-        self.backup_scale = self.app_data.ui_settings.scale
+
+        self.features: list[tuple[EditedCtgName, list[EditedCtgValue]]] = ...
+        self.tags: list[EditedTag] = ...
+        self.replacements: list[EditedReplacement] = ...
+        self._set_dct_settings()
+        self.scale = self.app_data.ui_settings.scale
 
         self.var_show_updates = tk.BooleanVar(
             value=self.app_data.ui_settings.to_check_for_updates
@@ -7550,8 +7674,8 @@ class SettingsW(tk.Toplevel):
         set_image(self.btn_help_dcts, self.img_help, img_path(theme, 'about'), '?')
         self.scrolled_frame_dcts = ScrollFrame(
             self.frame_dcts, self.app_data,
-            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN])
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.scale - SCALE_MIN])
         self.scrolled_frame_dcts.grid(
             row=1, rowspan=2, column=0, padx=(6, 0), pady=(0, 6))
         self._create_dictionary_buttons_frame()
@@ -7609,7 +7733,7 @@ class SettingsW(tk.Toplevel):
             row=0, column=0, padx=(6, 3), pady=6)
         set_image(self.btn_zoom_out, self.img_minus, img_path(theme, 'delete'), '-')
         self.lbl_scale = create_label(
-            self.frame_scale, f'Масштаб ({self.app_data.ui_settings.scale}x)',
+            self.frame_scale, f'Масштаб ({self.scale}x)',
             row=0, column=1, padx=(3, 3), pady=6)
         self.btn_zoom_in = create_button(
             self.frame_scale, self.zoom_in,
@@ -7621,23 +7745,33 @@ class SettingsW(tk.Toplevel):
         self.tip_btn_help_typo = ttip.Hovertip(self.btn_help_typo, 'Справка', hover_delay=450)
         self.tip_btn_help_dcts = ttip.Hovertip(self.btn_help_dcts, 'Справка', hover_delay=450)
 
+    def _set_dct_settings(self):
+        dct = self.manager.active.dct
+
+        self.features = [
+            (EditedCtgName(name, is_new=False), [EditedCtgValue(val, is_new=False) for val in vals])
+            for name, vals in dct.features.items()
+        ]
+        self.tags = [
+            EditedTag(tag, dct.is_default_tag(tag), is_new=False)
+            for tag in dct.tags
+        ]
+        self.replacements = [
+            EditedReplacement(m, i, o, is_new=False)
+            for (m, i), o in self.manager.active.replacer.replacements.items()
+        ]
+
     # Настройки грамматических категорий (срабатывает при нажатии на кнопку)
     def open_features_settings(self):
-        self.are_features_modified = CategoriesSettingsW(
-            self, self.app_data
-        ).open() or self.are_features_modified
+        self.features = CategoriesSettingsW(self, self.app_data, self.features).open()
 
     # Настройки групп (срабатывает при нажатии на кнопку)
     def open_tags_settings(self):
-        self.are_tags_modified = TagSettingsW(
-            self, self.app_data
-        ).open() or self.are_tags_modified
+        self.tags = TagSettingsW(self, self.app_data, self.tags).open()
 
     # Настройки специальных комбинаций (срабатывает при нажатии на кнопку)
     def open_replacements_settings(self):
-        self.are_replacements_modified = InputReplacementsSettingsW(
-            self, self.app_data
-        ).open() or self.are_replacements_modified
+        self.replacements = InputReplacementsSettingsW(self, self.app_data, self.replacements).open()
 
     # Справка о кнопке "Опечатка" (срабатывает при нажатии на кнопку)
     def open_help_typo(self):
@@ -7665,8 +7799,8 @@ class SettingsW(tk.Toplevel):
         ).open()
 
     # Открыть словарь
-    def open_dct(self, dct_name: str):
-        if dct_name == self.manager.active.dct.name:
+    def open_dct(self, dct_id: str):
+        if dct_id == self.manager.active.id:
             return
 
         # Если есть прогресс, то предлагается его сохранить
@@ -7674,31 +7808,26 @@ class SettingsW(tk.Toplevel):
             save_settings_if_has_changes(self, self.app_data)
         save_dct_if_has_progress(self, self.app_data)
 
-        filepath = f'./resources/saves/{dct_name}/dct_data.json'  # TODO: choose filepath
-        self.manager.open_dct(filepath)
+        self.manager.close_dct(self.manager.active_idx)
+        dct_bundle = self.manager.open_dct(DCT_SAVE_DIR(dct_id), optional_classes={'tk': DctUISettings})
         self.app_data.save(ui=False)
 
-        self.backup_dct = copy.deepcopy(self.manager.active.dct)
-
         # Обновляем надписи с названием открытого словаря
-        self.refresh_dct_name(self.manager.active.dct.name)
+        self.refresh_dct_name()
 
-        self.are_features_modified = False
-        self.are_tags_modified = False
-        self.are_replacements_modified = False
-        self.manager.active.dct.mark_saved()
+        self._set_dct_settings()
 
         self.refresh()
 
     # Переименовать словарь
-    def rename_dct(self, old_name: str):
+    def rename_dct(self, old_name: str, dct_id: str):
         window_rename = InputDialog(
             self, self.app_data,
             f'Введите новое название для словаря "{old_name}"',
             default_value=old_name,
             validate_function=validate_savename,
-            check_answer_function=lambda wnd, val: check_dct_name_edit(
-                wnd, self.app_data, old_name, val
+            check_answer_function=lambda wnd, val: check_dct_name(
+                wnd, self.app_data, val
             ),
             to_replace=False,
         )
@@ -7706,18 +7835,21 @@ class SettingsW(tk.Toplevel):
         if cancelled or new_name == old_name:
             return
 
-        os.rename(os.path.join(SAVES_PATH, old_name), os.path.join(SAVES_PATH, new_name))
-        if self.manager.active.dct.name == old_name:
-            self.manager.active.dct.name = new_name
-            self.app_data.save(ui=False)
+        rename_dct_on_disk(dct_id, new_name)
+        if self.manager.active.id == dct_id:
+            is_modified = self.manager.active.dct
+            self.manager.active.dct.rename(new_name)
+            if not is_modified:
+                self.manager.active.dct.mark_saved()
+
             # Обновляем надписи с названием открытого словаря
-            self.refresh_dct_name(new_name)
+            self.refresh_dct_name()
         print(f'Словарь "{old_name}" успешно переименован в "{new_name}"')
 
         self.print_dct_list(False)
 
     # Удалить словарь
-    def delete_dct(self, dct_name: str):
+    def delete_dct(self, dct_name: str, dct_id: str):
         if dct_name == self.manager.active.dct.name:
             warning(self, self.app_data, 'Вы не можете удалить словарь, когда он открыт!')
             return
@@ -7732,7 +7864,7 @@ class SettingsW(tk.Toplevel):
         if not result:
             return
 
-        shutil.rmtree(os.path.join(SAVES_PATH, dct_name))
+        shutil.rmtree(DCT_SAVE_DIR(dct_id))
 
         self.print_dct_list(False)
 
@@ -7753,53 +7885,60 @@ class SettingsW(tk.Toplevel):
             save_settings_if_has_changes(self, self.app_data)
         save_dct_if_has_progress(self, self.app_data)
 
-        filepath = f'./resources/saves/{savename}/dct_data.json'  # TODO: choose filepath
-        self.manager.create_dct(savename)
-        self.manager.save_dct(self.manager.active_dct_id, filepath)
+        self.manager.close_dct(self.manager.active_idx)
+        new_dct_bundle = self.manager.create_dct(savename, optional_classes={'tk': DctUISettings})
+        self.manager.save_dct(self.manager.active_idx, DCT_SAVE_DIR(new_dct_bundle.id))
         self.app_data.save(ui=False)
 
         print(f'\nСловарь "{savename}" успешно создан и открыт')
 
-        self.backup_dct = copy.deepcopy(self.manager.active.dct)
-
         # Обновляем надписи с названием открытого словаря
-        self.refresh_dct_name(savename)
+        self.refresh_dct_name()
 
-        self.are_features_modified = False
-        self.are_tags_modified = False
-        self.are_replacements_modified = False
-        self.manager.active.dct.mark_saved()
+        self._set_dct_settings()
 
         self.refresh()
 
     # Экспортировать словарь
-    def export_dct(self, dct_name: str):
-        dst_path = askdirectory(title='Выберите папку для сохранения')
-        if dst_path == '':
+    def export_dct(self, dct_name: str, dct_id: str):
+        dest_path = asksaveasfilename(
+            title='Выберите файл для сохранения',
+            initialfile=f'{dct_name}.dmdct',
+            filetypes=[('Пакет Словаря', '*.dmdct')],
+        )
+        if not dest_path:
             return
 
-        dct_export(dct_name, dst_path)
+        source_folder = DCT_SAVE_DIR(dct_id)
+        with zipfile.ZipFile(dest_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for file_path in source_folder.rglob('*'):
+                if file_path.is_file():
+                    arcname = file_path.relative_to(source_folder)
+                    zf.write(file_path, arcname=arcname)
 
     # Импортировать словарь (срабатывает при нажатии на кнопку)
     def import_dct(self):
-        src_path = askdirectory(title='Выберите папку сохранения')
-        if src_path == '':
-            return
-
-        default_savename = re.split(r'[\\/]', src_path)[-1]
-        window = InputDialog(
-            self, self.app_data,
-            'Введите название для словаря',
-            default_value=default_savename,
-            validate_function=validate_savename,
-            check_answer_function=lambda wnd, val: check_dct_name(wnd, self.app_data, val),
-            to_replace=False,
+        file_path = askopenfilename(
+            title='Выберите файл сохранения',
+            filetypes=[('Пакет Словаря', '*.dmdct')],
         )
-        cancelled, savename = window.open()
-        if cancelled:
+        if not file_path:
             return
 
-        dct_import(savename, src_path)
+        with zipfile.ZipFile(file_path, 'r') as zf:
+            dct_data = json.loads(zf.read(DCT_MAIN_DATA_FILENAME).decode('utf-8'))
+            dct = Dictionary.from_json_dict(dct_data)
+            dct._set_id()
+
+            dest_folder = DCT_SAVE_DIR(dct.id)
+            dest_folder.mkdir(parents=True, exist_ok=True)
+            for filename in [
+                DCT_METADATA_FILENAME, DCT_PRACTICE_CONFIG_FILENAME,
+                DCT_REPLACER_FILENAME, DCT_GUI_DATA_FILENAME,
+            ]:
+                if filename in zf.namelist():
+                    zf.extract(filename, dest_folder)
+            save_json(dct.to_dict(), DCT_MAIN_DATA_PATH(dct.id))
 
         self.refresh()
 
@@ -7813,67 +7952,103 @@ class SettingsW(tk.Toplevel):
 
     # Увеличить масштаб (срабатывает при нажатии на кнопку)
     def zoom_in(self):
-        self.app_data.ui_settings.scale += 1
+        self.scale += 1
 
         self.parent.setup_styles()  # Установка ttk-стилей
 
         # Установка некоторых стилей для окна настроек
-        self.lbl_scale.configure(text=f'Масштаб ({self.app_data.ui_settings.scale}x)')
+        self.lbl_scale.configure(text=f'Масштаб ({self.scale}x)')
         self.scrolled_frame_dcts.resize(
-            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.scale - SCALE_MIN],
         )
-        self.combo_themes.configure(font=('DejaVu Sans Mono', self.app_data.ui_settings.scale))
-        self.entry_themes_version.configure(font=('StdFont', self.app_data.ui_settings.scale))
+        self.combo_themes.configure(font=('DejaVu Sans Mono', self.scale))
+        self.entry_themes_version.configure(font=('StdFont', self.scale))
 
         self.refresh_scale_buttons()
 
     # Уменьшить масштаб (срабатывает при нажатии на кнопку)
     def zoom_out(self):
-        self.app_data.ui_settings.scale -= 1
+        self.scale -= 1
 
         self.parent.setup_styles()  # Установка ttk-стилей
 
         # Установка некоторых стилей для окна настроек
-        self.lbl_scale.configure(text=f'Масштаб ({self.app_data.ui_settings.scale}x)')
+        self.lbl_scale.configure(text=f'Масштаб ({self.scale}x)')
         self.scrolled_frame_dcts.resize(
-            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.app_data.ui_settings.scale - SCALE_MIN],
-            SCALE_SMALL_FRAME_WIDTH[self.app_data.ui_settings.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_HEIGHT_SHORT[self.scale - SCALE_MIN],
+            SCALE_SMALL_FRAME_WIDTH[self.scale - SCALE_MIN],
         )
-        self.combo_themes.configure(font=('DejaVu Sans Mono', self.app_data.ui_settings.scale))
-        self.entry_themes_version.configure(font=('StdFont', self.app_data.ui_settings.scale))
+        self.combo_themes.configure(font=('DejaVu Sans Mono', self.scale))
+        self.entry_themes_version.configure(font=('StdFont', self.scale))
 
         self.refresh_scale_buttons()
 
     # Сохранить настройки (срабатывает при нажатии на кнопку)
     def save(self):
-        # Разрешить/запретить сообщать о новых версиях
         self.app_data.ui_settings.to_check_for_updates = self.var_show_updates.get()
-
-        # Показывать/скрывать кнопку "Опечатка" при неверном ответе в учёбе
         self.app_data.ui_settings.is_typo_btn_on = self.var_show_typo_button.get()
+        self.app_data.ui_settings.scale = self.scale
+
+        dct: Dictionary = self.manager.active.dct
+        for tag in self.tags:
+            match tag.status:
+                case 'no changes':
+                    continue
+                case 'deleted':
+                    dct.delete_tag(tag.name_init)
+                case 'new':
+                    dct.add_tag(tag.name_cur, tag.is_default_cur)
+                case 'modified':
+                    if tag.name_cur != tag.name_init:
+                        dct.rename_tag(tag.name_init, tag.name_cur)
+                    if tag.is_default_cur != tag.is_default_init:
+                        dct.mark_tag_as_default(tag.name_cur, tag.is_default_cur)
+        for ctg, vals in self.features:
+            match ctg.status:
+                case 'deleted':
+                    dct.delete_ctg(ctg.name_init)
+                    continue
+                case 'new':
+                    dct.add_ctg(ctg.name_cur, [val.name_cur for val in vals if not val.is_deleted])
+                    continue
+                case 'modified':
+                    dct.rename_ctg(ctg.name_init, ctg.name_cur)
+            for val in vals:
+                match val.status:
+                    case 'no changes':
+                        continue
+                    case 'deleted':
+                        dct.delete_ctg_value(ctg.name_cur, val.name_init)
+                    case 'new':
+                        dct.add_ctg_value(ctg.name_cur, val.name_cur)
+                    case 'modified':
+                        dct.rename_ctg_value(ctg.name_cur, val.name_init, val.name_cur)
+
+        replacer: Replacer = self.manager.active.replacer
+        for rep in self.replacements:
+            match rep.status:
+                case 'no changes':
+                    continue
+                case 'deleted':
+                    replacer.delete_replacement(rep.modifier_init, rep.input_char_init)
+                case 'new':
+                    replacer.set_replacement(rep.modifier_cur, rep.input_char_cur, rep.output_char_cur)
+                case 'modified':
+                    replacer.delete_replacement(rep.modifier_init, rep.input_char_init)
+                    replacer.set_replacement(rep.modifier_cur, rep.input_char_cur, rep.output_char_cur)
 
         # Установка выбранной темы
         self.set_theme()
 
-        # Обновление бэкапов сохранения
-        self.backup_dct = copy.deepcopy(self.manager.active.dct)
-        self.backup_scale = self.app_data.ui_settings.scale
-
         # Сохранение настроек в файлы
-        self.app_data.save()
-        save_dct_settings(self.manager.active)
-        save_dct_cache(self.manager.active)
+        self.app_data.save(manager=False, ui=True)
+        self.manager.active.partial_save(
+            DCT_SAVE_DIR(self.manager.active.id),
+            dct=True, metadata=True, replacer=True, optional={'tk'}
+        )
 
-        # Сохранение словаря, если были изменения локальных настроек
-        if self.has_local_changes:
-            save_dct(self.manager.active)
-
-        # Обнуление переменных, показывающих наличие изменений
-        self.are_features_modified = False
-        self.are_tags_modified = False
-        self.are_replacements_modified = False
-        self.manager.active.dct.mark_saved()
+        self._set_dct_settings()
 
         # Обновить кнопки изменения масштаба
         self.refresh_scale_buttons()
@@ -7908,11 +8083,28 @@ class SettingsW(tk.Toplevel):
             frame.unbind('<Leave>')
             frame.destroy()
 
+        opened_ids = {bundle.id for bundle in self.manager.opened}
+
+        options = [(self.manager.active.dct.name, self.manager.active.id)]
+        for save_dir in sorted(SAVES_DIR.iterdir()):
+            if save_dir.is_dir():
+                try:
+                    data = read_json(save_dir / DCT_MAIN_DATA_FILENAME)
+                    dct_id = get_dct_id_from_dict(data)
+                    dct_name = get_dct_name_from_dict(data)
+                except Exception as e:
+                    print(e)
+                    continue
+                if dct_id in opened_ids:
+                    continue
+                options.append((dct_name, dct_id))
+
+        if not options:
+            self.dct_names, ids = [], []
+        else:
+            self.dct_names, ids = zip(*sorted(options))
+
         # Выбираем словари
-        self.dct_names = [
-            savename for savename in os.listdir(SAVES_PATH)
-            if os.path.isdir(os.path.join(SAVES_PATH, savename))
-        ]
         n_dcts = len(self.dct_names)
 
         # Создаём новые фреймы
@@ -7926,7 +8118,7 @@ class SettingsW(tk.Toplevel):
         self.dct_buttons = [
             create_button(
                 self.dct_frames[i],
-                lambda i=i: self.open_dct(self.dct_names[i]),
+                lambda i=i: self.open_dct(ids[i]),
                 takefocus=False,
                 style='FlatD.TButton' if i % 2 else 'FlatL.TButton',
                 row=0, column=0, padx=0, pady=0, sticky='WE',
@@ -7935,7 +8127,8 @@ class SettingsW(tk.Toplevel):
         for i in range(n_dcts):
             # Выводим текст на кнопки
             savename = self.dct_names[i]
-            if savename == self.manager.active.dct.name:
+            dct_id = ids[i]
+            if dct_id == self.manager.active.id:
                 self.dct_buttons[i].configure(text=split_text(f'{savename} (ОТКРЫТ)', 35))
             else:
                 self.dct_buttons[i].configure(text=split_text(f'{savename}', 35))
@@ -7944,17 +8137,17 @@ class SettingsW(tk.Toplevel):
             self.dct_frames[i].bind('<Enter>', lambda event, i=i: self.dct_frames[i].focus_set())
             self.dct_frames[i].bind('<Leave>', lambda event: self.focus_set())
             self.dct_frames[i].bind(
-                '<Control-r>', lambda event, i=i: self.rename_dct(self.dct_names[i]))
+                '<Control-r>', lambda event, i=i: self.rename_dct(self.dct_names[i], ids[i]))
             self.dct_frames[i].bind(
-                '<Control-R>', lambda event, i=i: self.rename_dct(self.dct_names[i]))
+                '<Control-R>', lambda event, i=i: self.rename_dct(self.dct_names[i], ids[i]))
             self.dct_frames[i].bind(
-                '<Control-d>', lambda event, i=i: self.delete_dct(self.dct_names[i]))
+                '<Control-d>', lambda event, i=i: self.delete_dct(self.dct_names[i], ids[i]))
             self.dct_frames[i].bind(
-                '<Control-D>', lambda event, i=i: self.delete_dct(self.dct_names[i]))
+                '<Control-D>', lambda event, i=i: self.delete_dct(self.dct_names[i], ids[i]))
             self.dct_frames[i].bind(
-                '<Control-e>', lambda event, i=i: self.export_dct(self.dct_names[i]))
+                '<Control-e>', lambda event, i=i: self.export_dct(self.dct_names[i], ids[i]))
             self.dct_frames[i].bind(
-                '<Control-E>', lambda event, i=i: self.export_dct(self.dct_names[i]))
+                '<Control-E>', lambda event, i=i: self.export_dct(self.dct_names[i], ids[i]))
 
         # Если требуется, прокручиваем вверх
         if move_scroll:
@@ -7963,13 +8156,13 @@ class SettingsW(tk.Toplevel):
     # Обновить кнопки изменения масштаба
     def refresh_scale_buttons(self):
         # Если масштаб минимальный, то кнопка минуса становится неактивной
-        if self.app_data.ui_settings.scale == SCALE_MIN:
+        if self.scale == SCALE_MIN:
             btn_disable(self.btn_zoom_out)
         else:
             btn_enable(self.btn_zoom_out, self.zoom_out, style='Image')
 
         # Если масштаб максимальный, то кнопка плюса становится неактивной
-        if self.app_data.ui_settings.scale == SCALE_MAX:
+        if self.scale == SCALE_MAX:
             btn_disable(self.btn_zoom_in)
         else:
             btn_enable(self.btn_zoom_in, self.zoom_in, style='Image')
@@ -8004,9 +8197,13 @@ class SettingsW(tk.Toplevel):
     @property
     def has_local_changes(self):
         return (
-            self.are_features_modified or
-            self.are_tags_modified or
-            self.are_replacements_modified
+            any(
+                c.status != 'no changes' or
+                any(v.status != 'no changes' for v in vals)
+                for c, vals in self.features
+            ) or
+            any(t.status != 'no changes' for t in self.tags) or
+            any(e.status != 'no changes' for e in self.replacements)
         )
 
     # Были ли изменения настроек
@@ -8017,18 +8214,15 @@ class SettingsW(tk.Toplevel):
             self.var_show_updates.get() != self.app_data.ui_settings.to_check_for_updates or
             self.var_show_typo_button.get() != self.app_data.ui_settings.is_typo_btn_on or
             self.var_theme.get() != self.app_data.ui_settings.theme or
-            self.backup_scale != self.app_data.ui_settings.scale
+            self.scale != self.app_data.ui_settings.scale
         )
 
     # Обновить надписи с названием открытого словаря
-    def refresh_dct_name(self, savename: str):
+    def refresh_dct_name(self):
         self.lbl_dct_name.config(text=split_text(
-            f'Открыт словарь "{savename}"', 30, to_add_right_spaces=False
+            f'Открыт словарь "{self.manager.active.dct.name}"', 30, to_add_right_spaces=False
         ))
-        self.parent.lbl_dct_name.config(text=(
-            f'Открыт словарь\n'
-            f'"{split_text(savename, 20, to_add_right_spaces=False)}"'
-        ))
+        self.parent.refresh_dct_name()
 
     # Изменить размер окна в зависимости от открытой вкладки
     def on_tab_changed(self):
@@ -8063,9 +8257,6 @@ class SettingsW(tk.Toplevel):
         self.grab_set()
         self.wait_window()
 
-        # TODO: remove deepcopy (?)
-        self.manager.active.dct = copy.deepcopy(self.backup_dct)
-
 
 # Окно уведомления о выходе новой версии
 class NewVersionAvailableW(tk.Toplevel):
@@ -8074,7 +8265,6 @@ class NewVersionAvailableW(tk.Toplevel):
         self.parent = parent
 
         self.app_data = app_data
-        self.dct = app_data.manager.active.dct
 
         self.var_url = tk.StringVar(value=URL_GITHUB)  # Ссылка, для загрузки новой версии
 
@@ -8136,7 +8326,7 @@ class NewVersionAvailableW(tk.Toplevel):
         try:
             # Скачиваем архив с обновлением
             print('Загрузка архива...', end='')
-            wget.download(URL_DOWNLOAD_ZIP, out=MAIN_PATH)
+            wget.download(URL_DOWNLOAD_ZIP, out=BASE_DIR)
         except Exception as exc:
             print(f'\nНе удалось загрузить обновление!\n'
                   f'{exc}')
@@ -8152,34 +8342,34 @@ class NewVersionAvailableW(tk.Toplevel):
             # Распаковываем архив во временную папку
             print('\nРаспаковка архива...')
             with zipfile.ZipFile(NEW_VERSION_ZIP_PATH, 'r') as zip_file:
-                zip_file.extractall(MAIN_PATH)
+                zip_file.extractall(BASE_DIR)
             # Удаляем архив
             print('Удаление архива...')
             os.remove(NEW_VERSION_ZIP_PATH)
             # Получаем список обновляемых файлов
             files_to_update = [
-                fn.strip() for fn in open(f'{NEW_VERSION_DIR}/{UPDATE_FILES}', 'r').readlines()
+                fn.strip() for fn in open(os.path.join(NEW_VERSION_DIRNAME, UPDATE_FILES_FILENAME), 'r').readlines()
             ]
             # Удаляем файлы текущей версии
             print('Удаление старых файлов...')
-            for filename in os.listdir(IMAGES_PATH):
+            for filename in os.listdir(IMAGES_DIR):
                 try:
-                    os.remove(os.path.join(IMAGES_PATH, filename))
+                    os.remove(os.path.join(IMAGES_DIR, filename))
                 except FileNotFoundError:
                     print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
             for filename in ('resources/icon.png', 'backend.py', 'constants.py', 'gui.py'):
                 try:
-                    os.remove(os.path.join(MAIN_PATH, filename))
+                    os.remove(os.path.join(BASE_DIR, filename))
                 except FileNotFoundError:
                     print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
             # Из временной папки достаём файлы новой версии
             print('Установка новых файлов...')
             for filename in files_to_update:
-                os.replace(os.path.join(NEW_VERSION_PATH, filename),
-                           os.path.join(MAIN_PATH, filename))
+                os.replace(os.path.join(NEW_VERSION_DIR, filename),
+                           os.path.join(BASE_DIR, filename))
             # Удаляем временную папку
             print('Удаление временной папки...')
-            shutil.rmtree(NEW_VERSION_PATH)
+            shutil.rmtree(NEW_VERSION_DIR)
         except Exception as exc:
             print(f'Не удалось установить обновление!\n'
                   f'{exc}')
@@ -8207,6 +8397,7 @@ class MainW(tk.Tk):
         super().__init__()
 
         self.app_data = app_data
+        self.manager = app_data.manager
 
         self._configure_window()
         self.setup_styles()
@@ -8283,9 +8474,7 @@ class MainW(tk.Tk):
     def refresh_dct_name(self):
         self.lbl_dct_name.config(text=(
             f'Открыт словарь\n'
-            f'"{split_text(
-                self.app_data.manager.active.dct.name, 20, to_add_right_spaces=False
-            )}"'
+            f'"{split_text(self.manager.active.dct.name, 20, to_add_right_spaces=False)}"'
         ))
 
     # Нажатие на кнопку "Учить слова"
@@ -8294,7 +8483,7 @@ class MainW(tk.Tk):
 
         cancelled = TrainSettingsW(self, self.app_data).open()
         if not cancelled:
-            train_config = self.app_data.manager.active.train_config
+            train_config = self.manager.active.train_config
             TrainingW(self, self.app_data, train_config).open()
 
         self.enable_all_buttons()
@@ -8327,14 +8516,6 @@ class MainW(tk.Tk):
         SettingsW(self, self.app_data).open()
         self.enable_all_buttons()
 
-        # Обновляем надпись с названием открытого словаря
-        self.lbl_dct_name.config(text=(
-            f'Открыт словарь\n'
-            f'"{split_text(
-                self.app_data.manager.active.dct.name, 20, to_add_right_spaces=False
-            )}"'
-        ))
-
         self.setup_styles()  # Установка ttk-стилей
 
     # Нажатие на кнопку "Проверить обновления"
@@ -8344,13 +8525,14 @@ class MainW(tk.Tk):
 
     # Нажатие на кнопку "Сохранить словарь"
     def save(self):
-        self.app_data.manager.save_dct(self.app_data.manager.active_dct_id)
+        self.manager.save_dct(self.manager.active_idx, DCT_SAVE_DIR(self.manager.active.id))
         MessageDialog(self, self.app_data, 'Прогресс успешно сохранён').open()
         print('\nПрогресс успешно сохранён')
 
     # Нажатие на кнопку "Закрыть программу"
     def close(self):
         save_dct_if_has_progress(self, self.app_data)
+        self.app_data.save()
         self.quit()
 
     # Отключить все кнопки на главном окне
@@ -8852,25 +9034,20 @@ class MainW(tk.Tk):
 
 def main():
     # Если папки отсутствуют, то они создаются
-    if not os.path.exists(RESOURCES_PATH):
-        os.mkdir(RESOURCES_PATH)
-    if not os.path.exists(SAVES_PATH):
-        os.mkdir(SAVES_PATH)
-    if not os.path.exists(ADDITIONAL_THEMES_PATH):
-        os.mkdir(ADDITIONAL_THEMES_PATH)
-    if not os.path.exists(CUSTOM_THEME_PATH):
-        os.mkdir(CUSTOM_THEME_PATH)
-    if not os.path.exists(IMAGES_PATH):
-        os.mkdir(IMAGES_PATH)
-
+    if not os.path.exists(RESOURCES_DIR):
+        os.mkdir(RESOURCES_DIR)
+    if not os.path.exists(SAVES_DIR):
+        os.mkdir(SAVES_DIR)
+    if not os.path.exists(THEMES_DIR):
+        os.mkdir(THEMES_DIR)
+    if not os.path.exists(CUSTOM_THEME_DIR):
+        os.mkdir(CUSTOM_THEME_DIR)
+    if not os.path.exists(IMAGES_DIR):
+        os.mkdir(IMAGES_DIR)
     for i in (1, 2):
-        theme_path = os.path.join(ADDITIONAL_THEMES_PATH, THEMES[i])
+        theme_path = os.path.join(THEMES_DIR, THEMES[i])
         if not os.path.exists(theme_path):
             os.mkdir(theme_path)
-
-    # Если временный файл не удалён, то он удаляется
-    if TMP_FN in os.listdir(RESOURCES_PATH):
-        os.remove(TMP_PATH)
 
     # Вывод информации о программе
     CONSOLE_LOGO_FRAME_WIDTH = 85
@@ -8894,13 +9071,15 @@ def main():
     upload_themes(THEMES)  # Загружаем дополнительные темы
     upload_custom_theme()  # Загружаем пользовательскую тему
 
-    app_data = AppData('./resources/app_data.json')  # TODO: replace with real path
-    app_data.load()
+    app_data = AppData()
+
+    if app_data.manager.n_opened == 0:
+        app_data.manager.create_dct('New Dictionary', optional_classes={'tk': DctUISettings})
 
     # Initialize GUI
     root = MainW(app_data)
     # Set icon
-    if os.path.exists(os.path.join(RESOURCES_PATH, ICON_FN)):
+    if os.path.exists(ICON_PATH):
         root.iconphoto(True, tk.PhotoImage(file=ICON_PATH))  # Устанавливаем иконку
 
     print('\nЗапуск программы прошёл успешно')
