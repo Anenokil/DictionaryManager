@@ -40,7 +40,7 @@ from backend import (
     Tags, Entry, Dictionary, DctBundle, Manager, gram_form_to_str,
     Trainer, TrainingFormat, TrainingOrder, EntrySelection, FormSelection,
     Replacer, SerializedData, validation_and_migration, save_json, read_json,
-    OptionalDctData,
+    OptionalDctData, get_dct_id_from_dict, get_dct_name_from_dict,
 )
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -5341,13 +5341,15 @@ class MainWindow(QMainWindow):
         for save_dir in sorted(SAVES_DIR.iterdir()):
             if save_dir.is_dir():
                 try:
-                    dct = DctBundle.from_files(save_dir, {'qt': DctUISettings}).dct
+                    data = read_json(save_dir / DCT_MAIN_DATA_FILENAME)
+                    dct_id = get_dct_id_from_dict(data)
+                    dct_name = get_dct_name_from_dict(data)
                 except Exception as e:
                     print(e)
                     continue
-                if dct.id in opened_ids:
+                if dct_id in opened_ids:
                     continue
-                options.append((dct.name, dct.id))
+                options.append((dct_name, dct_id))
         if not options:
             QMessageBox.information(self, self.tr('No Saves'), self.tr('There are no dictionaries available to open.'))
             return
