@@ -20,6 +20,7 @@ from .dictionary import (
     InvalidNoteError, InvalidTagError,
     InvalidCategoryError, CategoryExistsError,
     InvalidCtgValueError, CtgValueExistsError,
+    get_dct_id_from_dict, get_dct_name_from_dict,
 )
 from .trainer import (
     Trainer, TrainingFormat, TrainingOrder, EntrySelection,

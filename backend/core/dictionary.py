@@ -1501,3 +1501,15 @@ class Dictionary:
                 index[term].difference_update(entries)
                 if index_name != 'tags' and not index[term]:
                     del index[term]
+
+
+def get_dct_id_from_dict(data: SerializedData) -> str:
+    dct_id = data['data']['id']
+    validate_field_type('id', dct_id, str)
+    return dct_id
+
+
+def get_dct_name_from_dict(data: SerializedData) -> str | None:
+    dct_name = data['data'].get('name', None)
+    validate_field_type('name', dct_name, (str, NoneType))
+    return dct_name
