@@ -1170,6 +1170,8 @@ class ManageTagsDialog(QDialog):
         super().__init__(parent)
 
         self.dct = dct_bundle.dct
+        self.practice_config = dct_bundle.train_config
+        self.ui_config: DctUISettings = dct_bundle.optional['qt']
 
         self.setWindowTitle(self.tr('Tags'))
 
@@ -1226,7 +1228,18 @@ class ManageTagsDialog(QDialog):
 
         for tag in deleted_tags:
             self.dct.delete_tag(tag)
+            if (self.practice_config.tags is not None) and (tag in self.practice_config.tags):
+                self.practice_config.tags.remove(tag)
+            if tag in self.ui_config.searchbar_search_tags:
+                self.ui_config.searchbar_search_tags.remove(tag)
         self.dct.rename_tags(renamed_tags)
+        for tag_old, tag_new in renamed_tags.items():
+            if (self.practice_config.tags is not None) and (tag_old in self.practice_config.tags):
+                self.practice_config.tags.remove(tag_old)
+                self.practice_config.tags.append(tag_new)
+            if tag_old in self.ui_config.searchbar_search_tags:
+                self.ui_config.searchbar_search_tags.remove(tag_old)
+                self.ui_config.searchbar_search_tags.append(tag_new)
         for tag, is_default in checked_tags.items():
             if is_default:
                 self.dct.mark_tag_as_default(tag)
