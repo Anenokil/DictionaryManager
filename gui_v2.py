@@ -40,7 +40,7 @@ from backend import (
     Tags, Entry, Dictionary, DctBundle, Manager, gram_form_to_str,
     Trainer, TrainingFormat, TrainingOrder, EntrySelection, FormSelection,
     Replacer, SerializedData, validation_and_migration, save_json, read_json,
-    OptionalDctData, get_dct_id_from_dict, get_dct_name_from_dict,
+    OptionalDctData, get_dct_id_from_dict, get_dct_name_from_dict, set_dct_name_in_dict,
 )
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -74,6 +74,7 @@ GUI_CONFIG_PATH = str(DATA_DIR / 'qt_config.json')
 SAVES_DIR = DATA_DIR / 'saves'
 DCT_SAVE_DIR = lambda dct_id: SAVES_DIR / dct_id
 DCT_MAIN_DATA_FILENAME = 'dct.json'
+DCT_MAIN_DATA_PATH = lambda dct_id: str(DCT_SAVE_DIR(dct_id) / DCT_MAIN_DATA_FILENAME)
 DCT_METADATA_FILENAME = 'metadata.json'
 DCT_PRACTICE_CONFIG_FILENAME = 'train_config.json'
 DCT_REPLACER_FILENAME = 'replacer.json'
@@ -2911,6 +2912,19 @@ class DctTabWidget(QTabWidget):
         if index is None:
             return
 
+        def rename_on_disk(manager: Manager, dct_idx: int, new_name: str):
+            dct = manager.opened[dct_idx].dct
+
+            is_modified = dct.is_modified
+            manager.rename_dct(dct_idx, new_name)
+            if not is_modified:
+                dct.mark_saved()
+
+            path = DCT_MAIN_DATA_PATH(dct.id)
+            disk_data = read_json(path)
+            set_dct_name_in_dict(disk_data, new_name)
+            save_json(disk_data, path)
+
         if index >= 0:
             current_name = self.manager.opened[index].dct.name
             new_name, ok = QInputDialog.getText(
@@ -2920,7 +2934,7 @@ class DctTabWidget(QTabWidget):
                 text=current_name,
             )
             if ok and new_name:
-                self.manager.rename_dct(index, new_name)
+                rename_on_disk(self.manager, index, new_name)
                 self.update_tab_title(index)
 
     def save_dct(self, index: int | None):
