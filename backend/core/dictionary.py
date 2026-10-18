@@ -1289,7 +1289,7 @@ class Dictionary:
 
         self._tags.remove(tag)
 
-    def mark_tag_as_default(self, tag: Tag):
+    def mark_tag_as_default(self, tag: Tag, is_default: bool = True):
         """
         Mark the given tag as default.
 
@@ -1307,34 +1307,13 @@ class Dictionary:
 
         tag_id = self._tags.index(tag)
 
-        if tag_id in self._default_tag_ids:
+        if (tag_id in self._default_tag_ids) == is_default:
             return
 
-        self._default_tag_ids.add(tag_id)
-        self._is_modified = True
-
-    def unmark_tag_as_default(self, tag: Tag):
-        """
-        Unmark the given tag as default.
-
-        The tag will no longer be automatically added to newly created Entries.
-
-        Args:
-            tag: Tag to unmark as default.
-
-        Raises:
-            InvalidTagError: If the specified tag does not exist.
-        """
-
-        if tag not in self._tags:
-            raise InvalidTagError(tag)
-
-        tag_id = self._tags.index(tag)
-
-        if tag_id not in self._default_tag_ids:
-            return
-
-        self._default_tag_ids.discard(tag_id)
+        if is_default:
+            self._default_tag_ids.add(tag_id)
+        else:
+            self._default_tag_ids.discard(tag_id)
         self._is_modified = True
 
     def is_default_tag(self, tag: Tag) -> bool:

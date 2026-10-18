@@ -245,7 +245,7 @@ def test_unmark_tag_as_default(dct_small, tag):
 
     default_tags = deepcopy(dct.default_tags)
 
-    dct.unmark_tag_as_default(tag)
+    dct.mark_tag_as_default(tag, False)
 
     assert not dct.is_default_tag(tag)
     assert dct.default_tags == default_tags.difference({tag})
@@ -259,7 +259,7 @@ def test_unmark_tag_as_default_bad(dct_small, tag):
 
     # Operation should raise on invalid tag
     with pytest.raises(InvalidTagError):
-        dct.unmark_tag_as_default(tag)
+        dct.mark_tag_as_default(tag, False)
 
     state_after = dct.to_dict()
 
