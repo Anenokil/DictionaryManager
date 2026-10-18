@@ -4,7 +4,6 @@ import inspect
 import math
 import re
 import platform
-import os
 from pathlib import Path
 import shutil
 import platformdirs
@@ -281,16 +280,16 @@ class AppData:
         self.manager = Manager()
         self.ui_settings = UISettings()
 
-        if os.path.exists(MANAGER_PATH):
+        if Path(MANAGER_PATH).exists():
             self.load(True, True)
         else:
-            os.makedirs(DATA_DIR, exist_ok=True)
+            DATA_DIR.mkdir(parents=True, exist_ok=True)
             self.save(True, True)
 
     @staticmethod
     def load_bundle_by_id(bundle_id: str) -> DctBundle | None:
         folder = DCT_SAVE_DIR(bundle_id)
-        if not os.path.exists(folder):
+        if not folder.exists():
             return None
         return DctBundle.from_files(folder, {'tk': DctUISettings})
 
@@ -1125,7 +1124,7 @@ def check_updates(
 
 # Установить в качестве пользовательской темы тему по умолчанию
 def create_default_custom_theme():
-    styles_path = os.path.join(CUSTOM_THEME_DIR, STYLES_FN)
+    styles_path = CUSTOM_THEME_DIR / STYLES_FN
     with open(styles_path, 'w', encoding='utf-8') as styles_file:
         styles_file.write(
             f'{REQUIRED_THEME_VERSION}\n'
@@ -1139,7 +1138,7 @@ def create_default_custom_theme():
 
 # Загрузить одну тему
 def upload_one_theme(theme_path: str, theme_name: str) -> int:
-    styles_path = os.path.join(theme_path, STYLES_FN)
+    styles_path = Path(theme_path) / STYLES_FN
     with open(styles_path, 'r', encoding='utf-8') as styles_file:
         theme_version = styles_file.readline().strip()  # Версия темы
         theme_version = int(re.split(' |//', theme_version)[0])  # После // идут комментарии
@@ -1173,11 +1172,11 @@ def upload_one_theme(theme_path: str, theme_name: str) -> int:
 
 # Загрузить дополнительные темы
 def upload_themes(themes: list[str]):
-    for dir_name in os.listdir(THEMES_DIR):
-        theme_dir_path = os.path.join(THEMES_DIR, dir_name)
-        if not os.path.isdir(theme_dir_path):
+    for dir_name in THEMES_DIR.iterdir():
+        theme_dir_path = THEMES_DIR / dir_name
+        if not theme_dir_path.is_dir():
             continue
-        if not os.path.exists(os.path.join(theme_dir_path, STYLES_FN)):
+        if not (theme_dir_path / STYLES_FN).exists():
             continue
 
         theme_name = dir_name
@@ -1198,7 +1197,7 @@ def upload_themes(themes: list[str]):
 
 # Загрузить пользовательскую тему
 def upload_custom_theme(to_print: bool = True):
-    if not os.path.exists(os.path.join(CUSTOM_THEME_DIR, STYLES_FN)):
+    if not (CUSTOM_THEME_DIR / STYLES_FN).exists():
         create_default_custom_theme()
         return
 
@@ -1220,12 +1219,12 @@ def img_path(theme: str, img_name: str) -> str:
     if theme == CUSTOM_TH:
         theme_dir = CUSTOM_THEME_DIR
     else:
-        theme_dir = os.path.join(THEMES_DIR, theme)
+        theme_dir = THEMES_DIR / theme
 
     file_name = f'{img_name}.png'
-    if os.path.exists(os.path.join(theme_dir, file_name)):
-        return os.path.join(theme_dir, file_name)
-    return os.path.join(IMAGES_DIR, file_name)
+    if (theme_dir / file_name).exists():
+        return theme_dir / file_name
+    return IMAGES_DIR / file_name
 
 
 def rename_dct_on_disk(dct_id: str, new_name: str):
@@ -4845,7 +4844,7 @@ class CustomThemeSettingsW(tk.Toplevel):
     # Выбрать изображения
     def set_images(self):
         old_img = self.dir_with_images
-        new_img = os.path.join(THEMES_DIR, self.var_images.get())
+        new_img = THEMES_DIR / self.var_images.get()
 
         self.dir_with_images = new_img
 
@@ -4876,7 +4875,7 @@ class CustomThemeSettingsW(tk.Toplevel):
     def save(self):
         self.custom_styles['FRAME.RELIEF.*'] = self.var_relief_frame.get()
         self.custom_styles['TXT.RELIEF.*'] = self.var_relief_text.get()
-        filepath = os.path.join(CUSTOM_THEME_DIR, STYLES_FN)
+        filepath = CUSTOM_THEME_DIR / STYLES_FN
         with open(filepath, 'w', encoding='utf-8') as file:
             file.write(f'{REQUIRED_THEME_VERSION}')
             file.write('\n1')
@@ -4886,11 +4885,11 @@ class CustomThemeSettingsW(tk.Toplevel):
         if self.dir_with_images != CUSTOM_THEME_DIR:
             for img_name in IMG_NAMES:
                 file_name = f'{img_name}.png'
-                src_path = os.path.join(self.dir_with_images, file_name)
-                dst_path = os.path.join(CUSTOM_THEME_DIR, file_name)
-                if os.path.exists(os.path.join(CUSTOM_THEME_DIR, file_name)):
-                    os.remove(dst_path)
-                if os.path.exists(os.path.join(self.dir_with_images, file_name)):
+                src_path = self.dir_with_images / file_name
+                dst_path = CUSTOM_THEME_DIR / file_name
+                if (CUSTOM_THEME_DIR / file_name).exists():
+                    dst_path.unlink()
+                if (self.dir_with_images / file_name).exists():
                     shutil.copyfile(src_path, dst_path)
 
     # Отменить последнее действие
@@ -4977,7 +4976,7 @@ class CustomThemeSettingsW(tk.Toplevel):
 
     # Загрузить пользовательскую тему
     def _load(self):
-        filepath = os.path.join(CUSTOM_THEME_DIR, STYLES_FN)
+        filepath = CUSTOM_THEME_DIR / STYLES_FN
         upgrade_theme(filepath)
         with open(filepath, 'r', encoding='utf-8') as file:
             file.readline()  # Версия темы
@@ -5288,10 +5287,10 @@ class CustomThemeSettingsW(tk.Toplevel):
         for i in range(len(ICON_NAMES)):
             img = f'{ICON_NAMES[i]}.png'
             try:
-                self.images[i].config(file=os.path.join(self.dir_with_images, img))
+                self.images[i].config(file=self.dir_with_images / img)
             except tk.TclError:
                 try:
-                    self.images[i].config(file=os.path.join(IMAGES_DIR, img))
+                    self.images[i].config(file=IMAGES_DIR / img)
                 except tk.TclError:
                     self.img_buttons[i].config(
                         text='-', image='', compound='text', style='DemoDefault.TButton'
@@ -6923,7 +6922,7 @@ class BrowseDctTab(ttk.Frame):
         if not folder:
             return
         filename = f'Распечатка_{self.dct.name}.txt'
-        self.dct.to_txt(os.path.join(folder, filename))
+        self.dct.to_txt(Path(folder) / filename)
 
     # Вывести информацию о количестве статей
     def display_stats(self):
@@ -8345,28 +8344,27 @@ class NewVersionAvailableW(tk.Toplevel):
                 zip_file.extractall(BASE_DIR)
             # Удаляем архив
             print('Удаление архива...')
-            os.remove(NEW_VERSION_ZIP_PATH)
+            NEW_VERSION_ZIP_PATH.unlink()
             # Получаем список обновляемых файлов
             files_to_update = [
-                fn.strip() for fn in open(os.path.join(NEW_VERSION_DIRNAME, UPDATE_FILES_FILENAME), 'r').readlines()
+                fn.strip() for fn in open(Path(NEW_VERSION_DIRNAME) / UPDATE_FILES_FILENAME, 'r').readlines()
             ]
             # Удаляем файлы текущей версии
             print('Удаление старых файлов...')
-            for filename in os.listdir(IMAGES_DIR):
+            for filename in IMAGES_DIR.iterdir():
                 try:
-                    os.remove(os.path.join(IMAGES_DIR, filename))
+                    (IMAGES_DIR / filename).unlink()
                 except FileNotFoundError:
                     print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
             for filename in ('resources/icon.png', 'backend.py', 'constants.py', 'gui.py'):
                 try:
-                    os.remove(os.path.join(BASE_DIR, filename))
+                    (BASE_DIR / filename).unlink()
                 except FileNotFoundError:
                     print(f'Не удалось удалить файл "{filename}", т. к. он отсутствует')
             # Из временной папки достаём файлы новой версии
             print('Установка новых файлов...')
             for filename in files_to_update:
-                os.replace(os.path.join(NEW_VERSION_DIR, filename),
-                           os.path.join(BASE_DIR, filename))
+                (NEW_VERSION_DIR / filename).replace(BASE_DIR / filename)
             # Удаляем временную папку
             print('Удаление временной папки...')
             shutil.rmtree(NEW_VERSION_DIR)
@@ -9034,20 +9032,14 @@ class MainW(tk.Tk):
 
 def main():
     # Если папки отсутствуют, то они создаются
-    if not os.path.exists(RESOURCES_DIR):
-        os.mkdir(RESOURCES_DIR)
-    if not os.path.exists(SAVES_DIR):
-        os.mkdir(SAVES_DIR)
-    if not os.path.exists(THEMES_DIR):
-        os.mkdir(THEMES_DIR)
-    if not os.path.exists(CUSTOM_THEME_DIR):
-        os.mkdir(CUSTOM_THEME_DIR)
-    if not os.path.exists(IMAGES_DIR):
-        os.mkdir(IMAGES_DIR)
+    RESOURCES_DIR.mkdir(parents=True, exist_ok=True)
+    SAVES_DIR.mkdir(parents=True, exist_ok=True)
+    THEMES_DIR.mkdir(parents=True, exist_ok=True)
+    CUSTOM_THEME_DIR.mkdir(parents=True, exist_ok=True)
+    IMAGES_DIR.mkdir(parents=True, exist_ok=True)
     for i in (1, 2):
-        theme_path = os.path.join(THEMES_DIR, THEMES[i])
-        if not os.path.exists(theme_path):
-            os.mkdir(theme_path)
+        theme_path = THEMES_DIR / THEMES[i]
+        theme_path.mkdir(parents=True, exist_ok=True)
 
     # Вывод информации о программе
     CONSOLE_LOGO_FRAME_WIDTH = 85
@@ -9079,7 +9071,7 @@ def main():
     # Initialize GUI
     root = MainW(app_data)
     # Set icon
-    if os.path.exists(ICON_PATH):
+    if Path(ICON_PATH).exists():
         root.iconphoto(True, tk.PhotoImage(file=ICON_PATH))  # Устанавливаем иконку
 
     print('\nЗапуск программы прошёл успешно')
