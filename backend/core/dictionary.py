@@ -1513,3 +1513,7 @@ def get_dct_name_from_dict(data: SerializedData) -> str | None:
     dct_name = data['data'].get('name', None)
     validate_field_type('name', dct_name, (str, NoneType))
     return dct_name
+
+
+def set_dct_name_in_dict(data: SerializedData, new_name: str | None):
+    data['data']['name'] = new_name
