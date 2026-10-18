@@ -291,11 +291,11 @@ class Dictionary:
                     update_fn(results, found)
         return results or set()
 
-    def mark_saved(self):
-        self._is_modified = False
+    def mark_saved(self, is_saved: bool = True):
+        self._is_modified = not is_saved
 
-    def mark_modified(self):
-        self._is_modified = True
+    def mark_modified(self, is_modified: bool = True):
+        self._is_modified = is_modified
 
     def rename(self, new_name: DctName):
         """
