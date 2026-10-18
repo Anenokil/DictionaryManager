@@ -966,6 +966,12 @@ class Dictionary:
     def register_incorrect_answer(self, entry: Entry, timestamp: Timestamp):
         entry._register_incorrect_answer(timestamp)
 
+    def register_answer(self, entry: Entry, timestamp: Timestamp, is_correct: bool):
+        if is_correct:
+            self.register_correct_answer(entry, timestamp)
+        else:
+            self.register_incorrect_answer(entry, timestamp)
+
     def reset_stats(self, entry: Entry):
         if entry.total_att == 0:
             return
