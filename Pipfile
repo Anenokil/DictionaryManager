@@ -4,13 +4,17 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-wget = "*"
-pyside6 = "*"
 platformdirs = "*"
-pillow = "*"
 
 [dev-packages]
 flake8 = "*"
 pytest = "*"
+
+[gui-v1]
+wget = "*"
+
+[gui-v2]
+pyside6 = "*"
+pillow = "*"
 
 [requires]
