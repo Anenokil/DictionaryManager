@@ -3169,7 +3169,7 @@ class SearchSettingsDialog(QDialog):
 
         self.layout_settings.addWidget(QLabel(self.tr('Required tags')))
 
-        self.tags_list = CheckableList({tag: False for tag in self.dct.tags})
+        self.tags_list = CheckableList({tag: False for tag in sorted(self.dct.tags)})
         self.layout_settings.addWidget(self.tags_list)
 
         self.main_layout.addWidget(self.group_settings)
