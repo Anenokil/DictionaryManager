@@ -1,93 +1,78 @@
 # Dictionary Manager
-Программа-менеджер словарей для запоминания иностранных слов и увеличения словарного запаса.
 
-## Оглавление
-1. [Установка](#установка)
-2. [Возможности программы](#возможности-программы)
-    1. [Словари](#словари)
-    2. [Словарные статьи](#словарные-статьи)
-    3. [Изучение слов](#изучение-слов)
-    4. [Универсальность](#универсальность)
-    5. [Обновления программы](#обновления-программы)
-3. [Пример статьи из словаря](#пример-статьи-из-словаря)
+A dictionary manager for memorizing foreign words and expanding your vocabulary.
 
-## Установка
-Требуется версия python 3.10+.<br>
-<ol>
-    <li>Для работы программы должны быть установлены следующие модули:</li>
-    <ul>
-        <li>platform</li>
-        <li>tkinter (pip install tk)</li>
-            <!--
-                <li>tkinter.ttk</li>
-                <li>idlelib.tooltip</li>
-                <li>tkinter.filedialog</li>
-            -->
-        <li>re</li>
-        <li>webbrowser</li>
-        <li>urllib.request</li>
-        <li>wget</li>
-        <li>zipfile</li>
-        <li>typing</li>
-        <li>shutil</li>
-        <li>requests</li> <!--(для установщика)-->
-    </ul>
-    <li>Скачайте файл install.py из репозитория, запустите его, далее действуйте по инструкциям установщика. После этого программа будет установлена в выбранную папку.</li>
-    <li>Перейдите в папку с установленным приложением и запустите main.py.</li>
-</ol>
+## Table of Contents
 
-## Возможности программы
-### Словари
-Вы можете создать неограниченное количество словарей. Благодаря этому:
-- Вы можете изучать несколько языков одновременно.
-- Программой могут пользоваться несколько людей.
+- [Installation](#installation)
+- [Features](#features)
+  - [Dictionaries](#dictionaries)
+    - [Tags](#tags)
+    - [Grammatical categories](#grammatical-categories)
+    - [Escape sequences](#escape-sequences)
+  - [Practice](#practice)
 
-Вы можете делиться своими словарями с другими людьми благодаря функциям импорта и экспорта.<br>
-Для этого в программе перейдите в `Настройки` -> `Настройки программы`
+## Installation
 
-### Словарные статьи
-Вы можете добавить в словарь неограниченное количество статей.<br>
-Каждая статья должна содержать одно слово и хотя бы один его перевод.
+**Requirements:**
 
-Помимо этого:
-- Можно добавить в статью несколько переводов.
-- Можно добавить в статью формы слова, например множественное число, падежи и что угодно ещё (см. [Универсальность](#универсальность)).
-- Можно добавить в статью фразы с этим словом.
-- Можно добавить к статье сноски.
-- Можно добавить статью в избранное. Например, можно сохранять в избранном самые сложные слова.
-- Можно объединять статьи в группы.
-- Можно создать несколько статей с одинаковым словом (омографы).
+- Python 3.10 or newer
+- [Pipenv](https://pipenv.pypa.io/)
 
-### Изучение слов
-Чтобы <b>посмотреть статьи</b>, которые вы добавили, можете напечать словарь.
+The following packages are installed automatically by Pipenv:
 
-Также вы можете <b>учить</b> добавленные слова.
-- Доступно множество режимов учёбы. Вы можете выбрать подходящий именно вам.
-- Если вы опечатаетесь, можно нажать кнопку "Опечатка", и ошибка не засчитается.<br>
-  Активировать/деактивировать эту кнопку можно, перейдя в `Настройки` -> `Настройки программы` -> `Показывать кнопку "Опечатка"`.<br>
+- PySide6
+- Pillow
+- platformdirs
 
-`Лучше всего учить слова небольшими группами (до 20 слов), повторяя при этом старые уже усвоенные слова`
+**Steps:**
 
-### Универсальность
-Программа подходит для изучения любого языка:
-- Помимо таких <b>грамматических категорий</b>, как падеж, число или род, вы можете добавить любые другие.<br>
-  Для этого в программе перейдите в `Настройки` -> `Настройки словаря` -> `Грамматические категории`.<br>
-  *Для каждого словаря используются отдельные категории.*
-- Если у вас отсутствует необходимая раскладка клавиатуры, вы можете использовать <b>специальные комбинации</b>.<br>
-  Для этого в программе перейдите в `Настройки` -> `Настройки словаря` -> `Специальные комбинации`.<br>
-  `Пример специальной комбинации: #A -> Ä`
+```bash
+git clone git@github.com:Anenokil/DictionaryManager.git
+cd DictionaryManager
+pipenv install --categories "packages gui-v2"
+pipenv shell
+python gui_v2.py
+```
 
-### Обновления программы
-При каждом запуске программа проверяет наличие обновлений (эту функцию можно отключить в настройках).
-Также можно проверить их наличие вручную (кнопка в главном меню).<br>
-Если доступно обновление, то для его установки достаточно одного нажатия.
+## Features
 
-## Пример статьи из словаря
-<pre>
-(*) [  3;  75%] house: дом, здание
-                [plural] houses
-                > сноска_1
-                > сноска_2
-</pre>
-> Слева от каждого слова в квадратных скобках кратко записана ваша статистика по этому слову:<br>
-`количество верных ответов подряд` и `процент верных ответов`.
+Dictionary Manager is designed for maintaining bilingual dictionaries and learning foreign vocabulary.
+It is not language-specific and works with any language pair.
+
+You can keep several dictionaries at once: create your own, share them,
+and import dictionaries made by others.
+
+### Dictionaries
+
+A dictionary is a collection of entries, each devoted to a single word.
+To create an entry, you only need to provide the word and at least one translation.
+Optionally, you can also add spelling variants, additional translations, word forms,
+phrases and usage examples, notes, and an illustration.
+Entries can be tagged, and favorites can be marked with a star.
+
+#### Tags
+
+Tags make searching easier and let you study specific groups of words.
+
+#### Grammatical categories
+
+Grammatical categories let you define word forms. For example, the category
+"number" with the values "singular" and "plural" lets you record the forms
+*apple* (singular) and *apples* (plural).
+
+The set of categories is not fixed, so you can add your own,
+which makes the program suitable for any language.
+
+#### Escape sequences
+
+Escape sequences let you type characters that are missing from your current
+keyboard layout without switching layouts.
+
+### Practice
+
+Practice mode offers several types of exercises: words, word forms, phrases, and more.
+In each of them, you type the correct answer.
+
+The program tracks your practice statistics, so you can see your weak spots
+and focus on them, for example by practicing the most difficult entries first.
