@@ -50,6 +50,7 @@ IMG_ADD_PATH = str(IMAGES_DIR / 'add.png')
 IMG_ADD_CTG_PATH = str(IMAGES_DIR / 'add_category.png')
 IMG_ADD_VALUE_PATH = str(IMAGES_DIR / 'add_value.png')
 IMG_ARROW_PATH = str(IMAGES_DIR / 'arrow.png')
+IMG_ARROW_DISABLED_PATH = str(IMAGES_DIR / 'arrow_disabled.png')
 IMG_CLOSE_PATH = str(IMAGES_DIR / 'close.png')
 IMG_ENTER_PATH = str(IMAGES_DIR / 'enter.png')
 IMG_ESCAPE_SEQ_PATH = str(IMAGES_DIR / 'escape_seq.png')
@@ -1735,7 +1736,7 @@ class ManageEscapeSequencesDialog(QDialog):
         line_edit1.textChanged.connect(self.on_item_changed)
 
         arrow_label = QLabel()
-        arrow_label.setPixmap(QPixmap(IMG_ARROW_PATH))
+        arrow_label.setPixmap(QPixmap(IMG_ARROW_PATH if is_editable else IMG_ARROW_DISABLED_PATH))
 
         line_edit2 = QLineEdit(char_out)
         line_edit2.setEnabled(is_editable)
