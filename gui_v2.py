@@ -59,6 +59,7 @@ IMG_HINT_PATH = str(IMAGES_DIR / 'hint.png')
 IMG_MATCH_CASE_PATH = str(IMAGES_DIR / 'match_case.png')
 IMG_MATCH_WHOLE_WORD_PATH = str(IMAGES_DIR / 'match_whole_word.png')
 IMG_PRACTICE_PATH = str(IMAGES_DIR / 'practice.png')
+IMG_REGEX_PATH = str(IMAGES_DIR / 'regex.png')
 IMG_RESET_PATH = str(IMAGES_DIR / 'reset.png')
 IMG_SETTINGS_PATH = str(IMAGES_DIR / 'settings.png')
 IMG_STOP_PATH = str(IMAGES_DIR / 'stop.png')
@@ -100,6 +101,7 @@ USER_IMAGES_DIR = lambda dct_id: DCT_SAVE_DIR(dct_id) / USER_IMAGES_DIRNAME
     ('searchbar_fav_filter', False, str),
     ('searchbar_img_filter', False, str),
     ('searchbar_search_tags', False, (list[str], NoneType)),
+    ('searchbar_to_use_regex', False, bool),
     ('practice_is_ignore_allowed', False, bool),
 ])
 class DctUISettings(OptionalDctData):
@@ -146,6 +148,7 @@ class DctUISettings(OptionalDctData):
             self.searchbar_fav_filter = self.FAV_FILTER_OPTIONS[0]
             self.searchbar_img_filter = self.IMG_FILTER_OPTIONS[0]
             self.searchbar_search_tags = None
+            self.searchbar_to_use_regex = False
         if practice:
             self.practice_is_ignore_allowed = True
 
@@ -169,6 +172,7 @@ class DctUISettings(OptionalDctData):
             'searchbar_fav_filter',
             'searchbar_img_filter',
             'searchbar_search_tags',
+            'searchbar_to_use_regex',
             'practice_is_ignore_allowed',
         ]
         for key in keys:
@@ -197,6 +201,7 @@ class DctUISettings(OptionalDctData):
                 'searchbar_fav_filter': self.searchbar_fav_filter,
                 'searchbar_img_filter': self.searchbar_img_filter,
                 'searchbar_search_tags': self.searchbar_search_tags,
+                'searchbar_to_use_regex': self.searchbar_to_use_regex,
                 'practice_is_ignore_allowed': self.practice_is_ignore_allowed,
             }
         }
@@ -3039,6 +3044,12 @@ class SearchBar(QFrame):
         self.match_whole_word_btn.clicked.connect(self.toggle_match_whole_word)
         layout.addWidget(self.match_whole_word_btn)
 
+        self.use_regex_btn = create_img_button(IMG_REGEX_PATH)
+        self.use_regex_btn.setCheckable(True)
+        self.use_regex_btn.setChecked(self.config.searchbar_to_use_regex)
+        self.use_regex_btn.clicked.connect(self.toggle_use_regex)
+        layout.addWidget(self.use_regex_btn)
+
         self.settings_btn = create_img_button(IMG_SETTINGS_PATH)
         self.settings_btn.clicked.connect(self.open_settings)
         layout.addWidget(self.settings_btn)
@@ -3072,6 +3083,11 @@ class SearchBar(QFrame):
 
     def toggle_match_whole_word(self, enabled: bool):
         self.config.searchbar_to_match_whole_word = enabled
+        self.table_proxy_model.update_filter()
+        self.config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
+
+    def toggle_use_regex(self, enabled: bool):
+        self.config.searchbar_to_use_regex = enabled
         self.table_proxy_model.update_filter()
         self.config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
 
@@ -3395,6 +3411,10 @@ class SearchFilterProxyModel(QSortFilterProxyModel):
         self._pattern = ''
         self._search_mode_on = False
 
+        self._regex_key: tuple | None = None
+        self._regex: re.Pattern | None = None
+        self.regex_error: str | None = None
+
         self.setDynamicSortFilter(True)
 
     @property
@@ -3472,8 +3492,33 @@ class SearchFilterProxyModel(QSortFilterProxyModel):
         if self.config.searchbar_to_search_in_notes:
             yield from entry.notes
 
+    def _get_regex(self) -> re.Pattern | None:
+        """Return the compiled search regex, recompiling only when its inputs change."""
+
+        key = (
+            self._pattern,
+            self.config.searchbar_to_match_case,
+            self.config.searchbar_to_match_whole_word,
+        )
+        if key != self._regex_key:
+            self._regex_key = key
+            source = self._pattern
+            if self.config.searchbar_to_match_whole_word:
+                source = rf'\b(?:{source})\b'
+            flags = 0 if self.config.searchbar_to_match_case else re.IGNORECASE
+            try:
+                self._regex = re.compile(source, flags)
+                self.regex_error = None
+            except re.error as e:
+                self._regex = None
+                self.regex_error = str(e)
+        return self._regex
+
     def _matches(self, text: str) -> bool:
-        if self.config.searchbar_to_match_whole_word:
+        if self.config.searchbar_to_use_regex:
+            regex = self._get_regex()
+            return regex is not None and regex.search(text) is not None
+        elif self.config.searchbar_to_match_whole_word:
             flags = 0 if self.config.searchbar_to_match_case else re.IGNORECASE
             escaped = re.escape(self._pattern)
             pattern = rf'\b{escaped}\b'
@@ -3728,6 +3773,10 @@ class BrowsingPage(QWidget):
             if self.search_bar.isVisible():
                 self.search_bar.match_whole_word_btn.click()
 
+        def toggle_use_regex():
+            if self.search_bar.isVisible():
+                self.search_bar.use_regex_btn.click()
+
         def open_settings():
             if self.search_bar.isVisible():
                 self.search_bar.open_settings()
@@ -3738,6 +3787,7 @@ class BrowsingPage(QWidget):
 
         QShortcut(QKeySequence('Alt+C'), self, toggle_match_case)
         QShortcut(QKeySequence('Alt+W'), self, toggle_match_whole_word)
+        QShortcut(QKeySequence('Alt+X'), self, toggle_use_regex)
         QShortcut(QKeySequence('Alt+S'), self, open_settings)
         QShortcut(QKeySequence('Alt+R'), self, reset_settings)
 
@@ -3751,6 +3801,7 @@ class BrowsingPage(QWidget):
 
         self.search_bar.match_case_btn.setToolTip(self.tr('Match Case (%s)') % 'Alt+C')
         self.search_bar.match_whole_word_btn.setToolTip(self.tr('Match Whole Word (%s)') % 'Alt+W')
+        self.search_bar.use_regex_btn.setToolTip(self.tr('Use Regex (%s)') % 'Alt+X')
         self.search_bar.settings_btn.setToolTip(self.tr('Search Settings (%s)') % 'Alt+S')
         self.search_bar.reset_settings_btn.setToolTip(self.tr('Reset Search Settings (%s)') % 'Alt+R')
         self.search_bar.close_btn.setToolTip(self.tr('Close'))
