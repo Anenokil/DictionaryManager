@@ -74,7 +74,8 @@ class Replacer:
         if len(output_char) != 1:
             raise ValueError('output_char must be a single character')
 
-        self._replacements[modifier][modifier] = modifier
+        if modifier != '':
+            self._replacements[modifier][modifier] = modifier
         self._replacements[modifier][input_char] = output_char
 
     def set_replacements(self, replacements: Iterable[tuple[str, str, str]]):
