@@ -1499,7 +1499,7 @@ class ManageGramCategoriesDialog(QDialog):
 
         self.dct = dct_bundle.dct
 
-        self.setWindowTitle(self.tr('Grammatical Features'))
+        self.setWindowTitle(self.tr('Grammatical Categories'))
 
         self.tree = GramCategoriesTree(dct_bundle, self.dct.categories)
         self.tree.currentItemChanged.connect(self._update_add_value_button)
@@ -3800,7 +3800,7 @@ class BrowsingPage(QWidget):
         self.search_btn.setToolTip(self.tr('Find Entries (%s)') % 'Ctrl+F')
         self.add_entry_btn.setToolTip(self.tr('New Entry (%s)') % 'Ctrl+N')
         self.manage_tags_btn.setToolTip(self.tr('Tags (%s)') % 'Ctrl+T')
-        self.manage_categories_btn.setToolTip(self.tr('Grammatical Features (%s)') % 'Ctrl+G')
+        self.manage_categories_btn.setToolTip(self.tr('Grammatical Categories (%s)') % 'Ctrl+G')
         self.manage_escape_sequences_btn.setToolTip(self.tr('Escape Sequences (%s)') % 'Ctrl+E')
         self.practice_btn.setToolTip(self.tr('Practice (%s)') % 'Ctrl+P')
 
