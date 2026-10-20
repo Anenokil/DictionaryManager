@@ -601,6 +601,17 @@ def purge_unused_user_images(dct: Dictionary):
         path.unlink()
 
 
+def reset_search_settings(config: DctUISettings):
+    config.searchbar_to_search_in_words = True
+    config.searchbar_to_search_in_translations = True
+    config.searchbar_to_search_in_forms = False
+    config.searchbar_to_search_in_phrases = False
+    config.searchbar_to_search_in_notes = False
+    config.searchbar_fav_filter = DctUISettings.FAV_FILTER_OPTIONS[0]
+    config.searchbar_img_filter = DctUISettings.IMG_FILTER_OPTIONS[0]
+    config.searchbar_search_tags = None
+
+
 def lang_update(cls):
     original = cls.changeEvent
 
@@ -3100,7 +3111,7 @@ class SearchBar(QFrame):
             self.config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
 
     def reset_settings(self):
-        self.config.set_defaults(searchbar=True)
+        reset_search_settings(self.config)
         self._apply_search()
         self.config.save_to_json(DCT_GUI_DATA_PATH(self.dct.id))
 
@@ -3225,6 +3236,7 @@ class SearchSettingsDialog(QDialog):
         self.tags_list.set_items(tags)
 
     def reset(self):
+        reset_search_settings(self.config)
         self._fill_data()
 
     def save_and_close(self):
