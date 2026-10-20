@@ -1,3 +1,9 @@
+"""
+Implements GUI using tkinter.
+
+Author: Anenokil
+"""
+
 from types import NoneType
 from typing import Any, Literal, TypeVar, Type, Callable, Iterable
 import inspect
@@ -308,8 +314,9 @@ class AppData:
 """ Функции проверки """
 
 
-# Проверить корректность названия словаря
 def check_dct_name(window_parent: tk.Misc, app_data: AppData, name: str) -> bool:
+    """Validate a dictionary name."""
+
     if len(name) > 100:
         warning(window_parent, app_data, 'Название слишком длинное (> 100)!')
         return False
@@ -319,7 +326,6 @@ def check_dct_name(window_parent: tk.Misc, app_data: AppData, name: str) -> bool
     return True
 
 
-# Проверить корректность варианта написания
 def check_variant(
         window_parent: tk.Misc,
         app_data: AppData,
@@ -327,6 +333,8 @@ def check_variant(
         new_variant: str,
         lemma: str,
 ) -> bool:
+    """Validate a new word variant."""
+
     if new_variant == '':
         warning(window_parent, app_data, 'Вариант написания должен содержать хотя бы один символ!')
         return False
@@ -336,7 +344,6 @@ def check_variant(
     return True
 
 
-# Проверить корректность варианта написания при изменении
 def check_variant_edit(
         window_parent: tk.Misc,
         app_data: AppData,
@@ -345,6 +352,8 @@ def check_variant_edit(
         new_variant: str,
         lemma: str,
 ) -> bool:
+    """Validate a word variant on edit."""
+
     if new_variant == '':
         warning(window_parent, app_data, 'Вариант написания должен содержать хотя бы один символ!')
         return False
@@ -354,7 +363,6 @@ def check_variant_edit(
     return True
 
 
-# Проверить корректность перевода
 def check_tr(
         window_parent: tk.Misc,
         app_data: AppData,
@@ -362,6 +370,8 @@ def check_tr(
         new_tr: str,
         lemma: str,
 ) -> bool:
+    """Validate a new translation."""
+
     if new_tr == '':
         warning(window_parent, app_data, 'Перевод должен содержать хотя бы один символ!')
         return False
@@ -371,7 +381,6 @@ def check_tr(
     return True
 
 
-# Проверить корректность перевода при изменении
 def check_tr_edit(
         window_parent: tk.Misc,
         app_data: AppData,
@@ -380,6 +389,8 @@ def check_tr_edit(
         new_tr: str,
         lemma: str,
 ) -> bool:
+    """Validate a translation on edit."""
+
     if new_tr == '':
         warning(window_parent, app_data, 'Перевод должен содержать хотя бы один символ!')
         return False
@@ -389,7 +400,6 @@ def check_tr_edit(
     return True
 
 
-# Проверить корректность фразы
 def check_phr(
         window_parent: tk.Misc,
         app_data: AppData,
@@ -397,6 +407,8 @@ def check_phr(
         new_phrase_pair: tuple[str, str],
         lemma: str,
 ) -> bool:
+    """Validate a new phrase."""
+
     phrase, phrase_tr = new_phrase_pair
 
     if phrase == '' or phrase_tr == '':
@@ -408,7 +420,6 @@ def check_phr(
     return True
 
 
-# Проверить корректность фразы при изменении
 def check_phr_edit(
         window_parent: tk.Misc,
         app_data: AppData,
@@ -417,6 +428,8 @@ def check_phr_edit(
         new_phrase_pair: tuple[str, str],
         lemma: str,
 ) -> bool:
+    """Validate a phrase on edit."""
+
     new_phrase, new_phrase_tr = new_phrase_pair
 
     if new_phrase == '' or new_phrase_tr == '':
@@ -432,7 +445,6 @@ def check_phr_edit(
     return True
 
 
-# Проверить корректность сноски
 def check_note(
         window_parent: tk.Misc,
         app_data: AppData,
@@ -440,6 +452,8 @@ def check_note(
         new_note: str,
         lemma: str,
 ) -> bool:
+    """Validate a new note."""
+
     if new_note == '':
         warning(window_parent, app_data, 'Сноска должна содержать хотя бы один символ!')
         return False
@@ -449,7 +463,6 @@ def check_note(
     return True
 
 
-# Проверить корректность сноски при изменении
 def check_note_edit(
         window_parent: tk.Misc,
         app_data: AppData,
@@ -458,6 +471,8 @@ def check_note_edit(
         new_note: str,
         lemma: str,
 ) -> bool:
+    """Validate a note on edit."""
+
     if new_note == '':
         warning(window_parent, app_data, 'Сноска должна содержать хотя бы один символ!')
         return False
@@ -467,13 +482,14 @@ def check_note_edit(
     return True
 
 
-# Проверить корректность названия группы
 def check_tag_name(
         window_parent: tk.Misc,
         app_data: AppData,
         tags: list[str] | tuple[str, ...],
         new_tag: str,
 ) -> bool:
+    """Validate a new tag."""
+
     if new_tag == '':
         warning(window_parent, app_data, 'Название группы должно содержать хотя бы один символ!')
         return False
@@ -486,7 +502,6 @@ def check_tag_name(
     return True
 
 
-# Проверить корректность названия группы при изменении
 def check_tag_name_edit(
         window_parent: tk.Misc,
         app_data: AppData,
@@ -494,6 +509,8 @@ def check_tag_name_edit(
         old_tag: str,
         new_tag: str,
 ) -> bool:
+    """Validate a tag on edit."""
+
     if new_tag == '':
         warning(window_parent, app_data, 'Название группы должно содержать хотя бы один символ!')
         return False
@@ -506,13 +523,14 @@ def check_tag_name_edit(
     return True
 
 
-# Проверить корректность названия категории
 def check_ctg(
         window_parent: tk.Misc,
         app_data: AppData,
         categories: list[str] | tuple[str, ...],
         new_ctg: str,
 ) -> bool:
+    """Validate a new category name."""
+
     if new_ctg == '':
         warning(window_parent, app_data, 'Название категории должно содержать хотя бы один символ!')
         return False
@@ -522,7 +540,6 @@ def check_ctg(
     return True
 
 
-# Проверить корректность названия категории при изменении
 def check_ctg_edit(
         window_parent: tk.Misc,
         app_data: AppData,
@@ -530,6 +547,8 @@ def check_ctg_edit(
         old_ctg: str,
         new_ctg: str,
 ) -> bool:
+    """Validate a category name on edit."""
+
     if new_ctg == '':
         warning(window_parent, app_data, 'Название категории должно содержать хотя бы один символ!')
         return False
@@ -539,13 +558,14 @@ def check_ctg_edit(
     return True
 
 
-# Проверить корректность значения категории
 def check_ctg_val(
         window_parent: tk.Misc,
         app_data: AppData,
         ctg_values: list[str] | tuple[str, ...],
         new_value: str,
 ) -> bool:
+    """Validate a new category value."""
+
     if new_value == '':
         warning(window_parent, app_data, 'Значение категории должно содержать хотя бы один символ!')
         return False
@@ -555,7 +575,6 @@ def check_ctg_val(
     return True
 
 
-# Проверить корректность значения категории при изменении
 def check_ctg_val_edit(
         window_parent: tk.Misc,
         app_data: AppData,
@@ -563,6 +582,8 @@ def check_ctg_val_edit(
         old_value: str,
         new_value: str,
 ) -> bool:
+    """Validate a category value on edit."""
+
     if new_value == '':
         warning(window_parent, app_data, 'Значение категории должно содержать хотя бы один символ!')
         return False
@@ -755,8 +776,14 @@ def word_in_line(word: str, line: str) -> bool:
     return word in words
 
 
-# Заменить буквы в тексте соответствующими английскими
 def normalize(text: str) -> str:
+    """
+    Convert text to lowercase without diacritics for accent-insensitive search.
+
+    Letters that Unicode decomposition doesn't split (ß, æ, œ, ø) are first
+    replaced with their ASCII equivalents.
+    """
+
     special_map = {
         'ß': 'ss', 'ẞ': 'SS',
         'æ': 'ae', 'Æ': 'AE',
@@ -770,8 +797,25 @@ def normalize(text: str) -> str:
     return text.lower()
 
 
-# Разделить строку на слова
 def split_line(line: str) -> list[list[str]]:
+    """
+    Split a line into words and the separators that follow them.
+
+    A separator is any character for which is_separator returns True.
+    A word is a maximal run of non-separator characters.
+    Each word is paired with the run of separators right after it;
+    for the last word the separator part may be empty;
+    If the line starts with separators, they form the first pair
+    with an empty word.
+
+    Args:
+        line: The line to split.
+
+    Returns:
+        A list of (word, separator) pairs. Joining all words and separators
+        in order restores the original line. An empty line gives an empty list.
+    """
+
     line_len = len(line)
     res = []
 
@@ -795,8 +839,33 @@ def split_line(line: str) -> list[list[str]]:
     return res
 
 
-# Разделить текст на части, длина которых не превышает заданное значение
 def split_text(text: str, max_str_len: int, tab: int = 0, to_add_right_spaces: bool = True) -> str:
+    """
+    Wrap text so that no line is longer than the specified value.
+
+    Existing line breaks are preserved: each line of the input is wrapped
+    independently. Lines are broken between words (see split_line). A word
+    or a separator that is longer than the space available is split across
+    lines, so no characters are lost.
+
+    Lines created by wrapping (continuation lines) are indented by spaces;
+    the first line of each source line is not indented.
+
+    Args:
+        text: The text to wrap.
+        max_str_len: Maximum line length. Must be positive.
+        tab: Number of spaces to indent continuation lines. Must be
+             non-negative and less than max_str_len.
+        to_add_right_spaces: If True, pad every line with trailing spaces
+                             up to exactly max_str_len characters.
+
+    Returns:
+        The wrapped text, with lines separated by newlines.
+
+    Raises:
+        AssertionError: If max_str_len or tab is out of the allowed range.
+    """
+
     assert max_str_len > 0
     assert tab >= 0
     assert tab < max_str_len
@@ -866,8 +935,18 @@ def split_text(text: str, max_str_len: int, tab: int = 0, to_add_right_spaces: b
     return res
 
 
-# Выбрать окончание слова в зависимости от количественного числительного
 def select_word_form(n: int, word_forms: tuple[str, str, str]) -> str:
+    """
+    Choose the Russian word form that agrees with the number n.
+
+    Args:
+        n: The quantity.
+        word_forms: Forms for 1, for 2-4, and for 5+ items.
+
+    Returns:
+        Word form.
+    """
+
     if 5 <= n % 100 <= 20:
         return word_forms[2]
     if n % 10 == 1:
@@ -880,8 +959,9 @@ def select_word_form(n: int, word_forms: tuple[str, str, str]) -> str:
 """ Основные функции """
 
 
-# Выбрать одну статью из нескольких с одинаковыми словами
 def select_entry(app_data: AppData, window_parent: tk.Misc, lemma: str) -> Entry | None:
+    """Choose one entry from several entries with the same word (homographs)."""
+
     homographs = app_data.manager.active.dct.search(variants=[lemma])
     if len(homographs) == 1:
         return homographs.pop()
@@ -925,8 +1005,13 @@ def edit_variant_or_merge(
         return entry, True
 
 
-# Добавить статью в словарь (для пользователя)
 def add_homograph(app_data: AppData, window_parent: tk.Misc, lemma: str, tr: str) -> Entry | None:
+    """
+    Add a new word to the dictionary.
+
+    If an entry with the same word already exists, offer to add the new word to that entry instead.
+    """
+
     dct = app_data.manager.active.dct
 
     if dct.search(variants=[lemma]):
@@ -1088,8 +1173,9 @@ def check_updates(
 """ Загрузка/сохранение """
 
 
-# Установить в качестве пользовательской темы тему по умолчанию
 def create_default_custom_theme():
+    """Set the default theme as the custom theme."""
+
     styles_path = CUSTOM_THEME_DIR / STYLES_FN
     with open(styles_path, 'w', encoding='utf-8') as styles_file:
         styles_file.write(
@@ -1230,8 +1316,12 @@ def save_dct_if_has_progress(window_parent: tk.Misc, app_data: AppData):
 """ Графический интерфейс - вспомогательные функции """
 
 
-# Вычислить ширину моноширинного поля, в которое должно помещаться каждое из данных значений
 def combobox_width(values: tuple[str, ...] | list[str], min_width: int, max_width: int) -> int:
+    """
+    Calculate the width (in characters) of a monospace field that fits every
+    value, limited to the range from min_width to max_width.
+    """
+
     assert min_width >= 0
     assert max_width >= 0
     assert max_width >= min_width
@@ -1240,9 +1330,12 @@ def combobox_width(values: tuple[str, ...] | list[str], min_width: int, max_widt
     return min(max(max_len_of_vals, min_width), max_width)
 
 
-# Вычислить количество строк, необходимых для записи данного текста
-# в многострочное текстовое поле при данной длине строки
 def field_height(text: str, str_len: int) -> int:
+    """
+    Calculate the number of rows needed to display text in a multiline field
+    whose lines are str_len characters long.
+    """
+
     assert str_len > 0
 
     lines = text.split('\n')
@@ -1472,16 +1565,19 @@ class ScrollFrame(tk.Frame):
         self.frame_canvas.bind('<Enter>', self.on_enter)
         self.frame_canvas.bind('<Leave>', self.on_leave)
 
-    # Когда размер фрейма изменяется, соответственно изменяется и область прокрутки
     def on_frame_configure(self, event):
+        """Update the scroll region when the frame size changes."""
+
         self.canvas.configure(scrollregion=self.canvas.bbox('all'))
 
-    # Когда размер холста изменяется, соответственно изменяется и область окна
     def on_canvas_configure(self, event):
+        """Adjust the canvas window width when the canvas size changes."""
+
         self.canvas.itemconfig(self.canvas_window, width=event.width)
 
-    # Обработка событий колёсика мышки
     def on_mouse_wheel(self, event):
+        """Handle mouse wheel events."""
+
         if not (self.canvas.yview()[0] == 0.0 and event.delta > 0):
             if platform.system() == 'Windows':
                 self.canvas.yview_scroll(int(-1 * (event.delta / 120)), 'units')
@@ -1493,16 +1589,18 @@ class ScrollFrame(tk.Frame):
                 elif event.num == 5:
                     self.canvas.yview_scroll(1, 'units')
 
-    # Привязать колёсико мышки, когда курсор попадает на элемент управления
     def on_enter(self, event):
+        """Bind the mouse wheel when the cursor enters the widget."""
+
         if platform.system() == 'Linux':
             self.canvas.bind_all('<Button-4>', self.on_mouse_wheel)
             self.canvas.bind_all('<Button-5>', self.on_mouse_wheel)
         else:
             self.canvas.bind_all('<MouseWheel>', self.on_mouse_wheel)
 
-    # Отвязать колёсико мышки, когда курсор покидает элемент управления
     def on_leave(self, event):
+        """Unbind the mouse wheel when the cursor leaves the widget."""
+
         if platform.system() == 'Linux':
             self.canvas.unbind_all('<Button-4>')
             self.canvas.unbind_all('<Button-5>')
@@ -1601,13 +1699,29 @@ class TwoOptionsDialog(tk.Toplevel):
             left_btn_text: str = 'Да',
             right_btn_text: str = 'Отмена',
             left_btn_style: Literal['Default', 'Yes', 'No'] = 'Yes',
-            right_btn_style: Literal['Default', 'Yes', 'No'] = 'No',  # Стили левой и правой кнопок
-            val_left: Any = True,  # Значение, возвращаемое при нажатии на левую кнопку
-            val_right: Any = False,  # Значение, возвращаемое при нажатии на правую кнопку
-            val_cancel: Any = False,  # Значение, возвращаемое при закрытии окна крестиком
-            focused_btn: Literal['left', 'right', 'none'] = 'left',  # Какая кнопка срабатывает при нажатии кнопки enter
+            right_btn_style: Literal['Default', 'Yes', 'No'] = 'No',
+            val_left: Any = True,
+            val_right: Any = False,
+            val_cancel: Any = False,
+            focused_btn: Literal['left', 'right', 'none'] = 'left',
             title: str = PROGRAM_NAME,
     ):
+        """
+        Args:
+            parent: Parent widget.
+            app_data: Application data.
+            msg: The message shown in the dialog.
+            left_btn_text: Text of the left button.
+            right_btn_text: Text of the right button.
+            left_btn_style: Style of the left button: 'Default', 'Yes', or 'No'.
+            right_btn_style: Style of the right button: 'Default', 'Yes', or 'No'.
+            val_left: Value returned when the left button is pressed.
+            val_right: Value returned when the right button is pressed.
+            val_cancel: Value returned when the window is closed with the X button.
+            focused_btn: The button activated by the Enter key: 'left', 'right', or 'none'.
+            title: Window title.
+        """
+
         assert left_btn_style in self.ALLOWED_ST_VALUES,\
             f'Bad value: st_left\n' \
             f'Allowed values: {self.ALLOWED_ST_VALUES}'
@@ -1694,15 +1808,33 @@ class InputDialog(tk.Toplevel):
             title: str = PROGRAM_NAME,
             to_replace: bool = True,
     ):
+        """
+        Args:
+            parent: Parent widget.
+            app_data: Application data.
+            msg: The message shown in the dialog.
+            btn_text: Text of the button.
+            entry_width: Width (in characters) of the input field.
+            default_value: Text initially shown in the input field.
+            validate_function: Optional function that validates the entered text.
+            check_answer_function: Optional function that determines whether the answer is correct.
+                                   Its result decides which of if_correct_function and
+                                   if_incorrect_function is called.
+            if_correct_function: Optional function that is called when the answer is correct.
+            if_incorrect_function: Optional function that is called when the answer is incorrect.
+            title: Window title.
+            to_replace: Whether to apply replacements.
+        """
+
         super().__init__(parent)
         self.parent = parent
 
         self.app_data = app_data
         self.replacer = app_data.manager.active.replacer
 
-        self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
-        self.if_correct_function = if_correct_function  # Функция, вызываемая при корректном ответе
-        self.if_incorrect_function = if_incorrect_function  # Функция, вызываемая при некорректном ответе
+        self.check_answer_function = check_answer_function
+        self.if_correct_function = if_correct_function
+        self.if_incorrect_function = if_incorrect_function
         self.to_replace = to_replace
 
         self.cancelled = True  # Закрыто ли окно крестиком
@@ -2045,8 +2177,9 @@ class TrainSettingsW(tk.Toplevel):
             row=5, column=1, padx=(0, 6), pady=(0, 6), sticky='W')
 
     def _add_validation(self):
-        # При выборе любого метода учёбы кроме первого нельзя добавить словоформы
         def validate_format_and_forms(value: str):
+            """Allow adding word forms only for the first study method."""
+
             if value == LEARN_VALUES_FORMAT[0]:
                 self.lbl_forms.grid(  row=4, column=0, padx=(6, 1), pady=(0, 3), sticky='E')
                 self.combo_forms.grid(row=4, column=1, padx=(0, 6), pady=(0, 3), sticky='W')
@@ -2394,6 +2527,19 @@ class EnterPhraseW(tk.Toplevel):
             default_value: tuple[str, str] = ('', ''),
             check_answer_function: Callable[[tk.Misc, tuple[str, str]], bool] | None = None,
     ):
+        """
+        Args:
+            parent: Parent widget.
+            title: Window title.
+            app_data: Application data.
+            default_value: The phrase and its translation initially shown
+                           in the input fields.
+            check_answer_function: Optional function that validates the entered pair. It is called
+                                   with a parent widget and the (phrase, translation) pair,
+                                   returns True if the pair is correct, and may have side effects
+                                   (for example, showing a warning).
+        """
+
         super().__init__(parent)
         self.parent = parent
 
@@ -2401,7 +2547,7 @@ class EnterPhraseW(tk.Toplevel):
         self.replacer = app_data.manager.active.replacer
 
         self.cancelled = True  # Закрыто ли окно крестиком
-        self.check_answer_function = check_answer_function  # Функция, проверяющая корректность ответа
+        self.check_answer_function = check_answer_function
 
         phr = self.replacer.escape(default_value[0])
         phr_tr = self.replacer.escape(default_value[1])
@@ -2933,8 +3079,9 @@ class EditEntryW(tk.Toplevel):
     def close(self):
         self.destroy()
 
-    # Обновить поля
     def refresh(self, move_scroll: bool):
+        """Update displayed fields."""
+
         # Удаляем старые кнопки
         for btn in (
                 self.var_buttons + self.tr_buttons + self.nt_buttons +
@@ -4640,8 +4787,9 @@ class CustomThemeSettingsW(tk.Toplevel):
             self.btn_redo, 'Вернуть отменённое действие', hover_delay=450
         )
 
-    # Взять за основу уже существующую тему
     def set_theme(self):
+        """Use an existing theme as a base."""
+
         theme_name = self.var_theme.get()
         old_vals = []
         new_vals = []
@@ -4668,8 +4816,9 @@ class CustomThemeSettingsW(tk.Toplevel):
         self.var_images.set(theme_name)
         self.set_images()
 
-    # Выбрать изображения
     def set_images(self):
+        """Choose images."""
+
         old_img = self.dir_with_images
         new_img = THEMES_DIR / self.var_images.get()
 
@@ -7171,8 +7320,21 @@ class AddEntryW(tk.Toplevel):
             row=0, column=1, padx=(6, 0), pady=0)
 
     def _add_validation(self):
-        # При незаполненных полях нельзя нажать кнопку
         def validate_entries(value_word: str, value_tr: str):
+            """
+            Check the entered word and translation before saving.
+
+            Forbids saving if a field is not filled in. Also shows messages about
+            existing entries that are homonyms or synonyms of the entered ones.
+
+            Args:
+                value_word: The entered word.
+                value_tr: The entered translation.
+
+            Returns:
+                True if the entry can be saved, False otherwise.
+            """
+
             value_word = self.replacer.replace(value_word)
             value_tr = self.replacer.replace(value_tr)
 
@@ -7846,8 +8008,9 @@ class SettingsW(tk.Toplevel):
         else:
             btn_enable(self.btn_zoom_in, self.zoom_in, style='Image')
 
-    # Обновить настройки при открытии другого словаря
     def refresh(self):
+        """Refresh UI when another dictionary is opened."""
+
         self.print_dct_list(False)
 
     def set_theme(self):
