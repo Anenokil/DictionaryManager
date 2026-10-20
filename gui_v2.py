@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
     QStackedWidget, QTabWidget, QTabBar, QToolBar, QMenu,
     QTableWidget, QTableWidgetItem, QTableView, QTreeWidget,
     QTreeWidgetItem, QDialog, QInputDialog, QFileDialog,
-    QDialogButtonBox, QPushButton, QGroupBox, QMessageBox, QComboBox,
+    QDialogButtonBox, QPushButton, QMessageBox, QComboBox,
     QCheckBox, QLineEdit, QTextEdit, QLabel,
     QLayout, QVBoxLayout, QHBoxLayout, QFormLayout,
     QGridLayout, QHeaderView, QAbstractItemView, QSizePolicy,
@@ -3156,40 +3156,36 @@ class SearchSettingsDialog(QDialog):
         self._fill_data()
 
     def _create_widgets(self):
-        self.main_layout = QVBoxLayout(self)
+        self.main_layout = QGridLayout(self)
 
-        self._create_layout_settings()
+        self._create_fields()
         self._create_buttons()
 
-    def _create_layout_settings(self):
-        self.group_settings = QGroupBox(title=self.tr('Search in:'))
-        self.layout_settings = QVBoxLayout(self.group_settings)
-
+    def _create_fields(self):
         self.combobox_starred = NoEnterComboBox()
         self.combobox_starred.addItems([
             QCoreApplication.translate('SearchSettingsDialog', option) for option in self.STAR_OPTIONS
         ])
-        self.layout_settings.addWidget(self.combobox_starred)
 
         self.combobox_with_image = NoEnterComboBox()
         self.combobox_with_image.addItems([
             QCoreApplication.translate('SearchSettingsDialog', option) for option in self.IMAGE_OPTIONS
         ])
-        self.layout_settings.addWidget(self.combobox_with_image)
-
-        self.layout_settings.addWidget(QLabel(self.tr('Target fields')))
 
         self.fields_list = CheckableList({
             QCoreApplication.translate('SearchSettingsDialog', field): False for field in self.TARGET_FIELDS
         })
-        self.layout_settings.addWidget(self.fields_list)
-
-        self.layout_settings.addWidget(QLabel(self.tr('Required tags')))
 
         self.tags_list = CheckableList({tag: False for tag in sorted(self.dct.tags)})
-        self.layout_settings.addWidget(self.tags_list)
 
-        self.main_layout.addWidget(self.group_settings)
+        self.main_layout.addWidget(QLabel(self.tr('Search scopes:')), 0, 0, alignment=Qt.AlignRight | Qt.AlignTop)
+        self.main_layout.addWidget(self.fields_list, 0, 1)
+        self.main_layout.addWidget(QLabel(self.tr('Filter by star:')), 1, 0, alignment=Qt.AlignRight | Qt.AlignTop)
+        self.main_layout.addWidget(self.combobox_starred, 1, 1)
+        self.main_layout.addWidget(QLabel(self.tr('Filter by image:')), 2, 0, alignment=Qt.AlignRight | Qt.AlignTop)
+        self.main_layout.addWidget(self.combobox_with_image, 2, 1)
+        self.main_layout.addWidget(QLabel(self.tr('Filter by tags:')), 3, 0, alignment=Qt.AlignRight | Qt.AlignTop)
+        self.main_layout.addWidget(self.tags_list, 3, 1)
 
     def _create_buttons(self):
         buttons = QDialogButtonBox()
@@ -3206,7 +3202,7 @@ class SearchSettingsDialog(QDialog):
         self.save_button.clicked.connect(self.save_and_close)
         self.close_button.clicked.connect(self.reject)
 
-        self.main_layout.addWidget(buttons)
+        self.main_layout.addWidget(buttons, 4, 0, 1, 2)
 
     def _fill_data(self):
         self.combobox_starred.setCurrentIndex(self.config.FAV_FILTER_OPTIONS.index(self.config.searchbar_fav_filter))
