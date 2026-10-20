@@ -2927,7 +2927,7 @@ class EditEntryW(tk.Toplevel):
         self.refresh(False)
 
     def add_form(self):
-        if not self.dct.features:
+        if not self.dct.categories:
             warning(
                 self, self.app_data,
                 'Отсутствуют категории слов!\n'
@@ -2938,7 +2938,7 @@ class EditEntryW(tk.Toplevel):
 
         window_form = EnterFormW(
             self, self.app_data, self.entry, self.entry.lemma,
-            combo_width=combobox_width(tuple(self.dct.features.keys()), 5, 100),
+            combo_width=combobox_width(tuple(self.dct.categories.keys()), 5, 100),
         )
         gram_form, word_form = window_form.open()
         if not gram_form:
@@ -2953,7 +2953,7 @@ class EditEntryW(tk.Toplevel):
 
         window_form = EnterFormW(
             self, self.app_data, self.entry, word_form, list(gram_form),
-            combo_width=combobox_width(tuple(self.dct.features.keys()), 5, 100),
+            combo_width=combobox_width(tuple(self.dct.categories.keys()), 5, 100),
         )
         new_gram_form, new_word_form = window_form.open()
         if not new_gram_form:
@@ -3406,8 +3406,8 @@ class EnterFormW(tk.Toplevel):
         self.entry = entry
 
         self.cancelled = True  # Stays True if the window is closed without confirming
-        self.categories = list(self.dct.features.keys())
-        self.ctg_values = list(self.dct.features[self.categories[0]])
+        self.categories = list(self.dct.categories.keys())
+        self.ctg_values = list(self.dct.categories[self.categories[0]])
         self.initial_gram_form = ['' for _ in range(len(self.categories))]  # Empty gram form
         self.gram_form = gram_form or ['' for _ in range(len(self.categories))]
 
@@ -3570,7 +3570,7 @@ class EnterFormW(tk.Toplevel):
         self.destroy()
 
     def refresh_ctg_values(self):
-        self.ctg_values = list(self.dct.features[self.var_ctg.get()])
+        self.ctg_values = list(self.dct.categories[self.var_ctg.get()])
         self.var_val = tk.StringVar(value=self.ctg_values[0])
         self.combo_val.configure(
             textvariable=self.var_val, values=self.ctg_values,
@@ -7454,7 +7454,7 @@ class SettingsW(tk.Toplevel):
 
         self.active_tab = 0  # 0 or 1
 
-        self.features: list[tuple[EditedCtgName, list[EditedCtgValue]]] = ...
+        self.categories: list[tuple[EditedCtgName, list[EditedCtgValue]]] = ...
         self.tags: list[EditedTag] = ...
         self.replacements: list[EditedReplacement] = ...
         self._set_dct_settings()
@@ -7514,7 +7514,7 @@ class SettingsW(tk.Toplevel):
         self.tabs.add(self.tab_local, text='Настройки открытого словаря')
 
         self.btn_forms = create_button(
-            self.tab_local, self.open_features_settings, 'Грамматические категории',
+            self.tab_local, self.open_categories_settings, 'Грамматические категории',
             row=1, padx=6, pady=6)
         self.btn_tags = create_button(
             self.tab_local, self.open_tags_settings, 'Группы',
@@ -7652,9 +7652,9 @@ class SettingsW(tk.Toplevel):
     def _set_dct_settings(self):
         dct = self.manager.active.dct
 
-        self.features = [
+        self.categories = [
             (EditedCtgName(name, is_new=False), [EditedCtgValue(val, is_new=False) for val in vals])
-            for name, vals in dct.features.items()
+            for name, vals in dct.categories.items()
         ]
         self.tags = [
             EditedTag(tag, dct.is_default_tag(tag), is_new=False)
@@ -7665,8 +7665,8 @@ class SettingsW(tk.Toplevel):
             for (m, i), o in self.manager.active.replacer.replacements.items()
         ]
 
-    def open_features_settings(self):
-        self.features = CategoriesSettingsW(self, self.app_data, self.features).open()
+    def open_categories_settings(self):
+        self.categories = CategoriesSettingsW(self, self.app_data, self.categories).open()
 
     def open_tags_settings(self):
         self.tags = TagSettingsW(self, self.app_data, self.tags).open()
@@ -7887,26 +7887,26 @@ class SettingsW(tk.Toplevel):
                         dct.rename_tag(tag.name_init, tag.name_cur)
                     if tag.is_default_cur != tag.is_default_init:
                         dct.mark_tag_as_default(tag.name_cur, tag.is_default_cur)
-        for ctg, vals in self.features:
-            match ctg.status:
+        for name, vals in self.categories:
+            match name.status:
                 case 'deleted':
-                    dct.delete_ctg(ctg.name_init)
+                    dct.delete_ctg(name.name_init)
                     continue
                 case 'new':
-                    dct.add_ctg(ctg.name_cur, [val.name_cur for val in vals if not val.is_deleted])
+                    dct.add_ctg(name.name_cur, [val.name_cur for val in vals if not val.is_deleted])
                     continue
                 case 'modified':
-                    dct.rename_ctg(ctg.name_init, ctg.name_cur)
+                    dct.rename_ctg(name.name_init, name.name_cur)
             for val in vals:
                 match val.status:
                     case 'no changes':
                         continue
                     case 'deleted':
-                        dct.delete_ctg_value(ctg.name_cur, val.name_init)
+                        dct.delete_ctg_value(name.name_cur, val.name_init)
                     case 'new':
-                        dct.add_ctg_value(ctg.name_cur, val.name_cur)
+                        dct.add_ctg_value(name.name_cur, val.name_cur)
                     case 'modified':
-                        dct.rename_ctg_value(ctg.name_cur, val.name_init, val.name_cur)
+                        dct.rename_ctg_value(name.name_cur, val.name_init, val.name_cur)
 
         replacer: Replacer = self.manager.active.replacer
         for rep in self.replacements:
@@ -8067,9 +8067,9 @@ class SettingsW(tk.Toplevel):
     def has_local_changes(self):
         return (
             any(
-                c.status != 'no changes' or
-                any(v.status != 'no changes' for v in vals)
-                for c, vals in self.features
+                name.status != 'no changes' or
+                any(val.status != 'no changes' for val in vals)
+                for name, vals in self.categories
             ) or
             any(t.status != 'no changes' for t in self.tags) or
             any(e.status != 'no changes' for e in self.replacements)

@@ -149,7 +149,7 @@ This cannot be undone.</numerusform>
     </message>
 </context>
 <context>
-    <name>GramFeaturesTree</name>
+    <name>GramCategoriesTree</name>
     <message numerus="yes">
         <source>This will cause deletion of up to %n word forms</source>
         <translation>

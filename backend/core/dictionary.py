@@ -22,7 +22,7 @@ from .utils import validate_required_fields, validate_field_type
 Entries = list[Entry]
 Index = dict[str, set[Entry]]
 Indexes = dict[str, Index]
-FeatureRegistry = dict[Category, list[CtgValue]]
+CategoryRegistry = dict[Category, list[CtgValue]]
 TagRegistry = list[Tag]
 TagID = int
 TagIDs = set[TagID]
@@ -104,7 +104,7 @@ class Dictionary:
         }
 
         # Collection of all grammatical categories and their values present in the Dictionary
-        self._features: FeatureRegistry = {}
+        self._categories: CategoryRegistry = {}
 
         # All tags which can be assigned to Dictionary Entries.
         # Used for organizing and grouping Dictionary content.
@@ -174,8 +174,8 @@ class Dictionary:
         return self._is_modified
 
     @property
-    def features(self) -> FeatureRegistry:
-        return self._features
+    def categories(self) -> CategoryRegistry:
+        return self._categories
 
     @property
     def tags(self) -> TagRegistry:
@@ -218,13 +218,13 @@ class Dictionary:
         if target == 'tags':
             return len(self._tags)
         if target == 'categories':
-            return len(self._features)
+            return len(self._categories)
         if target == 'ctg_values':
-            return sum(len(ctg_vals) for ctg_vals in self._features.values())
+            return sum(len(ctg_vals) for ctg_vals in self._categories.values())
         return self._counters[target]
 
     def count_forms_by_ctg(self, ctg: Category, ctg_value: CtgValue | None = None) -> tuple[int, int]:
-        ctg_idx = list(self._features.keys()).index(ctg)
+        ctg_idx = list(self._categories.keys()).index(ctg)
 
         if ctg_value is None:
             is_match = lambda gf: gf[ctg_idx] != ''
@@ -354,10 +354,10 @@ class Dictionary:
 
         if forms is not None:
             for gram_form in forms.keys():
-                if len(gram_form) != len(self._features):
+                if len(gram_form) != len(self._categories):
                     raise InvalidGramFormError(gram_form)
-                for ctg_val, ctg in zip(gram_form, self._features):
-                    if ctg_val not in self._features[ctg]:
+                for ctg_val, ctg in zip(gram_form, self._categories):
+                    if ctg_val not in self._categories[ctg]:
                         raise InvalidGramFormError(ctg_val)
 
         tags = set() if tags is None else set(tags)
@@ -424,10 +424,10 @@ class Dictionary:
 
         if forms is not ...:
             for gram_form in forms.keys():
-                if len(gram_form) != len(self._features):
+                if len(gram_form) != len(self._categories):
                     raise InvalidGramFormError(gram_form)
-                for ctg_val, ctg in zip(gram_form, self._features):
-                    if ctg_val != '' and ctg_val not in self._features[ctg]:
+                for ctg_val, ctg in zip(gram_form, self._categories):
+                    if ctg_val != '' and ctg_val not in self._categories[ctg]:
                         raise InvalidGramFormError(ctg_val)
 
         if tags is not ...:
@@ -994,13 +994,13 @@ class Dictionary:
             CategoryExistsError: If the specified category is already in the Dictionary.
         """
 
-        if ctg_name in self._features.keys():
+        if ctg_name in self._categories.keys():
             raise CategoryExistsError(ctg_name)
 
         for entry in self._entries:
             entry.forms._add_ctg()
 
-        self._features[ctg_name] = ctg_values
+        self._categories[ctg_name] = ctg_values
 
     @_mark_modified
     def rename_ctg(self, ctg_name_old: Category, ctg_name_new: Category):
@@ -1016,12 +1016,12 @@ class Dictionary:
             CategoryExistsError: If the specified new name already exists.
         """
 
-        if ctg_name_old not in self._features.keys():
+        if ctg_name_old not in self._categories.keys():
             raise InvalidCategoryError(ctg_name_old)
-        if ctg_name_new in self._features.keys():
+        if ctg_name_new in self._categories.keys():
             raise CategoryExistsError(ctg_name_new)
 
-        self._features[ctg_name_new] = self._features.pop(ctg_name_old)
+        self._categories[ctg_name_new] = self._categories.pop(ctg_name_old)
 
     def rename_ctgs(self, renames: Mapping[Category, Category]):
         temp_names = {}
@@ -1049,12 +1049,12 @@ class Dictionary:
             InvalidCategoryError: If the specified category does not exist.
         """
 
-        if ctg_name not in self._features.keys():
+        if ctg_name not in self._categories.keys():
             raise InvalidCategoryError(ctg_name)
 
-        index = tuple(self._features.keys()).index(ctg_name)
+        index = tuple(self._categories.keys()).index(ctg_name)
 
-        self._features.pop(ctg_name)
+        self._categories.pop(ctg_name)
 
         for entry in self._entries:
             self._update_index('forms', chain(*entry.forms.values()), entry, 'remove')
@@ -1077,13 +1077,13 @@ class Dictionary:
             InvalidCategoryError: If the specified category does not exist.
         """
 
-        if ctg_name not in self._features:
+        if ctg_name not in self._categories:
             raise InvalidCategoryError(ctg_name)
 
-        if ctg_value in self._features[ctg_name]:
+        if ctg_value in self._categories[ctg_name]:
             return
 
-        self._features[ctg_name].append(ctg_value)
+        self._categories[ctg_name].append(ctg_value)
 
         self._is_modified = True
 
@@ -1110,17 +1110,17 @@ class Dictionary:
             CtgValueExistsError: If the new value already exists.
         """
 
-        if ctg_name not in self._features:
+        if ctg_name not in self._categories:
             raise InvalidCategoryError(ctg_name)
-        if ctg_value_old not in self._features[ctg_name]:
+        if ctg_value_old not in self._categories[ctg_name]:
             raise InvalidCtgValueError(ctg_value_old)
-        if ctg_value_new in self._features[ctg_name]:
+        if ctg_value_new in self._categories[ctg_name]:
             raise CtgValueExistsError(ctg_value_new)
 
-        index_ctg = tuple(self._features.keys()).index(ctg_name)
-        index_val = self._features[ctg_name].index(ctg_value_old)
+        index_ctg = tuple(self._categories.keys()).index(ctg_name)
+        index_val = self._categories[ctg_name].index(ctg_value_old)
 
-        self._features[ctg_name][index_val] = ctg_value_new
+        self._categories[ctg_name][index_val] = ctg_value_new
 
         for entry in self._entries:
             entry.forms._rename_ctg_value(index_ctg, ctg_value_old, ctg_value_new)
@@ -1153,17 +1153,17 @@ class Dictionary:
             InvalidCtgValueError: If the specified category value does not exist.
         """
 
-        if ctg_name not in self._features:
+        if ctg_name not in self._categories:
             raise InvalidCategoryError(ctg_name)
-        if ctg_value not in self._features[ctg_name]:
+        if ctg_value not in self._categories[ctg_name]:
             raise InvalidCtgValueError(ctg_value)
 
-        if self._features[ctg_name] == [ctg_value]:
+        if self._categories[ctg_name] == [ctg_value]:
             self.delete_ctg(ctg_name)
         else:
-            index = tuple(self._features.keys()).index(ctg_name)
+            index = tuple(self._categories.keys()).index(ctg_name)
 
-            self._features[ctg_name].remove(ctg_value)
+            self._categories[ctg_name].remove(ctg_value)
 
             for entry in self._entries:
                 self._update_index('forms', chain(*entry.forms.values()), entry, 'remove')
@@ -1376,7 +1376,7 @@ class Dictionary:
                 'entries': entries,
                 'indexes': indexes,
                 'counters': self._counters,
-                'features': self._features,
+                'categories': self._categories,
                 'tags': self._tags,
                 'default_tag_ids': default_tag_ids,
                 'is_modified': self._is_modified,
@@ -1412,7 +1412,7 @@ class Dictionary:
         # Read optional fields
         name = data.get('name', None)
         entries = data.get('entries', [])
-        features = data.get('features', {})
+        categories = data.get('categories', {})
         tags = data.get('tags', [])
         default_tag_ids = data.get('default_tag_ids', [])
 
@@ -1422,7 +1422,7 @@ class Dictionary:
         validate_field_type('entries', entries, list[SerializedData])
         validate_field_type('indexes', indexes, dict[str, dict[str, list[int]]])
         validate_field_type('counters', counters, dict[str, int])
-        validate_field_type('features', features, dict[str, list[str]])
+        validate_field_type('categories', categories, dict[str, list[str]])
         validate_field_type('tags', tags, list[str])
         validate_field_type('default_tag_ids', default_tag_ids, list[int])
         validate_field_type('is_modified', is_modified, bool)
@@ -1445,7 +1445,7 @@ class Dictionary:
         self._entries = entries
         self._indexes = indexes
         self._counters = counters
-        self._features = features
+        self._categories = categories
         self._tags = tags
         self._default_tag_ids = default_tag_ids
         self._is_modified = is_modified

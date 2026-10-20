@@ -55,7 +55,7 @@ IMG_CLOSE_PATH = str(IMAGES_DIR / 'close.png')
 IMG_ENTER_PATH = str(IMAGES_DIR / 'enter.png')
 IMG_ESCAPE_SEQ_PATH = str(IMAGES_DIR / 'escape_seq.png')
 IMG_EXIT_PATH = str(IMAGES_DIR / 'exit.png')
-IMG_FEATURES_PATH = str(IMAGES_DIR / 'features.png')
+IMG_CATEGORIES_PATH = str(IMAGES_DIR / 'categories.png')
 IMG_HINT_PATH = str(IMAGES_DIR / 'hint.png')
 IMG_MATCH_CASE_PATH = str(IMAGES_DIR / 'match_case.png')
 IMG_MATCH_WHOLE_WORD_PATH = str(IMAGES_DIR / 'match_whole_word.png')
@@ -1265,19 +1265,19 @@ class ManageTagsDialog(QDialog):
         self.accept()
 
 
-class GramFeaturesTree(QTreeWidget):
+class GramCategoriesTree(QTreeWidget):
     def __init__(
             self,
             dct_bundle: DctBundle,
-            features: dict[str, list[str]],
+            categories: dict[str, list[str]],
             parent: QWidget | None = None,
     ):
         super().__init__(parent)
 
         self.dct = dct_bundle.dct
         self.replacer = dct_bundle.replacer
-        self.init_categories = set(features.keys())
-        self.init_values = {ctg: set(values) for ctg, values in features.items()}
+        self.init_categories = set(categories.keys())
+        self.init_values = {name: set(values) for name, values in categories.items()}
 
         self.setHeaderHidden(True)
         self.setEditTriggers(QTreeWidget.DoubleClicked | QTreeWidget.EditKeyPressed)
@@ -1287,8 +1287,8 @@ class GramFeaturesTree(QTreeWidget):
         self.model().rowsRemoved.connect(self.on_rows_removed)
         self.model().rowsInserted.connect(self.on_rows_inserted)
 
-        for category, values in features.items():
-            self.add_category(category, values)
+        for name, values in categories.items():
+            self.add_category(name, values)
 
         self.expandAll()
 
@@ -1341,18 +1341,18 @@ class GramFeaturesTree(QTreeWidget):
 
     def delete_item(self, item: QTreeWidgetItem):
         if self.is_category(item):
-            ctg = item.text(0)
+            ctg_name = item.text(0)
             ctg_val = None
-            is_new = ctg not in self.dct.features
-            messagebox_title = self.tr('Delete Category "%s"') % ctg
+            is_new = ctg_name not in self.dct.categories
+            messagebox_title = self.tr('Delete Category "%s"') % ctg_name
         else:
-            ctg = item.parent().text(0)
+            ctg_name = item.parent().text(0)
             ctg_val = item.text(0)
-            is_new = (ctg not in self.dct.features) or (ctg_val not in self.dct.features[ctg])
+            is_new = (ctg_name not in self.dct.categories) or (ctg_val not in self.dct.categories[ctg_name])
             messagebox_title = self.tr('Delete Category Value "%s"') % ctg_val
 
         if not is_new:
-            n_gram_forms_to_delete, n_word_forms_to_delete = self.dct.count_forms_by_ctg(ctg, ctg_val)
+            n_gram_forms_to_delete, n_word_forms_to_delete = self.dct.count_forms_by_ctg(ctg_name, ctg_val)
             if n_gram_forms_to_delete > 0:
                 text = self.tr('This will cause deletion of up to %n word forms', None, n_gram_forms_to_delete)
                 if n_word_forms_to_delete != n_gram_forms_to_delete:
@@ -1493,7 +1493,7 @@ class GramFeaturesTree(QTreeWidget):
         return new_ctgs, new_values, renamed_ctgs, renamed_values, deleted_ctgs, deleted_values
 
 
-class ManageGramFeaturesDialog(QDialog):
+class ManageGramCategoriesDialog(QDialog):
     def __init__(self, dct_bundle: DctBundle, parent: QWidget | None = None):
         super().__init__(parent)
 
@@ -1501,7 +1501,7 @@ class ManageGramFeaturesDialog(QDialog):
 
         self.setWindowTitle(self.tr('Grammatical Features'))
 
-        self.tree = GramFeaturesTree(dct_bundle, self.dct.features)
+        self.tree = GramCategoriesTree(dct_bundle, self.dct.categories)
         self.tree.currentItemChanged.connect(self._update_add_value_button)
         self.tree.setItemDelegate(ColoredItemDelegate(self.tree))
 
@@ -2537,7 +2537,7 @@ class _EntryDetailsDialog(QDialog):
         if item is None:
             return
 
-        specs = {k: [''] + v for k, v in self.dct.features.items()}
+        specs = {k: [''] + v for k, v in self.dct.categories.items()}
         gram_form = item.data(self._role_gram_form)
         res, ok = OptionsDialog.get_settings(
             specs, gram_form, self.tr('Edit Grammatical Form'), validator=self.valid_gram_form, parent=self,
@@ -2569,8 +2569,8 @@ class _EntryDetailsDialog(QDialog):
         self.add_row_to_single_column_table(self.translations_table)
 
     def add_form(self):
-        specs = {k: [''] + v for k, v in self.dct.features.items()}
-        empty_gram_form = tuple('' for _ in range(len(self.dct.features)))
+        specs = {k: [''] + v for k, v in self.dct.categories.items()}
+        empty_gram_form = tuple('' for _ in range(len(self.dct.categories)))
 
         res, ok = OptionsDialog.get_settings(
             specs, empty_gram_form, self.tr('Set Grammatical Form'), validator=self.valid_gram_form, parent=self,
@@ -3728,21 +3728,21 @@ class BrowsingPage(QWidget):
         self.search_btn = create_img_button(IMG_SEARCH_PATH)
         self.add_entry_btn = create_img_button(IMG_ADD_PATH)
         self.manage_tags_btn = create_img_button(IMG_TAG_PATH)
-        self.manage_features_btn = create_img_button(IMG_FEATURES_PATH)
+        self.manage_categories_btn = create_img_button(IMG_CATEGORIES_PATH)
         self.manage_escape_sequences_btn = create_img_button(IMG_ESCAPE_SEQ_PATH)
         self.practice_btn = create_img_button(IMG_PRACTICE_PATH)
 
         self.search_btn.clicked.connect(self.toggle_search)
         self.add_entry_btn.clicked.connect(self.add_entry)
         self.manage_tags_btn.clicked.connect(self.manage_tags)
-        self.manage_features_btn.clicked.connect(self.manage_features)
+        self.manage_categories_btn.clicked.connect(self.manage_categories)
         self.manage_escape_sequences_btn.clicked.connect(self.manage_escape_sequences)
         self.practice_btn.clicked.connect(self.practice_button_clicked.emit)
 
         self.buttons_layout.addWidget(self.search_btn)
         self.buttons_layout.addWidget(self.add_entry_btn)
         self.buttons_layout.addWidget(self.manage_tags_btn)
-        self.buttons_layout.addWidget(self.manage_features_btn)
+        self.buttons_layout.addWidget(self.manage_categories_btn)
         self.buttons_layout.addWidget(self.manage_escape_sequences_btn)
         self.buttons_layout.addWidget(self.practice_btn)
 
@@ -3758,7 +3758,7 @@ class BrowsingPage(QWidget):
         QShortcut(QKeySequence('Esc'), self, self.hide_search_bar)
         QShortcut(QKeySequence('Ctrl+N'), self, self.add_entry)
         QShortcut(QKeySequence('Ctrl+T'), self, self.manage_tags)
-        QShortcut(QKeySequence('Ctrl+G'), self, self.manage_features)
+        QShortcut(QKeySequence('Ctrl+G'), self, self.manage_categories)
         QShortcut(QKeySequence('Ctrl+E'), self, self.manage_escape_sequences)
         QShortcut(QKeySequence('Ctrl+P'), self, self.practice_button_clicked.emit)
 
@@ -3800,7 +3800,7 @@ class BrowsingPage(QWidget):
         self.search_btn.setToolTip(self.tr('Find Entries (%s)') % 'Ctrl+F')
         self.add_entry_btn.setToolTip(self.tr('New Entry (%s)') % 'Ctrl+N')
         self.manage_tags_btn.setToolTip(self.tr('Tags (%s)') % 'Ctrl+T')
-        self.manage_features_btn.setToolTip(self.tr('Grammatical Features (%s)') % 'Ctrl+G')
+        self.manage_categories_btn.setToolTip(self.tr('Grammatical Features (%s)') % 'Ctrl+G')
         self.manage_escape_sequences_btn.setToolTip(self.tr('Escape Sequences (%s)') % 'Ctrl+E')
         self.practice_btn.setToolTip(self.tr('Practice (%s)') % 'Ctrl+P')
 
@@ -3917,8 +3917,8 @@ class BrowsingPage(QWidget):
         dialog.exec()
         self.update_tab_title()
 
-    def manage_features(self):
-        dialog = ManageGramFeaturesDialog(self.dct_bundle, parent=self)
+    def manage_categories(self):
+        dialog = ManageGramCategoriesDialog(self.dct_bundle, parent=self)
         dialog.exec()
         self.update_tab_title()
 
@@ -5275,8 +5275,8 @@ class MainWindow(QMainWindow):
         new_dct_bundle = self.manager.create_dct(name=dct_name, to_activate=False, optional_classes={'qt': DctUISettings})
         old_dct = self.manager.active.dct
         new_dct = new_dct_bundle.dct
-        for ctg, ctg_vals in old_dct.features.items():
-            new_dct.add_ctg(ctg, ctg_vals)
+        for ctg_name, ctg_vals in old_dct.categories.items():
+            new_dct.add_ctg(ctg_name, ctg_vals)
         for tag in old_dct.tags:
             new_dct.add_tag(tag)
         for entry in entries:
