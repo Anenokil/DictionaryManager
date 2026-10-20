@@ -574,11 +574,8 @@ def check_ctg_val_edit(
 
 
 # Проверить является ли строка разделимой (для split_line)
-def is_splittable(line: str) -> bool:
-    for char in line:
-        if not (char.isalnum() or char in '()[]{}<>_-+*%!?.,;:`"\''):
-            return True
-    return False
+def is_separator(char: str) -> bool:
+    return not (char.isalnum() or char in '()[]{}<>_-+*%!?.,;:`"\'')
 
 
 """ Функции вывода """
@@ -803,7 +800,7 @@ def split_line(line: str) -> list[list[str]]:
     res = []
 
     i = 0
-    while i < line_len and is_splittable(line[i]):
+    while i < line_len and is_separator(line[i]):
         i += 1
     if i != 0:
         res.append(['', line[0:i]])
@@ -811,10 +808,10 @@ def split_line(line: str) -> list[list[str]]:
     while i < line_len:
         word = ''
         separator = ''
-        while i < line_len and not is_splittable(line[i]):
+        while i < line_len and not is_separator(line[i]):
             word += line[i]
             i += 1
-        while i < line_len and is_splittable(line[i]):
+        while i < line_len and is_separator(line[i]):
             separator += line[i]
             i += 1
         res.append([word, separator])
