@@ -212,18 +212,14 @@ class DctUISettings(OptionalDctData):
             self.set_defaults(True, True)
             return self.to_dict()
 
-        with open(path, 'r') as f:
-            data = json.load(f)
-        return data
+        return read_json(path)
 
     def load_from_json(self, path: str):
         data = self.read_json(path)
         self.load_from_dict(data)
 
     def save_to_json(self, path: str):
-        data = self.to_dict()
-        with open(path, 'w') as f:
-            json.dump(data, f)
+        save_json(self.to_dict(), path)
 
 
 @validation_and_migration(1, [
