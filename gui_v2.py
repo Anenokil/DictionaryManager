@@ -252,9 +252,11 @@ class UISettings:
 
 class AppData:
     def __init__(self):
+        self.app = QApplication(sys.argv)
+        self.translator = QTranslator()
+
         self.manager = Manager()
         self.ui_settings = UISettings()
-        self.translator = QTranslator()
 
         if Path(MANAGER_PATH).exists():
             self.load(True, False)
@@ -267,6 +269,8 @@ class AppData:
         else:
             Path(GUI_CONFIG_PATH).parent.mkdir(parents=True, exist_ok=True)
             self.save(False, True)
+
+        self._install_translator()
 
     @staticmethod
     def load_bundle_by_id(bundle_id: str) -> DctBundle | None:
@@ -286,6 +290,15 @@ class AppData:
             self.manager.load_from_json_dict(read_json(MANAGER_PATH), self.load_bundle_by_id)
         if ui:
             self.ui_settings.deserialize(read_json(GUI_CONFIG_PATH))
+
+    def _install_translator(self):
+        if self.translator.load(self.ui_settings.locale, str(LOCALES_DIR)):
+            self.app.installTranslator(self.translator)
+
+    def reset_translator(self):
+        self.app.removeTranslator(self.translator)
+        self.translator = QTranslator()
+        self._install_translator()
 
 
 def forms_to_pairs(forms: Forms) -> Generator[tuple[str, str], None, None]:
@@ -5098,10 +5111,7 @@ class SettingsDialog(QDialog):
         if self.dct_bundle is not None:
             self.dct_bundle.partial_save(DCT_SAVE_DIR(self.dct_bundle.id), optional={'qt'})
 
-        app.removeTranslator(self.app_data.translator)
-        self.app_data.translator = QTranslator()
-        self.app_data.translator.load(app_data.ui_settings.locale, str(LOCALES_DIR))
-        app.installTranslator(self.app_data.translator)
+        self.app_data.reset_translator()
 
     def save_and_close(self):
         self.save()
@@ -5524,12 +5534,8 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app_data = AppData()
-    app = QApplication(sys.argv)
-
-    if app_data.translator.load(app_data.ui_settings.locale, str(LOCALES_DIR)):
-        app.installTranslator(app_data.translator)
 
     window = MainWindow(app_data)
     window.show()
 
-    sys.exit(app.exec())
+    sys.exit(app_data.app.exec())
