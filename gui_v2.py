@@ -224,6 +224,7 @@ class DctUISettings(OptionalDctData):
 
 @validation_and_migration(1, [
     ('locale', False, str),
+    ('main_window_geometry', False, list[int]),
 ])
 class UISettings:
     def __init__(self, data: SerializedData | None = None):
@@ -234,18 +235,29 @@ class UISettings:
 
     def set_defaults(self):
         self.locale: str = QLocale.system().name()
+        self.main_window_geometry: tuple[int, int, int, int] = MainWindow.DEFAULT_GEOMETRY
 
     def deserialize(self, data: SerializedData):
         data = self._check_and_migrate(data)
         data = data['data']
 
-        self.locale: str = data['locale']
+        keys = [
+            'locale',
+            'main_window_geometry',
+        ]
+        for key in keys:
+            if key in data:
+                value = data[key]
+                if key == 'main_window_geometry':
+                    value = tuple(value)
+                setattr(self, key, value)
 
     def serialize(self) -> SerializedData:
         return {
             'version': self._schema_version,
             'data': {
                 'locale': self.locale,
+                'main_window_geometry': list(self.main_window_geometry),
             }
         }
 
@@ -5127,6 +5139,8 @@ class MainWindow(QMainWindow):
     and creating dictionaries, and handles application state persistence.
     """
 
+    DEFAULT_GEOMETRY = (100, 100, 800, 600)
+
     def __init__(self, app_data: AppData, parent: QWidget | None = None):
         """
         Initialize the main window.
@@ -5148,7 +5162,8 @@ class MainWindow(QMainWindow):
         self.load_state()
 
     def _configure_window(self):
-        self.setGeometry(100, 100, 800, 600)
+        left, top, w, h = self.app_data.ui_settings.main_window_geometry
+        self.setGeometry(left, top, w, h)
 
     def _create_widgets(self):
         # Create central widget and main layout
@@ -5370,6 +5385,9 @@ class MainWindow(QMainWindow):
         Serializes the dictionary manager state (opened dictionaries and
         current selection) and saves it to the configured save path.
         """
+
+        g = self.geometry()
+        self.app_data.ui_settings.main_window_geometry = g.left(), g.top(), g.width(), g.height()
 
         self.app_data.save()
 
