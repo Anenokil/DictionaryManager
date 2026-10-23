@@ -989,7 +989,7 @@ class EditableTagList(QTableWidget):
             ActionConfig(
                 self.tr('Delete'), self.delete_tags,
                 lambda: self.n_selected_tags() > 0,
-                shortcut='Delete'
+                shortcut='Ctrl+D'
             ),
             ActionConfig(
                 self.tr('Mark as Default'), self.mark_tags_default,
@@ -1009,6 +1009,7 @@ class EditableTagList(QTableWidget):
 
     def _set_shortcuts(self):
         set_widget_shortcut('Delete', self, self.delete_tags, True)
+        set_widget_shortcut('Ctrl+D', self, self.delete_tags, True)
         set_widget_shortcut('Ctrl+M', self, self.mark_tags_default, True)
         set_widget_shortcut('Ctrl+U', self, self.unmark_tags_default, True)
 
@@ -1336,7 +1337,7 @@ class GramCategoriesTree(QTreeWidget):
             else:
                 action_text = self.tr('Delete value "%s"') % item.text(0)
             delete_action = menu.addAction(action_text)
-            delete_action.setShortcut('Delete')
+            delete_action.setShortcut('Ctrl+D')
 
             chosen = menu.exec(self.viewport().mapToGlobal(pos))
             if chosen == delete_action:
@@ -1346,6 +1347,7 @@ class GramCategoriesTree(QTreeWidget):
 
     def _set_shortcuts(self):
         set_widget_shortcut('Delete', self, lambda: self.delete_item(self.currentItem()), True)
+        set_widget_shortcut('Ctrl+D', self, lambda: self.delete_item(self.currentItem()), True)
 
     def add_category(self, name: str = '', values: list[str] | None = None):
         item = QTreeWidgetItem([name])
@@ -2184,7 +2186,7 @@ class _EntryDetailsDialog(QDialog):
                 self.tr('Delete'),
                 self.delete_lemma_variants,
                 lambda: 0 < cnt(self.lemma_variants_table) < self.lemma_variants_table.rowCount(),
-                shortcut='Delete',
+                shortcut='Ctrl+D',
             )
         ])
         setup_table_context_menu(self.translations_table, [
@@ -2194,13 +2196,13 @@ class _EntryDetailsDialog(QDialog):
                 self.tr('Delete'),
                 self.delete_translations,
                 lambda: 0 < cnt(self.translations_table) < self.translations_table.rowCount(),
-                shortcut='Delete',
+                shortcut='Ctrl+D',
             )
         ])
         setup_table_context_menu(self.forms_table, [
             ActionConfig(lambda: self.tr('%n forms selected', None, cnt(self.forms_table)), None),
             None,
-            ActionConfig(self.tr('Delete'), self.delete_forms, lambda: 0 < cnt(self.forms_table), shortcut='Delete'),
+            ActionConfig(self.tr('Delete'), self.delete_forms, lambda: 0 < cnt(self.forms_table), shortcut='Ctrl+D'),
         ])
         setup_table_context_menu(self.phrases_table, [
             ActionConfig(lambda: self.tr('%n phrases selected', None, cnt(self.phrases_table)), None),
@@ -2209,13 +2211,13 @@ class _EntryDetailsDialog(QDialog):
                 self.tr('Delete'),
                 self.delete_phrases,
                 lambda: 0 < cnt(self.phrases_table),
-                shortcut='Delete',
+                shortcut='Ctrl+D',
             ),
         ])
         setup_table_context_menu(self.notes_table, [
             ActionConfig(lambda: self.tr('%n notes selected', None, cnt(self.notes_table)), None),
             None,
-            ActionConfig(self.tr('Delete'), self.delete_notes, lambda: 0 < cnt(self.notes_table), shortcut='Delete'),
+            ActionConfig(self.tr('Delete'), self.delete_notes, lambda: 0 < cnt(self.notes_table), shortcut='Ctrl+D'),
         ])
 
         # Signal handling
@@ -2288,6 +2290,12 @@ class _EntryDetailsDialog(QDialog):
         set_widget_shortcut('Delete', self.forms_table, self.delete_forms)
         set_widget_shortcut('Delete', self.phrases_table, self.delete_phrases)
         set_widget_shortcut('Delete', self.notes_table, self.delete_notes)
+
+        set_widget_shortcut('Ctrl+D', self.lemma_variants_table, self.delete_lemma_variants)
+        set_widget_shortcut('Ctrl+D', self.translations_table, self.delete_translations)
+        set_widget_shortcut('Ctrl+D', self.forms_table, self.delete_forms)
+        set_widget_shortcut('Ctrl+D', self.phrases_table, self.delete_phrases)
+        set_widget_shortcut('Ctrl+D', self.notes_table, self.delete_notes)
 
         QShortcut(QKeySequence('Ctrl+S'), self, self.save)
 
